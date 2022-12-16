@@ -13,7 +13,8 @@ export function uploadUri() {
 	let uri = 'https://image.gratheon.com/graphql'
 
 	if (isDev()) {
-		uri = 'http://' + window.location.host.split(':')[0] + ':17000/graphql'
+		// image-splitter
+		uri = 'http://' + window.location.host.split(':')[0] + ':8800/graphql'
 	}
 	return uri
 }

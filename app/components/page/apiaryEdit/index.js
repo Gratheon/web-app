@@ -12,6 +12,7 @@ import VisualFormSubmit from '../../shared/visualForm/VisualFormSubmit'
 import Button from '../../shared/button'
 import Map from '../../shared/map'
 import Weather from '../../shared/weather'
+import Plants from '../../shared/plants'
 export default class ApiaryEditForm extends Component {
 	render() {
 		let navigate = useNavigate()
@@ -178,6 +179,7 @@ export default class ApiaryEditForm extends Component {
 				</VisualForm>
 
 				{apiary && <Weather lat={apiary.lat} lng={apiary.lng} />}
+				{apiary && <Plants lat={apiary.lat} lng={apiary.lng} />}
 			</div>
 		)
 	}

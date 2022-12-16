@@ -1,0 +1,31 @@
+@import '../../colors';
+
+.form {
+	display: block;
+
+	& > div {
+		display: flex;
+		padding: 2px;
+
+		& > label {
+			display: inline-block;
+			vertical-align: middle;
+			min-width: 100px;
+			padding: 7px;
+		}
+
+		& > input {
+			padding: 0 5px;
+			//margin: 0 5px;
+			//height: 30px;
+		}
+	}
+}
+
+:global {
+	div.optional {
+		label {
+			color: gray;
+		}
+	}
+}

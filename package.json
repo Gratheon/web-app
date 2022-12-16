@@ -1,0 +1,80 @@
+{
+	"private": true,
+	"name": "swarm-ui",
+	"version": "0.0.1",
+	"license": "MIT",
+	"scripts": {
+		"start": "per-env",
+		"start:production": "npm run -s serve",
+		"develop": "ENV_ID=dev npm run -s dev",
+		"build": "./node_modules/.bin/preact build --no-prerender --src app --template app/index.html --dest build && mv build/* public",
+		"serve": "./node_modules/.bin/preact build --src app && serve build --single",
+		"dev": "./node_modules/.bin/preact watch --src app",
+		"lint": "eslint app --fix",
+		"prettier": "prettier --write --ignore-unknown .",
+		"test": "jest --config test/jest.config.js --runInBand --color",
+		"test:e2e:write": "./node_modules/.bin/cypress open"
+	},
+	"eslintConfig": {
+		"extends": "eslint-config-synacor"
+	},
+	"eslintIgnore": [
+		"build/*"
+	],
+	"devDependencies": {
+		"@types/leaflet": "^1.8.0",
+		"babel-eslint": "10.1.0",
+		"cypress": "9.5.4",
+		"enzyme": "3.11.0",
+		"eslint": "6.0.0",
+		"eslint-config-synacor": "3.0.5",
+		"eslint-plugin-import": "2.26.0",
+		"eslint-plugin-react": "7.29.4",
+		"eslint-plugin-react-hooks": "4.4.0",
+		"expect": "27.5.1",
+		"identity-obj-proxy": "3.0.0",
+		"jest": "27.5.1",
+		"jest-preset-preact": "4.0.5",
+		"lint-staged": "12.3.8",
+		"per-env": "1.0.2",
+		"prettier": "2.6.2",
+		"serve": "13.0.2",
+		"webpack-bundle-analyzer": "4.5.0"
+	},
+	"dependencies": {
+		"@apollo/client": "3.7.0",
+		"apollo-upload-client": "^17.0.0",
+		"babel-polyfill": "6.26.0",
+		"date-fns": "2.28.0",
+		"graphql": "16.3.0",
+		"graphql-request": "4.2.0",
+		"leaflet": "^1.9.1",
+		"less": "4.1.2",
+		"less-loader": "7.3.0",
+		"lodash": "4.17.21",
+		"preact": "10.11.0",
+		"preact-cli": "3.4.1",
+		"preact-cli-svg-loader": "1.1.0",
+		"react": "18.2.0",
+		"react-color": "2.19.3",
+		"react-dom": "^18.2.0",
+		"react-helmet": "6.1.0",
+		"react-leaflet": "^4.1.0",
+		"react-router": "6.4.1",
+		"react-router-dom": "6.4.1",
+		"react-smooth-dnd": "^0.11.1",
+		"recharts": "2.1.15",
+		"regenerator-runtime": "0.13.9",
+		"webpack-pwa-manifest": "4.3.0"
+	},
+	"jest": {
+		"preset": "jest-preset-preact",
+		"setupFiles": [
+			"<rootDir>/tests/__mocks__/browserMocks.js",
+			"<rootDir>/tests/__mocks__/setupTests.js"
+		]
+	},
+	"lint-staged": {
+		"**/*": "prettier --write --ignore-unknown"
+	}
+}

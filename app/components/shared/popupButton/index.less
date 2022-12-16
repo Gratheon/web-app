@@ -1,0 +1,68 @@
+@import '../../colors';
+
+:global {
+	.popupButtonGroup {
+		display: flex;
+		position: relative;
+		height: 36px;
+
+		> button:first-child {
+			border-radius: 3px 0 0 3px;
+		}
+
+		.popupTrigger {
+			background-color: white;
+			border-left: none;
+			height: 100%;
+			border-radius: 0 3px 3px 0;
+		}
+	}
+}
+
+.black {
+	:global {
+		.popupTrigger {
+			border: 1px solid black;
+			color: black;
+		}
+	}
+}
+
+.green {
+	button[type='submit'] {
+		background: @color-ui-btn-green;
+	}
+
+	:global {
+		.popupTrigger {
+			border: 1px solid @color-ui-btn-green;
+			color: @color-ui-btn-green;
+		}
+	}
+}
+
+.small {
+	height: 28px;
+
+	.popup {
+		top: 26px;
+	}
+}
+
+.popup {
+	position: absolute;
+	top: 35px;
+	left: 3px;
+	right: 3px;
+	background-color: white;
+	padding: 0;
+	display: flex;
+	z-index: 5;
+	flex-direction: column;
+	border-radius: 0 0 5px 5px;
+	overflow: hidden;
+
+	button {
+		border-radius: 0;
+	}
+}

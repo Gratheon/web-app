@@ -1,0 +1,45 @@
+.inputfile {
+	width: 0.1px;
+	height: 0.1px;
+	opacity: 0;
+	overflow: hidden;
+	position: absolute;
+	z-index: -1;
+}
+
+.fileUploadLabel {
+	margin: 0 auto;
+	padding: 5px 10px;
+	font-size: 13px;
+	font-weight: 300;
+	color: white;
+	background-color: #888888;
+	display: block;
+	border-radius: 3px;
+
+	svg {
+		vertical-align: middle;
+	}
+}
+
+//svg{
+//  margin-right:10px;
+//}
+
+.inputfile:focus + label,
+.inputfile + label:hover {
+	background-color: #0dbb00;
+}
+
+.inputfile + label {
+	cursor: pointer; /* "hand" cursor */
+}
+
+.inputfile:focus + label {
+	outline: 1px dotted #000;
+	outline: -webkit-focus-ring-color auto 5px;
+}
+
+.inputfile + label * {
+	pointer-events: none;
+}

@@ -1,0 +1,28 @@
+html {
+	height: 100%;
+	display: block;
+}
+
+body {
+	margin: 0;
+	padding: 0;
+	background: white;
+	height: 100%;
+	display: block;
+}
+
+body > div {
+	height: 100%;
+}
+
+* {
+	font-family: 'Open Sans', sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+	margin: 0;
+}

@@ -22,6 +22,14 @@ flowchart LR
     graphql-router --> weather("<a href='https://github.com/Gratheon/weather'>weather</a>")
 ```
 
+## URLs
+
+|env|url|
+|--|--|
+|local|http://0.0.0.0:8080/|
+|live|https://app.gratheon.com/|
+
+
 ### Tech stack
 - preact (builder)
 - react

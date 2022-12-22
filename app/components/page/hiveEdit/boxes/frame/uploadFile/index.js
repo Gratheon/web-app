@@ -85,7 +85,7 @@ export default ({ onUpload }) => {
 
 					<label htmlFor="file" className={styles.fileUploadLabel}>
 						<UploadIcon />
-						Scan
+						Upload frame photo
 					</label>
 
 					{fileList.map((file, i) => (

@@ -18,6 +18,7 @@ export default function HiveEditDetails({
 	onNotesChange,
 	onInput,
 }) {
+
 	return (
 		<div style={{ padding: '20px', display: 'flex' }}>
 			<div style="width: 68px;text-align: center; margin-right:10px;">

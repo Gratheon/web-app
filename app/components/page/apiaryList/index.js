@@ -2,7 +2,7 @@ import React from 'react'
 import { Component } from 'preact'
 
 import Link from '../../shared/link'
-import { gql, useQuery } from '../../api'
+import { gql, useQuery, useSubscription } from '../../api'
 import ApiaryListRow from './apiaryListRow'
 import Loader from '../../shared/loader'
 import ApiariesPlaceholder from './apiariesPlaceholder'
@@ -39,6 +39,19 @@ export default class ApiaryList extends Component {
 				}
 			}
 		`)
+
+		 
+	const { data: apiaryUpdated, loading: apiaryLoading } = useSubscription(gql`
+		subscription onApiaryUpdated {
+			onApiaryUpdated{
+				id
+				name
+			}
+		}
+	`);
+
+	console.log({apiaryUpdated});
+
 
 		if (error) {
 			return <ErrorMsg error={error} />

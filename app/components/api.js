@@ -3,14 +3,22 @@ import {
 	InMemoryCache,
 	useMutation,
 	useQuery as useQueryNative,
+	useSubscription,
 	gql,
-	HttpLink,
+	split,
+	HttpLink
 } from '@apollo/client'
+import { getMainDefinition } from '@apollo/client/utilities';
 import { createUploadLink } from 'apollo-upload-client'
 import { onError } from '@apollo/client/link/error'
 
 import { getToken, isLoggedIn } from './user'
 import { gatewayUri, getAppUri, uploadUri } from './uri'
+
+
+
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
+import { createClient } from 'graphql-ws';
 
 let uri = gatewayUri()
 
@@ -26,26 +34,46 @@ let lastNetworkError = null
 let lastGraphQLErrors = []
 
 const httpLink = new HttpLink({ uri, headers: { token: getToken() } })
+const wsLink = new GraphQLWsLink(createClient({
+	url: 'ws://localhost:8350/graphql',
+	connectionParams: {
+	  token: getToken()
+	},
+  }));
 
 const apiClient = new ApolloClient({
-	link: onError((response) => {
-		if (response.networkError) {
-			console.error(`[Network error]: ${response.networkError}`)
-			lastNetworkError = response.networkError
-		}
+	link: split(
+		({ query }) => {
+		  const definition = getMainDefinition(query);
+		  return (
+			definition.kind === 'OperationDefinition' &&
+			definition.operation === 'subscription'
+		  );
+		},
 
-		if (response.graphQLErrors) {
-			response.graphQLErrors.forEach(({ message, locations, path }) =>
-				console.error(
-					`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
+		// subscriptions
+		wsLink,
+
+		// queries and mutations
+		onError((response) => {
+			if (response.networkError) {
+				console.error(`[Network error]: ${response.networkError}`)
+				lastNetworkError = response.networkError
+			}
+	
+			if (response.graphQLErrors) {
+				response.graphQLErrors.forEach(({ message, locations, path }) =>
+					console.error(
+						`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
+					)
 				)
-			)
-			lastGraphQLErrors = response.graphQLErrors
-		}
-	}).concat(
-		httpLink
-		// authMiddleware
-	),
+				lastGraphQLErrors = response.graphQLErrors
+			}
+		}).concat(
+			httpLink
+		),
+	  )
+	,
 	cache: new InMemoryCache(),
 	defaultOptions: {
 		watchQuery: {
@@ -120,5 +148,6 @@ export {
 	uploadClient,
 	apiClient,
 	useMutation,
+	useSubscription,
 	gql,
 }

@@ -34,12 +34,15 @@ let lastNetworkError = null
 let lastGraphQLErrors = []
 
 const httpLink = new HttpLink({ uri, headers: { token: getToken() } })
-const wsLink = new GraphQLWsLink(createClient({
+const graphqlWsClient = createClient({
 	url: 'ws://localhost:8350/graphql',
+	keepAlive: 5_000,
+	shouldRetry: () => true,
 	connectionParams: {
-	  token: getToken()
-	},
-  }));
+		token: getToken()
+	}
+})
+const wsLink = new GraphQLWsLink(graphqlWsClient);
 
 const apiClient = new ApolloClient({
 	link: split(
@@ -146,6 +149,7 @@ export {
 	lastGraphQLErrors,
 	omitTypeName,
 	uploadClient,
+	graphqlWsClient,
 	apiClient,
 	useMutation,
 	useSubscription,

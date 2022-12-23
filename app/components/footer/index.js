@@ -1,4 +1,6 @@
 import React from 'react'
+
+import ConnectionStatus from './connectionStatus';
 import isDev from '../isDev'
 import styles from './styles.less'
 
@@ -11,6 +13,7 @@ export default function Footer() {
 
 	return (
 		<ul id={styles.footer}>
+			<li style={{paddingTop:4}}><ConnectionStatus /></li>
 			<li>
 				<a href={apiUrl}>API</a>
 			</li>

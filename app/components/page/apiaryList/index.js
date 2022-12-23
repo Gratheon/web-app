@@ -40,18 +40,14 @@ export default class ApiaryList extends Component {
 			}
 		`)
 
-		 
-	const { data: apiaryUpdated, loading: apiaryLoading } = useSubscription(gql`
-		subscription onApiaryUpdated {
-			onApiaryUpdated{
-				id
-				name
+		const { data: apiaryUpdated, loading: apiaryLoading } = useSubscription(gql`
+			subscription onApiaryUpdated {
+				onApiaryUpdated {
+					id
+					name
+				}
 			}
-		}
-	`);
-
-	console.log({apiaryUpdated});
-
+		`)
 
 		if (error) {
 			return <ErrorMsg error={error} />
@@ -62,6 +58,9 @@ export default class ApiaryList extends Component {
 		}
 
 		const { apiaries } = data
+
+		console.log({ apiaryUpdated })
+		console.log({ apiaries })
 
 		return (
 			<div style="max-width:800px;padding-left:20px;">

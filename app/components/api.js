@@ -15,8 +15,6 @@ import { onError } from '@apollo/client/link/error'
 import { getToken, isLoggedIn } from './user'
 import { gatewayUri, getAppUri, uploadUri } from './uri'
 
-
-
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { createClient } from 'graphql-ws';
 
@@ -37,11 +35,13 @@ const httpLink = new HttpLink({ uri, headers: { token: getToken() } })
 const graphqlWsClient = createClient({
 	url: 'ws://localhost:8350/graphql',
 	keepAlive: 5_000,
+	lazy:false,
 	shouldRetry: () => true,
 	connectionParams: {
 		token: getToken()
 	}
 })
+
 const wsLink = new GraphQLWsLink(graphqlWsClient);
 
 const apiClient = new ApolloClient({

@@ -3,6 +3,7 @@ import React from 'react'
 import ConnectionStatus from './connectionStatus';
 import isDev from '../isDev'
 import styles from './styles.less'
+import { graphqlWsClient } from '../api'
 
 export default function Footer() {
 	let apiUrl = 'https://graphql.gratheon.com/graphql'
@@ -13,7 +14,7 @@ export default function Footer() {
 
 	return (
 		<ul id={styles.footer}>
-			<li style={{paddingTop:4}}><ConnectionStatus /></li>
+			<li style={{paddingTop:4}}><ConnectionStatus graphqlWsClient={graphqlWsClient} /></li>
 			<li>
 				<a href={apiUrl}>API</a>
 			</li>

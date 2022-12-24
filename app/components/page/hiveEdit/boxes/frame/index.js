@@ -111,11 +111,9 @@ export default ({
 					onUpload={(data) => {
 						if (frameSide.id) {
 							linkFileToFrame({
-								variables: {
 									fileId: data.id,
 									frameSideId: frameSide.id,
 									hiveId,
-								},
 							})
 						}
 						onUpload(data)

@@ -59,15 +59,13 @@ export default function HiveCreateForm() {
 		e.preventDefault()
 
 		addHive({
-			variables: {
-				apiaryId: id,
-				name,
-				boxCount: parseInt(boxCount, 10),
-				frameCount: parseInt(frameCount, 10),
-				colors: boxes.map((b) => {
-					return b.color
-				}),
-			},
+			apiaryId: id,
+			name,
+			boxCount: parseInt(boxCount, 10),
+			frameCount: parseInt(frameCount, 10),
+			colors: boxes.map((b) => {
+				return b.color
+			}),
 		})
 	}
 

@@ -1,22 +1,20 @@
 import {
-	ApolloClient,
-	InMemoryCache,
+	createClient as createUrqlClient,
+	useQuery,
 	useMutation,
-	useQuery as useQueryNative,
 	useSubscription,
 	gql,
-	split,
-	HttpLink
-} from '@apollo/client'
-import { getMainDefinition } from '@apollo/client/utilities';
-import { createUploadLink } from 'apollo-upload-client'
-import { onError } from '@apollo/client/link/error'
+	defaultExchanges,
+	subscriptionExchange,
+} from 'urql'
+import { multipartFetchExchange } from '@urql/exchange-multipart-fetch'
 
 import { getToken, isLoggedIn } from './user'
 import { gatewayUri, getAppUri, uploadUri } from './uri'
 
-import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
-import { createClient } from 'graphql-ws';
+import { createClient } from 'graphql-ws'
+
+// import { IndexedDBCache } from '../storage/db/indexed-db-cache'
 
 let uri = gatewayUri()
 
@@ -31,107 +29,33 @@ if (!isLoggedIn()) {
 let lastNetworkError = null
 let lastGraphQLErrors = []
 
-const httpLink = new HttpLink({ uri, headers: { token: getToken() } })
 const graphqlWsClient = createClient({
 	url: 'ws://localhost:8350/graphql',
 	keepAlive: 5_000,
-	lazy:false,
+	lazy: false,
 	shouldRetry: () => true,
+
 	connectionParams: {
-		token: getToken()
-	}
-})
-
-const wsLink = new GraphQLWsLink(graphqlWsClient);
-
-const apiClient = new ApolloClient({
-	link: split(
-		({ query }) => {
-		  const definition = getMainDefinition(query);
-		  return (
-			definition.kind === 'OperationDefinition' &&
-			definition.operation === 'subscription'
-		  );
-		},
-
-		// subscriptions
-		wsLink,
-
-		// queries and mutations
-		onError((response) => {
-			if (response.networkError) {
-				console.error(`[Network error]: ${response.networkError}`)
-				lastNetworkError = response.networkError
-			}
-	
-			if (response.graphQLErrors) {
-				response.graphQLErrors.forEach(({ message, locations, path }) =>
-					console.error(
-						`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
-					)
-				)
-				lastGraphQLErrors = response.graphQLErrors
-			}
-		}).concat(
-			httpLink
-		),
-	  )
-	,
-	cache: new InMemoryCache(),
-	defaultOptions: {
-		watchQuery: {
-			fetchPolicy: 'network-only',
-			errorPolicy: 'ignore',
-		},
-		query: {
-			fetchPolicy: 'network-only',
-			errorPolicy: 'all',
-		},
-		mutate: {
-			fetchPolicy: 'no-cache',
-			errorPolicy: 'all',
-		},
+		token: getToken(),
 	},
 })
 
-const uploadClient = new ApolloClient({
-	uri: uploadUri(),
-	link: onError((response) => {
-		if (response.networkError) {
-			console.error(`[Network error]: ${response.networkError}`)
-			lastNetworkError = response.networkError
+const apiClient = createUrqlClient({
+	url: uri,
+	exchanges: [
+		subscriptionExchange({
+			forwardSubscription: (operation) => ({
+				subscribe: (sink) => ({
+					unsubscribe: graphqlWsClient.subscribe(operation, sink),
+				}),
+			}),
+		}),
+		multipartFetchExchange,
+	],
+	fetchOptions: () => {
+		return {
+			headers: { token: getToken() },
 		}
-
-		if (response.graphQLErrors) {
-			response.graphQLErrors.forEach(({ message, locations, path }) =>
-				console.error(
-					`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
-				)
-			)
-			lastGraphQLErrors = response.graphQLErrors
-		}
-	}).concat(
-		createUploadLink({
-			uri: uploadUri(),
-			headers: {
-				token: getToken(),
-			},
-		})
-	),
-	cache: new InMemoryCache(),
-	defaultOptions: {
-		watchQuery: {
-			fetchPolicy: 'network-only',
-			errorPolicy: 'ignore',
-		},
-		query: {
-			fetchPolicy: 'network-only',
-			errorPolicy: 'all',
-		},
-		mutate: {
-			fetchPolicy: 'no-cache',
-			errorPolicy: 'all',
-		},
 	},
 })
 
@@ -140,18 +64,47 @@ function omitTypeName(obj) {
 		key === '__typename' ? undefined : v
 	)
 }
-export function useQuery(operation, options = {}) {
-	return useQueryNative(operation, { ...options, errorPolicy: 'all' })
+function useMutationAdapted(query, options) {
+	const [result, op] = useMutation(query, options)
+	return [op, result]
 }
 
+function useUploadMutation(query) {
+	const [result, op] = useMutation(query)
+	function opWrap(payload) {
+		return op(payload, {
+			url: uploadUri(),
+		})
+	}
+	return [opWrap, result]
+}
+
+function useQueryAdapted(query, options) {
+	const [result] = useQuery({
+		query,
+		variables: options?.variables,
+	})
+	return {
+		data: result.data,
+		loading: result.fetching,
+		error: result.error,
+	}
+}
+
+function useSubscriptionAdapted(query, variables) {
+	const [result] = useSubscription({ query, variables })
+
+	return result
+}
 export {
 	lastNetworkError,
 	lastGraphQLErrors,
 	omitTypeName,
-	uploadClient,
 	graphqlWsClient,
 	apiClient,
-	useMutation,
-	useSubscription,
+	useUploadMutation,
+	useQueryAdapted as useQuery,
+	useMutationAdapted as useMutation,
+	useSubscriptionAdapted as useSubscription,
 	gql,
 }

@@ -55,11 +55,9 @@ export default class AccountEdit extends Component {
 			e.preventDefault()
 
 			updateAccount({
-				variables: {
-					user: {
-						first_name: this.state.user.first_name,
-						last_name: this.state.user.last_name,
-					},
+				user: {
+					first_name: this.state.user.first_name,
+					last_name: this.state.user.last_name,
 				},
 			})
 		}

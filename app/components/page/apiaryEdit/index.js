@@ -63,9 +63,7 @@ export default class ApiaryEditForm extends Component {
 
 		async function onDeleteApiary() {
 			await deactivateApiary({
-				variables: {
-					id,
-				},
+				id,
 			})
 
 			navigate(`/apiaries`, { replace: true })
@@ -74,13 +72,11 @@ export default class ApiaryEditForm extends Component {
 			e.preventDefault()
 
 			updateApiary({
-				variables: {
-					id,
-					apiary: {
-						name: this.state.apiary.name,
-						lat: `${this.state.apiary.lat}`,
-						lng: `${this.state.apiary.lng}`,
-					},
+				id,
+				apiary: {
+					name: this.state.apiary.name,
+					lat: `${this.state.apiary.lat}`,
+					lng: `${this.state.apiary.lng}`,
 				},
 			})
 		}

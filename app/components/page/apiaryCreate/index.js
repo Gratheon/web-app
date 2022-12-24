@@ -32,12 +32,10 @@ export default function ApiaryEditForm() {
 		e.preventDefault()
 
 		addApiary({
-			variables: {
-				apiary: {
-					name,
-					lat: `${lat}`,
-					lng: `${lng}`,
-				},
+			apiary: {
+				name,
+				lat: `${lat}`,
+				lng: `${lng}`,
 			},
 		})
 	}

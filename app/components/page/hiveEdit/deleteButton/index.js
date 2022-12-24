@@ -16,9 +16,7 @@ export default function deactivateButton({ hiveId }) {
 
 		if (confirm('Are you sure?')) {
 			updateHive({
-				variables: {
-					id: hiveId,
-				},
+				id: hiveId,
 			}).then(() => {
 				navigate(`/apiaries`, { replace: true })
 			})

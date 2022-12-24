@@ -50,11 +50,9 @@ export default function inspectionForm({ onBeforeSave, hive }) {
 		}
 
 		createInspection({
-			variables: {
-				inspection: {
-					hiveId: hive.id,
-					data: JSON.stringify(inspection),
-				},
+			inspection: {
+				hiveId: hive.id,
+				data: JSON.stringify(inspection),
 			},
 		})
 	}

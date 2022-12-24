@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { useMutation, gql, uploadClient } from '../../../../../api'
+import { useUploadMutation, gql } from '../../../../../api'
 import ErrorMsg from '../../../../../shared/messageError'
 import Loader from '../../../../../shared/loader'
 
@@ -9,29 +9,32 @@ import { useState } from 'preact/hooks'
 import styles from './index.less'
 import UploadIcon from '../../../../../../icons/uploadIcon'
 
-const SINGLE_UPLOAD = gql`
-	mutation ($file: Upload!) {
+export default function UploadFile({ onUpload }) {
+	const [uploadFile, { loading, error, data }] = useUploadMutation(gql`
+	mutation uploadFrameSide($file: Upload!) {
 		uploadFrameSide(file: $file) {
 			id
 			url
 		}
 	}
-`
-
-export default ({ onUpload }) => {
-	const [uploadFile, { loading, error, data }] = useMutation(SINGLE_UPLOAD, {
-		client: uploadClient,
-		onCompleted: (v) => {
-			onUpload(v.uploadFrameSide)
-		},
-	})
+`)
 	const [fileList, setFiles] = useState([])
-	const onChange = ({
+	async function onFileSelect ({
 		target: {
 			validity,
 			files: [file],
 		},
-	}) => validity.valid && uploadFile({ variables: { file } })
+	}) {
+		if(!validity.valid){
+			return;
+		}
+		const { data, error } = await uploadFile({ file });
+
+		if(!error){
+			//trigger higher component joining file with hive info
+			onUpload(data.uploadFrameSide);
+		}
+	}
 
 	if (loading) return <Loader />
 	if (error) return <ErrorMsg error={error} />
@@ -39,7 +42,6 @@ export default ({ onUpload }) => {
 	if (data) {
 		const { uploadFrameSide } = data
 
-		// {JSON.stringify(data)}
 		return (
 			<div>
 				<img src={uploadFrameSide.url} style="width:100%" />
@@ -47,13 +49,13 @@ export default ({ onUpload }) => {
 		)
 	}
 
-	const handleDrop = (files) => {
+	const handleDrop = async (files) => {
 		for (let i = 0; i < files.length; i++) {
 			if (!files[i].name) return
 			fileList.push(files[i].name)
 		}
 		setFiles(fileList)
-		onChange({
+		await onFileSelect({
 			target: {
 				validity: {
 					valid: true,
@@ -80,7 +82,7 @@ export default ({ onUpload }) => {
 						id="file"
 						required
 						accept="image/jpg"
-						onChange={onChange}
+						onChange={onFileSelect}
 					/>
 
 					<label htmlFor="file" className={styles.fileUploadLabel}>

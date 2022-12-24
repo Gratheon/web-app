@@ -112,14 +112,12 @@ export default class HiveEditForm extends Component {
 			})
 
 			updateHive({
-				variables: {
-					hive: {
-						id: hiveId,
-						boxes: omitTypeName(tmpBoxes),
-						name: hive.name,
-						notes: hive.notes,
-						family: omitTypeName(hive.family),
-					},
+				hive: {
+					id: hiveId,
+					boxes: omitTypeName(tmpBoxes),
+					name: hive.name,
+					notes: hive.notes,
+					family: omitTypeName(hive.family),
 				},
 			})
 
@@ -128,16 +126,14 @@ export default class HiveEditForm extends Component {
 			})
 
 			updateFileStroke({
-				variables: {
-					files: getFiles({ hiveId }).map((v) => {
-						return {
-							hiveId: v.hiveId,
-							frameSideId: v.frameSideId,
-							fileId: v.file?.id,
-							strokeHistory: v.strokeHistory ? v.strokeHistory : [],
-						}
-					}),
-				},
+				files: getFiles({ hiveId }).map((v) => {
+					return {
+						hiveId: v.hiveId,
+						frameSideId: v.frameSideId,
+						fileId: v.file?.id,
+						strokeHistory: v.strokeHistory ? v.strokeHistory : [],
+					}
+				}),
 			})
 
 			return true

@@ -1,6 +1,6 @@
 import React from 'react'
 import isNil from 'lodash/isNil'
-import { Container, Draggable } from 'react-smooth-dnd'
+import { Container, Draggable } from '@edorivai/react-smooth-dnd'
 
 import styles from './index.less'
 import Frame from './boxFrame'

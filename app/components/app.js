@@ -2,9 +2,9 @@ import React from 'react'
 import { Component } from 'preact'
 import Helmet from 'react-helmet'
 import { BrowserRouter } from 'react-router-dom'
+import { Provider } from 'urql';
 
 import { apiClient } from './api'
-import { ApolloProvider } from '@apollo/client'
 import Page from './page'
 import Menu from './menu'
 import Footer from './footer'
@@ -18,7 +18,7 @@ export default class App extends Component {
 		}
 
 		return (
-			<ApolloProvider client={apiClient}>
+			<Provider value={apiClient}>
 				<Helmet
 					htmlAttributes={{ lang: 'en', amp: undefined }} // amp takes no value
 					title="App"
@@ -65,7 +65,7 @@ export default class App extends Component {
 						<Footer />
 					</BrowserRouter>
 				</div>
-			</ApolloProvider>
+			</Provider>
 		)
 	}
 }

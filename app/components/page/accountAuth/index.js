@@ -40,10 +40,8 @@ export default class AccountAuth extends Component {
 			e.preventDefault()
 
 			accountAuth({
-				variables: {
-					email: this.state.account.email,
-					password: this.state.account.password,
-				},
+				email: this.state.account.email,
+				password: this.state.account.password,
 			})
 		}
 

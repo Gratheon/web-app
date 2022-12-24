@@ -13,7 +13,7 @@ flowchart LR
     graphql-router --> swarm-api("<a href='https://github.com/Gratheon/swarm-api'>swarm-api</a>") --> mysql[(mysql)]
     graphql-router --> swarm-api --> redis[("<a href='https://github.com/Gratheon/redis'>redis pub-sub</a>")]
     
-    graphql-router --> image-splitter --> mysql
+    graphql-router --> image-splitter("<a href='https://github.com/Gratheon/image-splitter'>image-splitter</a>") --> mysql
     graphql-router --> image-splitter --> aws-s3
     graphql-router --> user-cycle("<a href='https://github.com/Gratheon/user-cycle'>user-cycle</a>") --> mysql
     graphql-router --> user-cycle --> stripe

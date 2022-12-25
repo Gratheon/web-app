@@ -1,20 +1,20 @@
+import { createClient } from 'graphql-ws'
 import {
 	createClient as createUrqlClient,
 	useQuery,
 	useMutation,
 	useSubscription,
 	gql,
-	defaultExchanges,
 	subscriptionExchange,
+	dedupExchange,
 } from 'urql'
 import { multipartFetchExchange } from '@urql/exchange-multipart-fetch'
 
-import { getToken, isLoggedIn } from './user'
-import { gatewayUri, getAppUri, uploadUri } from './uri'
-
-import { createClient } from 'graphql-ws'
-
-// import { IndexedDBCache } from '../storage/db/indexed-db-cache'
+import { getToken, isLoggedIn } from '../user'
+import { gatewayUri, getAppUri, uploadUri } from '../uri'
+import { schemaObject } from './schema.js'
+import { offlineIndexDbExchange } from './offlineIndexDbExchange'
+import { syncGraphqlSchemaToIndexDB } from './db'
 
 let uri = gatewayUri()
 
@@ -40,9 +40,35 @@ const graphqlWsClient = createClient({
 	},
 })
 
+syncGraphqlSchemaToIndexDB(schemaObject)
+
 const apiClient = createUrqlClient({
 	url: uri,
 	exchanges: [
+		dedupExchange,
+
+		offlineIndexDbExchange({
+			schemaObject,
+			readResolvers: {
+				Query: {
+					apiaries: async (_, __, {db}) => {
+						return await db.apiary
+						.limit(1)
+						.toArray();
+					},
+				},
+			},
+			writeResolvers: {
+				Query: {
+					apiaries: async(_, __, { db, data}) => {
+						return await db.apiary.bulkPut([
+							...data.apiaries
+						])
+					},
+				},
+			},
+		}),
+
 		subscriptionExchange({
 			forwardSubscription: (operation) => ({
 				subscribe: (sink) => ({

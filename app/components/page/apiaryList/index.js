@@ -38,8 +38,6 @@ export default function ApiaryList(props) {
 		}
 	`)
 
-	console.log({apiaryUpdated});
-
 	if (error) {
 		return <ErrorMsg error={error} />
 	}

@@ -63,6 +63,10 @@ const apiClient = createUrqlClient({
 				Hive: async(_, hive, { db }) => await db.hive.put(hive),
 				Box: async(_, box, { db }) => await db.box.put(box),
 				Frame: async(_, frame, { db }) => await db.frame.put(frame),
+				FrameSide: async(_, frameside, { db }) => await db.frameside.put(frameside),
+				FrameSideFile: async(_, frameSideFile, { db }) => await db.framesidefile.put(frameSideFile),
+				File: async(_, file, { db }) => await db.file.put(file),
+				User: async(_, user, { db }) => await db.user.put(user),
 			},
 		}),
 

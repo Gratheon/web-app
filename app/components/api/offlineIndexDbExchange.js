@@ -97,19 +97,36 @@ function traverse(obj, typeMap, writeHooks, path=[]) {
 
 			// care only about high-level objects and arrays
 			// scalars and properties are ignored as they are not supported as write hooks yet
-			if (typeof value === 'object') {
+			if (typeof value === 'object' && value!==null ) {
 				const newPath = isNaN(key) ? [...path, key] : path
 				const pathString = newPath.join('.');
 				const objType = typeMap[pathString];
 
 				if(!Array.isArray(value)){
-					const tableName = objType.ofType?.name;
-					console.log(pathString, value, tableName)
+					const tableName = objType.ofType ? objType.ofType.name : objType.name;
+
+					// we reached some object that is no longer mapped onto a schema
+					// must be some JSON, no point to continue
+					if(tableName === 'JSON'){
+						continue;
+					}
+
+					if(!tableName){
+						console.error(pathString, value, tableName, objType)
+						return;
+					}
+					console.log(pathString, value, tableName, objType)
 
 					if (writeHooks?.[tableName]) {
+						// normalize objects, clean them up from nested things
 						const cleanedValue = Object.fromEntries(
 							Object.entries(value).filter(([key, v]) => typeof v !== "object" && !Array.isArray(v))
-						  );
+						);
+
+						if(cleanedValue?.id){
+							// use strings
+							cleanedValue.id = `${cleanedValue.id}`;
+						}
 
 						writeHooks[tableName](objType, cleanedValue, { db })
 					}

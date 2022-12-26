@@ -8,6 +8,7 @@
 		"start:production": "npm run -s serve",
 		"develop": "ENV_ID=dev npm run -s dev",
 		"build": "./node_modules/.bin/preact build --no-prerender --src app --template app/index.html --dest build && mv build/* public",
+		"build-analyze": "./node_modules/.bin/preact build --analyze --no-prerender --src app --template app/index.html --dest build && mv build/* public",
 		"serve": "./node_modules/.bin/preact build --src app && serve build --single",
 		"dev": "./node_modules/.bin/preact watch --src app",
 		"lint": "eslint app --fix",

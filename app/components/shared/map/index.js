@@ -1,5 +1,5 @@
 import React, { useState, useRef, useMemo } from 'react'
-import L from 'leaflet'
+import {Icon} from 'leaflet'
 import {
 	MapContainer,
 	TileLayer,
@@ -56,7 +56,7 @@ function LocationMarker({ onMarkerSet, lat, lng, autoLocate = false }) {
 			eventHandlers={eventHandlers}
 			ref={markerRef}
 			icon={
-				new L.Icon({
+				new Icon({
 					iconUrl,
 					iconRetinaUrl,
 					placement: 'center',

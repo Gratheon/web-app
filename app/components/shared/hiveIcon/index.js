@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import styles from './index.less'
-import { GithubPicker } from 'react-color'
+import GithubPicker from 'react-color/es/Github'
 
 const colors = [
 	'#4D4D4D',

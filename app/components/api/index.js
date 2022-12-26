@@ -51,21 +51,18 @@ const apiClient = createUrqlClient({
 			schemaObject,
 			readResolvers: {
 				Query: {
-					apiaries: async (_, __, {db}) => {
+					apiaries: async (_, __, { db }) => {
 						return await db.apiary
 						.limit(1)
 						.toArray();
 					},
 				},
 			},
-			writeResolvers: {
-				Query: {
-					apiaries: async(_, __, { db, data}) => {
-						return await db.apiary.bulkPut([
-							...data.apiaries
-						])
-					},
-				},
+			writeHooks: {
+				Apiary: async(_, apiary, { db }) => await db.apiary.put(apiary),
+				Hive: async(_, hive, { db }) => await db.hive.put(hive),
+				Box: async(_, box, { db }) => await db.box.put(box),
+				Frame: async(_, frame, { db }) => await db.frame.put(frame),
 			},
 		}),
 

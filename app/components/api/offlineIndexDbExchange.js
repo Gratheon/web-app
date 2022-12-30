@@ -31,7 +31,7 @@ export function offlineIndexDbExchange({
 					contextValue: {
 						db,
 					},
-					variableValues: {},
+					variableValues: op.variables,
 				})
 			}
 		}
@@ -52,6 +52,7 @@ export function offlineIndexDbExchange({
 		// if we want to rely on cache-first, make sure to use data from previous step
 		if(cacheFirst){
 			if(bubble.operation?.cacheResult){
+				bubble.error = bubble.operation.cacheResult.errors ? bubble.operation.cacheResult.errors[0] : null;
 				bubble.data = bubble.operation.cacheResult.data;
 			}
 		}
@@ -111,7 +112,7 @@ export function offlineIndexDbExchange({
 
 		// now traverse response data
 		// and call correct write hooks
-		traverseResponse(null, data, typeMap, writeHooks)
+		await traverseResponse(null, data, typeMap, writeHooks)
 		return bubble
 	}
 
@@ -141,7 +142,7 @@ export function offlineIndexDbExchange({
 	}
 }
 
-function traverseResponse(parent, obj, typeMap, writeHooks, path = []) {
+async function traverseResponse(parent, obj, typeMap, writeHooks, path = []) {
 	for (const key in obj) {
 		if (obj.hasOwnProperty(key)) {
 			const value = obj[key]
@@ -172,7 +173,10 @@ function traverseResponse(parent, obj, typeMap, writeHooks, path = []) {
 						// normalize objects, clean them up from nested things
 						const cleanedValue = Object.fromEntries(
 							Object.entries(value).filter(
-								([key, v]) => typeof v !== 'object' && !Array.isArray(v)
+								([key, v]) => {
+									const propType = typeMap[`${pathString}.${key}`]
+									return typeof v !== 'object' && !Array.isArray(v) || propType.name==='JSON'
+								}
 							)
 						)
 
@@ -181,7 +185,11 @@ function traverseResponse(parent, obj, typeMap, writeHooks, path = []) {
 							cleanedValue.id = `${cleanedValue.id}`
 						}
 
-						writeHooks[tableName](parent, cleanedValue, { db }, { objType })
+						try{
+							await writeHooks[tableName](obj, cleanedValue, { db }, { objType })
+						} catch(e){
+							console.error(e);
+						}
 					}
 				}
 

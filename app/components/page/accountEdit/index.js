@@ -26,6 +26,7 @@ export default class AccountEdit extends Component {
 		let { loading: loadingGet, data: accountData } = useQuery(gql`
 			query user {
 				user {
+					id
 					email
 					first_name
 					last_name

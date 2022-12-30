@@ -17,7 +17,7 @@ type Apiary {
   }
   
   type Box {
-    id: ID
+    id: ID!
     position: Int
     color: String
     type: BoxType!
@@ -109,6 +109,7 @@ type Apiary {
   }
   
   type FrameSideFile {
+    id: ID!
     file: File!
     frameSideId: ID
     hiveId: ID
@@ -173,6 +174,7 @@ type Apiary {
   }
   
   type Invoice {
+    id: ID!
     total: Float
     currency: String
     date: DateTime
@@ -240,6 +242,7 @@ type Apiary {
   scalar URL
   
   type User {
+    id: ID!
     email: String
     first_name: String
     last_name: String

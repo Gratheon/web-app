@@ -25,6 +25,7 @@ export default gql`
 			}
 
 			family {
+				id
 				race
 				added
 			}

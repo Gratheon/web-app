@@ -5,6 +5,7 @@ export default function Paywall({ isLoggedIn = false }) {
 	let { data: accountData } = useQuery(gql`
 		query user {
 			user {
+				id
 				isSubscriptionExpired
 			}
 		}

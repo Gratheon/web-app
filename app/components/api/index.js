@@ -14,7 +14,7 @@ import { getToken, isLoggedIn } from '../user'
 import { gatewayUri, getAppUri, uploadUri } from '../uri'
 import { schemaObject } from './schema.js'
 import { offlineIndexDbExchange } from './offlineIndexDbExchange'
-import { syncGraphqlSchemaToIndexDB } from './db'
+import { db, syncGraphqlSchemaToIndexDB, writeHooks } from './db'
 
 let uri = gatewayUri()
 
@@ -49,43 +49,48 @@ const apiClient = createUrqlClient({
 		dedupExchange,
 
 		offlineIndexDbExchange({
-			cacheFirst: false,
+			cacheFirst: true,
 			schemaObject,
 			resolvers: {
-				apiaries: async (_,{db}) => {
+				user: async (_, { db }) => {
+					return await db.user.limit(1).first()
+				},
+				apiaries: async (_, { db }) => {
 					const apiaries = await db.apiary.limit(100).toArray()
-			
-					return (apiaries.map(apiary=>({
+
+					return apiaries.map((apiary) => ({
 						...apiary,
-						hives: async()=>{
+						hives: async () => {
 							const hives = await db.hive.limit(100).toArray()
-							return hives.map(async(hive)=>{
+							return hives.map(async (hive) => {
 								const boxes = await db.box.limit(100).toArray()
 								return {
 									...hive,
-									boxes
+									boxes,
 								}
 							})
-						}
-					})));
+						},
+					}))
+				},
+
+				hive: async (_, { db }, { variableValues: { id } }) => {
+					const hive = await db.hive.where({ id }).first()
+					console.log('hive', hive);
+
+					if(!hive){
+						return;
+					}
+
+					hive.family = await db.family.where({ hiveId: `${id}` }).first()
+					hive.files = []
+					hive.boxes = []
+					return hive
+				},
+				hiveFrameSideFile: async () => {
+					return await db.framesidefile.limit(100).toArray()[0]
 				},
 			},
-			writeHooks: {
-				Apiary: async(_, apiary, { db }) => await db.apiary.put(apiary),
-				Hive: async(_, hive, { db }) => {
-					console.log({hive});
-					return await db.hive.put(hive)
-				},
-				Box: async(parent, box, { db }) => {
-					box.hiveId = parent.id
-					return await db.box.put(box)
-				},
-				Frame: async(_, frame, { db }) => await db.frame.put(frame),
-				FrameSide: async(_, frameside, { db }) => await db.frameside.put(frameside),
-				FrameSideFile: async(_, frameSideFile, { db }) => await db.framesidefile.put(frameSideFile),
-				File: async(_, file, { db }) => await db.file.put(file),
-				User: async(_, user, { db }) => await db.user.put(user),
-			},
+			writeHooks,
 		}),
 
 		subscriptionExchange({

@@ -15,14 +15,7 @@ export function syncGraphqlSchemaToIndexDB(schemaObject) {
 			const fields = type.getFields()
 			const fieldStrings = []
 			for (const field of Object.values(fields)) {
-				if (field.name == 'id') {
-					field.name = `++id`;
-				}
-				fieldStrings.push(field.name)
-			}
-
-			if(!fieldStrings.includes('++id')){
-				fieldStrings[0] = '++'+fieldStrings[0];
+				fieldStrings.push(field.name == 'id' ? '&id' : field.name)
 			}
 
 			dbSchema[objName] = fieldStrings.join(', ')

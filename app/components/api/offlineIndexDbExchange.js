@@ -1,124 +1,147 @@
-import { pipe, filter, make, fromValue, map, mergeMap, fromPromise, onEnd, takeUntil } from 'wonka'
-import { visit, TypeInfo, visitWithTypeInfo } from 'graphql'
-import { makeResult } from 'urql'
+import { pipe, fromValue, mergeMap, fromPromise } from 'wonka'
+import { execute, visit, TypeInfo, visitWithTypeInfo } from 'graphql'
 
 import { db } from './db'
 
+// An alternative offline-first URQL exchange with custom resolvers
+// some compromises:
+// 1. requires all graphql queries to include id for every requested property
+// 2. you must implement read resolvers yourself
+// 3. you must implement cache writing yourself
+// 4. not opinionated on how to tie entities together
+// so either backend must return parentIds that you will use in read resolvers
+// or cache writing must add relation IDs
 export function offlineIndexDbExchange({
+	cacheFirst,
 	schemaObject,
-	readResolvers,
+	resolvers,
 	writeHooks,
 }) {
 	const typeInfo = new TypeInfo(schemaObject)
-	async function onOperation(op){
-		if (op.kind === 'query') {
-			let resolverCalls = []
-			let keys = []
-			visit(
-				op.query,
-				visitWithTypeInfo(typeInfo, {
-					Field: {
-						enter(node) {
-							typeInfo.enter(node.name.value)
-							const parentType = typeInfo.getParentType().name
-							const propertyName = node.name.value
+	async function onOperation(op) {
+		// use this if you want to use cache-first strategy
+		// but I'm not sure how to prevent network requests (forward function calls within a pipe)
 
-							if (readResolvers?.[parentType]?.[propertyName]) {
-								keys.push(`${parentType}.${propertyName}`)
-								resolverCalls.push(
-									readResolvers[parentType][propertyName](
-										node,
-										op.variables,
-										{ db }
-									)
-								)
-							}
-						},
+		if (cacheFirst) {
+			if (op.kind === 'query') {
+				op.cacheResult = await execute({
+					schema: schemaObject,
+					document: op.query,
+					rootValue: resolvers,
+					contextValue: {
+						db,
 					},
+					variableValues: {},
 				})
-			)
-
-			if (keys.length > 0) {
-				op.cacheResult = {}
-
-				const results = await Promise.all(resolverCalls)
-				for (let i = 0; i < keys.length; i++) {
-					op.cacheResult[keys[i]] = results[i]
-				}
 			}
 		}
-		return op;
+		return op
 	}
 
-	function onError(){}
+	function onError() {}
 
-	function onResult(bubble){
+	async function onResult(bubble) {
 		const op = bubble.operation
 		const data = bubble.data
 
-		console.log('op.cacheResult', op?.cacheResult)
-
-		if (op.kind === 'query') {
-			// first get typemap to know which write hooks to call
-			// with what data from response that matches the schema
-			const typeMap = {}
-			visit(
-				op.query,
-				visitWithTypeInfo(typeInfo, {
-					Field: {
-						enter(node, key, parent, path, ancestors) {
-							typeInfo.enter(node.name.value)
-							const propertyName = node.name.value
-
-							const ancestorsArr = []
-							for (let ancestor of ancestors) {
-								if (ancestor.kind == 'Field') {
-									ancestorsArr.push(ancestor.name.value)
-								}
-							}
-							ancestorsArr.push(propertyName)
-
-							typeMap[ancestorsArr.join('.')] = typeInfo.getType()
-						},
-					},
-				})
-			)
-
-			// now traverse response data
-			// and call correct write hooks
-			traverse(data, typeMap, writeHooks)
+		// mutations/subscriptions/teardowns are pass-through
+		if (op.kind !== 'query') {
+			return bubble
 		}
+
+		// if we want to rely on cache-first, make sure to use data from previous step
+		if(cacheFirst){
+			if(bubble.operation?.cacheResult){
+				bubble.data = bubble.operation.cacheResult.data;
+			}
+		}
+		// if its network-first and we get a network error, use fetch offline cache
+		else {
+			if (bubble.error) {
+				bubble.operation.cacheResult = (
+					await execute({
+						schema: schemaObject,
+						document: op.query,
+						rootValue: resolvers,
+						contextValue: {
+							db,
+						},
+						variableValues: {},
+					})
+				)
+			}
+		}
+
+		// if there is a network error and we have offline cache, use that
+		if(bubble.error && bubble.data){
+			bubble.originalError = bubble.error;
+			bubble.error = null;
+
+			return bubble;
+		}
+
+
+		// so now its network-first and we had no error
+		// fill cache, go through response and call writeHooks
+
+		// first get typemap to know which write hooks to call
+		// with what data from response that matches the schema
+		const typeMap = {}
+		visit(
+			op.query,
+			visitWithTypeInfo(typeInfo, {
+				Field: {
+					enter(node, key, parent, path, ancestors) {
+						typeInfo.enter(node.name.value)
+						const propertyName = node.name.value
+
+						const ancestorsArr = []
+						for (let ancestor of ancestors) {
+							if (ancestor.kind == 'Field') {
+								ancestorsArr.push(ancestor.name.value)
+							}
+						}
+						ancestorsArr.push(propertyName)
+
+						typeMap[ancestorsArr.join('.')] = typeInfo.getType()
+					},
+				},
+			})
+		)
+
+		// now traverse response data
+		// and call correct write hooks
+		traverseResponse(null, data, typeMap, writeHooks)
 		return bubble
 	}
-
 
 	return function exchange({ forward }) {
 		return (operations) => {
 			return pipe(
 				pipe(
 					operations,
-				  mergeMap(operation => {
-					const newOperation =
-					  (onOperation && onOperation(operation)) || operation;
-					return 'then' in newOperation
-					  ? fromPromise(newOperation)
-					  : fromValue(newOperation);
-				  })
+					mergeMap((operation) => {
+						const newOperation =
+							(onOperation && onOperation(operation)) || operation
+						return 'then' in newOperation
+							? fromPromise(newOperation)
+							: fromValue(newOperation)
+					})
 				),
 				forward,
-				mergeMap(result => {
-				  if (onError && result.error) onError(result.error, result.operation);
-				  const newResult = (onResult && onResult(result)) || result;
-				  return 'then' in newResult
-					? fromPromise(newResult)
-					: fromValue(newResult);
+				mergeMap((result) => {
+					if (onError && result.error) onError(result.error, result.operation)
+					const newResult = (onResult && onResult(result)) || result
+					return 'then' in newResult
+						? fromPromise(newResult)
+						: fromValue(newResult)
 				})
-			  );
+			)
 		}
 	}
 }
 
-function traverse(obj, typeMap, writeHooks, path = []) {
+function traverseResponse(parent, obj, typeMap, writeHooks, path = []) {
 	for (const key in obj) {
 		if (obj.hasOwnProperty(key)) {
 			const value = obj[key]
@@ -158,12 +181,12 @@ function traverse(obj, typeMap, writeHooks, path = []) {
 							cleanedValue.id = `${cleanedValue.id}`
 						}
 
-						writeHooks[tableName](objType, cleanedValue, { db })
+						writeHooks[tableName](parent, cleanedValue, { db }, { objType })
 					}
 				}
 
 				// Recursively call the function if the value is an object or array
-				traverse(value, typeMap, writeHooks, newPath)
+				traverseResponse(obj, value, typeMap, writeHooks, newPath)
 			}
 		}
 	}

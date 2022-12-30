@@ -20,6 +20,7 @@ export default function ApiaryList(props) {
 					boxCount
 
 					boxes {
+						id
 						position
 						color
 						type

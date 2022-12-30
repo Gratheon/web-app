@@ -40,6 +40,7 @@ const graphqlWsClient = createClient({
 	},
 })
 
+// create index db schema out of graphql schema
 syncGraphqlSchemaToIndexDB(schemaObject)
 
 const apiClient = createUrqlClient({
@@ -48,24 +49,37 @@ const apiClient = createUrqlClient({
 		dedupExchange,
 
 		offlineIndexDbExchange({
+			cacheFirst: false,
 			schemaObject,
-			readResolvers: {
-				Query: {
-					apiaries: async (_, __, { db }) => {
-						const result = await db.apiary
-						.limit(1)
-						.toArray()
-
-						return ({
-							apiaries: result.map(r=>({__typename:'Apiary', ...r}))
-						});
-					},
+			resolvers: {
+				apiaries: async (_,{db}) => {
+					const apiaries = await db.apiary.limit(100).toArray()
+			
+					return (apiaries.map(apiary=>({
+						...apiary,
+						hives: async()=>{
+							const hives = await db.hive.limit(100).toArray()
+							return hives.map(async(hive)=>{
+								const boxes = await db.box.limit(100).toArray()
+								return {
+									...hive,
+									boxes
+								}
+							})
+						}
+					})));
 				},
 			},
 			writeHooks: {
 				Apiary: async(_, apiary, { db }) => await db.apiary.put(apiary),
-				Hive: async(_, hive, { db }) => await db.hive.put(hive),
-				Box: async(_, box, { db }) => await db.box.put(box),
+				Hive: async(_, hive, { db }) => {
+					console.log({hive});
+					return await db.hive.put(hive)
+				},
+				Box: async(parent, box, { db }) => {
+					box.hiveId = parent.id
+					return await db.box.put(box)
+				},
 				Frame: async(_, frame, { db }) => await db.frame.put(frame),
 				FrameSide: async(_, frameside, { db }) => await db.frameside.put(frameside),
 				FrameSideFile: async(_, frameSideFile, { db }) => await db.framesidefile.put(frameSideFile),

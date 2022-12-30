@@ -52,9 +52,13 @@ const apiClient = createUrqlClient({
 			readResolvers: {
 				Query: {
 					apiaries: async (_, __, { db }) => {
-						return await db.apiary
+						const result = await db.apiary
 						.limit(1)
-						.toArray();
+						.toArray()
+
+						return ({
+							apiaries: result.map(r=>({__typename:'Apiary', ...r}))
+						});
 					},
 				},
 			},

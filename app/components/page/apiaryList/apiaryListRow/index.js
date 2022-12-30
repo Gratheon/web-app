@@ -25,7 +25,7 @@ export default function apiaryListRow(props) {
 			</div>
 
 			<div className={styles.hives}>
-				{apiary.hives.length == 0 && <HivesPlaceholder />}
+				{apiary.hives && apiary.hives.length == 0 && <HivesPlaceholder />}
 				{apiary.hives &&
 					apiary.hives.map((hive, i) => (
 						<div key={i} className={styles.hive}>

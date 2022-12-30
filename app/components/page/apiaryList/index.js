@@ -48,6 +48,8 @@ export default function ApiaryList(props) {
 
 	const { apiaries } = data
 
+	console.log({apiaries});
+
 	return (
 		<div style="max-width:800px;padding-left:20px;">
 			{!apiaries || (apiaries.length === 0 && <ApiariesPlaceholder />)}

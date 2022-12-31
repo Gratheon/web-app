@@ -142,10 +142,10 @@ export function offlineIndexDbExchange({
 	}
 }
 
-async function traverseResponse(parent, obj, typeMap, writeHooks, path = []) {
-	for (const key in obj) {
-		if (obj.hasOwnProperty(key)) {
-			const value = obj[key]
+async function traverseResponse(parent, response, typeMap, writeHooks, path = []) {
+	for (const key in response) {
+		if (response.hasOwnProperty(key)) {
+			const value = response[key]
 
 			// care only about high-level objects and arrays
 			// scalars and properties are ignored as they are not supported as write hooks yet
@@ -186,7 +186,7 @@ async function traverseResponse(parent, obj, typeMap, writeHooks, path = []) {
 						}
 
 						try{
-							await writeHooks[tableName](obj, cleanedValue, { db }, { objType })
+							await writeHooks[tableName](parent, cleanedValue, { db }, { objType })
 						} catch(e){
 							console.error(e);
 						}
@@ -194,7 +194,9 @@ async function traverseResponse(parent, obj, typeMap, writeHooks, path = []) {
 				}
 
 				// Recursively call the function if the value is an object or array
-				traverseResponse(obj, value, typeMap, writeHooks, newPath)
+
+				const parentToPass = Array.isArray(value) ? parent : value;
+				traverseResponse(parentToPass, value, typeMap, writeHooks, newPath)
 			}
 		}
 	}

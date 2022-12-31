@@ -23,7 +23,12 @@ export function syncGraphqlSchemaToIndexDB(schemaObject) {
 	}
 
 	dbSchema.family +=',hiveId';
-	console.log('saving schema', dbSchema)
+	dbSchema.box +=',hiveId';
+	dbSchema.file +=',hiveId';
+	dbSchema.frame +=',boxId';
+	dbSchema.frameside +=',frameId';
+	
+	//console.info('saving schema', dbSchema)
 	db.version(1).stores(dbSchema)
 }
 
@@ -39,19 +44,31 @@ async function upsertEntity(entityName, entity){
 export const writeHooks = {
 	Apiary: async(_, apiary) => await upsertEntity('apiary', apiary),
 	Hive: async(_, hive) => await upsertEntity('hive', hive),
-	Box: async(_, box) => await upsertEntity('box', box),
+	Box: async(parent, box) => {
+		box.hiveId = parent.id;
+		await upsertEntity('box', box);
+	},
 	Family: async({id}, family) => {
 		family.hiveId = id;
 		await upsertEntity('family', family);
 	},
-	Frame: async(_, frame) =>  await upsertEntity('frame', frame),
-	FrameSide: async(_, frameside) => await upsertEntity('frameside', frameside),
+	Frame: async({id}, frame) => {
+		frame.boxId = id;
+		await upsertEntity('frame', frame);
+	},
+	FrameSide: async({id}, frameside) => {
+		frameside.frameId = id;
+		await upsertEntity('frameside', frameside)
+	},
 	FrameSideFile: async(_, frameSideFile) => {
 		if(Object.keys(frameSideFile).length === 0) return;
 
 		frameSideFile.id = `${frameSideFile.frameSideId}`
 		await upsertEntity('framesidefile', frameSideFile)
 	},
-	File: async(_, file) => await upsertEntity('file', file),
+	File: async({hiveId}, file) => {
+		file.hiveId = hiveId;
+		await upsertEntity('file', file)
+	},
 	User: async(_, user) => await upsertEntity('user', user)
 }

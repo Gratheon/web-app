@@ -49,7 +49,7 @@ const apiClient = createUrqlClient({
 		dedupExchange,
 
 		offlineIndexDbExchange({
-			cacheFirst: true,
+			cacheFirst: false,
 			schemaObject,
 			resolvers: {
 				user: async (_, { db }) => {
@@ -58,32 +58,53 @@ const apiClient = createUrqlClient({
 				apiaries: async (_, { db }) => {
 					const apiaries = await db.apiary.limit(100).toArray()
 
-					return apiaries.map((apiary) => ({
-						...apiary,
-						hives: async () => {
-							const hives = await db.hive.limit(100).toArray()
-							return hives.map(async (hive) => {
-								const boxes = await db.box.limit(100).toArray()
-								return {
-									...hive,
-									boxes,
-								}
-							})
-						},
-					}))
+					const apiariesWithHives = []
+
+					for await (const apiary of apiaries) {
+						const hives = await db.hive.limit(100).toArray()
+						const hivesWithBoxes = []
+						for await (const hive of hives) {
+							const boxes = await db.box.limit(100).toArray()
+							hivesWithBoxes.push({ ...hive, boxes })
+						}
+						apiariesWithHives.push({ ...apiary, hives: hivesWithBoxes })
+					}
+
+					return apiariesWithHives
 				},
 
 				hive: async (_, { db }, { variableValues: { id } }) => {
 					const hive = await db.hive.where({ id }).first()
-					console.log('hive', hive);
 
-					if(!hive){
-						return;
+					if (!hive) {
+						return
 					}
 
-					hive.family = await db.family.where({ hiveId: `${id}` }).first()
-					hive.files = []
-					hive.boxes = []
+					try {
+						hive.family = await db.family.where({ hiveId: `${id}` }).first()
+						//todo add file inside
+						// hive.files = []; //await db.framesidefile.where({ hiveId: `${id}`}).toArray()
+						hive.boxes = await db.box.where({ hiveId: `${id}` }).toArray()
+
+						for await (const box of hive.boxes) {
+							box.frames = await db.frame
+								.where({ boxId: `${box.id}` })
+								.toArray()
+
+							for await (const frame of box.frames) {
+								const frames = await db.frameside
+									.where({ frameId: `${frame.id}` })
+									.toArray()
+
+								frame.leftSide = frames[0]
+								frame.rightSide = frames[1]
+							}
+						}
+
+						console.log(hive.boxes[0].frames)
+					} catch (e) {
+						console.error(e)
+					}
 					return hive
 				},
 				hiveFrameSideFile: async () => {

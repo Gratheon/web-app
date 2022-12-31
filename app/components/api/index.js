@@ -49,7 +49,7 @@ const apiClient = createUrqlClient({
 		dedupExchange,
 
 		offlineIndexDbExchange({
-			cacheFirst: false,
+			cacheFirst: true,
 			schemaObject,
 			resolvers: {
 				user: async (_, { db }) => {
@@ -100,8 +100,6 @@ const apiClient = createUrqlClient({
 								frame.rightSide = frames[1]
 							}
 						}
-
-						console.log(hive.boxes[0].frames)
 					} catch (e) {
 						console.error(e)
 					}

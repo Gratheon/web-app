@@ -22,14 +22,18 @@ export function syncGraphqlSchemaToIndexDB(schemaObject) {
 		}
 	}
 
-	dbSchema.family +=',hiveId';
-	dbSchema.box +=',hiveId';
-	dbSchema.file +=',hiveId';
-	dbSchema.frame +=',boxId';
-	dbSchema.frameside +=',frameId';
+	addCustomIndexes(dbSchema)
 	
 	//console.info('saving schema', dbSchema)
 	db.version(1).stores(dbSchema)
+}
+
+function addCustomIndexes(dbSchema) {
+	dbSchema.family += ',hiveId'
+	dbSchema.box += ',hiveId'
+	dbSchema.file += ',hiveId'
+	dbSchema.frame += ',boxId'
+	dbSchema.frameside += ',frameId'
 }
 
 async function upsertEntity(entityName, entity){

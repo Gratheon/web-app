@@ -59,7 +59,7 @@ export function offlineIndexDbExchange({
 		// if its network-first and we get a network error, use fetch offline cache
 		else {
 			if (bubble.error) {
-				bubble.operation.cacheResult = (
+				bubble.data = (
 					await execute({
 						schema: schemaObject,
 						document: op.query,
@@ -67,9 +67,9 @@ export function offlineIndexDbExchange({
 						contextValue: {
 							db,
 						},
-						variableValues: {},
+						variableValues: op.variables,
 					})
-				)
+				).data
 			}
 		}
 

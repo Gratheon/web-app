@@ -1,53 +1,40 @@
-import React from 'react'
-import { Routes, Route } from 'react-router'
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const react_1 = __importDefault(require("react"));
+const react_router_1 = require("react-router");
+const apiaryCreate_1 = __importDefault(require("./apiaryCreate"));
+const apiaryEdit_1 = __importDefault(require("./apiaryEdit"));
+const apiaryList_1 = __importDefault(require("./apiaryList"));
+const hiveCreate_1 = __importDefault(require("./hiveCreate"));
+const hiveEdit_1 = __importDefault(require("./hiveEdit"));
+const inspectionView_1 = __importDefault(require("./inspectionView"));
+const accountEdit_1 = __importDefault(require("./accountEdit"));
+const accountAuth_1 = __importDefault(require("./accountAuth"));
+const accountRegister_1 = __importDefault(require("./accountRegister"));
+function Page() {
+    return (<div style="flex-grow:1;">
+			<react_router_1.Routes>
+				<react_router_1.Route path="/account/authenticate" element={<accountAuth_1.default />}/>
+				<react_router_1.Route path="/account/register" element={<accountRegister_1.default />}/>
 
-import ApiaryCreate from './apiaryCreate'
-import ApiaryEditForm from './apiaryEdit'
-import ApiaryList from './apiaryList'
-import HiveCreateForm from './hiveCreate'
-import HiveEditView from './hiveEdit'
-import InspectionView from './inspectionView'
-import AccountEdit from './accountEdit'
-import AccountAuth from './accountAuth'
-import AccountRegister from './accountRegister'
+				<react_router_1.Route path="/apiaries/create" element={<apiaryCreate_1.default />}/>
+				<react_router_1.Route path="/apiaries/edit/:id" element={<apiaryEdit_1.default />}/>
+				<react_router_1.Route path="/" element={<apiaryList_1.default />}/>
+				<react_router_1.Route path="/apiaries/" element={<apiaryList_1.default />}/>
 
-export default function Page() {
-	return (
-		<div style="flex-grow:1;">
-			<Routes>
-				<Route path="/account/authenticate" element={<AccountAuth />} />
-				<Route path="/account/register" element={<AccountRegister />} />
+				<react_router_1.Route path="/apiaries/:id/hives/add" element={<hiveCreate_1.default />}/>
+				<react_router_1.Route path="/apiaries/:apiaryId/hives/:hiveId" element={<hiveEdit_1.default />}/>
+				<react_router_1.Route path="/apiaries/:apiaryId/hives/:hiveId/box/:boxSelected" element={<hiveEdit_1.default />}/>
+				<react_router_1.Route path="/apiaries/:apiaryId/hives/:hiveId/box/:boxSelected/frame/:frameSelected" element={<hiveEdit_1.default />}/>
+				<react_router_1.Route path="/apiaries/:apiaryId/hives/:hiveId/box/:boxSelected/frame/:frameSelected/:frameSide" element={<hiveEdit_1.default />}/>
 
-				<Route path="/apiaries/create" element={<ApiaryCreate />} />
-				<Route path="/apiaries/edit/:id" element={<ApiaryEditForm />} />
-				<Route path="/" element={<ApiaryList />} />
-				<Route path="/apiaries/" element={<ApiaryList />} />
-
-				<Route path="/apiaries/:id/hives/add" element={<HiveCreateForm />} />
-				<Route
-					path="/apiaries/:apiaryId/hives/:hiveId"
-					element={<HiveEditView />}
-				/>
-				<Route
-					path="/apiaries/:apiaryId/hives/:hiveId/box/:boxSelected"
-					element={<HiveEditView />}
-				/>
-				<Route
-					path="/apiaries/:apiaryId/hives/:hiveId/box/:boxSelected/frame/:frameSelected"
-					element={<HiveEditView />}
-				/>
-				<Route
-					path="/apiaries/:apiaryId/hives/:hiveId/box/:boxSelected/frame/:frameSelected/:frameSide"
-					element={<HiveEditView />}
-				/>
-
-				<Route
-					path="/apiaries/:apiaryId/hives/:hiveId/inspections/:inspectionId"
-					element={<InspectionView />}
-				/>
-				<Route path="/account" element={<AccountEdit />} />
-				<Route path="/account/:stripeStatus" element={<AccountEdit />} />
-			</Routes>
-		</div>
-	)
+				<react_router_1.Route path="/apiaries/:apiaryId/hives/:hiveId/inspections/:inspectionId" element={<inspectionView_1.default />}/>
+				<react_router_1.Route path="/account" element={<accountEdit_1.default />}/>
+				<react_router_1.Route path="/account/:stripeStatus" element={<accountEdit_1.default />}/>
+			</react_router_1.Routes>
+		</div>);
 }
+exports.default = Page;

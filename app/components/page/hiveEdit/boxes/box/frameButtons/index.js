@@ -1,98 +1,68 @@
-import React from 'react'
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const react_1 = __importDefault(require("react"));
+const frames_1 = require("../../../../../../storage/frames");
+const framesIcon_1 = __importDefault(require("../../../../../../icons/framesIcon"));
+const popupButton_1 = require("../../../../../shared/popupButton");
+const button_1 = __importDefault(require("../../../../../shared/button"));
+const deleteIcon_1 = __importDefault(require("../../../../../../icons/deleteIcon"));
+const downIcon_1 = __importDefault(require("../../../../../../icons/downIcon"));
+function FrameButtons({ frameSelected, onFrameRemove, showDownButton, onMoveDown, onFrameAdd, onBoxRemove, box, }) {
+    return (<div style={{ display: 'flex' }}>
+			<popupButton_1.PopupButtonGroup style={`margin-right:3px`}>
+				<button_1.default onClick={() => {
+            onFrameAdd(box.position, frames_1.frameTypes.EMPTY_COMB);
+        }}>
+					<framesIcon_1.default /> Add comb
+				</button_1.default>
 
-import { frameTypes } from '../../../../../../storage/frames'
-import FramesIcon from '../../../../../../icons/framesIcon'
-import {
-	PopupButtonGroup,
-	PopupButton,
-} from '../../../../../shared/popupButton'
-import Button from '../../../../../shared/button'
-import DeleteIcon from '../../../../../../icons/deleteIcon'
-import DownIcon from '../../../../../../icons/downIcon'
-
-export default function FrameButtons({
-	frameSelected,
-	onFrameRemove,
-	showDownButton,
-	onMoveDown,
-	onFrameAdd,
-	onBoxRemove,
-	box,
-}) {
-	return (
-		<div style={{ display: 'flex' }}>
-			<PopupButtonGroup style={`margin-right:3px`}>
-				<Button
-					onClick={() => {
-						onFrameAdd(box.position, frameTypes.EMPTY_COMB)
-					}}
-				>
-					<FramesIcon /> Add comb
-				</Button>
-
-				<PopupButton>
-					<Button
-						onClick={() => {
-							onFrameAdd(box.position, frameTypes.VOID)
-						}}
-					>
+				<popupButton_1.PopupButton>
+					<button_1.default onClick={() => {
+            onFrameAdd(box.position, frames_1.frameTypes.VOID);
+        }}>
 						empty frame
-					</Button>
-					<Button
-						onClick={() => {
-							onFrameAdd(box.position, frameTypes.FOUNDATION)
-						}}
-					>
+					</button_1.default>
+					<button_1.default onClick={() => {
+            onFrameAdd(box.position, frames_1.frameTypes.FOUNDATION);
+        }}>
 						foundation
-					</Button>
-					<Button
-						onClick={() => {
-							onFrameAdd(box.position, frameTypes.FEEDER)
-						}}
-					>
+					</button_1.default>
+					<button_1.default onClick={() => {
+            onFrameAdd(box.position, frames_1.frameTypes.FEEDER);
+        }}>
 						feeder
-					</Button>
-					<Button
-						onClick={() => {
-							onFrameAdd(box.position, frameTypes.PARTITION)
-						}}
-					>
+					</button_1.default>
+					<button_1.default onClick={() => {
+            onFrameAdd(box.position, frames_1.frameTypes.PARTITION);
+        }}>
 						partition
-					</Button>
+					</button_1.default>
 
-					<Button
-						className="red"
-						title="Delete frame"
-						onClick={() => {
-							onFrameRemove(box.position, frameSelected)
-						}}
-					>
-						<DeleteIcon />
+					<button_1.default className="red" title="Delete frame" onClick={() => {
+            onFrameRemove(box.position, frameSelected);
+        }}>
+						<deleteIcon_1.default />
 						Delete frame
-					</Button>
-				</PopupButton>
-			</PopupButtonGroup>
+					</button_1.default>
+				</popupButton_1.PopupButton>
+			</popupButton_1.PopupButtonGroup>
 
-			<Button
-				title="Move down"
-				onClick={() => {
-					if (showDownButton) {
-						onMoveDown(box.position)
-					}
-				}}
-			>
-				<DownIcon />
-			</Button>
+			<button_1.default title="Move down" onClick={() => {
+            if (showDownButton) {
+                onMoveDown(box.position);
+            }
+        }}>
+				<downIcon_1.default />
+			</button_1.default>
 
-			<Button
-				className="red"
-				title="Delete box"
-				onClick={() => {
-					onBoxRemove(box.position)
-				}}
-			>
-				<DeleteIcon />
-			</Button>
-		</div>
-	)
+			<button_1.default className="red" title="Delete box" onClick={() => {
+            onBoxRemove(box.position);
+        }}>
+				<deleteIcon_1.default />
+			</button_1.default>
+		</div>);
 }
+exports.default = FrameButtons;

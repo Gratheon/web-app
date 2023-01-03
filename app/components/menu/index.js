@@ -1,30 +1,32 @@
-import React from 'react'
-import styles from './styles.less'
-import Header from '../header'
-import { logout } from '../user'
-import { Link } from 'react-router-dom'
-import { getAppUri } from '../uri'
-
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const react_1 = __importDefault(require("react"));
+const styles_less_1 = __importDefault(require("./styles.less"));
+const header_1 = __importDefault(require("../header"));
+const user_1 = require("../user");
+const react_router_dom_1 = require("react-router-dom");
+const uri_1 = require("../uri");
 const logOut = () => {
-	logout()
-	window.location = getAppUri() + '/'
-}
-
+    (0, user_1.logout)();
+    window.location = (0, uri_1.getAppUri)() + '/';
+};
 const Menu = ({ isLoggedIn = false }) => {
-	if (!isLoggedIn) {
-		return (
-			<nav id={styles.menu}>
-				<Header />
+    if (!isLoggedIn) {
+        return (<nav id={styles_less_1.default.menu}>
+				<header_1.default />
 				<ul>
 					<li>
-						<Link activeClassName={styles.active} to="/account/authenticate">
+						<react_router_dom_1.Link activeClassName={styles_less_1.default.active} to="/account/authenticate">
 							Authentication
-						</Link>
+						</react_router_dom_1.Link>
 					</li>
 					<li>
-						<Link activeClassName={styles.active} to="/account/register">
+						<react_router_dom_1.Link activeClassName={styles_less_1.default.active} to="/account/register">
 							Registration
-						</Link>
+						</react_router_dom_1.Link>
 					</li>
 					{/*<li>*/}
 					{/*	<Link activeClassName={styles.active} href="/account/restore">*/}
@@ -32,24 +34,21 @@ const Menu = ({ isLoggedIn = false }) => {
 					{/*	</Link>*/}
 					{/*</li>*/}
 				</ul>
-			</nav>
-		)
-	}
-
-	return (
-		<nav id={styles.menu}>
-			<Header />
+			</nav>);
+    }
+    return (<nav id={styles_less_1.default.menu}>
+			<header_1.default />
 
 			<ul>
 				<li>
-					<Link activeClassName={styles.active} to="/apiaries">
+					<react_router_dom_1.Link activeClassName={styles_less_1.default.active} to="/apiaries">
 						Hives
-					</Link>
+					</react_router_dom_1.Link>
 				</li>
 				<li>
-					<Link activeClassName={styles.active} to="/account">
+					<react_router_dom_1.Link activeClassName={styles_less_1.default.active} to="/account">
 						Account
-					</Link>
+					</react_router_dom_1.Link>
 				</li>
 				<li>
 					<a href="#" onClick={logOut}>
@@ -57,8 +56,6 @@ const Menu = ({ isLoggedIn = false }) => {
 					</a>
 				</li>
 			</ul>
-		</nav>
-	)
-}
-
-export default Menu
+		</nav>);
+};
+exports.default = Menu;

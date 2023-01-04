@@ -17,5 +17,10 @@
 			"react-dom": ["./node_modules/preact/compat"]
 		}
 	},
-	"include": ["src2/**/*"]
+	"include": ["src/**/*"],
+	"exclude": [
+		"src/app/**/*.test.ts",
+		"src/app/**/*.itest.ts",
+		"test/integration/*.test.ts"
+	]
 }

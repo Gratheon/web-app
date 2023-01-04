@@ -1,15 +1,17 @@
 {
 	"private": true,
 	"name": "web-app",
-	"version": "0.0.0",
+	"version": "1.0.0",
 	"license": "AGPL",
 	"scripts": {
+		"develop": "ENV_ID=dev npm run -s dev",
 		"build": "preact build",
 		"serve": "sirv build --cors --single",
 		"dev": "preact watch",
-		"lint": "eslint src",
+		"lint": "eslint src --fix",
 		"prettier": "prettier --write --ignore-unknown .",
-		"test": "jest"
+		"test": "jest --config test/jest.config.js --runInBand --color",
+		"test:e2e:write": "./node_modules/.bin/cypress open"
 	},
 	"eslintConfig": {
 		"parser": "@typescript-eslint/parser",

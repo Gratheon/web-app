@@ -70,13 +70,13 @@ export default ({
 		boxDivPosition++
 	) {
 		const box = boxes[boxDivPosition]
-		const currentBoxSelected = !editable || box.position === boxSelected
+		const currentBoxSelected = !editable || box.position === parseInt(boxSelected,10)
 		const showDownButton = boxes.length - 1 !== boxDivPosition
 		const boxFrames = filter(frames, { boxIndex: box.position })
 
 		if (editable && !isNil(frameSelected) && !isNil(boxSelected)) {
 			const selectedFrame = find(frames, {
-				position: frameSelected,
+				position: parseInt(frameSelected, 10),
 				boxIndex: box.position,
 			})
 			const frameWithSides =

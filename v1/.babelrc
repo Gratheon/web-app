@@ -1,0 +1,19 @@
+{
+	"presets": [
+		"@babel/env",
+		["@babel/typescript", { "jsxPragma": "h" }],
+		[
+			"@babel/preset-env",
+			{
+				"useBuiltIns": "entry",
+				"corejs": {
+					"version": "3"
+				},
+				"targets": {
+					"esmodules": true
+				}
+			}
+		]
+	],
+	"plugins": [["@babel/transform-react-jsx", { "pragma": "h" }]]
+}

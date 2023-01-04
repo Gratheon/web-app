@@ -9,7 +9,6 @@ import { isFrameWithSides } from '../../../../api/storage/frames'
 
 export default ({
 	frames,
-	editable = true,
 	boxType,
 	boxPosition,
 	boxSelected,
@@ -25,61 +24,32 @@ export default ({
 		for (let i = 0; i < frames.length; i++) {
 			const frame = frames[i]
 
-			if (editable) {
-				framesDiv.push(
-					</* @ts-ignore */ Draggable key={i}>
-						<div style={{ textAlign: 'center', height: 20 }}>
-							{isFrameWithSides(frame.type) && (
-								<CrownIcon
-									fill={frame.leftSide.queenDetected ? 'white' : '#444444'}
-								/>
-							)}
-							{isFrameWithSides(frame.type) && (
-								<CrownIcon
-									fill={frame.rightSide.queenDetected ? 'white' : '#444444'}
-								/>
-							)}
-						</div>
-
-						<Frame
-							boxSelected={boxSelected}
-							frameSelected={frameSelected}
-							frameSide={frameSide}
-							boxPosition={boxPosition}
-							hiveId={hiveId}
-							apiaryId={apiaryId}
-							frame={frame}
-						/>
-					</Draggable>
-				)
-			} else {
-				framesDiv.push(
-					<div key={i} className={styles.frameOuter}>
-						<div style={{ textAlign: 'center', height: 20 }}>
-							{isFrameWithSides(frame.type) && (
-								<CrownIcon
-									fill={frame.leftSide.queenDetected ? 'white' : '#444444'}
-								/>
-							)}
-							{isFrameWithSides(frame.type) && (
-								<CrownIcon
-									fill={frame.rightSide.queenDetected ? 'white' : '#444444'}
-								/>
-							)}
-						</div>
-
-						<Frame
-							boxSelected={boxSelected}
-							frameSelected={frameSelected}
-							frameSide={frameSide}
-							boxPosition={boxPosition}
-							hiveId={hiveId}
-							apiaryId={apiaryId}
-							frame={frame}
-						/>
+			framesDiv.push(
+				</* @ts-ignore */ Draggable key={i}>
+					<div style={{ textAlign: 'center', height: 20 }}>
+						{isFrameWithSides(frame.type) && (
+							<CrownIcon
+								fill={frame.leftSide.queenDetected ? 'white' : '#444444'}
+							/>
+						)}
+						{isFrameWithSides(frame.type) && (
+							<CrownIcon
+								fill={frame.rightSide.queenDetected ? 'white' : '#444444'}
+							/>
+						)}
 					</div>
-				)
-			}
+
+					<Frame
+						boxSelected={boxSelected}
+						frameSelected={frameSelected}
+						frameSide={frameSide}
+						boxPosition={boxPosition}
+						hiveId={hiveId}
+						apiaryId={apiaryId}
+						frame={frame}
+					/>
+				</Draggable>
+			)
 		}
 	}
 

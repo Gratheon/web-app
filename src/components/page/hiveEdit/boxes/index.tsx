@@ -12,7 +12,6 @@ import styles from './styles.less'
 import React from 'preact/compat'
 import { boxTypes } from '../../../api/storage/boxes'
 import AddBoxIcon from '../../../../icons/addBox'
-// import ListInspections from '../../../shared/listInspections'
 
 type BoxesProps = {
 	hiveId: any
@@ -47,8 +46,6 @@ export default ({
 	frameSelected = 0,
 	frameSide,
 
-	editable = true,
-
 	onBoxClick = () => {},
 	onBoxRemove = () => {},
 	onBoxAdd = () => {},
@@ -70,11 +67,11 @@ export default ({
 		boxDivPosition++
 	) {
 		const box = boxes[boxDivPosition]
-		const currentBoxSelected = !editable || box.position === parseInt(boxSelected,10)
+		const currentBoxSelected = box.position === parseInt(boxSelected,10)
 		const showDownButton = boxes.length - 1 !== boxDivPosition
 		const boxFrames = filter(frames, { boxIndex: box.position })
 
-		if (editable && !isNil(frameSelected) && !isNil(boxSelected)) {
+		if (!isNil(frameSelected) && !isNil(boxSelected)) {
 			const selectedFrame = find(frames, {
 				position: parseInt(frameSelected, 10),
 				boxIndex: box.position,
@@ -124,7 +121,7 @@ export default ({
 					onBoxClick({ event, boxIndex: box.position })
 				}}
 			>
-				{editable && currentBoxSelected && (
+				{currentBoxSelected && (
 					<div style={{ height: 35 }}>
 						<FrameButtons
 							frameSelected={frameSelected}
@@ -143,7 +140,6 @@ export default ({
 						boxType={box.type}
 						boxPosition={box.position}
 						boxSelected={boxSelected}
-						editable={editable}
 						frameSelected={frameSelected}
 						frameSide={frameSide}
 						frames={boxFrames}
@@ -162,7 +158,6 @@ export default ({
 								boxIndex: boxSelected,
 							})
 						}}
-						// onFrameAdd={() => onFrameAdd(box.position)}
 					/>
 				</div>
 			</div>
@@ -196,17 +191,6 @@ export default ({
 			</div>
 
 			{selectedFrameSide}
-
-			{/* Notes */}
-			{/* {!selectedFrameSide && (
-				<div style="flex-grow:6">
-					<ListInspections
-						apiaryId={apiaryId}
-						inspections={hive.inspections}
-						hive={hive}
-					/>
-				</div>
-			)} */}
 		</div>
 	)
 }

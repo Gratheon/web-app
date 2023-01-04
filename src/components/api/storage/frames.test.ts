@@ -46,9 +46,9 @@ const defaultFrameSet = [
 
 it('removeAllFromBox', () => {
 	// ARRANGE
-	setFrames(defaultFrameSet, { hiveId: 2 })
+	setFrames(defaultFrameSet, { hiveId: '2' })
 	// ACT
-	removeAllFromBox(2, 2)
+	removeAllFromBox({ hiveId: '2', boxIndex:0})
 	// ASSERT
 	expect(
 		getFrames({
@@ -61,14 +61,14 @@ it('removeAllFromBox', () => {
 describe('addFrame', () => {
 	it('adds frame to the end', () => {
 		// ARRANGE
-		setFrames(defaultFrameSet, { hiveId: 2 })
+		setFrames(defaultFrameSet, { hiveId: '2' })
 		// ACT
-		addFrame({ hiveId: 2, boxIndex: 1, frameType: 'VOID' })
+		addFrame({ hiveId: '2', boxIndex: 1, frameType: 'VOID' })
 		// ASSERT
 		expect(
 			getFrames({
 				boxIndex: 1,
-				hiveId: 2,
+				hiveId: '2',
 			}).length
 		).toEqual(2)
 	})

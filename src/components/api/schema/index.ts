@@ -1,6 +1,7 @@
 import { buildSchema } from 'graphql'
 
 export type Box = {
+  id: string
 	type: string
 	hiveId?: string
 	position: number
@@ -9,6 +10,7 @@ export type Box = {
 }
 
 export type Frame = {
+  id: string
 	position: number
 }
 

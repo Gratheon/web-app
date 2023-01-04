@@ -13,7 +13,7 @@ import AccountRegister from './accountRegister'
 
 export default function Page() {
 	return (
-		<div style={{flexGrow:1}}>
+		<div style={{ flexGrow: 1 }}>
 			<Routes>
 				<Route path="/account/authenticate" element={<AccountAuth />} />
 				<Route path="/account/register" element={<AccountRegister />} />

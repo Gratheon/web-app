@@ -15,7 +15,7 @@ type Account = {
 }
 
 export default function AccountRegister() {
-	let [account, setAccount] = useState<Account>({});
+	let [account, setAccount] = useState<Account>({})
 
 	function onInput(e: any) {
 		const { name, value } = e.target

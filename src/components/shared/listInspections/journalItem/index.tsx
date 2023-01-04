@@ -5,12 +5,12 @@ import colors from '../../../colors'
 import styles from './styles.less'
 
 type JournalItemProps = {
-	selected:boolean
-	apiaryId:string|number
-	data:any
-	hiveId:string|number
-	added:string
-	id:number
+	selected: boolean
+	apiaryId: string | number
+	data: any
+	hiveId: string | number
+	added: string
+	id: number
 }
 
 export default function journalItem({
@@ -20,7 +20,7 @@ export default function journalItem({
 	hiveId,
 	added,
 	id,
-}:JournalItemProps) {
+}: JournalItemProps) {
 	let tmpdata = JSON.parse(data)
 	let stats = tmpdata.stats
 
@@ -38,14 +38,15 @@ export default function journalItem({
 					<div
 						style={{
 							backgroundColor: colors.broodColor,
-							height: stats.brood
+							height: stats.brood,
 						}}
 					></div>
-					<div style={{
-						backgroundColor: colors.honeyColor,
-						height: stats.honey,
-						borderTop: "1px solid #ffAA00;"
-					}}
+					<div
+						style={{
+							backgroundColor: colors.honeyColor,
+							height: stats.honey,
+							borderTop: '1px solid #ffAA00;',
+						}}
 					></div>
 				</div>
 			</Link>

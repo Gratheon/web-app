@@ -97,9 +97,7 @@ export default function HiveCreateForm() {
 							style={{ flexGrow: '1' }}
 							autoFocus
 							value={name}
-							onInput={(e: any) =>
-								setName(e.target.value)
-							}
+							onInput={(e: any) => setName(e.target.value)}
 						/>
 					</div>
 
@@ -138,9 +136,7 @@ export default function HiveCreateForm() {
 							id="frameCount"
 							name="frameCount"
 							value={frameCount}
-							onInput={(e: any) =>
-								setFrameCount(parseInt(e.target.value, 10))
-							}
+							onInput={(e: any) => setFrameCount(parseInt(e.target.value, 10))}
 							min="0"
 							max="40"
 							step="1"

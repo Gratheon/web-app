@@ -51,10 +51,12 @@ export function offlineIndexDbExchange({
 		}
 
 		// if we want to rely on cache-first, make sure to use data from previous step
-		if(cacheFirst){
-			if(bubble.operation?.cacheResult){
-				bubble.error = bubble.operation.cacheResult.errors ? bubble.operation.cacheResult.errors[0] : null;
-				bubble.data = bubble.operation.cacheResult.data;
+		if (cacheFirst) {
+			if (bubble.operation?.cacheResult) {
+				bubble.error = bubble.operation.cacheResult.errors
+					? bubble.operation.cacheResult.errors[0]
+					: null
+				bubble.data = bubble.operation.cacheResult.data
 			}
 		}
 		// if its network-first and we get a network error, use fetch offline cache
@@ -75,13 +77,12 @@ export function offlineIndexDbExchange({
 		}
 
 		// if there is a network error and we have offline cache, use that
-		if(bubble.error && bubble.data){
-			bubble.originalError = bubble.error;
-			bubble.error = null;
+		if (bubble.error && bubble.data) {
+			bubble.originalError = bubble.error
+			bubble.error = null
 
-			return bubble;
+			return bubble
 		}
-
 
 		// so now its network-first and we had no error
 		// fill cache, go through response and call writeHooks
@@ -143,7 +144,13 @@ export function offlineIndexDbExchange({
 	}
 }
 
-async function traverseResponse(parent, response, typeMap, writeHooks, path = []) {
+async function traverseResponse(
+	parent,
+	response,
+	typeMap,
+	writeHooks,
+	path = []
+) {
 	for (const key in response) {
 		if (response.hasOwnProperty(key)) {
 			const value = response[key]
@@ -173,12 +180,13 @@ async function traverseResponse(parent, response, typeMap, writeHooks, path = []
 					if (writeHooks?.[tableName]) {
 						// normalize objects, clean them up from nested things
 						const cleanedValue = Object.fromEntries(
-							Object.entries(value).filter(
-								([key, v]) => {
-									const propType = typeMap[`${pathString}.${key}`]
-									return typeof v !== 'object' && !Array.isArray(v) || propType.name==='JSON'
-								}
-							)
+							Object.entries(value).filter(([key, v]) => {
+								const propType = typeMap[`${pathString}.${key}`]
+								return (
+									(typeof v !== 'object' && !Array.isArray(v)) ||
+									propType.name === 'JSON'
+								)
+							})
 						)
 
 						if (cleanedValue?.id) {
@@ -186,17 +194,22 @@ async function traverseResponse(parent, response, typeMap, writeHooks, path = []
 							cleanedValue.id = `${cleanedValue.id}`
 						}
 
-						try{
-							await writeHooks[tableName](parent, cleanedValue, { db }, { objType })
-						} catch(e){
-							console.error(e);
+						try {
+							await writeHooks[tableName](
+								parent,
+								cleanedValue,
+								{ db },
+								{ objType }
+							)
+						} catch (e) {
+							console.error(e)
 						}
 					}
 				}
 
 				// Recursively call the function if the value is an object or array
 
-				const parentToPass = Array.isArray(value) ? parent : value;
+				const parentToPass = Array.isArray(value) ? parent : value
 				traverseResponse(parentToPass, value, typeMap, writeHooks, newPath)
 			}
 		}

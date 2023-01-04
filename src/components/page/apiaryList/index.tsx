@@ -30,7 +30,7 @@ export default function ApiaryList(props) {
 		}
 	`)
 
-	const {data:apiaryUpdated} = useSubscription(gql`
+	const { data: apiaryUpdated } = useSubscription(gql`
 		subscription onApiaryUpdated {
 			onApiaryUpdated {
 				id
@@ -50,7 +50,7 @@ export default function ApiaryList(props) {
 	const { apiaries } = data
 
 	return (
-		<div style={{maxWidth:800, paddingLeft: 20}}>
+		<div style={{ maxWidth: 800, paddingLeft: 20 }}>
 			{!apiaries || (apiaries.length === 0 && <ApiariesPlaceholder />)}
 
 			{apiaries &&
@@ -58,7 +58,7 @@ export default function ApiaryList(props) {
 					<ApiaryListRow key={i} apiary={apiary} selectedId={props.id} />
 				))}
 
-			<div style={{textAlign: 'center', marginTop: 20}}>
+			<div style={{ textAlign: 'center', marginTop: 20 }}>
 				<Link href="/apiaries/create">Add another apiary</Link>
 			</div>
 		</div>

@@ -119,13 +119,13 @@ export default ({
 
 		boxesDivs.push(
 			<div
-				style={{marginBottom:15}}
+				style={{ marginBottom: 15 }}
 				onClick={(event) => {
 					onBoxClick({ event, boxIndex: box.position })
 				}}
 			>
 				{editable && currentBoxSelected && (
-					<div style={{height: 35}}>
+					<div style={{ height: 35 }}>
 						<FrameButtons
 							frameSelected={frameSelected}
 							onFrameRemove={onFrameRemove}
@@ -170,12 +170,12 @@ export default ({
 	}
 
 	return (
-		<div style={{display:'flex', padding:'0 20px'}}>
-			<div style={{paddingRight: 5, overflow:'hidden',flexGrow:3}}>
-				<div style={{display:'flex',height:40}}>
-					<h3 style={{flexGrow:1}}>Hive sections</h3>
+		<div style={{ display: 'flex', padding: '0 20px' }}>
+			<div style={{ paddingRight: 5, overflow: 'hidden', flexGrow: 3 }}>
+				<div style={{ display: 'flex', height: 40 }}>
+					<h3 style={{ flexGrow: 1 }}>Hive sections</h3>
 
-					<div style={{display:'flex'}}>
+					<div style={{ display: 'flex' }}>
 						<Button
 							title="Add box on top"
 							className={['small', 'black']}

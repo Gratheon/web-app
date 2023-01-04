@@ -1,15 +1,15 @@
 import { buildSchema } from 'graphql'
 
 export type Box = {
-    type: string
-    hiveId?: string
-    position: number
-    color: string
-    frames?: Frame[]
+	type: string
+	hiveId?: string
+	position: number
+	color: string
+	frames?: Frame[]
 }
 
 export type Frame = {
-    position: number
+	position: number
 }
 
 export const schemaSDL = `
@@ -273,6 +273,6 @@ type Apiary {
     last_name: String
   }
   
-`;
+`
 
-export const schemaObject = buildSchema(schemaSDL);
+export const schemaObject = buildSchema(schemaSDL)

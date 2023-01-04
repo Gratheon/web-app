@@ -73,7 +73,7 @@ function redrawStrokes(canvas, ctx, strokeHistory) {
 			stroke.forEach((point) => {
 				strokePath.push(point)
 				drawOnCanvas(canvas, ctx, strokePath)
-			});
+			})
 		}
 	})
 }
@@ -505,7 +505,7 @@ export default ({
 
 	return (
 		<div>
-			<div style={{display:'flex', margin: '3px 0'}}>
+			<div style={{ display: 'flex', margin: '3px 0' }}>
 				{children}
 				<Button onClick={clearHistory}>Clear</Button>
 				<Button onClick={undoDraw}>Undo</Button>

@@ -2,25 +2,25 @@ import JournalItem from './journalItem'
 import React from 'react'
 
 type ListInspectionsProps = {
-	selectedInspectionId : string
-	inspections:any
-	hive:any
-	editable:boolean
-	inspectionData:any
-	apiaryId:string
+	selectedInspectionId: string
+	inspections: any
+	hive: any
+	editable: boolean
+	inspectionData: any
+	apiaryId: string
 }
 
 //todo
-type Inspection = any;
+type Inspection = any
 
 export default function listInspections({
 	selectedInspectionId,
 	inspections,
 	hive,
-	editable=false,
+	editable = false,
 	inspectionData,
 	apiaryId,
-}:ListInspectionsProps) {
+}: ListInspectionsProps) {
 	if (!inspections || !inspections.length) {
 		return (
 			<div
@@ -36,10 +36,10 @@ export default function listInspections({
 	}
 
 	return (
-		<div style={{padding: "0 20px" }}>
+		<div style={{ padding: '0 20px' }}>
 			<h3>Inspection history</h3>
 
-			<div style={{flexGrow:1, display:"flex"}}>
+			<div style={{ flexGrow: 1, display: 'flex' }}>
 				{inspections.map((inspection: Inspection) => (
 					<JournalItem
 						selected={selectedInspectionId == inspection.id}

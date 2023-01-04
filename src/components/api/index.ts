@@ -16,7 +16,7 @@ import { gatewayUri, getAppUri, uploadUri } from '../uri'
 import { schemaObject } from './schema'
 import { offlineIndexDbExchange } from './offlineIndexDbExchange'
 import { syncGraphqlSchemaToIndexDB, writeHooks } from './db'
-import resolvers from './resolvers';
+import resolvers from './resolvers'
 
 let uri = gatewayUri()
 
@@ -79,14 +79,17 @@ function omitTypeName(obj) {
 		key === '__typename' ? undefined : v
 	)
 }
-function useMutationAdapted(query: string|TypedDocumentNode, variables?:any):[any, {data:any, loading:boolean, error:any}] {
+function useMutationAdapted(
+	query: string | TypedDocumentNode,
+	variables?: any
+): [any, { data: any; loading: boolean; error: any }] {
 	//@ts-ignore
 	const [result, op] = useMutation(query, variables)
 	//@ts-ignore
 	return [op, result]
 }
 
-function useUploadMutation(query: string|TypedDocumentNode) {
+function useUploadMutation(query: string | TypedDocumentNode) {
 	const [result, op] = useMutation(query)
 	function opWrap(payload) {
 		return op(payload, {
@@ -96,7 +99,7 @@ function useUploadMutation(query: string|TypedDocumentNode) {
 	return [opWrap, result]
 }
 
-function useQueryAdapted(query: string|TypedDocumentNode, options?:any) {
+function useQueryAdapted(query: string | TypedDocumentNode, options?: any) {
 	const [result] = useQuery({
 		query,
 		variables: options?.variables,
@@ -108,7 +111,10 @@ function useQueryAdapted(query: string|TypedDocumentNode, options?:any) {
 	}
 }
 
-function useSubscriptionAdapted(query: string|TypedDocumentNode, variables?: any) {
+function useSubscriptionAdapted(
+	query: string | TypedDocumentNode,
+	variables?: any
+) {
 	const [result] = useSubscription({ query, variables })
 
 	return result

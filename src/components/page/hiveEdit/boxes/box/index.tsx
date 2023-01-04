@@ -27,9 +27,8 @@ export default ({
 
 			if (editable) {
 				framesDiv.push(
-					</* @ts-ignore */
-					Draggable key={i}>
-						<div style={{textAlign:'center', height:20}}>
+					</* @ts-ignore */ Draggable key={i}>
+						<div style={{ textAlign: 'center', height: 20 }}>
 							{isFrameWithSides(frame.type) && (
 								<CrownIcon
 									fill={frame.leftSide.queenDetected ? 'white' : '#444444'}
@@ -56,7 +55,7 @@ export default ({
 			} else {
 				framesDiv.push(
 					<div key={i} className={styles.frameOuter}>
-						<div style={{textAlign:'center', height:20}}>
+						<div style={{ textAlign: 'center', height: 20 }}>
 							{isFrameWithSides(frame.type) && (
 								<CrownIcon
 									fill={frame.leftSide.queenDetected ? 'white' : '#444444'}

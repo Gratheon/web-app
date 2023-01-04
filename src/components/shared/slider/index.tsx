@@ -2,12 +2,12 @@ import React from 'react'
 import style from './index.less'
 
 type SliderProps = {
-	backgroundColor: string,
-	value: number,
-	width:number,
-	onChange: any,
-	min: number,
-	max:number,
+	backgroundColor: string
+	value: number
+	width: number
+	onChange: any
+	min: number
+	max: number
 }
 
 export default ({
@@ -25,7 +25,7 @@ export default ({
 	}
 
 	return (
-		<div className={style.wrapper} style={{width:`${width}px`}}>
+		<div className={style.wrapper} style={{ width: `${width}px` }}>
 			<input
 				type="range"
 				onInput={onChange}
@@ -39,7 +39,7 @@ export default ({
 
 			<div className={style.bg}>
 				<div style={bgStyle} className={style.value}></div>
-				<div style={{backgroundColor: "black", flexGrow:1}}></div>
+				<div style={{ backgroundColor: 'black', flexGrow: 1 }}></div>
 			</div>
 		</div>
 	)

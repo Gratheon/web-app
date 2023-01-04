@@ -15,13 +15,12 @@ import WebpackPwaManifest from 'webpack-pwa-manifest'
 export default (config, env, helpers, options) => {
 	// helpers.webpack.plugins = [new BundleAnalyzerPlugin()]
 
-	config.module.rules.push(
-		  {
-			// For pure CSS - /\.css$/i,
-			// For Sass/SCSS - /\.((c|sa|sc)ss)$/i,
-			// For Less - /\.((c|le)ss)$/i,
-			test: /\.less$/i,
-			use: [
+	config.module.rules.push({
+		// For pure CSS - /\.css$/i,
+		// For Sass/SCSS - /\.((c|sa|sc)ss)$/i,
+		// For Less - /\.((c|le)ss)$/i,
+		test: /\.less$/i,
+		use: [
 			//   "style-loader",
 			//   {
 			// 	loader: "css-loader",
@@ -36,11 +35,11 @@ export default (config, env, helpers, options) => {
 			// 	options: { plugins: () => [postcssPresetEnv({ stage: 0 })] },
 			//   },
 			//   // Can be `less-loader`
-			  {
-				loader: "less-loader",
-			  },
-			],
-		  });
+			{
+				loader: 'less-loader',
+			},
+		],
+	})
 
 	helpers.webpack.optimization = {
 		splitChunks: {

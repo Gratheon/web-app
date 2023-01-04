@@ -18,11 +18,11 @@
 	"eslintConfig": {
 		"parser": "@typescript-eslint/parser",
 		"extends": [
-		  "preact",
-		  "plugin:@typescript-eslint/recommended"
+			"preact",
+			"plugin:@typescript-eslint/recommended"
 		],
 		"ignorePatterns": [
-		  "build/"
+			"build/"
 		]
 	},
 	"eslintIgnore": [
@@ -50,7 +50,6 @@
 		"prettier": "2.6.2",
 		"serve": "13.0.2",
 		"webpack-bundle-analyzer": "4.5.0",
-
 		"@types/enzyme": "^3.10.12",
 		"@types/jest": "^27.4.1",
 		"@typescript-eslint/eslint-plugin": "^5.30.6",

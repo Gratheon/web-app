@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-export default function connectionStatus({graphqlWsClient}) {
+export default function connectionStatus({ graphqlWsClient }) {
 	const [wsStatus, setWsStatus] = useState(null)
 
 	useEffect(() => {

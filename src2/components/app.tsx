@@ -1,11 +1,11 @@
-import { h } from 'preact';
-import { Route, Router } from 'preact-router';
+import { h } from 'preact'
+import { Route, Router } from 'preact-router'
 
-import Header from './header';
+import Header from './header'
 
 // Code-splitting is automated for `routes` directory
-import Home from '../routes/home';
-import Profile from '../routes/profile';
+import Home from '../routes/home'
+import Profile from '../routes/profile'
 
 const App = () => (
 	<div id="app">
@@ -18,6 +18,6 @@ const App = () => (
 			</Router>
 		</main>
 	</div>
-);
+)
 
-export default App;
+export default App

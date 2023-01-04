@@ -1,5 +1,5 @@
 import React, { useState, useRef, useMemo } from 'react'
-import {Icon} from 'leaflet'
+import { Icon } from 'leaflet'
 import {
 	MapContainer,
 	TileLayer,
@@ -24,7 +24,12 @@ type LocationMarkerProps = {
 	autoLocate: boolean
 }
 
-function LocationMarker({ onMarkerSet, lat, lng, autoLocate = false } : LocationMarkerProps) {
+function LocationMarker({
+	onMarkerSet,
+	lat,
+	lng,
+	autoLocate = false,
+}: LocationMarkerProps) {
 	const [position, setPosition] = useState({
 		lat,
 		lng,
@@ -83,13 +88,13 @@ function LocationMarker({ onMarkerSet, lat, lng, autoLocate = false } : Location
 }
 
 type MapProps = {
-	lat: number,
-	lng: number,
+	lat: number
+	lng: number
 	autoLocate: boolean
 	onMarkerSet: CallableFunction
 }
 
-const Map = ({ lat = 0, lng = 0, autoLocate = false, onMarkerSet}) => {
+const Map = ({ lat = 0, lng = 0, autoLocate = false, onMarkerSet }) => {
 	return (
 		<div>
 			<MapContainer
@@ -134,7 +139,7 @@ const Map = ({ lat = 0, lng = 0, autoLocate = false, onMarkerSet}) => {
 	)
 }
 
-const ChangeView = ({ center }:{ center:any }) => {
+const ChangeView = ({ center }: { center: any }) => {
 	const map = useMap()
 	map.setView(center)
 	return null

@@ -14,7 +14,11 @@ type InspectionViewProps = {
 	inspectionId?: string
 }
 
-export default function InspectionView({ apiaryId, hiveId, inspectionId }: InspectionViewProps) {
+export default function InspectionView({
+	apiaryId,
+	hiveId,
+	inspectionId,
+}: InspectionViewProps) {
 	let {
 		loading: loadingGet,
 		error: errorGet,
@@ -35,16 +39,14 @@ export default function InspectionView({ apiaryId, hiveId, inspectionId }: Inspe
 	}
 
 	//@ts-ignore
-	let { inspection, hive } : { inspection: any, hive:any} = inspectionGet
+	let { inspection, hive }: { inspection: any; hive: any } = inspectionGet
 
 	const inspectionData = JSON.parse(inspection.data)
 
 	return (
 		<div>
 			<h1>
-				<Link 
-					href={`/apiaries/${apiaryId}/hives/${hiveId}`} 
-					className={null}>
+				<Link href={`/apiaries/${apiaryId}/hives/${hiveId}`} className={null}>
 					Hive {hive.name}
 				</Link>{' '}
 				/ inspection{' '}

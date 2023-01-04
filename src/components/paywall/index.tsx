@@ -8,7 +8,7 @@ const USER_QUERY = gql`
 			isSubscriptionExpired
 		}
 	}
-`;
+`
 
 export default function Paywall({ isLoggedIn = false }) {
 	let { data: accountData } = useQuery(USER_QUERY)

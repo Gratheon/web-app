@@ -9,7 +9,11 @@ export function syncGraphqlSchemaToIndexDB(schemaObject) {
 		if (type.astNode && type.astNode.kind === 'ObjectTypeDefinition') {
 			const objName = type.astNode.name.value.toLowerCase()
 
-			if (objName === 'mutation' || objName === 'query' || objName === 'error') {
+			if (
+				objName === 'mutation' ||
+				objName === 'query' ||
+				objName === 'error'
+			) {
 				continue
 			}
 
@@ -24,7 +28,7 @@ export function syncGraphqlSchemaToIndexDB(schemaObject) {
 	}
 
 	addCustomIndexes(dbSchema)
-	
+
 	//console.info('saving schema', dbSchema)
 	db.version(1).stores(dbSchema)
 }
@@ -37,43 +41,43 @@ function addCustomIndexes(dbSchema) {
 	dbSchema.frameside += ',frameId'
 }
 
-async function upsertEntity(entityName, entity){
+async function upsertEntity(entityName, entity) {
 	// console.log(`updating ${entityName} entity`, entity);
-	const ex = await db[entityName].get(entity.id);
+	const ex = await db[entityName].get(entity.id)
 	await db[entityName].put({
 		...ex,
-		...entity
+		...entity,
 	})
 }
 
 export const writeHooks = {
-	Apiary: async(_, apiary) => await upsertEntity('apiary', apiary),
-	Hive: async(_, hive) => await upsertEntity('hive', hive),
-	Box: async(parent, box) => {
-		box.hiveId = parent.id;
-		await upsertEntity('box', box);
+	Apiary: async (_, apiary) => await upsertEntity('apiary', apiary),
+	Hive: async (_, hive) => await upsertEntity('hive', hive),
+	Box: async (parent, box) => {
+		box.hiveId = parent.id
+		await upsertEntity('box', box)
 	},
-	Family: async({id}, family) => {
-		family.hiveId = id;
-		await upsertEntity('family', family);
+	Family: async ({ id }, family) => {
+		family.hiveId = id
+		await upsertEntity('family', family)
 	},
-	Frame: async({id}, frame) => {
-		frame.boxId = id;
-		await upsertEntity('frame', frame);
+	Frame: async ({ id }, frame) => {
+		frame.boxId = id
+		await upsertEntity('frame', frame)
 	},
-	FrameSide: async({id}, frameside) => {
-		frameside.frameId = id;
+	FrameSide: async ({ id }, frameside) => {
+		frameside.frameId = id
 		await upsertEntity('frameside', frameside)
 	},
-	FrameSideFile: async(_, frameSideFile) => {
-		if(Object.keys(frameSideFile).length === 0) return;
+	FrameSideFile: async (_, frameSideFile) => {
+		if (Object.keys(frameSideFile).length === 0) return
 
 		frameSideFile.id = `${frameSideFile.frameSideId}`
 		await upsertEntity('framesidefile', frameSideFile)
 	},
-	File: async({hiveId}, file) => {
-		file.hiveId = hiveId;
+	File: async ({ hiveId }, file) => {
+		file.hiveId = hiveId
 		await upsertEntity('file', file)
 	},
-	User: async(_, user) => await upsertEntity('user', user)
+	User: async (_, user) => await upsertEntity('user', user),
 }

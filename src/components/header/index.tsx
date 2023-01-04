@@ -3,7 +3,7 @@ import React from 'react'
 import styles from './index.less'
 import { isLoggedIn } from '../user'
 
-export default function Header(){
+export default function Header() {
 	if (isLoggedIn()) {
 		return (
 			<nav id={styles.header}>

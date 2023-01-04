@@ -1,7 +1,7 @@
 import React from 'react'
 import Helmet from 'react-helmet'
 import { BrowserRouter } from 'react-router-dom'
-import { Provider } from 'urql';
+import { Provider } from 'urql'
 
 import { apiClient } from './api'
 import Page from './page'
@@ -55,7 +55,7 @@ export default function App() {
 				// onChangeClientState={(newState) => console.log(newState)}
 			/>
 
-			<div style={{display:'flex', flexDirection:'column'}}>
+			<div style={{ display: 'flex', flexDirection: 'column' }}>
 				<BrowserRouter>
 					<Menu isLoggedIn={isLoggedIn()} />
 					<Paywall isLoggedIn={isLoggedIn()} />

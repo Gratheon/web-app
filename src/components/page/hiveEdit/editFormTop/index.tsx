@@ -18,10 +18,9 @@ export default function HiveEditDetails({
 	onNotesChange,
 	onInput,
 }) {
-
 	return (
 		<div style={{ padding: '20px', display: 'flex' }}>
-			<div style={{width: 68, textAlign: 'center', marginRight:10}}>
+			<div style={{ width: 68, textAlign: 'center', marginRight: 10 }}>
 				<HiveIcon boxes={boxes} editable={true} />
 			</div>
 			<VisualForm onSubmit={onSubmit} style="flex-grow:1">
@@ -30,7 +29,7 @@ export default function HiveEditDetails({
 					<input
 						name="name"
 						id="name"
-						style={{flexGrow:1}}
+						style={{ flexGrow: 1 }}
 						autoFocus
 						value={hive.name}
 						onInput={onInput}
@@ -66,7 +65,7 @@ export default function HiveEditDetails({
 						id="queenYear"
 						minLength={4}
 						maxLength={4}
-						style={{width:40}}
+						style={{ width: 40 }}
 						placeholder="year"
 						value={hive.family ? hive.family.added : ''}
 						onInput={onQueenYearChange}
@@ -74,7 +73,6 @@ export default function HiveEditDetails({
 
 					<QueenColor year={hive.family?.added} />
 				</div>
-
 
 				<div>
 					<label htmlFor="notes">Notes</label>

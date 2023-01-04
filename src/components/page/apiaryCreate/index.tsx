@@ -57,10 +57,10 @@ export default function ApiaryEditForm() {
 	}
 
 	return (
-		<div style={{padding:20}}>
+		<div style={{ padding: 20 }}>
 			{errorMsg}
 
-			<h2 style={{marginBottom:10}}>New apiary</h2>
+			<h2 style={{ marginBottom: 10 }}>New apiary</h2>
 			<VisualForm onSubmit={onSubmit}>
 				<Map
 					lat={lat}

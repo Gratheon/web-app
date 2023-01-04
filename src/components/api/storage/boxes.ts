@@ -20,7 +20,7 @@ export function getBoxes(where: any = () => true): Box[] {
 	return t
 }
 
-export function setBoxes(data: any[], where: any|null = null) {
+export function setBoxes(data: any[], where: any | null = null) {
 	remove(boxes, where)
 	data.forEach((row: any) => {
 		boxes.push({ ...row, ...where })
@@ -29,7 +29,13 @@ export function setBoxes(data: any[], where: any|null = null) {
 	db.set('boxes', boxes)
 }
 
-export function addBox({ hiveId, boxType }: { hiveId: string, boxType:string }) {
+export function addBox({
+	hiveId,
+	boxType,
+}: {
+	hiveId: string
+	boxType: string
+}) {
 	const tmpBoxes = getBoxes({
 		hiveId,
 	})
@@ -43,7 +49,13 @@ export function addBox({ hiveId, boxType }: { hiveId: string, boxType:string }) 
 	db.set('boxes', boxes)
 }
 
-export function removeBox({ hiveId, position }: { hiveId: string, position:number }) {
+export function removeBox({
+	hiveId,
+	position,
+}: {
+	hiveId: string
+	position: number
+}) {
 	const tmpBoxes = getBoxes({
 		hiveId,
 	})
@@ -53,7 +65,7 @@ export function removeBox({ hiveId, position }: { hiveId: string, position:numbe
 		position,
 	})
 
-	map(tmpBoxes, (v:{position:number}) => {
+	map(tmpBoxes, (v: { position: number }) => {
 		if (v.position > position) {
 			v.position--
 		}
@@ -62,7 +74,13 @@ export function removeBox({ hiveId, position }: { hiveId: string, position:numbe
 	setBoxes(tmpBoxes)
 }
 
-export function moveBoxDown({ hiveId, index }: { hiveId:string, index:number }) {
+export function moveBoxDown({
+	hiveId,
+	index,
+}: {
+	hiveId: string
+	index: number
+}) {
 	if (index === 0) {
 		return false
 	}

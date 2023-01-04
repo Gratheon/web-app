@@ -1,5 +1,5 @@
-import { h } from 'preact';
-import style from './style.css';
+import { h } from 'preact'
+import style from './style.css'
 
 const Home = () => {
 	return (
@@ -26,13 +26,13 @@ const Home = () => {
 				/>
 			</section>
 		</div>
-	);
-};
+	)
+}
 
 interface ResourceProps {
-	title: string;
-	description: string;
-	link: string;
+	title: string
+	description: string
+	link: string
 }
 
 const Resource = (props: ResourceProps) => {
@@ -41,7 +41,7 @@ const Resource = (props: ResourceProps) => {
 			<h2>{props.title}</h2>
 			<p>{props.description}</p>
 		</a>
-	);
-};
+	)
+}
 
-export default Home;
+export default Home

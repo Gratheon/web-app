@@ -334,19 +334,11 @@ export default function HiveEditForm() {
 				hive={hive}
 				boxes={boxes}
 				onSubmit={onSubmit}
-				onInput={(e: any) =>
-					setName(e.target.value)
-				}
+				onInput={(e: any) => setName(e.target.value)}
 				apiaryId={apiaryId}
-				onNotesChange={(e: any) =>
-					onNotesChange(e.target.value)
-				}
-				onRaceChange={(e: any) =>
-					setRace(e.target.value)
-				}
-				onQueenYearChange={(e: any) =>
-					setQueenYear(e.target.value)
-				}
+				onNotesChange={(e: any) => onNotesChange(e.target.value)}
+				onRaceChange={(e: any) => setRace(e.target.value)}
+				onQueenYearChange={(e: any) => setQueenYear(e.target.value)}
 			/>
 
 			<Boxes

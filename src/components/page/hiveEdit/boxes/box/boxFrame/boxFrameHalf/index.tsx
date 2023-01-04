@@ -61,7 +61,7 @@ export default ({ frameSide, className, href }) => {
 				title="Capped honey"
 			></div>
 
-			<div style={{flexGrow:1}} />
+			<div style={{ flexGrow: 1 }} />
 		</div>
 	)
 }

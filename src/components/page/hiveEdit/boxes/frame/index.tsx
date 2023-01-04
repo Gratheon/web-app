@@ -94,7 +94,7 @@ export default ({
 	}
 
 	const extraButtons = (
-		<div style={{display: 'flex'}}>
+		<div style={{ display: 'flex' }}>
 			<Button onClick={onFrameClose}>Close</Button>
 			<Button title="Toggle queen" onClick={onQueenToggle}>
 				<CrownIcon fill={frameSide.queenDetected ? 'white' : '#555555'} />
@@ -105,7 +105,7 @@ export default ({
 
 	if (!frameSideFileRel.file) {
 		return (
-			<div style={{flexGrow:10, paddingLeft:15}}>
+			<div style={{ flexGrow: 10, paddingLeft: 15 }}>
 				{extraButtons}
 				<UploadFile
 					onUpload={(data) => {
@@ -124,7 +124,7 @@ export default ({
 	}
 
 	return (
-		<div style={{marginLeft:15}}>
+		<div style={{ marginLeft: 15 }}>
 			<div className={styles.body}>
 				<DrawingCanvas
 					imageUrl={frameSideFileRel.file.url}

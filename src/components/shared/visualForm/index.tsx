@@ -2,9 +2,13 @@ import React from 'react'
 
 import styles from './styles.less'
 
-export default function VisualForm({ children, onSubmit, style = null }: {
-	children?:any,
-	onSubmit?: any,
+export default function VisualForm({
+	children,
+	onSubmit,
+	style = null,
+}: {
+	children?: any
+	onSubmit?: any
 	style?: any
 }) {
 	return (

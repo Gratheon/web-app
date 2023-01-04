@@ -70,7 +70,7 @@ export function setFileStroke({
 	// @ts-ignore
 	const file = getFrameSideFile({
 		frameSideId,
-		hiveId
+		hiveId,
 	})
 	file.strokeHistory = strokeHistory
 }

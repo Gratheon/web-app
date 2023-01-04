@@ -26,10 +26,10 @@ export default ({
 		frameInternal = <div className={styles.feeder} />
 	} else if (frame.type === 'FOUNDATION') {
 		frameInternal = (
-			<div style={{backgroundColor: '#323232', display:'flex', flexGrow:1}}>
-				<div style={{flexGrow:1}} />
+			<div style={{ backgroundColor: '#323232', display: 'flex', flexGrow: 1 }}>
+				<div style={{ flexGrow: 1 }} />
 				<div className={styles.foundation} />
-				<div style={{flexGrow:1}} />
+				<div style={{ flexGrow: 1 }} />
 			</div>
 		)
 	} else if (frame.type === 'EMPTY_COMB') {

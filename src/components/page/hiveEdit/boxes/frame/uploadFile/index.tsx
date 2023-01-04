@@ -14,29 +14,29 @@ export default function UploadFile({ onUpload }) {
 	//todo
 	//@ts-ignore
 	const [uploadFile, { loading, error, data }] = useUploadMutation(gql`
-	mutation uploadFrameSide($file: Upload!) {
-		uploadFrameSide(file: $file) {
-			id
-			url
+		mutation uploadFrameSide($file: Upload!) {
+			uploadFrameSide(file: $file) {
+				id
+				url
+			}
 		}
-	}
-`)
+	`)
 	const [fileList, setFiles] = useState([])
-	async function onFileSelect ({
+	async function onFileSelect({
 		target: {
 			validity,
 			files: [file],
 		},
 	}) {
-		if(!validity.valid){
-			return;
+		if (!validity.valid) {
+			return
 		}
 		//@ts-ignore
-		const { data, error } = await uploadFile({ file });
+		const { data, error } = await uploadFile({ file })
 
-		if(!error){
+		if (!error) {
 			//trigger higher component joining file with hive info
-			onUpload(data.uploadFrameSide);
+			onUpload(data.uploadFrameSide)
 		}
 	}
 
@@ -48,7 +48,7 @@ export default function UploadFile({ onUpload }) {
 
 		return (
 			<div>
-				<img src={uploadFrameSide.url} style={{width:'100%'}} />
+				<img src={uploadFrameSide.url} style={{ width: '100%' }} />
 			</div>
 		)
 	}
@@ -70,7 +70,7 @@ export default function UploadFile({ onUpload }) {
 	}
 
 	return (
-		<div style={{border: '1px dotted black'}}>
+		<div style={{ border: '1px dotted black' }}>
 			<DragAndDrop handleDrop={handleDrop}>
 				<div
 					style={{

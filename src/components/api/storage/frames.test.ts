@@ -12,7 +12,7 @@ import expect from 'expect'
 const defaultFrameSet = [
 	{
 		boxIndex: 2,
-		hiveId: 2,
+		hiveId: "2",
 		id: '63',
 		position: 0,
 		type: 'EMPTY_COMB',
@@ -20,7 +20,7 @@ const defaultFrameSet = [
 	},
 	{
 		boxIndex: 2,
-		hiveId: 2,
+		hiveId: "2",
 		id: '64',
 		position: 1,
 		type: 'EMPTY_COMB',
@@ -28,7 +28,7 @@ const defaultFrameSet = [
 	},
 	{
 		boxIndex: 2,
-		hiveId: 2,
+		hiveId: "2",
 		id: '65',
 		position: 2,
 		type: 'EMPTY_COMB',
@@ -36,7 +36,7 @@ const defaultFrameSet = [
 	},
 	{
 		boxIndex: 1, // !
-		hiveId: 2,
+		hiveId: "2",
 		id: '66',
 		position: 0,
 		type: 'EMPTY_COMB',
@@ -53,7 +53,7 @@ it('removeAllFromBox', () => {
 	expect(
 		getFrames({
 			boxIndex: 1,
-			hiveId: 2,
+			hiveId: "2",
 		}).length
 	).toEqual(1)
 })
@@ -77,10 +77,10 @@ describe('addFrame', () => {
 describe('moveFrame', () => {
 	it('frame 63 >>', () => {
 		// ARRANGE
-		setFrames(defaultFrameSet, { hiveId: 2 })
+		setFrames(defaultFrameSet, { hiveId: "2" })
 		// ACT
 		moveFrame({
-			hiveId: 2,
+			hiveId: "2",
 			boxIndex: 2,
 			removedIndex: 0,
 			addedIndex: 1,
@@ -88,7 +88,7 @@ describe('moveFrame', () => {
 		// ASSERT
 		const result = getFrames({
 			boxIndex: 2,
-			hiveId: 2,
+			hiveId: "2",
 		})
 
 		// reordered
@@ -99,10 +99,10 @@ describe('moveFrame', () => {
 
 	it('frame 63 >> end', () => {
 		// ARRANGE
-		setFrames(defaultFrameSet, { hiveId: 2 })
+		setFrames(defaultFrameSet, { hiveId: "2" })
 		// ACT
 		moveFrame({
-			hiveId: 2,
+			hiveId: "2",
 			boxIndex: 2,
 			removedIndex: 0,
 			addedIndex: 2,
@@ -110,7 +110,7 @@ describe('moveFrame', () => {
 		// ASSERT
 		const result = getFrames({
 			boxIndex: 2,
-			hiveId: 2,
+			hiveId: "2",
 		})
 
 		// reordered
@@ -121,10 +121,10 @@ describe('moveFrame', () => {
 
 	it('frame 65 <<', () => {
 		// ARRANGE
-		setFrames(defaultFrameSet, { hiveId: 2 })
+		setFrames(defaultFrameSet, { hiveId: "2" })
 		// ACT
 		moveFrame({
-			hiveId: 2,
+			hiveId: "2",
 			boxIndex: 2,
 			removedIndex: 2,
 			addedIndex: 1,
@@ -132,7 +132,7 @@ describe('moveFrame', () => {
 		// ASSERT
 		const result = getFrames({
 			boxIndex: 2,
-			hiveId: 2,
+			hiveId: "2",
 		})
 
 		// reordered
@@ -143,10 +143,10 @@ describe('moveFrame', () => {
 
 	it('frame 65 << beginning', () => {
 		// ARRANGE
-		setFrames(defaultFrameSet, { hiveId: 2 })
+		setFrames(defaultFrameSet, { hiveId: "2" })
 		// ACT
 		moveFrame({
-			hiveId: 2,
+			hiveId: "2",
 			boxIndex: 2,
 			removedIndex: 2,
 			addedIndex: 0,
@@ -154,7 +154,7 @@ describe('moveFrame', () => {
 		// ASSERT
 		const result = getFrames({
 			boxIndex: 2,
-			hiveId: 2,
+			hiveId: "2",
 		})
 
 		// reordered

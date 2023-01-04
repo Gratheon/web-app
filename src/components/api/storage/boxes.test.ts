@@ -5,7 +5,7 @@ describe('moveBoxDown', () => {
 	it('should not move position with 0 higher', () => {
 		setBoxes([
 			{
-				hiveId: 1,
+				hiveId: "1",
 				id: '11',
 				position: 0,
 				type: 'DEEP',
@@ -19,7 +19,7 @@ describe('moveBoxDown', () => {
 
 		expect(
 			getBoxes({
-				hiveId: 1,
+				hiveId: "1",
 			})[0].position
 		).toEqual(0)
 	})
@@ -27,14 +27,14 @@ describe('moveBoxDown', () => {
 	it('should not move position with 0 higher', () => {
 		setBoxes([
 			{
-				hiveId: 1,
+				hiveId: "1",
 				id: '11',
 				position: 1,
 				type: 'DEEP',
 				__typename: 'Box',
 			},
 			{
-				hiveId: 1,
+				hiveId: "1",
 				id: '12',
 				position: 0,
 				type: 'DEEP',
@@ -48,7 +48,7 @@ describe('moveBoxDown', () => {
 
 		expect(
 			getBoxes({
-				hiveId: 1,
+				hiveId: "1",
 			})[0].id
 		).toEqual('12')
 	})
@@ -58,14 +58,14 @@ describe('moveBoxDown', () => {
 	it('should not move position with 0 higher', () => {
 		setBoxes([
 			{
-				hiveId: 1,
+				hiveId: "1",
 				id: '11',
 				position: 1,
 				type: 'DEEP',
 				__typename: 'Box',
 			},
 			{
-				hiveId: 1,
+				hiveId: "1",
 				id: '12',
 				position: 0,
 				type: 'DEEP',
@@ -78,7 +78,7 @@ describe('moveBoxDown', () => {
 		})
 
 		const boxes = getBoxes({
-			hiveId: 1,
+			hiveId: "1",
 		})
 
 		expect(boxes.length).toEqual(1)

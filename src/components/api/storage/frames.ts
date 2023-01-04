@@ -32,14 +32,26 @@ export function setFrames(data, where) {
 	db.set('frames', frames)
 }
 
-export function removeAllFromBox({ hiveId, boxIndex }) {
-	hiveId = parseInt(hiveId, 10)
+export function removeAllFromBox({
+	hiveId,
+	boxIndex,
+}: {
+	hiveId: string
+	boxIndex: number
+}) {
 	remove(frames, { hiveId, boxIndex })
 	db.set('frames', frames)
 }
 
-export function swapBox({ hiveId, boxIndex, toBoxIndex }) {
-	hiveId = parseInt(hiveId, 10)
+export function swapBox({
+	hiveId,
+	boxIndex,
+	toBoxIndex,
+}: {
+	hiveId: string
+	boxIndex: number
+	toBoxIndex: number
+}) {
 	let tmpFrames = filter(frames, { hiveId })
 	tmpFrames.map((v) => {
 		if (v.boxIndex === boxIndex) {
@@ -51,8 +63,15 @@ export function swapBox({ hiveId, boxIndex, toBoxIndex }) {
 	setFrames(tmpFrames, { hiveId })
 }
 
-export function moveFramesToBox({ hiveId, boxIndex, toBoxIndex }) {
-	hiveId = parseInt(hiveId, 10)
+export function moveFramesToBox({
+	hiveId,
+	boxIndex,
+	toBoxIndex,
+}: {
+	hiveId: string
+	boxIndex: number
+	toBoxIndex: number
+}) {
 	let tmpFrames = filter(frames, { hiveId })
 	tmpFrames.map((v) => {
 		if (v.boxIndex === boxIndex) {
@@ -62,8 +81,15 @@ export function moveFramesToBox({ hiveId, boxIndex, toBoxIndex }) {
 	setFrames(tmpFrames, { hiveId })
 }
 
-export function addFrame({ hiveId, boxIndex, frameType }) {
-	hiveId = parseInt(hiveId, 10)
+export function addFrame({
+	hiveId,
+	boxIndex,
+	frameType,
+}: {
+	hiveId: string
+	boxIndex: number
+	frameType: string
+}) {
 	let tmpFrames = filter(frames, { hiveId, boxIndex })
 
 	const emptyFrame = {
@@ -94,12 +120,17 @@ export function addFrame({ hiveId, boxIndex, frameType }) {
 	setFrames(tmpFrames, { hiveId, boxIndex })
 }
 
-export function moveFrame({ hiveId, removedIndex, addedIndex, boxIndex }) {
-	hiveId = parseInt(hiveId, 10)
-	removedIndex = parseInt(removedIndex, 10)
-	addedIndex = parseInt(addedIndex, 10)
-	boxIndex = parseInt(boxIndex, 10)
-
+export function moveFrame({
+	hiveId,
+	removedIndex,
+	addedIndex,
+	boxIndex,
+}: {
+	hiveId: string
+	removedIndex: number
+	addedIndex: number
+	boxIndex: number
+}) {
 	let tmpFrames = filter(frames, { hiveId, boxIndex })
 
 	tmpFrames.map((v) => {
@@ -146,8 +177,14 @@ export function setFrameSideProperty({
 	side,
 	prop,
 	value,
+}: {
+	hiveId: string
+	boxIndex: number
+	position: number
+	side: string
+	prop: string
+	value: any
 }) {
-	hiveId = parseInt(hiveId, 10)
 	const frame = find(frames, { hiveId, boxIndex, position })
 	frame[side] = {
 		...frame[side],
@@ -155,8 +192,7 @@ export function setFrameSideProperty({
 	frame[side][prop] = value
 }
 
-export function removeFrame({ hiveId, boxIndex, framePosition }) {
-	hiveId = parseInt(hiveId, 10)
+export function removeFrame({ hiveId, boxIndex, framePosition }: { hiveId:string, boxIndex:number, framePosition:number }) {
 	let tmpFrames = filter(frames, { hiveId, boxIndex })
 
 	remove(tmpFrames, {

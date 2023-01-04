@@ -7,7 +7,7 @@ import { apiClient } from './api'
 import Page from './page'
 import Menu from './menu'
 import Footer from './footer'
-import Paywall from './paywall'
+import Paywall from './page/paywall'
 import { isLoggedIn } from './user'
 
 export default function App() {

@@ -1,8 +1,8 @@
 {
   "private": true,
-  "name": "my-project",
+  "name": "web-app",
   "version": "0.0.0",
-  "license": "MIT",
+  "license": "AGPL",
   "scripts": {
     "build": "preact build",
     "serve": "sirv build --cors --single",

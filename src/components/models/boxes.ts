@@ -17,20 +17,24 @@ export async function getBoxes(where = {}): Promise<Box[]> {
 	return await db['box'].where(where).sortBy('position')
 }
 
+export async function countHiveBoxes(hiveId: number){
+	return await db['box'].where({
+		hiveId
+	}).count()
+}
+
 
 export function setBoxes(data: any[], where: any | null = null) {
 	remove(boxes, where)
 	data.forEach((row: any) => {
 		boxes.push({ ...row, ...where })
 	})
-
-	//db.set('boxes', boxes)
 }
 
 export function addBox({
-	hiveId,
-	boxType,
+	id,	hiveId, boxType
 }: {
+	id: number,
 	hiveId: number
 	boxType: string
 }) {
@@ -39,11 +43,11 @@ export function addBox({
 	})
 
 	// @ts-ignore
-	boxes.push({
-		position: tmpBoxes.length,
-		hiveId,
-		type: boxType,
-	})
+	// boxes.push({
+	// 	position: tmpBoxes.length,
+	// 	hiveId,
+	// 	type: boxType,
+	// })
 	//db.set('boxes', boxes)
 }
 

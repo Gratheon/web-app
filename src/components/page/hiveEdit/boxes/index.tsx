@@ -5,13 +5,14 @@ import { useNavigate } from 'react-router'
 
 import Box from './box'
 import { isFrameWithSides } from '../../../models/frames'
+import { useMutation } from '../../../api'
 
 import SelectedFrame from './selectedFrame'
 import FrameButtons from './box/frameButtons'
 import Button from '../../../shared/button'
 import styles from './styles.less'
 
-import { boxTypes } from '../../../models/boxes'
+import { boxTypes, addBox, countHiveBoxes } from '../../../models/boxes'
 import AddBoxIcon from '../../../../icons/addBox'
 
 type BoxesProps = {
@@ -48,6 +49,23 @@ export default function Boxes({
 	frameSide,
 }: BoxesProps) {
 
+	let [mutateHive] = useMutation(`mutation updateHive($hive: HiveUpdateInput!) {
+		updateHive(hive: $hive) {
+			id
+			__typename
+		}
+	}
+`)
+
+
+let [mutateBox] = useMutation(`mutation addBox($hiveId: ID!, $position: Int!, $type: BoxType!) {
+	addBox(hiveId: $hiveId, position: $position, type: $type) {
+		id
+		__typename
+	}
+}
+`)
+
 	//todo
 	function onBoxRemove(position) {
 		// removeAllFromBox({ hiveId: +hive.id, boxIndex: position })
@@ -77,8 +95,22 @@ export default function Boxes({
 		// }
 	}
 
-	function onBoxAdd(boxType) {
-		// addBox({ hiveId: +hive.id, boxType })
+	async function onBoxAdd(boxType) {
+		const position = await countHiveBoxes(+hiveId) + 1;
+		
+		const {data: { addBox:{id}}} = await mutateBox({
+			hiveId: +hiveId,
+			position, 
+			type: boxType
+		})
+
+		console.log(id);
+
+		await addBox({
+			id,
+			hiveId: +hiveId,
+			boxType
+		})
 	}
 
 	// frames

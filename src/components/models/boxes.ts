@@ -13,10 +13,8 @@ export const boxTypes = {
 	SUPER: 'SUPER',
 }
 
-export function getBoxes(where = {}) {
-	return async(): Promise<Box[]> => {
-		return await db['box'].where(where).sortBy('position')
-	}
+export async function getBoxes(where = {}): Promise<Box[]> {
+	return await db['box'].where(where).sortBy('position')
 }
 
 

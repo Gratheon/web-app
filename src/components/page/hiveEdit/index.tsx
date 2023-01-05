@@ -1,7 +1,6 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { useNavigate } from 'react-router'
 import { useParams } from 'react-router-dom'
-import { map, isNil } from 'lodash'
 import { useLiveQuery } from "dexie-react-hooks";
 
 import { omitTypeName, useMutation, useQuery } from '../../api'
@@ -34,9 +33,9 @@ export default function HiveEditForm() {
 	// let [updateHive, { loading: loadingUpdate, error, data }] = useMutation(HIVE_EDIT_MUTATION)
 	// let [updateFileStroke] = useMutation(FILE_STROKE_EDIT_MUTATION)
 	
-	const hive = useLiveQuery(getHive(+hiveId), [hiveId]);
-	const boxes = useLiveQuery(getBoxes({ hiveId: +hiveId }), [hiveId]);
-	const frames = useLiveQuery(getFrames({hiveId: +hiveId}), [hiveId]);
+	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId]);
+	const boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId]);
+	const frames = useLiveQuery(() => getFrames({hiveId: +hiveId}), [hiveId]);
 
 	if (!boxSelected) {
 		boxSelected = '0'
@@ -72,7 +71,7 @@ export default function HiveEditForm() {
 			{errorMsg}
 			{okMsg}
 
-			<HiveEditDetails hive={hive} boxes={boxes} />
+			<HiveEditDetails hiveId={hiveId}/>
 
 			<Boxes
 				apiaryId={apiaryId}

@@ -16,14 +16,9 @@ export const frameTypes = {
 	PARTITION: 'PARTITION',
 }
 
-export function getFrames(where = {}) {
-	return async(): Promise<Frame[]> => {
-		return await db['frame'].where(where).sortBy('position')
-	}
+export async function getFrames(where = {}): Promise<Frame[]> {
+	return await db['frame'].where(where).sortBy('position')
 }
-
-
-
 
 export function setFrames(data, where) {
 	remove(frames, where)

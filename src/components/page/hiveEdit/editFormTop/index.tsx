@@ -1,17 +1,23 @@
 import React, { useMemo } from 'react'
 import debounce from 'lodash.debounce'
+import { useLiveQuery } from 'dexie-react-hooks'
 
-// import { PopupButton, PopupButtonGroup } from '../../../shared/popupButton'
 import VisualForm from '../../../shared/visualForm'
 import HiveIcon from '../../../shared/hiveIcon'
 import DeactivateButton from '../deleteButton'
 import QueenColor from './queenColor'
-// import Button from '../../../shared/button'
 
 import { useMutation } from '../../../api'
-import {updateHive} from '../../../models/hive'
+import { updateHive, getHive } from '../../../models/hive'
+import { getBoxes } from '../../../models/boxes'
+import { getFamilyByHive, updateFamily } from '../../../models/family'
+import Loader from '../../../shared/loader'
 
-export default function HiveEditDetails({ hive, boxes }) {
+export default function HiveEditDetails({ hiveId }) {
+	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId])
+	let boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId])
+	let family = useLiveQuery(() => getFamilyByHive(+hiveId), [hiveId])
+
 	let [mutateHive] = useMutation(`mutation updateHive($hive: HiveUpdateInput!) {
 		updateHive(hive: $hive) {
 			id
@@ -19,15 +25,14 @@ export default function HiveEditDetails({ hive, boxes }) {
 		}
 	}
 `)
-
 	const onNameChange = useMemo(
 		() =>
 			debounce(async function (v) {
 				const name = v.target.value
-				await updateHive(hive.id, {name})
+				await updateHive(+hiveId, { name })
 				await mutateHive({
 					hive: {
-						id: hive.id,
+						id: hiveId,
 						name,
 					},
 				})
@@ -38,10 +43,10 @@ export default function HiveEditDetails({ hive, boxes }) {
 		() =>
 			debounce(async function (v) {
 				const notes = v.target.value
-				await updateHive(hive.id, {notes})
+				await updateHive(+hiveId, { notes })
 				await mutateHive({
 					hive: {
-						id: hive.id,
+						id: hiveId,
 						notes,
 					},
 				})
@@ -49,9 +54,45 @@ export default function HiveEditDetails({ hive, boxes }) {
 		[]
 	)
 
-	function onRaceChange() {}
+	const onRaceChange = useMemo(
+		() =>
+			debounce(async function (v) {
+				const race = v.target.value
+				let { id } = await getFamilyByHive(+hiveId)
+				await updateFamily(id, { race })
+				await mutateHive({
+					hive: {
+						id: hiveId,
+						family: {
+							race,
+						},
+					},
+				})
+			}, 1000),
+		[]
+	)
 
-	function onQueenYearChange() {}
+	const onQueenYearChange = useMemo(
+		() =>
+			debounce(async function (v) {
+				let { id } = await getFamilyByHive(+hiveId)
+				const added = v.target.value
+				await updateFamily(id, { added })
+				await mutateHive({
+					hive: {
+						id: hiveId,
+						family: {
+							added,
+						},
+					},
+				})
+			}, 1000),
+		[]
+	)
+
+	if (!hive) {
+		return <Loader />
+	}
 
 	return (
 		<div style={{ padding: '20px', display: 'flex' }}>
@@ -79,7 +120,7 @@ export default function HiveEditDetails({ hive, boxes }) {
 						name="race"
 						id="race"
 						placeholder="race"
-						value={hive.family ? hive.family.race : ''}
+						value={family ? family.race : ''}
 						onInput={onRaceChange}
 					/>
 
@@ -90,11 +131,11 @@ export default function HiveEditDetails({ hive, boxes }) {
 						maxLength={4}
 						style={{ width: 40 }}
 						placeholder="year"
-						value={hive.family ? hive.family.added : ''}
+						value={family ? family.added : ''}
 						onInput={onQueenYearChange}
 					/>
 
-					<QueenColor year={hive.family?.added} />
+					<QueenColor year={family?.added} />
 				</div>
 
 				<div>

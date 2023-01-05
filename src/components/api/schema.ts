@@ -3,7 +3,7 @@ import { buildSchema } from 'graphql'
 export type Box = {
   id: number
 	type: string
-	hiveId?: number
+	hiveId?: number //reference
 	position: number
 	color: string
 	frames?: Frame[]
@@ -13,6 +13,14 @@ export type Frame = {
   id: number
 	position: number
 }
+
+export type Family = {
+  hiveId?: number //reference
+  id: number
+  race: string
+  added: string
+}
+
 
 export const schemaSDL = `
 type Apiary {

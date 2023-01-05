@@ -31,15 +31,16 @@ export function setBoxes(data: any[], where: any | null = null) {
 	})
 }
 
-export function addBox({
-	id,	hiveId, boxType
+export async function addBox({
+	id,	hiveId, position, type
 }: {
 	id: number,
 	hiveId: number
-	boxType: string
+	position: number
+	type: string
 }) {
-	const tmpBoxes = getBoxes({
-		hiveId,
+	await db['box'].put({
+		id,	hiveId, position, type
 	})
 
 	// @ts-ignore

@@ -95,21 +95,20 @@ let [mutateBox] = useMutation(`mutation addBox($hiveId: ID!, $position: Int!, $t
 		// }
 	}
 
-	async function onBoxAdd(boxType) {
+	async function onBoxAdd(type) {
 		const position = await countHiveBoxes(+hiveId) + 1;
 		
 		const {data: { addBox:{id}}} = await mutateBox({
 			hiveId: +hiveId,
 			position, 
-			type: boxType
+			type
 		})
 
-		console.log(id);
-
 		await addBox({
-			id,
+			id: +id,
 			hiveId: +hiveId,
-			boxType
+			position,
+			type
 		})
 	}
 

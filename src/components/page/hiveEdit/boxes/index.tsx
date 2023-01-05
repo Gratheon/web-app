@@ -48,42 +48,13 @@ export default function Boxes({
 	frameSelected = 0,
 	frameSide,
 }: BoxesProps) {
-
-	let [mutateHive] = useMutation(`mutation updateHive($hive: HiveUpdateInput!) {
-		updateHive(hive: $hive) {
-			id
-			__typename
-		}
-	}
-`)
-
-
-let [mutateBox] = useMutation(`mutation addBox($hiveId: ID!, $position: Int!, $type: BoxType!) {
+	let [addBoxMutation] =
+		useMutation(`mutation addBox($hiveId: ID!, $position: Int!, $type: BoxType!) {
 	addBox(hiveId: $hiveId, position: $position, type: $type) {
 		id
-		__typename
 	}
 }
 `)
-
-	//todo
-	function onBoxRemove(position) {
-		// removeAllFromBox({ hiveId: +hive.id, boxIndex: position })
-
-		// const boxes = getBoxes({ hiveId: +hive.id })
-
-		// removeBox({ hiveId: +hive.id, position })
-
-		// map(boxes, (v: Box) => {
-		// 	if (v.position >= position) {
-		// 		moveFramesToBox({
-		// 			hiveId: +hive.id,
-		// 			boxIndex: v.position + 1,
-		// 			toBoxIndex: v.position,
-		// 		})
-		// 	}
-		// })
-	}
 
 	function onMoveDown(index) {
 		// if (moveBoxDown({ hiveId: +hive.id, index })) {
@@ -96,28 +67,43 @@ let [mutateBox] = useMutation(`mutation addBox($hiveId: ID!, $position: Int!, $t
 	}
 
 	async function onBoxAdd(type) {
-		const position = await countHiveBoxes(+hiveId) + 1;
-		
-		const {data: { addBox:{id}}} = await mutateBox({
+		const position = (await countHiveBoxes(+hiveId)) + 1
+
+		const {
+			data: {
+				addBox: { id },
+			},
+		} = await addBoxMutation({
 			hiveId: +hiveId,
-			position, 
-			type
+			position,
+			type,
 		})
 
 		await addBox({
 			id: +id,
 			hiveId: +hiveId,
 			position,
-			type
+			type,
 		})
 	}
 
 	// frames
 	function onFrameRemove(boxIndex, framePosition) {
-		// removeFrame({
-		// 	hiveId: +hive.id,
-		// 	boxIndex,
-		// 	framePosition,
+		// const {
+		// 	data: {
+		// 		addBox: { id },
+		// 	},
+		// } = await addBoxMutation({
+		// 	hiveId: +hiveId,
+		// 	position,
+		// 	type,
+		// })
+
+		// await addBox({
+		// 	id: +id,
+		// 	hiveId: +hiveId,
+		// 	position,
+		// 	type,
 		// })
 	}
 
@@ -161,7 +147,6 @@ let [mutateBox] = useMutation(`mutation addBox($hiveId: ID!, $position: Int!, $t
 		}
 	}
 
-
 	const boxesDivs = []
 	let selectedFrameSide = null
 
@@ -193,7 +178,7 @@ let [mutateBox] = useMutation(`mutation addBox($hiveId: ID!, $position: Int!, $t
 			if (currentBoxSelected && selectedFrame) {
 				const onUpload = (uploadedFile: any) => {
 					// TODO
-					console.log('todo',{
+					console.log('todo', {
 						boxIndex: box.position,
 						position: selectedFrame.position,
 						side: frameSide,
@@ -262,12 +247,14 @@ let [mutateBox] = useMutation(`mutation addBox($hiveId: ID!, $position: Int!, $t
 						<Button
 							title="Add box on top"
 							className={['small', 'black']}
-							onClick={() => onBoxAdd(boxTypes.DEEP)}>
+							onClick={() => onBoxAdd(boxTypes.DEEP)}
+						>
 							<AddBoxIcon /> Add deep
 						</Button>
 						<Button
 							title="Add box on top"
-							onClick={() => onBoxAdd(boxTypes.SUPER)}>
+							onClick={() => onBoxAdd(boxTypes.SUPER)}
+						>
 							<AddBoxIcon /> Add super
 						</Button>
 					</div>

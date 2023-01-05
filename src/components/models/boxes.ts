@@ -24,6 +24,10 @@ export async function countHiveBoxes(hiveId: number){
 }
 
 
+export async function removeBox(id:number) {
+	return await db['box'].delete(id);
+}
+
 export function setBoxes(data: any[], where: any | null = null) {
 	remove(boxes, where)
 	data.forEach((row: any) => {
@@ -42,39 +46,6 @@ export async function addBox({
 	await db['box'].put({
 		id,	hiveId, position, type
 	})
-
-	// @ts-ignore
-	// boxes.push({
-	// 	position: tmpBoxes.length,
-	// 	hiveId,
-	// 	type: boxType,
-	// })
-	//db.set('boxes', boxes)
-}
-
-export function removeBox({
-	hiveId,
-	position,
-}: {
-	hiveId: number
-	position: number
-}) {
-	const tmpBoxes = getBoxes({
-		hiveId,
-	})
-
-	remove(tmpBoxes, {
-		hiveId,
-		position,
-	})
-
-	map(tmpBoxes, (v: { position: number }) => {
-		if (v.position > position) {
-			v.position--
-		}
-	})
-
-	setBoxes(tmpBoxes)
 }
 
 export function moveBoxDown({

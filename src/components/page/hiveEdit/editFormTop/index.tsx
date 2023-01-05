@@ -1,34 +1,57 @@
-import React from 'react'
+import React, { useMemo } from 'react'
+import debounce from 'lodash.debounce'
 
-import { PopupButton, PopupButtonGroup } from '../../../shared/popupButton'
+// import { PopupButton, PopupButtonGroup } from '../../../shared/popupButton'
 import VisualForm from '../../../shared/visualForm'
 import HiveIcon from '../../../shared/hiveIcon'
 import DeactivateButton from '../deleteButton'
 import QueenColor from './queenColor'
-import Button from '../../../shared/button'
+// import Button from '../../../shared/button'
 
-export default function HiveEditDetails({
-	hive,
-	boxes,
-}) {
+import { useMutation } from '../../../api'
+import {updateHive} from '../../../models/hive'
 
-	// todo implement it
-	function onRaceChange(){
-
+export default function HiveEditDetails({ hive, boxes }) {
+	let [mutateHive] = useMutation(`mutation updateHive($hive: HiveUpdateInput!) {
+		updateHive(hive: $hive) {
+			id
+			__typename
+		}
 	}
+`)
 
-	function onNotesChange(){
+	const onNameChange = useMemo(
+		() =>
+			debounce(async function (v) {
+				const name = v.target.value
+				await updateHive(hive.id, {name})
+				await mutateHive({
+					hive: {
+						id: hive.id,
+						name,
+					},
+				})
+			}, 1000),
+		[]
+	)
+	const onNotesChange = useMemo(
+		() =>
+			debounce(async function (v) {
+				const notes = v.target.value
+				await updateHive(hive.id, {notes})
+				await mutateHive({
+					hive: {
+						id: hive.id,
+						notes,
+					},
+				})
+			}, 1000),
+		[]
+	)
 
-	}
+	function onRaceChange() {}
 
-	function onQueenYearChange(){
-
-	}
-
-	function onNameChange(){
-
-	}
-
+	function onQueenYearChange() {}
 
 	return (
 		<div style={{ padding: '20px', display: 'flex' }}>

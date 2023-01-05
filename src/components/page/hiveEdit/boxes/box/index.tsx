@@ -1,6 +1,8 @@
 import React from 'react'
 import isNil from 'lodash/isNil'
 import { Container, Draggable } from '@edorivai/react-smooth-dnd'
+import { useNavigate } from 'react-router-dom'
+
 
 import styles from './index.less'
 import Frame from './boxFrame'
@@ -14,10 +16,10 @@ export default ({
 	boxSelected,
 	frameSelected,
 	frameSide,
-	onDragDropFrame,
 	apiaryId,
 	hiveId,
 }) => {
+	const navigate = useNavigate();
 	const framesDiv = []
 
 	if (!isNil(frames)) {
@@ -63,7 +65,15 @@ export default ({
 				{/* @ts-ignore */}
 				<Container
 					style={{ height: `calc(100% - 30px)` }}
-					onDrop={onDragDropFrame}
+					onDrop={()=>{
+						if (!isNil(frameSide)) {
+							// event.stopPropagation()
+							navigate(
+								`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxSelected}/frame/${frameSelected}/${frameSide}`,
+								{ replace: true }
+							)
+						}
+					}}
 					orientation="horizontal"
 				>
 					{framesDiv}

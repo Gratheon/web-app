@@ -2,31 +2,28 @@ import React from 'react'
 
 import { frameTypes } from '../../../../../models/frames'
 import FramesIcon from '../../../../../../icons/framesIcon'
-import {
-	PopupButtonGroup,
-	PopupButton,
-} from '../../../../../shared/popupButton'
+import { PopupButtonGroup, PopupButton } from '../../../../../shared/popupButton'
 import Button from '../../../../../shared/button'
 import DeleteIcon from '../../../../../../icons/deleteIcon'
 import DownIcon from '../../../../../../icons/downIcon'
 
 export default function FrameButtons({
 	frameSelected,
-	onFrameRemove,
 	showDownButton,
-	onMoveDown,
-	onFrameAdd,
-	onBoxRemove,
 	box,
 }) {
+
+	//todo
+	function onFrameAdd(position, type){}
+	function onMoveDown(position){}
+	function onBoxRemove(position){}
+
 	return (
 		<div style={{ display: 'flex' }}>
 			<PopupButtonGroup style={`margin-right:3px`}>
-				<Button
-					onClick={() => {
+				<Button onClick={() => {
 						onFrameAdd(box.position, frameTypes.EMPTY_COMB)
-					}}
-				>
+					}}>
 					<FramesIcon /> Add comb
 				</Button>
 

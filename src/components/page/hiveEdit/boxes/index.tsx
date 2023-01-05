@@ -1,6 +1,7 @@
 import find from 'lodash/find'
 import filter from 'lodash/filter'
 import isNil from 'lodash/isNil'
+import { useNavigate } from 'react-router'
 
 import Box from './box'
 import { isFrameWithSides } from '../../../models/frames'
@@ -9,7 +10,7 @@ import SelectedFrame from './selectedFrame'
 import FrameButtons from './box/frameButtons'
 import Button from '../../../shared/button'
 import styles from './styles.less'
-import React from 'preact/compat'
+
 import { boxTypes } from '../../../models/boxes'
 import AddBoxIcon from '../../../../icons/addBox'
 
@@ -37,7 +38,7 @@ type BoxesProps = {
 	onFrameRemove?: any
 }
 
-export default ({
+export default function Boxes({
 	hiveId,
 	frames,
 	boxes,
@@ -45,19 +46,91 @@ export default ({
 	boxSelected,
 	frameSelected = 0,
 	frameSide,
+}: BoxesProps) {
 
-	onBoxClick = () => {},
-	onBoxRemove = () => {},
-	onBoxAdd = () => {},
-	onMoveDown = () => {},
+	//todo
+	function onBoxRemove(position) {
+		// removeAllFromBox({ hiveId: +hive.id, boxIndex: position })
 
-	onFrameClose = () => {},
-	onFrameAdd = () => {},
-	onFrameSideFileUpload = () => {},
-	onDragDropFrame = () => {},
-	onFrameSideStatChange = () => {},
-	onFrameRemove = () => {},
-}: BoxesProps) => {
+		// const boxes = getBoxes({ hiveId: +hive.id })
+
+		// removeBox({ hiveId: +hive.id, position })
+
+		// map(boxes, (v: Box) => {
+		// 	if (v.position >= position) {
+		// 		moveFramesToBox({
+		// 			hiveId: +hive.id,
+		// 			boxIndex: v.position + 1,
+		// 			toBoxIndex: v.position,
+		// 		})
+		// 	}
+		// })
+	}
+
+	function onMoveDown(index) {
+		// if (moveBoxDown({ hiveId: +hive.id, index })) {
+		// 	swapBox({
+		// 		hiveId: +hive.id,
+		// 		boxIndex: index,
+		// 		toBoxIndex: index - 1,
+		// 	})
+		// }
+	}
+
+	function onBoxAdd(boxType) {
+		// addBox({ hiveId: +hive.id, boxType })
+	}
+
+	// frames
+	function onFrameRemove(boxIndex, framePosition) {
+		// removeFrame({
+		// 	hiveId: +hive.id,
+		// 	boxIndex,
+		// 	framePosition,
+		// })
+	}
+
+	function onFrameClose(event) {
+		event.stopPropagation()
+		navigate(`/apiaries/${apiaryId}/hives/${hiveId}`, { replace: true })
+	}
+
+	function onFrameSideStatChange(boxIndex, position, side, prop, value) {
+		// setFrameSideProperty({
+		// 	hiveId: +hiveId,
+		// 	boxIndex,
+		// 	position,
+		// 	side: side === 'left' ? 'leftSide' : 'rightSide',
+		// 	prop,
+		// 	value,
+		// })
+	}
+
+	function onFrameSideFileUpload({ boxIndex, position, side, uploadedFile }) {
+		// setFrameSideFile({
+		// 	hiveId: +hiveId,
+		// 	boxIndex,
+		// 	position,
+		// 	side,
+		// 	uploadedFile,
+		// })
+	}
+
+	let navigate = useNavigate()
+	function onBoxClick({ event, boxIndex }) {
+		// match only background div to consider it as a selection to avoid overriding redirect to frame click
+		if (
+			typeof event.target.className === 'string' &&
+			event.target.className.indexOf('boxInner') === 0
+		) {
+			event.stopPropagation()
+			navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxIndex}`, {
+				replace: true,
+			})
+		}
+	}
+
+
 	const boxesDivs = []
 	let selectedFrameSide = null
 
@@ -88,7 +161,8 @@ export default ({
 
 			if (currentBoxSelected && selectedFrame) {
 				const onUpload = (uploadedFile: any) => {
-					onFrameSideFileUpload({
+					// TODO
+					console.log('todo',{
 						boxIndex: box.position,
 						position: selectedFrame.position,
 						side: frameSide,
@@ -125,10 +199,6 @@ export default ({
 					<div style={{ height: 35 }}>
 						<FrameButtons
 							frameSelected={frameSelected}
-							onFrameRemove={onFrameRemove}
-							onMoveDown={onMoveDown}
-							onBoxRemove={onBoxRemove}
-							onFrameAdd={onFrameAdd}
 							showDownButton={showDownButton}
 							box={box}
 						/>
@@ -145,19 +215,6 @@ export default ({
 						frames={boxFrames}
 						hiveId={hiveId}
 						apiaryId={apiaryId}
-						onDragDropFrame={(args: any) => {
-							const { removedIndex, addedIndex, event } = args
-
-							onDragDropFrame({
-								event,
-								onDragDropFrame,
-								removedIndex,
-								addedIndex,
-								hiveId,
-								frameSide,
-								boxIndex: boxSelected,
-							})
-						}}
 					/>
 				</div>
 			</div>
@@ -174,14 +231,12 @@ export default ({
 						<Button
 							title="Add box on top"
 							className={['small', 'black']}
-							onClick={() => onBoxAdd(boxTypes.DEEP)}
-						>
+							onClick={() => onBoxAdd(boxTypes.DEEP)}>
 							<AddBoxIcon /> Add deep
 						</Button>
 						<Button
 							title="Add box on top"
-							onClick={() => onBoxAdd(boxTypes.SUPER)}
-						>
+							onClick={() => onBoxAdd(boxTypes.SUPER)}>
 							<AddBoxIcon /> Add super
 						</Button>
 					</div>

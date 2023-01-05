@@ -12,3 +12,7 @@ export function getHive(id: number){
 		return await db['hive'].get({id})
 	}
 }
+
+export async function updateHive(id:number, delta:object){
+    return await db['hive'].update(id, delta);
+}

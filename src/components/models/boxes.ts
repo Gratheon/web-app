@@ -1,24 +1,24 @@
 import find from 'lodash/find'
-import filter from 'lodash/filter'
 import remove from 'lodash/remove'
-import orderBy from 'lodash/orderBy'
 import map from 'lodash/map'
 
-import db from './db'
-import { Box } from '../schema'
+import { db } from './db';
 
-let boxes: Box[] = db.get('boxes')
+import { Box } from '../api/schema'
+
+let boxes: Box[] = [] // db.get('boxes')
 
 export const boxTypes = {
 	DEEP: 'DEEP',
 	SUPER: 'SUPER',
 }
 
-export function getBoxes(where: any = () => true): Box[] {
-	let t = filter(boxes, where)
-	t = orderBy(t, ['position'], ['desc'])
-	return t
+export function getBoxes(where = {}) {
+	return async(): Promise<Box[]> => {
+		return await db['box'].where(where).sortBy('position')
+	}
 }
+
 
 export function setBoxes(data: any[], where: any | null = null) {
 	remove(boxes, where)
@@ -26,14 +26,14 @@ export function setBoxes(data: any[], where: any | null = null) {
 		boxes.push({ ...row, ...where })
 	})
 
-	db.set('boxes', boxes)
+	//db.set('boxes', boxes)
 }
 
 export function addBox({
 	hiveId,
 	boxType,
 }: {
-	hiveId: string
+	hiveId: number
 	boxType: string
 }) {
 	const tmpBoxes = getBoxes({
@@ -46,14 +46,14 @@ export function addBox({
 		hiveId,
 		type: boxType,
 	})
-	db.set('boxes', boxes)
+	//db.set('boxes', boxes)
 }
 
 export function removeBox({
 	hiveId,
 	position,
 }: {
-	hiveId: string
+	hiveId: number
 	position: number
 }) {
 	const tmpBoxes = getBoxes({
@@ -78,7 +78,7 @@ export function moveBoxDown({
 	hiveId,
 	index,
 }: {
-	hiveId: string
+	hiveId: number
 	index: number
 }) {
 	if (index === 0) {
@@ -101,6 +101,6 @@ export function moveBoxDown({
 	boxes.push(box)
 	boxes.push(bottom)
 
-	db.set('boxes', boxes)
+	//db.set('boxes', boxes)
 	return true
 }

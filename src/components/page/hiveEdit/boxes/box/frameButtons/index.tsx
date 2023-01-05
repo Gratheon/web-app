@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { frameTypes } from '../../../../../api/storage/frames'
+import { frameTypes } from '../../../../../models/frames'
 import FramesIcon from '../../../../../../icons/framesIcon'
 import {
 	PopupButtonGroup,

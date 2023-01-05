@@ -1,8 +1,6 @@
 import { remove, filter, orderBy } from 'lodash'
 
-import db from './db'
-
-let files = db.get('files')
+let files = []; //db.get('files')
 
 export function getFiles(where = {}) {
 	return orderBy(filter(files, where), ['position'], ['asc'])
@@ -17,7 +15,7 @@ export function setFiles(data: any, where: any) {
 		})
 	}
 
-	db.set('files', files)
+	//db.set('files', files)
 }
 
 export function getFrameSideFile({
@@ -28,8 +26,8 @@ export function getFrameSideFile({
 	position = null,
 	side = null,
 }: {
-	hiveId: string
-	frameSideId: string
+	hiveId: number
+	frameSideId: number
 
 	boxIndex?: number | null
 	position?: number | null
@@ -63,14 +61,13 @@ export function setFileStroke({
 	hiveId,
 	strokeHistory,
 }: {
-	frameSideId: string
-	hiveId: string
+	frameSideId: number
+	hiveId: number
 	strokeHistory: any
 }) {
-	// @ts-ignore
 	const file = getFrameSideFile({
-		frameSideId,
-		hiveId,
+		frameSideId: +frameSideId,
+		hiveId: +hiveId,
 	})
 	file.strokeHistory = strokeHistory
 }
@@ -83,7 +80,7 @@ export function setFrameSideFile({
 	side,
 	uploadedFile,
 }: {
-	hiveId: string
+	hiveId: number
 	boxIndex: string
 	position: number
 	side: string

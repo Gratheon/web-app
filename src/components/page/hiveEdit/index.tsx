@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useParams } from 'react-router-dom'
 import { map, isNil } from 'lodash'
+import { useLiveQuery } from "dexie-react-hooks";
 
 import { omitTypeName, useMutation, useQuery } from '../../api'
 import Loader from '../../shared/loader'
@@ -22,8 +23,8 @@ import {
 	setBoxes,
 	removeBox,
 	moveBoxDown,
-} from '../../api/storage/boxes'
-import { setFiles } from '../../api/storage/files'
+} from '../../models/boxes'
+import { setFiles } from '../../models/files'
 
 import {
 	setFrameSideProperty,
@@ -35,53 +36,35 @@ import {
 	moveFrame,
 	removeFrame,
 	removeAllFromBox,
-} from '../../api/storage/frames'
+} from '../../models/frames'
 
-import { getFiles } from '../../api/storage/files'
+import { getHive } from '../../models/hive';
+import { getFiles } from '../../models/files'
 
-import { setFrameSideFile } from '../../api/storage/files'
+import { setFrameSideFile } from '../../models/files'
 import { Box } from '../../api/schema'
 
 export default function HiveEditForm() {
 	let { apiaryId, hiveId, boxSelected, frameSelected, frameSide } = useParams()
+
 	let navigate = useNavigate()
 	let {
 		loading: loadingGet,
 		error: errorGet,
 		data: hiveGet,
-	} = useQuery(HIVE_QUERY, { variables: { id: hiveId } })
+	} = useQuery(HIVE_QUERY, { variables: { id: +hiveId } })
 
 	let [updateHive, { loading: loadingUpdate, error, data }] =
 		useMutation(HIVE_EDIT_MUTATION)
 	let [updateFileStroke] = useMutation(FILE_STROKE_EDIT_MUTATION)
-	const [loaded, setLoaded] = useState(false)
-	const [hive, setHive] = useState(null)
-	const [boxes, setBoxesCb] = useState(getBoxes({ hiveId }))
-	const [frames, setFramesCb] = useState(getFrames({ hiveId }))
+	
+	const hive = useLiveQuery(getHive(+hiveId), [hiveId]);
+	const boxes = useLiveQuery(getBoxes({ hiveId: +hiveId }), [hiveId]);
+	const frames = useLiveQuery(getFrames({hiveId: +hiveId}), [hiveId]);
+
 
 	if (!boxSelected) {
 		boxSelected = '0'
-	}
-
-	function sync() {
-		setFramesCb(getFrames({ hiveId }))
-		setBoxesCb(getBoxes({ hiveId }))
-	}
-
-	// initial state setting
-	if (!loaded && hiveGet) {
-		setHive(hiveGet.hive)
-		setFiles(hiveGet.hive.files, { hiveId })
-		setBoxes(hiveGet.hive.boxes, { hiveId })
-		setBoxesCb(getBoxes({ hiveId }))
-
-		for (let boxIndex = 0; boxIndex < hiveGet.hive.boxes.length; boxIndex++) {
-			const box = hiveGet.hive.boxes[boxIndex]
-			setFrames(box.frames, { hiveId, boxIndex: box.position })
-		}
-
-		setFramesCb(getFrames({ hiveId }))
-		setLoaded(true)
 	}
 
 	let errorMsg
@@ -95,154 +78,61 @@ export default function HiveEditForm() {
 		return <Loader />
 	}
 
-	function onSubmit(e) {
-		e.preventDefault()
-
-		let tmpBoxes = getBoxes({ hiveId })
-
-		tmpBoxes.forEach((v: Box) => {
-			v.frames = getFrames({
-				hiveId,
-				boxIndex: v.position,
-			})
-		})
-
-		updateHive({
-			hive: {
-				id: hiveId,
-				boxes: omitTypeName(tmpBoxes),
-				name: hive.name,
-				notes: hive.notes,
-				family: omitTypeName(hive.family),
-			},
-		})
-
-		tmpBoxes.forEach((v: Box) => {
-			delete v.frames
-		})
-
-		updateFileStroke({
-			files: getFiles({ hiveId }).map((v) => {
-				return {
-					hiveId: v.hiveId,
-					frameSideId: v.frameSideId,
-					fileId: v.file?.id,
-					strokeHistory: v.strokeHistory ? v.strokeHistory : [],
-				}
-			}),
-		})
-
-		return true
-	}
-
 	let okMsg
 
 	if (data) {
 		okMsg = <OkMsg />
 	}
 
-	function setName(name) {
-		setHive({
-			...hive,
-			name,
-		})
-	}
-	function onNotesChange(notes) {
-		setHive({
-			...hive,
-			notes,
-		})
-	}
-
-	function setRace(race) {
-		let family = {
-			race,
-		}
-
-		if (hive.family) {
-			family = {
-				...hive.family,
-				...family,
-			}
-		}
-		setHive({
-			...hive,
-			family,
-		})
-	}
-
-	function setQueenYear(added) {
-		let family = {
-			added,
-		}
-
-		if (hive.family) {
-			family = {
-				...hive.family,
-				added,
-			}
-		}
-		setHive({
-			...hive,
-			family,
-		})
-	}
-
 	// boxes
 	function onBoxRemove(position) {
-		removeAllFromBox({ hiveId: hive.id, boxIndex: position })
+		removeAllFromBox({ hiveId: +hive.id, boxIndex: position })
 
-		const boxes = getBoxes({ hiveId: hive.id })
+		const boxes = getBoxes({ hiveId: +hive.id })
 
-		removeBox({ hiveId: hive.id, position })
+		removeBox({ hiveId: +hive.id, position })
 
 		map(boxes, (v: Box) => {
 			if (v.position >= position) {
 				moveFramesToBox({
-					hiveId: hive.id,
+					hiveId: +hive.id,
 					boxIndex: v.position + 1,
 					toBoxIndex: v.position,
 				})
 			}
 		})
-
-		sync()
 	}
 
 	function onMoveDown(index) {
-		if (moveBoxDown({ hiveId: hive.id, index })) {
+		if (moveBoxDown({ hiveId: +hive.id, index })) {
 			swapBox({
-				hiveId: hive.id,
+				hiveId: +hive.id,
 				boxIndex: index,
 				toBoxIndex: index - 1,
 			})
-			sync()
 		}
 	}
 
 	function onBoxAdd(boxType) {
-		addBox({ hiveId: hive.id, boxType })
-		sync()
+		addBox({ hiveId: +hive.id, boxType })
 	}
 
 	// frames
 
 	function onFrameAdd(boxIndex, frameType) {
 		addFrame({
-			hiveId: hive.id,
+			hiveId: +hive.id,
 			boxIndex,
 			frameType,
 		})
-		sync()
 	}
 
 	function onFrameRemove(boxIndex, framePosition) {
 		removeFrame({
-			hiveId: hive.id,
+			hiveId: +hive.id,
 			boxIndex,
 			framePosition,
 		})
-		sync()
 	}
 
 	function onDragDropFrame({
@@ -254,12 +144,11 @@ export default function HiveEditForm() {
 		frameSide,
 	}) {
 		moveFrame({
-			hiveId,
+			hiveId: +hiveId,
 			removedIndex,
 			addedIndex,
 			boxIndex,
 		})
-		sync()
 
 		//redirect
 		if (!isNil(frameSide)) {
@@ -278,19 +167,18 @@ export default function HiveEditForm() {
 
 	function onFrameSideStatChange(boxIndex, position, side, prop, value) {
 		setFrameSideProperty({
-			hiveId,
+			hiveId: +hiveId,
 			boxIndex,
 			position,
 			side: side === 'left' ? 'leftSide' : 'rightSide',
 			prop,
 			value,
 		})
-		sync()
 	}
 
 	function onFrameSideFileUpload({ boxIndex, position, side, uploadedFile }) {
 		setFrameSideFile({
-			hiveId,
+			hiveId: +hiveId,
 			boxIndex,
 			position,
 			side,
@@ -330,16 +218,7 @@ export default function HiveEditForm() {
 			{errorMsg}
 			{okMsg}
 
-			<HiveEditDetails
-				hive={hive}
-				boxes={boxes}
-				onSubmit={onSubmit}
-				onInput={(e: any) => setName(e.target.value)}
-				apiaryId={apiaryId}
-				onNotesChange={(e: any) => onNotesChange(e.target.value)}
-				onRaceChange={(e: any) => setRace(e.target.value)}
-				onQueenYearChange={(e: any) => setQueenYear(e.target.value)}
-			/>
+			<HiveEditDetails hive={hive} boxes={boxes} />
 
 			<Boxes
 				apiaryId={apiaryId}

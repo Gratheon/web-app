@@ -3,14 +3,14 @@ import filter from 'lodash/filter'
 import isNil from 'lodash/isNil'
 
 import Box from './box'
-import { isFrameWithSides } from '../../../api/storage/frames'
+import { isFrameWithSides } from '../../../models/frames'
 
 import SelectedFrame from './selectedFrame'
 import FrameButtons from './box/frameButtons'
 import Button from '../../../shared/button'
 import styles from './styles.less'
 import React from 'preact/compat'
-import { boxTypes } from '../../../api/storage/boxes'
+import { boxTypes } from '../../../models/boxes'
 import AddBoxIcon from '../../../../icons/addBox'
 
 type BoxesProps = {
@@ -67,7 +67,7 @@ export default ({
 		boxDivPosition++
 	) {
 		const box = boxes[boxDivPosition]
-		const currentBoxSelected = box.position === parseInt(boxSelected,10)
+		const currentBoxSelected = box.position === parseInt(boxSelected, 10)
 		const showDownButton = boxes.length - 1 !== boxDivPosition
 		const boxFrames = filter(frames, { boxIndex: box.position })
 

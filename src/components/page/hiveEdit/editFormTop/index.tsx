@@ -4,26 +4,38 @@ import { PopupButton, PopupButtonGroup } from '../../../shared/popupButton'
 import VisualForm from '../../../shared/visualForm'
 import HiveIcon from '../../../shared/hiveIcon'
 import DeactivateButton from '../deleteButton'
-import InspectionButton from '../createInspection'
 import QueenColor from './queenColor'
 import Button from '../../../shared/button'
 
 export default function HiveEditDetails({
-	apiaryId,
 	hive,
 	boxes,
-	onQueenYearChange,
-	onRaceChange,
-	onSubmit,
-	onNotesChange,
-	onInput,
 }) {
+
+	// todo implement it
+	function onRaceChange(){
+
+	}
+
+	function onNotesChange(){
+
+	}
+
+	function onQueenYearChange(){
+
+	}
+
+	function onNameChange(){
+
+	}
+
+
 	return (
 		<div style={{ padding: '20px', display: 'flex' }}>
 			<div style={{ width: 68, textAlign: 'center', marginRight: 10 }}>
 				<HiveIcon boxes={boxes} editable={true} />
 			</div>
-			<VisualForm onSubmit={onSubmit} style="flex-grow:1">
+			<VisualForm style="flex-grow:1">
 				<div>
 					<label htmlFor="name">Name</label>
 					<input
@@ -32,22 +44,10 @@ export default function HiveEditDetails({
 						style={{ flexGrow: 1 }}
 						autoFocus
 						value={hive.name}
-						onInput={onInput}
+						onInput={onNameChange}
 					/>
 
-					<PopupButtonGroup className="green">
-						<Button type="submit">Save</Button>
-						<PopupButton className="green">
-							{/* <InspectionButton
-								apiaryId={apiaryId}
-								inspections={hive.inspections}
-								onBeforeSave={onSubmit}
-								hive={hive}
-							/> */}
-
-							<DeactivateButton hiveId={hive.id} />
-						</PopupButton>
-					</PopupButtonGroup>
+					<DeactivateButton hiveId={hive.id} />
 				</div>
 				<div>
 					<label htmlFor="race">Queen</label>

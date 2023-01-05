@@ -28,17 +28,16 @@ export default {
 		}
 
 		try {
-			hive.family = await db.family.where({ hiveId: `${id}` }).first()
+			hive.family = await db.family.where({ hiveId: id }).first()
 			//todo add file inside
-			// hive.files = []; //await db.framesidefile.where({ hiveId: `${id}`}).toArray()
-			hive.boxes = await db.box.where({ hiveId: `${id}` }).toArray()
+			hive.boxes = await db.box.where({ hiveId: id }).toArray()
 
 			for await (const box of hive.boxes) {
-				box.frames = await db.frame.where({ boxId: `${box.id}` }).toArray()
+				box.frames = await db.frame.where({ boxId: box.id }).toArray()
 
 				for await (const frame of box.frames) {
 					const frames = await db.frameside
-						.where({ frameId: `${frame.id}` })
+						.where({ frameId: frame.id })
 						.toArray()
 
 					frame.leftSide = frames[0]

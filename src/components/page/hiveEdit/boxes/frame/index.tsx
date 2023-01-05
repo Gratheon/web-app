@@ -6,14 +6,14 @@ import UploadFile from './uploadFile'
 import ResourceEditRow from './resourceEditRow'
 import { useMutation, useQuery } from '../../../../api'
 import DrawingCanvas from './drawingCanvas'
-import { getFrameSideFile } from '../../../../api/storage/files'
+import { getFrameSideFile } from '../../../../models/files'
 import Button from '../../../../shared/button'
 import CrownIcon from '../../../../../icons/crownIcon'
 
 import LINK_FILE_TO_FRAME from './_api/addFileToFrameSideMutation.graphql'
 import FRAME_SIDE_QUERY from './_api/getFrameFileObjectsQuery.graphql'
 import Loading from '../../../../shared/loader'
-import { setFileStroke } from '../../../../api/storage/files'
+import { setFileStroke } from '../../../../models/files'
 
 export default ({
 	frameSide,
@@ -38,8 +38,8 @@ export default ({
 	}
 
 	const cachedFileRel = getFrameSideFile({
-		frameSideId,
-		hiveId,
+		frameSideId: +frameSideId,
+		hiveId: +hiveId,
 	})
 
 	let frameSideFileRel = {
@@ -132,8 +132,8 @@ export default ({
 					strokeHistory={frameSideFileRel.strokeHistory}
 					onStrokeHistoryUpdate={(strokeHistory) => {
 						setFileStroke({
-							frameSideId,
-							hiveId,
+							frameSideId: +frameSideId,
+							hiveId: +frameSideId,
 							strokeHistory,
 						})
 					}}

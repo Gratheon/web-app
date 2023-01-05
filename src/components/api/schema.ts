@@ -1,16 +1,16 @@
 import { buildSchema } from 'graphql'
 
 export type Box = {
-  id: string
+  id: number
 	type: string
-	hiveId?: string
+	hiveId?: number
 	position: number
 	color: string
 	frames?: Frame[]
 }
 
 export type Frame = {
-  id: string
+  id: number
 	position: number
 }
 

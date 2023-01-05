@@ -15,7 +15,7 @@ import { getToken, isLoggedIn } from '../user'
 import { gatewayUri, getAppUri, uploadUri } from '../uri'
 import { schemaObject } from './schema'
 import { offlineIndexDbExchange } from './offlineIndexDbExchange'
-import { syncGraphqlSchemaToIndexDB, writeHooks } from './db'
+import { syncGraphqlSchemaToIndexDB, writeHooks } from '../models/db'
 import resolvers from './resolvers'
 
 let uri = gatewayUri()

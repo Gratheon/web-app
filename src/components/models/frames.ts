@@ -2,12 +2,12 @@ import find from 'lodash/find'
 import isNil from 'lodash/isNil'
 import filter from 'lodash/filter'
 import remove from 'lodash/remove'
-import orderBy from 'lodash/orderBy'
 import map from 'lodash/map'
-import db from './db'
-import { Frame } from '../schema'
+import { Frame } from '../api/schema'
 
-let frames = db.get('frames')
+import {db} from './db'
+
+let frames = [] //db.get('frames')
 export const frameTypes = {
 	VOID: 'VOID',
 	FOUNDATION: 'FOUNDATION',
@@ -16,8 +16,10 @@ export const frameTypes = {
 	PARTITION: 'PARTITION',
 }
 
-export function getFrames(where = {}): Frame[] {
-	return orderBy(filter(frames, where), ['position'], ['asc'])
+export function getFrames(where = {}) {
+	return async(): Promise<Frame[]> => {
+		return await db['frame'].where(where).sortBy('position')
+	}
 }
 
 export function setFrames(data, where) {
@@ -29,18 +31,18 @@ export function setFrames(data, where) {
 		})
 	}
 
-	db.set('frames', frames)
+	//db.set('frames', frames)
 }
 
 export function removeAllFromBox({
 	hiveId,
 	boxIndex,
 }: {
-	hiveId: string
+	hiveId: number
 	boxIndex: number
 }) {
 	remove(frames, { hiveId, boxIndex })
-	db.set('frames', frames)
+	//db.set('frames', frames)
 }
 
 export function swapBox({
@@ -48,7 +50,7 @@ export function swapBox({
 	boxIndex,
 	toBoxIndex,
 }: {
-	hiveId: string
+	hiveId: number
 	boxIndex: number
 	toBoxIndex: number
 }) {
@@ -68,7 +70,7 @@ export function moveFramesToBox({
 	boxIndex,
 	toBoxIndex,
 }: {
-	hiveId: string
+	hiveId: number
 	boxIndex: number
 	toBoxIndex: number
 }) {
@@ -86,7 +88,7 @@ export function addFrame({
 	boxIndex,
 	frameType,
 }: {
-	hiveId: string
+	hiveId: number
 	boxIndex: number
 	frameType: string
 }) {
@@ -126,7 +128,7 @@ export function moveFrame({
 	addedIndex,
 	boxIndex,
 }: {
-	hiveId: string
+	hiveId: number
 	removedIndex: number
 	addedIndex: number
 	boxIndex: number
@@ -178,7 +180,7 @@ export function setFrameSideProperty({
 	prop,
 	value,
 }: {
-	hiveId: string
+	hiveId: number
 	boxIndex: number
 	position: number
 	side: string
@@ -192,7 +194,15 @@ export function setFrameSideProperty({
 	frame[side][prop] = value
 }
 
-export function removeFrame({ hiveId, boxIndex, framePosition }: { hiveId:string, boxIndex:number, framePosition:number }) {
+export function removeFrame({
+	hiveId,
+	boxIndex,
+	framePosition,
+}: {
+	hiveId: number
+	boxIndex: number
+	framePosition: number
+}) {
 	let tmpFrames = filter(frames, { hiveId, boxIndex })
 
 	remove(tmpFrames, {

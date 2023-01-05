@@ -5,7 +5,7 @@ import { Container, Draggable } from '@edorivai/react-smooth-dnd'
 import styles from './index.less'
 import Frame from './boxFrame'
 import CrownIcon from '../../../../../icons/crownIcon'
-import { isFrameWithSides } from '../../../../api/storage/frames'
+import { isFrameWithSides } from '../../../../models/frames'
 
 export default ({
 	frames,

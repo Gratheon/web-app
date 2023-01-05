@@ -12,32 +12,32 @@ import expect from 'expect'
 const defaultFrameSet = [
 	{
 		boxIndex: 2,
-		hiveId: "2",
-		id: '63',
+		hiveId: 2,
+		id: 63,
 		position: 0,
 		type: 'EMPTY_COMB',
 		__typename: 'Frame',
 	},
 	{
 		boxIndex: 2,
-		hiveId: "2",
-		id: '64',
+		hiveId: 2,
+		id: 64,
 		position: 1,
 		type: 'EMPTY_COMB',
 		__typename: 'Frame',
 	},
 	{
 		boxIndex: 2,
-		hiveId: "2",
-		id: '65',
+		hiveId: 2,
+		id: 65,
 		position: 2,
 		type: 'EMPTY_COMB',
 		__typename: 'Frame',
 	},
 	{
 		boxIndex: 1, // !
-		hiveId: "2",
-		id: '66',
+		hiveId: 2,
+		id: 66,
 		position: 0,
 		type: 'EMPTY_COMB',
 		__typename: 'Frame',
@@ -46,14 +46,14 @@ const defaultFrameSet = [
 
 it('removeAllFromBox', () => {
 	// ARRANGE
-	setFrames(defaultFrameSet, { hiveId: '2' })
+	setFrames(defaultFrameSet, { hiveId: 2})
 	// ACT
-	removeAllFromBox({ hiveId: '2', boxIndex:0})
+	removeAllFromBox({ hiveId: 2, boxIndex:0})
 	// ASSERT
 	expect(
 		getFrames({
 			boxIndex: 1,
-			hiveId: "2",
+			hiveId: 2,
 		}).length
 	).toEqual(1)
 })
@@ -61,14 +61,14 @@ it('removeAllFromBox', () => {
 describe('addFrame', () => {
 	it('adds frame to the end', () => {
 		// ARRANGE
-		setFrames(defaultFrameSet, { hiveId: '2' })
+		setFrames(defaultFrameSet, { hiveId: 2 })
 		// ACT
-		addFrame({ hiveId: '2', boxIndex: 1, frameType: 'VOID' })
+		addFrame({ hiveId: 2, boxIndex: 1, frameType: 'VOID' })
 		// ASSERT
 		expect(
 			getFrames({
 				boxIndex: 1,
-				hiveId: '2',
+				hiveId: 2,
 			}).length
 		).toEqual(2)
 	})
@@ -77,10 +77,10 @@ describe('addFrame', () => {
 describe('moveFrame', () => {
 	it('frame 63 >>', () => {
 		// ARRANGE
-		setFrames(defaultFrameSet, { hiveId: "2" })
+		setFrames(defaultFrameSet, { hiveId: 2 })
 		// ACT
 		moveFrame({
-			hiveId: "2",
+			hiveId: 2,
 			boxIndex: 2,
 			removedIndex: 0,
 			addedIndex: 1,
@@ -88,21 +88,21 @@ describe('moveFrame', () => {
 		// ASSERT
 		const result = getFrames({
 			boxIndex: 2,
-			hiveId: "2",
+			hiveId: 2,
 		})
 
 		// reordered
-		expect(result[0].id).toEqual('64')
-		expect(result[1].id).toEqual('63')
-		expect(result[2].id).toEqual('65')
+		expect(result[0].id).toEqual(64)
+		expect(result[1].id).toEqual(63)
+		expect(result[2].id).toEqual(65)
 	})
 
 	it('frame 63 >> end', () => {
 		// ARRANGE
-		setFrames(defaultFrameSet, { hiveId: "2" })
+		setFrames(defaultFrameSet, { hiveId: 2 ,})
 		// ACT
 		moveFrame({
-			hiveId: "2",
+			hiveId: 2,
 			boxIndex: 2,
 			removedIndex: 0,
 			addedIndex: 2,
@@ -110,21 +110,21 @@ describe('moveFrame', () => {
 		// ASSERT
 		const result = getFrames({
 			boxIndex: 2,
-			hiveId: "2",
+			hiveId: 2,
 		})
 
 		// reordered
-		expect(result[0].id).toEqual('64')
-		expect(result[1].id).toEqual('65')
-		expect(result[2].id).toEqual('63')
+		expect(result[0].id).toEqual(64)
+		expect(result[1].id).toEqual(65)
+		expect(result[2].id).toEqual(63)
 	})
 
 	it('frame 65 <<', () => {
 		// ARRANGE
-		setFrames(defaultFrameSet, { hiveId: "2" })
+		setFrames(defaultFrameSet, { hiveId: 2})
 		// ACT
 		moveFrame({
-			hiveId: "2",
+			hiveId: 2,
 			boxIndex: 2,
 			removedIndex: 2,
 			addedIndex: 1,
@@ -132,21 +132,21 @@ describe('moveFrame', () => {
 		// ASSERT
 		const result = getFrames({
 			boxIndex: 2,
-			hiveId: "2",
+			hiveId: 2,
 		})
 
 		// reordered
-		expect(result[0].id).toEqual('63')
-		expect(result[1].id).toEqual('65')
-		expect(result[2].id).toEqual('64')
+		expect(result[0].id).toEqual(63)
+		expect(result[1].id).toEqual(65)
+		expect(result[2].id).toEqual(64)
 	})
 
 	it('frame 65 << beginning', () => {
 		// ARRANGE
-		setFrames(defaultFrameSet, { hiveId: "2" })
+		setFrames(defaultFrameSet, { hiveId: 2})
 		// ACT
 		moveFrame({
-			hiveId: "2",
+			hiveId: 2,
 			boxIndex: 2,
 			removedIndex: 2,
 			addedIndex: 0,
@@ -154,12 +154,12 @@ describe('moveFrame', () => {
 		// ASSERT
 		const result = getFrames({
 			boxIndex: 2,
-			hiveId: "2",
+			hiveId: 2,
 		})
 
 		// reordered
-		expect(result[0].id).toEqual('65')
-		expect(result[1].id).toEqual('63')
-		expect(result[2].id).toEqual('64')
+		expect(result[0].id).toEqual(65)
+		expect(result[1].id).toEqual(63)
+		expect(result[2].id).toEqual(64)
 	})
 })

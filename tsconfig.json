@@ -1,0 +1,25 @@
+{
+	"compilerOptions": {
+		"target": "ESNext",
+		"module": "ESNext",
+		"moduleResolution": "Node",
+		"esModuleInterop": true,
+		"jsx": "react-jsx",
+		"jsxImportSource": "preact",
+		"noEmit": true,
+		"allowJs": true,
+		"checkJs": true,
+		"skipLibCheck": true,
+		"baseUrl": "./",
+		"paths": {
+			"react": ["./node_modules/preact/compat"],
+			"react-dom": ["./node_modules/preact/compat"]
+		}
+	},
+	"include": ["src/**/*"],
+	"exclude": [
+		"src/app/**/*.test.ts",
+		"src/app/**/*.itest.ts",
+		"test/integration/*.test.ts"
+	]
+}

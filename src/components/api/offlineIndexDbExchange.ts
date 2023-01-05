@@ -198,7 +198,7 @@ async function traverseResponse(
 							await writeHooks[tableName](
 								parent,
 								cleanedValue,
-								{ db },
+								{ db, originalValue: value },
 								{ objType }
 							)
 						} catch (e) {

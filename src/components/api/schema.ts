@@ -9,9 +9,19 @@ export type Box = {
 	frames?: Frame[]
 }
 
+export type FrameType = 'VOID' | 'FOUNDATION' | 'EMPTY_COMB' | 'PARTITION' | 'FEEDER'
+export type FrameSide = {
+  queenDetected: boolean
+}
 export type Frame = {
   id: number
 	position: number
+  type: FrameType
+  leftSide?: FrameSide
+  rightSide?: FrameSide
+
+  leftId: number
+  rightId: number
 }
 
 export type Family = {

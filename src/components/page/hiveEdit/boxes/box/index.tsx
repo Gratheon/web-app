@@ -2,25 +2,29 @@ import React from 'react'
 import isNil from 'lodash/isNil'
 import { Container, Draggable } from '@edorivai/react-smooth-dnd'
 import { useNavigate } from 'react-router-dom'
+import { useLiveQuery } from "dexie-react-hooks";
 
-
+import { getFrames } from '../../../../models/frames'
 import styles from './index.less'
 import Frame from './boxFrame'
 import CrownIcon from '../../../../../icons/crownIcon'
 import { isFrameWithSides } from '../../../../models/frames'
 
 export default ({
-	frames,
 	boxType,
 	boxPosition,
-	boxSelected,
-	frameSelected,
+	boxId,
+	frameId,
 	frameSide,
 	apiaryId,
 	hiveId,
 }) => {
 	const navigate = useNavigate();
 	const framesDiv = []
+
+	const frames = useLiveQuery(() => getFrames({
+		boxId: boxId ? +boxId : -1
+	}), [boxId]);
 
 	if (!isNil(frames)) {
 		for (let i = 0; i < frames.length; i++) {
@@ -31,19 +35,19 @@ export default ({
 					<div style={{ textAlign: 'center', height: 20 }}>
 						{isFrameWithSides(frame.type) && (
 							<CrownIcon
-								fill={frame.leftSide.queenDetected ? 'white' : '#444444'}
+								fill={frame.leftSide?.queenDetected ? 'white' : '#444444'}
 							/>
 						)}
 						{isFrameWithSides(frame.type) && (
 							<CrownIcon
-								fill={frame.rightSide.queenDetected ? 'white' : '#444444'}
+								fill={frame.rightSide?.queenDetected ? 'white' : '#444444'}
 							/>
 						)}
 					</div>
 
 					<Frame
-						boxSelected={boxSelected}
-						frameSelected={frameSelected}
+						boxId={boxId}
+						frameId={frameId}
 						frameSide={frameSide}
 						boxPosition={boxPosition}
 						hiveId={hiveId}
@@ -58,7 +62,7 @@ export default ({
 	return (
 		<div
 			className={`${styles['boxType_' + boxType]} ${styles.boxOuter} ${
-				boxSelected === boxPosition && styles.selected
+				boxId === boxPosition && styles.selected
 			}`}
 		>
 			<div className={styles.boxInner}>
@@ -69,7 +73,7 @@ export default ({
 						if (!isNil(frameSide)) {
 							// event.stopPropagation()
 							navigate(
-								`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxSelected}/frame/${frameSelected}/${frameSide}`,
+								`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}/frame/${frameId}/${frameSide}`,
 								{ replace: true }
 							)
 						}

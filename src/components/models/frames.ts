@@ -5,7 +5,7 @@ import remove from 'lodash/remove'
 import map from 'lodash/map'
 import { Frame } from '../api/schema'
 
-import {db} from './db'
+import { db } from './db'
 
 let frames = [] //db.get('frames')
 export const frameTypes = {
@@ -17,7 +17,32 @@ export const frameTypes = {
 }
 
 export async function getFrames(where = {}): Promise<Frame[]> {
-	return await db['frame'].where(where).sortBy('position')
+	if (!where) return []
+	try {
+		const frames = await db['frame'].where(where).sortBy('position')
+
+		for await (let frame of frames) {
+			if (frame.leftId) {
+				frame.leftSide = await db['frameside'].get(frame.leftId)
+			}
+			if (frame.rightId) {
+				frame.rightSide = await db['frameside'].get(frame.rightId)
+			}
+		}
+		return frames
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
+}
+
+export async function countBoxFrames(boxId): Promise<number> {
+	try {
+		return await db['frame'].where({ boxId }).count()
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
 }
 
 export function setFrames(data, where) {
@@ -28,8 +53,6 @@ export function setFrames(data, where) {
 			frames.push({ ...row, ...where })
 		})
 	}
-
-	//db.set('frames', frames)
 }
 
 export function removeAllFromBox({
@@ -40,7 +63,6 @@ export function removeAllFromBox({
 	boxIndex: number
 }) {
 	remove(frames, { hiveId, boxIndex })
-	//db.set('frames', frames)
 }
 
 export function swapBox({

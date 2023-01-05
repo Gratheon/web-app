@@ -4,47 +4,45 @@ import styles from './index.less'
 import FrameHorizontal from '../frame'
 
 export default ({
-	boxSelected,
-	frameSelected,
-	box,
+	boxId,
 	hiveId,
-	selectedFrame,
-	frameWithSides,
+	frameId,
+
+	// frameWithSides,
 	frameSide,
-	frameSideObject,
-	onUpload,
-	onFrameClose,
-	onFrameSideStatChange,
+	// frameSideObject,
+	// onUpload,
+	// onFrameClose,
 }) => {
 	return (
 		<div className={styles.selectedFrame}>
-			{frameWithSides && (
+			{/* {frameWithSides && (
 				<FrameHorizontal
 					hiveId={hiveId}
 					frameSideId={frameSideObject.id}
 					onUpload={onUpload}
-					onFrameSideStatChange={(key, value) =>
-						onFrameSideStatChange(
-							boxSelected,
-							frameSelected,
-							frameSide,
-							key,
-							value
-						)
+					onFrameSideStatChange={(key, value) => true
+						// onFrameSideStatChange(
+						// 	boxSelected,
+						// 	frameSelected,
+						// 	frameSide,
+						// 	key,
+						// 	value
+						// )
 					}
 					frameSide={frameSideObject}
 					onQueenToggle={() => {
-						onFrameSideStatChange(
-							box.position,
-							selectedFrame.position,
-							frameSide,
-							'queenDetected',
-							!frameSideObject.queenDetected
-						)
+						// onFrameSideStatChange(
+						// 	box.position,
+						// 	selectedFrame.position,
+						// 	frameSide,
+						// 	'queenDetected',
+						// 	!frameSideObject.queenDetected
+						// )
 					}}
 					onFrameClose={onFrameClose}
 				/>
-			)}
+			)} */}
 		</div>
 	)
 }

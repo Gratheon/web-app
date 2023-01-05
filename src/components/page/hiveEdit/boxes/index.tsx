@@ -17,11 +17,10 @@ import AddBoxIcon from '../../../../icons/addBox'
 
 type BoxesProps = {
 	hiveId: any
-	frames: any
 	boxes: any
 	apiaryId: any
-	boxSelected: any
-	frameSelected: any
+	boxId: any
+	frameId: any
 	frameSide: any
 
 	editable?: boolean
@@ -37,16 +36,18 @@ type BoxesProps = {
 	onDragDropFrame?: any
 	onFrameSideStatChange?: any
 	onFrameRemove?: any
+
+	onError: any
 }
 
 export default function Boxes({
 	hiveId,
-	frames,
 	boxes,
 	apiaryId,
-	boxSelected,
-	frameSelected = 0,
+	boxId,
+	frameId,
 	frameSide,
+	onError
 }: BoxesProps) {
 	let [addBoxMutation] =
 		useMutation(`mutation addBox($hiveId: ID!, $position: Int!, $type: BoxType!) {
@@ -87,68 +88,26 @@ export default function Boxes({
 		})
 	}
 
-	// frames
-	function onFrameRemove(boxIndex, framePosition) {
-		// const {
-		// 	data: {
-		// 		addBox: { id },
-		// 	},
-		// } = await addBoxMutation({
-		// 	hiveId: +hiveId,
-		// 	position,
-		// 	type,
-		// })
-
-		// await addBox({
-		// 	id: +id,
-		// 	hiveId: +hiveId,
-		// 	position,
-		// 	type,
-		// })
-	}
-
 	function onFrameClose(event) {
 		event.stopPropagation()
 		navigate(`/apiaries/${apiaryId}/hives/${hiveId}`, { replace: true })
 	}
 
-	function onFrameSideStatChange(boxIndex, position, side, prop, value) {
-		// setFrameSideProperty({
-		// 	hiveId: +hiveId,
-		// 	boxIndex,
-		// 	position,
-		// 	side: side === 'left' ? 'leftSide' : 'rightSide',
-		// 	prop,
-		// 	value,
-		// })
-	}
-
-	function onFrameSideFileUpload({ boxIndex, position, side, uploadedFile }) {
-		// setFrameSideFile({
-		// 	hiveId: +hiveId,
-		// 	boxIndex,
-		// 	position,
-		// 	side,
-		// 	uploadedFile,
-		// })
-	}
-
 	let navigate = useNavigate()
-	function onBoxClick({ event, boxIndex }) {
+	function onBoxClick({ event, boxId }) {
 		// match only background div to consider it as a selection to avoid overriding redirect to frame click
 		if (
 			typeof event.target.className === 'string' &&
 			event.target.className.indexOf('boxInner') === 0
 		) {
 			event.stopPropagation()
-			navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxIndex}`, {
+			navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`, {
 				replace: true,
 			})
 		}
 	}
 
 	const boxesDivs = []
-	let selectedFrameSide = null
 
 	for (
 		let boxDivPosition = 0;
@@ -156,65 +115,22 @@ export default function Boxes({
 		boxDivPosition++
 	) {
 		const box = boxes[boxDivPosition]
-		const currentBoxSelected = box.position === parseInt(boxSelected, 10)
+		const currentBoxSelected = box.id === parseInt(boxId, 10)
 		const showDownButton = boxes.length - 1 !== boxDivPosition
-		const boxFrames = filter(frames, { boxIndex: box.position })
 
-		if (!isNil(frameSelected) && !isNil(boxSelected)) {
-			const selectedFrame = find(frames, {
-				position: parseInt(frameSelected, 10),
-				boxIndex: box.position,
-			})
-			const frameWithSides =
-				!isNil(frameSide) &&
-				selectedFrame &&
-				isFrameWithSides(selectedFrame.type)
-			const frameSideObject = frameWithSides
-				? frameSide === 'left'
-					? selectedFrame.leftSide
-					: selectedFrame.rightSide
-				: null
-
-			if (currentBoxSelected && selectedFrame) {
-				const onUpload = (uploadedFile: any) => {
-					// TODO
-					console.log('todo', {
-						boxIndex: box.position,
-						position: selectedFrame.position,
-						side: frameSide,
-						uploadedFile,
-					})
-				}
-
-				selectedFrameSide = (
-					<SelectedFrame
-						boxSelected={boxSelected}
-						frameSelected={frameSelected}
-						box={box}
-						hiveId={hiveId}
-						selectedFrame={selectedFrame}
-						frameWithSides={frameWithSides}
-						frameSide={frameSide}
-						frameSideObject={frameSideObject}
-						onUpload={onUpload}
-						onFrameClose={onFrameClose}
-						onFrameSideStatChange={onFrameSideStatChange}
-					/>
-				)
-			}
-		}
 
 		boxesDivs.push(
 			<div
 				style={{ marginBottom: 15 }}
 				onClick={(event) => {
-					onBoxClick({ event, boxIndex: box.position })
+					onBoxClick({ event, boxId: box.id })
 				}}
 			>
 				{currentBoxSelected && (
 					<div style={{ height: 35 }}>
 						<FrameButtons
-							frameSelected={frameSelected}
+							onError={onError}
+							frameId={frameId}
 							showDownButton={showDownButton}
 							box={box}
 						/>
@@ -225,10 +141,9 @@ export default function Boxes({
 					<Box
 						boxType={box.type}
 						boxPosition={box.position}
-						boxSelected={boxSelected}
-						frameSelected={frameSelected}
+						boxId={box.id}
+						frameId={frameId}
 						frameSide={frameSide}
-						frames={boxFrames}
 						hiveId={hiveId}
 						apiaryId={apiaryId}
 					/>
@@ -263,7 +178,12 @@ export default function Boxes({
 				<div>{boxesDivs}</div>
 			</div>
 
-			{selectedFrameSide}
+			<SelectedFrame
+				boxId={boxId}
+				frameId={frameId}
+				hiveId={hiveId}
+				frameSide={frameSide}
+				/>
 		</div>
 	)
 }

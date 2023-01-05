@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useParams } from 'react-router-dom'
 import { useLiveQuery } from "dexie-react-hooks";
@@ -21,7 +21,8 @@ import { getFrames } from '../../models/frames'
 import { getHive } from '../../models/hive';
 
 export default function HiveEditForm() {
-	let { apiaryId, hiveId, boxSelected, frameSelected, frameSide } = useParams()
+	let { apiaryId, hiveId, boxId, frameId, frameSide } = useParams()
+	let [error, onError] = useState(null);
 
 	let navigate = useNavigate()
 	let {
@@ -35,13 +36,14 @@ export default function HiveEditForm() {
 	
 	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId]);
 	const boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId]);
-	const frames = useLiveQuery(() => getFrames({hiveId: +hiveId}), [hiveId]);
-
-	if (!boxSelected) {
-		boxSelected = '0'
-	}
 
 	let errorMsg
+
+	// inline error from deeper components
+	if(error){
+		errorMsg = <ErrorMsg error={error} />
+	}
+
 	if (errorGet) {
 		return <ErrorMsg error={errorGet} />
 	} 
@@ -74,12 +76,12 @@ export default function HiveEditForm() {
 			<HiveEditDetails hiveId={hiveId}/>
 
 			<Boxes
+				onError={onError}
 				apiaryId={apiaryId}
 				hiveId={hive.id}
 				boxes={boxes}
-				frames={frames}
-				boxSelected={boxSelected}
-				frameSelected={frameSelected}
+				boxId={boxId}
+				frameId={frameId}
 				frameSide={frameSide}
 			/>
 		</div>

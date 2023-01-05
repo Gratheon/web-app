@@ -1,11 +1,21 @@
-import { db } from './db';
+import { db } from './db'
 
 import { Family } from '../api/schema'
 
-export async function getFamilyByHive(hiveId: number): Promise<Family>{
-    return await db['family'].get({hiveId})
+export async function getFamilyByHive(hiveId: number): Promise<Family> {
+	try {
+		return await db['family'].get({ hiveId })
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
 }
 
-export async function updateFamily(id:number, delta:object){
-    return await db['family'].update(id, delta);
+export async function updateFamily(id: number, delta: object) {
+	try {
+		return await db['family'].update(id, delta)
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
 }

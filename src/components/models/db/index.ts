@@ -1,6 +1,7 @@
 //@ts-nocheck
 import Dexie from 'dexie'
 export const db = new Dexie('gratheon')
+Dexie.debug = 'dexie'
 
 export function syncGraphqlSchemaToIndexDB(schemaObject) {
 	const typeMap = schemaObject.getTypeMap()
@@ -26,30 +27,39 @@ export function syncGraphqlSchemaToIndexDB(schemaObject) {
 			dbSchema[objName] = fieldStrings.join(', ')
 		}
 	}
+	try {
+		addCustomIndexes(dbSchema)
 
-	addCustomIndexes(dbSchema)
-
-	//console.info('saving schema', dbSchema)
-	db.version(1).stores(dbSchema)
+		//console.info('saving schema', dbSchema)
+		db.version(1).stores(dbSchema)
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
 }
 
 function addCustomIndexes(dbSchema) {
 	dbSchema.family += ',hiveId'
 	dbSchema.box += ',hiveId'
 	dbSchema.file += ',hiveId'
-	dbSchema.frame += ',boxId,hiveId'
+	dbSchema.frame += ',boxId,hiveId,leftId,rightId'
 	dbSchema.frameside += ',frameId'
 }
 
 async function upsertEntity(entityName, entity) {
-	entity.id = +entity.id;
-	
-	const ex = await db[entityName].get(entity.id)
-	
-	await db[entityName].put({
-		...ex,
-		...entity,
-	})
+	entity.id = +entity.id
+
+	try {
+		const ex = await db[entityName].get(entity.id)
+
+		await db[entityName].put({
+			...ex,
+			...entity,
+		})
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
 }
 
 export const writeHooks = {
@@ -63,8 +73,19 @@ export const writeHooks = {
 		family.hiveId = +id
 		await upsertEntity('family', family)
 	},
-	Frame: async ({ id }, frame) => {
+	Frame: async ({ id }, _, { originalValue: frame }) => {
 		frame.boxId = +id
+
+		if (frame.leftSide) {
+			frame.leftId = +frame.leftSide?.id
+			delete frame.leftSide
+		}
+
+		if (frame.rightSide) {
+			frame.rightId = +frame.rightSide?.id
+			delete frame.rightSide
+		}
+
 		await upsertEntity('frame', frame)
 	},
 	FrameSide: async ({ id }, frameside) => {

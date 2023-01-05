@@ -29,15 +29,15 @@ export default function Page() {
 					element={<HiveEditView />}
 				/>
 				<Route
-					path="/apiaries/:apiaryId/hives/:hiveId/box/:boxSelected"
+					path="/apiaries/:apiaryId/hives/:hiveId/box/:boxId"
 					element={<HiveEditView />}
 				/>
 				<Route
-					path="/apiaries/:apiaryId/hives/:hiveId/box/:boxSelected/frame/:frameSelected"
+					path="/apiaries/:apiaryId/hives/:hiveId/box/:boxId/frame/:frameId"
 					element={<HiveEditView />}
 				/>
 				<Route
-					path="/apiaries/:apiaryId/hives/:hiveId/box/:boxSelected/frame/:frameSelected/:frameSide"
+					path="/apiaries/:apiaryId/hives/:hiveId/box/:boxId/frame/:frameId/:frameSide"
 					element={<HiveEditView />}
 				/>
 

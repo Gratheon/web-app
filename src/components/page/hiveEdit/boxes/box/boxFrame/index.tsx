@@ -5,15 +5,14 @@ import FrameSide from './boxFrameHalf'
 
 export default ({
 	boxPosition,
-	boxSelected,
-	frameSelected,
+	boxId,
+	frameId,
 	frameSide,
 	apiaryId,
 	hiveId,
 	frame,
 }) => {
-	const selectedFrame =
-		boxPosition === boxSelected && frame.position === frameSelected
+	const selectedFrame = frame.id === frameId
 
 	let frameInternal = null
 
@@ -37,7 +36,7 @@ export default ({
 			<div className={styles.emptyComb}>
 				<FrameSide
 					className={styles.left}
-					href={`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxPosition}/frame/${frame.position}/left`}
+					href={`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxPosition}/frame/${frame.id}/left`}
 					frameSide={frame.leftSide}
 				/>
 
@@ -45,7 +44,7 @@ export default ({
 
 				<FrameSide
 					className={styles.right}
-					href={`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxPosition}/frame/${frame.position}/right`}
+					href={`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxPosition}/frame/${frame.id}/right`}
 					frameSide={frame.rightSide}
 				/>
 			</div>

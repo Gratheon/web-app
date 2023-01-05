@@ -1,3 +1,5 @@
+import { getFrames } from '../models/frames';
+
 export default {
 	user: async (_, { db }) => {
 		return await db.user.limit(1).first()
@@ -33,16 +35,7 @@ export default {
 			hive.boxes = await db.box.where({ hiveId: id }).toArray()
 
 			for await (const box of hive.boxes) {
-				box.frames = await db.frame.where({ boxId: box.id }).toArray()
-
-				for await (const frame of box.frames) {
-					const frames = await db.frameside
-						.where({ frameId: frame.id })
-						.toArray()
-
-					frame.leftSide = frames[0]
-					frame.rightSide = frames[1]
-				}
+				box.frames = await getFrames({boxId: +box.id});
 			}
 		} catch (e) {
 			console.error(e)

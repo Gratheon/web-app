@@ -2,7 +2,7 @@ import find from 'lodash/find'
 import remove from 'lodash/remove'
 import map from 'lodash/map'
 
-import { db } from './db';
+import { db } from './db'
 
 import { Box } from '../api/schema'
 
@@ -14,18 +14,34 @@ export const boxTypes = {
 }
 
 export async function getBoxes(where = {}): Promise<Box[]> {
-	return await db['box'].where(where).sortBy('position')
+	try {
+		return await db['box'].where(where).sortBy('position')
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
 }
 
-export async function countHiveBoxes(hiveId: number){
-	return await db['box'].where({
-		hiveId
-	}).count()
+export async function countHiveBoxes(hiveId: number) {
+	try {
+		return await db['box']
+			.where({
+				hiveId,
+			})
+			.count()
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
 }
 
-
-export async function removeBox(id:number) {
-	return await db['box'].delete(id);
+export async function removeBox(id: number) {
+	try {
+		return await db['box'].delete(id)
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
 }
 
 export function setBoxes(data: any[], where: any | null = null) {
@@ -36,16 +52,27 @@ export function setBoxes(data: any[], where: any | null = null) {
 }
 
 export async function addBox({
-	id,	hiveId, position, type
+	id,
+	hiveId,
+	position,
+	type,
 }: {
-	id: number,
+	id: number
 	hiveId: number
 	position: number
 	type: string
 }) {
-	await db['box'].put({
-		id,	hiveId, position, type
-	})
+	try {
+		await db['box'].put({
+			id,
+			hiveId,
+			position,
+			type,
+		})
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
 }
 
 export function moveBoxDown({

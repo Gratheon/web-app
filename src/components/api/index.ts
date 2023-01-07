@@ -13,7 +13,8 @@ import { multipartFetchExchange } from '@urql/exchange-multipart-fetch'
 
 import { getToken, isLoggedIn } from '@/components/user'
 import { gatewayUri, getAppUri, uploadUri } from '@/components/uri'
-import { syncGraphqlSchemaToIndexDB, writeHooks } from '@/components/models/db'
+import { syncGraphqlSchemaToIndexDB } from '@/components/models/db'
+import { writeHooks } from '@/components/models/db/writeHooks'
 
 import { schemaObject } from './schema'
 import { offlineIndexDbExchange } from './offlineIndexDbExchange'

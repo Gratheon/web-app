@@ -43,14 +43,10 @@ export default function Frame({
 	const frameSideFile = useLiveQuery(() => getFrameSideFile({
 		frameSideId: frameSideObj.id,
 	}), [frameId, frameSide]);
+	
+	const file = useLiveQuery(() => getFile(frameSideFile?.fileId ? frameSideFile?.fileId : -1), [frameId, frameSide]);
 
-	if(!frameSideFile){
-		return <Loading />
-	}
-
-	const file = useLiveQuery(() => getFile(frameSideFile.fileId), [frameId, frameSide]);
-
-	if (loadingGet || !file) {
+	if (loadingGet) {
 		return <Loading />
 	}
 
@@ -111,7 +107,7 @@ export default function Frame({
 		</div>
 	)
 
-	if (!frameSideFile) {
+	if (!frameSideFile || !file) {
 		return (
 			<div style={{ flexGrow: 10, paddingLeft: 15 }}>
 				{extraButtons}
@@ -136,7 +132,7 @@ export default function Frame({
 			<div className={styles.body}>
 				<DrawingCanvas
 					imageUrl={file.url}
-					detectedObjects={frameSideFile.detectedObjects}
+					detectedObjects={frameSideFile.detectedObjects ? frameSideFile?.detectedObjects : []}
 					strokeHistory={frameSideFile.strokeHistory}
 					onStrokeHistoryUpdate={(strokeHistory) => {
 						// setFileStroke({

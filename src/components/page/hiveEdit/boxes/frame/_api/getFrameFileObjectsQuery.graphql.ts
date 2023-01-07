@@ -6,6 +6,10 @@ export default gql`
 			frameSideId
 			strokeHistory
 			detectedObjects
+			file{
+				id
+				url
+			}
 		}
 	}
 `

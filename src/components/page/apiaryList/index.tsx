@@ -1,7 +1,8 @@
 import React from 'react'
 
+import { gql, useQuery, useSubscription } from '@/components/api/index'
+
 import Link from '../../shared/link'
-import { gql, useQuery, useSubscription } from '../../api'
 import ApiaryListRow from './apiaryListRow'
 import Loader from '../../shared/loader'
 import ApiariesPlaceholder from './apiariesPlaceholder'

@@ -1,6 +1,3 @@
-import find from 'lodash/find'
-import filter from 'lodash/filter'
-import isNil from 'lodash/isNil'
 import { useNavigate } from 'react-router'
 
 import Box from './box'

@@ -22,189 +22,192 @@ export default function Frame({
 	frameId,
 	frameSide,
 }) {
-	let [expanded, expand] = useState(false)
 
-	const frameSideObj = useLiveQuery(() => getFrameSide({
-		frameId: frameId ? +frameId : -1,
-		frameSide,
-	}), [frameId]);
+	return <Loading />;
 
-	if(!frameSideObj){
-		return <Loading />
-	}
+	// let [expanded, expand] = useState(false)
 
-	const frameSideFile = useLiveQuery(() => getFrameSideFile({
-		frameSideId: frameSideObj.id,
-	}), [frameId, frameSide]);
+	// const frameSideObj = useLiveQuery(() => getFrameSide({
+	// 	frameId: frameId ? +frameId : -1,
+	// 	frameSide,
+	// }), [frameId]);
 
-	let {id:frameSideId} = frameSideObj;
-
-	let {
-		loading: loadingGet,
-		data: frameSideFileRelDetails,
-	} = useQuery(FRAME_SIDE_QUERY, { variables: { frameSideId } });
-
-	let frameSideFileRel = null
-
-	if (loadingGet) {
-		return <Loading />
-	}
-
-	function onFrameSideStatChange(){}
-	function onUpload(){}
-	function onFrameClose(){}
-	function onQueenToggle(){}
-
-	// const cachedFileRel = getFrameSideFile({
-	// 	frameSideId: +frameSideId,
-	// 	hiveId: +hiveId,
-	// })
-
-	// let frameSideFileRel = {
-	// 	...cachedFileRel,
-	// 	...frameSideFileRelDetails.hiveFrameSideFile,
+	// if(!frameSideObj){
+	// 	return <Loading />
 	// }
 
-	// if (cachedFileRel) {
-	// 	cachedFileRel.strokeHistory = frameSideFileRel.strokeHistory
+	// const frameSideFile = useLiveQuery(() => getFrameSideFile({
+	// 	frameSideId: frameSideObj.id,
+	// }), [frameId, frameSide]);
+
+	// let {id:frameSideId} = frameSideObj;
+
+	// let {
+	// 	loading: loadingGet,
+	// 	data: frameSideFileRelDetails,
+	// } = useQuery(FRAME_SIDE_QUERY, { variables: { frameSideId } });
+
+	// let frameSideFileRel = null
+
+	// if (loadingGet) {
+	// 	return <Loading />
 	// }
 
-	const [linkFileToFrame] = useMutation(LINK_FILE_TO_FRAME)
+	// function onFrameSideStatChange(){}
+	// function onUpload(){}
+	// function onFrameClose(){}
+	// function onQueenToggle(){}
 
-	function onResize(key, value) {
-		let total =
-			frameSide.broodPercent +
-			frameSide.cappedBroodPercent +
-			frameSide.droneBroodPercent +
-			frameSide.honeyPercent +
-			frameSide.pollenPercent
+	// // const cachedFileRel = getFrameSideFile({
+	// // 	frameSideId: +frameSideId,
+	// // 	hiveId: +hiveId,
+	// // })
 
-		if (total <= 100) {
-			onFrameSideStatChange(key, Math.round(1 * value))
-		} else if (total > 100) {
-			onFrameSideStatChange(key, Math.floor((100 * value) / total))
-			if (key !== 'broodPercent')
-				onFrameSideStatChange(
-					'broodPercent',
-					Math.round((100 * frameSide.broodPercent) / total)
-				)
-			if (key !== 'cappedBroodPercent')
-				onFrameSideStatChange(
-					'cappedBroodPercent',
-					Math.round((100 * frameSide.cappedBroodPercent) / total)
-				)
-			if (key !== 'droneBroodPercent')
-				onFrameSideStatChange(
-					'droneBroodPercent',
-					Math.round((100 * frameSide.droneBroodPercent) / total)
-				)
-			if (key !== 'honeyPercent')
-				onFrameSideStatChange(
-					'honeyPercent',
-					Math.round((100 * frameSide.honeyPercent) / total)
-				)
-			if (key !== 'pollenPercent')
-				onFrameSideStatChange(
-					'pollenPercent',
-					Math.round((100 * frameSide.pollenPercent) / total)
-				)
-		}
-	}
+	// // let frameSideFileRel = {
+	// // 	...cachedFileRel,
+	// // 	...frameSideFileRelDetails.hiveFrameSideFile,
+	// // }
 
-	const extraButtons = (
-		<div style={{ display: 'flex' }}>
-			<Button onClick={onFrameClose}>Close</Button>
-			<Button title="Toggle queen" onClick={onQueenToggle}>
-				<CrownIcon fill={frameSideObj.queenDetected ? 'white' : '#555555'} />
-				Toggle Queen
-			</Button>
-		</div>
-	)
+	// // if (cachedFileRel) {
+	// // 	cachedFileRel.strokeHistory = frameSideFileRel.strokeHistory
+	// // }
 
-	if (!frameSideFile) {
-		return (
-			<div style={{ flexGrow: 10, paddingLeft: 15 }}>
-				{extraButtons}
-				<UploadFile
-					onUpload={(data) => {
-						// if (frameSide.id) {
-						// 	linkFileToFrame({
-						// 		fileId: data.id,
-						// 		frameSideId: frameSide.id,
-						// 		hiveId,
-						// 	})
-						// }
-						// onUpload(data)
-					}}
-				/>
-			</div>
-		)
-	}
+	// const [linkFileToFrame] = useMutation(LINK_FILE_TO_FRAME)
 
-	return (
-		<div style={{ marginLeft: 15 }}>
-			<div className={styles.body}>
-				<DrawingCanvas
-					imageUrl={frameSideFileRel.file.url}
-					detectedObjects={frameSideFileRel.detectedObjects}
-					strokeHistory={frameSideFileRel.strokeHistory}
-					onStrokeHistoryUpdate={(strokeHistory) => {
-						setFileStroke({
-							frameSideId: +frameSideId,
-							hiveId: +frameSideId,
-							strokeHistory,
-						})
-					}}
-				>
-					<div style={{ display: expanded ? 'block' : 'flex', flexGrow: '1' }}>
-						<ResourceEditRow
-							expanded={expanded}
-							onClick={() => expand(!expanded)}
-							title={'Brood'}
-							color={colors.broodColor}
-							percent={frameSideObj.broodPercent}
-							onChange={(e) => onResize('broodPercent', e.target.value)}
-						/>
+	// function onResize(key, value) {
+	// 	let total =
+	// 		frameSide.broodPercent +
+	// 		frameSide.cappedBroodPercent +
+	// 		frameSide.droneBroodPercent +
+	// 		frameSide.honeyPercent +
+	// 		frameSide.pollenPercent
 
-						<ResourceEditRow
-							expanded={expanded}
-							onClick={() => expand(!expanded)}
-							title={'Capped Brood'}
-							color={colors.cappedBroodColor}
-							percent={frameSideObj.cappedBroodPercent}
-							onChange={(e) => onResize('cappedBroodPercent', e.target.value)}
-						/>
+	// 	// if (total <= 100) {
+	// 	// 	onFrameSideStatChange(key, Math.round(1 * value))
+	// 	// } else if (total > 100) {
+	// 	// 	onFrameSideStatChange(key, Math.floor((100 * value) / total))
+	// 	// 	if (key !== 'broodPercent')
+	// 	// 		onFrameSideStatChange(
+	// 	// 			'broodPercent',
+	// 	// 			Math.round((100 * frameSide.broodPercent) / total)
+	// 	// 		)
+	// 	// 	if (key !== 'cappedBroodPercent')
+	// 	// 		onFrameSideStatChange(
+	// 	// 			'cappedBroodPercent',
+	// 	// 			Math.round((100 * frameSide.cappedBroodPercent) / total)
+	// 	// 		)
+	// 	// 	if (key !== 'droneBroodPercent')
+	// 	// 		onFrameSideStatChange(
+	// 	// 			'droneBroodPercent',
+	// 	// 			Math.round((100 * frameSide.droneBroodPercent) / total)
+	// 	// 		)
+	// 	// 	if (key !== 'honeyPercent')
+	// 	// 		onFrameSideStatChange(
+	// 	// 			'honeyPercent',
+	// 	// 			Math.round((100 * frameSide.honeyPercent) / total)
+	// 	// 		)
+	// 	// 	if (key !== 'pollenPercent')
+	// 	// 		onFrameSideStatChange(
+	// 	// 			'pollenPercent',
+	// 	// 			Math.round((100 * frameSide.pollenPercent) / total)
+	// 	// 		)
+	// 	// }
+	// }
 
-						<ResourceEditRow
-							expanded={expanded}
-							onClick={() => expand(!expanded)}
-							title={'Drone brood'}
-							color={colors.droneBroodColor}
-							percent={frameSideObj.droneBroodPercent}
-							onChange={(e) => onResize('droneBroodPercent', e.target.value)}
-						/>
-						<ResourceEditRow
-							expanded={expanded}
-							onClick={() => expand(!expanded)}
-							title={'Honey'}
-							color={colors.honeyColor}
-							percent={frameSideObj.honeyPercent}
-							onChange={(e) => onResize('honeyPercent', e.target.value)}
-						/>
+	// const extraButtons = (
+	// 	<div style={{ display: 'flex' }}>
+	// 		<Button onClick={onFrameClose}>Close</Button>
+	// 		<Button title="Toggle queen" onClick={onQueenToggle}>
+	// 			<CrownIcon fill={frameSideObj.queenDetected ? 'white' : '#555555'} />
+	// 			Toggle Queen
+	// 		</Button>
+	// 	</div>
+	// )
 
-						<ResourceEditRow
-							expanded={expanded}
-							onClick={() => expand(!expanded)}
-							title={'Pollen'}
-							color={colors.pollenColor}
-							percent={frameSideObj.pollenPercent}
-							onChange={(e) => onResize('pollenPercent', e.target.value)}
-						/>
-					</div>
+	// if (!frameSideFile) {
+	// 	return (
+	// 		<div style={{ flexGrow: 10, paddingLeft: 15 }}>
+	// 			{extraButtons}
+	// 			<UploadFile
+	// 				onUpload={(data) => {
+	// 					// if (frameSide.id) {
+	// 					// 	linkFileToFrame({
+	// 					// 		fileId: data.id,
+	// 					// 		frameSideId: frameSide.id,
+	// 					// 		hiveId,
+	// 					// 	})
+	// 					// }
+	// 					// onUpload(data)
+	// 				}}
+	// 			/>
+	// 		</div>
+	// 	)
+	// }
 
-					{extraButtons}
-				</DrawingCanvas>
-			</div>
-		</div>
-	)
+	// return (
+	// 	<div style={{ marginLeft: 15 }}>
+	// 		<div className={styles.body}>
+	// 			<DrawingCanvas
+	// 				imageUrl={frameSideFileRel.file.url}
+	// 				detectedObjects={frameSideFileRel.detectedObjects}
+	// 				strokeHistory={frameSideFileRel.strokeHistory}
+	// 				onStrokeHistoryUpdate={(strokeHistory) => {
+	// 					setFileStroke({
+	// 						frameSideId: +frameSideId,
+	// 						hiveId: +frameSideId,
+	// 						strokeHistory,
+	// 					})
+	// 				}}
+	// 			>
+	// 				<div style={{ display: expanded ? 'block' : 'flex', flexGrow: '1' }}>
+	// 					<ResourceEditRow
+	// 						expanded={expanded}
+	// 						onClick={() => expand(!expanded)}
+	// 						title={'Brood'}
+	// 						color={colors.broodColor}
+	// 						percent={frameSideObj.broodPercent}
+	// 						onChange={(e) => onResize('broodPercent', e.target.value)}
+	// 					/>
+
+	// 					<ResourceEditRow
+	// 						expanded={expanded}
+	// 						onClick={() => expand(!expanded)}
+	// 						title={'Capped Brood'}
+	// 						color={colors.cappedBroodColor}
+	// 						percent={frameSideObj.cappedBroodPercent}
+	// 						onChange={(e) => onResize('cappedBroodPercent', e.target.value)}
+	// 					/>
+
+	// 					<ResourceEditRow
+	// 						expanded={expanded}
+	// 						onClick={() => expand(!expanded)}
+	// 						title={'Drone brood'}
+	// 						color={colors.droneBroodColor}
+	// 						percent={frameSideObj.droneBroodPercent}
+	// 						onChange={(e) => onResize('droneBroodPercent', e.target.value)}
+	// 					/>
+	// 					<ResourceEditRow
+	// 						expanded={expanded}
+	// 						onClick={() => expand(!expanded)}
+	// 						title={'Honey'}
+	// 						color={colors.honeyColor}
+	// 						percent={frameSideObj.honeyPercent}
+	// 						onChange={(e) => onResize('honeyPercent', e.target.value)}
+	// 					/>
+
+	// 					<ResourceEditRow
+	// 						expanded={expanded}
+	// 						onClick={() => expand(!expanded)}
+	// 						title={'Pollen'}
+	// 						color={colors.pollenColor}
+	// 						percent={frameSideObj.pollenPercent}
+	// 						onChange={(e) => onResize('pollenPercent', e.target.value)}
+	// 					/>
+	// 				</div>
+
+	// 				{extraButtons}
+	// 			</DrawingCanvas>
+	// 		</div>
+	// 	</div>
+	// )
 }

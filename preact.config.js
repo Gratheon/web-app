@@ -14,7 +14,7 @@ import WebpackPwaManifest from 'webpack-pwa-manifest'
  */
 export default (config, env, helpers, options) => {
 	// helpers.webpack.plugins = [new BundleAnalyzerPlugin()]
-
+	
 	config.module.rules.push({
 		// For pure CSS - /\.css$/i,
 		// For Sass/SCSS - /\.((c|sa|sc)ss)$/i,
@@ -41,11 +41,11 @@ export default (config, env, helpers, options) => {
 		],
 	})
 
-	helpers.webpack.optimization = {
-		splitChunks: {
-			chunks: 'all',
-		},
-	}
+	// helpers.webpack.optimization = {
+	// 	splitChunks: {
+	// 		chunks: 'all',
+	// 	},
+	// }
 
 	config.plugins.push(
 		new WebpackPwaManifest({
@@ -65,4 +65,11 @@ export default (config, env, helpers, options) => {
 		})
 	)
 	preactCliSvgLoader(config, helpers)
+
+	config.resolve.modules.push(env.src);
+	console.log('webpack config', config.resolve.alias);
+	config.resolve.alias = {
+		...config.resolve.alias,
+		'@':path.resolve(__dirname, 'src')
+	}
 }

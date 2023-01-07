@@ -18,8 +18,6 @@ import { getFrameSideFile } from '@/components/models/frameSideFile'
 import { getFile } from '@/components/models/files'
 
 export default function Frame({
-	hiveId,
-	boxId,
 	frameId,
 	frameSide,
 }) {
@@ -135,6 +133,7 @@ export default function Frame({
 					detectedObjects={frameSideFile.detectedObjects ? frameSideFile?.detectedObjects : []}
 					strokeHistory={frameSideFile.strokeHistory}
 					onStrokeHistoryUpdate={(strokeHistory) => {
+						console.log('onStrokeHistoryUpdate', {strokeHistory});
 						// setFileStroke({
 						// 	frameSideId: +frameSideId,
 						// 	hiveId: +frameSideId,

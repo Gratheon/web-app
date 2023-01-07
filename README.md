@@ -31,12 +31,14 @@ flowchart LR
 | live  | https://app.gratheon.com/ |
 
 ### Tech stack
-- typescript
-- preact (builder)
-- react
-- react-router
-- urql
-- dexie + index-db
+|dependency|why|
+|--|--|
+|typescript| for reliability via strict types|
+|preact (builder)| for performance|
+|react| for modularity and compatibility with other UI components|
+|react-router|for navigation|
+|urql| for performant graphql data loading|
+|dexie| for storing data to index-db on the client for offline mode|
 
 ## Development
 

@@ -58,13 +58,6 @@ export default function Boxes({
 `)
 
 	function onMoveDown(index) {
-		// if (moveBoxDown({ hiveId: +hive.id, index })) {
-		// 	swapBox({
-		// 		hiveId: +hive.id,
-		// 		boxIndex: index,
-		// 		toBoxIndex: index - 1,
-		// 	})
-		// }
 	}
 
 	async function onBoxAdd(type) {

@@ -73,20 +73,18 @@ export const writeHooks = {
 		family.hiveId = +id
 		await upsertEntity('family', family)
 	},
-	Frame: async ({ id }, _, { originalValue: frame }) => {
+	Frame: async ({ id }, value, { originalValue: frame }) => {
 		frame.boxId = +id
 
 		if (frame.leftSide) {
-			frame.leftId = +frame.leftSide?.id
-			delete frame.leftSide
+			value.leftId = +frame.leftSide?.id
 		}
 
 		if (frame.rightSide) {
-			frame.rightId = +frame.rightSide?.id
-			delete frame.rightSide
+			value.rightId = +frame.rightSide?.id
 		}
 
-		await upsertEntity('frame', frame)
+		await upsertEntity('frame', value)
 	},
 	FrameSide: async ({ id }, frameside) => {
 		frameside.frameId = +id

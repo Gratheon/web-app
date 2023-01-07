@@ -49,7 +49,7 @@ export default ({
 						boxId={boxId}
 						frameId={frameId}
 						frameSide={frameSide}
-						boxPosition={boxPosition}
+						
 						hiveId={hiveId}
 						apiaryId={apiaryId}
 						frame={frame}

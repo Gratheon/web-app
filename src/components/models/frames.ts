@@ -16,6 +16,14 @@ export const frameTypes = {
 	PARTITION: 'PARTITION',
 }
 
+export async function getFrame(id: number): Promise<Frame> {
+	try {
+		return await db['frame'].get(id)
+	} catch (e) {
+		console.error(e)
+	}
+}
+
 export async function getFrames(where = {}): Promise<Frame[]> {
 	if (!where) return []
 	try {
@@ -103,16 +111,9 @@ export function moveFramesToBox({
 	setFrames(tmpFrames, { hiveId })
 }
 
-export async function addFrame({
-	id,
-	position,
-	boxId,
-	type,
-	leftId,
-	rightId
-}) {
+export async function addFrame({ id, position, boxId, type, leftId, rightId }) {
 	try {
-		if(leftId){
+		if (leftId) {
 			await db['frameside'].put({
 				id: leftId,
 				broodPercent: 0,
@@ -124,7 +125,7 @@ export async function addFrame({
 			})
 		}
 
-		if(rightId){
+		if (rightId) {
 			await db['frameside'].put({
 				id: rightId,
 				broodPercent: 0,
@@ -141,7 +142,7 @@ export async function addFrame({
 			boxId,
 			type,
 			leftId,
-			rightId
+			rightId,
 		})
 	} catch (e) {
 		console.error(e)

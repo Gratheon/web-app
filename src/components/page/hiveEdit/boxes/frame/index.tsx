@@ -6,7 +6,7 @@ import UploadFile from './uploadFile'
 import ResourceEditRow from './resourceEditRow'
 import { useMutation, useQuery } from '../../../../api'
 import DrawingCanvas from './drawingCanvas'
-import { getFrameSideFile } from '../../../../models/files'
+import { getFrameSide } from '../../../../models/frameSide'
 import Button from '../../../../shared/button'
 import CrownIcon from '../../../../../icons/crownIcon'
 
@@ -14,42 +14,56 @@ import LINK_FILE_TO_FRAME from './_api/addFileToFrameSideMutation.graphql'
 import FRAME_SIDE_QUERY from './_api/getFrameFileObjectsQuery.graphql'
 import Loading from '../../../../shared/loader'
 import { setFileStroke } from '../../../../models/files'
+import { useLiveQuery } from 'dexie-react-hooks'
 
-export default ({
-	frameSide,
-	frameSideId,
-	onUpload,
-	onFrameSideStatChange,
+export default function Frame({
 	hiveId,
-
-	onFrameClose,
-	onQueenToggle,
-}) => {
+	boxId,
+	frameId,
+	frameSide,
+}) {
 	let [expanded, expand] = useState(false)
+
+	const frameSideObj = useLiveQuery(() => getFrameSide({
+		frameId: frameId ? +frameId : -1,
+		frameSide,
+	}), [boxId]);
+
+	if(!frameSideObj){
+		return <Loading />
+	}
+
+	let {id:frameSideId} = frameSideObj;
 
 	let {
 		loading: loadingGet,
-		// error: errorGet,
 		data: frameSideFileRelDetails,
-	} = useQuery(FRAME_SIDE_QUERY, { variables: { frameSideId } })
+	} = useQuery(FRAME_SIDE_QUERY, { variables: { frameSideId } });
+
+	let frameSideFileRel = null
 
 	if (loadingGet) {
 		return <Loading />
 	}
 
-	const cachedFileRel = getFrameSideFile({
-		frameSideId: +frameSideId,
-		hiveId: +hiveId,
-	})
+	function onFrameSideStatChange(){}
+	function onUpload(){}
+	function onFrameClose(){}
+	function onQueenToggle(){}
 
-	let frameSideFileRel = {
-		...cachedFileRel,
-		...frameSideFileRelDetails.hiveFrameSideFile,
-	}
+	// const cachedFileRel = getFrameSideFile({
+	// 	frameSideId: +frameSideId,
+	// 	hiveId: +hiveId,
+	// })
 
-	if (cachedFileRel) {
-		cachedFileRel.strokeHistory = frameSideFileRel.strokeHistory
-	}
+	// let frameSideFileRel = {
+	// 	...cachedFileRel,
+	// 	...frameSideFileRelDetails.hiveFrameSideFile,
+	// }
+
+	// if (cachedFileRel) {
+	// 	cachedFileRel.strokeHistory = frameSideFileRel.strokeHistory
+	// }
 
 	const [linkFileToFrame] = useMutation(LINK_FILE_TO_FRAME)
 
@@ -97,7 +111,7 @@ export default ({
 		<div style={{ display: 'flex' }}>
 			<Button onClick={onFrameClose}>Close</Button>
 			<Button title="Toggle queen" onClick={onQueenToggle}>
-				<CrownIcon fill={frameSide.queenDetected ? 'white' : '#555555'} />
+				<CrownIcon fill={frameSideObj.queenDetected ? 'white' : '#555555'} />
 				Toggle Queen
 			</Button>
 		</div>
@@ -109,14 +123,14 @@ export default ({
 				{extraButtons}
 				<UploadFile
 					onUpload={(data) => {
-						if (frameSide.id) {
-							linkFileToFrame({
-								fileId: data.id,
-								frameSideId: frameSide.id,
-								hiveId,
-							})
-						}
-						onUpload(data)
+						// if (frameSide.id) {
+						// 	linkFileToFrame({
+						// 		fileId: data.id,
+						// 		frameSideId: frameSide.id,
+						// 		hiveId,
+						// 	})
+						// }
+						// onUpload(data)
 					}}
 				/>
 			</div>
@@ -144,7 +158,7 @@ export default ({
 							onClick={() => expand(!expanded)}
 							title={'Brood'}
 							color={colors.broodColor}
-							percent={frameSide.broodPercent}
+							percent={frameSideObj.broodPercent}
 							onChange={(e) => onResize('broodPercent', e.target.value)}
 						/>
 
@@ -153,7 +167,7 @@ export default ({
 							onClick={() => expand(!expanded)}
 							title={'Capped Brood'}
 							color={colors.cappedBroodColor}
-							percent={frameSide.cappedBroodPercent}
+							percent={frameSideObj.cappedBroodPercent}
 							onChange={(e) => onResize('cappedBroodPercent', e.target.value)}
 						/>
 
@@ -162,7 +176,7 @@ export default ({
 							onClick={() => expand(!expanded)}
 							title={'Drone brood'}
 							color={colors.droneBroodColor}
-							percent={frameSide.droneBroodPercent}
+							percent={frameSideObj.droneBroodPercent}
 							onChange={(e) => onResize('droneBroodPercent', e.target.value)}
 						/>
 						<ResourceEditRow
@@ -170,7 +184,7 @@ export default ({
 							onClick={() => expand(!expanded)}
 							title={'Honey'}
 							color={colors.honeyColor}
-							percent={frameSide.honeyPercent}
+							percent={frameSideObj.honeyPercent}
 							onChange={(e) => onResize('honeyPercent', e.target.value)}
 						/>
 
@@ -179,7 +193,7 @@ export default ({
 							onClick={() => expand(!expanded)}
 							title={'Pollen'}
 							color={colors.pollenColor}
-							percent={frameSide.pollenPercent}
+							percent={frameSideObj.pollenPercent}
 							onChange={(e) => onResize('pollenPercent', e.target.value)}
 						/>
 					</div>

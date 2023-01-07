@@ -1,6 +1,6 @@
 import React from 'react'
 
-import HiveIcon from '../../../shared/hiveIcon'
+import HiveIcon from '@/components/shared/hiveIcon'
 
 export default function () {
 	return (

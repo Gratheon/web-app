@@ -1,13 +1,12 @@
 import React, { useState } from 'react'
 
-import { gql, useMutation } from '../../api'
-
-import VisualForm from '../../shared/visualForm'
-import Loader from '../../shared/loader'
-import ErrorMsg from '../../shared/messageError'
-import Button from '../../shared/button'
-import { saveToken } from '../../user'
-import { getAppUri } from '../../uri'
+import { gql, useMutation } from '@/components/api'
+import VisualForm from '@/components/shared/visualForm'
+import Loader from '@/components/shared/loader'
+import ErrorMsg from '@/components/shared/messageError'
+import Button from '@/components/shared/button'
+import { saveToken } from '@/components/user'
+import { getAppUri } from '@/components/uri'
 
 type Account = {
 	email?: string

@@ -1,17 +1,14 @@
 import React from 'react'
 
-import FramesIcon from '../../../../../../icons/framesIcon'
-import {
-	PopupButtonGroup,
-	PopupButton,
-} from '../../../../../shared/popupButton'
-import Button from '../../../../../shared/button'
-import DeleteIcon from '../../../../../../icons/deleteIcon'
-import DownIcon from '../../../../../../icons/downIcon'
-import { useMutation } from '../../../../../api'
+import FramesIcon from '@/icons/framesIcon'
+import DeleteIcon from '@/icons/deleteIcon'
+import DownIcon from '@/icons/downIcon'
 
-import { removeBox } from '../../../../../models/boxes'
-import { countBoxFrames, frameTypes, addFrame } from '../../../../../models/frames'
+import { PopupButtonGroup, PopupButton } from '@/components/shared/popupButton'
+import Button from '@/components/shared/button'
+import { useMutation } from '@/components/api'
+import { removeBox } from '@/components/models/boxes'
+import { countBoxFrames, frameTypes, addFrame } from '@/components/models/frames'
 
 export default function FrameButtons({ frameId, showDownButton, box, onError }) {
 	let [removeBoxMutation] = useMutation(`mutation deactivateBox($id: ID!) {

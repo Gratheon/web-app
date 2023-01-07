@@ -1,10 +1,9 @@
 import find from 'lodash/find'
 import remove from 'lodash/remove'
-import map from 'lodash/map'
+
+import { Box } from '@/components/api/schema'
 
 import { db } from './db'
-
-import { Box } from '../api/schema'
 
 let boxes: Box[] = [] // db.get('boxes')
 

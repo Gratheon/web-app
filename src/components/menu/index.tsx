@@ -1,11 +1,12 @@
 // @ts-nocheck
 import React from 'react'
-import styles from './styles.less'
-import Header from '../header'
-
-import { logout } from '../user'
 import { Link } from 'react-router-dom'
-import { getAppUri } from '../uri'
+
+import Header from '@/components/header'
+import { logout } from '@/components/user'
+import { getAppUri } from '@/components/uri'
+
+import styles from './styles.less'
 
 const logOut = () => {
 	logout()

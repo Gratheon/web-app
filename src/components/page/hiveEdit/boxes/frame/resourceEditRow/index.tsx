@@ -1,7 +1,7 @@
 import React from 'react'
 
 import styles from './styles.less'
-import Slider from '../../../../../shared/slider'
+import Slider from '@/components/shared/slider'
 
 export default ({
 	title,

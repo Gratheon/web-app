@@ -1,6 +1,6 @@
-import { db } from './db'
+import { Family } from '@/components/api/schema'
 
-import { Family } from '../api/schema'
+import { db } from './db'
 
 export async function getFamilyByHive(hiveId: number): Promise<Family> {
 	try {

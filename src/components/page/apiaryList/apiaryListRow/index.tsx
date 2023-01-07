@@ -1,10 +1,12 @@
 import React from 'react'
 
-import HiveIcon from '../../../shared/hiveIcon'
-import Link from '../../../shared/link'
-import HivesPlaceholder from '../../../shared/hivesPlaceholder'
-import AddHiveIcon from '../../../../icons/addHive'
-import HandIcon from '../../../../icons/handIcon'
+import HiveIcon from '@/components/shared/hiveIcon'
+import Link from '@/components/shared/link'
+import HivesPlaceholder from '@/components/shared/hivesPlaceholder'
+
+import AddHiveIcon from '@/icons/addHive'
+import HandIcon from '@/icons/handIcon'
+
 import styles from './index.less'
 
 export default function apiaryListRow(props) {

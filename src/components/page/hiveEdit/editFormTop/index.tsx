@@ -2,16 +2,16 @@ import React, { useMemo } from 'react'
 import debounce from 'lodash.debounce'
 import { useLiveQuery } from 'dexie-react-hooks'
 
-import VisualForm from '../../../shared/visualForm'
-import HiveIcon from '../../../shared/hiveIcon'
+import VisualForm from '@/components/shared/visualForm'
+import HiveIcon from '@/components/shared/hiveIcon'
 import DeactivateButton from '../deleteButton'
 import QueenColor from './queenColor'
 
-import { useMutation } from '../../../api'
-import { updateHive, getHive } from '../../../models/hive'
-import { getBoxes } from '../../../models/boxes'
-import { getFamilyByHive, updateFamily } from '../../../models/family'
-import Loader from '../../../shared/loader'
+import { useMutation } from '@/components/api'
+import { updateHive, getHive } from '@/components/models/hive'
+import { getBoxes } from '@/components/models/boxes'
+import { getFamilyByHive, updateFamily } from '@/components/models/family'
+import Loader from '@/components/shared/loader'
 
 export default function HiveEditDetails({ hiveId }) {
 	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId])

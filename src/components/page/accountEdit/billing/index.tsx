@@ -2,11 +2,11 @@ import React from 'react'
 import { format } from 'date-fns'
 import { useParams } from 'react-router-dom'
 
-import Loading from '../../../shared/loader'
-import Button from '../../../shared/button'
-import { gql, useMutation } from '../../../api'
-import MessageSuccess from '../../../shared/messageSuccess'
-import MessageError from '../../../shared/messageError'
+import Loading from '@/components/shared/loader'
+import Button from '@/components/shared/button'
+import { gql, useMutation } from '@/components/api'
+import MessageSuccess from '@/components/shared/messageSuccess'
+import MessageError from '@/components/shared/messageError'
 
 export default function Billing({ user }) {
 	let { stripeStatus } = useParams()

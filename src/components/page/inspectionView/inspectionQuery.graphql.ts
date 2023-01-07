@@ -1,4 +1,4 @@
-import { gql } from '../../api'
+import { gql } from '@/components/api'
 
 export default gql`
 	query inspection($inspectionId: ID!, $hiveId: ID!) {

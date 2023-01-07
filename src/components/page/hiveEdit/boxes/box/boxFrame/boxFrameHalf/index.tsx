@@ -3,7 +3,7 @@ import React from 'react'
 import styles from './index.less'
 import { useNavigate } from 'react-router-dom'
 
-import colors from '../../../../../../colors'
+import colors from '@/components/colors'
 
 export default function BoxFrameHalf({ frameSide, className, href }) {
 	let navigate = useNavigate()

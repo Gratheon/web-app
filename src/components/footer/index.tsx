@@ -1,9 +1,11 @@
 import React from 'react'
 
+import { graphqlWsClient } from '@/components/api'
+import isDev from '@/components/isDev'
+
 import ConnectionStatus from './connectionStatus'
-import isDev from '../isDev'
 import styles from './styles.less'
-import { graphqlWsClient } from '../api'
+
 
 export default function Footer() {
 	let apiUrl = 'https://graphql.gratheon.com/graphql'

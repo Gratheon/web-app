@@ -2,11 +2,12 @@ import React from 'react'
 
 import { gql, useQuery, useSubscription } from '@/components/api/index'
 
-import Link from '../../shared/link'
+import Link from '@/components/shared/link'
+import Loader from '@/components/shared/loader'
+import ErrorMsg from '@/components/shared/messageError'
+
 import ApiaryListRow from './apiaryListRow'
-import Loader from '../../shared/loader'
 import ApiariesPlaceholder from './apiariesPlaceholder'
-import ErrorMsg from '../../shared/messageError'
 
 export default function ApiaryList(props) {
 	const { loading, error, data } = useQuery(gql`

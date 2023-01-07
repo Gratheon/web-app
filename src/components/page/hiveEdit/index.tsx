@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router'
 import { useParams } from 'react-router-dom'
 import { useLiveQuery } from "dexie-react-hooks";
 
-import { omitTypeName, useMutation, useQuery } from '../../api'
-import Loader from '../../shared/loader'
+import { omitTypeName, useMutation, useQuery } from '@/components/api'
+import Loader from '@/components/shared/loader'
 import Boxes from './boxes'
 
 import HIVE_QUERY from './_api/hiveQuery.graphql'
@@ -12,13 +12,13 @@ import HiveEditDetails from './editFormTop'
 import HiveNavigationPanel from './breadcrumbs'
 // import HIVE_EDIT_MUTATION from './_api/hiveEditMutation.graphql'
 // import FILE_STROKE_EDIT_MUTATION from './_api/filesStrokeEditMutation.graphql'
-import ErrorMsg from '../../shared/messageError'
-import ErrorGeneral from '../../shared/messageErrorGlobal'
-// import OkMsg from '../../shared/messageSuccess'
+import ErrorMsg from '@/components/shared/messageError'
+import ErrorGeneral from '@/components/shared/messageErrorGlobal'
+// import OkMsg from '@/components/shared/messageSuccess'
 
-import { getBoxes } from '../../models/boxes'
-import { getFrames } from '../../models/frames'
-import { getHive } from '../../models/hive';
+import { getBoxes } from '@/components/models/boxes'
+import { getFrames } from '@/components/models/frames'
+import { getHive } from '@/components/models/hive';
 
 export default function HiveEditForm() {
 	let { apiaryId, hiveId, boxId, frameId, frameSide } = useParams()

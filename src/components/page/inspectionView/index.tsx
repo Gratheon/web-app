@@ -1,12 +1,12 @@
-import { useQuery } from '../../api'
+import { useQuery } from '@/components/api'
 import INSPECTION_QUERY from './inspectionQuery.graphql'
-import Loading from '../../shared/loader'
-import DateFormat from '../../shared/dateFormat'
+import Loading from '@/components/shared/loader'
+import DateFormat from '@/components/shared/dateFormat'
 // import Boxes from '../hiveEdit/boxes'
 import React from 'react'
-import Link from '../../shared/link'
-import ErrorMsg from '../../shared/messageError'
-// import InspectionList from '../../shared/listInspections'
+import Link from '@/components/shared/link'
+import ErrorMsg from '@/components/shared/messageError'
+// import InspectionList from '@/components/shared/listInspections'
 
 type InspectionViewProps = {
 	apiaryId?: string

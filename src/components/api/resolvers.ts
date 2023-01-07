@@ -1,4 +1,4 @@
-import { getFrames } from '../models/frames';
+import { getFrames } from '@/components/models/frames';
 
 export default {
 	user: async (_, { db }) => {

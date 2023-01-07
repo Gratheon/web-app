@@ -1,4 +1,4 @@
-import { Frame } from '../api/schema'
+import { Frame } from '@/components/api/schema'
 
 import { db } from './db'
 

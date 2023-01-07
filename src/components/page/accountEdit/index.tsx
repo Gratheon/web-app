@@ -1,12 +1,13 @@
 import React, { useState } from 'react'
 
-import { gql, useMutation, useQuery } from '../../api'
+import { gql, useMutation, useQuery } from '@/components/api'
 
-import VisualForm from '../../shared/visualForm'
-import Loader from '../../shared/loader'
-import ErrorMsg from '../../shared/messageError'
-import VisualFormSubmit from '../../shared/visualForm/VisualFormSubmit'
-import Button from '../../shared/button'
+import VisualForm from '@/components/shared/visualForm'
+import Loader from '@/components/shared/loader'
+import ErrorMsg from '@/components/shared/messageError'
+import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
+import Button from '@/components/shared/button'
+
 import Billing from './billing'
 import Invoices from './invoices'
 

@@ -1,4 +1,4 @@
-import { gql, useQuery } from '../../api'
+import { gql, useQuery } from '@/components/api'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 const USER_QUERY = gql`

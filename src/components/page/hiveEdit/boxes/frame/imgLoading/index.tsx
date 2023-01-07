@@ -1,5 +1,5 @@
 import React from 'react'
-import Loader from '../../../../../shared/loader'
+import Loader from '@/components/shared/loader'
 
 export default function ImgLoading({ src, style }) {
 	if (!src) {

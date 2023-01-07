@@ -1,20 +1,20 @@
 import React, { useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
+
+import colors from '@/components/colors'
+import { useMutation, useQuery } from '@/components/api'
+import { getFrameSide } from '@/components/models/frameSide'
+import Button from '@/components/shared/button'
+import Loading from '@/components/shared/loader'
+import CrownIcon from '@/icons/crownIcon'
+import { setFileStroke } from '@/components/models/files'
 
 import styles from './styles.less'
-import colors from '../../../../colors'
 import UploadFile from './uploadFile'
 import ResourceEditRow from './resourceEditRow'
-import { useMutation, useQuery } from '../../../../api'
 import DrawingCanvas from './drawingCanvas'
-import { getFrameSide } from '../../../../models/frameSide'
-import Button from '../../../../shared/button'
-import CrownIcon from '../../../../../icons/crownIcon'
-
 import LINK_FILE_TO_FRAME from './_api/addFileToFrameSideMutation.graphql'
 import FRAME_SIDE_QUERY from './_api/getFrameFileObjectsQuery.graphql'
-import Loading from '../../../../shared/loader'
-import { setFileStroke } from '../../../../models/files'
-import { useLiveQuery } from 'dexie-react-hooks'
 
 export default function Frame({
 	hiveId,

@@ -1,14 +1,16 @@
 // @ts-nocheck
 import React from 'react'
 
-import { useUploadMutation, gql } from '../../../../../api'
-import ErrorMsg from '../../../../../shared/messageError'
-import Loader from '../../../../../shared/loader'
+import { useState } from 'react'
+
+import { useUploadMutation, gql } from '@/components/api'
+import ErrorMsg from '@/components/shared/messageError'
+import Loader from '@/components/shared/loader'
+
+import UploadIcon from '@/icons/uploadIcon'
 
 import DragAndDrop from './dragDrop'
-import { useState } from 'preact/hooks'
 import styles from './index.less'
-import UploadIcon from '../../../../../../icons/uploadIcon'
 
 export default function UploadFile({ onUpload }) {
 	//todo

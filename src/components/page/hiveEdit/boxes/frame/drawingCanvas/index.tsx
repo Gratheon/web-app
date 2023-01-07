@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useLayoutEffect } from 'react'
-import Loader from '../../../../../shared/loader'
-import Button from '../../../../../shared/button'
-import colors from '../../../../../colors'
+import Loader from '@/components/shared/loader'
+import Button from '@/components/shared/button'
+import colors from '@/components/colors'
 
 let img
 let lineWidth = 0

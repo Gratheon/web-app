@@ -4,11 +4,12 @@ import { Container, Draggable } from '@edorivai/react-smooth-dnd'
 import { useNavigate } from 'react-router-dom'
 import { useLiveQuery } from "dexie-react-hooks";
 
-import { getFrames } from '../../../../models/frames'
+import { getFrames } from '@/components/models/frames'
+import CrownIcon from '@/icons/crownIcon'
+import { isFrameWithSides } from '@/components/models/frames'
+
 import styles from './index.less'
 import Frame from './boxFrame'
-import CrownIcon from '../../../../../icons/crownIcon'
-import { isFrameWithSides } from '../../../../models/frames'
 
 export default ({
 	boxType,

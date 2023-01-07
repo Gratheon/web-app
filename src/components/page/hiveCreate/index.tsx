@@ -2,15 +2,15 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useParams } from 'react-router-dom'
 
-import { gql, useMutation } from '../../api'
+import { gql, useMutation } from '@/components/api'
 
-import VisualForm from '../../shared/visualForm'
-import HiveIcon from '../../shared/hiveIcon'
-import Loader from '../../shared/loader'
-import ErrorMsg from '../../shared/messageError'
-import VisualFormSubmit from '../../shared/visualForm/VisualFormSubmit'
-import Button from '../../shared/button'
-import { Box } from '../../api/schema'
+import VisualForm from '@/components/shared/visualForm'
+import HiveIcon from '@/components/shared/hiveIcon'
+import Loader from '@/components/shared/loader'
+import ErrorMsg from '@/components/shared/messageError'
+import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
+import Button from '@/components/shared/button'
+import { Box } from '@/components/api/schema'
 
 const defaultBoxColor = '#ffc848'
 

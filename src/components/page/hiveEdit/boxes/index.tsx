@@ -1,16 +1,15 @@
 import { useNavigate } from 'react-router'
 
 import Box from './box'
-import { isFrameWithSides } from '../../../models/frames'
-import { useMutation } from '../../../api'
+// import { isFrameWithSides } from '@/components/models/frames'
+import { useMutation } from '@/components/api'
+import Button from '@/components/shared/button'
+import { boxTypes, addBox, countHiveBoxes } from '@/components/models/boxes'
+import AddBoxIcon from '@/icons/addBox'
 
 import SelectedFrame from './selectedFrame'
 import FrameButtons from './box/frameButtons'
-import Button from '../../../shared/button'
 import styles from './styles.less'
-
-import { boxTypes, addBox, countHiveBoxes } from '../../../models/boxes'
-import AddBoxIcon from '../../../../icons/addBox'
 
 type BoxesProps = {
 	hiveId: any

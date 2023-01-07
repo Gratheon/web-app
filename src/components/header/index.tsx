@@ -1,7 +1,8 @@
 import React from 'react'
 
+import { isLoggedIn } from '@/components/user'
+
 import styles from './index.less'
-import { isLoggedIn } from '../user'
 
 export default function Header() {
 	if (isLoggedIn()) {

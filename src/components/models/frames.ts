@@ -53,6 +53,7 @@ export async function countBoxFrames(boxId): Promise<number> {
 	}
 }
 
+/*
 export function setFrames(data, where) {
 	remove(frames, where)
 
@@ -110,7 +111,7 @@ export function moveFramesToBox({
 	})
 	setFrames(tmpFrames, { hiveId })
 }
-
+*/
 export async function addFrame({ id, position, boxId, type, leftId, rightId }) {
 	try {
 		if (leftId) {
@@ -150,6 +151,7 @@ export async function addFrame({ id, position, boxId, type, leftId, rightId }) {
 	}
 }
 
+/*
 export function moveFrame({
 	hiveId,
 	removedIndex,
@@ -250,6 +252,7 @@ export function removeFrame({
 	})
 }
 
+*/
 export function isFrameWithSides(frameType) {
 	return (
 		frameType === frameTypes.EMPTY_COMB ||

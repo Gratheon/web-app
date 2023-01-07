@@ -27,11 +27,15 @@ export default function Frame({
 	const frameSideObj = useLiveQuery(() => getFrameSide({
 		frameId: frameId ? +frameId : -1,
 		frameSide,
-	}), [boxId]);
+	}), [frameId]);
 
 	if(!frameSideObj){
 		return <Loading />
 	}
+
+	const frameSideFile = useLiveQuery(() => getFrameSideFile({
+		frameSideId: frameSideObj.id,
+	}), [frameId, frameSide]);
 
 	let {id:frameSideId} = frameSideObj;
 
@@ -117,7 +121,7 @@ export default function Frame({
 		</div>
 	)
 
-	if (!frameSideFileRel.file) {
+	if (!frameSideFile) {
 		return (
 			<div style={{ flexGrow: 10, paddingLeft: 15 }}>
 				{extraButtons}

@@ -93,6 +93,8 @@ export const writeHooks = {
 	FrameSideFile: async (_, frameSideFile) => {
 		if (Object.keys(frameSideFile).length === 0) return
 
+		frameSideFile.hiveId = +frameSideFile.hiveId
+		frameSideFile.frameSideId = +frameSideFile.frameSideId
 		frameSideFile.id = +frameSideFile.frameSideId
 		await upsertEntity('framesidefile', frameSideFile)
 	},

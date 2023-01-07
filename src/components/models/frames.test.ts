@@ -1,5 +1,4 @@
 import {
-	addFrame,
 	getFrames,
 	moveFrame,
 	removeAllFromBox,
@@ -56,22 +55,6 @@ it('removeAllFromBox', () => {
 			hiveId: 2,
 		}).length
 	).toEqual(1)
-})
-
-describe('addFrame', () => {
-	it('adds frame to the end', () => {
-		// ARRANGE
-		setFrames(defaultFrameSet, { hiveId: 2 })
-		// ACT
-		addFrame({ hiveId: 2, boxIndex: 1, frameType: 'VOID' })
-		// ASSERT
-		expect(
-			getFrames({
-				boxIndex: 1,
-				hiveId: 2,
-			}).length
-		).toEqual(2)
-	})
 })
 
 describe('moveFrame', () => {

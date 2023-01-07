@@ -1,6 +1,5 @@
 import React from 'react'
 
-import { frameTypes } from '../../../../../models/frames'
 import FramesIcon from '../../../../../../icons/framesIcon'
 import {
 	PopupButtonGroup,
@@ -12,7 +11,7 @@ import DownIcon from '../../../../../../icons/downIcon'
 import { useMutation } from '../../../../../api'
 
 import { removeBox } from '../../../../../models/boxes'
-import { countBoxFrames } from '../../../../../models/frames'
+import { countBoxFrames, frameTypes, addFrame } from '../../../../../models/frames'
 
 export default function FrameButtons({ frameId, showDownButton, box, onError }) {
 	let [removeBoxMutation] = useMutation(`mutation deactivateBox($id: ID!) {
@@ -24,6 +23,12 @@ export default function FrameButtons({ frameId, showDownButton, box, onError }) 
 		useMutation(`mutation addFrame($boxId: ID!, $type: String!, $position: Int!) {
 		addFrame(boxId: $boxId, type: $type, position: $position){
 			id
+			leftSide{
+				id
+			}
+			rightSide{
+				id
+			}
 		}
 	}
 	`)
@@ -35,7 +40,13 @@ export default function FrameButtons({ frameId, showDownButton, box, onError }) 
 	//todo
 	async function onFrameAdd(boxId, type) {
 		let position = (await countBoxFrames(boxId)) + 1
-		const {data,error} = await addFrameMutation({
+		const {data: {
+			addFrame:{
+				id,
+				left,
+				right
+			}
+		}, error} = await addFrameMutation({
 			boxId,
 			position,
 			type
@@ -44,6 +55,15 @@ export default function FrameButtons({ frameId, showDownButton, box, onError }) 
 		if(error){
 			onError(error);
 		}
+
+		await addFrame({
+			id: +id,
+			position,
+			boxId,
+			type,
+			leftId: +left?.id,
+			rightId: +right?.id
+		})
 	}
 
 	function onMoveDown(position) {}
@@ -99,7 +119,7 @@ export default function FrameButtons({ frameId, showDownButton, box, onError }) 
 						className="red"
 						title="Delete frame"
 						onClick={() => {
-							onFrameRemove(box.id, frameId)
+							// onFrameRemove(box.id, frameId)
 						}}
 					>
 						<DeleteIcon />

@@ -103,43 +103,50 @@ export function moveFramesToBox({
 	setFrames(tmpFrames, { hiveId })
 }
 
-export function addFrame({
-	hiveId,
-	boxIndex,
-	frameType,
-}: {
-	hiveId: number
-	boxIndex: number
-	frameType: string
+export async function addFrame({
+	id,
+	position,
+	boxId,
+	type,
+	leftId,
+	rightId
 }) {
-	let tmpFrames = filter(frames, { hiveId, boxIndex })
+	try {
+		if(leftId){
+			await db['frameside'].put({
+				id: leftId,
+				broodPercent: 0,
+				cappedBroodPercent: 0,
+				droneBroodPercent: 0,
+				honeyPercent: 0,
+				pollenPercent: 0,
+				queenDetected: false,
+			})
+		}
 
-	const emptyFrame = {
-		hiveId,
-		boxIndex,
-		type: frameType,
-		leftSide: null,
-		rightSide: null,
-		position: isNil(tmpFrames) ? 0 : tmpFrames.length,
-	}
-
-	if (isFrameWithSides(frameType)) {
-		const emptySide = () => ({
-			broodPercent: 0,
-			cappedBroodPercent: 0,
-			droneBroodPercent: 0,
-			honeyPercent: 0,
-			pollenPercent: 0,
-			queenDetected: false,
+		if(rightId){
+			await db['frameside'].put({
+				id: rightId,
+				broodPercent: 0,
+				cappedBroodPercent: 0,
+				droneBroodPercent: 0,
+				honeyPercent: 0,
+				pollenPercent: 0,
+				queenDetected: false,
+			})
+		}
+		await db['frame'].put({
+			id,
+			position,
+			boxId,
+			type,
+			leftId,
+			rightId
 		})
-
-		emptyFrame.leftSide = emptySide()
-		emptyFrame.rightSide = emptySide()
+	} catch (e) {
+		console.error(e)
+		throw e
 	}
-
-	tmpFrames.push(emptyFrame)
-
-	setFrames(tmpFrames, { hiveId, boxIndex })
 }
 
 export function moveFrame({

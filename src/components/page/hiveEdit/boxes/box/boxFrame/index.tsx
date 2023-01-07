@@ -4,12 +4,11 @@ import styles from './index.less'
 import FrameSide from './boxFrameHalf'
 
 export default ({
-	boxPosition,
+	apiaryId,
+	hiveId,
 	boxId,
 	frameId,
 	frameSide,
-	apiaryId,
-	hiveId,
 	frame,
 }) => {
 	const selectedFrame = frame.id === frameId
@@ -36,7 +35,7 @@ export default ({
 			<div className={styles.emptyComb}>
 				<FrameSide
 					className={styles.left}
-					href={`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxPosition}/frame/${frame.id}/left`}
+					href={`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}/frame/${frame.id}/left`}
 					frameSide={frame.leftSide}
 				/>
 
@@ -44,7 +43,7 @@ export default ({
 
 				<FrameSide
 					className={styles.right}
-					href={`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxPosition}/frame/${frame.id}/right`}
+					href={`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}/frame/${frame.id}/right`}
 					frameSide={frame.rightSide}
 				/>
 			</div>

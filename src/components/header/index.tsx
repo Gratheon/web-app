@@ -9,7 +9,7 @@ export default function Header() {
 		return (
 			<nav id={styles.header}>
 				<a href="/apiaries">
-					<img src="https://gratheon.com/img/logo_v4.svg" />
+					<img src="/assets/logo_v5.svg" />
 				</a>
 			</nav>
 		)
@@ -17,7 +17,7 @@ export default function Header() {
 		return (
 			<nav id={styles.header}>
 				<a href="/account/authenticate">
-					<img src="https://gratheon.com/img/logo_v4.svg" />
+					<img src="/assets/logo_v5.svg" />
 				</a>
 			</nav>
 		)

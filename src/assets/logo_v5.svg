@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+  <ellipse style="stroke: rgb(0, 0, 0); fill: rgb(255, 217, 0); stroke-width: 0px;" cx="249.32" cy="104.721" rx="104.721" ry="104.721">
+    <title>sun</title>
+  </ellipse>
+  <g transform="matrix(0.776332, 0, 0, 0.776332, -37.715829, 54.845438)" style="">
+    <title>background</title>
+    <g display="none" overflow="visible" y="0" x="0" height="100%" width="100%" id="canvasGrid">
+      <rect fill="url(#gridpattern)" stroke-width="0" y="0" x="0" height="100%" width="100%" style="stroke-linejoin: round; stroke-linecap: round;"/>
+    </g>
+  </g>
+  <g transform="matrix(0.776332, 0, 0, 0.776332, -37.039846, 54.770345)" style="">
+    <title>H</title>
+    <line stroke-linecap="undefined" stroke-linejoin="undefined" id="svg_1" y2="444.19325" x2="261.99234" y1="155.15" x1="261.99234" stroke-width="60" stroke="#000" fill="none" style="">
+      <title>H-left</title>
+    </line>
+    <line stroke-linecap="undefined" stroke-linejoin="undefined" id="svg_2" y2="444.69325" x2="472.22333" y1="155.65" x1="472.22333" stroke-width="60" stroke="#000" fill="none" style="">
+      <title>H-right</title>
+    </line>
+    <line stroke-linecap="undefined" stroke-linejoin="undefined" id="svg_3" y2="367.8" x2="471.93503" y1="367.8" x1="261.4" fill-opacity="null" stroke-opacity="null" stroke-width="60" stroke="#000" fill="none" style="">
+      <title>H-mid</title>
+    </line>
+  </g>
+  <g style="" transform="matrix(3.99671, 0, 0, 2.258667, -867.544643, -19.054701)">
+    <title>T-top</title>
+    <rect x="273.694" y="68.839" width="11.729" height="64.917" style="stroke-width: 0px; stroke: rgb(0, 0, 0);">
+      <title>T</title>
+    </rect>
+    <ellipse style="stroke: rgb(0, 0, 0); stroke-width: 0px;" cx="279.558" cy="133.759" rx="5.865" ry="3.085"/>
+    <rect x="273.69" y="124.021" width="11.734" height="8.133" style="stroke: rgb(0, 0, 0); stroke-width: 0px; fill: rgb(255, 217, 0);"/>
+    <rect x="273.689" y="100.027" width="11.735" height="8.133" style="stroke: rgb(0, 0, 0); stroke-width: 0px; fill: rgb(255, 217, 0);"/>
+    <rect x="273.694" y="112.061" width="11.729" height="8.133" style="stroke: rgb(0, 0, 0); stroke-width: 0px; fill: rgb(255, 217, 0);"/>
+    <polygon style="stroke-linejoin: round; stroke-linecap: round;" points="241.445 52.589 317.147 52.589 306.342 71.902 252.26 71.589"/>
+  </g>
+</svg>

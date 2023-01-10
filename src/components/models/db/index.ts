@@ -42,13 +42,15 @@ export function syncGraphqlSchemaToIndexDB(schemaObject) {
 export async function upsertEntity(entityName, entity) {
 	entity.id = +entity.id
 
-	try {
+	try {		
 		const ex = await db[entityName].get(entity.id)
 
-		await db[entityName].put({
+		const updatedValue = {
 			...ex,
 			...entity,
-		})
+		}
+		console.log(`updating entity ${entityName}`, {updatedValue, entity});
+		await db[entityName].put(updatedValue)
 	} catch (e) {
 		console.error(e)
 		throw e

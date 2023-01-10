@@ -3,24 +3,23 @@ import React from 'react'
 import styles from './index.less'
 import FrameHorizontal from '../frame'
 
-export default ({
+export default function SelectedFrame({
+	apiaryId,
 	hiveId,
 	boxId,
 	frameId,
 
-	// frameWithSides,
-	frameSide,
-	// frameSideObject,
-	// onUpload,
-	// onFrameClose,
-}) => {
+	frameSideId,
+}) {
+	console.log("SelectedFrame");
 	return (
 		<div className={styles.selectedFrame}>
 			<FrameHorizontal
+				apiaryId={apiaryId}
 				hiveId={hiveId}
 				boxId={boxId}
 				frameId={frameId}
-				frameSide={frameSide}
+				frameSideId={frameSideId}
 				// onFrameSideStatChange={(key, value) => true
 					// onFrameSideStatChange(
 					// 	boxSelected,

@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { useNavigate } from 'react-router-dom'
 
 import colors from '@/components/colors'
 import { useMutation, useQuery } from '@/components/api'
@@ -18,30 +19,36 @@ import { getFrameSideFile } from '@/components/models/frameSideFile'
 import { getFile } from '@/components/models/files'
 
 export default function Frame({
+	apiaryId,
+	hiveId,
+	boxId,
 	frameId,
-	frameSide,
+	frameSideId,
 }) {
 
+	console.debug("Frame");
 	let [expanded, expand] = useState(false)
 
-	const frameSideObj = useLiveQuery(() => getFrameSide({
-		frameId: frameId ? +frameId : -1,
-		frameSide,
-	}), [frameId]);
+	const frameSide = useLiveQuery(async() => await getFrameSide({
+		frameId: useLiveQuery ? +frameId : -1,
+		frameSide: useLiveQuery ? frameSideId : -1
+	}), [frameId, frameSideId]);
 
-	if(!frameSideObj){
+	if(!frameSide){
 		return <Loading />
 	}
+	// console.log({frameSide})
 
 	let {
 		loading: loadingGet,
 		data: frameSideFileRelDetails,
-	} = useQuery(FRAME_SIDE_QUERY, { variables: { frameSideId: frameSideObj.id } });
+	} = useQuery(FRAME_SIDE_QUERY, { variables: { frameSideId: frameSide.id } });
 
-	const frameSideFile = useLiveQuery(() => getFrameSideFile({
-		frameSideId: frameSideObj.id,
-	}), [frameId, frameSide]);
+	const frameSideFile = useLiveQuery(async () => await getFrameSideFile({
+		frameSideId: frameSide.id,
+	}), [frameId, frameSideId]);
 	
+	// console.log({frameSideFile, frameSideId: frameSide.id});
 	const file = useLiveQuery(() => getFile(frameSideFile?.fileId ? frameSideFile?.fileId : -1), [frameId, frameSide]);
 
 	if (loadingGet) {
@@ -50,8 +57,13 @@ export default function Frame({
 
 	function onFrameSideStatChange(){}
 	function onUpload(){}
-	function onFrameClose(){}
 	function onQueenToggle(){}
+
+	const navigate = useNavigate();
+	function onFrameClose(event) {
+		event.stopPropagation()
+		navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`, { replace: true })
+	}
 
 	const [linkFileToFrame] = useMutation(LINK_FILE_TO_FRAME)
 
@@ -99,7 +111,7 @@ export default function Frame({
 		<div style={{ display: 'flex' }}>
 			<Button onClick={onFrameClose}>Close</Button>
 			<Button title="Toggle queen" onClick={onQueenToggle}>
-				<CrownIcon fill={frameSideObj.queenDetected ? 'white' : '#555555'} />
+				<CrownIcon fill={frameSide.queenDetected ? 'white' : '#555555'} />
 				Toggle Queen
 			</Button>
 		</div>
@@ -147,7 +159,7 @@ export default function Frame({
 							onClick={() => expand(!expanded)}
 							title={'Brood'}
 							color={colors.broodColor}
-							percent={frameSideObj.broodPercent}
+							percent={frameSide.broodPercent}
 							onChange={(e) => onResize('broodPercent', e.target.value)}
 						/>
 
@@ -156,7 +168,7 @@ export default function Frame({
 							onClick={() => expand(!expanded)}
 							title={'Capped Brood'}
 							color={colors.cappedBroodColor}
-							percent={frameSideObj.cappedBroodPercent}
+							percent={frameSide.cappedBroodPercent}
 							onChange={(e) => onResize('cappedBroodPercent', e.target.value)}
 						/>
 
@@ -165,7 +177,7 @@ export default function Frame({
 							onClick={() => expand(!expanded)}
 							title={'Drone brood'}
 							color={colors.droneBroodColor}
-							percent={frameSideObj.droneBroodPercent}
+							percent={frameSide.droneBroodPercent}
 							onChange={(e) => onResize('droneBroodPercent', e.target.value)}
 						/>
 						<ResourceEditRow
@@ -173,7 +185,7 @@ export default function Frame({
 							onClick={() => expand(!expanded)}
 							title={'Honey'}
 							color={colors.honeyColor}
-							percent={frameSideObj.honeyPercent}
+							percent={frameSide.honeyPercent}
 							onChange={(e) => onResize('honeyPercent', e.target.value)}
 						/>
 
@@ -182,7 +194,7 @@ export default function Frame({
 							onClick={() => expand(!expanded)}
 							title={'Pollen'}
 							color={colors.pollenColor}
-							percent={frameSideObj.pollenPercent}
+							percent={frameSide.pollenPercent}
 							onChange={(e) => onResize('pollenPercent', e.target.value)}
 						/>
 					</div>

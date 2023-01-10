@@ -37,7 +37,7 @@ export default function Page() {
 					element={<HiveEditView />}
 				/>
 				<Route
-					path="/apiaries/:apiaryId/hives/:hiveId/box/:boxId/frame/:frameId/:frameSide"
+					path="/apiaries/:apiaryId/hives/:hiveId/box/:boxId/frame/:frameId/:frameSideId"
 					element={<HiveEditView />}
 				/>
 

@@ -16,7 +16,7 @@ export default ({
 	boxPosition,
 	boxId,
 	frameId,
-	frameSide,
+	frameSideId,
 	apiaryId,
 	hiveId,
 }) => {
@@ -49,7 +49,7 @@ export default ({
 					<Frame
 						boxId={boxId}
 						frameId={frameId}
-						frameSide={frameSide}
+						frameSideId={frameSideId}
 						
 						hiveId={hiveId}
 						apiaryId={apiaryId}
@@ -71,10 +71,9 @@ export default ({
 				<Container
 					style={{ height: `calc(100% - 30px)` }}
 					onDrop={()=>{
-						if (!isNil(frameSide)) {
-							// event.stopPropagation()
+						if (!isNil(frameSideId)) {
 							navigate(
-								`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}/frame/${frameId}/${frameSide}`,
+								`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}/frame/${frameId}/${frameSideId}`,
 								{ replace: true }
 							)
 						}

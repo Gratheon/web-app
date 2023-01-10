@@ -72,7 +72,7 @@ export default function UploadFile({ onUpload }) {
 	}
 
 	return (
-		<div style={{ border: '1px dotted black' }}>
+		<div style={{ border: '1px dotted black', marginTop:10 }}>
 			<DragAndDrop handleDrop={handleDrop}>
 				<div
 					style={{

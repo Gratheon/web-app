@@ -8,6 +8,11 @@ type Hive = {
 }
 
 export async function getHive(id: number): Promise<Hive> {
+	if(!id) {
+		console.error('attempt to get hive with invalid id', {id})
+		return null;
+	}
+
 	try {
 		return await db['hive'].get(id)
 	} catch (e) {

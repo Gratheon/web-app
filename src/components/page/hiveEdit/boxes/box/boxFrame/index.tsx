@@ -8,7 +8,7 @@ export default ({
 	hiveId,
 	boxId,
 	frameId,
-	frameSide,
+	frameSideId,
 	frame,
 }) => {
 	const selectedFrame = frame.id === frameId
@@ -54,9 +54,9 @@ export default ({
 		<div className={`${styles.frame} ${selectedFrame && styles.frameSelected}`}>
 			<span
 				className={`${styles.position} 
-				${selectedFrame && !frameSide && styles.positionSelected}
-				${selectedFrame && frameSide === 'left' && styles.positionSelectedLeft}
-				${selectedFrame && frameSide === 'right' && styles.positionSelectedRight}
+				${selectedFrame && !frameSideId && styles.positionSelected}
+				${selectedFrame && frameSideId === 'left' && styles.positionSelectedLeft}
+				${selectedFrame && frameSideId === 'right' && styles.positionSelectedRight}
 				`}
 			>
 				{frame.id}

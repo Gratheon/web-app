@@ -12,10 +12,14 @@ export const frameTypes = {
 }
 
 export async function getFrame(id: number): Promise<Frame> {
+	if(!id) {
+		return null;
+	}
+	
 	try {
-		return await db['frame'].get(id)
+		return await db['frame'].get({id})
 	} catch (e) {
-		console.error(e)
+		console.error(e,{id});
 	}
 }
 

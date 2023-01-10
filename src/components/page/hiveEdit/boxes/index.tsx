@@ -17,7 +17,7 @@ type BoxesProps = {
 	apiaryId: any
 	boxId: any
 	frameId: any
-	frameSide: any
+	frameSideId: any
 
 	editable?: boolean
 
@@ -42,7 +42,7 @@ export default function Boxes({
 	apiaryId,
 	boxId,
 	frameId,
-	frameSide,
+	frameSideId,
 	onError
 }: BoxesProps) {
 	let [addBoxMutation] =
@@ -54,6 +54,8 @@ export default function Boxes({
 `)
 
 	function onMoveDown(index) {
+		// todo
+		console.log('on move down', index);
 	}
 
 	async function onBoxAdd(type) {
@@ -75,11 +77,6 @@ export default function Boxes({
 			position,
 			type,
 		})
-	}
-
-	function onFrameClose(event) {
-		event.stopPropagation()
-		navigate(`/apiaries/${apiaryId}/hives/${hiveId}`, { replace: true })
 	}
 
 	let navigate = useNavigate()
@@ -132,7 +129,7 @@ export default function Boxes({
 						boxPosition={box.position}
 						boxId={box.id}
 						frameId={frameId}
-						frameSide={frameSide}
+						frameSideId={frameSideId}
 						hiveId={hiveId}
 						apiaryId={apiaryId}
 					/>
@@ -168,10 +165,11 @@ export default function Boxes({
 			</div>
 
 			<SelectedFrame
+				apiaryId={apiaryId}
 				boxId={boxId}
 				frameId={frameId}
 				hiveId={hiveId}
-				frameSide={frameSide}
+				frameSideId={frameSideId}
 				/>
 		</div>
 	)

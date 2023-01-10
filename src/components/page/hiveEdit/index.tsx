@@ -1,37 +1,30 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router'
 import { useParams } from 'react-router-dom'
 import { useLiveQuery } from "dexie-react-hooks";
 
-import { omitTypeName, useMutation, useQuery } from '@/components/api'
+import { useQuery } from '@/components/api'
 import Loader from '@/components/shared/loader'
 import Boxes from './boxes'
 
 import HIVE_QUERY from './_api/hiveQuery.graphql'
 import HiveEditDetails from './editFormTop'
 import HiveNavigationPanel from './breadcrumbs'
-// import HIVE_EDIT_MUTATION from './_api/hiveEditMutation.graphql'
-// import FILE_STROKE_EDIT_MUTATION from './_api/filesStrokeEditMutation.graphql'
 import ErrorMsg from '@/components/shared/messageError'
 import ErrorGeneral from '@/components/shared/messageErrorGlobal'
-// import OkMsg from '@/components/shared/messageSuccess'
 
 import { getBoxes } from '@/components/models/boxes'
-import { getFrames } from '@/components/models/frames'
 import { getHive } from '@/components/models/hive';
 
 export default function HiveEditForm() {
-	let { apiaryId, hiveId, boxId, frameId, frameSide } = useParams()
+	let { apiaryId, hiveId, boxId, frameId, frameSideId } = useParams()
 	let [error, onError] = useState(null);
 
-	let navigate = useNavigate()
 	let {
 		loading: loadingGet,
 		error: errorGet,
 		data: hiveGet,
 	} = useQuery(HIVE_QUERY, { variables: { id: +hiveId } })
 
-	// let [updateHive, { loading: loadingUpdate, error, data }] = useMutation(HIVE_EDIT_MUTATION)
 	// let [updateFileStroke] = useMutation(FILE_STROKE_EDIT_MUTATION)
 	
 	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId]);
@@ -82,7 +75,7 @@ export default function HiveEditForm() {
 				boxes={boxes}
 				boxId={boxId}
 				frameId={frameId}
-				frameSide={frameSide}
+				frameSideId={frameSideId}
 			/>
 		</div>
 	)

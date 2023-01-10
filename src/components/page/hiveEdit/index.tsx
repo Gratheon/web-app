@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { useLiveQuery } from "dexie-react-hooks";
+import { useLiveQuery } from 'dexie-react-hooks'
 
 import { useQuery } from '@/components/api'
 import Loader from '@/components/shared/loader'
@@ -13,11 +13,12 @@ import ErrorMsg from '@/components/shared/messageError'
 import ErrorGeneral from '@/components/shared/messageErrorGlobal'
 
 import { getBoxes } from '@/components/models/boxes'
-import { getHive } from '@/components/models/hive';
+import { getHive } from '@/components/models/hive'
+import Frame from './frame'
 
 export default function HiveEditForm() {
 	let { apiaryId, hiveId, boxId, frameId, frameSideId } = useParams()
-	let [error, onError] = useState(null);
+	let [error, onError] = useState(null)
 
 	let {
 		loading: loadingGet,
@@ -26,27 +27,27 @@ export default function HiveEditForm() {
 	} = useQuery(HIVE_QUERY, { variables: { id: +hiveId } })
 
 	// let [updateFileStroke] = useMutation(FILE_STROKE_EDIT_MUTATION)
-	
-	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId]);
-	const boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId]);
+
+	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId])
+	const boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId])
 
 	let errorMsg
 
 	// inline error from deeper components
-	if(error){
+	if (error) {
 		errorMsg = <ErrorMsg error={error} />
 	}
 
 	if (errorGet) {
 		return <ErrorMsg error={errorGet} />
-	} 
+	}
 
 	if (!hive || loadingGet) {
 		return <Loader />
 	}
 
 	let okMsg
-	
+
 	return (
 		<div>
 			<HiveNavigationPanel
@@ -66,17 +67,27 @@ export default function HiveEditForm() {
 			{errorMsg}
 			{okMsg}
 
-			<HiveEditDetails hiveId={hiveId}/>
+			<HiveEditDetails hiveId={hiveId} />
 
-			<Boxes
-				onError={onError}
-				apiaryId={apiaryId}
-				hiveId={hive.id}
-				boxes={boxes}
-				boxId={boxId}
-				frameId={frameId}
-				frameSideId={frameSideId}
-			/>
+			<div style={{ display: 'flex', padding: '0 20px' }}>
+				<Boxes
+					onError={onError}
+					apiaryId={apiaryId}
+					hiveId={hive.id}
+					boxes={boxes}
+					boxId={boxId}
+					frameId={frameId}
+					frameSideId={frameSideId}
+				/>
+
+				<Frame
+					apiaryId={apiaryId}
+					boxId={boxId}
+					frameId={frameId}
+					hiveId={hiveId}
+					frameSideId={frameSideId}
+				/>
+			</div>
 		</div>
 	)
 }

@@ -7,7 +7,6 @@ import Button from '@/components/shared/button'
 import { boxTypes, addBox, countHiveBoxes } from '@/components/models/boxes'
 import AddBoxIcon from '@/icons/addBox'
 
-import SelectedFrame from './selectedFrame'
 import FrameButtons from './box/frameButtons'
 import styles from './styles.less'
 
@@ -139,7 +138,7 @@ export default function Boxes({
 	}
 
 	return (
-		<div style={{ display: 'flex', padding: '0 20px' }}>
+		
 			<div style={{ paddingRight: 5, overflow: 'hidden', flexGrow: 3 }}>
 				<div style={{ display: 'flex', height: 40 }}>
 					<h3 style={{ flexGrow: 1 }}>Hive sections</h3>
@@ -163,14 +162,5 @@ export default function Boxes({
 
 				<div>{boxesDivs}</div>
 			</div>
-
-			<SelectedFrame
-				apiaryId={apiaryId}
-				boxId={boxId}
-				frameId={frameId}
-				hiveId={hiveId}
-				frameSideId={frameSideId}
-				/>
-		</div>
 	)
 }

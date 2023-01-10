@@ -11,7 +11,15 @@ export type Box = {
 
 export type FrameType = 'VOID' | 'FOUNDATION' | 'EMPTY_COMB' | 'PARTITION' | 'FEEDER'
 export type FrameSide = {
+  frameId?: number
   queenDetected: boolean
+  broodPercent: number
+  cappedBroodPercent: number
+  droneBroodPercent: number
+  pollenPercent: number
+  honeyPercent: number
+  workerCount: number
+  droneCount: number
 }
 export type Frame = {
   id: number

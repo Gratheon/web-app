@@ -37,7 +37,6 @@ export default function Frame({
 	if(!frameSide){
 		return <Loading />
 	}
-	// console.log({frameSide})
 
 	let {
 		loading: loadingGet,
@@ -48,7 +47,6 @@ export default function Frame({
 		frameSideId: frameSide.id,
 	}), [frameId, frameSideId]);
 	
-	// console.log({frameSideFile, frameSideId: frameSide.id});
 	const file = useLiveQuery(() => getFile(frameSideFile?.fileId ? frameSideFile?.fileId : -1), [frameId, frameSide]);
 
 	if (loadingGet) {
@@ -138,7 +136,7 @@ export default function Frame({
 	}
 
 	return (
-		<div style={{ marginLeft: 15 }}>
+		<div className={styles.frame}>
 			<div className={styles.body}>
 				<DrawingCanvas
 					imageUrl={file.url}

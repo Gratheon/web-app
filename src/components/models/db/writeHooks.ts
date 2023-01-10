@@ -1,3 +1,4 @@
+import { FrameSide } from '@/components/api/schema'
 import { upsertEntity } from './index'
 
 export const writeHooks = {
@@ -24,8 +25,18 @@ export const writeHooks = {
 
 		await upsertEntity('frame', value)
 	},
-	FrameSide: async ({ id }, frameside,) => {
+	FrameSide: async ({ id }, frameside:FrameSide) => {
 		frameside.frameId = +id
+
+		frameside.queenDetected= frameside?.queenDetected ? true : false;
+		frameside.broodPercent = frameside?.broodPercent ? +frameside.broodPercent : 0;
+		frameside.cappedBroodPercent= frameside?.cappedBroodPercent ? +frameside.cappedBroodPercent : 0;
+		frameside.droneBroodPercent= frameside?.droneBroodPercent ? +frameside.droneBroodPercent : 0;
+		frameside.pollenPercent= frameside?.pollenPercent ? +frameside.pollenPercent : 0;
+		frameside.honeyPercent= frameside?.honeyPercent ? +frameside.honeyPercent : 0;
+		frameside.workerCount= frameside?.workerCount ? +frameside.workerCount : 0;
+		frameside.droneCount= frameside?.droneCount ? +frameside.droneCount : 0;
+
 		await upsertEntity('frameside', frameside)
 	},
 	FrameSideFile: async (_, frameSideFile, { originalValue }) => {

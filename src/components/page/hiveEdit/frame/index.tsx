@@ -1,10 +1,11 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate } from 'react-router-dom'
+import debounce from 'lodash.debounce'
 
 import colors from '@/components/colors'
 import { useMutation, useQuery } from '@/components/api'
-import { getFrameSide } from '@/components/models/frameSide'
+import { getFrameSide, updateFrameStat } from '@/components/models/frameSide'
 import Button from '@/components/shared/button'
 import Loading from '@/components/shared/loader'
 import CrownIcon from '@/icons/crownIcon'
@@ -31,7 +32,7 @@ export default function Frame({
 	let [expanded, expand] = useState(false)
 
 	console.log('loading frameSide');
-	const frameSide = useLiveQuery(async() => await getFrameSide({
+	const frameSide = useLiveQuery(() => getFrameSide({
 		frameId: useLiveQuery ? +frameId : -1,
 		frameSide: useLiveQuery ? frameSideId : -1
 	}), [frameId, frameSideId]);
@@ -40,27 +41,48 @@ export default function Frame({
 		return <Loading />
 	}
 
-	console.log('loading frameSideFileRelDetails');
 	let {
 		loading: loadingGet,
 		data: frameSideFileRelDetails,
 	} = useQuery(FRAME_SIDE_QUERY, { variables: { frameSideId: frameSide.id } });
 
-	console.log('loading frameSideFile');
 	const frameSideFile = useLiveQuery(async () => await getFrameSideFile({
 		frameSideId: frameSide.id,
 	}), [frameId, frameSideId]);
 	
 	const file = useLiveQuery(() => getFile(frameSideFile?.fileId ? frameSideFile?.fileId : -1), [frameId, frameSide]);
 
-	console.log('loading file');
 	if (loadingGet) {
 		return <Loading />
 	}
 
-	function onFrameSideStatChange(key: string, percent: number){
-		console.log(onFrameSideStatChange, {key, percent});
+
+	let [mutateHive] = useMutation(`mutation updateHive($hive: HiveUpdateInput!) {
+		updateHive(hive: $hive) {
+			id
+			__typename
+		}
 	}
+`)
+	const onFrameSideStatChange = useMemo(
+		() =>
+			debounce(async function (key: string, percent: number) {
+				await updateFrameStat(frameSide, key, percent)
+				// const name = v.target.value
+				// await updateHive(+hiveId, { name })
+				// await mutateHive({
+				// 	hive: {
+				// 		id: hiveId,
+				// 		name,
+				// 	},
+				// })
+			}, 300),
+		[]
+	)
+
+	// function onFrameSideStatChange(key: string, percent: number){
+	// 	console.log(onFrameSideStatChange, {key, percent});
+	// }
 	function onUpload(){}
 	function onQueenToggle(){}
 
@@ -73,43 +95,7 @@ export default function Frame({
 	const [linkFileToFrame] = useMutation(LINK_FILE_TO_FRAME)
 
 	function onResize(key, value) {
-		let total =
-			frameSide.broodPercent +
-			frameSide.cappedBroodPercent +
-			frameSide.droneBroodPercent +
-			frameSide.honeyPercent +
-			frameSide.pollenPercent
-
-		if (total <= 100) {
-			onFrameSideStatChange(key, Math.round(1 * value))
-		} else if (total > 100) {
-			onFrameSideStatChange(key, Math.floor((100 * value) / total))
-			if (key !== 'broodPercent')
-				onFrameSideStatChange(
-					'broodPercent',
-					Math.round((100 * frameSide.broodPercent) / total)
-				)
-			if (key !== 'cappedBroodPercent')
-				onFrameSideStatChange(
-					'cappedBroodPercent',
-					Math.round((100 * frameSide.cappedBroodPercent) / total)
-				)
-			if (key !== 'droneBroodPercent')
-				onFrameSideStatChange(
-					'droneBroodPercent',
-					Math.round((100 * frameSide.droneBroodPercent) / total)
-				)
-			if (key !== 'honeyPercent')
-				onFrameSideStatChange(
-					'honeyPercent',
-					Math.round((100 * frameSide.honeyPercent) / total)
-				)
-			if (key !== 'pollenPercent')
-				onFrameSideStatChange(
-					'pollenPercent',
-					Math.round((100 * frameSide.pollenPercent) / total)
-				)
-		}
+		onFrameSideStatChange(key, Math.round(1 * value))
 	}
 
 	const extraButtons = (

@@ -4,7 +4,7 @@ import Box from './box'
 // import { isFrameWithSides } from '@/components/models/frames'
 import { useMutation } from '@/components/api'
 import Button from '@/components/shared/button'
-import { boxTypes, addBox, countHiveBoxes } from '@/components/models/boxes'
+import { boxTypes, addBox, countHiveBoxes, moveBoxDown } from '@/components/models/boxes'
 import AddBoxIcon from '@/icons/addBox'
 
 import FrameButtons from './box/frameButtons'
@@ -51,12 +51,6 @@ export default function Boxes({
 	}
 }
 `)
-
-	function onMoveDown(index) {
-		// todo
-		console.log('on move down', index);
-	}
-
 	async function onBoxAdd(type) {
 		const position = (await countHiveBoxes(+hiveId)) + 1
 

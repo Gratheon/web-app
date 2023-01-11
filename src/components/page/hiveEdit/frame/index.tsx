@@ -25,10 +25,12 @@ export default function Frame({
 	frameId,
 	frameSideId,
 }) {
-
-	console.debug("Frame");
+	if(!frameId){
+		return null;
+	}
 	let [expanded, expand] = useState(false)
 
+	console.log('loading frameSide');
 	const frameSide = useLiveQuery(async() => await getFrameSide({
 		frameId: useLiveQuery ? +frameId : -1,
 		frameSide: useLiveQuery ? frameSideId : -1
@@ -38,22 +40,27 @@ export default function Frame({
 		return <Loading />
 	}
 
+	console.log('loading frameSideFileRelDetails');
 	let {
 		loading: loadingGet,
 		data: frameSideFileRelDetails,
 	} = useQuery(FRAME_SIDE_QUERY, { variables: { frameSideId: frameSide.id } });
 
+	console.log('loading frameSideFile');
 	const frameSideFile = useLiveQuery(async () => await getFrameSideFile({
 		frameSideId: frameSide.id,
 	}), [frameId, frameSideId]);
 	
 	const file = useLiveQuery(() => getFile(frameSideFile?.fileId ? frameSideFile?.fileId : -1), [frameId, frameSide]);
 
+	console.log('loading file');
 	if (loadingGet) {
 		return <Loading />
 	}
 
-	function onFrameSideStatChange(){}
+	function onFrameSideStatChange(key: string, percent: number){
+		console.log(onFrameSideStatChange, {key, percent});
+	}
 	function onUpload(){}
 	function onQueenToggle(){}
 
@@ -73,36 +80,36 @@ export default function Frame({
 			frameSide.honeyPercent +
 			frameSide.pollenPercent
 
-		// if (total <= 100) {
-		// 	onFrameSideStatChange(key, Math.round(1 * value))
-		// } else if (total > 100) {
-		// 	onFrameSideStatChange(key, Math.floor((100 * value) / total))
-		// 	if (key !== 'broodPercent')
-		// 		onFrameSideStatChange(
-		// 			'broodPercent',
-		// 			Math.round((100 * frameSide.broodPercent) / total)
-		// 		)
-		// 	if (key !== 'cappedBroodPercent')
-		// 		onFrameSideStatChange(
-		// 			'cappedBroodPercent',
-		// 			Math.round((100 * frameSide.cappedBroodPercent) / total)
-		// 		)
-		// 	if (key !== 'droneBroodPercent')
-		// 		onFrameSideStatChange(
-		// 			'droneBroodPercent',
-		// 			Math.round((100 * frameSide.droneBroodPercent) / total)
-		// 		)
-		// 	if (key !== 'honeyPercent')
-		// 		onFrameSideStatChange(
-		// 			'honeyPercent',
-		// 			Math.round((100 * frameSide.honeyPercent) / total)
-		// 		)
-		// 	if (key !== 'pollenPercent')
-		// 		onFrameSideStatChange(
-		// 			'pollenPercent',
-		// 			Math.round((100 * frameSide.pollenPercent) / total)
-		// 		)
-		// }
+		if (total <= 100) {
+			onFrameSideStatChange(key, Math.round(1 * value))
+		} else if (total > 100) {
+			onFrameSideStatChange(key, Math.floor((100 * value) / total))
+			if (key !== 'broodPercent')
+				onFrameSideStatChange(
+					'broodPercent',
+					Math.round((100 * frameSide.broodPercent) / total)
+				)
+			if (key !== 'cappedBroodPercent')
+				onFrameSideStatChange(
+					'cappedBroodPercent',
+					Math.round((100 * frameSide.cappedBroodPercent) / total)
+				)
+			if (key !== 'droneBroodPercent')
+				onFrameSideStatChange(
+					'droneBroodPercent',
+					Math.round((100 * frameSide.droneBroodPercent) / total)
+				)
+			if (key !== 'honeyPercent')
+				onFrameSideStatChange(
+					'honeyPercent',
+					Math.round((100 * frameSide.honeyPercent) / total)
+				)
+			if (key !== 'pollenPercent')
+				onFrameSideStatChange(
+					'pollenPercent',
+					Math.round((100 * frameSide.pollenPercent) / total)
+				)
+		}
 	}
 
 	const extraButtons = (

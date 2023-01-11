@@ -2,15 +2,28 @@ import React from 'react'
 
 import FramesIcon from '@/icons/framesIcon'
 import DeleteIcon from '@/icons/deleteIcon'
-import DownIcon from '@/icons/downIcon'
 
 import { PopupButtonGroup, PopupButton } from '@/components/shared/popupButton'
 import Button from '@/components/shared/button'
 import { useMutation } from '@/components/api'
-import { removeBox } from '@/components/models/boxes'
-import { countBoxFrames, frameTypes, addFrame } from '@/components/models/frames'
+import {
+	removeBox,
+	swapBoxPositions,
+	getBoxAtPosition,
+	getBox,
+} from '@/components/models/boxes'
+import {
+	countBoxFrames,
+	frameTypes,
+	addFrame,
+} from '@/components/models/frames'
 
-export default function FrameButtons({ frameId, showDownButton, box, onError }) {
+export default function FrameButtons({
+	frameId,
+	showDownButton,
+	box,
+	onError,
+}) {
 	let [removeBoxMutation] = useMutation(`mutation deactivateBox($id: ID!) {
 		deactivateBox(id: $id)
 	}
@@ -30,27 +43,30 @@ export default function FrameButtons({ frameId, showDownButton, box, onError }) 
 	}
 	`)
 
-	let [removeFrameMutation] = useMutation(`mutation deactivateBox($id: ID!) {
-		deactivateBox(id: $id)
+	let [removeFrameMutation] = useMutation(`mutation deactivateFrame($id: ID!) {
+		deactivateFrame(id: $id)
 	}
 	`)
-	//todo
+
+	let [swapBoxPositionsMutation] = useMutation(
+		`mutation swapBoxPositions($id: ID!, $id2: ID!) {swapBoxPositions(id: $id, id2: $id2)}`
+	)
+
 	async function onFrameAdd(boxId, type) {
 		let position = (await countBoxFrames(boxId)) + 1
-		const {data: {
-			addFrame:{
-				id,
-				left,
-				right
-			}
-		}, error} = await addFrameMutation({
+		const {
+			data: {
+				addFrame: { id, left, right },
+			},
+			error,
+		} = await addFrameMutation({
 			boxId,
 			position,
-			type
-		});
+			type,
+		})
 
-		if(error){
-			onError(error);
+		if (error) {
+			return onError(error)
 		}
 
 		await addFrame({
@@ -59,15 +75,50 @@ export default function FrameButtons({ frameId, showDownButton, box, onError }) 
 			boxId,
 			type,
 			leftId: +left?.id,
-			rightId: +right?.id
+			rightId: +right?.id,
 		})
 	}
 
-	function onMoveDown(position) {}
-	function onFrameRemove() {}
+	async function onMoveDown(boxId: number) {
+		const box = await getBox(boxId)
+		const box2 = await getBoxAtPosition(box.hiveId, box.position + 1)
+		console.log('moving',{
+			box,
+			box2
+		})
+
+		const { error } = await swapBoxPositionsMutation({ id: box.id, id2: box2.id })
+
+		if (error) {
+			return onError(error)
+		}
+
+		await swapBoxPositions(box, box2)
+	}
+
+	async function onMoveUp(boxId: number) {
+		const box = await getBox(boxId)
+		const box2 = await getBoxAtPosition(box.hiveId, box.position - 1)
+		const { error } = await swapBoxPositionsMutation({ id: box.id, id2: box2.id })
+
+		if (error) {
+			return onError(error)
+		}
+
+		await swapBoxPositions(box, box2)
+	}
+
+	function onFrameRemove() {
+		// removeFrameMutation
+	}
 
 	async function onBoxRemove(id: number) {
-		const result = await removeBoxMutation({ id })
+		const { error } = await removeBoxMutation({ id })
+
+		if (error) {
+			return onError(error)
+		}
+
 		await removeBox(id)
 	}
 
@@ -125,16 +176,20 @@ export default function FrameButtons({ frameId, showDownButton, box, onError }) 
 				</PopupButton>
 			</PopupButtonGroup>
 
-			<Button
+			{showDownButton && <Button
 				title="Move down"
 				onClick={() => {
-					if (showDownButton) {
-						onMoveDown(box.position)
-					}
+					onMoveDown(+box.id)
 				}}
-			>
-				<DownIcon />
-			</Button>
+			>⬇️</Button>}
+
+			{box.position > 1 && <Button
+					title="Move up"
+					onClick={() => {
+							onMoveUp(+box.id)
+					}}
+				>⬆️</Button>
+			}
 
 			<Button
 				className="red"

@@ -1,8 +1,4 @@
-import find from 'lodash/find'
-import remove from 'lodash/remove'
-
 import { Box } from '@/components/api/schema'
-
 import { db } from './db'
 
 let boxes: Box[] = [] // db.get('boxes')
@@ -10,6 +6,27 @@ let boxes: Box[] = [] // db.get('boxes')
 export const boxTypes = {
 	DEEP: 'DEEP',
 	SUPER: 'SUPER',
+}
+
+export async function getBox(id: number): Promise<Box> {
+	if(!id) {
+		return null;
+	}
+	
+	try {
+		return await db['box'].get({id})
+	} catch (e) {
+		console.error(e,{id});
+	}
+}
+
+export async function getBoxAtPosition(hiveId, position): Promise<Box>{
+	try {
+		return await db['box'].where({hiveId, position}).first()
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
 }
 
 export async function getBoxes(where = {}): Promise<Box[]> {
@@ -43,13 +60,6 @@ export async function removeBox(id: number) {
 	}
 }
 
-export function setBoxes(data: any[], where: any | null = null) {
-	remove(boxes, where)
-	data.forEach((row: any) => {
-		boxes.push({ ...row, ...where })
-	})
-}
-
 export async function addBox({
 	id,
 	hiveId,
@@ -74,33 +84,15 @@ export async function addBox({
 	}
 }
 
-export function moveBoxDown({
-	hiveId,
-	index,
-}: {
-	hiveId: number
-	index: number
-}) {
-	if (index === 0) {
-		return false
-	}
 
-	const box = find(boxes, { hiveId, position: index })
-	const bottom = find(boxes, { hiveId, position: index - 1 })
+export async function swapBoxPositions(box1:Box, box2:Box ) {
+	const tmp = +`${box1.position}`;
 
-	if (!box || !bottom) {
-		return false
-	}
+	box1.position = box2.position;
+	box2.position = tmp;
 
-	remove(boxes, { hiveId, position: index })
-	remove(boxes, { hiveId, position: index - 1 })
+	await db['box'].put(box1)
+	await db['box'].put(box2)
 
-	box.position--
-	bottom.position++
-
-	boxes.push(box)
-	boxes.push(bottom)
-
-	//db.set('boxes', boxes)
 	return true
 }

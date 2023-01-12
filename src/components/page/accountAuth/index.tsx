@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 
 import { gql, useMutation } from '@/components/api'
 import VisualForm from '@/components/shared/visualForm'
@@ -14,14 +14,14 @@ type Account = {
 }
 
 export default function AccountAuth() {
-	let [account, setAccount] = useState<Account>({})
+	let [account, setAccount] = useState<Account>({
+		email: '',
+		password: ''
+	})
 
 	function onInput(e: any) {
 		const { name, value } = e.target
-		setAccount({
-			...account,
-			[name]: value,
-		})
+		account[name] = value;
 	}
 	let [accountAuth, { loading, error, data }] = useMutation(gql`
 		mutation login($email: String!, $password: String!) {
@@ -43,13 +43,6 @@ export default function AccountAuth() {
 		accountAuth({
 			email: account.email,
 			password: account.password,
-		})
-	}
-
-	if (!account) {
-		setAccount({
-			email: '',
-			password: '',
 		})
 	}
 
@@ -84,9 +77,8 @@ export default function AccountAuth() {
 						type="email"
 						id="email"
 						style={{ width: '100%' }}
-						autoFocus
 						value={account.email}
-						onInput={onInput}
+						onChange={onInput}
 					/>
 				</div>
 				<div>
@@ -96,9 +88,8 @@ export default function AccountAuth() {
 						id="password"
 						type="password"
 						style={{ width: '100%' }}
-						autoFocus
 						value={account.password}
-						onInput={onInput}
+						onChange={onInput}
 					/>
 				</div>
 				<div style={{ display: 'flex' }}>

@@ -22,7 +22,7 @@ import {
 	addFrame,
 } from '@/components/models/frames'
 
-export default function FrameButtons({ box, boxCount, onError }) {
+export default function FrameButtons({ box, onError }) {
 	let buttonDirections = useLiveQuery(async() => {
 		return [
 			await getBoxAtPositionBelow(box.hiveId, box.position)!==null,

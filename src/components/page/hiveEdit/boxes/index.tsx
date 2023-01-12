@@ -4,7 +4,11 @@ import Box from './box'
 // import { isFrameWithSides } from '@/components/models/frames'
 import { useMutation } from '@/components/api'
 import Button from '@/components/shared/button'
-import { boxTypes, addBox, countHiveBoxes, moveBoxDown } from '@/components/models/boxes'
+import {
+	boxTypes,
+	addBox,
+	maxBoxPosition
+} from '@/components/models/boxes'
 import AddBoxIcon from '@/icons/addBox'
 
 import FrameButtons from './box/frameButtons'
@@ -42,17 +46,18 @@ export default function Boxes({
 	boxId,
 	frameId,
 	frameSideId,
-	onError
+	onError,
 }: BoxesProps) {
 	let [addBoxMutation] =
 		useMutation(`mutation addBox($hiveId: ID!, $position: Int!, $type: BoxType!) {
 	addBox(hiveId: $hiveId, position: $position, type: $type) {
 		id
+		position
 	}
 }
 `)
 	async function onBoxAdd(type) {
-		const position = (await countHiveBoxes(+hiveId)) + 1
+		let position = (await maxBoxPosition(+hiveId)) + 1
 
 		const {
 			data: {
@@ -69,6 +74,10 @@ export default function Boxes({
 			hiveId: +hiveId,
 			position,
 			type,
+		})
+
+		navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${id}`, {
+			replace: true,
 		})
 	}
 
@@ -90,7 +99,7 @@ export default function Boxes({
 
 	for (let box of boxes) {
 		const currentBoxSelected = box.id === parseInt(boxId, 10)
-		
+
 		boxesDivs.push(
 			<div
 				style={{ marginBottom: 15 }}
@@ -100,12 +109,7 @@ export default function Boxes({
 			>
 				{currentBoxSelected && (
 					<div style={{ height: 35 }}>
-						<FrameButtons
-							onError={onError}
-							frameId={frameId}
-							boxCount={boxes.length}
-							box={box}
-						/>
+						<FrameButtons onError={onError} box={box} />
 					</div>
 				)}
 
@@ -124,29 +128,28 @@ export default function Boxes({
 	}
 
 	return (
-		
-			<div style={{ paddingRight: 5, overflow: 'hidden', flexGrow: 3 }}>
-				<div style={{ display: 'flex', height: 40 }}>
-					<h3 style={{ flexGrow: 1 }}>Hive sections</h3>
+		<div style={{ paddingRight: 5, overflow: 'hidden', flexGrow: 3 }}>
+			<div style={{ display: 'flex', height: 40 }}>
+				<h3 style={{ flexGrow: 1 }}>Hive sections</h3>
 
-					<div style={{ display: 'flex' }}>
-						<Button
-							title="Add box on top"
-							className={['small', 'black']}
-							onClick={() => onBoxAdd(boxTypes.DEEP)}
-						>
-							<AddBoxIcon /> Add deep
-						</Button>
-						<Button
-							title="Add box on top"
-							onClick={() => onBoxAdd(boxTypes.SUPER)}
-						>
-							<AddBoxIcon /> Add super
-						</Button>
-					</div>
+				<div style={{ display: 'flex' }}>
+					<Button
+						title="Add box on top"
+						className={['small', 'black']}
+						onClick={() => onBoxAdd(boxTypes.DEEP)}
+					>
+						<AddBoxIcon /> Add deep
+					</Button>
+					<Button
+						title="Add box on top"
+						onClick={() => onBoxAdd(boxTypes.SUPER)}
+					>
+						<AddBoxIcon /> Add super
+					</Button>
 				</div>
-
-				<div>{boxesDivs}</div>
 			</div>
+
+			<div>{boxesDivs}</div>
+		</div>
 	)
 }

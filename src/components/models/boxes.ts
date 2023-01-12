@@ -23,11 +23,12 @@ export async function getBox(id: number): Promise<Box> {
 export async function getBoxAtPositionAbove(hiveId, position): Promise<Box> {
 	try {
 		const boxes = await db['box']
-			.where('hiveId').equals(hiveId)
-			.filter((row)=> row.position > position)
+			.where('hiveId')
+			.equals(hiveId)
+			.filter((row) => row.position > position)
 			.sortBy('position')
 
-		if(boxes.length>0) return boxes[0];
+		if (boxes.length > 0) return boxes[0]
 		else return null
 	} catch (e) {
 		console.error(e)
@@ -38,12 +39,13 @@ export async function getBoxAtPositionAbove(hiveId, position): Promise<Box> {
 export async function getBoxAtPositionBelow(hiveId, position): Promise<Box> {
 	try {
 		const boxes = await db['box']
-			.where('hiveId').equals(hiveId)
+			.where('hiveId')
+			.equals(hiveId)
 			.filter((row) => row.position < position)
 			.reverse()
 			.sortBy('position')
 
-		if(boxes.length>0) return boxes[0];
+		if (boxes.length > 0) return boxes[0]
 		else return null
 	} catch (e) {
 		console.error(e)
@@ -60,13 +62,11 @@ export async function getBoxes(where = {}): Promise<Box[]> {
 	}
 }
 
-export async function countHiveBoxes(hiveId: number) {
+export async function maxBoxPosition(hiveId: number) {
 	try {
-		return await db['box']
-			.where({
-				hiveId,
-			})
-			.count()
+		const box = await db['box'].orderBy('position').last()
+		if(box) return box.position
+		else return 0
 	} catch (e) {
 		console.error(e)
 		throw e

@@ -88,14 +88,9 @@ export default function Boxes({
 
 	const boxesDivs = []
 
-	for (
-		let boxDivPosition = 0;
-		boxDivPosition < boxes.length;
-		boxDivPosition++
-	) {
-		const box = boxes[boxDivPosition]
+	for (let box of boxes) {
 		const currentBoxSelected = box.id === parseInt(boxId, 10)
-		const showDownButton = boxes.length - 1 !== boxDivPosition
+		const showDownButton = boxes.length - 1 !== box.position
 
 
 		boxesDivs.push(
@@ -118,9 +113,8 @@ export default function Boxes({
 
 				<div className={styles.box}>
 					<Box
-						boxType={box.type}
-						boxPosition={box.position}
-						boxId={box.id}
+						box={box}
+						boxId={boxId}
 						frameId={frameId}
 						frameSideId={frameSideId}
 						hiveId={hiveId}

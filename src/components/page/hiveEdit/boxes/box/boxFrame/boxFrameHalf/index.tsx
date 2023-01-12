@@ -55,7 +55,6 @@ export default function BoxFrameHalf({ frameSide, className, href }) {
 				style={{
 					height: `${frameSide?.honeyPercent ? frameSide.honeyPercent : 0}%`,
 					backgroundColor: colors.honeyColor,
-					// backgroundImage: "url('/assets/cell.png')",
 					backgroundSize: '3px 4px',
 				}}
 				title="Capped honey"

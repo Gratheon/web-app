@@ -12,8 +12,7 @@ import styles from './index.less'
 import Frame from './boxFrame'
 
 export default ({
-	boxType,
-	boxPosition,
+	box,
 	boxId,
 	frameId,
 	frameSideId,
@@ -24,7 +23,7 @@ export default ({
 	const framesDiv = []
 
 	const frames = useLiveQuery(() => getFrames({
-		boxId: boxId ? +boxId : -1
+		boxId: box.id
 	}), [boxId]);
 
 	if (!isNil(frames)) {
@@ -47,6 +46,7 @@ export default ({
 					</div>
 
 					<Frame
+						box={box}
 						boxId={boxId}
 						frameId={frameId}
 						frameSideId={frameSideId}
@@ -62,8 +62,8 @@ export default ({
 
 	return (
 		<div
-			className={`${styles['boxType_' + boxType]} ${styles.boxOuter} ${
-				boxId === boxPosition && styles.selected
+			className={`${styles['boxType_' + box.type]} ${styles.boxOuter} ${
+				+boxId === box.id && styles.selected
 			}`}
 		>
 			<div className={styles.boxInner}>
@@ -73,7 +73,7 @@ export default ({
 					onDrop={()=>{
 						if (!isNil(frameSideId)) {
 							navigate(
-								`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}/frame/${frameId}/${frameSideId}`,
+								`/apiaries/${apiaryId}/hives/${hiveId}/box/${box.id}/frame/${frameId}/${frameSideId}`,
 								{ replace: true }
 							)
 						}

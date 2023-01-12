@@ -24,7 +24,7 @@ export default ({
 
 	const frames = useLiveQuery(() => getFrames({
 		boxId: box.id
-	}), [boxId]);
+	}), [boxId, box]);
 
 	if (!isNil(frames)) {
 		for (let i = 0; i < frames.length; i++) {

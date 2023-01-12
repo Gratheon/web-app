@@ -9,7 +9,8 @@ import { useMutation } from '@/components/api'
 import {
 	removeBox,
 	swapBoxPositions,
-	getBoxAtPosition,
+	getBoxAtPositionAbove,
+	getBoxAtPositionBelow,
 	getBox,
 } from '@/components/models/boxes'
 import {
@@ -18,12 +19,9 @@ import {
 	addFrame,
 } from '@/components/models/frames'
 
-export default function FrameButtons({
-	frameId,
-	showDownButton,
-	box,
-	onError,
-}) {
+export default function FrameButtons({ frameId, boxCount, box, onError }) {
+	const showUpButton = box.position < boxCount
+	const showDownButton = box.position > 1
 	let [removeBoxMutation] = useMutation(`mutation deactivateBox($id: ID!) {
 		deactivateBox(id: $id)
 	}
@@ -81,13 +79,12 @@ export default function FrameButtons({
 
 	async function onMoveDown(boxId: number) {
 		const box = await getBox(boxId)
-		const box2 = await getBoxAtPosition(box.hiveId, box.position + 1)
-		console.log('moving',{
-			box,
-			box2
-		})
+		const box2 = await getBoxAtPositionBelow(box.hiveId, box.position)
 
-		const { error } = await swapBoxPositionsMutation({ id: box.id, id2: box2.id })
+		const { error } = await swapBoxPositionsMutation({
+			id: box.id,
+			id2: box2.id,
+		})
 
 		if (error) {
 			return onError(error)
@@ -98,8 +95,12 @@ export default function FrameButtons({
 
 	async function onMoveUp(boxId: number) {
 		const box = await getBox(boxId)
-		const box2 = await getBoxAtPosition(box.hiveId, box.position - 1)
-		const { error } = await swapBoxPositionsMutation({ id: box.id, id2: box2.id })
+		const box2 = await getBoxAtPositionAbove(box.hiveId, box.position)
+
+		const { error } = await swapBoxPositionsMutation({
+			id: box.id,
+			id2: box2.id,
+		})
 
 		if (error) {
 			return onError(error)
@@ -176,20 +177,27 @@ export default function FrameButtons({
 				</PopupButton>
 			</PopupButtonGroup>
 
-			{showDownButton && <Button
-				title="Move down"
-				onClick={() => {
-					onMoveDown(+box.id)
-				}}
-			>⬇️</Button>}
+			{showDownButton && (
+				<Button
+					title="Move down"
+					onClick={() => {
+						onMoveDown(+box.id)
+					}}
+				>
+					⬇️
+				</Button>
+			)}
 
-			{box.position > 1 && <Button
+			{showUpButton && (
+				<Button
 					title="Move up"
 					onClick={() => {
-							onMoveUp(+box.id)
+						onMoveUp(+box.id)
 					}}
-				>⬆️</Button>
-			}
+				>
+					⬆️
+				</Button>
+			)}
 
 			<Button
 				className="red"

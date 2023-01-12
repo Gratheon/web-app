@@ -90,9 +90,7 @@ export default function Boxes({
 
 	for (let box of boxes) {
 		const currentBoxSelected = box.id === parseInt(boxId, 10)
-		const showDownButton = boxes.length - 1 !== box.position
-
-
+		
 		boxesDivs.push(
 			<div
 				style={{ marginBottom: 15 }}
@@ -105,7 +103,7 @@ export default function Boxes({
 						<FrameButtons
 							onError={onError}
 							frameId={frameId}
-							showDownButton={showDownButton}
+							boxCount={boxes.length}
 							box={box}
 						/>
 					</div>

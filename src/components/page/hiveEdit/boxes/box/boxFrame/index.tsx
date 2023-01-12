@@ -2,15 +2,25 @@ import React from 'react'
 
 import styles from './index.less'
 import FrameSide from './boxFrameHalf'
+import { Frame } from '@/components/api/schema'
 
-export default ({
+type BoxFrameProps = {
+	apiaryId: number
+	hiveId: number
+	boxId: number
+	frameId: number
+	frameSideId: number
+	frame: Frame
+}
+
+export default function BoxFrame({
 	apiaryId,
 	hiveId,
 	boxId,
 	frameId,
 	frameSideId,
-	frame,
-}) => {
+	frame
+}: BoxFrameProps) {
 	const selectedFrame = frame.id === frameId
 
 	let frameInternal = null
@@ -35,7 +45,7 @@ export default ({
 			<div className={styles.emptyComb}>
 				<FrameSide
 					className={styles.left}
-					href={`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}/frame/${frame.id}/left`}
+					href={`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}/frame/${frame.id}/${frame.leftId}`}
 					frameSide={frame.leftSide}
 				/>
 
@@ -43,7 +53,7 @@ export default ({
 
 				<FrameSide
 					className={styles.right}
-					href={`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}/frame/${frame.id}/right`}
+					href={`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}/frame/${frame.id}/${frame.rightId}`}
 					frameSide={frame.rightSide}
 				/>
 			</div>
@@ -55,8 +65,8 @@ export default ({
 			<span
 				className={`${styles.position} 
 				${selectedFrame && !frameSideId && styles.positionSelected}
-				${selectedFrame && frameSideId === 'left' && styles.positionSelectedLeft}
-				${selectedFrame && frameSideId === 'right' && styles.positionSelectedRight}
+				${selectedFrame && frameSideId === frame.leftId && styles.positionSelectedLeft}
+				${selectedFrame && frameSideId === frame.rightId && styles.positionSelectedRight}
 				`}
 			>
 				{frame.id}

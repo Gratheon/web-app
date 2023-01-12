@@ -5,7 +5,11 @@ import debounce from 'lodash.debounce'
 
 import colors from '@/components/colors'
 import { useMutation, useQuery } from '@/components/api'
-import { getFrameSide, updateFrameStat } from '@/components/models/frameSide'
+import {
+	getFrameSide,
+	toggleQueen,
+	updateFrameStat,
+} from '@/components/models/frameSide'
 import Button from '@/components/shared/button'
 import Loading from '@/components/shared/loader'
 import CrownIcon from '@/icons/crownIcon'
@@ -20,76 +24,97 @@ import { getFrameSideFile } from '@/components/models/frameSideFile'
 import { getFile } from '@/components/models/files'
 
 export default function Frame({
+	onError,
 	apiaryId,
 	hiveId,
 	boxId,
 	frameId,
 	frameSideId,
 }) {
-	if(!frameId){
-		return null;
+	if (!frameId) {
+		return null
 	}
 	let [expanded, expand] = useState(false)
 
-	console.log('loading frameSide');
-	const frameSide = useLiveQuery(() => getFrameSide({
-		frameId: useLiveQuery ? +frameId : -1,
-		frameSide: useLiveQuery ? frameSideId : -1
-	}), [frameId, frameSideId]);
-
-	if(!frameSide){
-		return <Loading />
-	}
-
-	let {
-		loading: loadingGet,
-		data: frameSideFileRelDetails,
-	} = useQuery(FRAME_SIDE_QUERY, { variables: { frameSideId: frameSide.id } });
-
-	const frameSideFile = useLiveQuery(async () => await getFrameSideFile({
-		frameSideId: frameSide.id,
-	}), [frameId, frameSideId]);
-	
-	const file = useLiveQuery(() => getFile(frameSideFile?.fileId ? frameSideFile?.fileId : -1), [frameId, frameSide]);
+	let { loading: loadingGet, data: frameSideFileRelDetails } = useQuery(
+		FRAME_SIDE_QUERY,
+		{ variables: { frameSideId } }
+	)
 
 	if (loadingGet) {
 		return <Loading />
 	}
 
+	let frameWithFile = useLiveQuery(async () => {
+		let r1 = await getFrameSide(+frameSideId)
+		let r2 = await getFrameSideFile({
+			frameSideId: r1.id,
+		})
+		let r3 = await getFile(r2?.fileId ? r2?.fileId : -1)
+		return { frameSide: r1, frameSideFile: r2, file: r3 }
+	}, [frameSideId])
 
-	let [mutateHive] = useMutation(`mutation updateHive($hive: HiveUpdateInput!) {
-		updateHive(hive: $hive) {
-			id
-			__typename
-		}
+	if (!frameWithFile) {
+		return <Loading />
+	}
+	let { frameSide, frameSideFile, file } = frameWithFile
+
+	let [frameSideMutate] =
+		useMutation(`mutation updateFrameSide($frameSide: FrameSideInput!) {
+		updateFrameSide(frameSide: $frameSide)
 	}
 `)
 	const onFrameSideStatChange = useMemo(
 		() =>
 			debounce(async function (key: string, percent: number) {
-				await updateFrameStat(frameSide, key, percent)
-				// const name = v.target.value
-				// await updateHive(+hiveId, { name })
-				// await mutateHive({
-				// 	hive: {
-				// 		id: hiveId,
-				// 		name,
-				// 	},
-				// })
+				let frameSide2 = await getFrameSide(+frameSideId)
+				frameSide2 = await updateFrameStat(frameSide2, key, percent)
+				const { error } = await frameSideMutate({
+					frameSide: {
+						id: frameSide2.id,
+						pollenPercent: frameSide2.pollenPercent,
+						honeyPercent: frameSide2.honeyPercent,
+						droneBroodPercent: frameSide2.droneBroodPercent,
+						cappedBroodPercent: frameSide2.cappedBroodPercent,
+						broodPercent: frameSide2.broodPercent,
+						queenDetected: frameSide2.queenDetected,
+					},
+				})
+
+				if (error) {
+					onError(error)
+				}
 			}, 300),
-		[]
+		[frameSideId]
 	)
 
-	// function onFrameSideStatChange(key: string, percent: number){
-	// 	console.log(onFrameSideStatChange, {key, percent});
-	// }
-	function onUpload(){}
-	function onQueenToggle(){}
+	function onUpload() {}
 
-	const navigate = useNavigate();
+	async function onQueenToggle() {
+		frameSide = await toggleQueen(frameSide)
+		const { error } = await frameSideMutate({
+			frameSide: {
+				id: frameSide.id,
+				pollenPercent: frameSide.pollenPercent,
+				honeyPercent: frameSide.honeyPercent,
+				droneBroodPercent: frameSide.droneBroodPercent,
+				cappedBroodPercent: frameSide.cappedBroodPercent,
+				broodPercent: frameSide.broodPercent,
+				queenDetected: frameSide.queenDetected,
+			},
+		})
+
+		if (error) {
+			onError(error)
+		}
+	}
+
+	const navigate = useNavigate()
 	function onFrameClose(event) {
 		event.stopPropagation()
-		navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`, { replace: true })
+		navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`, {
+			replace: true,
+		})
 	}
 
 	const [linkFileToFrame] = useMutation(LINK_FILE_TO_FRAME)
@@ -133,10 +158,12 @@ export default function Frame({
 			<div className={styles.body}>
 				<DrawingCanvas
 					imageUrl={file.url}
-					detectedObjects={frameSideFile.detectedObjects ? frameSideFile?.detectedObjects : []}
+					detectedObjects={
+						frameSideFile.detectedObjects ? frameSideFile?.detectedObjects : []
+					}
 					strokeHistory={frameSideFile.strokeHistory}
 					onStrokeHistoryUpdate={(strokeHistory) => {
-						console.log('onStrokeHistoryUpdate', {strokeHistory});
+						console.log('onStrokeHistoryUpdate', { strokeHistory })
 						// setFileStroke({
 						// 	frameSideId: +frameSideId,
 						// 	hiveId: +frameSideId,

@@ -49,7 +49,7 @@ export async function upsertEntity(entityName, entity) {
 			...ex,
 			...entity,
 		}
-		console.log(`updating entity ${entityName}`, {updatedValue, entity});
+		// console.log(`updating entity ${entityName}`, {updatedValue, entity});
 		await db[entityName].put(updatedValue)
 	} catch (e) {
 		console.error(e)

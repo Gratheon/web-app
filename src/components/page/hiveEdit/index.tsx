@@ -81,6 +81,7 @@ export default function HiveEditForm() {
 				/>
 
 				<Frame
+					onError={onError}
 					apiaryId={apiaryId}
 					boxId={boxId}
 					frameId={frameId}

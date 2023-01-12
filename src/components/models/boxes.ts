@@ -27,7 +27,8 @@ export async function getBoxAtPositionAbove(hiveId, position): Promise<Box> {
 			.filter((row)=> row.position > position)
 			.sortBy('position')
 
-		if(boxes) return boxes[0];
+		if(boxes.length>0) return boxes[0];
+		else return null
 	} catch (e) {
 		console.error(e)
 		throw e
@@ -42,7 +43,8 @@ export async function getBoxAtPositionBelow(hiveId, position): Promise<Box> {
 			.reverse()
 			.sortBy('position')
 
-		if(boxes) return boxes[0];
+		if(boxes.length>0) return boxes[0];
+		else return null
 	} catch (e) {
 		console.error(e)
 		throw e

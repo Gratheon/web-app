@@ -20,7 +20,7 @@ import ResourceEditRow from './resourceEditRow'
 import DrawingCanvas from './drawingCanvas'
 import LINK_FILE_TO_FRAME from './_api/addFileToFrameSideMutation.graphql'
 import FRAME_SIDE_QUERY from './_api/getFrameFileObjectsQuery.graphql'
-import { getFrameSideFile } from '@/components/models/frameSideFile'
+import { getFrameSideFile, updateFrameSideFile } from '@/components/models/frameSideFile'
 import { getFile } from '@/components/models/files'
 
 export default function Frame({
@@ -45,7 +45,7 @@ export default function Frame({
 		return <Loading />
 	}
 
-	let frameWithFile = useLiveQuery(async () => {
+	let frameWithFile = useLiveQuery(async function fetchFrameWithFile(){
 		let r1 = await getFrameSide(+frameSideId)
 		let r2 = await getFrameSideFile({
 			frameSideId: r1.id,
@@ -59,11 +59,9 @@ export default function Frame({
 	}
 	let { frameSide, frameSideFile, file } = frameWithFile
 
-	let [frameSideMutate] =
-		useMutation(`mutation updateFrameSide($frameSide: FrameSideInput!) {
-		updateFrameSide(frameSide: $frameSide)
-	}
-`)
+	let [frameSideMutate] = useMutation(`mutation updateFrameSide($frameSide: FrameSideInput!) { updateFrameSide(frameSide: $frameSide) }`)
+	let [linkFrameSideToFileMutation] = useMutation(`mutation addFileToFrameSide($frameSideID: ID!, $fileID: ID!, $hiveID: ID!) { addFileToFrameSide(frameSideId: $frameSideID, fileId: $fileID, hiveId: $hiveID) }`)
+
 	const onFrameSideStatChange = useMemo(
 		() =>
 			debounce(async function (key: string, percent: number) {
@@ -88,7 +86,25 @@ export default function Frame({
 		[frameSideId]
 	)
 
-	function onUpload() {}
+	async function onUpload (data) {
+		const { error } = await linkFrameSideToFileMutation({
+			frameSideID: frameSideId,
+			fileID: data.id,
+			hiveID: hiveId
+		})
+
+		if (error) {
+			onError(error)
+		}
+
+		await updateFrameSideFile({
+			id: +frameSideId,
+			fileId: +data.id,
+			frameSideId: +frameSideId,
+			strokeHistory: [],
+			detectedObjects: []
+		});
+	}
 
 	async function onQueenToggle() {
 		frameSide = await toggleQueen(frameSide)
@@ -138,16 +154,7 @@ export default function Frame({
 			<div style={{ flexGrow: 10, paddingLeft: 15 }}>
 				{extraButtons}
 				<UploadFile
-					onUpload={(data) => {
-						// if (frameSide.id) {
-						// 	linkFileToFrame({
-						// 		fileId: data.id,
-						// 		frameSideId: frameSide.id,
-						// 		hiveId,
-						// 	})
-						// }
-						// onUpload(data)
-					}}
+					onUpload={onUpload}
 				/>
 			</div>
 		)

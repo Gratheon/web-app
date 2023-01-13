@@ -8,6 +8,7 @@ import ErrorMsg from '@/components/shared/messageError'
 import Loader from '@/components/shared/loader'
 
 import UploadIcon from '@/icons/uploadIcon'
+import { updateFile } from '@/components/models/files'
 
 import DragAndDrop from './dragDrop'
 import styles from './index.less'
@@ -40,6 +41,11 @@ export default function UploadFile({ onUpload }) {
 			//trigger higher component joining file with hive info
 			onUpload(data.uploadFrameSide)
 		}
+
+		await updateFile({
+			id: +data.uploadFrameSide.id,
+			url: data.uploadFrameSide.url
+		});
 	}
 
 	if (loading) return <Loader />

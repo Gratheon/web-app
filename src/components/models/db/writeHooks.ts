@@ -42,7 +42,6 @@ export const writeHooks = {
 	FrameSideFile: async (_, frameSideFile, { originalValue }) => {
 		if (Object.keys(frameSideFile).length === 0) return
 
-
 		delete frameSideFile.hiveId
 
 		frameSideFile.fileId = +originalValue?.file?.id;

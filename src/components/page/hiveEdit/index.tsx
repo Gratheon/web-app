@@ -80,14 +80,16 @@ export default function HiveEditForm() {
 					frameSideId={frameSideId}
 				/>
 
-				<Frame
-					onError={onError}
-					apiaryId={apiaryId}
-					boxId={boxId}
-					frameId={frameId}
-					hiveId={hiveId}
-					frameSideId={frameSideId}
-				/>
+				<div style={{flexGrow:1, minWidth: '70%'}}>
+					<Frame
+						onError={onError}
+						apiaryId={apiaryId}
+						boxId={boxId}
+						frameId={frameId}
+						hiveId={hiveId}
+						frameSideId={frameSideId}
+					/>
+				</div>
 			</div>
 		</div>
 	)

@@ -129,26 +129,21 @@ export default function Boxes({
 
 	return (
 		<div style={{ paddingRight: 5, overflow: 'hidden', flexGrow: 3 }}>
-			<div style={{ display: 'flex', height: 40 }}>
-				<h3 style={{ flexGrow: 1 }}>Hive sections</h3>
-
-				<div style={{ display: 'flex' }}>
-					<Button
-						title="Add box on top"
-						className={['small', 'black']}
-						onClick={() => onBoxAdd(boxTypes.DEEP)}
-					>
-						<AddBoxIcon /> Add deep
-					</Button>
-					<Button
-						title="Add box on top"
-						onClick={() => onBoxAdd(boxTypes.SUPER)}
-					>
-						<AddBoxIcon /> Add super
-					</Button>
-				</div>
+			<div style={{ display: 'flex', marginBottom:1  }}>
+				<Button
+					title="Add box on top"
+					className={['small', 'black']}
+					onClick={() => onBoxAdd(boxTypes.DEEP)}
+				>
+					<AddBoxIcon /> Add deep
+				</Button>
+				<Button
+					title="Add box on top"
+					onClick={() => onBoxAdd(boxTypes.SUPER)}
+				>
+					<AddBoxIcon /> Add super
+				</Button>
 			</div>
-
 			<div>{boxesDivs}</div>
 		</div>
 	)

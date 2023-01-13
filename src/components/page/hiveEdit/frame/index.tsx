@@ -47,9 +47,10 @@ export default function Frame({
 
 	let frameWithFile = useLiveQuery(async function fetchFrameWithFile(){
 		let r1 = await getFrameSide(+frameSideId)
-		let r2 = await getFrameSideFile({
+		let r2 = r1?.id ? await getFrameSideFile({
 			frameSideId: r1.id,
-		})
+		}) : null;
+
 		let r3 = await getFile(r2?.fileId ? r2?.fileId : -1)
 		return { frameSide: r1, frameSideFile: r2, file: r3 }
 	}, [frameSideId])
@@ -58,6 +59,10 @@ export default function Frame({
 		return <Loading />
 	}
 	let { frameSide, frameSideFile, file } = frameWithFile
+
+	if(!frameSide){
+		return <Loading />
+	}
 
 	let [filesStrokeEditMutate] = useMutation(`mutation filesStrokeEditMutation($files: [FilesUpdateInput]) { filesStrokeEditMutation(files: $files) }`)
 	let [frameSideMutate] = useMutation(`mutation updateFrameSide($frameSide: FrameSideInput!) { updateFrameSide(frameSide: $frameSide) }`)
@@ -68,6 +73,7 @@ export default function Frame({
 			debounce(async function (key: string, percent: number) {
 				let frameSide2 = await getFrameSide(+frameSideId)
 				frameSide2 = await updateFrameStat(frameSide2, key, percent)
+
 				const { error } = await frameSideMutate({
 					frameSide: {
 						id: frameSide2.id,

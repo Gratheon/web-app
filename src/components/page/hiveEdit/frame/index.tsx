@@ -59,6 +59,7 @@ export default function Frame({
 	}
 	let { frameSide, frameSideFile, file } = frameWithFile
 
+	let [filesStrokeEditMutate] = useMutation(`mutation filesStrokeEditMutation($files: [FilesUpdateInput]) { filesStrokeEditMutation(files: $files) }`)
 	let [frameSideMutate] = useMutation(`mutation updateFrameSide($frameSide: FrameSideInput!) { updateFrameSide(frameSide: $frameSide) }`)
 	let [linkFrameSideToFileMutation] = useMutation(`mutation addFileToFrameSide($frameSideID: ID!, $fileID: ID!, $hiveID: ID!) { addFileToFrameSide(frameSideId: $frameSideID, fileId: $fileID, hiveId: $hiveID) }`)
 
@@ -125,6 +126,25 @@ export default function Frame({
 		}
 	}
 
+	async function onStrokeHistoryUpdate(strokeHistory) {
+		let {error} = filesStrokeEditMutate({
+			files: [{
+				frameSideId: frameSide.id,
+				fileId: file.id,
+				strokeHistory
+			}]
+		})
+
+		if (error) {
+			onError(error)
+		}
+
+		frameSideFile.strokeHistory = strokeHistory;
+		updateFrameSideFile(
+			frameSideFile
+		)
+	}
+
 	const navigate = useNavigate()
 	function onFrameClose(event) {
 		event.stopPropagation()
@@ -169,14 +189,7 @@ export default function Frame({
 						frameSideFile.detectedObjects ? frameSideFile?.detectedObjects : []
 					}
 					strokeHistory={frameSideFile.strokeHistory}
-					onStrokeHistoryUpdate={(strokeHistory) => {
-						console.log('onStrokeHistoryUpdate', { strokeHistory })
-						// setFileStroke({
-						// 	frameSideId: +frameSideId,
-						// 	hiveId: +frameSideId,
-						// 	strokeHistory,
-						// })
-					}}
+					onStrokeHistoryUpdate={onStrokeHistoryUpdate}
 				>
 					<div style={{ display: expanded ? 'block' : 'flex', flexGrow: '1' }}>
 						<ResourceEditRow

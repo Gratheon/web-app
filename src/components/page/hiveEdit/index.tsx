@@ -67,7 +67,7 @@ export default function HiveEditForm() {
 			{errorMsg}
 			{okMsg}
 
-			<HiveEditDetails hiveId={hiveId} />
+			<HiveEditDetails hiveId={hiveId} onError={onError} />
 
 			<div style={{ display: 'flex', padding: '0 20px' }}>
 				<Boxes

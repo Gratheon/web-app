@@ -13,7 +13,7 @@ import { getBoxes } from '@/components/models/boxes'
 import { getFamilyByHive, updateFamily } from '@/components/models/family'
 import Loader from '@/components/shared/loader'
 
-export default function HiveEditDetails({ hiveId }) {
+export default function HiveEditDetails({ hiveId, onError }) {
 	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId])
 	let boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId])
 	let family = useLiveQuery(() => getFamilyByHive(+hiveId), [hiveId])
@@ -22,6 +22,9 @@ export default function HiveEditDetails({ hiveId }) {
 		updateHive(hive: $hive) {
 			id
 			__typename
+			family{
+				id
+			}
 		}
 	}
 `)
@@ -30,12 +33,15 @@ export default function HiveEditDetails({ hiveId }) {
 			debounce(async function (v) {
 				const name = v.target.value
 				await updateHive(+hiveId, { name })
-				await mutateHive({
+				let {data, error} = await mutateHive({
 					hive: {
 						id: hiveId,
 						name,
 					},
 				})
+				if(error){
+					onError(error);
+				}
 			}, 1000),
 		[]
 	)
@@ -44,12 +50,15 @@ export default function HiveEditDetails({ hiveId }) {
 			debounce(async function (v) {
 				const notes = v.target.value
 				await updateHive(+hiveId, { notes })
-				await mutateHive({
+				let {data, error} = await mutateHive({
 					hive: {
 						id: hiveId,
 						notes,
 					},
 				})
+				if(error){
+					onError(error);
+				}
 			}, 1000),
 		[]
 	)
@@ -58,9 +67,8 @@ export default function HiveEditDetails({ hiveId }) {
 		() =>
 			debounce(async function (v) {
 				const race = v.target.value
-				let { id } = await getFamilyByHive(+hiveId)
-				await updateFamily(id, { race })
-				await mutateHive({
+				let family = await getFamilyByHive(+hiveId)
+				let {data, error} = await mutateHive({
 					hive: {
 						id: hiveId,
 						family: {
@@ -68,6 +76,13 @@ export default function HiveEditDetails({ hiveId }) {
 						},
 					},
 				})
+				if(error){
+					onError(error);
+				}
+
+				if(family){
+					await updateFamily(family.id, { race })
+				}
 			}, 1000),
 		[]
 	)
@@ -75,10 +90,10 @@ export default function HiveEditDetails({ hiveId }) {
 	const onQueenYearChange = useMemo(
 		() =>
 			debounce(async function (v) {
-				let { id } = await getFamilyByHive(+hiveId)
+				let family = await getFamilyByHive(+hiveId)
 				const added = v.target.value
-				await updateFamily(id, { added })
-				await mutateHive({
+				
+				let {data, error} = await mutateHive({
 					hive: {
 						id: hiveId,
 						family: {
@@ -86,6 +101,15 @@ export default function HiveEditDetails({ hiveId }) {
 						},
 					},
 				})
+				console.log({data});
+
+				if(error){
+					onError(error);
+				}
+
+				if(family){
+					await updateFamily(family.id, { added })
+				}
 			}, 1000),
 		[]
 	)

@@ -12,7 +12,7 @@ import { updateHive, getHive } from '@/components/models/hive'
 import { getBoxes, updateBox } from '@/components/models/boxes'
 import { getFamilyByHive, updateFamily } from '@/components/models/family'
 import Loader from '@/components/shared/loader'
-import { Box } from '@/components/api/schema'
+import { Box, Family } from '@/components/api/schema'
 
 export default function HiveEditDetails({ hiveId, onError }) {
 	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId])
@@ -39,7 +39,14 @@ export default function HiveEditDetails({ hiveId, onError }) {
 				const hive = await getHive(+hiveId)
 				hive.name = v.target.value
 
-				const family = await getFamilyByHive(+hiveId)
+				let family = await getFamilyByHive(+hiveId)
+				if(!family) {
+					family = {
+						id: null,
+						race: '',
+						added: ''
+					}
+				}
 
 				let { error } = await mutateHive({
 					hive: {
@@ -68,7 +75,14 @@ export default function HiveEditDetails({ hiveId, onError }) {
 				const hive = await getHive(+hiveId)
 				hive.notes = v.target.value
 
-				const family = await getFamilyByHive(+hiveId)
+				let family = await getFamilyByHive(+hiveId)
+				if(!family) {
+					family = {
+						id: null,
+						race: '',
+						added: ''
+					}
+				}
 
 				let { error } = await mutateHive({
 					hive: {
@@ -106,26 +120,26 @@ export default function HiveEditDetails({ hiveId, onError }) {
 		() =>
 			debounce(async function (v) {
 				const hive = await getHive(+hiveId)
-				let family = await getFamilyByHive(+hiveId)
+				let family = await getFamilyByHive(+hiveId) || { hiveId: +hiveId } as Family
 				family.race = v.target.value
-				let { error } = await mutateHive({
+				let { data, error } = await mutateHive({
 					hive: {
 						id: hive.id,
 						name: hive.name,
 						notes: hive.notes,
 						family: {
-							id: family.id,
-							race: family.race,
-							added: family.added,
+							id: family?.id,
+							race: family?.race,
+							added: family?.added,
 						},
 					},
 				})
 				if (error) {
-					onError(error)
+					return onError(error)
 				}
+				family.id = +data.updateHive.family.id;
 
 				if (family) {
-					console.log({ family })
 					await updateFamily(family)
 				}
 			}, 1000),
@@ -136,10 +150,10 @@ export default function HiveEditDetails({ hiveId, onError }) {
 		() =>
 			debounce(async function (v) {
 				const hive = await getHive(+hiveId)
-				let family = await getFamilyByHive(+hiveId)
+				let family = await getFamilyByHive(+hiveId) || { hiveId: +hiveId } as Family
 				family.added = v.target.value
 
-				let { error } = await mutateHive({
+				let { data, error } = await mutateHive({
 					hive: {
 						id: hive.id,
 						name: hive.name,
@@ -153,8 +167,10 @@ export default function HiveEditDetails({ hiveId, onError }) {
 				})
 
 				if (error) {
-					onError(error)
+					return onError(error)
 				}
+
+				family.id = +data.updateHive.family.id;
 
 				if (family) {
 					await updateFamily(family)

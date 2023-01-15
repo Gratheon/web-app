@@ -23,7 +23,7 @@ type User = {
 }
 
 export default function AccountEdit() {
-	let [user, setUser] = useState<User>({})
+	let [user, setUser] = useState<User>()
 
 	function onInput(e: any) {
 		const { name, value } = e.target
@@ -63,10 +63,10 @@ export default function AccountEdit() {
 		}
 	`)
 
-	function onSubmit(e: React.ChangeEvent) {
+	async function onSubmit(e: React.ChangeEvent) {
 		e.preventDefault()
 
-		updateAccount({
+		await updateAccount({
 			user: {
 				first_name: user?.first_name,
 				last_name: user?.last_name,
@@ -74,7 +74,7 @@ export default function AccountEdit() {
 		})
 	}
 
-	if (accountData && !user) {
+	if (accountData) {
 		setUser(accountData.user)
 	}
 

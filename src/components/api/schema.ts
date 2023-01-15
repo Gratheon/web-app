@@ -3,9 +3,10 @@ import { buildSchema } from 'graphql'
 export type Box = {
   id: number
 	type: string
-	hiveId?: number //reference
 	position: number
-	color: string
+	color?: string
+  
+  hiveId?: number //reference
 	frames?: Frame[]
 }
 

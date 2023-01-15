@@ -6,7 +6,6 @@ export default gql`
 			id
 			name
 			notes
-			boxCount
 
 			files {
 				hiveId

@@ -19,7 +19,6 @@ export default function ApiaryList(props) {
 				hives {
 					id
 					name
-					boxCount
 
 					boxes {
 						id

@@ -4,7 +4,7 @@ type Hive = {
 	id: number
 	name?: string
 	notes?: string
-	boxCount: number
+	familyId?: number
 }
 
 export async function getHive(id: number): Promise<Hive> {
@@ -21,10 +21,9 @@ export async function getHive(id: number): Promise<Hive> {
 	}
 }
 
-export async function updateHive(id: number, delta: object) {
+export async function updateHive(data: Hive) {
 	try {
-		console.log('updating hive', { id, delta })
-		return await db['hive'].update(id, delta)
+		return await db['hive'].put(data)
 	} catch (e) {
 		console.error(e)
 		throw e

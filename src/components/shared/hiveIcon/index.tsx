@@ -47,12 +47,14 @@ type HiveIconProps = {
 	boxes?: any
 	size?: number
 	editable?: boolean
+	onColorChange?: any
 }
 
 export default function HiveIcon({
 	boxes = [],
 	size = 60,
 	editable = false,
+	onColorChange=()=>null,
 }: HiveIconProps) {
 	const [colorPickerVisibleAt, showColorPicker] = useState(null)
 	const [, updateState] = useState()
@@ -101,9 +103,9 @@ export default function HiveIcon({
 						<GithubPicker
 							width={300}
 							colors={colors}
-							onChangeComplete={(c: any) => {
-								box.color = c.hex // !
-
+							onChangeComplete={(c:any)=>{
+								box.color = c.hex
+								onColorChange(box);
 								showColorPicker(null)
 								forceUpdate()
 							}}

@@ -87,16 +87,32 @@ export async function addBox({
 	hiveId,
 	position,
 	type,
-}: {
-	id: number
-	hiveId: number
-	position: number
-	type: string
-}) {
+}: Box) {
 	try {
 		await db['box'].put({
 			id,
 			hiveId,
+			position,
+			type,
+		})
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
+}
+
+export async function updateBox({
+	id,
+	hiveId,
+	color,
+	position,
+	type,
+}: Box) {
+	try {
+		await db['box'].put({
+			id,
+			hiveId,
+			color,
 			position,
 			type,
 		})

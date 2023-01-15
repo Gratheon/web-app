@@ -11,9 +11,9 @@ export async function getFamilyByHive(hiveId: number): Promise<Family> {
 	}
 }
 
-export async function updateFamily(id: number, delta: object) {
+export async function updateFamily(data: Family) {
 	try {
-		return await db['family'].update(id, delta)
+		return await db['family'].put(data)
 	} catch (e) {
 		console.error(e)
 		throw e

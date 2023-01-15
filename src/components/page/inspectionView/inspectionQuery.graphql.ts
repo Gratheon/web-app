@@ -10,7 +10,6 @@ export default gql`
 		hive(id: $hiveId) {
 			id
 			name
-			boxCount
 
 			inspections(limit: 20) {
 				id

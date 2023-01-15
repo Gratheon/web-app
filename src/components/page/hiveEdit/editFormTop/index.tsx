@@ -9,14 +9,19 @@ import QueenColor from './queenColor'
 
 import { useMutation } from '@/components/api'
 import { updateHive, getHive } from '@/components/models/hive'
-import { getBoxes } from '@/components/models/boxes'
+import { getBoxes, updateBox } from '@/components/models/boxes'
 import { getFamilyByHive, updateFamily } from '@/components/models/family'
 import Loader from '@/components/shared/loader'
+import { Box } from '@/components/api/schema'
 
 export default function HiveEditDetails({ hiveId, onError }) {
 	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId])
 	let boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId])
 	let family = useLiveQuery(() => getFamilyByHive(+hiveId), [hiveId])
+
+	let [mutateBoxColor] = useMutation(
+		`mutation updateBoxColor($boxID: ID!, $color: String!) { updateBoxColor(id: $boxID, color: $color) }`
+	)
 
 	let [mutateHive] = useMutation(`mutation updateHive($hive: HiveUpdateInput!) {
 		updateHive(hive: $hive) {
@@ -31,57 +36,97 @@ export default function HiveEditDetails({ hiveId, onError }) {
 	const onNameChange = useMemo(
 		() =>
 			debounce(async function (v) {
-				const name = v.target.value
-				await updateHive(+hiveId, { name })
-				let {data, error} = await mutateHive({
+				const hive = await getHive(+hiveId)
+				hive.name = v.target.value
+
+				const family = await getFamilyByHive(+hiveId)
+
+				let { error } = await mutateHive({
 					hive: {
-						id: hiveId,
-						name,
+						id: hive.id,
+						name: hive.name,
+						notes: hive.notes,
+						family: {
+							id: family.id,
+							race: family.race,
+							added: family.added,
+						},
 					},
 				})
-				if(error){
-					onError(error);
+
+				if (error) {
+					onError(error)
 				}
+				await updateHive(hive)
 			}, 1000),
 		[]
 	)
+
 	const onNotesChange = useMemo(
 		() =>
 			debounce(async function (v) {
-				const notes = v.target.value
-				await updateHive(+hiveId, { notes })
-				let {data, error} = await mutateHive({
+				const hive = await getHive(+hiveId)
+				hive.notes = v.target.value
+
+				const family = await getFamilyByHive(+hiveId)
+
+				let { error } = await mutateHive({
 					hive: {
-						id: hiveId,
-						notes,
+						id: hive.id,
+						name: hive.name,
+						notes: hive.notes,
+						family: {
+							id: family.id,
+							race: family.race,
+							added: family.added,
+						},
 					},
 				})
-				if(error){
-					onError(error);
+				if (error) {
+					onError(error)
 				}
+				await updateHive(hive)
 			}, 1000),
 		[]
 	)
+
+	async function onColorChange(box: Box) {
+		let { error } = await mutateBoxColor({
+			boxID: box.id,
+			color: box.color,
+		})
+
+		if (error) {
+			onError(error)
+		}
+		await updateBox(box)
+	}
 
 	const onRaceChange = useMemo(
 		() =>
 			debounce(async function (v) {
-				const race = v.target.value
+				const hive = await getHive(+hiveId)
 				let family = await getFamilyByHive(+hiveId)
-				let {data, error} = await mutateHive({
+				family.race = v.target.value
+				let { error } = await mutateHive({
 					hive: {
-						id: hiveId,
+						id: hive.id,
+						name: hive.name,
+						notes: hive.notes,
 						family: {
-							race,
+							id: family.id,
+							race: family.race,
+							added: family.added,
 						},
 					},
 				})
-				if(error){
-					onError(error);
+				if (error) {
+					onError(error)
 				}
 
-				if(family){
-					await updateFamily(family.id, { race })
+				if (family) {
+					console.log({ family })
+					await updateFamily(family)
 				}
 			}, 1000),
 		[]
@@ -90,25 +135,29 @@ export default function HiveEditDetails({ hiveId, onError }) {
 	const onQueenYearChange = useMemo(
 		() =>
 			debounce(async function (v) {
+				const hive = await getHive(+hiveId)
 				let family = await getFamilyByHive(+hiveId)
-				const added = v.target.value
-				
-				let {data, error} = await mutateHive({
+				family.added = v.target.value
+
+				let { error } = await mutateHive({
 					hive: {
-						id: hiveId,
+						id: hive.id,
+						name: hive.name,
+						notes: hive.notes,
 						family: {
-							added,
+							id: family.id,
+							race: family.race,
+							added: family.added,
 						},
 					},
 				})
-				console.log({data});
 
-				if(error){
-					onError(error);
+				if (error) {
+					onError(error)
 				}
 
-				if(family){
-					await updateFamily(family.id, { added })
+				if (family) {
+					await updateFamily(family)
 				}
 			}, 1000),
 		[]
@@ -121,7 +170,7 @@ export default function HiveEditDetails({ hiveId, onError }) {
 	return (
 		<div style={{ padding: '20px', display: 'flex' }}>
 			<div style={{ width: 68, textAlign: 'center', marginRight: 10 }}>
-				<HiveIcon boxes={boxes} editable={true} />
+				<HiveIcon onColorChange={onColorChange} boxes={boxes} editable={true} />
 			</div>
 			<VisualForm style="flex-grow:1">
 				<div>

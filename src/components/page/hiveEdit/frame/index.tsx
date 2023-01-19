@@ -94,6 +94,9 @@ export default function Frame({
 	)
 
 	async function onUpload (data) {
+		if(!data){
+			return;
+		}
 		const { error } = await linkFrameSideToFileMutation({
 			frameSideID: frameSideId,
 			fileID: data.id,
@@ -180,6 +183,7 @@ export default function Frame({
 			<div style={{ flexGrow: 10, paddingLeft: 15 }}>
 				{extraButtons}
 				<UploadFile
+					onError={onError}
 					onUpload={onUpload}
 				/>
 			</div>

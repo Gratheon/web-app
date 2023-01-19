@@ -13,7 +13,7 @@ import { updateFile } from '@/components/models/files'
 import DragAndDrop from './dragDrop'
 import styles from './index.less'
 
-export default function UploadFile({ onUpload }) {
+export default function UploadFile({ onUpload, onError }) {
 	//todo
 	//@ts-ignore
 	const [uploadFile, { loading, error, data }] = useUploadMutation(gql`
@@ -37,10 +37,16 @@ export default function UploadFile({ onUpload }) {
 		//@ts-ignore
 		const { data, error } = await uploadFile({ file })
 
-		if (!error) {
-			//trigger higher component joining file with hive info
-			onUpload(data.uploadFrameSide)
+		if(error) {
+			return onError(error);
 		}
+
+		if (!data.uploadFrameSide) {
+			return;
+		}
+
+		//trigger higher component joining file with hive info
+		onUpload(data.uploadFrameSide)
 
 		await updateFile({
 			id: +data.uploadFrameSide.id,
@@ -51,7 +57,7 @@ export default function UploadFile({ onUpload }) {
 	if (loading) return <Loader />
 	if (error) return <ErrorMsg error={error} />
 
-	if (data) {
+	if (data && data.uploadFrameSide !== null) {
 		const { uploadFrameSide } = data
 
 		return (

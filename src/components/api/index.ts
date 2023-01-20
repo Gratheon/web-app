@@ -106,10 +106,13 @@ function useQueryAdapted(query: string | TypedDocumentNode, options?: any) {
 		query,
 		variables: options?.variables,
 	})
+
 	return {
 		data: result.data,
 		loading: result.fetching,
 		error: result.error,
+		//@ts-ignore
+		errorNetwork: result?.originalError,
 	}
 }
 

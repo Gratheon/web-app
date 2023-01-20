@@ -23,6 +23,7 @@ export default function HiveEditForm() {
 	let {
 		loading: loadingGet,
 		error: errorGet,
+		errorNetwork,
 		data: hiveGet,
 	} = useQuery(HIVE_QUERY, { variables: { id: +hiveId } })
 
@@ -37,10 +38,13 @@ export default function HiveEditForm() {
 	if (error) {
 		errorMsg = <ErrorMsg error={error} />
 	}
-
-	if (errorGet) {
-		return <ErrorMsg error={errorGet} />
+	else if (errorGet) {
+		errorMsg = <ErrorMsg error={errorGet} />
 	}
+	else if (errorNetwork) {
+		errorMsg = <ErrorMsg error={errorNetwork} />
+	}
+	
 
 	if (!hive || loadingGet) {
 		return <Loader />

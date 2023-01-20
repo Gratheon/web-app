@@ -44,6 +44,7 @@ export function offlineIndexDbExchange({
 	async function onResult(bubble) {
 		const op = bubble.operation
 		const data = bubble.data
+		let useCacheOnly = false;
 
 		// mutations/subscriptions/teardowns are pass-through
 		if (op.kind !== 'query') {
@@ -57,11 +58,15 @@ export function offlineIndexDbExchange({
 					? bubble.operation.cacheResult.errors[0]
 					: null
 				bubble.data = bubble.operation.cacheResult.data
+
+				useCacheOnly = true;
 			}
 		}
 		// if its network-first and we get a network error, use fetch offline cache
 		else {
-			if (bubble.error) {
+			if (!bubble.data && bubble.error) {
+				useCacheOnly = true;
+				console.log('Error detected, using index-db cache');
 				bubble.data = (
 					await execute({
 						schema: schemaObject,
@@ -77,7 +82,7 @@ export function offlineIndexDbExchange({
 		}
 
 		// if there is a network error and we have offline cache, use that
-		if (bubble.error && bubble.data) {
+		if (useCacheOnly) {
 			bubble.originalError = bubble.error
 			bubble.error = null
 

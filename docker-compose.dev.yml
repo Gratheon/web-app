@@ -1,6 +1,6 @@
 version: '3.9'
 services:
-  image-splitter:
+  web-app:
     build: .
     command:
       /app/node_modules/.bin/preact watch

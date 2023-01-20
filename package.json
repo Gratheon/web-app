@@ -5,7 +5,7 @@
 	"license": "AGPL",
 	"scripts": {
 		"develop": "ENV_ID=dev npm run -s dev",
-		"build": "preact build",
+		"build": "preact build --no-prerender",
 		"serve": "sirv build --cors --single",
 		"dev": "preact watch",
 		"lint": "eslint src --fix",

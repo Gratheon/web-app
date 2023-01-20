@@ -7,7 +7,7 @@ deploy-clean:
 	ssh root@gratheon.com 'rm -rf /www/app.gratheon.com/public/*'
 
 deploy-copy:
-	rsync -av -e ssh ./public/ root@gratheon.com:/www/app.gratheon.com/public/
+	rsync -av -e ssh ./build/ root@gratheon.com:/www/app.gratheon.com/public/
 
 deploy:
 	rm -rf public/*

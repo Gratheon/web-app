@@ -81,7 +81,7 @@ function redrawStrokes(canvas, ctx, strokeHistory) {
 function drawDetectedObjects(detectedObjects, ctx, canvas) {
 	if (detectedObjects.length > 0) {
 		for (let dt of detectedObjects) {
-			ctx.globalAlpha = dt.c
+			ctx.globalAlpha = 0.2 + dt.c
 
 			// ctx.strokeStyle = 'black'
 			// ctx.strokeText(
@@ -90,12 +90,16 @@ function drawDetectedObjects(detectedObjects, ctx, canvas) {
 			// 	dt.p[1] * canvas.height - 2.5
 			// )
 
+			dt.nText = dt.n
 			switch (dt.n) {
-				case 'drone':
-					ctx.strokeStyle = colors.drone
-					break
-				case 'bee-worker':
+				case '0': //bee-worker
+				case '2': //bee-worker
 					ctx.strokeStyle = colors.beeWorker
+					dt.nText = 'worker'
+					break
+				case '1': // drone
+					ctx.strokeStyle = colors.drone
+					dt.nText = 'drone'
 					break
 
 				case 'brood':
@@ -123,7 +127,7 @@ function drawDetectedObjects(detectedObjects, ctx, canvas) {
 
 			ctx.font = '12px Arial'
 			ctx.lineWidth = 1
-			ctx.strokeText(dt.n, dt.p[0] * canvas.width, dt.p[1] * canvas.height - 3)
+			ctx.strokeText(dt.nText, dt.x * canvas.width, dt.y * canvas.height - 10)
 
 			switch (dt.n) {
 				//circle
@@ -146,10 +150,10 @@ function drawDetectedObjects(detectedObjects, ctx, canvas) {
 
 				default:
 					ctx.rect(
-						dt.p[0] * canvas.width,
-						dt.p[1] * canvas.height,
-						dt.p[2] * canvas.width,
-						dt.p[3] * canvas.height
+						(dt.x-dt.w/2) * canvas.width,
+						(dt.y-dt.h/2) * canvas.height,
+						dt.w * canvas.width,
+						dt.h * canvas.height
 					)
 					ctx.stroke()
 			}

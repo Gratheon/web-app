@@ -5,6 +5,6 @@ export default {
 	cappedBroodColor: 'rgb(51 188 0)',
 	broodColor: 'rgb(109 239 0)',
 
-	beeWorker: 'orange',
-	drone: 'white',
+	beeWorker: 'white',
+	drone: 'black',
 }

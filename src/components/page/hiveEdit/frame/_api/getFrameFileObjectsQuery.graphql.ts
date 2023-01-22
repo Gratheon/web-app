@@ -10,6 +10,11 @@ export default gql`
 				id
 				url
 			}
+
+			counts{
+				type
+				count
+			}
 		}
 	}
 `

@@ -245,6 +245,12 @@ export default function Frame({
 							percent={frameSide.pollenPercent}
 							onChange={(e) => onResize('pollenPercent', e.target.value)}
 						/>
+
+						{frameSideFile.counts.map((row)=>{
+							return <div 
+							title={beeTypeMap[row.type]} 
+							style={{padding:'8px 5px'}}>🐝 {row.count}</div>
+						})}
 					</div>
 
 					{extraButtons}
@@ -252,4 +258,10 @@ export default function Frame({
 			</div>
 		</div>
 	)
+}
+
+const beeTypeMap = {
+	'BEE_WORKER': 'Worker bees',
+	'BEE_DRONE': 'Drones',
+	'BEE_QUEEN': 'Queen',
 }

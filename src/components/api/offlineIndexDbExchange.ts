@@ -167,8 +167,8 @@ async function traverseResponse(
 				const pathString = newPath.join('.')
 				const objType = typeMap[pathString]
 
-				if (!Array.isArray(value)) {
-					const tableName = objType.ofType ? objType.ofType.name : objType.name
+				if (objType && !Array.isArray(value)) {
+					const tableName = objType?.ofType ? objType.ofType.name : objType.name
 
 					// we reached some object that is no longer mapped onto a schema
 					// must be some JSON, no point to continue
@@ -188,6 +188,7 @@ async function traverseResponse(
 							Object.entries(value).filter(([key, v]) => {
 								const propType = typeMap[`${pathString}.${key}`]
 								return (
+									!propType ||
 									(typeof v !== 'object' && !Array.isArray(v)) ||
 									propType.name === 'JSON'
 								)

@@ -112,7 +112,8 @@ export default function Frame({
 			fileId: +data.id,
 			frameSideId: +frameSideId,
 			strokeHistory: [],
-			detectedObjects: []
+			detectedObjects: [],
+			counts: []
 		});
 	}
 

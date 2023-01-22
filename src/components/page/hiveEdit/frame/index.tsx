@@ -194,6 +194,7 @@ export default function Frame({
 	return (
 		<div className={styles.frame}>
 			<div className={styles.body}>
+				{file.url}
 				<DrawingCanvas
 					imageUrl={file.url}
 					detectedObjects={

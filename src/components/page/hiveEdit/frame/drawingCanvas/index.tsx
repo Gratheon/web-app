@@ -262,22 +262,17 @@ export default ({
 		onStrokeHistoryUpdate(strokeHistory)
 	}
 
-	useEffect(() => {
+	let canvas, ctx
+
+	function initImage() {
 		img = document.createElement('img')
 		img.src = imageUrl
 		img.onload = () => {
-			setShow(true)
+			initCanvas();
 		}
-	}, [imageUrl])
-
-	if (!show) {
-		return <Loader />
 	}
 
-	let canvas, ctx
-
-	// on resize
-	useLayoutEffect(() => {
+	function initCanvas(){
 		canvas = ref.current
 		ctx = canvas.getContext('2d')
 
@@ -426,7 +421,10 @@ export default ({
 				lineWidth = 0
 			})
 		}
-	}, [imageUrl])
+	}
+
+	// on resize
+	useLayoutEffect(initImage, [imageUrl])
 
 	useLayoutEffect(() => {
 		canvas = ref.current

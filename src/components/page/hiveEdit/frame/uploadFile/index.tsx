@@ -92,8 +92,11 @@ export default function UploadFile({ onUpload, onError }) {
 						minWidth: 650,
 						display: 'flex',
 						alignItems: 'center',
+						flexDirection: 'column'
 					}}
 				>
+					<div style={{flexGrow:1}}></div>
+					<div>
 					<input
 						type="file"
 						className={styles.inputfile}
@@ -107,6 +110,15 @@ export default function UploadFile({ onUpload, onError }) {
 						<UploadIcon />
 						Upload frame photo
 					</label>
+					</div>
+
+					<div style={{
+						flexGrow:1,
+						fontSize: 10,
+						paddingTop: 5,
+						color: 'gray'
+					}}>Detection best works with high-resolution photos (17MP)</div>
+					
 
 					{fileList.map((file, i) => (
 						<div key={i}>{file}</div>

@@ -90,37 +90,39 @@ function drawDetectedObjects(detectedObjects, ctx, canvas) {
 			// 	dt.p[1] * canvas.height - 2.5
 			// )
 
-			dt.nText = dt.n
+			dt.nText = '';//dt.n
 			switch (dt.n) {
-				case '0': //bee-worker
-				case '2': //bee-worker
+				case 0: //bee-worker
+				case 2: //bee-worker
 					ctx.strokeStyle = colors.beeWorker
 					dt.nText = 'worker'
 					break
-				case '1': // drone
+				case 1: // drone
 					ctx.strokeStyle = colors.drone
 					dt.nText = 'drone'
 					break
 
-				case 'brood':
+				case 5: //brood
 					ctx.strokeStyle = colors.broodColor
 					ctx.fillStyle = colors.broodColor
 					break
-				case 'brood-capped':
+				case 6: //'brood-capped':
 					ctx.strokeStyle = colors.cappedBroodColor
 					ctx.fillStyle = colors.cappedBroodColor
 					break
-				case 'drone-brood-capped':
+				case 7://'drone-brood-capped':
 					ctx.strokeStyle = colors.droneBroodColor
 					ctx.fillStyle = colors.droneBroodColor
 					break
-				case 'honey':
-					ctx.strokeStyle = colors.honeyColor
-					ctx.fillStyle = colors.honeyColor
-					break
-				case 'pollen':
+				case 8://'pollen':
 					ctx.strokeStyle = colors.pollenColor
 					ctx.fillStyle = colors.pollenColor
+					break
+
+				case 9: //'honey':
+				case 10: //'honey':
+					ctx.strokeStyle = colors.honeyColor
+					ctx.fillStyle = colors.honeyColor
 					break
 			}
 			ctx.beginPath()
@@ -131,17 +133,17 @@ function drawDetectedObjects(detectedObjects, ctx, canvas) {
 
 			switch (dt.n) {
 				//circle
-				case 'pollen':
-				case 'honey':
-				case 'brood':
-				case 'brood-capped':
-				case 'drone-brood':
-				case 'drone-brood-capped':
+				case 5:
+				case 6:
+				case 7:
+				case 8:
+				case 9:
+				case 10:
 					// ctx.lineWidth = 4
 					ctx.arc(
-						dt.p[0] * canvas.width + (dt.p[2] * canvas.width) / 2,
-						dt.p[1] * canvas.height + (dt.p[3] * canvas.height) / 2,
-						Math.min(dt.p[2] * canvas.width, dt.p[3] * canvas.height) / 2,
+						dt.x * canvas.width + (dt.w * canvas.width) / 2,
+						dt.y * canvas.height + (dt.h * canvas.height) / 2,
+						Math.min(dt.w * canvas.width, dt.h * canvas.height) / 2,
 						0,
 						2 * Math.PI
 					)
@@ -245,7 +247,6 @@ export default ({
 	onStrokeHistoryUpdate,
 }) => {
 	const ref = useRef(null)
-	const [show, setShow] = React.useState(false)
 	const [showDetections, setDetections] = React.useState(true)
 	const [version, setVersion] = React.useState(0)
 

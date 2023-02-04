@@ -194,7 +194,6 @@ export default function Frame({
 	return (
 		<div className={styles.frame}>
 			<div className={styles.body}>
-				{file.url}
 				<DrawingCanvas
 					imageUrl={file.url}
 					detectedObjects={
@@ -248,7 +247,7 @@ export default function Frame({
 							onChange={(e) => onResize('pollenPercent', e.target.value)}
 						/>
 
-						{frameSideFile.counts.map((row)=>{
+						{frameSideFile.counts && frameSideFile.counts.map((row)=>{
 							return <div 
 							title={beeTypeMap[row.type]} 
 							style={{padding:'8px 5px'}}>🐝 {row.count}</div>

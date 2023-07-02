@@ -60,7 +60,7 @@ export default function ApiaryList(props) {
 				))}
 
 			<div style={{ textAlign: 'center', marginTop: 20 }}>
-				<Link href="/apiaries/create">Add another apiary</Link>
+				<Link href="/apiaries/create">Setup new apiary</Link>
 			</div>
 		</div>
 	)

@@ -1,7 +1,5 @@
 import React from 'react'
 
-import HiveIcon from '@/components/shared/hiveIcon'
-
 export default function () {
 	return (
 		<div
@@ -14,9 +12,7 @@ export default function () {
 		>
 			<p>No apiaries here yet</p>
 
-			<HiveIcon size={20} />
-			<HiveIcon size={20} />
-			<HiveIcon size={20} />
+			<img height="64" src="assets/flower.png" />
 		</div>
 	)
 }

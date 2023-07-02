@@ -12,8 +12,8 @@ export default function () {
 			}}
 		>
 			<p>No hives here yet</p>
-
-			<HiveIcon />
+			
+			<img height="64" src="/assets/symbiosis.png" />
 		</div>
 	)
 }

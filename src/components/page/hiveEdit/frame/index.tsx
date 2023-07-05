@@ -66,7 +66,17 @@ export default function Frame({
 
 	let [filesStrokeEditMutate] = useMutation(`mutation filesStrokeEditMutation($files: [FilesUpdateInput]) { filesStrokeEditMutation(files: $files) }`)
 	let [frameSideMutate] = useMutation(`mutation updateFrameSide($frameSide: FrameSideInput!) { updateFrameSide(frameSide: $frameSide) }`)
-	let [linkFrameSideToFileMutation] = useMutation(`mutation addFileToFrameSide($frameSideID: ID!, $fileID: ID!, $hiveID: ID!) { addFileToFrameSide(frameSideId: $frameSideID, fileId: $fileID, hiveId: $hiveID) }`)
+	let [linkFrameSideToFileMutation, { data: linkFrameSideToFileResult}] = useMutation(
+		`mutation addFileToFrameSide($frameSideID: ID!, $fileID: ID!, $hiveID: ID!) { 
+			addFileToFrameSide(frameSideId: $frameSideID, fileId: $fileID, hiveId: $hiveID) {
+				estimatedDetectionTimeSec
+			}
+		}`
+		)
+
+	if(!estimatedDetectionTimeSec) {
+		estimatedDetectionTimeSec = linkFrameSideToFileResult?.addFileToFrameSide?.estimatedDetectionTimeSec
+	}
 
 	const onFrameSideStatChange = useMemo(
 		() =>
@@ -163,7 +173,7 @@ export default function Frame({
 		})
 	}
 
-	const [linkFileToFrame] = useMutation(LINK_FILE_TO_FRAME)
+	// const [linkFileToFrame] = useMutation(LINK_FILE_TO_FRAME)
 
 	const extraButtons = (
 		<div style={{ display: 'flex' }}>
@@ -187,7 +197,6 @@ export default function Frame({
 		)
 	}
 
-	console.log({frameSide})
 	return (
 		<div className={styles.frame}>
 			<div className={styles.body}>

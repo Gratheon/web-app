@@ -1,12 +1,12 @@
 import React, { useMemo, useState } from 'react'
-import ResourceEditRow from '../resourceEditRow'
+import ResourceEditRow from './resourceEditRow'
 import colors from '@/components/colors'
 import { CountdownCircleTimer } from 'react-countdown-circle-timer'
 
 const beeTypeMap = {
-	'BEE_WORKER': 'Worker bees',
-	'BEE_DRONE': 'Drones',
-	'BEE_QUEEN': 'Queen',
+	'BEE_WORKER': { title: 'Worker bees', bg: colors.beeWorker},
+	'BEE_DRONE': {title: 'Drones', bg: colors.drone},
+	'BEE_QUEEN': {title: 'Queen', bg: colors.queen},
 }
 
 export default function MetricList({
@@ -17,6 +17,8 @@ export default function MetricList({
 }) {
 	if (estimatedDetectionTimeSec > 0) {
 		return <div style="display:flex">
+
+			<div style="padding:5px">Detecting bees</div>
 			<CountdownCircleTimer
 				isPlaying
 				size={30}
@@ -28,7 +30,6 @@ export default function MetricList({
 			>
 				{({ remainingTime }) => remainingTime}
 			</CountdownCircleTimer>
-			<div style="padding:5px">Estimated processing time</div>
 		</div>
 	}
 
@@ -44,10 +45,6 @@ export default function MetricList({
 
 	return <div>
 		<div style={{ display: expanded ? 'block' : 'flex' }}>
-			{frameSideFile.counts && frameSideFile.counts.map((row) => {
-				<div title={beeTypeMap[row.type]} style={{ padding: '8px 5px' }}>🐝 {row.count}</div>
-
-			})}
 			<ResourceEditRow
 				expanded={expanded}
 				onClick={() => expand(!expanded)}
@@ -91,6 +88,13 @@ export default function MetricList({
 				percent={frameSide.pollenPercent}
 				onChange={(e) => onResize('pollenPercent', e.target.value)}
 			/>
+			{frameSideFile.counts && frameSideFile.counts.map((row) => {
+				return <div title={beeTypeMap[row.type].title} style={{
+					padding: '8px 5px',
+					color: 'gray',
+					backgroundColor: beeTypeMap[row.type].bg
+				}}>🐝 {row.count}</div>
+			})}
 		</div>
 	</div>
 }

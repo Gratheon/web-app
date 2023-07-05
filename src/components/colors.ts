@@ -7,4 +7,5 @@ export default {
 
 	beeWorker: 'white',
 	drone: 'black',
+	queen: 'yellow',
 }

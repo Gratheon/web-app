@@ -78,27 +78,23 @@ function redrawStrokes(canvas, ctx, strokeHistory) {
 	})
 }
 
+let REL_PX;
 function drawDetectedObjects(detectedObjects, ctx, canvas) {
+	REL_PX = canvas.width / 1024
 	if (detectedObjects.length > 0) {
 		for (let dt of detectedObjects) {
 			ctx.globalAlpha = 0.3 + dt.c
 
-			// ctx.strokeStyle = 'black'
-			// ctx.strokeText(
-			// 	dt.n,
-			// 	dt.p[0] * canvas.width + 0.5,
-			// 	dt.p[1] * canvas.height - 2.5
-			// )
-
-			dt.nText = '';//dt.n
-			switch (dt.n) {
+			ctx.beginPath()
+			switch (parseInt(dt.n, 10)) {
+				case 0: //bee-worker
 				case 0: //bee-worker
 				case 2: //bee-worker
-					ctx.strokeStyle = colors.beeWorker
+					ctx.fillStyle = ctx.strokeStyle = colors.beeWorker
 					dt.nText = 'worker'
 					break
 				case 1: // drone
-					ctx.strokeStyle = colors.drone
+					ctx.fillStyle = ctx.strokeStyle = colors.drone
 					dt.nText = 'drone'
 					break
 
@@ -125,12 +121,16 @@ function drawDetectedObjects(detectedObjects, ctx, canvas) {
 					ctx.fillStyle = colors.honeyColor
 					break
 			}
-			ctx.beginPath()
 
-			ctx.font = '12px Arial'
-			ctx.lineWidth = 3
-			ctx.strokeText(dt.nText, dt.x * canvas.width, dt.y * canvas.height - 10)
+			ctx.font = Math.floor(13 * REL_PX) + 'px Arial'
+			ctx.lineWidth = 1 * REL_PX
+			ctx.fillText(dt.nText,
+				(dt.x - dt.w / 2) * canvas.width + 5,
+				(dt.y + dt.h / 2) * canvas.height - 3
+			)
+			ctx.fill()
 
+			ctx.lineWidth = 4 * REL_PX
 			switch (dt.n) {
 				//circle
 				case 5:
@@ -139,7 +139,6 @@ function drawDetectedObjects(detectedObjects, ctx, canvas) {
 				case 8:
 				case 9:
 				case 10:
-					// ctx.lineWidth = 4
 					ctx.arc(
 						dt.x * canvas.width + (dt.w * canvas.width) / 2,
 						dt.y * canvas.height + (dt.h * canvas.height) / 2,
@@ -151,11 +150,13 @@ function drawDetectedObjects(detectedObjects, ctx, canvas) {
 					break
 
 				default:
-					ctx.rect(
-						(dt.x-dt.w/2) * canvas.width,
-						(dt.y-dt.h/2) * canvas.height,
+
+					ctx.roundRect(
+						(dt.x - dt.w / 2) * canvas.width,
+						(dt.y - dt.h / 2) * canvas.height,
 						dt.w * canvas.width,
-						dt.h * canvas.height
+						dt.h * canvas.height,
+						5 * REL_PX
 					)
 					ctx.stroke()
 			}
@@ -273,7 +274,7 @@ export default ({
 		}
 	}
 
-	function initCanvas(){
+	function initCanvas() {
 		canvas = ref.current
 		ctx = canvas.getContext('2d')
 

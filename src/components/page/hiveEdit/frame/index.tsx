@@ -3,7 +3,6 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate } from 'react-router-dom'
 import debounce from 'lodash.debounce'
 
-import colors from '@/components/colors'
 import { useMutation, useQuery } from '@/components/api'
 import {
 	getFrameSide,
@@ -16,8 +15,8 @@ import CrownIcon from '@/icons/crownIcon'
 
 import styles from './styles.less'
 import UploadFile from './uploadFile'
-import ResourceEditRow from './resourceEditRow'
 import DrawingCanvas from './drawingCanvas'
+import MetricList from './metricList'
 import LINK_FILE_TO_FRAME from './_api/addFileToFrameSideMutation.graphql'
 import FRAME_SIDE_QUERY from './_api/getFrameFileObjectsQuery.graphql'
 import { getFrameSideFile, updateFrameSideFile } from '@/components/models/frameSideFile'
@@ -34,7 +33,6 @@ export default function Frame({
 	if (!frameId) {
 		return null
 	}
-	let [expanded, expand] = useState(false)
 
 	let { loading: loadingGet, data: frameSideFileRelDetails } = useQuery(
 		FRAME_SIDE_QUERY,
@@ -44,6 +42,8 @@ export default function Frame({
 	if (loadingGet) {
 		return <Loading />
 	}
+
+	let estimatedDetectionTimeSec = frameSideFileRelDetails?.hiveFrameSideFile?.estimatedDetectionTimeSec
 
 	let frameWithFile = useLiveQuery(async function fetchFrameWithFile(){
 		let r1 = await getFrameSide(+frameSideId)
@@ -165,10 +165,6 @@ export default function Frame({
 
 	const [linkFileToFrame] = useMutation(LINK_FILE_TO_FRAME)
 
-	function onResize(key, value) {
-		onFrameSideStatChange(key, Math.round(1 * value))
-	}
-
 	const extraButtons = (
 		<div style={{ display: 'flex' }}>
 			<Button onClick={onFrameClose}>Close</Button>
@@ -191,6 +187,7 @@ export default function Frame({
 		)
 	}
 
+	console.log({frameSide})
 	return (
 		<div className={styles.frame}>
 			<div className={styles.body}>
@@ -202,67 +199,16 @@ export default function Frame({
 					strokeHistory={frameSideFile.strokeHistory}
 					onStrokeHistoryUpdate={onStrokeHistoryUpdate}
 				>
-					<div style={{ display: expanded ? 'block' : 'flex', flexGrow: '1' }}>
-						<ResourceEditRow
-							expanded={expanded}
-							onClick={() => expand(!expanded)}
-							title={'Brood'}
-							color={colors.broodColor}
-							percent={frameSide.broodPercent}
-							onChange={(e) => onResize('broodPercent', e.target.value)}
-						/>
-
-						<ResourceEditRow
-							expanded={expanded}
-							onClick={() => expand(!expanded)}
-							title={'Capped Brood'}
-							color={colors.cappedBroodColor}
-							percent={frameSide.cappedBroodPercent}
-							onChange={(e) => onResize('cappedBroodPercent', e.target.value)}
-						/>
-
-						<ResourceEditRow
-							expanded={expanded}
-							onClick={() => expand(!expanded)}
-							title={'Drone brood'}
-							color={colors.droneBroodColor}
-							percent={frameSide.droneBroodPercent}
-							onChange={(e) => onResize('droneBroodPercent', e.target.value)}
-						/>
-						<ResourceEditRow
-							expanded={expanded}
-							onClick={() => expand(!expanded)}
-							title={'Honey'}
-							color={colors.honeyColor}
-							percent={frameSide.honeyPercent}
-							onChange={(e) => onResize('honeyPercent', e.target.value)}
-						/>
-
-						<ResourceEditRow
-							expanded={expanded}
-							onClick={() => expand(!expanded)}
-							title={'Pollen'}
-							color={colors.pollenColor}
-							percent={frameSide.pollenPercent}
-							onChange={(e) => onResize('pollenPercent', e.target.value)}
-						/>
-
-						{frameSideFile.counts && frameSideFile.counts.map((row)=>{
-							return <div 
-							title={beeTypeMap[row.type]} 
-							style={{padding:'8px 5px'}}>🐝 {row.count}</div>
-						})}
+					<div style={{ display: 'flex', flexGrow: '1' }}>
+						<MetricList 
+							onFrameSideStatChange={onFrameSideStatChange}
+							estimatedDetectionTimeSec={estimatedDetectionTimeSec}
+							frameSideFile={frameSideFile}
+							frameSide={frameSide} />
 					</div>
-
 					{extraButtons}
 				</DrawingCanvas>
 			</div>
 		</div>
 	)
-}
-
-const beeTypeMap = {
-	'BEE_WORKER': 'Worker bees',
-	'BEE_DRONE': 'Drones',
-	'BEE_QUEEN': 'Queen',
 }

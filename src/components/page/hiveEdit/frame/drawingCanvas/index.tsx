@@ -81,7 +81,7 @@ function redrawStrokes(canvas, ctx, strokeHistory) {
 function drawDetectedObjects(detectedObjects, ctx, canvas) {
 	if (detectedObjects.length > 0) {
 		for (let dt of detectedObjects) {
-			ctx.globalAlpha = 0.2 + dt.c
+			ctx.globalAlpha = 0.3 + dt.c
 
 			// ctx.strokeStyle = 'black'
 			// ctx.strokeText(
@@ -128,7 +128,7 @@ function drawDetectedObjects(detectedObjects, ctx, canvas) {
 			ctx.beginPath()
 
 			ctx.font = '12px Arial'
-			ctx.lineWidth = 1
+			ctx.lineWidth = 3
 			ctx.strokeText(dt.nText, dt.x * canvas.width, dt.y * canvas.height - 10)
 
 			switch (dt.n) {

@@ -5,6 +5,7 @@ export default gql`
 		hiveFrameSideFile(frameSideId: $frameSideId) {
 			frameSideId
 			strokeHistory
+			estimatedDetectionTimeSec
 			detectedObjects
 			file{
 				id

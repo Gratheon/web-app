@@ -122,15 +122,15 @@ function drawDetectedObjects(detectedObjects, ctx, canvas) {
 					break
 			}
 
-			ctx.font = Math.floor(13 * REL_PX) + 'px Arial'
-			ctx.lineWidth = 1 * REL_PX
+			ctx.font = Math.floor(8 * REL_PX) + 'px Arial'
+			ctx.lineWidth = 0.8 * REL_PX
 			ctx.fillText(dt.nText,
 				(dt.x - dt.w / 2) * canvas.width + 5,
 				(dt.y + dt.h / 2) * canvas.height - 3
 			)
 			ctx.fill()
 
-			ctx.lineWidth = 4 * REL_PX
+			ctx.lineWidth = 2 * REL_PX
 			switch (dt.n) {
 				//circle
 				case 5:

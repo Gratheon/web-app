@@ -6,7 +6,8 @@ export default gql`
 			frameSideId
 			strokeHistory
 			estimatedDetectionTimeSec
-			detectedObjects
+			detectedBees
+			detectedFrameResources
 			file{
 				id
 				url

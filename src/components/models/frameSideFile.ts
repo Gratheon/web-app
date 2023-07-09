@@ -5,7 +5,8 @@ type FrameSideFile = {
     fileId: number
     frameSideId: number
     strokeHistory: any
-    detectedObjects: any
+    detectedBees: any
+    detectedFrameResources: any
 	counts: any
 }
 export async function getFrameSideFile({frameSideId}):Promise<FrameSideFile>{

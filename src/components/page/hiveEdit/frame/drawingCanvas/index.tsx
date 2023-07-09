@@ -55,16 +55,6 @@ function drawOnCanvas(canvas, ctx, stroke) {
 
 function redrawStrokes(canvas, ctx, strokeHistory) {
 	if (strokeHistory.length === 0) return []
-	// ctx.save()
-
-	// // Calculate the zoomed in/out offset and apply it to the canvas
-	// const zoomedOutOffsetX = cameraOffset.x / cameraZoom
-	// const zoomedOutOffsetY = cameraOffset.y / cameraZoom
-	// ctx.translate(zoomedOutOffsetX, zoomedOutOffsetY)
-
-	// // Set the zoom level
-	// ctx.scale(cameraZoom, cameraZoom)
-
 	strokeHistory.forEach((stroke) => {
 		if (stroke && stroke.length > 0) {
 			ctx.beginPath()
@@ -79,10 +69,61 @@ function redrawStrokes(canvas, ctx, strokeHistory) {
 }
 
 let REL_PX;
-function drawDetectedObjects(detectedObjects, ctx, canvas) {
+function drawDetectedFrameResources(detectedFrameCells, ctx, canvas) {
+	console.log({ detectedFrameCells })
 	REL_PX = canvas.width / 1024
-	if (detectedObjects.length > 0) {
-		for (let dt of detectedObjects) {
+	if (detectedFrameCells.length > 0) {
+		for (let dt of detectedFrameCells) {
+			let cls, probability, x, y, r
+			[cls, x, y, r, probability] = dt
+			ctx.globalAlpha = 0.3 + probability / 100
+
+			ctx.beginPath()
+			switch (cls) {
+				case 0: //'brood-capped':
+					ctx.strokeStyle = colors.cappedBroodColor
+					ctx.fillStyle = colors.cappedBroodColor
+					break
+
+				case 2: //'honey':
+				case 4: //'nectar':
+					ctx.strokeStyle = colors.honeyColor
+					ctx.fillStyle = colors.honeyColor
+					break
+
+				case 3: //brood = Larves
+					ctx.strokeStyle = colors.broodColor
+					ctx.fillStyle = colors.broodColor
+					break
+
+				case 5://empty:
+					ctx.strokeStyle = colors.emptyCellColor
+					ctx.fillStyle = colors.emptyCellColor
+					break
+
+				case 6://'pollen':
+					ctx.strokeStyle = colors.pollenColor
+					ctx.fillStyle = colors.pollenColor
+					break
+			}
+
+			ctx.lineWidth = 2 * REL_PX
+			ctx.arc(
+				x * canvas.width,
+				y * canvas.height,
+				r * canvas.width,
+				0,
+				2 * Math.PI
+			)
+			ctx.fill()
+		}
+		ctx.globalAlpha = 1
+	}
+}
+function drawDetectedBees(detectedBees, ctx, canvas) {
+	REL_PX = canvas.width / 1024
+	if (detectedBees.length > 0) {
+		for (let dt of detectedBees) {
 			ctx.globalAlpha = 0.3 + dt.c
 
 			ctx.beginPath()
@@ -97,29 +138,6 @@ function drawDetectedObjects(detectedObjects, ctx, canvas) {
 					ctx.fillStyle = ctx.strokeStyle = colors.drone
 					dt.nText = 'drone'
 					break
-
-				case 5: //brood
-					ctx.strokeStyle = colors.broodColor
-					ctx.fillStyle = colors.broodColor
-					break
-				case 6: //'brood-capped':
-					ctx.strokeStyle = colors.cappedBroodColor
-					ctx.fillStyle = colors.cappedBroodColor
-					break
-				case 7://'drone-brood-capped':
-					ctx.strokeStyle = colors.droneBroodColor
-					ctx.fillStyle = colors.droneBroodColor
-					break
-				case 8://'pollen':
-					ctx.strokeStyle = colors.pollenColor
-					ctx.fillStyle = colors.pollenColor
-					break
-
-				case 9: //'honey':
-				case 10: //'honey':
-					ctx.strokeStyle = colors.honeyColor
-					ctx.fillStyle = colors.honeyColor
-					break
 			}
 
 			ctx.font = Math.floor(8 * REL_PX) + 'px Arial'
@@ -131,35 +149,14 @@ function drawDetectedObjects(detectedObjects, ctx, canvas) {
 			ctx.fill()
 
 			ctx.lineWidth = 2 * REL_PX
-			switch (dt.n) {
-				//circle
-				case 5:
-				case 6:
-				case 7:
-				case 8:
-				case 9:
-				case 10:
-					ctx.arc(
-						dt.x * canvas.width + (dt.w * canvas.width) / 2,
-						dt.y * canvas.height + (dt.h * canvas.height) / 2,
-						Math.min(dt.w * canvas.width, dt.h * canvas.height) / 2,
-						0,
-						2 * Math.PI
-					)
-					ctx.fill()
-					break
-
-				default:
-
-					ctx.roundRect(
-						(dt.x - dt.w / 2) * canvas.width,
-						(dt.y - dt.h / 2) * canvas.height,
-						dt.w * canvas.width,
-						dt.h * canvas.height,
-						5 * REL_PX
-					)
-					ctx.stroke()
-			}
+			ctx.roundRect(
+				(dt.x - dt.w / 2) * canvas.width,
+				(dt.y - dt.h / 2) * canvas.height,
+				dt.w * canvas.width,
+				dt.h * canvas.height,
+				5 * REL_PX
+			)
+			ctx.stroke()
 		}
 		ctx.globalAlpha = 1
 	}
@@ -190,9 +187,6 @@ function initCanvasSize(
 	canvas,
 	ctx,
 	img,
-	strokeHistory,
-	showDetections,
-	detectedObjects
 ) {
 	// size
 	var width = parseInt(img.width)
@@ -204,15 +198,6 @@ function initCanvasSize(
 	canvas.style.height = `${canvas.height / dpr}px`
 
 	ctx.imageSmoothingEnabled = true
-
-	drawCanvasLayers(
-		canvas,
-		ctx,
-		img,
-		strokeHistory,
-		showDetections,
-		detectedObjects
-	)
 }
 
 function drawCanvasLayers(
@@ -220,16 +205,22 @@ function drawCanvasLayers(
 	ctx,
 	img,
 	strokeHistory,
-	showDetections,
-	detectedObjects
+	showBees,
+	detectedBees,
+	showCells,
+	detectedFrameResources
 ) {
 	// ctx.translate(-window.innerWidth / 2 + cameraOffset.x, -window.innerHeight / 2 + cameraOffset.y)
 
 	ctx.clearRect(0, 0, canvas.width, canvas.height)
 	ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
 
-	if (showDetections) {
-		drawDetectedObjects(detectedObjects, ctx, canvas)
+	if (showCells) {
+		drawDetectedFrameResources(detectedFrameResources, ctx, canvas)
+	}
+
+	if (showBees) {
+		drawDetectedBees(detectedBees, ctx, canvas)
 	}
 
 	if (strokeHistory && strokeHistory.length > 0) {
@@ -240,15 +231,17 @@ function drawCanvasLayers(
 let scrollIndex = 0
 let zoomTransforms = []
 
-export default ({
+export default function DrawingCanvas({
 	children,
 	imageUrl,
 	strokeHistory,
-	detectedObjects,
+	detectedBees,
+	detectedFrameResources,
 	onStrokeHistoryUpdate,
-}) => {
+}) {
 	const ref = useRef(null)
-	const [showDetections, setDetections] = React.useState(true)
+	const [showBees, setBeeVisibility] = React.useState(true)
+	const [showCells, setCellVisibility] = React.useState(true)
 	const [version, setVersion] = React.useState(0)
 
 	// trigger re-draw within useEffect
@@ -278,41 +271,26 @@ export default ({
 		canvas = ref.current
 		ctx = canvas.getContext('2d')
 
-		window.onresize = debounce(() => {
+		function initAndRedraw() {
 			initCanvasSize(
 				canvas,
 				ctx,
-				img,
-				strokeHistory,
-				showDetections,
-				detectedObjects
+				img
 			)
 			drawCanvasLayers(
 				canvas,
 				ctx,
 				img,
 				strokeHistory,
-				showDetections,
-				detectedObjects
+				showBees,
+				detectedBees,
+				showCells,
+				detectedFrameResources
 			)
-		}, 500)
+		}
 
-		initCanvasSize(
-			canvas,
-			ctx,
-			img,
-			strokeHistory,
-			showDetections,
-			detectedObjects
-		)
-		drawCanvasLayers(
-			canvas,
-			ctx,
-			img,
-			strokeHistory,
-			showDetections,
-			detectedObjects
-		)
+		window.onresize = debounce(initAndRedraw, 500)
+		initAndRedraw()
 
 		//drawing
 		for (const ev of ['touchstart', 'mousedown']) {
@@ -437,8 +415,10 @@ export default ({
 			ctx,
 			img,
 			strokeHistory,
-			showDetections,
-			detectedObjects
+			showBees,
+			detectedBees,
+			showCells,
+			detectedFrameResources
 		)
 		function handleScroll(event) {
 			if (!isMousedown) {
@@ -505,21 +485,25 @@ export default ({
 		canvas.removeEventListener('wheel', handleScroll)
 		canvas.addEventListener('wheel', handleScroll)
 		return () => canvas.removeEventListener('wheel', handleScroll)
-	}, [imageUrl, version, showDetections])
+	}, [imageUrl, version, showBees, showCells])
 
 	return (
 		<div>
 			<div style={{ display: 'flex', margin: '3px 0' }}>
 				{children}
-				<Button onClick={clearHistory}>Clear</Button>
-				<Button onClick={undoDraw}>Undo</Button>
 				<Button
 					onClick={() => {
-						setDetections(!showDetections)
+						setBeeVisibility(!showBees)
 					}}
-				>
-					Toggle objects
-				</Button>
+				>Toggle bees</Button>
+				<Button
+					onClick={() => {
+						setCellVisibility(!showCells)
+					}}
+				>Toggle cells</Button>
+
+				<Button onClick={clearHistory}>Clear</Button>
+				<Button onClick={undoDraw}>Undo</Button>
 			</div>
 			<canvas ref={ref} id="container">
 				Sorry, your browser is too old for this demo.

@@ -122,7 +122,8 @@ export default function Frame({
 			fileId: +data.id,
 			frameSideId: +frameSideId,
 			strokeHistory: [],
-			detectedObjects: [],
+			detectedBees: [],
+			detectedFrameResources: [],
 			counts: []
 		});
 	}
@@ -202,8 +203,11 @@ export default function Frame({
 			<div className={styles.body}>
 				<DrawingCanvas
 					imageUrl={file.url}
-					detectedObjects={
-						frameSideFile.detectedObjects ? frameSideFile?.detectedObjects : []
+					detectedBees={
+						frameSideFile.detectedBees ? frameSideFile?.detectedBees : []
+					}
+					detectedFrameResources={
+						frameSideFile.detectedFrameResources ? frameSideFile?.detectedFrameResources : []
 					}
 					strokeHistory={frameSideFile.strokeHistory}
 					onStrokeHistoryUpdate={onStrokeHistoryUpdate}

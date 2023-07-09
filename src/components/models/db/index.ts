@@ -1,8 +1,14 @@
 //@ts-nocheck
 import Dexie from 'dexie'
 import { addCustomIndexes } from './addCustomIndexes'
-export const db = new Dexie('gratheon')
+
+const DB_NAME = 'gratheon'
+export const db = new Dexie(DB_NAME)
 Dexie.debug = 'dexie'
+
+export async function dropDatabase(){
+	return db.delete()
+}
 
 export function syncGraphqlSchemaToIndexDB(schemaObject) {
 	const typeMap = schemaObject.getTypeMap()
@@ -31,7 +37,6 @@ export function syncGraphqlSchemaToIndexDB(schemaObject) {
 	try {
 		addCustomIndexes(dbSchema)
 
-		//console.info('saving schema', dbSchema)
 		db.version(1).stores(dbSchema)
 	} catch (e) {
 		console.error(e)

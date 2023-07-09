@@ -8,9 +8,9 @@ import { getAppUri } from '@/components/uri'
 
 import styles from './styles.less'
 
-const logOut = () => {
-	logout()
-	window.location.href = getAppUri() + '/'
+async function onLogoutClick() {
+	await logout()
+	window.location.href = getAppUri() + '/account/authenticate/'
 }
 
 const Menu = ({ isLoggedIn = false }) => {
@@ -55,7 +55,7 @@ const Menu = ({ isLoggedIn = false }) => {
 					</Link>
 				</li>
 				<li>
-					<a href="#" onClick={logOut}>
+					<a href="#" onClick={onLogoutClick}>
 						Log out
 					</a>
 				</li>

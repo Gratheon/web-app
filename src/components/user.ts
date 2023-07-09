@@ -1,5 +1,5 @@
 import isDev from "./isDev"
-
+import { dropDatabase } from '@/components/models/db/index'
 export function isLoggedIn() {
 	return getCookie('token') !== undefined
 }
@@ -8,7 +8,7 @@ export function getToken() {
 
 	// in live take token from cookie
 	if (typeof document !== 'undefined') {
-		token = getCookie('gratheon_session')
+		token = getCookie('token')
 	}
 
 	return token
@@ -16,21 +16,17 @@ export function getToken() {
 
 export function saveToken(token) {
 	setCookie('token', token, 1)
-	setCookie('gratheon_session', token, 1)
 }
 
-export function logout() {
+export async function logout() {
 	if (typeof document === 'undefined') {
 		return
 	}
 
-	document.cookie.split(';').forEach(function (c) {
-		document.cookie = c
-			.replace(/^ +/, '')
-			.replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/')
-	})
-
+	setCookie('token', '', -1)
 	localStorage.clear()
+
+	await dropDatabase()
 }
 
 function getCookie(name) {

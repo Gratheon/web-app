@@ -45,10 +45,6 @@ export default function MetricList({
 		</div>
 	}
 
-	console.log({
-		frameSideFile
-	})
-
 	let [expanded, expand] = useState(false)
 
 	function onResize(key, value) {

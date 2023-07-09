@@ -12,7 +12,7 @@ export default function () {
 		>
 			<p>No apiaries here yet</p>
 
-			<img height="64" src="assets/flower.png" />
+			<img height="64" src="/assets/flower.png" />
 		</div>
 	)
 }

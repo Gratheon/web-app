@@ -70,7 +70,6 @@ function redrawStrokes(canvas, ctx, strokeHistory) {
 
 let REL_PX;
 function drawDetectedFrameResources(detectedFrameCells, ctx, canvas) {
-	console.log({ detectedFrameCells })
 	REL_PX = canvas.width / 1024
 	if (detectedFrameCells.length > 0) {
 		for (let dt of detectedFrameCells) {

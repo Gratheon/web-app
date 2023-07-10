@@ -7,6 +7,6 @@ export default {
 	emptyCellColor: 'rgb(150,150,150)',
 
 	beeWorker: 'white',
-	drone: 'black',
-	queen: 'yellow',
+	drone: 'blue',
+	queen: 'red',
 }

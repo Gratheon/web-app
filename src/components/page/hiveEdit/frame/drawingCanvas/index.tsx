@@ -128,26 +128,28 @@ function drawDetectedBees(detectedBees, ctx, canvas) {
 			ctx.beginPath()
 			switch (parseInt(dt.n, 10)) {
 				case 0: //bee-worker
-				case 0: //bee-worker
-				case 2: //bee-worker
 					ctx.fillStyle = ctx.strokeStyle = colors.beeWorker
 					dt.nText = 'worker'
+					ctx.lineWidth = 1 * REL_PX
 					break
-				case 1: // drone
+				case 1: 
 					ctx.fillStyle = ctx.strokeStyle = colors.drone
 					dt.nText = 'drone'
+					ctx.lineWidth = 2 * REL_PX
+					break
+				case 2: // bees carrying pollen
+					ctx.fillStyle = ctx.strokeStyle = 'gray'
+					dt.nText = 'worker with pollen'
+					ctx.lineWidth = 1 * REL_PX
+					break
+				case 3:
+					ctx.fillStyle = ctx.strokeStyle = colors.queen
+					dt.nText = 'queen'
+					ctx.lineWidth = 3 * REL_PX
 					break
 			}
 
-			ctx.font = Math.floor(8 * REL_PX) + 'px Arial'
-			ctx.lineWidth = 0.8 * REL_PX
-			ctx.fillText(dt.nText,
-				(dt.x - dt.w / 2) * canvas.width + 5,
-				(dt.y + dt.h / 2) * canvas.height - 3
-			)
-			ctx.fill()
-
-			ctx.lineWidth = 2 * REL_PX
+			
 			ctx.roundRect(
 				(dt.x - dt.w / 2) * canvas.width,
 				(dt.y - dt.h / 2) * canvas.height,
@@ -156,6 +158,14 @@ function drawDetectedBees(detectedBees, ctx, canvas) {
 				5 * REL_PX
 			)
 			ctx.stroke()
+
+			ctx.font = Math.floor(8 * REL_PX) + 'px Arial'
+			ctx.lineWidth = 0.8 * REL_PX
+			ctx.fillText(dt.nText,
+				(dt.x - dt.w / 2) * canvas.width + 5,
+				(dt.y + dt.h / 2) * canvas.height - 3
+			)
+			// ctx.fill()
 		}
 		ctx.globalAlpha = 1
 	}

@@ -118,9 +118,10 @@ function useQueryAdapted(query: string | TypedDocumentNode, options?: any) {
 
 function useSubscriptionAdapted(
 	query: string | TypedDocumentNode,
-	variables?: any
+	variables?: any,
+	handleSubscription?: any
 ) {
-	const [result] = useSubscription({ query, variables })
+	const [result] = useSubscription({ query, variables }, handleSubscription)
 
 	return result
 }

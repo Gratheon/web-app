@@ -494,7 +494,7 @@ export default function DrawingCanvas({
 		canvas.removeEventListener('wheel', handleScroll)
 		canvas.addEventListener('wheel', handleScroll)
 		return () => canvas.removeEventListener('wheel', handleScroll)
-	}, [imageUrl, version, showBees, showCells])
+	}, [imageUrl, version, showBees, showCells, detectedBees, detectedFrameResources])
 
 	return (
 		<div>

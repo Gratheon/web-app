@@ -10,7 +10,14 @@ type FrameSideFile = {
 	counts: any
 }
 export async function getFrameSideFile({frameSideId}):Promise<FrameSideFile>{
-    return await db['framesidefile'].get(+frameSideId)
+    const row = await db['framesidefile'].get(+frameSideId)
+    if(!row.detectedBees){
+        row.detectedBees = []
+    }
+    if(!row.detectedFrameResources){
+        row.detectedFrameResources = []
+    }
+    return row
 }
 
 export async function updateFrameSideFile(data: FrameSideFile){

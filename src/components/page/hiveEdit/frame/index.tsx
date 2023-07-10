@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate } from 'react-router-dom'
 import debounce from 'lodash.debounce'
 
-import { useMutation, useQuery } from '@/components/api'
+import { gql, useMutation, useQuery, useSubscription } from '@/components/api'
 import {
 	getFrameSide,
 	toggleQueen,
@@ -45,7 +45,7 @@ export default function Frame({
 
 	let estimatedDetectionTimeSec = frameSideFileRelDetails?.hiveFrameSideFile?.estimatedDetectionTimeSec
 
-	let frameWithFile = useLiveQuery(async function fetchFrameWithFile(){
+	let frameWithFile = useLiveQuery(async function fetchFrameWithFile() {
 		let r1 = await getFrameSide(+frameSideId)
 		let r2 = r1?.id ? await getFrameSideFile({
 			frameSideId: r1.id,
@@ -60,21 +60,50 @@ export default function Frame({
 	}
 	let { frameSide, frameSideFile, file } = frameWithFile
 
-	if(!frameSide){
+	if (!frameSide) {
 		return <Loading />
 	}
 
-	let [filesStrokeEditMutate] = useMutation(`mutation filesStrokeEditMutation($files: [FilesUpdateInput]) { filesStrokeEditMutation(files: $files) }`)
-	let [frameSideMutate] = useMutation(`mutation updateFrameSide($frameSide: FrameSideInput!) { updateFrameSide(frameSide: $frameSide) }`)
-	let [linkFrameSideToFileMutation, { data: linkFrameSideToFileResult}] = useMutation(
-		`mutation addFileToFrameSide($frameSideID: ID!, $fileID: ID!, $hiveID: ID!) { 
+	let [filesStrokeEditMutate] = useMutation(gql`mutation filesStrokeEditMutation($files: [FilesUpdateInput]) { filesStrokeEditMutation(files: $files) }`)
+	let [frameSideMutate] = useMutation(gql`mutation updateFrameSide($frameSide: FrameSideInput!) { updateFrameSide(frameSide: $frameSide) }`)
+	let [linkFrameSideToFileMutation, { data: linkFrameSideToFileResult }] = useMutation(
+		gql`mutation addFileToFrameSide($frameSideID: ID!, $fileID: ID!, $hiveID: ID!) { 
 			addFileToFrameSide(frameSideId: $frameSideID, fileId: $fileID, hiveId: $hiveID) {
 				estimatedDetectionTimeSec
 			}
 		}`
-		)
+	)
 
-	if(!estimatedDetectionTimeSec) {
+	useSubscription(gql`subscription onFrameSideBeesPartiallyDetected($frameSideId: String){
+			onFrameSideBeesPartiallyDetected(frameSideId:$frameSideId){
+				delta
+			}
+		}`, { frameSideId }, (_, response) => {
+		if (response) {
+			frameSideFile.detectedBees = [
+				...frameSideFile.detectedBees,
+				...response.onFrameSideBeesPartiallyDetected.delta
+			]
+
+			updateFrameSideFile(frameSideFile)
+		}
+	})
+	useSubscription(gql`subscription onFrameSideBeesPartiallyDetected($frameSideId: String){
+			onFrameSideResourcesDetected(frameSideId:$frameSideId){
+				delta
+			}
+		}`, { frameSideId }, (_, response) => {
+		if (response) {
+			frameSideFile.detectedFrameResources = [
+				...frameSideFile.detectedFrameResources,
+				...response.onFrameSideResourcesDetected.delta
+			]
+
+			updateFrameSideFile(frameSideFile)
+		}
+	})
+
+	if (!estimatedDetectionTimeSec) {
 		estimatedDetectionTimeSec = linkFrameSideToFileResult?.addFileToFrameSide?.estimatedDetectionTimeSec
 	}
 
@@ -103,8 +132,8 @@ export default function Frame({
 		[frameSideId]
 	)
 
-	async function onUpload (data) {
-		if(!data){
+	async function onUpload(data) {
+		if (!data) {
 			return;
 		}
 		const { error } = await linkFrameSideToFileMutation({
@@ -148,7 +177,7 @@ export default function Frame({
 	}
 
 	async function onStrokeHistoryUpdate(strokeHistory) {
-		let {error} = filesStrokeEditMutate({
+		let { error } = filesStrokeEditMutate({
 			files: [{
 				frameSideId: frameSide.id,
 				fileId: file.id,
@@ -203,17 +232,13 @@ export default function Frame({
 			<div className={styles.body}>
 				<DrawingCanvas
 					imageUrl={file.url}
-					detectedBees={
-						frameSideFile.detectedBees ? frameSideFile?.detectedBees : []
-					}
-					detectedFrameResources={
-						frameSideFile.detectedFrameResources ? frameSideFile?.detectedFrameResources : []
-					}
+					detectedBees={frameSideFile.detectedBees}
+					detectedFrameResources={frameSideFile.detectedFrameResources}
 					strokeHistory={frameSideFile.strokeHistory}
 					onStrokeHistoryUpdate={onStrokeHistoryUpdate}
 				>
 					<div style={{ display: 'flex', flexGrow: '1' }}>
-						<MetricList 
+						<MetricList
 							onFrameSideStatChange={onFrameSideStatChange}
 							estimatedDetectionTimeSec={estimatedDetectionTimeSec}
 							frameSideFile={frameSideFile}

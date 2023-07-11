@@ -1,5 +1,15 @@
 import isDev from './isDev'
 
+export function subscriptionUri() {
+	let uri = 'wss://subscribe.gratheon.com/graphql'
+
+	if (isDev()) {
+		// event-stream-filter
+		uri = 'ws://' + window.location.host.split(':')[0] + ':8350/graphql'
+	}
+	return uri
+}
+
 export function gatewayUri() {
 	let uri = 'https://graphql.gratheon.com/graphql'
 
@@ -9,6 +19,7 @@ export function gatewayUri() {
 	}
 	return uri
 }
+
 export function uploadUri() {
 	let uri = 'https://image.gratheon.com/graphql'
 

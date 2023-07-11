@@ -12,7 +12,7 @@ import {
 import { multipartFetchExchange } from '@urql/exchange-multipart-fetch'
 
 import { getToken, isLoggedIn } from '@/components/user'
-import { gatewayUri, getAppUri, uploadUri } from '@/components/uri'
+import { gatewayUri, getAppUri, uploadUri, subscriptionUri } from '@/components/uri'
 import { syncGraphqlSchemaToIndexDB } from '@/components/models/db'
 import { writeHooks } from '@/components/models/db/writeHooks'
 
@@ -34,7 +34,7 @@ let lastNetworkError = null
 let lastGraphQLErrors = []
 
 const graphqlWsClient = createClient({
-	url: 'ws://localhost:8350/graphql',
+	url: subscriptionUri(),
 	keepAlive: 5_000,
 	lazy: false,
 	shouldRetry: () => true,

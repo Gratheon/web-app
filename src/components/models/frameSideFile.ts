@@ -11,11 +11,13 @@ type FrameSideFile = {
 }
 export async function getFrameSideFile({frameSideId}):Promise<FrameSideFile>{
     const row = await db['framesidefile'].get(+frameSideId)
-    if(!row.detectedBees){
-        row.detectedBees = []
-    }
-    if(!row.detectedFrameResources){
-        row.detectedFrameResources = []
+    if(row){
+        if(!row.detectedBees){
+            row.detectedBees = []
+        }
+        if(!row.detectedFrameResources){
+            row.detectedFrameResources = []
+        }
     }
     return row
 }

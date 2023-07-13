@@ -128,7 +128,7 @@ export default function Boxes({
 	}
 
 	return (
-		<div style={{ paddingRight: 5, overflow: 'hidden', flexGrow: 3 }}>
+		<div>
 			<div style={{ display: 'flex', marginBottom:1  }}>
 				<Button
 					title="Add box on top"

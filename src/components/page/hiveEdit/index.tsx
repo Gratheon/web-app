@@ -15,6 +15,7 @@ import ErrorGeneral from '@/components/shared/messageErrorGlobal'
 import { getBoxes } from '@/components/models/boxes'
 import { getHive } from '@/components/models/hive'
 import Frame from './frame'
+import styles from './styles.less'
 
 export default function HiveEditForm() {
 	let { apiaryId, hiveId, boxId, frameId, frameSideId } = useParams()
@@ -73,7 +74,8 @@ export default function HiveEditForm() {
 
 			<HiveEditDetails hiveId={hiveId} onError={onError} />
 
-			<div style={{ display: 'flex', padding: '0 20px' }}>
+			<div className={styles.boxesFrameWrap}>
+				<div className={styles.boxesWrap}>
 				<Boxes
 					onError={onError}
 					apiaryId={apiaryId}
@@ -83,8 +85,9 @@ export default function HiveEditForm() {
 					frameId={frameId}
 					frameSideId={frameSideId}
 				/>
+				</div>
 
-				<div style={{flexGrow:1, minWidth: '70%'}}>
+				<div className={styles.frameWrap}>
 					<Frame
 						onError={onError}
 						apiaryId={apiaryId}

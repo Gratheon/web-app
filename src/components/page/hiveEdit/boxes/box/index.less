@@ -13,11 +13,22 @@
 }
 
 .boxType_SUPER {
-	height: 120px;
+	height: 80px;
 }
 
 .boxType_DEEP {
-	height: 240px;
+	height: 100px;
+}
+
+//UI BREAKING POINT
+@media only screen and (min-width: 1200px) {
+	.boxType_SUPER {
+		height: 120px;
+	}
+
+	.boxType_DEEP {
+		height: 240px;
+	}
 }
 
 .selected {

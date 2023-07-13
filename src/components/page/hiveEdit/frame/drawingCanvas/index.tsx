@@ -200,7 +200,12 @@ function initCanvasSize(
 	// size
 	var width = parseInt(img.width)
 	var height = parseInt(img.height)
-	const tmpw = dpr * Math.floor(document.body.clientWidth * 0.7)
+
+	//UI BREAKING POINT
+	const isMobileView = document.body.clientWidth < 1200
+	const sideBarMaxWidth = 420
+	const canvasWidth = isMobileView ?  document.body.clientWidth : document.body.clientWidth - sideBarMaxWidth
+	const tmpw = dpr * Math.floor(canvasWidth)
 	canvas.width = tmpw
 	canvas.height = tmpw * (height / width)
 	canvas.style.width = `${canvas.width / dpr}px`

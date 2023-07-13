@@ -9,10 +9,19 @@ import Menu from './menu'
 import Footer from './footer'
 import Paywall from './page/paywall'
 import { isLoggedIn } from './user'
+import isDev from './isDev'
 
 export default function App() {
 	if (typeof window === 'undefined') {
 		return
+	}
+
+	if(!isDev()){
+		(function(c,l,a,r,i,t,y){
+			c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+			t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+			y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+		})(window, document, "clarity", "script", "hxl3bdiaiq");
 	}
 
 	return (

@@ -57,7 +57,7 @@ export default function Billing({ user }) {
 	) : null
 
 	return (
-		<div>
+		<div style="margin-top:20px;">
 			<h2>Billing</h2>
 
 			{expirationError}

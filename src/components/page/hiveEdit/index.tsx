@@ -28,8 +28,6 @@ export default function HiveEditForm() {
 		data: hiveGet,
 	} = useQuery(HIVE_QUERY, { variables: { id: +hiveId } })
 
-	// let [updateFileStroke] = useMutation(FILE_STROKE_EDIT_MUTATION)
-
 	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId])
 	const boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId])
 

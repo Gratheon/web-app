@@ -45,7 +45,7 @@ export default gql`
 						broodPercent
 						honeyPercent
 						pollenPercent
-						droneBroodPercent
+						eggsPercent
 						cappedBroodPercent
 						queenDetected
 					}
@@ -55,7 +55,7 @@ export default gql`
 						broodPercent
 						honeyPercent
 						pollenPercent
-						droneBroodPercent
+						eggsPercent
 						cappedBroodPercent
 						queenDetected
 					}

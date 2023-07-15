@@ -6,7 +6,7 @@ type FrameSide = {
 	queenDetected?: boolean
 	pollenPercent?: number
 	honeyPercent?: number
-	droneBroodPercent?: number
+	eggsPercent?: number
 	cappedBroodPercent?: number
 	broodPercent?: number
 }
@@ -32,7 +32,7 @@ export async function updateFrameStat(
 	let total =
 		frameSide.broodPercent +
 		frameSide.cappedBroodPercent +
-		frameSide.droneBroodPercent +
+		frameSide.eggsPercent +
 		frameSide.honeyPercent +
 		frameSide.pollenPercent
 
@@ -41,8 +41,8 @@ export async function updateFrameStat(
 		frameSide.cappedBroodPercent = Math.round(
 			(100 * frameSide.cappedBroodPercent) / total
 		)
-		frameSide.droneBroodPercent = Math.round(
-			(100 * frameSide.droneBroodPercent) / total
+		frameSide.eggsPercent = Math.round(
+			(100 * frameSide.eggsPercent) / total
 		)
 		frameSide.honeyPercent = Math.round((100 * frameSide.honeyPercent) / total)
 		frameSide.pollenPercent = Math.round(

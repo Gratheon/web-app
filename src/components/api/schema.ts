@@ -16,7 +16,7 @@ export type FrameSide = {
   queenDetected: boolean
   broodPercent: number
   cappedBroodPercent: number
-  droneBroodPercent: number
+  eggsPercent: number
   pollenPercent: number
   honeyPercent: number
   workerCount: number
@@ -141,7 +141,7 @@ type Apiary {
     file: File
     broodPercent: Int
     cappedBroodPercent: Int
-    droneBroodPercent: Int
+    eggsPercent: Int
     pollenPercent: Int
     honeyPercent: Int
     queenDetected: Boolean!
@@ -163,7 +163,7 @@ type Apiary {
     id: ID
     broodPercent: Int
     cappedBroodPercent: Int
-    droneBroodPercent: Int
+    eggsPercent: Int
     pollenPercent: Int
     honeyPercent: Int
     queenDetected: Boolean!

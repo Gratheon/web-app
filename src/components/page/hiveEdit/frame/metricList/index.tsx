@@ -74,10 +74,10 @@ export default function MetricList({
 			<ResourceEditRow
 				expanded={expanded}
 				onClick={() => expand(!expanded)}
-				title={'Drone brood'}
-				color={colors.droneBroodColor}
-				percent={frameSide.droneBroodPercent}
-				onChange={(e) => onResize('droneBroodPercent', e.target.value)}
+				title={'Eggs'}
+				color={colors.eggsColor}
+				percent={frameSide.eggsPercent}
+				onChange={(e) => onResize('eggsPercent', e.target.value)}
 			/>
 			<ResourceEditRow
 				expanded={expanded}

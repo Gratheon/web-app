@@ -84,15 +84,21 @@ function drawDetectedFrameResources(detectedFrameCells, ctx, canvas) {
 					ctx.fillStyle = colors.cappedBroodColor
 					break
 
+				case 1: //eggs:
+					ctx.strokeStyle = colors.eggsColor
+					ctx.fillStyle = colors.eggsColor
+					break
 				case 2: //'honey':
-				case 4: //'nectar':
 					ctx.strokeStyle = colors.honeyColor
 					ctx.fillStyle = colors.honeyColor
 					break
-
 				case 3: //brood = Larves
 					ctx.strokeStyle = colors.broodColor
 					ctx.fillStyle = colors.broodColor
+					break
+				case 4: //'nectar':
+					ctx.strokeStyle = colors.nectarColor
+					ctx.fillStyle = colors.nectarColor
 					break
 
 				case 5://empty:

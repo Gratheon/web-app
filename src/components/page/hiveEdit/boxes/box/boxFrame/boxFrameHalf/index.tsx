@@ -36,11 +36,11 @@ export default function BoxFrameHalf({ frameSide, className, href }) {
 			<div
 				style={{
 					height: `${
-						frameSide?.droneBroodPercent ? frameSide.droneBroodPercent : 0
+						frameSide?.eggsPercent ? frameSide.eggsPercent : 0
 					}%`,
-					backgroundColor: colors.droneBroodColor,
+					backgroundColor: colors.eggsColor,
 				}}
-				title="Drone brood"
+				title="Eggs"
 			></div>
 
 			<div

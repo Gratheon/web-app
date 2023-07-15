@@ -67,7 +67,7 @@ export default function FrameButtons({ box, onError }) {
 		let position = (await countBoxFrames(boxId)) + 1
 		const {
 			data: {
-				addFrame: { id, left, right },
+				addFrame: { id, leftSide, rightSide },
 			},
 			error,
 		} = await addFrameMutation({
@@ -85,8 +85,8 @@ export default function FrameButtons({ box, onError }) {
 			position,
 			boxId,
 			type,
-			leftId: +left?.id,
-			rightId: +right?.id,
+			leftId: +leftSide?.id,
+			rightId: +rightSide?.id,
 		})
 	}
 

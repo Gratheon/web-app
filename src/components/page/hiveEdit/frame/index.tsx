@@ -215,6 +215,8 @@ export default function Frame({
 		</div>
 	)
 
+	console.log('frameSideFile', frameSideFile)
+	
 	if (!frameSideFile || !file) {
 		return (
 			<div style={{ flexGrow: 10, padding: 15 }}>

@@ -30,7 +30,7 @@ const Bee = ({ position, intervalMs = 3000 }) => {
 	);
 };
 
-export default function Gate({ box, onError }) {
+export default function Gate() {
 	return (
 		<div className={style.gate}>
 			{[...Array(11)].map((_, index) => (

@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router'
 
-import Box from './box'
 // import { isFrameWithSides } from '@/components/models/frames'
 import { useMutation } from '@/components/api'
 import Button from '@/components/shared/button'
@@ -9,9 +8,15 @@ import {
 	addBox,
 	maxBoxPosition
 } from '@/components/models/boxes'
-import AddBoxIcon from '@/icons/addBox'
 
+import AddBoxIcon from '@/icons/addBox'
+import AddSuperIcon from '@/icons/addSuper'
+import GateIcon from '@/icons/gate'
+
+import Gate from './gate'
+import Box from './box'
 import FrameButtons from './box/frameButtons'
+import BoxButtons from './box/boxButtons'
 import styles from './styles.less'
 
 type BoxesProps = {
@@ -86,7 +91,10 @@ export default function Boxes({
 		// match only background div to consider it as a selection to avoid overriding redirect to frame click
 		if (
 			typeof event.target.className === 'string' &&
-			event.target.className.indexOf('boxInner') === 0
+			(
+				event.target.className.indexOf('gate') === 0 ||
+				event.target.className.indexOf('box') === 0
+			)
 		) {
 			event.stopPropagation()
 			navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`, {
@@ -102,26 +110,31 @@ export default function Boxes({
 
 		boxesDivs.push(
 			<div
-				style={{ marginBottom: 15 }}
 				onClick={(event) => {
 					onBoxClick({ event, boxId: box.id })
 				}}
 			>
 				{currentBoxSelected && (
-					<div style={{ height: 35 }}>
-						<FrameButtons onError={onError} box={box} />
+					<div style={{ height: 35, display: 'flex' }}>
+						{box.type != boxTypes.GATE &&
+							<FrameButtons onError={onError} box={box} />
+						}
+						<BoxButtons onError={onError} box={box} />
 					</div>
 				)}
+				<div className={styles.box + ` boxOuterClick`}>
+					{box.type != boxTypes.GATE &&
+						<Box
+							box={box}
+							boxId={boxId}
+							frameId={frameId}
+							frameSideId={frameSideId}
+							hiveId={hiveId}
+							apiaryId={apiaryId}
+						/>
+					}
 
-				<div className={styles.box}>
-					<Box
-						box={box}
-						boxId={boxId}
-						frameId={frameId}
-						frameSideId={frameSideId}
-						hiveId={hiveId}
-						apiaryId={apiaryId}
-					/>
+					{box.type == boxTypes.GATE && <Gate />}
 				</div>
 			</div>
 		)
@@ -129,7 +142,7 @@ export default function Boxes({
 
 	return (
 		<div>
-			<div style={{ display: 'flex', marginBottom:1  }}>
+			<div style={{ display: 'flex', marginBottom: 1 }}>
 				<Button
 					title="Add box on top"
 					className={['small', 'black']}
@@ -138,10 +151,16 @@ export default function Boxes({
 					<AddBoxIcon /> Add deep
 				</Button>
 				<Button
-					title="Add box on top"
+					title="Add super on top"
 					onClick={() => onBoxAdd(boxTypes.SUPER)}
 				>
-					<AddBoxIcon /> Add super
+					<AddSuperIcon /> Add super
+				</Button>
+				<Button
+					title="Add gate"
+					onClick={() => onBoxAdd(boxTypes.GATE)}
+				>
+					<GateIcon /> Add gate
 				</Button>
 			</div>
 			<div>{boxesDivs}</div>

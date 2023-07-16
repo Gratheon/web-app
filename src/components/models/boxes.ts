@@ -6,6 +6,7 @@ let boxes: Box[] = [] // db.get('boxes')
 export const boxTypes = {
 	DEEP: 'DEEP',
 	SUPER: 'SUPER',
+	GATE: 'GATE',
 }
 
 export async function getBox(id: number): Promise<Box> {

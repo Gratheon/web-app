@@ -11,7 +11,7 @@ import ErrorMsg from '@/components/shared/messageError'
 import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
 import Button from '@/components/shared/button'
 import { Box } from '@/components/api/schema'
-
+import { boxTypes } from '@/components/models/boxes'
 const defaultBoxColor = '#ffc848'
 
 export default function HiveCreateForm() {
@@ -23,6 +23,9 @@ export default function HiveCreateForm() {
 			color: `${defaultBoxColor}`,
 		})
 	}
+	defaultBoxes.push({
+		type: boxTypes.GATE
+	})
 
 	const [boxes, setBoxes] = useState(defaultBoxes)
 

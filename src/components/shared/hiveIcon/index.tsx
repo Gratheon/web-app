@@ -82,7 +82,10 @@ export default function HiveIcon({
 				paddingTop: `${size / 2}px`,
 			}
 
-			if (box.type === 'SUPER') {
+			if (box.type === 'GATE') {
+				boxStyle.paddingTop = `${size / 10}px`
+			}
+			else if (box.type === 'SUPER') {
 				boxStyle.paddingTop = `${size / 4}px`
 			} else {
 				boxStyle.paddingTop = `${size / 2}px`
@@ -112,6 +115,10 @@ export default function HiveIcon({
 							color={box.color}
 						/>
 					)}
+
+					{box.type === 'GATE' &&
+						<div className={styles.flightEntrance}></div>
+					}
 				</div>
 			)
 		})
@@ -120,7 +127,6 @@ export default function HiveIcon({
 		<div className={styles.hive} style={hiveStyle}>
 			<div className={styles.roof} style={roofStyle}></div>
 			<div className={styles.boxes}>{visualBoxes}</div>
-			<div className={styles.flightEntrance}></div>
 			<div className={styles.legs} style={legsStyle}></div>
 		</div>
 	)

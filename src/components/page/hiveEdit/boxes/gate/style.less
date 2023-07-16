@@ -1,0 +1,37 @@
+.gate {
+	background: gray;
+	display: flex;
+	justify-content: center;
+	padding: 12px 0 0;
+	position: relative;
+	cursor: pointer;
+}
+
+.bee {
+	width: 14px;
+	position: absolute;
+	animation: fade 6s infinite;
+}
+
+.flip {
+	-webkit-transform: scaleX(-1);
+	transform: scaleX(-1);
+}
+
+@keyframes fade {
+	0% {
+		opacity: 0;
+	}
+
+	10% {
+		opacity: 1;
+	}
+
+	90% {
+		opacity: 1;
+	}
+
+	100% {
+		opacity: 0;
+	}
+}

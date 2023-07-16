@@ -217,7 +217,7 @@ export default function Frame({
 
 	if (!frameSideFile || !file) {
 		return (
-			<div style={{ flexGrow: 10, paddingLeft: 15 }}>
+			<div style={{ flexGrow: 10, padding: 15 }}>
 				{extraButtons}
 				<UploadFile
 					onError={onError}

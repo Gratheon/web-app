@@ -23,10 +23,10 @@ export default function Footer() {
 				<a href={apiUrl}>API</a>
 			</li>
 			<li>
-				<a href="https://gratheon.com/terms">Terms of Use</a>
+				<a href="https://gratheon.com/terms.html">Terms of Use</a>
 			</li>
 			<li>
-				<a href="https://gratheon.com/privacy">Privacy policy</a>
+				<a href="https://gratheon.com/privacy.html">Privacy policy</a>
 			</li>
 		</ul>
 	)

@@ -209,7 +209,7 @@ function initCanvasSize(
 
 	//UI BREAKING POINT
 	const isMobileView = document.body.clientWidth < 1200
-	const sideBarMaxWidth = 420
+	const sideBarMaxWidth = 450
 	const canvasWidth = isMobileView ?  document.body.clientWidth : document.body.clientWidth - sideBarMaxWidth
 	const tmpw = dpr * Math.floor(canvasWidth)
 	canvas.width = tmpw
@@ -525,7 +525,7 @@ export default function DrawingCanvas({
 				<Button onClick={clearHistory}>Clear</Button>
 				<Button onClick={undoDraw}>Undo</Button>
 			</div>
-			<canvas ref={ref} id="container">
+			<canvas ref={ref} id="container" style="width:100%;">
 				Sorry, your browser is too old for this demo.
 			</canvas>
 		</div>

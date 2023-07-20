@@ -12,10 +12,11 @@ import HiveNavigationPanel from './breadcrumbs'
 import ErrorMsg from '@/components/shared/messageError'
 import ErrorGeneral from '@/components/shared/messageErrorGlobal'
 
-import { getBoxes } from '@/components/models/boxes'
+import { boxTypes, getBoxes, getBox } from '@/components/models/boxes'
 import { getHive } from '@/components/models/hive'
 import Frame from './frame'
 import styles from './styles.less'
+import CameraCapture from '@/components/page/hiveEdit/cameraCapture'
 
 export default function HiveEditForm() {
 	let { apiaryId, hiveId, boxId, frameId, frameSideId } = useParams()
@@ -29,6 +30,7 @@ export default function HiveEditForm() {
 	} = useQuery(HIVE_QUERY, { variables: { id: +hiveId } })
 
 	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId])
+	const box = useLiveQuery(() => getBox(+boxId), [boxId])
 	const boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId])
 
 	let errorMsg
@@ -95,6 +97,14 @@ export default function HiveEditForm() {
 						frameSideId={frameSideId}
 					/>
 				</div>
+
+				{box && box.type === boxTypes.GATE &&
+					<div className={styles.gateCameraWrap}>
+						<div style="border:1px solid black;padding:10px;">
+							<CameraCapture />
+						</div>
+					</div>
+				}
 			</div>
 		</div>
 	)

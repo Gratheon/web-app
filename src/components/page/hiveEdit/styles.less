@@ -3,22 +3,29 @@
 	.boxesFrameWrap {
 		padding: '0 20px';
 		position: relative;
-		// overflow: hidden;
+		display: flex;
 	}
 
-	.boxesWrap{
+	.boxesWrap {
 		max-width: 420px;
 		padding-right: 5;
 		overflow: 'hidden';
 	}
 
 	.frameWrap {
-		position: absolute;
-		width: calc(100% - 420px);
-		top: -20px;
-		right: 0;
-		// overflow: scroll;
+		padding-left: 10px;
 		background-color: white;
 		border-radius: 5px 0 0 5px;
+	}
+
+	.gateCameraWrap {
+		padding: 20px;
+		background-color: white;
+		border-radius: 5px 0 0 5px;
+
+		select {
+			padding: 5px;
+			margin: 0 10px;
+		}
 	}
 }

@@ -29,6 +29,15 @@ export function uploadUri() {
 	}
 	return uri
 }
+export function videoUri() {
+	let uri = 'https://video.gratheon.com/upload'
+
+	if (isDev()) {
+		// image-splitter
+		uri = 'http://' + window.location.host.split(':')[0] + ':8900/upload'
+	}
+	return uri
+}
 
 export function getAppUri() {
 	return 'http://' + window.location.host

@@ -13,6 +13,7 @@ const VideoCapture = () => {
   useEffect(() => {
     const checkCameraPermission = async () => {
       try {
+        // @ts-ignore
         const permissionStatus = await navigator.permissions.query({ name: 'camera' });
         setHasCameraPermission(permissionStatus.state === 'granted');
       } catch (error) {
@@ -157,15 +158,8 @@ const VideoCapture = () => {
 
   return (
     <div>
-      <div style="background:#0060d6;color:white;padding:10px;">
-        Run app from the phone. 
-        Position it above hive entrance.
-        Turn on streaming.
-        Use good network connection.
-      </div>
-
       {!hasCameraPermission && (
-        <button onClick={requestPermissions}>Request Camera Permission</button>
+        <button onClick={requestPermissions}>Allow Camera Access</button>
       )}
       {hasCameraPermission && (
         <>
@@ -178,10 +172,10 @@ const VideoCapture = () => {
             ))}
           </select>
           {!isCaptureStarted && (
-            <button onClick={handleCaptureStart}>Start streaming</button>
+            <button onClick={handleCaptureStart}>Start counting</button>
           )}
           {isCaptureStarted && (
-            <button onClick={handleCaptureStop}>Stop streaming</button>
+            <button onClick={handleCaptureStop}>Stop counting</button>
           )}
         </>
       )}

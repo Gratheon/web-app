@@ -12,7 +12,7 @@ import {
 import { multipartFetchExchange } from '@urql/exchange-multipart-fetch'
 
 import { getToken, isLoggedIn } from '@/components/user'
-import { gatewayUri, getAppUri, uploadUri, subscriptionUri } from '@/components/uri'
+import { gatewayUri, getAppUri, imageUploadUrl, subscriptionUri } from '@/components/uri'
 import { syncGraphqlSchemaToIndexDB } from '@/components/models/db'
 import { writeHooks } from '@/components/models/db/writeHooks'
 
@@ -91,11 +91,11 @@ function useMutationAdapted(
 	return [op, result]
 }
 
-function useUploadMutation(query: string | TypedDocumentNode) {
+function useUploadMutation(query: string | TypedDocumentNode, url = imageUploadUrl()) {
 	const [result, op] = useMutation(query)
 	function opWrap(payload) {
 		return op(payload, {
-			url: uploadUri(),
+			url,
 		})
 	}
 	return [opWrap, result]

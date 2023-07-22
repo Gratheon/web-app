@@ -37,7 +37,7 @@ export default function UploadFile({ onUpload, onError }) {
 		//@ts-ignore
 		const { data, error } = await uploadFile({ file })
 
-		if(error) {
+		if (error) {
 			return onError(error);
 		}
 
@@ -84,7 +84,7 @@ export default function UploadFile({ onUpload, onError }) {
 	}
 
 	return (
-		<div style={{ border: '1px dotted black', marginTop:10 }}>
+		<div style={{ border: '1px dotted black', marginTop: 10 }}>
 			<DragAndDrop handleDrop={handleDrop}>
 				<div
 					style={{
@@ -95,30 +95,30 @@ export default function UploadFile({ onUpload, onError }) {
 						flexDirection: 'column'
 					}}
 				>
-					<div style={{flexGrow:1}}></div>
+					<div style={{ flexGrow: 1 }}></div>
 					<div>
-					<input
-						type="file"
-						className={styles.inputfile}
-						id="file"
-						required
-						accept="image/jpg"
-						onChange={onFileSelect}
-					/>
+						<input
+							type="file"
+							className={styles.inputfile}
+							id="file"
+							required
+							accept="image/jpg"
+							onChange={onFileSelect}
+						/>
 
-					<label htmlFor="file" className={styles.fileUploadLabel}>
-						<UploadIcon />
-						Upload frame photo
-					</label>
+						<label htmlFor="file" className={styles.fileUploadLabel}>
+							<UploadIcon />
+							Upload frame photo
+						</label>
 					</div>
 
 					<div style={{
-						flexGrow:1,
+						flexGrow: 1,
 						fontSize: 10,
 						paddingTop: 5,
 						color: 'gray'
 					}}>Detection best works with high-resolution photos (17MP)</div>
-					
+
 
 					{fileList.map((file, i) => (
 						<div key={i}>{file}</div>

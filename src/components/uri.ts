@@ -20,7 +20,7 @@ export function gatewayUri() {
 	return uri
 }
 
-export function uploadUri() {
+export function imageUploadUrl() {
 	let uri = 'https://image.gratheon.com/graphql'
 
 	if (isDev()) {
@@ -29,12 +29,12 @@ export function uploadUri() {
 	}
 	return uri
 }
-export function videoUri() {
-	let uri = 'https://video.gratheon.com/upload'
+export function videoUploadUri() {
+	let uri = 'https://video.gratheon.com/graphql'
 
 	if (isDev()) {
-		// image-splitter
-		uri = 'http://' + window.location.host.split(':')[0] + ':8900/upload'
+		// gate-video-stream
+		uri = 'http://' + window.location.host.split(':')[0] + ':8900/graphql'
 	}
 	return uri
 }

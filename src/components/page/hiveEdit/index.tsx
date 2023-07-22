@@ -125,7 +125,7 @@ export default function HiveEditForm() {
 							Position it above hive entrance. Use green landing board.
 						</div>
 						<div style="border:1px solid black;padding:10px;">
-							<CameraCapture />
+							<CameraCapture boxId={boxId} />
 						</div>
 					</div>
 				}

@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { videoUri } from '@/components/uri'
+import { videoUploadUri } from '@/components/uri'
+import { useUploadMutation, gql } from '@/components/api'
 
-const VideoCapture = () => {
+const VideoCapture = ({ boxId }) => {
   const videoRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
@@ -9,6 +10,12 @@ const VideoCapture = () => {
   const [cameraDevices, setCameraDevices] = useState([]);
   const [selectedCameraDeviceId, setSelectedCameraDeviceId] = useState('');
   const [isCaptureStarted, setIsCaptureStarted] = useState(false);
+
+  const [uploadFile, /*{ loading, error, data }*/] = useUploadMutation(gql`
+  mutation uploadGateVideo($file: Upload!, $boxId: ID!) {
+    uploadGateVideo(file: $file, boxId: $boxId)
+  }
+`, videoUploadUri())
 
   useEffect(() => {
     const checkCameraPermission = async () => {
@@ -81,30 +88,36 @@ const VideoCapture = () => {
       }
     };
 
-    const handleStop = () => {
+    const handleStop = async () => {
       const blob = new Blob(chunksRef.current, { type: 'video/webm' });
       const videoUrl = URL.createObjectURL(blob);
       console.log('Video URL:', videoUrl);
 
       // Upload the video blob to the server using your preferred method
       // For example, using the Fetch API:
-      const formData = new FormData();
-      formData.append('video', blob, 'video.webm');
+      // const formData = new FormData();
+      // formData.append('video', blob, 'video.webm');
 
-      fetch(videoUri(), {
-        method: 'POST',
-        body: formData
+      // fetch(videoUri(), {
+      //   method: 'POST',
+      //   body: formData
+      // })
+      //   .then(response => {
+      //     if (response.ok) {
+      //       console.log('Video uploaded successfully!');
+      //     } else {
+      //       console.error('Video upload failed.');
+      //     }
+      //   })
+      //   .catch(error => {
+      //     console.error('Error occurred during video upload:', error);
+      //   });
+
+      // @ts-ignore
+      const { data, error } = await uploadFile({
+        file: blob,
+        boxId
       })
-        .then(response => {
-          if (response.ok) {
-            console.log('Video uploaded successfully!');
-          } else {
-            console.error('Video upload failed.');
-          }
-        })
-        .catch(error => {
-          console.error('Error occurred during video upload:', error);
-        });
 
       // Reset chunks array for the next capture
       chunksRef.current = [];

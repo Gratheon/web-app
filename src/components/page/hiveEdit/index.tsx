@@ -19,7 +19,7 @@ import { getApiary } from '@/components/models/apiary'
 
 import Frame from './frame'
 import styles from './styles.less'
-import CameraCapture from '@/components/page/hiveEdit/cameraCapture'
+import Gate from '@/components/page/hiveEdit/gate'
 
 export default function HiveEditForm() {
 	let { apiaryId, hiveId, boxId, frameId, frameSideId } = useParams()
@@ -119,15 +119,7 @@ export default function HiveEditForm() {
 				</div>
 
 				{box && box.type === boxTypes.GATE &&
-					<div className={styles.gateCameraWrap}>
-						<div style="background:#0060d6;color:white;padding:10px;">
-							Run app from the phone to stream video over good network connection.
-							Position it above hive entrance. Use green landing board.
-						</div>
-						<div style="border:1px solid black;padding:10px;">
-							<CameraCapture boxId={boxId} />
-						</div>
-					</div>
+					<Gate boxId={boxId} />
 				}
 			</div>
 		</div>

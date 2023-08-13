@@ -1,7 +1,7 @@
 import CameraCapture from '@/components/page/hiveEdit/gate/cameraCapture'
 import { gql, useQuery } from '@/components/api'
 import styles from './styles.less'
-import DashPlayer from './dashPlayer'
+import StreamPlayer from './streamPlayer'
 
 export default function Gate({ boxId }) {
 	let {
@@ -14,7 +14,7 @@ export default function Gate({ boxId }) {
 		videoStreams(boxIds: $boxIds, active: true) {
 			id
 			maxSegment
-			manifest
+			playlistURL
 			startTime
 			endTime
 		}
@@ -24,9 +24,9 @@ export default function Gate({ boxId }) {
 	if (loading) {
 		return null
 	}
-
+console.log(data.videoStreams)
 	if (data.videoStreams?.length > 0) {
-		return <div><DashPlayer manifestBase64={data.videoStreams[0].manifest} /></div>
+		return <div><StreamPlayer playlistURL={data.videoStreams[0].playlistURL} /></div>
 	}
 
 	return (

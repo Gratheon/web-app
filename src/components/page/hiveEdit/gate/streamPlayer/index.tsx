@@ -82,5 +82,5 @@ function ReactHlsPlayer({
 
 export default function StreamPlayer({ playlistURL }) {
   //@ts-ignore
-  return <ReactHlsPlayer src={playlistURL} autoPlay controls={true} />
+  return <ReactHlsPlayer src={playlistURL} autoPlay controls={true} style={{width: "100%" }} />
 }

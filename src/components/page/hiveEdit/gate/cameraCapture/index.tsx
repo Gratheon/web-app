@@ -68,7 +68,7 @@ const VideoCapture = ({ boxId }) => {
 
         mediaRecorderRef.current.start();
 
-        timeoutId = setTimeout(stopVideoCapture, 5000);
+        timeoutId = setTimeout(stopVideoCapture, 10000);
       } catch (error) {
         console.error('Error accessing camera:', error);
       }
@@ -90,28 +90,7 @@ const VideoCapture = ({ boxId }) => {
 
     const handleStop = async () => {
       const blob = new Blob(chunksRef.current, { type: 'video/webm' });
-      const videoUrl = URL.createObjectURL(blob);
-      console.log('Video URL:', videoUrl);
-
-      // Upload the video blob to the server using your preferred method
-      // For example, using the Fetch API:
-      // const formData = new FormData();
-      // formData.append('video', blob, 'video.webm');
-
-      // fetch(videoUri(), {
-      //   method: 'POST',
-      //   body: formData
-      // })
-      //   .then(response => {
-      //     if (response.ok) {
-      //       console.log('Video uploaded successfully!');
-      //     } else {
-      //       console.error('Video upload failed.');
-      //     }
-      //   })
-      //   .catch(error => {
-      //     console.error('Error occurred during video upload:', error);
-      //   });
+      // const videoUrl = URL.createObjectURL(blob);
 
       // @ts-ignore
       const { data, error } = await uploadFile({
@@ -123,7 +102,7 @@ const VideoCapture = ({ boxId }) => {
       chunksRef.current = [];
 
       // Restart the capture after a delay of 5 seconds
-      timeoutId = setTimeout(startVideoCapture, 5000);
+      timeoutId = setTimeout(startVideoCapture, 10000);
     };
 
     if (hasCameraPermission && isCaptureStarted) {

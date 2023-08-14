@@ -1,13 +1,6 @@
-import Hls, { Config } from 'hls.js';
+import Hls from 'hls.js';
 import React, { useEffect, RefObject } from 'react';
 
-
-export interface HlsPlayerProps
-  extends React.VideoHTMLAttributes<HTMLVideoElement> {
-  hlsConfig?: Config;
-  playerRef: RefObject<HTMLVideoElement>;
-  src: string;
-}
 
 function ReactHlsPlayer({
   hlsConfig,
@@ -15,7 +8,7 @@ function ReactHlsPlayer({
   src,
   autoPlay=true,
   ...props
-}: HlsPlayerProps) {
+}) {
   useEffect(() => {
     let hls: Hls;
 
@@ -88,5 +81,6 @@ function ReactHlsPlayer({
 }
 
 export default function StreamPlayer({ playlistURL }) {
+  //@ts-ignore
   return <ReactHlsPlayer src={playlistURL} autoPlay controls={true} />
 }

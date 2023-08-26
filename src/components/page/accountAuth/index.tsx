@@ -71,7 +71,7 @@ export default function AccountAuth() {
 			{errorMsg}
 			<VisualForm onSubmit={onSubmit} style={{ padding: 15 }}>
 				<div>
-					<label htmlFor="email">Email</label>
+					<label htmlFor="email" style="width:100px;">Email</label>
 					<input
 						name="email"
 						type="email"
@@ -82,7 +82,7 @@ export default function AccountAuth() {
 					/>
 				</div>
 				<div>
-					<label htmlFor="password">Password</label>
+					<label htmlFor="password" style="width:100px;">Password</label>
 					<input
 						name="password"
 						id="password"

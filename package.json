@@ -5,9 +5,11 @@
 	"license": "AGPL",
 	"scripts": {
 		"develop": "ENV_ID=dev npm run -s dev",
-		"build": "preact build --no-prerender",
+		"build-clean": "rm -rf public/*",
+		"build": "preact build --src src --template src/index.html --no-prerender --dest build",
+		"build-move": "mv build/* public",
 		"serve": "sirv build --cors --single",
-		"dev": "preact watch",
+		"dev": "./node_modules/.bin/preact watch",
 		"prettier": "prettier --write --ignore-unknown .",
 		"test": "jest --config test/jest.config.ts --runInBand --color",
 		"test:e2e:write": "./node_modules/.bin/cypress open"

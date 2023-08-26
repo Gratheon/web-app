@@ -3,4 +3,6 @@ export NVM_DIR="$HOME/.nvm"
 
 nvm use
 npm install
+npm run build-clean
 npm run build
+npm run build-move

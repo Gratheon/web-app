@@ -6,14 +6,15 @@ stop:
 run:
 	npm run develop
 
-deploy-clean:
-	ssh root@gratheon.com 'rm -rf /www/app.gratheon.com/public/*'
+
+deploy-run:
+	ssh root@gratheon.com 'chmod +x /www/web-app/restart.sh && bash /www/web-app/restart.sh'
+	ssh root@gratheon.com 'bash /www/web-app/restart.sh'
 
 deploy-copy:
-	rsync -av -e ssh ./build/ root@gratheon.com:/www/app.gratheon.com/public/
+	scp -r Dockerfile .version docker-compose.yml restart.sh root@gratheon.com:/www/web-app/
+	rsync -av -e ssh --exclude='node_modules' --exclude='.git'  --exclude='public' ./ root@gratheon.com:/www/web-app/
 
 deploy:
-	rm -rf public/*
-	npm run build
-	make deploy-clean
-	make deploy-copy
+	deploy-copy
+	deploy-run

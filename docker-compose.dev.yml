@@ -1,16 +1,17 @@
 version: '3.9'
 services:
   web-app:
-    build: .
-    command:
-      /app/node_modules/.bin/preact watch
+    image: local/web-app
+    # build: .
+    # command:
+    #   /app/node_modules/.bin/preact watch
     environment:
       - ENV_ID=dev
-    tty: true
+    # tty: true
     ports:
       - 8080:8080
-    volumes:
-      - .:/app/
+    # volumes:
+    #   - .:/app/
     restart: always
     network_mode: bridge
     networks:

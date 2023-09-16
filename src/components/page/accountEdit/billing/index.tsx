@@ -40,7 +40,6 @@ export default function Billing({ user }) {
 
 	async function onCancelSubscription() {
 		const cancelResult = await cancelSubscription()
-		console.log('cancelResult', cancelResult)
 
 		if (!cancelResult.hasSubscription) {
 			user.hasSubscription = cancelResult.hasSubscription

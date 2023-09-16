@@ -10,6 +10,7 @@ import Button from '@/components/shared/button'
 import type { User } from '@/components/models/user'
 import { updateUser, getUser } from '@/components/models/user'
 
+import TokenList from './token_list'
 import Billing from './billing'
 import Invoices from './invoices'
 import md5 from 'md5';
@@ -132,8 +133,12 @@ export default function AccountEdit() {
 					</VisualFormSubmit>
 				</VisualForm>
 			</div>
+
 			<Billing user={user} />
 			<Invoices />
+
+
+			<TokenList />
 		</div>
 	)
 }

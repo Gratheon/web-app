@@ -18,6 +18,7 @@
 		"@edorivai/react-smooth-dnd": "0.11.2",
 		"@urql/exchange-multipart-fetch": "1.0.1",
 		"babel-polyfill": "6.26.0",
+		"clipboard-copy": "4.0.1",
 		"date-fns": "2.29.3",
 		"dexie": "3.2.2",
 		"dexie-react-hooks": "1.1.1",

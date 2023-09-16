@@ -1,8 +1,8 @@
 import React from 'react'
 
 import { gql, useQuery } from '@/components/api'
-import Loading from '../loader'
-import ErrorMsg from '../messageError'
+import Loading from '@/components/shared/loader'
+import ErrorMsg from '@/components/shared/messageError'
 
 type PlantsProps = {
 	lat: number
@@ -60,9 +60,14 @@ export default function Plants({ lat, lng }: PlantsProps) {
 		return <ErrorMsg error={error} />
 	}
 
+	if (!data.plants || data.plants.length == 0) {
+		return
+	}
+
 	return (
 		<div style={{ padding: '0 30px' }}>
 			<h3>Local plants</h3>
+
 			<div style={{ display: 'flex' }}>
 				<div style={{ minWidth: 200, fontSize: 10 }}>
 					{data.plants.map((plant: Plant) => {
@@ -92,17 +97,16 @@ export default function Plants({ lat, lng }: PlantsProps) {
 					})}
 				</div>
 			</div>
-			{data.plants && (
-				<div style={{ fontSize: 10, color: 'gray' }}>
-					Results are based on dataset by AFFOUARD A, JOLY A, LOMBARDO J, CHAMP
-					J, GOEAU H, BONNET P (2022) et al. Pl@ntNet automatically identified
-					occurrences. Version 1.3. Pl@ntNet. via{' '}
-					<i>
-						GBIF.org (31 October 2022) GBIF Occurrence Download
-						https://doi.org/10.15468/dl.dn88uh
-					</i>
-				</div>
-			)}
+
+			<div style={{ fontSize: 10, color: 'gray' }}>
+				Results are based on dataset by AFFOUARD A, JOLY A, LOMBARDO J, CHAMP
+				J, GOEAU H, BONNET P (2022) et al. Pl@ntNet automatically identified
+				occurrences. Version 1.3. Pl@ntNet. via{' '}
+				<i>
+					GBIF.org (31 October 2022) GBIF Occurrence Download
+					https://doi.org/10.15468/dl.dn88uh
+				</i>
+			</div>
 		</div>
 	)
 }

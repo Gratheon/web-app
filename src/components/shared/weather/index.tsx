@@ -16,16 +16,16 @@ export default function Weather({ lat, lng }: { lat: any; lng: any }) {
 		variables: { lat: `${lat}`, lng: `${lng}` },
 	})
 
+	if (loading) {
+		return <Loading />
+	}
+
 	if (!data?.weather) {
 		return <ErrorMsg error={'could not load weather'} />
 	}
 
 	if (error) {
 		return <ErrorMsg error={error} />
-	}
-
-	if (loading) {
-		return <Loading />
 	}
 
 	return (

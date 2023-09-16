@@ -3,6 +3,8 @@ import { db } from './db'
 type Apiary = {
 	id: number
 	name?: string
+	lat?: string
+	lng?: string
 }
 
 export async function getApiary(id: number): Promise<Apiary> {
@@ -14,7 +16,26 @@ export async function getApiary(id: number): Promise<Apiary> {
 	try {
 		return await db['apiary'].get(id)
 	} catch (e) {
-		console.error(e)
+		console.error("failed to read apiary", e)
+		throw e
+	}
+}
+
+export async function updateApiary({
+	id,
+	name,
+	lat,
+	lng
+}: Apiary) {
+	try {
+		await db['apiary'].put({
+			id,
+			name,
+			lat,
+			lng
+		})
+	} catch (e) {
+		console.error("failed to update apiary", e)
 		throw e
 	}
 }

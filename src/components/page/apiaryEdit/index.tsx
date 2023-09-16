@@ -1,6 +1,9 @@
 import React, { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useNavigate } from 'react-router'
+import { useLiveQuery } from 'dexie-react-hooks'
+
+import { getApiary, updateApiary } from '@/components/models/apiary'
 
 import VisualForm from '@/components/shared/visualForm'
 import { gql, useMutation, useQuery } from '@/components/api'
@@ -11,36 +14,57 @@ import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
 import Button from '@/components/shared/button'
 import Map from '@/components/shared/map'
 import Weather from '@/components/shared/weather'
-import Plants from '@/components/shared/plants'
+import Plants from '@/components/page/apiaryEdit/plants'
 
 export default function ApiaryEditForm() {
 	let navigate = useNavigate()
 	let { id } = useParams()
 	let [autoLocate, setAutoLocate] = useState(false)
+	let [name, setName] = useState('')
+	let [lat, setLat] = useState(0)
+	let [lng, setLng] = useState(0)
+
+	let apiary = useLiveQuery(() => getApiary(+id), [id])
+
 	let {
 		loading: loadingGet,
 		error: errorGet,
 		data: apiaryGet,
 	} = useQuery(
 		gql`
-			query apiary($id: ID!) {
-				apiary(id: $id) {
-					id
-					name
-					lat
-					lng
-				}
+		query apiary($id: ID!) {
+			apiary(id: $id) {
+				id
+				name
+				lat
+				lng
 			}
-		`,
+		}
+	`,
 		{ variables: { id } }
 	)
+
+	if (!apiary) {
+		if(loadingGet){
+			return <Loader />
+		}
+		
+		updateApiary({
+			id: +apiaryGet.apiary.id,
+			name: apiaryGet.apiary.name,
+			lat: `${apiaryGet.apiary.lat}`,
+			lng: `${apiaryGet.apiary.lng}`,
+		})
+
+		return <Loader />
+	}
 
 	let [deactivateApiary] = useMutation(gql`
 		mutation deactivateApiary($id: ID!) {
 			deactivateApiary(id: $id)
 		}
 	`)
-	let [updateApiary, { loading, error, data }] = useMutation(gql`
+	let [updateApiaryNetwork, { loading, error, data }] = useMutation(gql`
 		mutation updateApiary($id: ID!, $apiary: ApiaryInput!) {
 			updateApiary(id: $id, apiary: $apiary) {
 				id
@@ -48,15 +72,14 @@ export default function ApiaryEditForm() {
 		}
 	`)
 
-	if (apiaryGet && !this.state.apiary) {
-		this.setState({
-			apiary: apiaryGet.apiary,
-		})
+	// only initial load should set values, otherwise use state
+	if (apiary && name == '') {
+		setName(apiary.name)
+		setLat(+apiary.lat)
+		setLng(+apiary.lng)
 	}
 
-	const apiary = this.state.apiary
-
-	if (!apiary || loading || loadingGet) {
+	if (!apiary || loading) {
 		return <Loader />
 	}
 
@@ -70,27 +93,30 @@ export default function ApiaryEditForm() {
 	function onSubmit(e) {
 		e.preventDefault()
 
-		updateApiary({
+		updateApiaryNetwork({
 			id,
 			apiary: {
-				name: this.state.apiary.name,
-				lat: `${this.state.apiary.lat}`,
-				lng: `${this.state.apiary.lng}`,
+				name,
+				lat: `${lat}`,
+				lng: `${lng}`,
 			},
 		})
+
+		updateApiary({
+			id: +id,
+			name,
+			lat: `${lat}`,
+			lng: `${lng}`,
+		})
+
 	}
 
-	if (errorGet) {
-		return <ErrorMsg error={errorGet} />
-	}
+	// if (errorGet) {
+	// 	return <ErrorMsg error={errorGet} />
+	// }
 
 	function onNameChange(e) {
-		this.setState({
-			apiary: {
-				...this.state.apiary,
-				name: e.target.value,
-			},
-		})
+		setName(e.target.value)
 	}
 
 	let errorMsg
@@ -110,13 +136,13 @@ export default function ApiaryEditForm() {
 			{errorMsg}
 
 			<Map
-				lat={apiary.lat}
-				lng={apiary.lng}
+				lat={lat}
+				lng={lng}
 				autoLocate={autoLocate}
 				onMarkerSet={(coords) => {
 					this.setState({
 						apiary: {
-							...apiaryGet.apiary,
+							...apiary,
 							...coords,
 						},
 					})
@@ -130,12 +156,9 @@ export default function ApiaryEditForm() {
 						name="name"
 						id="name"
 						style={{ width: '100%' }}
-						value={apiary.name}
 						autoFocus
-						onInput={onNameChange.bind(this)}
-						ref={(input) => {
-							this.nameInput = input
-						}}
+						onInput={onNameChange}
+						value={name}
 					/>
 				</div>
 				<div>
@@ -143,7 +166,7 @@ export default function ApiaryEditForm() {
 					<div>
 						<a
 							target="_blank"
-							href={`https://www.google.com/maps/@${apiary.lat},${apiary.lng},16z/data=!3m1!1e3`}
+							href={`https://www.google.com/maps/@${lat},${lng},16z/data=!3m1!1e3`}
 							rel="noreferrer"
 						>
 							Google maps
@@ -173,8 +196,8 @@ export default function ApiaryEditForm() {
 				</VisualFormSubmit>
 			</VisualForm>
 
-			{apiary && <Weather lat={apiary.lat} lng={apiary.lng} />}
-			{apiary && <Plants lat={apiary.lat} lng={apiary.lng} />}
+			{apiary && <Weather lat={lat} lng={lng} />}
+			{apiary && <Plants lat={lat} lng={lng} />}
 		</div>
 	)
 }

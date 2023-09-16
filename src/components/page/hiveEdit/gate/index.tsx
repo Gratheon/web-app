@@ -11,12 +11,13 @@ export default function Gate({ boxId }) {
 		data,
 	} = useQuery(gql`
 	query boxStreams($boxIds: [ID]!) {
-		videoStreams(boxIds: $boxIds, active: true) {
+		videoStreams(boxIds: $boxIds) {
 			id
 			maxSegment
 			playlistURL
 			startTime
 			endTime
+			active
 		}
 	}
 `, { variables: { boxIds: [+boxId] } })
@@ -24,9 +25,16 @@ export default function Gate({ boxId }) {
 	if (loading) {
 		return null
 	}
-console.log(data.videoStreams)
+console.log(data)
 	if (data.videoStreams?.length > 0) {
-		return <div><StreamPlayer playlistURL={data.videoStreams[0].playlistURL} /></div>
+		return <div>
+			<h2>Streams</h2>
+			{data.videoStreams.map((v)=>{
+				return <div>{v.startTime}</div>
+			})}
+
+			<StreamPlayer playlistURL={data.videoStreams[0].playlistURL} />
+		</div>
 	}
 
 	return (

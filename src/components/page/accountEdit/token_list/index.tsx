@@ -90,7 +90,7 @@ const TokenList: React.FC = () => {
 			<Button className='green' onClick={onGenerateToken}>Generate</Button>
 
 
-			<p>Accessing API with token is easy:</p>
+			<p>Using API tokens, you can use <a href="https://github.com/Gratheon/raspberry-pi-client">raspberry PI client</a> or access API directly:</p>
 			<div>
 				<pre style={style} dangerouslySetInnerHTML={{ __html: htmlCode }} />
 			</div>

@@ -11,4 +11,4 @@
 #     restart_container()
 #   ])
 
-local_resource('web-app', cmd='npm install && npm run dev', deps=['package.json'], labels=["app"])
+local_resource('web-app', cmd='npm install', serve_cmd='npm run dev', deps=['package.json'], labels=["app"], allow_parallel=True)

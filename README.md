@@ -1,6 +1,17 @@
 # gratheon / web-app
 
-Single page app for beehive management
+Single page app for beehive management.
+
+## Features
+- manage beehives
+- manage of apiaries (groups of beehives)
+	- display weather apiary is at
+	- display local plants apiary is near to 
+- manage beehive boxes (for vertical types)
+- manage box frames
+- manage frame sides, including image upload
+	- frame side image processing to detect resource distribution
+	- resource distribution visualization
 
 ![Screenshot_20221215_145008](https://user-images.githubusercontent.com/445122/208070865-e9c486bb-84ed-4205-a269-70693016d808.png)
 
@@ -53,7 +64,8 @@ flowchart LR
 |dexie| for storing data to index-db on the client for offline mode|
 
 ## Development
+Although Gratheon app is opensource, you do need to change configuration across all microservices.
 
 ```
-npm run develop
+tilt up
 ```

@@ -3,7 +3,7 @@ import styles from './index.less'
 
 type ButtonProps = {
 	onClick?: any
-	className?: string | string[]
+	className?: string | string[] // small, green
 	style?: any
 	title?: string
 	loading?: boolean

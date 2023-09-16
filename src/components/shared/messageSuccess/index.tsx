@@ -6,7 +6,7 @@ export default ({ title = 'Saved!', message = '' }) => {
 		<div className={styles.successMsg}>
 			<span>🍯</span>
 			<div>
-				<h3>{title}</h3>
+				<strong>{title}</strong>
 				{message && <p>{message}</p>}
 			</div>
 		</div>

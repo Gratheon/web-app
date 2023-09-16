@@ -14,7 +14,7 @@ import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
 import Button from '@/components/shared/button'
 import Map from '@/components/shared/map'
 import Weather from '@/components/shared/weather'
-import Plants from '@/components/page/apiaryEdit/plants'
+import Plants from './plants'
 
 export default function ApiaryEditForm() {
 	let navigate = useNavigate()
@@ -111,10 +111,6 @@ export default function ApiaryEditForm() {
 
 	}
 
-	// if (errorGet) {
-	// 	return <ErrorMsg error={errorGet} />
-	// }
-
 	function onNameChange(e) {
 		setName(e.target.value)
 	}
@@ -140,12 +136,8 @@ export default function ApiaryEditForm() {
 				lng={lng}
 				autoLocate={autoLocate}
 				onMarkerSet={(coords) => {
-					this.setState({
-						apiary: {
-							...apiary,
-							...coords,
-						},
-					})
+					setLat(coords.lat)
+					setLng(coords.lng)
 				}}
 			/>
 

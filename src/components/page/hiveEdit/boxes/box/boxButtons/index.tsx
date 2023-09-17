@@ -6,6 +6,8 @@ import DeleteIcon from '@/icons/deleteIcon'
 
 import { PopupButtonGroup, PopupButton } from '@/components/shared/popupButton'
 import Button from '@/components/shared/button'
+import DownIcon from '@/icons/downIcon'
+import UpIcon from '@/icons/upIcon'
 import { useMutation } from '@/components/api'
 
 import {
@@ -144,9 +146,7 @@ export default function BoxButtons({ box, onError, style="display:flex;" }) {
 					onClick={() => {
 						onMoveDown(+box.id)
 					}}
-				>
-					⬇️
-				</Button>
+				><DownIcon /></Button>
 			)}
 
 			{showUpButton && (
@@ -155,9 +155,7 @@ export default function BoxButtons({ box, onError, style="display:flex;" }) {
 					onClick={() => {
 						onMoveUp(+box.id)
 					}}
-				>
-					⬆️
-				</Button>
+				><UpIcon/></Button>
 			)}
 
 			<Button

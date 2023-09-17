@@ -59,7 +59,7 @@ const TokenList: React.FC = () => {
 	};
 
 	const gate_url = gatewayUri()
-	const htmlCode = `curl --location '${gate_url}' --header 'Content-Type: application/json' \
+	const htmlCode = `curl --location '${gate_url}' --header 'Content-Type: application/json' \\
 --data '{"query":"{ apiaries { id name } }"}' --header 'Authorization: Bearer API_TOKEN_HERE'`;
 
 	const style = "background-color:#babca9; padding:3px 5px; border-radius:3px;font-family:Consolas,Monospace;"

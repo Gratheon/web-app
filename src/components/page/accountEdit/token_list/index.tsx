@@ -59,10 +59,8 @@ const TokenList: React.FC = () => {
 	};
 
 	const gate_url = gatewayUri()
-	const htmlCode = `
-    curl --location '${gate_url}' --data '{"query":"{ apiaries { id name } }"}'
-	--header 'Authorization: Bearer API_TOKEN_HERE' --header 'Content-Type: application/json' 
-  `;
+	const htmlCode = `curl --location '${gate_url}' --header 'Content-Type: application/json'
+--data '{"query":"{ apiaries { id name } }"}' --header 'Authorization: Bearer API_TOKEN_HERE'`;
 
 	const style = "background-color:#babca9; padding:3px 5px; border-radius:3px;font-family:Consolas,Monospace;"
 	return (
@@ -90,7 +88,7 @@ const TokenList: React.FC = () => {
 			<Button className='green' onClick={onGenerateToken}>Generate</Button>
 
 
-			<p>Using API tokens, you can use <a href="https://github.com/Gratheon/raspberry-pi-client">raspberry PI client</a> or access API directly:</p>
+			<p>You can use <a href="https://github.com/Gratheon/raspberry-pi-client">raspberry PI client</a> or access API directly with API tokens:</p>
 			<div>
 				<pre style={style} dangerouslySetInnerHTML={{ __html: htmlCode }} />
 			</div>

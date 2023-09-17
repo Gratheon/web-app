@@ -1,18 +1,23 @@
 import { useNavigate } from 'react-router'
+import { useLiveQuery } from 'dexie-react-hooks'
 
 // import { isFrameWithSides } from '@/components/models/frames'
 import { useMutation } from '@/components/api'
 import Button from '@/components/shared/button'
 import {
 	boxTypes,
+	getBoxes,
 	addBox,
 	maxBoxPosition
 } from '@/components/models/boxes'
+
+import { useQuery } from '@/components/api'
 
 import AddBoxIcon from '@/icons/addBox'
 import AddSuperIcon from '@/icons/addSuper'
 import GateIcon from '@/icons/gate'
 import ErrorMessage from '@/components/shared/messageError'
+import Loader from '@/components/shared/loader'
 
 import Gate from './gate'
 import Box from './box'
@@ -20,9 +25,10 @@ import FrameButtons from './box/frameButtons'
 import BoxButtons from './box/boxButtons'
 import styles from './styles.less'
 
+import BOXES_QUERY from './boxesQuery.graphql'
+
 type BoxesProps = {
 	hiveId: any
-	boxes: any
 	apiaryId: any
 	boxId: any
 	frameId: any
@@ -46,14 +52,24 @@ type BoxesProps = {
 
 export default function Boxes({
 	hiveId,
-	boxes,
 	apiaryId,
 	boxId,
 	frameId,
 	frameSideId,
 	onError,
 }: BoxesProps) {
-	let [addBoxMutation, {error}] =
+
+	const boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId], null)
+
+	if (boxes == null) {
+		return <Loader />
+	}
+
+	if (!boxes) {
+		useQuery(BOXES_QUERY, { variables: { id: +hiveId, apiaryId: +apiaryId } })
+	}
+
+	let [addBoxMutation, { error }] =
 		useMutation(`mutation addBox($hiveId: ID!, $position: Int!, $type: BoxType!) {
 	addBox(hiveId: $hiveId, position: $position, type: $type) {
 		id
@@ -61,6 +77,7 @@ export default function Boxes({
 	}
 }
 `)
+
 	async function onBoxAdd(type) {
 		let position = (await maxBoxPosition(+hiveId)) + 1
 

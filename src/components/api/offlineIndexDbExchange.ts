@@ -208,7 +208,7 @@ async function traverseResponse(
 								{ objType }
 							)
 						} catch (e) {
-							console.error(e)
+							console.error('Error while updating IndexedDB with graphql response for entity ' + tableName, e)
 						}
 					}
 				}

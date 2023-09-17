@@ -21,8 +21,8 @@
 			height: 100px;
 
 			margin-left: 2px;
-			-webkit-animation: spin 1s infinite linear;
-			animation: spin 1s infinite linear;
+			-webkit-animation: spin 1.5s infinite linear;
+			animation: spin 1.5s infinite linear;
 
 			&:after {
 				content: '🐝';
@@ -74,6 +74,24 @@
 			-webkit-animation-delay: 0.15s;
 			animation-delay: 0.15s;
 			transform: rotate(-60deg);
+		}
+	}
+}
+
+.loaderSmall{
+	.sun {
+		font-size: 25px;
+	}
+
+	.bees {
+		> div {
+			width: 50px;
+			height: 50px;
+		}
+
+		.b3{
+			top: 30px;
+			left: 23px;
 		}
 	}
 }

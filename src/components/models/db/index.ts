@@ -44,10 +44,16 @@ export function syncGraphqlSchemaToIndexDB(schemaObject) {
 	}
 }
 
+// Generic function to updated IndexedDB table with graphql response
 export async function upsertEntity(entityName, entity) {
+	if(!entity.id){
+		console.error("Cannot store entity without ID for type " + entityName + '. Did you forget including id in query?', entity)
+		return 
+	}
+
 	entity.id = +entity.id
 
-	try {		
+	try {
 		const ex = await db[entityName].get(entity.id)
 
 		const updatedValue = {

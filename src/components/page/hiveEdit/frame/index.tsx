@@ -196,9 +196,6 @@ export default function Frame({
 	}
 	`)
 
-	console.log(errorFrameRemove)
-	// const [linkFileToFrame] = useMutation(LINK_FILE_TO_FRAME)
-
 	const extraButtons = (
 		<div style={{ display: 'flex' }}>
 			<Button onClick={onFrameClose}>Close</Button>

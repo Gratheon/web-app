@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { useQuery } from '@/components/api'
-import Loader from '@/components/shared/loader'
 import Boxes from './boxes'
 
 import HIVE_QUERY from './_api/hiveQuery.graphql'
@@ -12,7 +11,7 @@ import HiveNavigationPanel from './breadcrumbs'
 import ErrorMsg from '@/components/shared/messageError'
 import ErrorGeneral from '@/components/shared/messageErrorGlobal'
 
-import { boxTypes, getBoxes, getBox } from '@/components/models/boxes'
+import { boxTypes, getBox } from '@/components/models/boxes'
 import { getHive } from '@/components/models/hive'
 import { getApiary } from '@/components/models/apiary'
 
@@ -25,59 +24,56 @@ export default function HiveEditForm() {
 	let { apiaryId, hiveId, boxId, frameId, frameSideId } = useParams()
 	let [error, onError] = useState(null)
 
-	let {
-		loading: loadingGet,
-		error: errorGet,
-		errorNetwork,
-		data: hiveGet,
-	} = useQuery(HIVE_QUERY, { variables: { id: +hiveId } })
+	const apiary = useLiveQuery(() => getApiary(+apiaryId), [apiaryId], null)
+	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId], null)
+	const box = useLiveQuery(() => getBox(+boxId), [boxId], null)
 
-	const apiary = useLiveQuery(() => getApiary(+apiaryId), [apiaryId])
-	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId])
-	const box = useLiveQuery(() => getBox(+boxId), [boxId])
-	const boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId])
-
-	let errorMsg
-
-	// inline error from deeper components
-	if (error) {
-		errorMsg = <ErrorMsg error={error} />
-	}
-	else if (errorGet) {
-		errorMsg = <ErrorMsg error={errorGet} />
-	}
-	else if (errorNetwork) {
-		errorMsg = <ErrorMsg error={errorNetwork} />
-	}
+	const noLocalCache = apiary != null && hive != null
+	let
+		errorGet,
+		errorNetwork
 
 
-	if (!hive || loadingGet) {
-		return <Loader />
+	if ((!apiary || !hive) && noLocalCache) {
+		({
+			error: errorGet,
+			errorNetwork
+		} = useQuery(HIVE_QUERY, { variables: { id: +hiveId, apiaryId: +apiaryId } }))
 	}
 
 	let okMsg
 
-	let breadcrumbs = [
-		{
+	// inline error from deeper components
+	let errorMsg = <ErrorMsg error={error || errorGet || errorNetwork} />
+
+
+	let breadcrumbs = []
+
+	if (apiary) {
+		breadcrumbs[0] = {
 			name: `Apiary ${apiary.name}`,
 			uri: `/apiaries/edit/${apiaryId}`,
-		},
-		{
+		}
+	}
+
+
+	if (hive) {
+		breadcrumbs[1] = {
 			name: `Hive ${hive.name}`,
-			uri: `/apiaries/${apiaryId}/hives/${hive.id}`,
-		},
-	]
+				uri: `/apiaries/${apiaryId}/hives/${hiveId}`,
+		}
+	}
 
 	if (box) {
 		if (box.type === boxTypes.GATE) {
 			breadcrumbs.push({
 				'name': `Entrance #${box.id}`,
-				uri: `/apiaries/${apiaryId}/hives/${hive.id}/box/${box.id}`,
+				uri: `/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`,
 			})
 		} else {
 			breadcrumbs.push({
 				'name': `Box #${box.id}`,
-				uri: `/apiaries/${apiaryId}/hives/${hive.id}/box/${box.id}`,
+				uri: `/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`,
 			})
 		}
 	}
@@ -90,16 +86,16 @@ export default function HiveEditForm() {
 			<ErrorGeneral />
 
 			{okMsg}
+			{errorMsg}
 
 			<HiveEditDetails hiveId={hiveId} />
 
 			<div className={styles.boxesFrameWrap}>
 				<div className={styles.boxesWrap}>
-					<Boxes
+				<Boxes
 						onError={onError}
 						apiaryId={apiaryId}
-						hiveId={hive.id}
-						boxes={boxes}
+						hiveId={hiveId}
 						boxId={boxId}
 						frameId={frameId}
 						frameSideId={frameSideId}

@@ -9,6 +9,7 @@ import { getFrame, getFrames, moveFrame } from '@/components/models/frames'
 import CrownIcon from '@/icons/crownIcon'
 import { isFrameWithSides } from '@/components/models/frames'
 import ErrorMessage from '@/components/shared/messageError'
+import Loader from '@/components/shared/loader'
 
 import styles from './index.less'
 import Frame from './boxFrame'
@@ -33,7 +34,6 @@ export default ({
 	async function swapFrames({ removedIndex, addedIndex }) {
 		await moveFrame({
 			boxId,
-			hiveId,
 			addedIndex,
 			removedIndex
 		})
@@ -92,6 +92,8 @@ export default ({
 					}`}
 			>
 				<div className={styles.boxInner}>
+					{!frames && <Loader small={true} />}
+
 					{/* @ts-ignore */}
 					<Container
 						style={{ height: `calc(100% - 30px)` }}

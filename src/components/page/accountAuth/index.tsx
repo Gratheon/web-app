@@ -67,7 +67,7 @@ export default function AccountAuth() {
 	}
 
 	return (
-		<div style="max-width:400px; padding-top: 200px; margin: auto">
+		<div>
 			{errorMsg}
 			<VisualForm onSubmit={onSubmit} style={{ padding: 15 }}>
 				<div>

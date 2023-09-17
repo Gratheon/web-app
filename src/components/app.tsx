@@ -5,8 +5,6 @@ import { Provider } from 'urql'
 
 import { apiClient } from './api'
 import Page from './page'
-import Menu from './menu'
-import Footer from './footer'
 import Paywall from './page/paywall'
 import { isLoggedIn } from './user'
 import isDev from './isDev'
@@ -64,14 +62,10 @@ export default function App() {
 				// onChangeClientState={(newState) => console.log(newState)}
 			/>
 
-			<div style={{ display: 'flex', flexDirection: 'column' }}>
-				<BrowserRouter>
-					<Menu isLoggedIn={isLoggedIn()} />
-					<Paywall isLoggedIn={isLoggedIn()} />
-					<Page />
-					<Footer />
-				</BrowserRouter>
-			</div>
+			<BrowserRouter>
+				<Paywall isLoggedIn={isLoggedIn()} />
+				<Page />
+			</BrowserRouter>
 		</Provider>
 	)
 }

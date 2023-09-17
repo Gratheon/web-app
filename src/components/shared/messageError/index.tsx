@@ -2,6 +2,7 @@ import React from 'react'
 import styles from './index.less'
 
 export default ({ error }) => {
+	if (!error) return
 	return (
 		<div
 			className={
@@ -9,7 +10,7 @@ export default ({ error }) => {
 			}
 		>
 
-			<h3><span>🐻</span>{typeof error === 'string' ? error : 'API error'}</h3>
+			<h3><span>🐻</span>{typeof error === 'string' ? error : 'Error'}</h3>
 
 			{error?.graphQLErrors &&
 				error.graphQLErrors.map((e, i) => {

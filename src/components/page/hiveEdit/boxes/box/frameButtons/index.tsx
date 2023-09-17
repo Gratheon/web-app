@@ -28,11 +28,6 @@ export default function FrameButtons({ box, onError }) {
 	}
 	`)
 
-	let [removeFrameMutation] = useMutation(`mutation deactivateFrame($id: ID!) {
-		deactivateFrame(id: $id)
-	}
-	`)
-
 	async function onFrameAdd(boxId, type) {
 		let position = (await countBoxFrames(boxId)) + 1
 		const {
@@ -58,10 +53,6 @@ export default function FrameButtons({ box, onError }) {
 			leftId: +leftSide?.id,
 			rightId: +rightSide?.id,
 		})
-	}
-
-	function onFrameRemove() {
-		// removeFrameMutation
 	}
 
 	return (
@@ -102,17 +93,6 @@ export default function FrameButtons({ box, onError }) {
 					}}
 				>
 					partition
-				</Button>
-
-				<Button
-					className="red"
-					title="Delete frame"
-					onClick={() => {
-						// onFrameRemove(box.id, frameId)
-					}}
-				>
-					<DeleteIcon />
-					Delete frame
 				</Button>
 			</PopupButton>
 		</PopupButtonGroup>

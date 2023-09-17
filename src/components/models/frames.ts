@@ -12,14 +12,14 @@ export const frameTypes = {
 }
 
 export async function getFrame(id: number): Promise<Frame> {
-	if(!id) {
+	if (!id) {
 		return null;
 	}
-	
+
 	try {
-		return await db['frame'].get({id})
+		return await db['frame'].get({ id })
 	} catch (e) {
-		console.error(e,{id});
+		console.error(e, { id });
 	}
 }
 
@@ -150,57 +150,117 @@ export async function addFrame({ id, position, boxId, type, leftId, rightId }) {
 	}
 }
 
-/*
-export function moveFrame({
-	hiveId,
+export async function moveFrame({
+	boxId,
 	removedIndex,
 	addedIndex,
-	boxIndex,
 }: {
-	hiveId: number
-	removedIndex: number
-	addedIndex: number
-	boxIndex: number
+	removedIndex: number;
+	addedIndex?: number;
+	boxId: number;
 }) {
-	let tmpFrames = filter(frames, { hiveId, boxIndex })
+	removedIndex++
 
-	tmpFrames.map((v) => {
+	if (addedIndex != null) {
+		addedIndex++
+	}
+
+	let tmpFrames = await getFrames({ boxId: +boxId });
+
+	// remove frame
+	tmpFrames.forEach((v) => {
 		if (v.position === removedIndex) {
-			v.position = -1
+			v.position = -1;
 		}
-	})
+	});
 
-	tmpFrames.map((v) => {
+	// update other frame positions
+	tmpFrames.forEach((v) => {
 		if (v.position !== -1) {
-			if (removedIndex > addedIndex) {
-				if (v.position >= addedIndex) {
-					v.position++
-				}
-
+			if (addedIndex == null) {
 				if (v.position > removedIndex + 1) {
-					v.position--
+					v.position--;
 				}
-			} else {
-				if (v.position >= removedIndex + 1) {
-					v.position--
-				}
-
-				if (v.position >= addedIndex) {
-					v.position++
+			}
+			else {
+				// [|||<-|||x|]
+				if (removedIndex > addedIndex) {
+					if (v.position >= addedIndex) {
+						v.position++;
+					}
+					else if (v.position > removedIndex + 1) {
+						v.position--;
+					}
+					// [||x|->||||]
+				} else {
+					if (v.position >= removedIndex + 1) {
+						v.position--;
+					}
+					else if (v.position >= addedIndex) {
+						v.position++;
+					}
 				}
 			}
 		}
-	})
+	});
 
-	tmpFrames.map((v) => {
-		if (v.position === -1) {
-			v.position = addedIndex
-		}
-	})
+	// add frame back
+	if (addedIndex != null) {
+		tmpFrames.forEach((v) => {
+			if (v.position === -1) {
+				v.position = addedIndex;
+			}
+		});
+	}
 
-	setFrames(tmpFrames, { hiveId, boxIndex })
+	// Update all frames in parallel
+	const updatePromises = tmpFrames.map((v) => updateFrame(v));
+	await Promise.all(updatePromises);
 }
 
+export async function updateFrame(data: Frame) {
+	try {
+		return await db['frame'].put(data)
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
+}
+
+
+export async function removeFrame(frameId, boxId) {
+	try {
+		let frame = await getFrame(+frameId)
+
+		await db['frame'].delete(+frameId)
+
+		// shift positions of other frames
+		await moveFrame({ boxId: +boxId, removedIndex: frame.position })
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
+
+	// let tmpFrames = filter(frames, { hiveId, boxIndex })
+
+	// remove(tmpFrames, {
+	// 	hiveId,
+	// 	position: framePosition,
+	// })
+
+	// map(tmpFrames, (v) => {
+	// 	if (v.position > framePosition) {
+	// 		v.position--
+	// 	}
+	// })
+
+	// setFrames(tmpFrames, {
+	// 	hiveId,
+	// 	boxIndex,
+	// })
+}
+
+/*
 export function setFrameSideProperty({
 	hiveId,
 	boxIndex,

@@ -66,7 +66,7 @@ export async function getBoxes(where = {}): Promise<Box[]> {
 export async function maxBoxPosition(hiveId: number) {
 	try {
 		const box = await db['box'].orderBy('position').last()
-		if(box) return box.position
+		if (box) return box.position
 		else return 0
 	} catch (e) {
 		console.error(e)
@@ -129,8 +129,13 @@ export async function swapBoxPositions(box1: Box, box2: Box) {
 	box1.position = box2.position
 	box2.position = tmp
 
-	await db['box'].put(box1)
-	await db['box'].put(box2)
+	try {
+		await db['box'].put(box1)
+		await db['box'].put(box2)
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
 
 	return true
 }

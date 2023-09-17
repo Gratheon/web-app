@@ -9,9 +9,15 @@ import {
 	toggleQueen,
 	updateFrameStat,
 } from '@/components/models/frameSide'
+import { getFrameSideFile, updateFrameSideFile } from '@/components/models/frameSideFile'
+import { getFile } from '@/components/models/files'
+import { removeFrame } from '@/components/models/frames'
+
 import Button from '@/components/shared/button'
 import Loading from '@/components/shared/loader'
 import CrownIcon from '@/icons/crownIcon'
+import ErrorMessage from '@/components/shared/messageError'
+import DeleteIcon from '@/icons/deleteIcon'
 
 import styles from './styles.less'
 import UploadFile from './uploadFile'
@@ -19,11 +25,8 @@ import DrawingCanvas from './drawingCanvas'
 import MetricList from './metricList'
 import LINK_FILE_TO_FRAME from './_api/addFileToFrameSideMutation.graphql'
 import FRAME_SIDE_QUERY from './_api/getFrameFileObjectsQuery.graphql'
-import { getFrameSideFile, updateFrameSideFile } from '@/components/models/frameSideFile'
-import { getFile } from '@/components/models/files'
 
 export default function Frame({
-	onError,
 	apiaryId,
 	hiveId,
 	boxId,
@@ -64,9 +67,9 @@ export default function Frame({
 		return <Loading />
 	}
 
-	let [filesStrokeEditMutate] = useMutation(gql`mutation filesStrokeEditMutation($files: [FilesUpdateInput]) { filesStrokeEditMutation(files: $files) }`)
-	let [frameSideMutate] = useMutation(gql`mutation updateFrameSide($frameSide: FrameSideInput!) { updateFrameSide(frameSide: $frameSide) }`)
-	let [linkFrameSideToFileMutation, { data: linkFrameSideToFileResult }] = useMutation(
+	let [filesStrokeEditMutate, { error: errorStrokes }] = useMutation(gql`mutation filesStrokeEditMutation($files: [FilesUpdateInput]) { filesStrokeEditMutation(files: $files) }`)
+	let [frameSideMutate, { error: errorFrameSide }] = useMutation(gql`mutation updateFrameSide($frameSide: FrameSideInput!) { updateFrameSide(frameSide: $frameSide) }`)
+	let [linkFrameSideToFileMutation, { data: linkFrameSideToFileResult, error: errorFile }] = useMutation(
 		gql`mutation addFileToFrameSide($frameSideID: ID!, $fileID: ID!, $hiveID: ID!) { 
 			addFileToFrameSide(frameSideId: $frameSideID, fileId: $fileID, hiveId: $hiveID) {
 				estimatedDetectionTimeSec
@@ -113,7 +116,7 @@ export default function Frame({
 				let frameSide2 = await getFrameSide(+frameSideId)
 				frameSide2 = await updateFrameStat(frameSide2, key, percent)
 
-				const { error } = await frameSideMutate({
+				await frameSideMutate({
 					frameSide: {
 						id: frameSide2.id,
 						pollenPercent: frameSide2.pollenPercent,
@@ -124,10 +127,6 @@ export default function Frame({
 						queenDetected: frameSide2.queenDetected,
 					},
 				})
-
-				if (error) {
-					onError(error)
-				}
 			}, 300),
 		[frameSideId]
 	)
@@ -136,15 +135,12 @@ export default function Frame({
 		if (!data) {
 			return;
 		}
-		const { error } = await linkFrameSideToFileMutation({
+
+		await linkFrameSideToFileMutation({
 			frameSideID: frameSideId,
 			fileID: data.id,
 			hiveID: hiveId
 		})
-
-		if (error) {
-			onError(error)
-		}
 
 		await updateFrameSideFile({
 			id: +frameSideId,
@@ -159,7 +155,7 @@ export default function Frame({
 
 	async function onQueenToggle() {
 		frameSide = await toggleQueen(frameSide)
-		const { error } = await frameSideMutate({
+		await frameSideMutate({
 			frameSide: {
 				id: frameSide.id,
 				pollenPercent: frameSide.pollenPercent,
@@ -170,24 +166,16 @@ export default function Frame({
 				queenDetected: frameSide.queenDetected,
 			},
 		})
-
-		if (error) {
-			onError(error)
-		}
 	}
 
 	async function onStrokeHistoryUpdate(strokeHistory) {
-		let { error } = filesStrokeEditMutate({
+		filesStrokeEditMutate({
 			files: [{
 				frameSideId: frameSide.id,
 				fileId: file.id,
 				strokeHistory
 			}]
 		})
-
-		if (error) {
-			onError(error)
-		}
 
 		frameSideFile.strokeHistory = strokeHistory;
 		updateFrameSideFile(
@@ -203,6 +191,12 @@ export default function Frame({
 		})
 	}
 
+	let [removeFrameMutation, {error: errorFrameRemove}] = useMutation(`mutation deactivateFrame($id: ID!) {
+		deactivateFrame(id: $id)
+	}
+	`)
+
+	console.log(errorFrameRemove)
 	// const [linkFileToFrame] = useMutation(LINK_FILE_TO_FRAME)
 
 	const extraButtons = (
@@ -212,19 +206,37 @@ export default function Frame({
 				<CrownIcon fill={frameSide.queenDetected ? 'white' : '#555555'} />
 				Toggle Queen
 			</Button>
+
+			<Button
+				className="red"
+				title="Remove frame"
+				onClick={async () => {
+					if (confirm('Are you sure?')) {
+						await removeFrame(frameId, boxId)
+						await removeFrameMutation({
+							id: frameId
+						})
+
+						navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`, {
+							replace: true,
+						})
+					}
+				}}
+			>
+				<DeleteIcon />
+				Remove frame
+			</Button>
 		</div>
 	)
 
-	console.log('frameSideFile', frameSideFile)
-	
+	const error = <ErrorMessage error={errorFile || errorFrameSide || errorStrokes || errorFrameRemove} />
+
 	if (!frameSideFile || !file) {
 		return (
 			<div style={{ flexGrow: 10, padding: 15 }}>
+				{error}
 				{extraButtons}
-				<UploadFile
-					onError={onError}
-					onUpload={onUpload}
-				/>
+				<UploadFile onUpload={onUpload} />
 			</div>
 		)
 	}
@@ -232,6 +244,7 @@ export default function Frame({
 	return (
 		<div className={styles.frame}>
 			<div className={styles.body}>
+				{error}
 				<DrawingCanvas
 					imageUrl={file.url}
 					detectedBees={frameSideFile.detectedBees}

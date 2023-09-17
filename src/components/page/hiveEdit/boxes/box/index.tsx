@@ -4,9 +4,11 @@ import { Container, Draggable } from '@edorivai/react-smooth-dnd'
 import { useNavigate } from 'react-router-dom'
 import { useLiveQuery } from "dexie-react-hooks";
 
-import { getFrames } from '@/components/models/frames'
+import { useMutation } from '@/components/api'
+import { getFrame, getFrames, moveFrame } from '@/components/models/frames'
 import CrownIcon from '@/icons/crownIcon'
 import { isFrameWithSides } from '@/components/models/frames'
+import ErrorMessage from '@/components/shared/messageError'
 
 import styles from './index.less'
 import Frame from './boxFrame'
@@ -25,6 +27,27 @@ export default ({
 	const frames = useLiveQuery(() => getFrames({
 		boxId: box.id
 	}), [boxId, box]);
+
+	let [updateFramesRemote, { error }] = useMutation(`mutation updateFrames($frames: [FrameInput]) { updateFrames(frames: $frames) { id } }`)
+
+	async function swapFrames({ removedIndex, addedIndex }) {
+		await moveFrame({
+			boxId,
+			hiveId,
+			addedIndex,
+			removedIndex
+		})
+
+		const frames = await getFrames({ boxId })
+		await updateFramesRemote(frames)
+
+		if (!isNil(frameSideId)) {
+			navigate(
+				`/apiaries/${apiaryId}/hives/${hiveId}/box/${box.id}/frame/${frameId}/${frameSideId}`,
+				{ replace: true }
+			)
+		}
+	}
 
 	if (!isNil(frames)) {
 		for (let i = 0; i < frames.length; i++) {
@@ -50,7 +73,7 @@ export default ({
 						boxId={boxId}
 						frameId={frameId}
 						frameSideId={frameSideId}
-						
+
 						hiveId={hiveId}
 						apiaryId={apiaryId}
 						frame={frame}
@@ -61,27 +84,23 @@ export default ({
 	}
 
 	return (
-		<div
-			className={`${styles['boxType_' + box.type]} ${styles.boxOuter} ${
-				+boxId === box.id && styles.selected
-			}`}
-		>
-			<div className={styles.boxInner}>
-				{/* @ts-ignore */}
-				<Container
-					style={{ height: `calc(100% - 30px)` }}
-					onDrop={()=>{
-						if (!isNil(frameSideId)) {
-							navigate(
-								`/apiaries/${apiaryId}/hives/${hiveId}/box/${box.id}/frame/${frameId}/${frameSideId}`,
-								{ replace: true }
-							)
-						}
-					}}
-					orientation="horizontal"
-				>
-					{framesDiv}
-				</Container>
+		<div>
+			<ErrorMessage error={error} />
+
+			<div
+				className={`${styles['boxType_' + box.type]} ${styles.boxOuter} ${+boxId === box.id && styles.selected
+					}`}
+			>
+				<div className={styles.boxInner}>
+					{/* @ts-ignore */}
+					<Container
+						style={{ height: `calc(100% - 30px)` }}
+						onDrop={swapFrames}
+						orientation="horizontal"
+					>
+						{framesDiv}
+					</Container>
+				</div>
 			</div>
 		</div>
 	)

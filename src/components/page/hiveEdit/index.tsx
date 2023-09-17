@@ -89,10 +89,9 @@ export default function HiveEditForm() {
 			/>
 			<ErrorGeneral />
 
-			{errorMsg}
 			{okMsg}
 
-			<HiveEditDetails hiveId={hiveId} onError={onError} />
+			<HiveEditDetails hiveId={hiveId} />
 
 			<div className={styles.boxesFrameWrap}>
 				<div className={styles.boxesWrap}>
@@ -109,7 +108,6 @@ export default function HiveEditForm() {
 
 				<div className={styles.frameWrap}>
 					<Frame
-						onError={onError}
 						apiaryId={apiaryId}
 						boxId={boxId}
 						frameId={frameId}

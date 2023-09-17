@@ -4,7 +4,7 @@ import React from 'react'
 import { useState } from 'react'
 
 import { useUploadMutation, gql } from '@/components/api'
-import ErrorMsg from '@/components/shared/messageError'
+import ErrorMessage from '@/components/shared/messageError'
 import Loader from '@/components/shared/loader'
 
 import UploadIcon from '@/icons/uploadIcon'
@@ -13,7 +13,7 @@ import { updateFile } from '@/components/models/files'
 import DragAndDrop from './dragDrop'
 import styles from './index.less'
 
-export default function UploadFile({ onUpload, onError }) {
+export default function UploadFile({ onUpload }) {
 	//todo
 	//@ts-ignore
 	const [uploadFile, { loading, error, data }] = useUploadMutation(gql`
@@ -38,7 +38,7 @@ export default function UploadFile({ onUpload, onError }) {
 		const { data, error } = await uploadFile({ file })
 
 		if (error) {
-			return onError(error);
+			return;
 		}
 
 		if (!data.uploadFrameSide) {
@@ -55,7 +55,7 @@ export default function UploadFile({ onUpload, onError }) {
 	}
 
 	if (loading) return <Loader />
-	if (error) return <ErrorMsg error={error} />
+	if (error) return <ErrorMessage error={error} />
 
 	if (data && data.uploadFrameSide !== null) {
 		const { uploadFrameSide } = data
@@ -85,6 +85,7 @@ export default function UploadFile({ onUpload, onError }) {
 
 	return (
 		<div style={{ border: '1px dotted black', marginTop: 10 }}>
+			<ErrorMessage error={error} />
 			<DragAndDrop handleDrop={handleDrop}>
 				<div
 					style={{

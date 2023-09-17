@@ -12,6 +12,7 @@ import {
 import AddBoxIcon from '@/icons/addBox'
 import AddSuperIcon from '@/icons/addSuper'
 import GateIcon from '@/icons/gate'
+import ErrorMessage from '@/components/shared/messageError'
 
 import Gate from './gate'
 import Box from './box'
@@ -39,7 +40,6 @@ type BoxesProps = {
 	onFrameSideFileUpload?: any
 	onDragDropFrame?: any
 	onFrameSideStatChange?: any
-	onFrameRemove?: any
 
 	onError: any
 }
@@ -53,7 +53,7 @@ export default function Boxes({
 	frameSideId,
 	onError,
 }: BoxesProps) {
-	let [addBoxMutation] =
+	let [addBoxMutation, {error}] =
 		useMutation(`mutation addBox($hiveId: ID!, $position: Int!, $type: BoxType!) {
 	addBox(hiveId: $hiveId, position: $position, type: $type) {
 		id
@@ -117,7 +117,7 @@ export default function Boxes({
 				{currentBoxSelected && (
 					<div style={{ height: 35, display: 'flex' }}>
 						{box.type != boxTypes.GATE &&
-							<FrameButtons onError={onError} box={box} />
+							<FrameButtons box={box} onError={onError} />
 						}
 						<BoxButtons onError={onError} box={box} />
 					</div>
@@ -142,6 +142,7 @@ export default function Boxes({
 
 	return (
 		<div>
+			<ErrorMessage error={error} />
 			<div style={{ display: 'flex', marginBottom: 1 }}>
 				<Button
 					title="Add box on top"

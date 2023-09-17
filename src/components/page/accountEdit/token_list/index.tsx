@@ -62,7 +62,7 @@ const TokenList: React.FC = () => {
 	const htmlCode = `curl --location '${gate_url}' --header 'Content-Type: application/json' \\
 --data '{"query":"{ apiaries { id name } }"}' --header 'Authorization: Bearer API_TOKEN_HERE'`;
 
-	const style = "background-color:#babca9; padding:3px 5px; border-radius:3px;font-family:Consolas,Monospace;"
+	const style = "background-color:#babca9; padding:3px 5px; border-radius:3px;font-family:Consolas,Monospace;margin:0;"
 	return (
 		<div style="padding:10px">
 			<h3>API tokens</h3>
@@ -89,8 +89,9 @@ const TokenList: React.FC = () => {
 
 
 			<p>You can use <a href="https://github.com/Gratheon/raspberry-pi-client">raspberry PI client</a> or access API directly with API tokens:</p>
-			<div>
-				<pre style={style} dangerouslySetInnerHTML={{ __html: htmlCode }} />
+			<div style="display:flex">
+				<pre style={`${style}flex-grow:1;`} dangerouslySetInnerHTML={{ __html: htmlCode }} />
+				<Button onClick={() => copy(htmlCode)}>Copy</Button>
 			</div>
 		</div>
 	);

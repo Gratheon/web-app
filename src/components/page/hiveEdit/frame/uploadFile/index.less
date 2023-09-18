@@ -22,24 +22,40 @@
 	}
 }
 
+.dropArea {
+	min-height: 300px;
+	min-width: 300px;
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+}
+
+@media only screen and (min-width: 1200px) {
+	.dropArea{
+		min-width: 700px;
+	}
+}
+
+
 //svg{
 //  margin-right:10px;
 //}
 
-.inputfile:focus + label,
-.inputfile + label:hover {
+.inputfile:focus+label,
+.inputfile+label:hover {
 	background-color: #0dbb00;
 }
 
-.inputfile + label {
-	cursor: pointer; /* "hand" cursor */
+.inputfile+label {
+	cursor: pointer;
+	/* "hand" cursor */
 }
 
-.inputfile:focus + label {
+.inputfile:focus+label {
 	outline: 1px dotted #000;
 	outline: -webkit-focus-ring-color auto 5px;
 }
 
-.inputfile + label * {
+.inputfile+label * {
 	pointer-events: none;
 }

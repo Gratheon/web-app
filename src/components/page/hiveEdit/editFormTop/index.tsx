@@ -172,7 +172,7 @@ export default function HiveEditDetails({ hiveId }) {
 		<div>
 			<ErrorMessage error={errorColor || errorHive} />
 			<div style={{ padding: '20px', display: 'flex' }}>
-				<div style={{ width: 68, textAlign: 'center', marginRight: 10 }}>
+				<div style={{ width: 68, textAlign: 'center', marginRight: 6 }}>
 					<HiveIcon onColorChange={onColorChange} boxes={boxes} editable={true} />
 				</div>
 				<VisualForm style="flex-grow:1">
@@ -219,7 +219,6 @@ export default function HiveEditDetails({ hiveId }) {
 						<textarea
 							style={{
 								background: hive.notes ? '#EEE' : 'white',
-								width: 'calc( 100% - 40px )',
 								minHeight: hive.notes ? 32 : 20,
 								padding: 10,
 								borderRadius: 5,

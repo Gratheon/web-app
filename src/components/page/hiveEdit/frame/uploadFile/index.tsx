@@ -87,15 +87,7 @@ export default function UploadFile({ onUpload }) {
 		<div style={{ border: '1px dotted black', marginTop: 10 }}>
 			<ErrorMessage error={error} />
 			<DragAndDrop handleDrop={handleDrop}>
-				<div
-					style={{
-						minHeight: 300,
-						minWidth: 650,
-						display: 'flex',
-						alignItems: 'center',
-						flexDirection: 'column'
-					}}
-				>
+				<div className={styles.dropArea}>
 					<div style={{ flexGrow: 1 }}></div>
 					<div>
 						<input

@@ -161,7 +161,7 @@ export async function moveFrame({
 }) {
 	removedIndex++
 
-	if (addedIndex != null) {
+	if (addedIndex !== null) {
 		addedIndex++
 	}
 
@@ -175,37 +175,19 @@ export async function moveFrame({
 	});
 
 	// update other frame positions
+	let i = 1;
 	tmpFrames.forEach((v) => {
+		if(i == addedIndex){
+			i++ 
+		}
 		if (v.position !== -1) {
-			if (addedIndex == null) {
-				if (v.position > removedIndex + 1) {
-					v.position--;
-				}
-			}
-			else {
-				// [|||<-|||x|]
-				if (removedIndex > addedIndex) {
-					if (v.position >= addedIndex) {
-						v.position++;
-					}
-					else if (v.position > removedIndex + 1) {
-						v.position--;
-					}
-					// [||x|->||||]
-				} else {
-					if (v.position >= removedIndex + 1) {
-						v.position--;
-					}
-					else if (v.position >= addedIndex) {
-						v.position++;
-					}
-				}
-			}
+			v.position = i;
+			i++
 		}
 	});
 
 	// add frame back
-	if (addedIndex != null) {
+	if (addedIndex !== null) {
 		tmpFrames.forEach((v) => {
 			if (v.position === -1) {
 				v.position = addedIndex;

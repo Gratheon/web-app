@@ -42,7 +42,7 @@ export default ({
 		}
 	}
 
-	let [updateFramesRemote, { error }] = useMutation(`mutation updateFrames($frames: [FrameInput]) { updateFrames(frames: $frames) { id } }`)
+	let [updateFramesRemote, { error }] = useMutation(`mutation updateFrames($frames: [FrameInput]!) { updateFrames(frames: $frames) { id } }`)
 
 	async function swapFrames({ removedIndex, addedIndex }) {
 		await moveFrame({
@@ -51,8 +51,17 @@ export default ({
 			removedIndex
 		})
 
-		const frames = await getFrames({ boxId })
-		await updateFramesRemote(frames)
+		const frames = await getFrames({ boxId: +boxId })
+		await updateFramesRemote({frames: frames.map((v)=>{
+			let r = {
+				...v
+			}
+			delete r.rightId
+			delete r.leftId
+			delete r.leftSide
+			delete r.rightSide
+			return r
+		})})
 
 		if (!isNil(frameSideId)) {
 			navigate(

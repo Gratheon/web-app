@@ -30,7 +30,7 @@ export default function deactivateButton({ hiveId }) {
 
 	return (
 		<Button loading={loading} className="red" onClick={deactivate}>
-			<DeleteIcon /> Delete
+			<DeleteIcon />Delete
 		</Button>
 	)
 }

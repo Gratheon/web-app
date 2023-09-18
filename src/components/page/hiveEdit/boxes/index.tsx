@@ -58,15 +58,20 @@ export default function Boxes({
 	frameSideId,
 	onError,
 }: BoxesProps) {
+	let navigate = useNavigate()
 
-	const boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId], null)
+	const boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId], false)
 
-	if (boxes == null) {
+	if (boxes === false) {
 		return <Loader />
 	}
 
-	if (!boxes) {
-		useQuery(BOXES_QUERY, { variables: { id: +hiveId, apiaryId: +apiaryId } })
+	if (boxes?.length == 0) {
+		let { loading } = useQuery(BOXES_QUERY, { variables: { id: +hiveId, apiaryId: +apiaryId } })
+
+		if (loading) {
+			return <Loader />
+		}
 	}
 
 	let [addBoxMutation, { error }] =
@@ -103,7 +108,7 @@ export default function Boxes({
 		})
 	}
 
-	let navigate = useNavigate()
+	
 	function onBoxClick({ event, boxId }) {
 		// match only background div to consider it as a selection to avoid overriding redirect to frame click
 		if (

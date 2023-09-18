@@ -4,7 +4,7 @@ import { Container, Draggable } from '@edorivai/react-smooth-dnd'
 import { useNavigate } from 'react-router-dom'
 import { useLiveQuery } from "dexie-react-hooks";
 
-import { useMutation } from '@/components/api'
+import { useMutation, useQuery } from '@/components/api'
 import { getFrame, getFrames, moveFrame } from '@/components/models/frames'
 import CrownIcon from '@/icons/crownIcon'
 import { isFrameWithSides } from '@/components/models/frames'
@@ -13,6 +13,7 @@ import Loader from '@/components/shared/loader'
 
 import styles from './index.less'
 import Frame from './boxFrame'
+import FRAMES_QUERY from './framesQuery.graphql'
 
 export default ({
 	box,
@@ -26,8 +27,20 @@ export default ({
 	const framesDiv = []
 
 	const frames = useLiveQuery(() => getFrames({
-		boxId: box.id
-	}), [boxId, box]);
+		boxId: +box.id
+	}), [boxId, box], false);
+
+	if (frames === false) {
+		return <Loader />
+	}
+
+	if (frames?.length == 0) {
+		let { loading } = useQuery(FRAMES_QUERY, { variables: { id: +hiveId, apiaryId: +apiaryId } })
+
+		if (loading) {
+			return <Loader />
+		}
+	}
 
 	let [updateFramesRemote, { error }] = useMutation(`mutation updateFrames($frames: [FrameInput]) { updateFrames(frames: $frames) { id } }`)
 

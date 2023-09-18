@@ -22,7 +22,7 @@ export const writeHooks = {
 		if (frame.rightSide) {
 			value.rightId = +frame.rightSide?.id
 		}
-
+		
 		await upsertEntity('frame', value)
 	},
 	FrameSide: async ({ id }, frameside:FrameSide) => {

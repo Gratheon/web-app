@@ -14,6 +14,7 @@ import ErrorGeneral from '@/components/shared/messageErrorGlobal'
 import { boxTypes, getBox } from '@/components/models/boxes'
 import { getHive } from '@/components/models/hive'
 import { getApiary } from '@/components/models/apiary'
+import Loader from '@/components/shared/loader'
 
 
 import Frame from './frame'
@@ -28,17 +29,25 @@ export default function HiveEditForm() {
 	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId], null)
 	const box = useLiveQuery(() => getBox(+boxId), [boxId], null)
 
-	const noLocalCache = apiary != null && hive != null
-	let
+	// wait for local cache
+	if(apiary ===null || hive === null){
+		return <Loader/>
+	}
+	let loading,
 		errorGet,
 		errorNetwork
 
-
-	if ((!apiary || !hive) && noLocalCache) {
+	// if local cache is empty - query
+	if (!apiary || !hive) {
 		({
+			loading,
 			error: errorGet,
 			errorNetwork
 		} = useQuery(HIVE_QUERY, { variables: { id: +hiveId, apiaryId: +apiaryId } }))
+
+		if (loading) {
+			return <Loader />
+		}
 	}
 
 	let okMsg

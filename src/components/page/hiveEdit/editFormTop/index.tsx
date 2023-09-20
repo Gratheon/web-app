@@ -6,6 +6,7 @@ import VisualForm from '@/components/shared/visualForm'
 import HiveIcon from '@/components/shared/hiveIcon'
 import DeactivateButton from '../deleteButton'
 import QueenColor from './queenColor'
+import styles from './styles.less'
 
 import { useMutation } from '@/components/api'
 import { updateHive, getHive } from '@/components/models/hive'
@@ -205,7 +206,7 @@ export default function HiveEditDetails({ hiveId }) {
 							id="queenYear"
 							minLength={4}
 							maxLength={4}
-							style={{ width: 40 }}
+							className={styles.year}
 							placeholder="year"
 							value={family ? family.added : ''}
 							onInput={onQueenYearChange}
@@ -217,13 +218,8 @@ export default function HiveEditDetails({ hiveId }) {
 					<div>
 						<label htmlFor="notes">Notes</label>
 						<textarea
-							style={{
-								background: hive.notes ? '#EEE' : 'white',
-								minHeight: hive.notes ? 32 : 20,
-								padding: 10,
-								borderRadius: 5,
-								border: '1px solid gray',
-							}}
+							className={styles.notes}
+							style={{ background: hive.notes ? '#EEE' : 'white', minHeight: hive.notes ? 32 : 20}}
 							name="notes"
 							id="notes"
 							placeholder="Notes"

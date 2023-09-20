@@ -14,6 +14,7 @@ import InspectionView from './inspectionView'
 import AccountEdit from './accountEdit'
 import AccountAuth from './accountAuth'
 import AccountRegister from './accountRegister'
+import Grafana from './grafana'
 
 function LoggedInPage({ children }) {
 	return <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -44,6 +45,8 @@ export default function Page() {
 				<Route path="/apiaries/" element={<LoggedInPage><ApiaryList /></LoggedInPage>} />
 
 				<Route path="/apiaries/:id/hives/add" element={<LoggedInPage><HiveCreateForm /></LoggedInPage>} />
+				<Route path="/analytics" element={<LoggedInPage><Grafana /></LoggedInPage>} />
+				
 				<Route
 					path="/apiaries/:apiaryId/hives/:hiveId"
 					element={<LoggedInPage><HiveEditView /></LoggedInPage>}

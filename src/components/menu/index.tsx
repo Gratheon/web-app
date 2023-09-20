@@ -55,6 +55,11 @@ const Menu = ({ isLoggedIn = false }) => {
 					</Link>
 				</li>
 				<li>
+					<Link activeClassName={styles.active} to="/analytics">
+						Analytics
+					</Link>
+				</li>
+				<li>
 					<a href="#" onClick={onLogoutClick}>
 						Log out
 					</a>

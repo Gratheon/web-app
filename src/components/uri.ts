@@ -1,5 +1,15 @@
 import isDev from './isDev'
 
+export function grafanaUri() {
+	let uri = 'https://grafana.gratheon.com/'
+
+	if (isDev()) {
+		// event-stream-filter
+		uri = 'http://' + window.location.host.split(':')[0] + ':9000/'
+	}
+	return uri
+}
+
 export function subscriptionUri() {
 	let uri = 'wss://subscribe.gratheon.com/graphql'
 

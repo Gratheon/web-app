@@ -58,7 +58,7 @@ export default function AccountAuth() {
 		//@ts-ignore
 		window.location = getAppUri() + '/'
 		return <Loader />
-	} else if (data?.login?.code) {
+	} else if (data?.login?.code === 'INVALID_USERNAME_PASSWORD') {
 		errorMsg = <ErrorMsg error="Invalid email or password" />
 	}
 

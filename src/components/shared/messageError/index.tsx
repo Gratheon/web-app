@@ -3,14 +3,20 @@ import styles from './index.less'
 
 export default ({ error }) => {
 	if (!error) return
-	return (
-		<div
-			className={
-				error?.graphQLErrors ? styles.errorMsgBig : styles.errorMsgSmall
-			}
-		>
 
-			<h3><span>🐻</span>{typeof error === 'string' ? error : 'Error'}</h3>
+	if(error?.response?.status >= 500){
+		return (
+			<div className={ error?.graphQLErrors ? styles.errorMsgBig : styles.errorMsgSmall }>
+				<h3><span>🐻</span> Server error</h3>
+				<p>Looks like our platform is unavailable</p>
+
+			</div>
+		)
+	}
+
+	return (
+		<div className={ error?.graphQLErrors ? styles.errorMsgBig : styles.errorMsgSmall }>
+			<h3><span>🐻</span> {typeof error === 'string' ? error : 'Error'}</h3>
 
 			{error?.graphQLErrors &&
 				error.graphQLErrors.map((e, i) => {

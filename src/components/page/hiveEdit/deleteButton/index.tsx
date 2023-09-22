@@ -29,8 +29,8 @@ export default function deactivateButton({ hiveId }) {
 	}
 
 	return (
-		<Button loading={loading} className="red" onClick={deactivate} title="Delete">
-			<DeleteIcon /><span>Delete</span>
+		<Button loading={loading} className="red" onClick={deactivate} title="Delete hive">
+			<DeleteIcon /><span>Delete hive</span>
 		</Button>
 	)
 }

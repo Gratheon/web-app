@@ -1,4 +1,6 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
+
 import styles from './index.less'
 
 type ButtonProps = {
@@ -9,6 +11,7 @@ type ButtonProps = {
 	loading?: boolean
 	type?: 'button' | 'submit' | 'reset' | undefined
 	children?: any
+	href?: string|null
 }
 
 export default function Button({
@@ -19,7 +22,10 @@ export default function Button({
 	type = 'button',
 	onClick = () => {},
 	children = null,
+	href = null
 }: ButtonProps) {
+	let navigate = useNavigate()
+
 	let classNames = []
 	if (typeof className === 'string') {
 		classNames = [styles[className]]
@@ -27,6 +33,12 @@ export default function Button({
 		// @ts-ignore
 		for (const v of className) {
 			classNames.push(styles[`${styles[v]}`])
+		}
+	}
+
+	if(href !== null){
+		onClick=()=>{
+			navigate(href, { replace: true })
 		}
 	}
 

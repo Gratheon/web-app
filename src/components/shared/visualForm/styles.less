@@ -1,23 +1,36 @@
 @import '../../colors';
 
 .form {
-	display: block;
+	// display: table;
+	width: 100%;
+	table-layout: fixed;
+	box-sizing: border-box;
+	border-collapse: separate;
 
-	& > div {
-		display: flex;
+	&>div {
+		display: grid;
+		grid-template-columns: auto 1fr;
 		padding: 2px;
+		box-sizing: border-box;
 
-		& > label {
-			display: inline-block;
+		&>label {
+			display: table-cell;
 			vertical-align: middle;
-			min-width: 50px;
 			padding: 7px;
+			box-sizing: border-box;
+			width: 100px;
 		}
 
-		& > input {
-			padding: 0 5px;
-			//margin: 0 5px;
-			//height: 30px;
+		input{
+			padding: 6px 10px;
+		}
+		
+		&>input,
+		&>div {
+			display: table-cell;
+			margin: 0 0 3px 0;
+			width: 100%;
+			box-sizing: border-box;
 		}
 	}
 }

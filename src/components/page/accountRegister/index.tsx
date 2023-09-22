@@ -75,40 +75,39 @@ export default function AccountRegister() {
 	}
 
 	return (
-		<div>
+		<div style={{ padding: 15, width: '300px' }}>
 			{errorMsg}
-			<VisualForm onSubmit={onSubmit} style={{ padding: 15 }}>
+			<VisualForm onSubmit={onSubmit}>
 				<div>
-					<label htmlFor="email" style="width:100px;">Email</label>
+					<label htmlFor="email">Email</label>
 					<input
 						name="email"
 						type="email"
 						id="email"
-						style={{ width: '100%' }}
 						autoFocus
 						value={account.email}
 						onInput={onInput}
 					/>
 				</div>
 				<div>
-					<label htmlFor="password" style="width:100px;">Password</label>
+					<label htmlFor="password">Password</label>
 					<input
 						name="password"
 						id="password"
 						type="password"
-						style={{ width: '100%' }}
 						autoFocus
 						value={account.password}
 						onInput={onInput}
 					/>
 				</div>
-				<div style={{ display: 'flex' }}>
+			</VisualForm>
+
+			<div style={{ display: 'flex' }}>
 					<div style={{ flexGrow: 1 }}></div>
-					<Button type="submit" className="green">
+					<Button type="submit" className="green" onClick={onSubmit}>
 						Register
 					</Button>
 				</div>
-			</VisualForm>
 		</div>
 	)
 }

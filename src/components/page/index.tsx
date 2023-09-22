@@ -17,7 +17,7 @@ import AccountRegister from './accountRegister'
 import Grafana from './grafana'
 
 function LoggedInPage({ children }) {
-	return <div style={{ display: 'flex', flexDirection: 'column' }}>
+	return <div style={{ display: 'flex', flexDirection: 'column', height:"100%" }}>
 		<Menu isLoggedIn={isLoggedIn()} />
 		<div style={{ flex: 1 }}>
 			{children}
@@ -27,8 +27,8 @@ function LoggedInPage({ children }) {
 }
 
 function ModalPage({ children }) {
-	return <div style="max-width:400px; padding-top: 200px; margin: auto;">
-		<img src="/assets/logo_v5.svg" style="width:60px;  display: block;margin-left: auto;margin-right: auto;" draggable={false} />
+	return <div style="max-width:300px; padding-top: 200px; margin: auto;">
+		<img src="/assets/logo_v5.svg" style="width:60px;  display: block; margin-left: auto;margin-right: auto;" draggable={false} />
 		{children}
 	</div>
 }

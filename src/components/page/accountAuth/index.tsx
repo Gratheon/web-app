@@ -67,38 +67,37 @@ export default function AccountAuth() {
 	}
 
 	return (
-		<div>
+		<div style={{ padding: 15, width: '300px' }}>
 			{errorMsg}
-			<VisualForm onSubmit={onSubmit} style={{ padding: 15 }}>
+			<VisualForm onSubmit={onSubmit}>
 				<div>
-					<label htmlFor="email" style="width:100px;">Email</label>
+					<label htmlFor="email">Email</label>
 					<input
 						name="email"
 						type="email"
 						id="email"
-						style={{ width: '100%' }}
 						value={account.email}
 						onChange={onInput}
 					/>
 				</div>
 				<div>
-					<label htmlFor="password" style="width:100px;">Password</label>
+					<label htmlFor="password">Password</label>
 					<input
 						name="password"
 						id="password"
 						type="password"
-						style={{ width: '100%' }}
 						value={account.password}
 						onChange={onInput}
 					/>
 				</div>
-				<div style={{ display: 'flex' }}>
-					<div style={{ flexGrow: 1 }}></div>
-					<Button type="submit" className="green">
-						Login
-					</Button>
-				</div>
 			</VisualForm>
+
+			<div style={{ display: 'flex' }}>
+				<div style={{ flexGrow: 1 }}></div>
+				<Button type="submit" className="green" onClick={onSubmit}>
+					Login
+				</Button>
+			</div>
 		</div>
 	)
 }

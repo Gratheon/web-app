@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import copy from 'clipboard-copy';
+
 import Button from '@/components/shared/button';
 import { gql, useQuery, useMutation } from '@/components/api/index'
 import Loader from '@/components/shared/loader'
@@ -59,10 +60,12 @@ const TokenList: React.FC = () => {
 	};
 
 	const gate_url = gatewayUri()
-	const htmlCode = `curl --location '${gate_url}' --header 'Content-Type: application/json' \\
---data '{"query":"{ apiaries { id name } }"}' --header 'Authorization: Bearer API_TOKEN_HERE'`;
+	const htmlCode = `curl --location '${gate_url}' \\
+--header 'Content-Type: application/json' \\
+--data '{"query":"{ apiaries { id name } }"}' \\
+--header 'Authorization: Bearer API_TOKEN_HERE'`;
 
-	const style = "background-color:#babca9; padding:3px 5px; border-radius:3px;font-family:Consolas,Monospace;margin:0;"
+	const style = "background-color:#babca9; font-size:12px;padding:3px 5px; border-radius:3px;font-family:Consolas,Monospace;margin:0;"
 	return (
 		<div style="padding:10px">
 			<h3>API tokens</h3>
@@ -72,7 +75,7 @@ const TokenList: React.FC = () => {
 				<tbody>
 					{tokens.map((token) => (
 						<tr key={token.id}>
-							<td style="min-width:300px">
+							<td style="min-width:200px">
 								<div style={style}>
 									{hiddenTokens.includes(token.id) ? '*'.repeat(token.token.length) : token.token}
 								</div>
@@ -87,10 +90,9 @@ const TokenList: React.FC = () => {
 			</table>
 			<Button className='green' onClick={onGenerateToken}>Generate</Button>
 
-
 			<p>You can use <a href="https://github.com/Gratheon/raspberry-pi-client">raspberry PI client</a> or access API directly with API tokens:</p>
 			<div style="display:flex">
-				<pre style={`${style}flex-grow:1;`} dangerouslySetInnerHTML={{ __html: htmlCode }} />
+				<pre style={`${style}`} dangerouslySetInnerHTML={{ __html: htmlCode }} />
 				<Button onClick={() => copy(htmlCode)}>Copy</Button>
 			</div>
 		</div>

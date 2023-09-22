@@ -172,54 +172,53 @@ export default function HiveEditDetails({ hiveId }) {
 	return (
 		<div>
 			<ErrorMessage error={errorColor || errorHive} />
-			<div style={{ padding: '20px', display: 'flex' }}>
+			<div className={styles.form}>
 				<div style={{ width: 68, textAlign: 'center', marginRight: 6 }}>
 					<HiveIcon onColorChange={onColorChange} boxes={boxes} editable={true} />
 				</div>
-				<VisualForm style="flex-grow:1">
+				<VisualForm>
 					<div>
 						<label htmlFor="name">Name</label>
 						<input
 							name="name"
 							id="name"
-							style={{ flexGrow: 1 }}
 							autoFocus
 							value={hive.name}
 							onInput={onNameChange}
 						/>
-
-						<DeactivateButton hiveId={hive.id} />
 					</div>
 					<div>
 						<label htmlFor="race">Queen</label>
 
-						<input
-							name="race"
-							id="race"
-							placeholder="race"
-							value={family ? family.race : ''}
-							onInput={onRaceChange}
-						/>
+						<div>
+							<input
+								name="race"
+								id="race"
+								placeholder="race"
+								value={family ? family.race : ''}
+								onInput={onRaceChange}
+							/>
 
-						<input
-							name="queenYear"
-							id="queenYear"
-							minLength={4}
-							maxLength={4}
-							className={styles.year}
-							placeholder="year"
-							value={family ? family.added : ''}
-							onInput={onQueenYearChange}
-						/>
+							<input
+								name="queenYear"
+								id="queenYear"
+								minLength={4}
+								maxLength={4}
+								className={styles.year}
+								placeholder="year"
+								value={family ? family.added : ''}
+								onInput={onQueenYearChange}
+							/>
 
-						<QueenColor year={family?.added} />
+							<QueenColor year={family?.added} />
+						</div>
 					</div>
 
 					<div>
 						<label htmlFor="notes">Notes</label>
 						<textarea
 							className={styles.notes}
-							style={{ background: hive.notes ? '#EEE' : 'white', minHeight: hive.notes ? 32 : 20}}
+							style={{ background: hive.notes ? '#EEE' : 'white', minHeight: hive.notes ? 32 : 20 }}
 							name="notes"
 							id="notes"
 							placeholder="Notes"
@@ -228,6 +227,11 @@ export default function HiveEditDetails({ hiveId }) {
 						/>
 					</div>
 				</VisualForm>
+			</div>
+
+			<div className={styles.buttons}>
+				<div style={{flexGrow:1}}></div>
+				<DeactivateButton hiveId={hive.id} />
 			</div>
 		</div>
 	)

@@ -99,28 +99,34 @@ export default function AccountEdit() {
 			<div style="display:flex;">
 				<img src={gravatarURL} style="border-radius:50px;width:100px;height:100px;" />
 
-				<VisualForm style="	flex-grow: 1;" onSubmit={onSubmit}>
+				<VisualForm style="display: table;" onSubmit={onSubmit}>
 					{errorMsg}
 					<div>
 						<label htmlFor="name">Email</label>
-						<label>{user.email}</label>
+						<input
+							name="email"
+							id="email"
+							disabled={true}
+							value={user.email}
+						/>
 					</div>
 					<div>
-						<label htmlFor="name">Name</label>
+						<label htmlFor="first_name">First name</label>
 						<input
 							name="first_name"
 							id="first_name"
 							placeholder="First name"
-							style={{ width: '100%', marginRight: 10 }}
 							autoFocus
 							value={user.first_name}
 							onInput={onInput}
 						/>
+					</div>
+					<div>
+						<label htmlFor="last_name">Last name</label>
 						<input
 							name="last_name"
 							id="last_name"
 							placeholder="Last name"
-							style={{ width: '100%' }}
 							autoFocus
 							value={user.last_name}
 							onInput={onInput}
@@ -136,8 +142,6 @@ export default function AccountEdit() {
 
 			<Billing user={user} />
 			<Invoices />
-
-
 			<TokenList />
 		</div>
 	)

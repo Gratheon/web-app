@@ -23,6 +23,10 @@ button {
 		margin-left:1px;
 	}
 
+	span{
+		display: inline;
+	}
+
 	&:hover {
 		background: #000000;
 		text-shadow: none;
@@ -68,5 +72,14 @@ button {
 
 	&.green.popupTrigger {
 		border-left: 1px solid @color-ui-btn-green-hover;
+	}
+}
+
+
+@media all and (max-width: 500px) { 
+	button{
+		span{
+			display: none;
+		}
 	}
 }

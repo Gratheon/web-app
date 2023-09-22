@@ -16,11 +16,7 @@ export default function apiaryListRow(props) {
 		<div className={styles.apiary}>
 			<div className={styles.apiaryHead}>
 				<h2>{apiary.name ? apiary.name : '...'}</h2>
-				<div
-					style={{
-						marginTop: 15,
-					}}
-				>
+				<div className={styles.buttons}>
 					<Link href={`/apiaries/edit/${apiary.id}`}>
 						<HandIcon /> Edit
 					</Link>

@@ -5,12 +5,17 @@
 	display: flex;
 
 	ul {
+		padding: 0;
 		display: flex;
 		list-style: none;
 		margin: auto 0;
+		flex-wrap: wrap;
 
 		li {
-			margin: 0 20px;
+			width: auto;
+			text-align:left;
+			padding: 10px 20px 5px;
+			flex-grow:1;
 
 			a {
 				color: black;
@@ -18,6 +23,27 @@
 
 			.active {
 				font-weight: bold;
+			}
+		}
+	}
+}
+
+@media all and (max-width: 150px) { 
+	#menu{
+		ul{
+			li{
+				width: 100px;
+				text-align: center;
+			}
+		}
+	}
+}
+@media all and (max-width: 500px) { 
+	#menu{
+		ul{
+			li{
+				width: 100px;
+				text-align: center;
 			}
 		}
 	}

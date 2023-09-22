@@ -201,7 +201,7 @@ export default function Frame({
 			<Button onClick={onFrameClose}>Close</Button>
 			<Button title="Toggle queen" onClick={onQueenToggle}>
 				<CrownIcon fill={frameSide.queenDetected ? 'white' : '#555555'} />
-				Toggle Queen
+				<span>Toggle Queen</span>
 			</Button>
 
 			<Button
@@ -221,7 +221,7 @@ export default function Frame({
 				}}
 			>
 				<DeleteIcon />
-				Remove frame
+				<span>Remove frame</span>
 			</Button>
 		</div>
 	)

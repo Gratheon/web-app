@@ -171,19 +171,19 @@ export default function Boxes({
 					className={['small', 'black']}
 					onClick={() => onBoxAdd(boxTypes.DEEP)}
 				>
-					<AddBoxIcon /> Add deep
+					<AddBoxIcon /><span>Add deep</span>
 				</Button>
 				<Button
 					title="Add super on top"
 					onClick={() => onBoxAdd(boxTypes.SUPER)}
 				>
-					<AddSuperIcon /> Add super
+					<AddSuperIcon /><span>Add super</span>
 				</Button>
 				<Button
 					title="Add gate"
 					onClick={() => onBoxAdd(boxTypes.GATE)}
 				>
-					<GateIcon /> Add gate
+					<GateIcon /><span>Add gate</span>
 				</Button>
 			</div>
 			<div>{boxesDivs}</div>

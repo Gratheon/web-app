@@ -62,7 +62,7 @@ export default function FrameButtons({ box, onError }) {
 					onFrameAdd(box.id, frameTypes.EMPTY_COMB)
 				}}
 			>
-				<FramesIcon /> Add comb
+				<FramesIcon /><span>Add comb</span>
 			</Button>
 
 			<PopupButton>

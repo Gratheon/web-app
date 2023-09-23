@@ -63,7 +63,7 @@ export default function Frame({
 			return <Loading />
 		} else {
 			return <MessageNotFound msg="Frame not found" />
-		}	
+		}
 	}
 
 	let { frameSide, frameSideFile, file } = frameWithFile
@@ -197,19 +197,13 @@ export default function Frame({
 		})
 	}
 
-	let [removeFrameMutation, {error: errorFrameRemove}] = useMutation(`mutation deactivateFrame($id: ID!) {
+	let [removeFrameMutation, { error: errorFrameRemove }] = useMutation(`mutation deactivateFrame($id: ID!) {
 		deactivateFrame(id: $id)
 	}
 	`)
 
 	const extraButtons = (
-		<div style={{ display: 'flex' }}>
-			<Button onClick={onFrameClose}>Close</Button>
-			<Button title="Toggle queen" onClick={onQueenToggle}>
-				<CrownIcon fill={frameSide.queenDetected ? 'white' : '#555555'} />
-				<span>Toggle Queen</span>
-			</Button>
-
+		<div style={{ display: 'flex', flexDirection: 'row-reverse', flexGrow: 1 }}>
 			<Button
 				className="red"
 				title="Remove frame"
@@ -229,6 +223,13 @@ export default function Frame({
 				<DeleteIcon />
 				<span>Remove frame</span>
 			</Button>
+
+			<Button title="Toggle queen" onClick={onQueenToggle}>
+				<CrownIcon fill={frameSide.queenDetected ? 'white' : '#555555'} />
+				<span>Toggle Queen</span>
+			</Button>
+
+			<Button onClick={onFrameClose}>Close</Button>
 		</div>
 	)
 
@@ -248,22 +249,22 @@ export default function Frame({
 		<div className={styles.frame}>
 			<div className={styles.body}>
 				{error}
+
+				<div style={{ display: 'flex', flexGrow: '1' }}>
+					<MetricList
+						onFrameSideStatChange={onFrameSideStatChange}
+						estimatedDetectionTimeSec={estimatedDetectionTimeSec}
+						frameSideFile={frameSideFile}
+						frameSide={frameSide} />
+					{extraButtons}
+				</div>
 				<DrawingCanvas
 					imageUrl={file.url}
 					detectedBees={frameSideFile.detectedBees}
 					detectedFrameResources={frameSideFile.detectedFrameResources}
 					strokeHistory={frameSideFile.strokeHistory}
 					onStrokeHistoryUpdate={onStrokeHistoryUpdate}
-				>
-					<div style={{ display: 'flex', flexGrow: '1' }}>
-						<MetricList
-							onFrameSideStatChange={onFrameSideStatChange}
-							estimatedDetectionTimeSec={estimatedDetectionTimeSec}
-							frameSideFile={frameSideFile}
-							frameSide={frameSide} />
-					</div>
-					{extraButtons}
-				</DrawingCanvas>
+				/>
 			</div>
 		</div>
 	)

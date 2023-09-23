@@ -138,7 +138,7 @@ function drawDetectedBees(detectedBees, ctx, canvas) {
 					dt.nText = 'worker'
 					ctx.lineWidth = 1 * REL_PX
 					break
-				case 1: 
+				case 1:
 					ctx.fillStyle = ctx.strokeStyle = colors.drone
 					dt.nText = 'drone'
 					ctx.lineWidth = 2 * REL_PX
@@ -155,7 +155,7 @@ function drawDetectedBees(detectedBees, ctx, canvas) {
 					break
 			}
 
-			
+
 			ctx.roundRect(
 				(dt.x - dt.w / 2) * canvas.width,
 				(dt.y - dt.h / 2) * canvas.height,
@@ -210,7 +210,7 @@ function initCanvasSize(
 	//UI BREAKING POINT
 	const isMobileView = document.body.clientWidth < 1200
 	const sideBarMaxWidth = 450
-	const canvasWidth = isMobileView ?  document.body.clientWidth : document.body.clientWidth - sideBarMaxWidth
+	const canvasWidth = isMobileView ? document.body.clientWidth : document.body.clientWidth - sideBarMaxWidth
 	const tmpw = dpr * Math.floor(canvasWidth)
 	canvas.width = tmpw
 	canvas.height = tmpw * (height / width)
@@ -252,7 +252,6 @@ let scrollIndex = 0
 let zoomTransforms = []
 
 export default function DrawingCanvas({
-	children,
 	imageUrl,
 	strokeHistory,
 	detectedBees,
@@ -509,8 +508,10 @@ export default function DrawingCanvas({
 
 	return (
 		<div>
+			<canvas ref={ref} id="container" style="width:100%;">
+				Sorry, your browser is too old for this demo.
+			</canvas>
 			<div style={{ display: 'flex', margin: '3px 0' }}>
-				{children}
 				<Button
 					onClick={() => {
 						setBeeVisibility(!showBees)
@@ -525,9 +526,6 @@ export default function DrawingCanvas({
 				<Button onClick={clearHistory}>Clear</Button>
 				<Button onClick={undoDraw}>Undo</Button>
 			</div>
-			<canvas ref={ref} id="container" style="width:100%;">
-				Sorry, your browser is too old for this demo.
-			</canvas>
 		</div>
 	)
 }

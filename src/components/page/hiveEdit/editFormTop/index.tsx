@@ -195,6 +195,7 @@ export default function HiveEditDetails({ hiveId }) {
 								name="race"
 								id="race"
 								placeholder="race"
+								className={styles.race}
 								value={family ? family.race : ''}
 								onInput={onRaceChange}
 							/>

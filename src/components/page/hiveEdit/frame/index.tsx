@@ -225,7 +225,7 @@ export default function Frame({
 			</Button>
 
 			<Button title="Toggle queen" onClick={onQueenToggle}>
-				<CrownIcon fill={frameSide.queenDetected ? 'white' : '#555555'} />
+				<CrownIcon fill={frameSide.queenDetected ? 'gold' : '#555555'} stroke="gray"/>
 				<span>Toggle Queen</span>
 			</Button>
 

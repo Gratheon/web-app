@@ -24,6 +24,9 @@ export default function UploadFile({ onUpload }) {
 			}
 		}
 	`)
+
+	console.log({ loading, error, data })
+
 	const [fileList, setFiles] = useState([])
 	async function onFileSelect({
 		target: {
@@ -35,7 +38,11 @@ export default function UploadFile({ onUpload }) {
 			return
 		}
 		//@ts-ignore
-		const { data, error } = await uploadFile({ file })
+		const { data, error, loading: uploading } = await uploadFile({ file })
+
+		setFiles([
+			file
+		])
 
 		if (error) {
 			return;
@@ -68,11 +75,12 @@ export default function UploadFile({ onUpload }) {
 	}
 
 	const handleDrop = async (files) => {
+		console.log({ files })
 		for (let i = 0; i < files.length; i++) {
 			if (!files[i].name) return
 			fileList.push(files[i].name)
 		}
-		setFiles(fileList)
+
 		await onFileSelect({
 			target: {
 				validity: {
@@ -84,40 +92,45 @@ export default function UploadFile({ onUpload }) {
 	}
 
 	return (
-		<div style={{ border: '1px dotted black', marginTop: 10 }}>
+		<div style={{ border: '1px dotted black', borderRadius: 3, marginTop: 10 }}>
 			<ErrorMessage error={error} />
-			<DragAndDrop handleDrop={handleDrop}>
-				<div className={styles.dropArea}>
-					<div style={{ flexGrow: 1 }}></div>
-					<div>
-						<input
-							type="file"
-							className={styles.inputfile}
-							id="file"
-							required
-							accept="image/jpg"
-							onChange={onFileSelect}
-						/>
 
-						<label htmlFor="file" className={styles.fileUploadLabel}>
-							<UploadIcon />
-							Upload frame photo
-						</label>
+			{fileList?.length > 0 && <div>
+				{fileList.map((file, i) => (
+					<div key={i}>{file}</div>
+				))}
+			</div>}
+
+			{!fileList?.length &&
+				<DragAndDrop handleDrop={handleDrop}>
+					<div className={styles.dropArea}>
+						<div style={{ flexGrow: 1 }}></div>
+						<div>
+							<input
+								type="file"
+								className={styles.inputfile}
+								id="file"
+								required
+								accept="image/jpg"
+								onChange={onFileSelect}
+							/>
+
+							<label htmlFor="file" className={styles.fileUploadLabel}>
+								<UploadIcon />
+								Upload frame photo
+							</label>
+						</div>
+
+						<div style={{
+							flexGrow: 1,
+							fontSize: 10,
+							paddingTop: 5,
+							color: 'gray'
+						}}>Detection best works with high-resolution photos (17MP)</div>
+
 					</div>
-
-					<div style={{
-						flexGrow: 1,
-						fontSize: 10,
-						paddingTop: 5,
-						color: 'gray'
-					}}>Detection best works with high-resolution photos (17MP)</div>
-
-
-					{fileList.map((file, i) => (
-						<div key={i}>{file}</div>
-					))}
-				</div>
-			</DragAndDrop>
+				</DragAndDrop>
+			}
 		</div>
 	)
 }

@@ -73,7 +73,7 @@ const apiClient = createUrqlClient({
 		return {
 			headers: { token: getToken() },
 		}
-	},
+	}
 })
 
 function omitTypeName(obj) {

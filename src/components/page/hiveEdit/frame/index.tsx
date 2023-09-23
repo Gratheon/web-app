@@ -25,6 +25,7 @@ import DrawingCanvas from './drawingCanvas'
 import MetricList from './metricList'
 import LINK_FILE_TO_FRAME from './_api/addFileToFrameSideMutation.graphql'
 import FRAME_SIDE_QUERY from './_api/getFrameFileObjectsQuery.graphql'
+import MessageNotFound from '@/components/shared/messageNotFound'
 
 export default function Frame({
 	apiaryId,
@@ -33,20 +34,12 @@ export default function Frame({
 	frameId,
 	frameSideId,
 }) {
-	if (!frameId) {
-		return null
+
+	if (!frameId || !frameSideId) {
+		return
 	}
 
-	let { loading: loadingGet, data: frameSideFileRelDetails } = useQuery(
-		FRAME_SIDE_QUERY,
-		{ variables: { frameSideId } }
-	)
-
-	if (loadingGet) {
-		return <Loading />
-	}
-
-	let estimatedDetectionTimeSec = frameSideFileRelDetails?.hiveFrameSideFile?.estimatedDetectionTimeSec
+	let [estimatedDetectionTimeSec, setEstimatedDetectionTimeSec] = useState(0)
 
 	let frameWithFile = useLiveQuery(async function fetchFrameWithFile() {
 		let r1 = await getFrameSide(+frameSideId)
@@ -58,24 +51,26 @@ export default function Frame({
 		return { frameSide: r1, frameSideFile: r2, file: r3 }
 	}, [frameSideId])
 
-	if (!frameWithFile) {
-		return <Loading />
+	if (frameSideId && !frameWithFile?.frameSide) {
+		let { loading: loadingGet, data: frameSideFileRelDetails } = useQuery(
+			FRAME_SIDE_QUERY,
+			{ variables: { frameSideId } }
+		)
+
+		setEstimatedDetectionTimeSec(frameSideFileRelDetails?.hiveFrameSideFile?.estimatedDetectionTimeSec)
+
+		if (loadingGet) {
+			return <Loading />
+		} else {
+			return <MessageNotFound msg="Frame not found" />
+		}	
 	}
+
 	let { frameSide, frameSideFile, file } = frameWithFile
 
 	if (!frameSide) {
 		return <Loading />
 	}
-
-	let [filesStrokeEditMutate, { error: errorStrokes }] = useMutation(gql`mutation filesStrokeEditMutation($files: [FilesUpdateInput]) { filesStrokeEditMutation(files: $files) }`)
-	let [frameSideMutate, { error: errorFrameSide }] = useMutation(gql`mutation updateFrameSide($frameSide: FrameSideInput!) { updateFrameSide(frameSide: $frameSide) }`)
-	let [linkFrameSideToFileMutation, { data: linkFrameSideToFileResult, error: errorFile }] = useMutation(
-		gql`mutation addFileToFrameSide($frameSideID: ID!, $fileID: ID!, $hiveID: ID!) { 
-			addFileToFrameSide(frameSideId: $frameSideID, fileId: $fileID, hiveId: $hiveID) {
-				estimatedDetectionTimeSec
-			}
-		}`
-	)
 
 	useSubscription(gql`subscription onFrameSideBeesPartiallyDetected($frameSideId: String){
 			onFrameSideBeesPartiallyDetected(frameSideId:$frameSideId){
@@ -91,6 +86,7 @@ export default function Frame({
 			updateFrameSideFile(frameSideFile)
 		}
 	})
+
 	useSubscription(gql`subscription onFrameSideBeesPartiallyDetected($frameSideId: String){
 			onFrameSideResourcesDetected(frameSideId:$frameSideId){
 				delta
@@ -106,10 +102,7 @@ export default function Frame({
 		}
 	})
 
-	if (!estimatedDetectionTimeSec) {
-		estimatedDetectionTimeSec = linkFrameSideToFileResult?.addFileToFrameSide?.estimatedDetectionTimeSec
-	}
-
+	let [frameSideMutate, { error: errorFrameSide }] = useMutation(gql`mutation updateFrameSide($frameSide: FrameSideInput!) { updateFrameSide(frameSide: $frameSide) }`)
 	const onFrameSideStatChange = useMemo(
 		() =>
 			debounce(async function (key: string, percent: number) {
@@ -131,6 +124,18 @@ export default function Frame({
 		[frameSideId]
 	)
 
+
+
+	let [linkFrameSideToFileMutation, { data: linkFrameSideToFileResult, error: errorFile }] = useMutation(
+		gql`mutation addFileToFrameSide($frameSideID: ID!, $fileID: ID!, $hiveID: ID!) { 
+			addFileToFrameSide(frameSideId: $frameSideID, fileId: $fileID, hiveId: $hiveID) {
+				estimatedDetectionTimeSec
+			}
+		}`
+	)
+	if (linkFrameSideToFileResult) {
+		setEstimatedDetectionTimeSec(linkFrameSideToFileResult?.addFileToFrameSide?.estimatedDetectionTimeSec)
+	}
 	async function onUpload(data) {
 		if (!data) {
 			return;
@@ -168,6 +173,7 @@ export default function Frame({
 		})
 	}
 
+	let [filesStrokeEditMutate, { error: errorStrokes }] = useMutation(gql`mutation filesStrokeEditMutation($files: [FilesUpdateInput]) { filesStrokeEditMutation(files: $files) }`)
 	async function onStrokeHistoryUpdate(strokeHistory) {
 		filesStrokeEditMutate({
 			files: [{

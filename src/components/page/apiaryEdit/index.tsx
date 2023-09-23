@@ -15,6 +15,7 @@ import Button from '@/components/shared/button'
 import Map from '@/components/shared/map'
 import Weather from '@/components/shared/weather'
 import Plants from './plants'
+import MessageNotFound from '@/components/shared/messageNotFound'
 
 export default function ApiaryEditForm() {
 	let navigate = useNavigate()
@@ -48,7 +49,10 @@ export default function ApiaryEditForm() {
 		if(loadingGet){
 			return <Loader />
 		}
-		
+		else{
+			return <MessageNotFound msg="Apiary not found" />
+		}
+
 		updateApiary({
 			id: +apiaryGet.apiary.id,
 			name: apiaryGet.apiary.name,

@@ -8,9 +8,9 @@ import Boxes from './boxes'
 import HIVE_QUERY from './_api/hiveQuery.graphql'
 import HiveEditDetails from './editFormTop'
 import HiveNavigationPanel from './breadcrumbs'
+
 import ErrorMsg from '@/components/shared/messageError'
 import ErrorGeneral from '@/components/shared/messageErrorGlobal'
-
 import { boxTypes, getBox } from '@/components/models/boxes'
 import { getHive } from '@/components/models/hive'
 import { getApiary } from '@/components/models/apiary'
@@ -20,6 +20,7 @@ import Loader from '@/components/shared/loader'
 import Frame from './frame'
 import styles from './styles.less'
 import Gate from '@/components/page/hiveEdit/gate'
+import MessageNotFound from '@/components/shared/messageNotFound'
 
 export default function HiveEditForm() {
 	let { apiaryId, hiveId, boxId, frameId, frameSideId } = useParams()
@@ -47,6 +48,8 @@ export default function HiveEditForm() {
 
 		if (loading) {
 			return <Loader />
+		} else{
+			return <MessageNotFound msg="Hive not found" />
 		}
 	}
 

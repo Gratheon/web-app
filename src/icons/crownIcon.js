@@ -1,7 +1,8 @@
 import React from 'react'
 
-export default ({ size = 16, fill = 'gray', onClick = () => {} }) => (
+export default ({ size = 16, fill = 'gray', className='', onClick = () => {} }) => (
 	<svg
+		className={className}
 		onClick={onClick}
 		height={size}
 		width={size}

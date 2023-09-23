@@ -4,6 +4,7 @@ import styles from './index.less'
 import { useNavigate } from 'react-router-dom'
 
 import colors from '@/components/colors'
+import CrownIcon from '@/icons/crownIcon'
 
 export default function BoxFrameHalf({ frameSide, className, href }) {
 	let navigate = useNavigate()
@@ -15,11 +16,19 @@ export default function BoxFrameHalf({ frameSide, className, href }) {
 				navigate(href, { replace: true })
 			}}
 		>
+
+			{frameSide?.queenDetected &&
+				<CrownIcon
+					className={styles.crown}
+					fill={'black'}
+				/>
+			}
+
+
 			<div
 				style={{
-					height: `${
-						frameSide?.cappedBroodPercent ? frameSide.cappedBroodPercent : 0
-					}%`,
+					height: `${frameSide?.cappedBroodPercent ? frameSide.cappedBroodPercent : 0
+						}%`,
 					backgroundColor: colors.cappedBroodColor,
 				}}
 				title="Capped brood"
@@ -35,9 +44,8 @@ export default function BoxFrameHalf({ frameSide, className, href }) {
 
 			<div
 				style={{
-					height: `${
-						frameSide?.eggsPercent ? frameSide.eggsPercent : 0
-					}%`,
+					height: `${frameSide?.eggsPercent ? frameSide.eggsPercent : 0
+						}%`,
 					backgroundColor: colors.eggsColor,
 				}}
 				title="Eggs"

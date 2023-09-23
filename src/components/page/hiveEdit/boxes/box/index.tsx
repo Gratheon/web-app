@@ -5,9 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { useLiveQuery } from "dexie-react-hooks";
 
 import { useMutation, useQuery } from '@/components/api'
-import { getFrame, getFrames, moveFrame } from '@/components/models/frames'
-import CrownIcon from '@/icons/crownIcon'
-import { isFrameWithSides } from '@/components/models/frames'
+import { getFrames, moveFrame } from '@/components/models/frames'
 import ErrorMessage from '@/components/shared/messageError'
 import Loader from '@/components/shared/loader'
 
@@ -77,19 +75,6 @@ export default ({
 
 			framesDiv.push(
 				</* @ts-ignore */ Draggable key={i}>
-					<div style={{ textAlign: 'center', height: 20 }}>
-						{isFrameWithSides(frame.type) && (
-							<CrownIcon
-								fill={frame.leftSide?.queenDetected ? 'white' : '#444444'}
-							/>
-						)}
-						{isFrameWithSides(frame.type) && (
-							<CrownIcon
-								fill={frame.rightSide?.queenDetected ? 'white' : '#444444'}
-							/>
-						)}
-					</div>
-
 					<Frame
 						box={box}
 						boxId={boxId}

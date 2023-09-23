@@ -3,6 +3,8 @@ import React from 'react'
 import styles from './index.less'
 import FrameSide from './boxFrameHalf'
 import { Box, Frame } from '@/components/api/schema'
+import CrownIcon from '@/icons/crownIcon'
+import { isFrameWithSides } from '@/components/models/frames'
 
 type BoxFrameProps = {
 	box: Box
@@ -63,17 +65,21 @@ export default function BoxFrame({
 	}
 
 	return (
-		<div className={`${styles.frame} ${selectedFrame && styles.frameSelected}`}>
-			<span
-				className={`${styles.position} 
-				${selectedFrame && !frameSideId && styles.positionSelected}
-				${selectedFrame && +frameSideId === frame.leftId && styles.positionSelectedLeft}
-				${selectedFrame && +frameSideId === frame.rightId && styles.positionSelectedRight}
-				`}
-			>
-				{frame.id}
-			</span>
-			{frameInternal}
-		</div>
+		<>
+			<div style={{ textAlign: 'center', height: 40 }}>
+				<span
+					className={`${styles.position} 
+					${selectedFrame && !frameSideId && styles.positionSelected}
+					${selectedFrame && +frameSideId === frame.leftId && styles.positionSelectedLeft}
+					${selectedFrame && +frameSideId === frame.rightId && styles.positionSelectedRight}
+					`}
+				>
+					{frame.id}
+				</span>
+			</div>
+			<div className={`${styles.frame} ${selectedFrame && styles.frameSelected}`}>
+				{frameInternal}
+			</div>
+		</>
 	)
 }

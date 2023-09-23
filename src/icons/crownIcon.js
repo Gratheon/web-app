@@ -1,7 +1,7 @@
 import React from 'react'
 
-export default ({ size = 16, fill = 'gray', className='', onClick = () => {} }) => (
-	<svg
+export default function Crown({ size = 14, stroke='black', fill = 'gold', className='', onClick = () => {} }) {
+	return <svg
 		className={className}
 		onClick={onClick}
 		height={size}
@@ -9,8 +9,9 @@ export default ({ size = 16, fill = 'gray', className='', onClick = () => {} }) 
 		viewBox="0 0 267.5 267.5"
 		style="enable-background:new 0 0 267.5 267.5;"
 	>
+		 <g fill={fill}>
 		<path
-			fill={fill}
+			style={`stroke: ${stroke}; stroke-width: 16px;`}
 			d="M256.975,100.34c0.041,0.736-0.013,1.485-0.198,2.229l-16.5,66c-0.832,3.325-3.812,5.663-7.238,5.681l-99,0.5
 	c-0.013,0-0.025,0-0.038,0H35c-3.444,0-6.445-2.346-7.277-5.688l-16.5-66.25c-0.19-0.764-0.245-1.534-0.197-2.289
 	C4.643,98.512,0,92.539,0,85.5c0-8.685,7.065-15.75,15.75-15.75S31.5,76.815,31.5,85.5c0,4.891-2.241,9.267-5.75,12.158
@@ -21,5 +22,6 @@ export default ({ size = 16, fill = 'gray', className='', onClick = () => {} }) 
 	C267.5,92.351,263.095,98.178,256.975,100.34z M238.667,198.25c0-4.142-3.358-7.5-7.5-7.5h-194c-4.142,0-7.5,3.358-7.5,7.5v18
 	c0,4.142,3.358,7.5,7.5,7.5h194c4.142,0,7.5-3.358,7.5-7.5V198.25z"
 		/>
+		</g>
 	</svg>
-)
+}

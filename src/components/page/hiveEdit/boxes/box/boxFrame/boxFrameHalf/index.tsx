@@ -18,10 +18,7 @@ export default function BoxFrameHalf({ frameSide, className, href }) {
 		>
 
 			{frameSide?.queenDetected &&
-				<CrownIcon
-					className={styles.crown}
-					fill={'black'}
-				/>
+				<CrownIcon className={styles.crown} />
 			}
 
 

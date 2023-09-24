@@ -26,6 +26,7 @@ import BoxButtons from './box/boxButtons'
 import styles from './styles.less'
 
 import BOXES_QUERY from './boxesQuery.graphql'
+import { useState } from 'react'
 
 type BoxesProps = {
 	hiveId: any
@@ -83,7 +84,9 @@ export default function Boxes({
 }
 `)
 
+	const [adding, setAdding] = useState(false)
 	async function onBoxAdd(type) {
+		setAdding(true)
 		let position = (await maxBoxPosition(+hiveId)) + 1
 
 		const {
@@ -103,6 +106,7 @@ export default function Boxes({
 			type,
 		})
 
+		setAdding(false)
 		navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${id}`, {
 			replace: true,
 		})
@@ -168,18 +172,21 @@ export default function Boxes({
 			<div style={{ display: 'flex', marginBottom: 1 }}>
 				<Button
 					title="Add box on top"
+					loading={adding}
 					className={['small', 'black']}
 					onClick={() => onBoxAdd(boxTypes.DEEP)}
 				>
 					<AddBoxIcon /><span>Add deep</span>
 				</Button>
 				<Button
+					loading={adding}
 					title="Add super on top"
 					onClick={() => onBoxAdd(boxTypes.SUPER)}
 				>
 					<AddSuperIcon /><span>Add super</span>
 				</Button>
 				<Button
+					loading={adding}
 					title="Add gate"
 					onClick={() => onBoxAdd(boxTypes.GATE)}
 				>

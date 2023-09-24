@@ -497,9 +497,7 @@ export default function DrawingCanvas({
 				setVersion(version + 1)
 			}
 
-			if (globalCameraZoom > 1 && globalCameraZoom < 4.9) {
-				event.preventDefault()
-			}
+			event.preventDefault()
 		}
 
 		canvas.removeEventListener('wheel', handleScroll)

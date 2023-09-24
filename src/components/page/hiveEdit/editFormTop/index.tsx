@@ -190,7 +190,7 @@ export default function HiveEditDetails({ hiveId }) {
 					<div>
 						<label htmlFor="race">Queen</label>
 
-						<div>
+						<div style="position:relative;">
 							<input
 								name="race"
 								id="race"

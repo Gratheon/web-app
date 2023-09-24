@@ -22,3 +22,19 @@ h4,
 h5 {
 	margin: 0;
 }
+
+input{
+	border-radius: 5px;
+	border: 1px solid gray;
+	box-sizing: border-box;
+	height: 32px;
+}
+
+input:focus, textarea:focus{
+	outline: 4px solid rgb(30, 95, 234);
+}
+
+textarea{
+	border-radius: 5px;
+	border: 1px solid gray;
+}

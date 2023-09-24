@@ -16,7 +16,7 @@ import styles from './index.less'
 export default function UploadFile({ onUpload }) {
 	//todo
 	//@ts-ignore
-	const [uploadFile, { loading, error, data }] = useUploadMutation(gql`
+	const [uploadFile, {data, error}] = useUploadMutation(gql`
 		mutation uploadFrameSide($file: Upload!) {
 			uploadFrameSide(file: $file) {
 				id
@@ -25,9 +25,11 @@ export default function UploadFile({ onUpload }) {
 		}
 	`)
 
-	console.log({ loading, error, data })
-
 	const [fileList, setFiles] = useState([])
+	const [error, setError] = useState(null)
+	const [loading, setLoading] = useState(false)
+
+
 	async function onFileSelect({
 		target: {
 			validity,
@@ -37,14 +39,19 @@ export default function UploadFile({ onUpload }) {
 		if (!validity.valid) {
 			return
 		}
+
+		setLoading(true)
 		//@ts-ignore
-		const { data, error, loading: uploading } = await uploadFile({ file })
+		const {data, error} = await uploadFile({ file })
+
+		setLoading(false)
 
 		setFiles([
 			file
 		])
 
 		if (error) {
+			setError(error)
 			return;
 		}
 
@@ -61,9 +68,6 @@ export default function UploadFile({ onUpload }) {
 		});
 	}
 
-	if (loading) return <Loader />
-	if (error) return <ErrorMessage error={error} />
-
 	if (data && data.uploadFrameSide !== null) {
 		const { uploadFrameSide } = data
 
@@ -75,7 +79,6 @@ export default function UploadFile({ onUpload }) {
 	}
 
 	const handleDrop = async (files) => {
-		console.log({ files })
 		for (let i = 0; i < files.length; i++) {
 			if (!files[i].name) return
 			fileList.push(files[i].name)
@@ -90,6 +93,9 @@ export default function UploadFile({ onUpload }) {
 			},
 		})
 	}
+
+
+	if (loading) return <Loader />
 
 	return (
 		<div style={{ border: '1px dotted black', borderRadius: 3, marginTop: 10 }}>

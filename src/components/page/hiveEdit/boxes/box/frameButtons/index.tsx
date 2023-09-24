@@ -14,7 +14,7 @@ import {
 } from '@/components/models/frames'
 
 export default function FrameButtons({ box, onError }) {
-	let [addFrameMutation] =
+	let [addFrameMutation, { loading: addingFrame, error }] =
 		useMutation(`mutation addFrame($boxId: ID!, $type: String!, $position: Int!) {
 		addFrame(boxId: $boxId, type: $type, position: $position){
 			id
@@ -34,7 +34,7 @@ export default function FrameButtons({ box, onError }) {
 			data: {
 				addFrame: { id, leftSide, rightSide },
 			},
-			error,
+			error
 		} = await addFrameMutation({
 			boxId,
 			position,
@@ -58,6 +58,7 @@ export default function FrameButtons({ box, onError }) {
 	return (
 		<PopupButtonGroup style={`margin-right:3px;flex-grow:1;`}>
 			<Button
+				loading={addingFrame}
 				onClick={() => {
 					onFrameAdd(box.id, frameTypes.EMPTY_COMB)
 				}}
@@ -67,6 +68,7 @@ export default function FrameButtons({ box, onError }) {
 
 			<PopupButton>
 				<Button
+					loading={addingFrame}
 					onClick={() => {
 						onFrameAdd(box.id, frameTypes.VOID)
 					}}
@@ -74,6 +76,7 @@ export default function FrameButtons({ box, onError }) {
 					empty frame
 				</Button>
 				<Button
+					loading={addingFrame}
 					onClick={() => {
 						onFrameAdd(box.id, frameTypes.FOUNDATION)
 					}}
@@ -81,6 +84,7 @@ export default function FrameButtons({ box, onError }) {
 					foundation
 				</Button>
 				<Button
+					loading={addingFrame}
 					onClick={() => {
 						onFrameAdd(box.id, frameTypes.FEEDER)
 					}}
@@ -88,6 +92,7 @@ export default function FrameButtons({ box, onError }) {
 					feeder
 				</Button>
 				<Button
+					loading={addingFrame}
 					onClick={() => {
 						onFrameAdd(box.id, frameTypes.PARTITION)
 					}}

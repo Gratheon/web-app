@@ -2,6 +2,7 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import styles from './index.less'
+import Loader from '../loader'
 
 type ButtonProps = {
 	onClick?: any
@@ -51,7 +52,8 @@ export default function Button({
 			className={classNames.join(' ')}
 			onClick={onClick}
 		>
-			{children}
+			{loading && <Loader size={0} />}
+			{!loading && children}
 		</button>
 	)
 }

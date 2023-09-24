@@ -1,8 +1,12 @@
 import React from 'react'
 import styles from './styles.less'
 
-export default function Loading({ small = false }) {
-	if(small){
+export default function Loading({ size = 2 }) {
+	if(size==0){
+		return <div className={`${styles.icon}`}>☀️</div>
+	}
+
+	if(size==1){
 		return (
 			<div className={`${styles.loader} ${styles.loaderSmall}`}>
 			<div className={styles.sun}>🌻</div>

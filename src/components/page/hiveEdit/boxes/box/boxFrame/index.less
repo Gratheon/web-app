@@ -1,14 +1,13 @@
-@frameColor: #341b0b;
-@foundationColor: black;
+@frameColor: #ff9c5e;
+@foundationColor: rgb(235, 255, 52);
 
 .position {
 	line-height: 15px;
 	border-radius: 20px;
 	background: white;
 	opacity: 0.8;
-	border: 4px solid #444;
+	border: 2px solid #444;
 	height: 15px;
-	width: 15px;
 	padding: 5px;
 	text-align: center;
 	display: block;
@@ -19,7 +18,7 @@
 	&.positionSelected {
 		opacity: 1;
 		background: #ffd900;
-		border: 4px solid #000000;
+		border: 2px solid #000000;
 		text-shadow: 1px 1px #ffffff;
 		margin-top: -6px;
 		font-weight: bold;
@@ -27,14 +26,14 @@
 
 	&.positionSelectedLeft {
 		opacity: 1;
-		border: 4px solid #aa9726;
-		border-left: 4px solid #ffe135;
+		border: 2px solid #aa9726;
+		border-left: 2px solid #ffe135;
 	}
 
 	&.positionSelectedRight {
 		opacity: 1;
-		border: 4px solid #aa9726;
-		border-right: 4px solid #ffe135;
+		border: 2px solid #aa9726;
+		border-right: 2px solid #ffe135;
 	}
 }
 
@@ -50,11 +49,18 @@
 	overflow: hidden;
 
 	box-sizing: border-box;
-	border-top: 6px solid @frameColor;
 
 	&.frameSelected {
 		margin-top: -18px;
-		border-top: 6px solid #000;
+	}
+
+	.foundationFrame {
+		border: 6px solid @frameColor;
+		border-left:none;
+		border-right:none;
+		background-color: #323232;
+		display: flex;
+		flex-grow: 1;
 	}
 
 	.foundation {
@@ -64,13 +70,13 @@
 	}
 
 	.voidFrame {
+		border: 6px solid @frameColor;
 		display: flex;
 		flex-grow: 1;
-		border-left: 5px solid @frameColor;
-		border-right: 5px solid @frameColor;
 	}
 
 	.emptyComb {
+		border-top: 6px solid @frameColor;
 		display: flex;
 		flex-grow: 1;
 
@@ -79,7 +85,7 @@
 		}
 
 		.right {
-			background: #d7d7d7;
+			background: #e4e2bb;
 		}
 	}
 
@@ -90,6 +96,7 @@
 		border-right: 5px solid @frameColor;
 		border-bottom: 5px solid @frameColor;
 		background: white;
+		border-top: 5px transparent;
 	}
 
 	.partition {

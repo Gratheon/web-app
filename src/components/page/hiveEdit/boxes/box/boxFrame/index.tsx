@@ -3,8 +3,7 @@ import React from 'react'
 import styles from './index.less'
 import FrameSide from './boxFrameHalf'
 import { Box, Frame } from '@/components/api/schema'
-import CrownIcon from '@/icons/crownIcon'
-import { isFrameWithSides } from '@/components/models/frames'
+import { useNavigate } from 'react-router-dom'
 
 type BoxFrameProps = {
 	box: Box
@@ -26,19 +25,20 @@ export default function BoxFrame({
 	frame
 }: BoxFrameProps) {
 	const selectedFrame = frame.id === +frameId
+	let navigate = useNavigate()
 
 	let frameInternal = null
+	const frameURL = `/apiaries/${apiaryId}/hives/${hiveId}/box/${box.id}/frame/${frame.id}`
 
-	// 'VOID','FOUNDATION','EMPTY_COMB','PARTITION','FEEDER'
 	if (frame.type === 'VOID') {
-		frameInternal = <div className={styles.voidFrame} />
+		frameInternal = <div onClick={() => { navigate(frameURL, { replace: true }) }} className={styles.voidFrame} />
 	} else if (frame.type === 'PARTITION') {
-		frameInternal = <div className={styles.partition} />
+		frameInternal = <div onClick={() => { navigate(frameURL, { replace: true }) }} className={styles.partition} />
 	} else if (frame.type === 'FEEDER') {
-		frameInternal = <div className={styles.feeder} />
+		frameInternal = <div onClick={() => { navigate(frameURL, { replace: true }) }} className={styles.feeder} />
 	} else if (frame.type === 'FOUNDATION') {
 		frameInternal = (
-			<div style={{ backgroundColor: '#323232', display: 'flex', flexGrow: 1 }}>
+			<div className={styles.foundationFrame} onClick={() => { navigate(frameURL, { replace: true }) }}>
 				<div style={{ flexGrow: 1 }} />
 				<div className={styles.foundation} />
 				<div style={{ flexGrow: 1 }} />
@@ -49,7 +49,7 @@ export default function BoxFrame({
 			<div className={styles.emptyComb}>
 				<FrameSide
 					className={styles.left}
-					href={`/apiaries/${apiaryId}/hives/${hiveId}/box/${box.id}/frame/${frame.id}/${frame.leftId}`}
+					href={`${frameURL}/${frame.leftId}`}
 					frameSide={frame.leftSide}
 				/>
 
@@ -57,7 +57,7 @@ export default function BoxFrame({
 
 				<FrameSide
 					className={styles.right}
-					href={`/apiaries/${apiaryId}/hives/${hiveId}/box/${box.id}/frame/${frame.id}/${frame.rightId}`}
+					href={`${frameURL}/${frame.rightId}`}
 					frameSide={frame.rightSide}
 				/>
 			</div>

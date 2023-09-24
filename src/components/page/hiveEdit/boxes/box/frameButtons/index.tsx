@@ -59,6 +59,14 @@ export default function FrameButtons({ box, onError }) {
 			>
 				<FramesIcon /><span>Add comb</span>
 			</Button>
+			<Button
+					loading={addingFrame}
+					onClick={() => {
+						onFrameAdd(box.id, frameTypes.FOUNDATION)
+					}}
+				>
+					Add foundation
+				</Button>
 
 			<PopupButton>
 				<Button
@@ -67,15 +75,7 @@ export default function FrameButtons({ box, onError }) {
 						onFrameAdd(box.id, frameTypes.VOID)
 					}}
 				>
-					empty frame
-				</Button>
-				<Button
-					loading={addingFrame}
-					onClick={() => {
-						onFrameAdd(box.id, frameTypes.FOUNDATION)
-					}}
-				>
-					foundation
+					Add empty frame
 				</Button>
 				<Button
 					loading={addingFrame}
@@ -83,7 +83,7 @@ export default function FrameButtons({ box, onError }) {
 						onFrameAdd(box.id, frameTypes.FEEDER)
 					}}
 				>
-					feeder
+					Add feeder
 				</Button>
 				<Button
 					loading={addingFrame}
@@ -91,7 +91,7 @@ export default function FrameButtons({ box, onError }) {
 						onFrameAdd(box.id, frameTypes.PARTITION)
 					}}
 				>
-					partition
+					Add partition
 				</Button>
 			</PopupButton>
 		</PopupButtonGroup>

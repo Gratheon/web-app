@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useLayoutEffect } from 'react'
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import Loader from '@/components/shared/loader'
 import Button from '@/components/shared/button'
 import colors from '@/components/colors'
@@ -179,12 +179,13 @@ function drawDetectedBees(detectedBees, ctx, canvas) {
 	}
 }
 
-function getEventLocation(e) {
+function getEventLocation(canvas, e) {
 	if (e.touches && e.touches.length == 1) {
 		return { x: e.touches[0].clientX, y: e.touches[0].clientY }
 	} else if (e.clientX && e.clientY) {
-		const x = e.pageX - e.currentTarget.offsetLeft
-		const y = e.pageY - e.currentTarget.offsetTop
+		var rect = canvas.getBoundingClientRect();
+		var x = e.clientX - rect.left;
+		var y = e.clientY - rect.top;
 
 		return { x, y }
 	}
@@ -262,9 +263,9 @@ export default function DrawingCanvas({
 	onStrokeHistoryUpdate,
 }) {
 	const ref = useRef(null)
-	const [showBees, setBeeVisibility] = React.useState(true)
-	const [showCells, setCellVisibility] = React.useState(true)
-	const [version, setVersion] = React.useState(0)
+	const [showBees, setBeeVisibility] = useState(true)
+	const [showCells, setCellVisibility] = useState(true)
+	const [version, setVersion] = useState(0)
 
 	// trigger re-draw within useEffect
 	function clearHistory() {
@@ -449,54 +450,50 @@ export default function DrawingCanvas({
 			let zoomAmount //event.deltaY * SCROLL_SENSITIVITY
 			zoomAmount = event.deltaY > 0 ? -0.1 : 0.1 //event.deltaY * SCROLL_SENSITIVITY;
 
-			if (zoomAmount) {
-				if (zoomAmount < 0) {
-					if (scrollIndex > 0) {
-						delete zoomTransforms[scrollIndex]
-						scrollIndex--
-						ctx.setTransform(...zoomTransforms[scrollIndex])
-					} else {
-						zoomTransforms = []
-						cameraOffset.x = 0
-						cameraOffset.y = 0
-						offsetsum.x = 0
-						offsetsum.y = 0
-						cameraZoom = 1
-						globalCameraZoom = 1
-					}
-				} else if (scrollIndex < 40) {
-					if (
-						globalCameraZoom * (1 + zoomAmount) <= MAX_ZOOM &&
-						globalCameraZoom * (1 + zoomAmount) >= MIN_ZOOM
-					) {
-						cameraZoom = 1 + zoomAmount
-						globalCameraZoom += zoomAmount
-					}
-
-					// zoom
-					cameraOffset.x =
-						-(dpr * getEventLocation(event).x) * (cameraZoom - 1)
-					cameraOffset.y =
-						-(dpr * getEventLocation(event).y) * (cameraZoom - 1)
-
-					// if (offsetsum.x < canvas.width && offsetsum.x > -canvas.width && offsetsum.y < canvas.height && offsetsum.y > -canvas.height) {
-					offsetsum.x += cameraOffset.x * cameraZoom
-					offsetsum.y += cameraOffset.y * cameraZoom
-
-					zoomTransforms[scrollIndex] = [
-						globalCameraZoom,
-						0,
-						0,
-						globalCameraZoom,
-						offsetsum.x,
-						offsetsum.y,
-					]
-
+			if (zoomAmount < 0) {
+				if (scrollIndex > 0) {
+					delete zoomTransforms[scrollIndex]
+					scrollIndex--
 					ctx.setTransform(...zoomTransforms[scrollIndex])
-
-					scrollIndex++
+				} else {
+					zoomTransforms = []
+					cameraOffset.x = 0
+					cameraOffset.y = 0
+					offsetsum.x = 0
+					offsetsum.y = 0
+					cameraZoom = 1
+					globalCameraZoom = 1
+				}
+				setVersion(version + 1)
+			} else if (scrollIndex < 40) {
+				if (
+					globalCameraZoom * (1 + zoomAmount) <= MAX_ZOOM &&
+					globalCameraZoom * (1 + zoomAmount) >= MIN_ZOOM
+				) {
+					cameraZoom = 1 + zoomAmount
+					globalCameraZoom += zoomAmount
 				}
 
+				// zoom
+				cameraOffset.x = -(dpr * getEventLocation(canvas, event).x) * (cameraZoom - 1)
+				cameraOffset.y = -(dpr * getEventLocation(canvas, event).y) * (cameraZoom - 1)
+
+				// if (offsetsum.x < canvas.width && offsetsum.x > -canvas.width && offsetsum.y < canvas.height && offsetsum.y > -canvas.height) {
+				offsetsum.x += cameraOffset.x * cameraZoom
+				offsetsum.y += cameraOffset.y * cameraZoom
+
+				zoomTransforms[scrollIndex] = [
+					globalCameraZoom,
+					0,
+					0,
+					globalCameraZoom,
+					offsetsum.x,
+					offsetsum.y,
+				]
+
+				ctx.setTransform(...zoomTransforms[scrollIndex])
+
+				scrollIndex++
 				setVersion(version + 1)
 			}
 
@@ -509,6 +506,7 @@ export default function DrawingCanvas({
 		canvas.addEventListener('wheel', handleScroll)
 		return () => canvas.removeEventListener('wheel', handleScroll)
 	}, [imageUrl, version, showBees, showCells, detectedBees, detectedFrameResources])
+
 
 	return (
 		<div>

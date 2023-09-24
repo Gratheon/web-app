@@ -1,7 +1,7 @@
 import React from 'react'
 import styles from './index.less'
 
-export default ({ error }) => {
+export default function ErrorMsg({ error }) {
 	if (!error) return
 
 	if(error?.response?.status >= 500){

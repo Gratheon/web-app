@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import copy from 'clipboard-copy';
 
+import ErrorMsg from '@/components/shared/messageError'
 import Button from '@/components/shared/button';
 import { gql, useQuery, useMutation } from '@/components/api/index'
 import Loader from '@/components/shared/loader'
@@ -21,8 +22,8 @@ const TokenList: React.FC = () => {
 		}
 	`)
 
-	let [generateToken, { loading: loadingGeneration, error: errorCancel }] = useMutation(gql`
-	mutation cancelSubscription {
+	let [generateToken, { loading: loadingGeneration, error: generationError }] = useMutation(gql`
+	mutation generateApiToken {
 		generateApiToken {
 			id
 			token
@@ -30,16 +31,18 @@ const TokenList: React.FC = () => {
 	}
 `)
 
-	const onGenerateToken = async () => {
+	const [generatingToken, setGenerating] = useState(false)
+	async function onGenerateToken() {
+		setGenerating(true);
 		const result = await generateToken()
 		hiddenTokens.push(result.data.generateApiToken.id)
 		tokens.push(result.data.generateApiToken)
+		setGenerating(false);
 	}
 
 	if (loading) {
 		return <Loader />
 	}
-
 
 	const tokens = data.api_tokens
 
@@ -69,6 +72,7 @@ const TokenList: React.FC = () => {
 	return (
 		<div style="padding:10px">
 			<h3>API tokens</h3>
+			<ErrorMsg error={error || generationError} />
 			{loadingGeneration && <Loader />}
 
 			<table>
@@ -88,7 +92,7 @@ const TokenList: React.FC = () => {
 					))}
 				</tbody>
 			</table>
-			<Button className='green' onClick={onGenerateToken}>Generate</Button>
+			<Button className='green' loading={generatingToken} onClick={onGenerateToken}>Generate</Button>
 
 			<p>You can use <a href="https://github.com/Gratheon/raspberry-pi-client">raspberry PI client</a> or access API directly with API tokens:</p>
 			<div style="display:flex">

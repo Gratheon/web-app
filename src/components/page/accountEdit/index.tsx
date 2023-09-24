@@ -22,6 +22,7 @@ function calculateMD5(email) {
 
 export default function AccountEdit() {
 	let [user, setUser] = useState<User>({})
+	let [saving, setSaving] = useState<boolean>(false)
 
 	function onInput(e: any) {
 		const { name, value } = e.target;
@@ -48,7 +49,7 @@ export default function AccountEdit() {
 	`)
 	// const user = useLiveQuery(() => getUser())
 
-	let [updateAccount, { loading, error }] = useMutation(gql`
+	let [updateAccount, { error }] = useMutation(gql`
 		mutation updateUser($user: UserUpdateInput!) {
 			updateUser(user: $user) {
 				... on User {
@@ -62,24 +63,26 @@ export default function AccountEdit() {
 		}
 	`)
 
-	function onSubmit(e: React.ChangeEvent) {
+	async function onSubmit(e: React.ChangeEvent) {
 		e.preventDefault()
 
-		updateAccount({
+		setSaving(true);
+		await updateAccount({
 			user: {
 				first_name: user?.first_name,
 				last_name: user?.last_name,
 			},
 		})
 
-		updateUser(user)
+		await updateUser(user)
+		setSaving(false);
 	}
 
 	if (accountData && !user.id) {
 		setUser(accountData.user)
 	}
 
-	if (!user.id || loading || loadingGet) {
+	if (!user.id || loadingGet) {
 		return <Loader />
 	}
 
@@ -133,7 +136,7 @@ export default function AccountEdit() {
 						/>
 					</div>
 					<VisualFormSubmit>
-						<Button type="submit" className={`green`}>
+						<Button type="submit" className={`green`} loading={saving}>
 							Save
 						</Button>
 					</VisualFormSubmit>

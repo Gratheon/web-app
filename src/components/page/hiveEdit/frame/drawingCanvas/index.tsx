@@ -15,6 +15,8 @@ let globalCameraZoom = 1
 let MAX_ZOOM = 6
 let MIN_ZOOM = 1
 
+let zoomEnabled = false;
+
 let offsetsum = {
 	x: 0,
 	y: 0,
@@ -209,6 +211,7 @@ function initCanvasSize(
 
 	//UI BREAKING POINT
 	const isMobileView = document.body.clientWidth < 1200
+	zoomEnabled = !isMobileView
 	const sideBarMaxWidth = 450
 	const canvasWidth = isMobileView ? document.body.clientWidth : document.body.clientWidth - sideBarMaxWidth
 	const tmpw = dpr * Math.floor(canvasWidth)
@@ -440,64 +443,65 @@ export default function DrawingCanvas({
 			detectedFrameResources
 		)
 		function handleScroll(event) {
-			if (!isMousedown) {
-				let zoomAmount //event.deltaY * SCROLL_SENSITIVITY
-				zoomAmount = event.deltaY > 0 ? -0.1 : 0.1 //event.deltaY * SCROLL_SENSITIVITY;
+			if (isMousedown || !zoomEnabled) {
+				return
+			}
+			let zoomAmount //event.deltaY * SCROLL_SENSITIVITY
+			zoomAmount = event.deltaY > 0 ? -0.1 : 0.1 //event.deltaY * SCROLL_SENSITIVITY;
 
-				if (zoomAmount) {
-					if (zoomAmount < 0) {
-						if (scrollIndex > 0) {
-							delete zoomTransforms[scrollIndex]
-							scrollIndex--
-							ctx.setTransform(...zoomTransforms[scrollIndex])
-						} else {
-							zoomTransforms = []
-							cameraOffset.x = 0
-							cameraOffset.y = 0
-							offsetsum.x = 0
-							offsetsum.y = 0
-							cameraZoom = 1
-							globalCameraZoom = 1
-						}
-					} else if (scrollIndex < 40) {
-						if (
-							globalCameraZoom * (1 + zoomAmount) <= MAX_ZOOM &&
-							globalCameraZoom * (1 + zoomAmount) >= MIN_ZOOM
-						) {
-							cameraZoom = 1 + zoomAmount
-							globalCameraZoom += zoomAmount
-						}
-
-						// zoom
-						cameraOffset.x =
-							-(dpr * getEventLocation(event).x) * (cameraZoom - 1)
-						cameraOffset.y =
-							-(dpr * getEventLocation(event).y) * (cameraZoom - 1)
-
-						// if (offsetsum.x < canvas.width && offsetsum.x > -canvas.width && offsetsum.y < canvas.height && offsetsum.y > -canvas.height) {
-						offsetsum.x += cameraOffset.x * cameraZoom
-						offsetsum.y += cameraOffset.y * cameraZoom
-
-						zoomTransforms[scrollIndex] = [
-							globalCameraZoom,
-							0,
-							0,
-							globalCameraZoom,
-							offsetsum.x,
-							offsetsum.y,
-						]
-
+			if (zoomAmount) {
+				if (zoomAmount < 0) {
+					if (scrollIndex > 0) {
+						delete zoomTransforms[scrollIndex]
+						scrollIndex--
 						ctx.setTransform(...zoomTransforms[scrollIndex])
-
-						scrollIndex++
+					} else {
+						zoomTransforms = []
+						cameraOffset.x = 0
+						cameraOffset.y = 0
+						offsetsum.x = 0
+						offsetsum.y = 0
+						cameraZoom = 1
+						globalCameraZoom = 1
+					}
+				} else if (scrollIndex < 40) {
+					if (
+						globalCameraZoom * (1 + zoomAmount) <= MAX_ZOOM &&
+						globalCameraZoom * (1 + zoomAmount) >= MIN_ZOOM
+					) {
+						cameraZoom = 1 + zoomAmount
+						globalCameraZoom += zoomAmount
 					}
 
-					setVersion(version + 1)
+					// zoom
+					cameraOffset.x =
+						-(dpr * getEventLocation(event).x) * (cameraZoom - 1)
+					cameraOffset.y =
+						-(dpr * getEventLocation(event).y) * (cameraZoom - 1)
+
+					// if (offsetsum.x < canvas.width && offsetsum.x > -canvas.width && offsetsum.y < canvas.height && offsetsum.y > -canvas.height) {
+					offsetsum.x += cameraOffset.x * cameraZoom
+					offsetsum.y += cameraOffset.y * cameraZoom
+
+					zoomTransforms[scrollIndex] = [
+						globalCameraZoom,
+						0,
+						0,
+						globalCameraZoom,
+						offsetsum.x,
+						offsetsum.y,
+					]
+
+					ctx.setTransform(...zoomTransforms[scrollIndex])
+
+					scrollIndex++
 				}
 
-				if (globalCameraZoom > 1 && globalCameraZoom < 4.9) {
-					event.preventDefault()
-				}
+				setVersion(version + 1)
+			}
+
+			if (globalCameraZoom > 1 && globalCameraZoom < 4.9) {
+				event.preventDefault()
 			}
 		}
 

@@ -40,6 +40,7 @@ export default function Frame({
 	}
 
 	let [estimatedDetectionTimeSec, setEstimatedDetectionTimeSec] = useState(0)
+	let [frameRemoving, setFrameRemoving] = useState<boolean>(false)
 
 	let frameWithFile = useLiveQuery(async function fetchFrameWithFile() {
 		let r1 = await getFrameSide(+frameSideId)
@@ -51,7 +52,7 @@ export default function Frame({
 		return { frameSide: r1, frameSideFile: r2, file: r3 }
 	}, [frameSideId])
 
-	if (frameSideId && !frameWithFile?.frameSide) {
+	if (!frameWithFile?.frameSide) {
 		let { loading: loadingGet, data: frameSideFileRelDetails } = useQuery(
 			FRAME_SIDE_QUERY,
 			{ variables: { frameSideId } }
@@ -68,7 +69,7 @@ export default function Frame({
 
 	let { frameSide, frameSideFile, file } = frameWithFile
 
-	if (!frameSide) {
+	if (!frameSide || frameRemoving) {
 		return <Loading />
 	}
 
@@ -202,23 +203,27 @@ export default function Frame({
 	}
 	`)
 
+	async function onFrameRemove() {
+		if (confirm('Are you sure?')) {
+			setFrameRemoving(true)
+			await removeFrame(frameId, boxId)
+			await removeFrameMutation({
+				id: frameId
+			})
+			
+			setFrameRemoving(false)
+			navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`, {
+				replace: true,
+			})
+		}
+	}
+
 	const extraButtons = (
 		<div style={{ display: 'flex', flexDirection: 'row-reverse', flexGrow: 1 }}>
 			<Button
 				className="red"
 				title="Remove frame"
-				onClick={async () => {
-					if (confirm('Are you sure?')) {
-						await removeFrame(frameId, boxId)
-						await removeFrameMutation({
-							id: frameId
-						})
-
-						navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`, {
-							replace: true,
-						})
-					}
-				}}
+				onClick={onFrameRemove}
 			>
 				<DeleteIcon />
 				<span>Remove frame</span>

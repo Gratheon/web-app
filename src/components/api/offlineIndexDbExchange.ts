@@ -180,7 +180,6 @@ async function traverseResponse(
 						console.error(pathString, value, tableName, objType)
 						return
 					}
-					// console.log(pathString, value, tableName, objType)
 
 					if (writeHooks?.[tableName]) {
 						// normalize objects, clean them up from nested things

@@ -11,12 +11,12 @@ import MessageError from '@/components/shared/messageError'
 export default function Billing({ user }) {
 	let { stripeStatus } = useParams()
 
-	let [createCheckoutSession, { loading, error }] = useMutation(gql`
+	let [createCheckoutSession, { error }] = useMutation(gql`
 		mutation createCheckoutSession {
 			createCheckoutSession
 		}
 	`)
-	let [cancelSubscription, { loading: loadingCancel, error: errorCancel }] =
+	let [cancelSubscription, { error: errorCancel }] =
 		useMutation(gql`
 			mutation cancelSubscription {
 				cancelSubscription {
@@ -46,10 +46,6 @@ export default function Billing({ user }) {
 		}
 	}
 	// createCheckoutSession
-
-	if (loading) {
-		return <Loading />
-	}
 
 	let expirationError = user.isSubscriptionExpired ? (
 		<MessageError error="Subscription expired, please extend" />
@@ -90,10 +86,9 @@ export default function Billing({ user }) {
 					{!user.hasSubscription && (
 						<Button onClick={onSubscribeClick}>Subscribe</Button>
 					)}
-					{user.hasSubscription && !loadingCancel && (
+					{user.hasSubscription && (
 						<Button onClick={onCancelSubscription}>Cancel subscription</Button>
 					)}
-					{loadingCancel && <Loading />}
 				</div>
 			</div>
 		</div>

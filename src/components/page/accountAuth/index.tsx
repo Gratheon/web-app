@@ -23,7 +23,7 @@ export default function AccountAuth() {
 		const { name, value } = e.target
 		account[name] = value;
 	}
-	let [accountAuth, { loading, error, data }] = useMutation(gql`
+	let [accountAuth, { error, data }] = useMutation(gql`
 		mutation login($email: String!, $password: String!) {
 			login(email: $email, password: $password) {
 				__typename
@@ -46,7 +46,7 @@ export default function AccountAuth() {
 		})
 	}
 
-	if (!account || loading) {
+	if (!account) {
 		return <Loader />
 	}
 

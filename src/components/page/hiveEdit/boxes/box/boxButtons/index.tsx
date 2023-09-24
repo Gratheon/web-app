@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import FramesIcon from '@/icons/framesIcon'
@@ -24,15 +24,15 @@ import {
 	addFrame,
 } from '@/components/models/frames'
 
-export default function BoxButtons({ box, onError, style="display:flex;" }) {
-	let buttonDirections = useLiveQuery(async() => {
+export default function BoxButtons({ box, onError, style = "display:flex;" }) {
+	let buttonDirections = useLiveQuery(async () => {
 		return [
-			await getBoxAtPositionBelow(box.hiveId, box.position)!==null,
-			await getBoxAtPositionAbove(box.hiveId, box.position)!==null
+			await getBoxAtPositionBelow(box.hiveId, box.position) !== null,
+			await getBoxAtPositionAbove(box.hiveId, box.position) !== null
 		]
 	}, [box]);
 
-	if(!buttonDirections){
+	if (!buttonDirections) {
 		return null;
 	}
 	let [showDownButton, showUpButton] = buttonDirections;
@@ -42,57 +42,13 @@ export default function BoxButtons({ box, onError, style="display:flex;" }) {
 	}
 	`)
 
-	let [addFrameMutation] =
-		useMutation(`mutation addFrame($boxId: ID!, $type: String!, $position: Int!) {
-		addFrame(boxId: $boxId, type: $type, position: $position){
-			id
-			leftSide{
-				id
-			}
-			rightSide{
-				id
-			}
-		}
-	}
-	`)
-
-	let [removeFrameMutation] = useMutation(`mutation deactivateFrame($id: ID!) {
-		deactivateFrame(id: $id)
-	}
-	`)
-
 	let [swapBoxPositionsMutation] = useMutation(
 		`mutation swapBoxPositions($id: ID!, $id2: ID!) {swapBoxPositions(id: $id, id2: $id2)}`
 	)
 
-	async function onFrameAdd(boxId, type) {
-		let position = (await countBoxFrames(boxId)) + 1
-		const {
-			data: {
-				addFrame: { id, leftSide, rightSide },
-			},
-			error,
-		} = await addFrameMutation({
-			boxId,
-			position,
-			type,
-		})
-
-		if (error) {
-			return onError(error)
-		}
-
-		await addFrame({
-			id: +id,
-			position,
-			boxId,
-			type,
-			leftId: +leftSide?.id,
-			rightId: +rightSide?.id,
-		})
-	}
-
+	const [movingBox, setMovingBox] = useState(false);
 	async function onMoveDown(boxId: number) {
+		setMovingBox(true);
 		const box1 = await getBox(boxId)
 		const box2 = await getBoxAtPositionBelow(box1.hiveId, box1.position)
 
@@ -102,13 +58,16 @@ export default function BoxButtons({ box, onError, style="display:flex;" }) {
 		})
 
 		if (error) {
+			setMovingBox(false);
 			return onError(error)
 		}
 
 		await swapBoxPositions(box1, box2)
+		setMovingBox(false);
 	}
 
 	async function onMoveUp(boxId: number) {
+		setMovingBox(true);
 		const box1 = await getBox(boxId)
 		const box2 = await getBoxAtPositionAbove(box1.hiveId, box1.position)
 
@@ -118,30 +77,34 @@ export default function BoxButtons({ box, onError, style="display:flex;" }) {
 		})
 
 		if (error) {
+			setMovingBox(false);
 			return onError(error)
 		}
 
 		await swapBoxPositions(box1, box2)
+		setMovingBox(false);
 	}
 
-	function onFrameRemove() {
-		// removeFrameMutation
-	}
-
+	const [removingBox, setRemovingBox] = useState(false);
 	async function onBoxRemove(id: number) {
-		const { error } = await removeBoxMutation({ id })
+		if (confirm('Are you sure?')) {
+			setRemovingBox(true)
+			const { error } = await removeBoxMutation({ id })
 
-		if (error) {
-			return onError(error)
+			if (error) {
+				return onError(error)
+			}
+
+			await removeBox(id)
+			setRemovingBox(false)
 		}
-
-		await removeBox(id)
 	}
 
 	return (
 		<div style={style}>
 			{showDownButton && (
 				<Button
+					loading={movingBox}
 					title="Move down"
 					onClick={() => {
 						onMoveDown(+box.id)
@@ -151,16 +114,18 @@ export default function BoxButtons({ box, onError, style="display:flex;" }) {
 
 			{showUpButton && (
 				<Button
+					loading={movingBox}
 					title="Move up"
 					onClick={() => {
 						onMoveUp(+box.id)
 					}}
-				><UpIcon/></Button>
+				><UpIcon /></Button>
 			)}
 
 			<Button
 				className="red"
 				title="Delete box"
+				loading={removingBox}
 				onClick={() => {
 					onBoxRemove(+box.id)
 				}}

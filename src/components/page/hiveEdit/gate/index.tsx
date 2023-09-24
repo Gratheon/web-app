@@ -25,7 +25,7 @@ export default function Gate({ boxId }) {
 	if (loading) {
 		return null
 	}
-console.log(data)
+	
 	if (data.videoStreams?.length > 0) {
 		return <div>
 			<h2>Streams</h2>

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import Button from '@/components/shared/button'
@@ -9,27 +9,25 @@ import Loading from '@/components/shared/loader'
 import DeleteIcon from '@/icons/deleteIcon'
 
 export default function deactivateButton({ hiveId }) {
-	let [updateHive, { loading }] = useMutation(HIVE_DELETE_MUTATION)
+	let [updateHive] = useMutation(HIVE_DELETE_MUTATION)
 	let navigate = useNavigate()
+	const [deleting, setDeleting] = useState(false)
 
-	function deactivate(e) {
+	async function deactivate(e) {
 		e.preventDefault()
 
 		if (confirm('Are you sure?')) {
-			updateHive({
+			setDeleting(true)
+			await updateHive({
 				id: hiveId,
-			}).then(() => {
-				navigate(`/apiaries`, { replace: true })
-			})
+			});
+			navigate(`/apiaries`, { replace: true })
+			setDeleting(false)
 		}
 	}
 
-	if (loading) {
-		return <Loading />
-	}
-
 	return (
-		<Button loading={loading} className="red" onClick={deactivate} title="Remove hive">
+		<Button loading={deleting} className="red" onClick={deactivate} title="Remove hive">
 			<DeleteIcon /><span>Remove hive</span>
 		</Button>
 	)

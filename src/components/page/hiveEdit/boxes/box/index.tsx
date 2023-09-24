@@ -4,7 +4,7 @@ import { Container, Draggable } from '@edorivai/react-smooth-dnd'
 import { useNavigate } from 'react-router-dom'
 import { useLiveQuery } from "dexie-react-hooks";
 
-import { useMutation, useQuery } from '@/components/api'
+import { gql, useMutation, useQuery } from '@/components/api'
 import { getFrames, moveFrame } from '@/components/models/frames'
 import ErrorMessage from '@/components/shared/messageError'
 import Loader from '@/components/shared/loader'
@@ -24,6 +24,8 @@ export default ({
 	const navigate = useNavigate();
 	const framesDiv = []
 
+	const [updateFramesRemote, {error}] = useMutation(gql`mutation updateFrames($frames: [FrameInput]!) { updateFrames(frames: $frames) { id } }`)
+
 	const frames = useLiveQuery(() => getFrames({
 		boxId: +box.id
 	}), [boxId, box], false);
@@ -39,8 +41,6 @@ export default ({
 			return <Loader />
 		}
 	}
-
-	let [updateFramesRemote, { error }] = useMutation(`mutation updateFrames($frames: [FrameInput]!) { updateFrames(frames: $frames) { id } }`)
 
 	async function swapFrames({ removedIndex, addedIndex }) {
 		await moveFrame({
@@ -69,7 +69,7 @@ export default ({
 		}
 	}
 
-	if (!isNil(frames)) {
+	if (frames && frames.length > 0) {
 		for (let i = 0; i < frames.length; i++) {
 			const frame = frames[i]
 
@@ -99,7 +99,7 @@ export default ({
 					}`}
 			>
 				<div className={styles.boxInner}>
-					{!frames && <Loader small={true} />}
+					{!frames && <Loader size={1} />}
 
 					{/* @ts-ignore */}
 					<Container

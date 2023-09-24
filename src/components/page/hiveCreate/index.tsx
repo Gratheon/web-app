@@ -32,7 +32,7 @@ export default function HiveCreateForm() {
 	let navigate = useNavigate()
 	let [frameCount, setFrameCount] = useState(8)
 	let [name, setName] = useState('')
-	let [addHive, { loading, error, data }] = useMutation(
+	let [addHive, { error, data }] = useMutation(
 		gql`
 			mutation addHive(
 				$name: String!
@@ -71,10 +71,6 @@ export default function HiveCreateForm() {
 				return b.color
 			}),
 		})
-	}
-
-	if (loading) {
-		return <Loader />
 	}
 
 	if (data) {

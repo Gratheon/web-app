@@ -1,7 +1,6 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 import FramesIcon from '@/icons/framesIcon'
-import DeleteIcon from '@/icons/deleteIcon'
 
 import { PopupButtonGroup, PopupButton } from '@/components/shared/popupButton'
 import Button from '@/components/shared/button'
@@ -14,7 +13,7 @@ import {
 } from '@/components/models/frames'
 
 export default function FrameButtons({ box, onError }) {
-	let [addFrameMutation, { loading: addingFrame, error }] =
+	let [addFrameMutation] =
 		useMutation(`mutation addFrame($boxId: ID!, $type: String!, $position: Int!) {
 		addFrame(boxId: $boxId, type: $type, position: $position){
 			id
@@ -28,31 +27,26 @@ export default function FrameButtons({ box, onError }) {
 	}
 	`)
 
+	const [addingFrame, setAdding] = useState(false)
+
 	async function onFrameAdd(boxId, type) {
+		setAdding(true)
 		let position = (await countBoxFrames(boxId)) + 1
-		const {
-			data: {
-				addFrame: { id, leftSide, rightSide },
-			},
-			error
-		} = await addFrameMutation({
-			boxId,
-			position,
-			type,
-		})
+		const { data, error } = await addFrameMutation({ boxId, position, type })
 
 		if (error) {
 			return onError(error)
 		}
 
 		await addFrame({
-			id: +id,
+			id: +data.addFrame.id,
 			position,
 			boxId,
 			type,
-			leftId: +leftSide?.id,
-			rightId: +rightSide?.id,
+			leftId: +data.addFrame.leftSide?.id,
+			rightId: +data.addFrame.rightSide?.id,
 		})
+		setAdding(false)
 	}
 
 	return (

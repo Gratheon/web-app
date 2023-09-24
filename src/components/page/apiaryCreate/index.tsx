@@ -17,7 +17,7 @@ export default function ApiaryEditForm() {
 	let [lng, setLng] = useState(0)
 	let [autoLocate, setAutoLocate] = useState(false)
 
-	let [addApiary, { loading, error, data }] = useMutation(gql`
+	let [addApiary, { error, data }] = useMutation(gql`
 		mutation addApiary($apiary: ApiaryInput!) {
 			addApiary(apiary: $apiary) {
 				id
@@ -44,10 +44,6 @@ export default function ApiaryEditForm() {
 		navigate('/apiaries', { replace: true })
 
 		return <div>Saved!</div>
-	}
-
-	if (loading) {
-		return <Loader />
 	}
 
 	let errorMsg

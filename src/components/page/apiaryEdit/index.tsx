@@ -53,14 +53,14 @@ export default function ApiaryEditForm() {
 			return <MessageNotFound msg="Apiary not found" />
 		}
 
-		updateApiary({
-			id: +apiaryGet.apiary.id,
-			name: apiaryGet.apiary.name,
-			lat: `${apiaryGet.apiary.lat}`,
-			lng: `${apiaryGet.apiary.lng}`,
-		})
+		// updateApiary({
+		// 	id: +apiaryGet.apiary.id,
+		// 	name: apiaryGet.apiary.name,
+		// 	lat: `${apiaryGet.apiary.lat}`,
+		// 	lng: `${apiaryGet.apiary.lng}`,
+		// })
 
-		return <Loader />
+		// return <Loader />
 	}
 
 	let [deactivateApiary] = useMutation(gql`
@@ -68,7 +68,7 @@ export default function ApiaryEditForm() {
 			deactivateApiary(id: $id)
 		}
 	`)
-	let [updateApiaryNetwork, { loading, error, data }] = useMutation(gql`
+	let [updateApiaryNetwork, { error, data }] = useMutation(gql`
 		mutation updateApiary($id: ID!, $apiary: ApiaryInput!) {
 			updateApiary(id: $id, apiary: $apiary) {
 				id
@@ -83,7 +83,7 @@ export default function ApiaryEditForm() {
 		setLng(+apiary.lng)
 	}
 
-	if (!apiary || loading) {
+	if (!apiary) {
 		return <Loader />
 	}
 

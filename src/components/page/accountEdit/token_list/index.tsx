@@ -22,7 +22,7 @@ const TokenList: React.FC = () => {
 		}
 	`)
 
-	let [generateToken, { loading: loadingGeneration, error: generationError }] = useMutation(gql`
+	let [generateToken, { error: generationError }] = useMutation(gql`
 	mutation generateApiToken {
 		generateApiToken {
 			id
@@ -73,7 +73,6 @@ const TokenList: React.FC = () => {
 		<div style="padding:10px">
 			<h3>API tokens</h3>
 			<ErrorMsg error={error || generationError} />
-			{loadingGeneration && <Loader />}
 
 			<table>
 				<tbody>

@@ -25,7 +25,7 @@ export default function AccountRegister() {
 		})
 	}
 
-	let [accountAuth, { loading, error, data }] = useMutation(gql`
+	let [accountAuth, { error, data }] = useMutation(gql`
 		mutation register($email: String!, $password: String!) {
 			register(email: $email, password: $password) {
 				__typename
@@ -55,7 +55,7 @@ export default function AccountRegister() {
 		})
 	}
 
-	if (!account || loading) {
+	if (!account) {
 		return <Loader />
 	}
 

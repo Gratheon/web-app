@@ -111,8 +111,10 @@ export function moveFramesToBox({
 	setFrames(tmpFrames, { hiveId })
 }
 */
-export async function addFrame({ id, position, boxId, type, leftId, rightId }) {
+export async function addFrame(frameData) {
 	try {
+		const { id, position, boxId, type, leftId, rightId } = frameData;
+
 		if (leftId) {
 			await db['frameside'].put({
 				id: leftId,

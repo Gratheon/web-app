@@ -16,7 +16,7 @@ import styles from './index.less'
 export default function UploadFile({ onUpload }) {
 	//todo
 	//@ts-ignore
-	const [uploadFile, {data, error}] = useUploadMutation(gql`
+	const [uploadFile, {data}] = useUploadMutation(gql`
 		mutation uploadFrameSide($file: Upload!) {
 			uploadFrameSide(file: $file) {
 				id
@@ -42,7 +42,7 @@ export default function UploadFile({ onUpload }) {
 
 		setLoading(true)
 		//@ts-ignore
-		const {data, error} = await uploadFile({ file })
+		const {data, error: uploadError} = await uploadFile({ file })
 
 		setLoading(false)
 
@@ -50,8 +50,8 @@ export default function UploadFile({ onUpload }) {
 			file
 		])
 
-		if (error) {
-			setError(error)
+		if (uploadError) {
+			setError(uploadError)
 			return;
 		}
 
@@ -117,7 +117,7 @@ export default function UploadFile({ onUpload }) {
 								className={styles.inputfile}
 								id="file"
 								required
-								accept="image/jpg"
+								accept="image/*"
 								onChange={onFileSelect}
 							/>
 
@@ -133,7 +133,6 @@ export default function UploadFile({ onUpload }) {
 							paddingTop: 5,
 							color: 'gray'
 						}}>Detection best works with high-resolution photos (17MP)</div>
-
 					</div>
 				</DragAndDrop>
 			}

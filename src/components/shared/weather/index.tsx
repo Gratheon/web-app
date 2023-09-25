@@ -12,6 +12,9 @@ const WEATHER_QUERY = gql`
 `
 
 export default function Weather({ lat, lng }: { lat: any; lng: any }) {
+	if(!lat) return
+	if(!lng) return
+
 	let { loading, error, data } = useQuery(WEATHER_QUERY, {
 		variables: { lat: `${lat}`, lng: `${lng}` },
 	})

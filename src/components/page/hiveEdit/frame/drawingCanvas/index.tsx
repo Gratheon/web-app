@@ -1,5 +1,4 @@
-import React, { useState, useRef, useEffect, useLayoutEffect } from 'react'
-import Loader from '@/components/shared/loader'
+import React, { useState, useRef, useLayoutEffect } from 'react'
 import Button from '@/components/shared/button'
 import colors from '@/components/colors'
 
@@ -269,6 +268,7 @@ export default function DrawingCanvas({
 
 	// trigger re-draw within useEffect
 	function clearHistory() {
+		points.length=0
 		strokeHistory.length = 0
 		setVersion(version + 1)
 		onStrokeHistoryUpdate(strokeHistory)
@@ -415,7 +415,7 @@ export default function DrawingCanvas({
 						} else {
 							strokeHistory = [[...points]]
 						}
-						points = []
+						points.length = 0
 
 						onStrokeHistoryUpdate(strokeHistory)
 					}
@@ -512,13 +512,11 @@ export default function DrawingCanvas({
 				Sorry, your browser is too old for this demo.
 			</canvas>
 			<div style={{ display: 'flex', margin: '3px 0' }}>
-				<Button
-					onClick={() => {
+				<Button onClick={() => {
 						setBeeVisibility(!showBees)
 					}}
 				>Toggle bees</Button>
-				<Button
-					onClick={() => {
+				<Button onClick={() => {
 						setCellVisibility(!showCells)
 					}}
 				>Toggle cells</Button>

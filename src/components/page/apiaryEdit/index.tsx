@@ -16,6 +16,7 @@ import Map from '@/components/shared/map'
 import Weather from '@/components/shared/weather'
 import Plants from './plants'
 import MessageNotFound from '@/components/shared/messageNotFound'
+import DeleteIcon from '@/icons/deleteIcon'
 
 export default function ApiaryEditForm() {
 	let navigate = useNavigate()
@@ -46,10 +47,10 @@ export default function ApiaryEditForm() {
 	)
 
 	if (!apiary) {
-		if(loadingGet){
+		if (loadingGet) {
 			return <Loader />
 		}
-		else{
+		else {
 			return <MessageNotFound msg="Apiary not found" />
 		}
 
@@ -79,24 +80,32 @@ export default function ApiaryEditForm() {
 	// only initial load should set values, otherwise use state
 	if (apiary && name == '') {
 		setName(apiary.name)
-		setLat(+apiary.lat)
-		setLng(+apiary.lng)
+
+		if (apiary.lat && !isNaN(+apiary.lat)) setLat(+apiary.lat)
+		if (apiary.lng && !isNaN(+apiary.lng)) setLng(+apiary.lng)
 	}
 
 	if (!apiary) {
 		return <Loader />
 	}
 
+
+	const [saving, setSaving] = useState(false)
+
 	async function onDeleteApiary() {
+		setSaving(true);
 		await deactivateApiary({
 			id,
 		})
 
+		setSaving(false);
 		navigate(`/apiaries`, { replace: true })
 	}
+
 	function onSubmit(e) {
 		e.preventDefault()
 
+		setSaving(true);
 		updateApiaryNetwork({
 			id,
 			apiary: {
@@ -112,28 +121,17 @@ export default function ApiaryEditForm() {
 			lat: `${lat}`,
 			lng: `${lng}`,
 		})
-
+		setSaving(false);
 	}
 
 	function onNameChange(e) {
 		setName(e.target.value)
 	}
 
-	let errorMsg
-	let okMsg
-
-	if (error) {
-		errorMsg = <ErrorMsg error={error} />
-	}
-
-	if (data) {
-		okMsg = <OkMsg />
-	}
-
 	return (
 		<div>
-			{okMsg}
-			{errorMsg}
+			{data && <OkMsg />}
+			<ErrorMsg error={error || errorGet} />
 
 			<Map
 				lat={lat}
@@ -167,27 +165,18 @@ export default function ApiaryEditForm() {
 						>
 							Google maps
 						</a>
-						<Button
-							style="margin-left:20px"
-							onClick={() => {
-								setAutoLocate(!autoLocate)
-							}}
-						>
-							Locate me
-						</Button>
 					</div>
 				</div>
 
 				<VisualFormSubmit>
-					<Button type="submit" className="green">
-						Update
-					</Button>
+					<Button type="submit" loading={saving} className="green">Update</Button>
+					<Button className="red" loading={saving} onClick={onDeleteApiary}><DeleteIcon /><span>Delete</span></Button>
 					<Button
-						style="margin-left:5px;"
-						className="red"
-						onClick={onDeleteApiary}
-					>
-						Delete
+						style="margin-left:20px"
+						onClick={() => {
+							setAutoLocate(!autoLocate)
+						}}
+					>Locate me
 					</Button>
 				</VisualFormSubmit>
 			</VisualForm>

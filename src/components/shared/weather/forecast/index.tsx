@@ -12,6 +12,8 @@ import {
 	Legend,
 } from 'recharts'
 
+import style from './index.less'
+
 type Humidity = {
 	name: string
 	humidity: number
@@ -45,7 +47,7 @@ export default function Forecast({ data }: HumidityProps) {
 
 	return (
 		<div style={{ marginTop: '20px' }}>
-			<div style={{ display: 'flex' }}>
+			<div className={style.forecast}>
 				<LineChart
 					width={600}
 					height={300}

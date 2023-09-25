@@ -27,6 +27,9 @@ type PlantImage = {
 }
 
 export default function Plants({ lat, lng }: PlantsProps) {
+	if(!lat) return
+	if(!lng) return
+	
 	let { loading, error, data } = useQuery(
 		gql`
 			query plants($lat: String!, $lng: String!) {

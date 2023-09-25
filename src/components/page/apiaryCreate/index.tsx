@@ -57,8 +57,7 @@ export default function ApiaryEditForm() {
 			{errorMsg}
 
 			<h2 style={{ marginBottom: 10 }}>New apiary</h2>
-			<VisualForm onSubmit={onSubmit}>
-				<Map
+			<Map
 					lat={lat}
 					lng={lng}
 					autoLocate={autoLocate}
@@ -67,6 +66,8 @@ export default function ApiaryEditForm() {
 						setLng(coords.lng)
 					}}
 				/>
+				
+			<VisualForm onSubmit={onSubmit}>
 				<div>
 					<label htmlFor="name">Name</label>
 					<input

@@ -95,50 +95,53 @@ type MapProps = {
 }
 
 const Map = ({ lat = null, lng = null, autoLocate = false, onMarkerSet }) => {
-	if (lat >= 0 || lng >= 0) {
-		return (
-			<div>
-				<MapContainer
-					style={{ width: '100%', height: 300 }}
-					center={[lat, lng]}
-					zoom={15}
-					zoomControl={true}
-					dragging={true}
-					scrollWheelZoom={true}
-					whenReady={() => {
-						if (typeof window !== 'undefined') {
-							window.dispatchEvent(new Event('resize'))
-						}
-					}}
-				>
-					<ChangeView center={[lat, lng]} />
-					<TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-					<LocationMarker
-						autoLocate={autoLocate}
-						onMarkerSet={onMarkerSet}
-						lat={lat}
-						lng={lng}
-					/>
+	console.log({lat, lng})
+	if (lat === '' || isNaN(lat)) return;
+	if (lng === '' || isNaN(lng)) return;
 
-					<LayerGroup>
-						<Circle
-							center={[lat, lng]}
-							opacity={0.5}
-							fillOpacity={0.3}
-							pathOptions={{ fillColor: 'orange', color: 'orange' }}
-							radius={1000}
-						/>
-						<Circle
-							center={[lat, lng]}
-							opacity={0.5}
-							pathOptions={{ fillColor: 'green', color: 'green' }}
-							radius={3000}
-						/>
-					</LayerGroup>
-				</MapContainer>
-			</div>
-		)
-	}
+	return (
+		<div>
+			<MapContainer
+				style={{ width: '100%', height: 300 }}
+				center={[lat, lng]}
+				zoom={15}
+				zoomControl={true}
+				dragging={true}
+				scrollWheelZoom={true}
+				whenReady={() => {
+					if (typeof window !== 'undefined') {
+						window.dispatchEvent(new Event('resize'))
+					}
+				}}
+			>
+				<ChangeView center={[lat, lng]} />
+				<TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+				<LocationMarker
+					autoLocate={autoLocate}
+					onMarkerSet={onMarkerSet}
+					lat={lat}
+					lng={lng}
+				/>
+
+				<LayerGroup>
+					<Circle
+						center={[lat, lng]}
+						opacity={0.5}
+						fillOpacity={0.3}
+						pathOptions={{ fillColor: 'orange', color: 'orange' }}
+						radius={1000}
+					/>
+					<Circle
+						center={[lat, lng]}
+						opacity={0.5}
+						pathOptions={{ fillColor: 'green', color: 'green' }}
+						radius={3000}
+					/>
+				</LayerGroup>
+			</MapContainer>
+		</div>
+	)
+
 }
 
 const ChangeView = ({ center }: { center: any }) => {

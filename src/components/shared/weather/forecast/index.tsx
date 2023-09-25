@@ -46,7 +46,6 @@ export default function Forecast({ data }: HumidityProps) {
 	})
 
 	return (
-		<div style={{ marginTop: '20px' }}>
 			<div className={style.forecast}>
 				<LineChart
 					width={600}
@@ -106,6 +105,5 @@ export default function Forecast({ data }: HumidityProps) {
 					/>
 				</LineChart>
 			</div>
-		</div>
 	)
 }

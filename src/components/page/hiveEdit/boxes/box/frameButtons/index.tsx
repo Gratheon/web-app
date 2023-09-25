@@ -11,6 +11,7 @@ import {
 	frameTypes,
 	addFrame,
 } from '@/components/models/frames'
+import FoundationIcon from '@/icons/foundationIcon'
 
 export default function FrameButtons({ box, onError }) {
 	let [addFrameMutation] =
@@ -65,7 +66,8 @@ export default function FrameButtons({ box, onError }) {
 						onFrameAdd(box.id, frameTypes.FOUNDATION)
 					}}
 				>
-					Add foundation
+					<FoundationIcon />
+					<span>Add foundation</span>
 				</Button>
 
 			<PopupButton>

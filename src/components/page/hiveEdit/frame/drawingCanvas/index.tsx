@@ -2,7 +2,6 @@ import React, { useState, useRef, useLayoutEffect } from 'react'
 import Button from '@/components/shared/button'
 import colors from '@/components/colors'
 
-let img
 let lineWidth = 0
 let isMousedown = false
 let points = []
@@ -11,8 +10,9 @@ const dpr = typeof window !== 'undefined' ? window.devicePixelRatio : 1
 let cameraOffset = { x: 0, y: 0 }
 let cameraZoom = 1
 let globalCameraZoom = 1
-let MAX_ZOOM = 6
+let MAX_ZOOM = 100
 let MIN_ZOOM = 1
+let MED_ZOOM = 3
 
 let zoomEnabled = false;
 
@@ -206,8 +206,8 @@ function initCanvasSize(
 	img,
 ) {
 	// size
-	var width = parseInt(img.width)
-	var height = parseInt(img.height)
+	var width = img ? parseInt(img.width) : 1024
+	var height = img ? parseInt(img.height) : 768
 
 	//UI BREAKING POINT
 	const isMobileView = document.body.clientWidth < 1200
@@ -236,7 +236,11 @@ function drawCanvasLayers(
 	// ctx.translate(-window.innerWidth / 2 + cameraOffset.x, -window.innerHeight / 2 + cameraOffset.y)
 
 	ctx.clearRect(0, 0, canvas.width, canvas.height)
-	ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+
+	console.log('drawing img?', img)
+	if(img){
+		ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+	}
 
 	if (showCells) {
 		drawDetectedFrameResources(detectedFrameResources, ctx, canvas)
@@ -256,19 +260,25 @@ let zoomTransforms = []
 
 export default function DrawingCanvas({
 	imageUrl,
+	resizes,
 	strokeHistory,
 	detectedBees,
 	detectedFrameResources,
 	onStrokeHistoryUpdate,
 }) {
+	if(!imageUrl){
+		return
+	}
 	const ref = useRef(null)
 	const [showBees, setBeeVisibility] = useState(true)
 	const [showCells, setCellVisibility] = useState(true)
 	const [version, setVersion] = useState(0)
+	const [canvasUrl, setCanvasUrl] = useState(resizes && resizes.length>0 ? resizes[0].url : imageUrl)
+	const [img, setImg] = useState<HTMLImageElement|null>(null)
 
 	// trigger re-draw within useEffect
 	function clearHistory() {
-		points.length=0
+		points.length = 0
 		strokeHistory.length = 0
 		setVersion(version + 1)
 		onStrokeHistoryUpdate(strokeHistory)
@@ -282,11 +292,13 @@ export default function DrawingCanvas({
 
 	let canvas, ctx
 
-	function initImage() {
-		img = document.createElement('img')
-		img.src = imageUrl
-		img.onload = () => {
-			initCanvas();
+	function initImage(url) {
+		let tmpImg = document.createElement('img')
+		// resizes
+		tmpImg.src = url
+		console.log('loading url', url)
+		tmpImg.onload = () => {
+			setImg(tmpImg)
 		}
 	}
 
@@ -426,8 +438,12 @@ export default function DrawingCanvas({
 		}
 	}
 
-	// on resize
-	useLayoutEffect(initImage, [imageUrl])
+
+	// initImage(canvasUrl)
+	useLayoutEffect(() => {
+		initImage(canvasUrl)
+		initCanvas()
+	}, [imageUrl])
 
 	useLayoutEffect(() => {
 		canvas = ref.current
@@ -443,12 +459,19 @@ export default function DrawingCanvas({
 			showCells,
 			detectedFrameResources
 		)
+
 		function handleScroll(event) {
 			if (isMousedown || !zoomEnabled) {
 				return
 			}
 			let zoomAmount //event.deltaY * SCROLL_SENSITIVITY
 			zoomAmount = event.deltaY > 0 ? -0.1 : 0.1 //event.deltaY * SCROLL_SENSITIVITY;
+
+
+			if (globalCameraZoom > MED_ZOOM && canvasUrl != imageUrl) {
+				setCanvasUrl(imageUrl)
+				initImage(imageUrl)
+			}
 
 			if (zoomAmount < 0) {
 				if (scrollIndex > 0) {
@@ -465,7 +488,7 @@ export default function DrawingCanvas({
 					globalCameraZoom = 1
 				}
 				setVersion(version + 1)
-			} else if (scrollIndex < 40) {
+			} else if (scrollIndex < MAX_ZOOM) {
 				if (
 					globalCameraZoom * (1 + zoomAmount) <= MAX_ZOOM &&
 					globalCameraZoom * (1 + zoomAmount) >= MIN_ZOOM
@@ -503,7 +526,7 @@ export default function DrawingCanvas({
 		canvas.removeEventListener('wheel', handleScroll)
 		canvas.addEventListener('wheel', handleScroll)
 		return () => canvas.removeEventListener('wheel', handleScroll)
-	}, [imageUrl, version, showBees, showCells, detectedBees, detectedFrameResources])
+	}, [imageUrl, img, version, showBees, showCells, detectedBees, detectedFrameResources])
 
 
 	return (
@@ -513,12 +536,12 @@ export default function DrawingCanvas({
 			</canvas>
 			<div style={{ display: 'flex', margin: '3px 0' }}>
 				<Button onClick={() => {
-						setBeeVisibility(!showBees)
-					}}
+					setBeeVisibility(!showBees)
+				}}
 				>Toggle bees</Button>
 				<Button onClick={() => {
-						setCellVisibility(!showCells)
-					}}
+					setCellVisibility(!showCells)
+				}}
 				>Toggle cells</Button>
 
 				<Button onClick={clearHistory}>Clear</Button>

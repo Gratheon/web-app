@@ -18,13 +18,12 @@ import CrownIcon from '@/icons/crownIcon'
 import ErrorMessage from '@/components/shared/messageError'
 
 import styles from './styles.less'
-import UploadFile from './uploadFile'
 import DrawingCanvas from './drawingCanvas'
 import MetricList from './metricList'
 import FRAME_SIDE_QUERY from './_api/getFrameFileObjectsQuery.graphql'
 import MessageNotFound from '@/components/shared/messageNotFound'
 
-export default function FrameSide({
+export default function FrameSideDrawing({
 	hiveId,
 	frameId,
 	frameSideId,
@@ -44,7 +43,7 @@ export default function FrameSide({
 	}, [frameSideId], null);
 
 	frameSideFile = useLiveQuery(function () {
-		if(!frameSide) return null
+		if (!frameSide) return null
 
 		return getFrameSideFile({
 			frameSideId: frameSide.id,
@@ -52,7 +51,7 @@ export default function FrameSide({
 	}, [frameSide?.id], null);
 
 	file = useLiveQuery(function () {
-		if(!frameSideFile?.fileId) return null
+		if (!frameSideFile?.fileId) return null
 
 		return getFile(frameSideFile.fileId)
 	}, [frameSideFile?.fileId], null);
@@ -69,14 +68,12 @@ export default function FrameSide({
 		if (loadingGet) {
 			return <Loading />
 		}
-		
-		if(!frameSide){
+
+		if (!frameSide) {
 			return <MessageNotFound msg="Frame not found" />
 		}
 	}
 
-
-	// let { frameSide, frameSideFile, file } = frameWithFile
 
 	if (!frameSide || !frameSideFile || frameRemoving) {
 		return <Loading />
@@ -134,40 +131,6 @@ export default function FrameSide({
 		[frameSideId]
 	)
 
-
-
-	let [linkFrameSideToFileMutation, { data: linkFrameSideToFileResult, error: errorFile }] = useMutation(
-		gql`mutation addFileToFrameSide($frameSideID: ID!, $fileID: ID!, $hiveID: ID!) { 
-			addFileToFrameSide(frameSideId: $frameSideID, fileId: $fileID, hiveId: $hiveID) {
-				estimatedDetectionTimeSec
-			}
-		}`
-	)
-	if (linkFrameSideToFileResult) {
-		setEstimatedDetectionTimeSec(linkFrameSideToFileResult?.addFileToFrameSide?.estimatedDetectionTimeSec)
-	}
-	async function onUpload(data) {
-		if (!data) {
-			return;
-		}
-
-		await linkFrameSideToFileMutation({
-			frameSideID: frameSideId,
-			fileID: data.id,
-			hiveID: hiveId
-		})
-
-		await updateFrameSideFile({
-			id: +frameSideId,
-			fileId: +data.id,
-			frameSideId: +frameSideId,
-			strokeHistory: [],
-			detectedBees: [],
-			detectedFrameResources: [],
-			counts: []
-		});
-	}
-
 	async function onQueenToggle() {
 		frameSide = await toggleQueen(frameSide)
 		await frameSideMutate({
@@ -199,31 +162,10 @@ export default function FrameSide({
 		)
 	}
 
-	const extraButtons = (
-		<div style={{ display: 'flex', flexDirection: 'row-reverse', flexGrow: 1 }}>
-			<Button title="Toggle queen" onClick={onQueenToggle}>
-				<CrownIcon fill={frameSide.queenDetected ? 'gold' : '#555555'} stroke="gray" />
-				<span>Toggle Queen</span>
-			</Button>
-		</div>
-	)
-
-	const error = <ErrorMessage error={errorFile || errorFrameSide || errorStrokes} />
-
-	if (!frameSideFile || !file) {
-		return (
-			<div style={{ flexGrow: 10, padding: 15 }}>
-				{error}
-				{extraButtons}
-				<UploadFile onUpload={onUpload} />
-			</div>
-		)
-	}
-
 	return (
 		<div className={styles.frame}>
 			<div className={styles.body}>
-				{error}
+				<ErrorMessage error={errorFrameSide || errorStrokes} />
 
 				<div style={{ display: 'flex', flexGrow: '1' }}>
 					<MetricList
@@ -231,7 +173,12 @@ export default function FrameSide({
 						estimatedDetectionTimeSec={estimatedDetectionTimeSec}
 						frameSideFile={frameSideFile}
 						frameSide={frameSide} />
-					{extraButtons}
+					<div style={{ display: 'flex', flexDirection: 'row-reverse', flexGrow: 1 }}>
+						<Button title="Toggle queen" onClick={onQueenToggle}>
+							<CrownIcon fill={frameSide.queenDetected ? 'gold' : '#555555'} stroke="gray" />
+							<span>Toggle Queen</span>
+						</Button>
+					</div>
 				</div>
 				<DrawingCanvas
 					imageUrl={file.url}

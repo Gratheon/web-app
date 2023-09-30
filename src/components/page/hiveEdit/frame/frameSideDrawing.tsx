@@ -1,32 +1,28 @@
 import React, { useMemo, useState } from 'react'
-import { useLiveQuery } from 'dexie-react-hooks'
-import { useNavigate } from 'react-router-dom'
 import debounce from 'lodash.debounce'
 
-import { gql, useMutation, useQuery, useSubscription } from '@/components/api'
+import { gql, useMutation, useSubscription } from '@/components/api'
 import {
 	getFrameSide,
 	toggleQueen,
 	updateFrameStat,
 } from '@/components/models/frameSide'
 import { getFrameSideFile, updateFrameSideFile } from '@/components/models/frameSideFile'
-import { getFile } from '@/components/models/files'
 
-import Button from '@/components/shared/button'
 import Loading from '@/components/shared/loader'
-import CrownIcon from '@/icons/crownIcon'
 import ErrorMessage from '@/components/shared/messageError'
 
 import styles from './styles.less'
 import DrawingCanvas from './drawingCanvas'
 import MetricList from './metricList'
-import FRAME_SIDE_QUERY from './_api/getFrameFileObjectsQuery.graphql'
-import MessageNotFound from '@/components/shared/messageNotFound'
 
 export default function FrameSideDrawing({
-	hiveId,
+	file,
+	frameSide,
+	frameSideFile,
 	frameId,
 	frameSideId,
+	extraButtons,
 }) {
 
 	if (!frameId || !frameSideId) {
@@ -35,45 +31,6 @@ export default function FrameSideDrawing({
 
 	let [estimatedDetectionTimeSec, setEstimatedDetectionTimeSec] = useState(0)
 	let [frameRemoving, setFrameRemoving] = useState<boolean>(false)
-
-	let file, frameSideFile, frameSide
-
-	frameSide = useLiveQuery(function () {
-		return getFrameSide(+frameSideId)
-	}, [frameSideId], null);
-
-	frameSideFile = useLiveQuery(function () {
-		if (!frameSide) return null
-
-		return getFrameSideFile({
-			frameSideId: frameSide.id,
-		})
-	}, [frameSide?.id], null);
-
-	file = useLiveQuery(function () {
-		if (!frameSideFile?.fileId) return null
-
-		return getFile(frameSideFile.fileId)
-	}, [frameSideFile?.fileId], null);
-
-
-	if (!frameSide || !file || !frameSideFile) {
-		let { loading: loadingGet, data: frameSideFileRelDetails } = useQuery(
-			FRAME_SIDE_QUERY,
-			{ variables: { frameSideId } }
-		)
-
-		setEstimatedDetectionTimeSec(frameSideFileRelDetails?.hiveFrameSideFile?.estimatedDetectionTimeSec)
-
-		if (loadingGet) {
-			return <Loading />
-		}
-
-		if (!frameSide) {
-			return <MessageNotFound msg="Frame not found" />
-		}
-	}
-
 
 	if (!frameSide || !frameSideFile || frameRemoving) {
 		return <Loading />
@@ -173,12 +130,7 @@ export default function FrameSideDrawing({
 						estimatedDetectionTimeSec={estimatedDetectionTimeSec}
 						frameSideFile={frameSideFile}
 						frameSide={frameSide} />
-					<div style={{ display: 'flex', flexDirection: 'row-reverse', flexGrow: 1 }}>
-						<Button title="Toggle queen" onClick={onQueenToggle}>
-							<CrownIcon fill={frameSide.queenDetected ? 'gold' : '#555555'} stroke="gray" />
-							<span>Toggle Queen</span>
-						</Button>
-					</div>
+					{extraButtons}
 				</div>
 				<DrawingCanvas
 					imageUrl={file.url}

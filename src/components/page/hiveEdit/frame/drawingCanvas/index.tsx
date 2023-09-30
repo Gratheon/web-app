@@ -233,11 +233,8 @@ function drawCanvasLayers(
 	showCells,
 	detectedFrameResources
 ) {
-	// ctx.translate(-window.innerWidth / 2 + cameraOffset.x, -window.innerHeight / 2 + cameraOffset.y)
-
 	ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-	console.log('drawing img?', img)
 	if(img){
 		ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
 	}

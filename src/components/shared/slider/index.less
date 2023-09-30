@@ -1,4 +1,4 @@
-@height: 22px;
+@height: 20px;
 @background: #dedede;
 
 .wrapper {
@@ -33,15 +33,16 @@ input[type='range'] {
 	-webkit-appearance: none;
 	width: 100%;
 	background: transparent;
+	height: 20px;
+	margin: 0;
 }
 
 input[type='range']::-webkit-slider-runnable-track {
 	-webkit-appearance: none;
-	height: @height;
+	height: 18px;
 	width: 100%;
 	border-radius: 1px;
 	z-index: 5;
-	//background: black;
 }
 
 input[type='range']::-webkit-slider-thumb {
@@ -50,6 +51,6 @@ input[type='range']::-webkit-slider-thumb {
 	width: 6px;
 	background: #424242;
 	cursor: pointer;
-	margin-top: -2px;
+	margin-top: -1px;
 	border-radius: 5px;
 }

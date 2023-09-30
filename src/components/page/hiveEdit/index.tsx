@@ -30,10 +30,10 @@ export default function HiveEditForm() {
 	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId], null)
 	const box = useLiveQuery(() => getBox(+boxId), [boxId], null)
 
-	// wait for local cache
 	if(apiary ===null || hive === null){
 		return <Loader/>
 	}
+	
 	let loading,
 		errorGet,
 		errorNetwork

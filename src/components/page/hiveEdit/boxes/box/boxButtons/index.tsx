@@ -18,12 +18,6 @@ import {
 	getBox,
 } from '@/components/models/boxes'
 
-import {
-	countBoxFrames,
-	frameTypes,
-	addFrame,
-} from '@/components/models/frames'
-
 export default function BoxButtons({ box, onError, style = "display:flex;" }) {
 	let buttonDirections = useLiveQuery(async () => {
 		return [

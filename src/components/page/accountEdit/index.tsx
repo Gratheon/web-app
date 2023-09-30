@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-// import { useLiveQuery } from 'dexie-react-hooks'
 
 import { gql, useMutation, useQuery } from '@/components/api'
 import VisualForm from '@/components/shared/visualForm'
@@ -8,7 +7,7 @@ import ErrorMsg from '@/components/shared/messageError'
 import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
 import Button from '@/components/shared/button'
 import type { User } from '@/components/models/user'
-import { updateUser, getUser } from '@/components/models/user'
+import { updateUser } from '@/components/models/user'
 
 import TokenList from './token_list'
 import Billing from './billing'
@@ -47,7 +46,6 @@ export default function AccountEdit() {
 			}
 		}
 	`)
-	// const user = useLiveQuery(() => getUser())
 
 	let [updateAccount, { error }] = useMutation(gql`
 		mutation updateUser($user: UserUpdateInput!) {

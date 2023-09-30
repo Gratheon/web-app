@@ -102,10 +102,12 @@ function useUploadMutation(query: string | TypedDocumentNode, url = imageUploadU
 }
 
 function useQueryAdapted(query: string | TypedDocumentNode, options?: any) {
-	const [result] = useQuery({
+	const queryResult = useQuery({
 		query,
 		variables: options?.variables,
 	})
+
+	const result = queryResult[0]
 
 	return {
 		data: result.data,

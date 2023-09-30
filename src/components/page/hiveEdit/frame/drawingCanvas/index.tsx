@@ -203,17 +203,24 @@ function debounce(func, timeout = 300) {
 function initCanvasSize(
 	canvas,
 	ctx,
-	img,
 ) {
 	// size
 	var width = img ? parseInt(img.width) : 1024
 	var height = img ? parseInt(img.height) : 768
 
+	// see hiveEdit
+	const frameWrap = document.getElementById('frameWrap');
+	let canvasParentWidth = 1024;
+
+	if (frameWrap) {
+		// Access the width of the external HTML element using offsetWidth
+		canvasParentWidth = frameWrap.offsetWidth - 20;
+	}
+
 	//UI BREAKING POINT
 	const isMobileView = document.body.clientWidth < 1200
 	zoomEnabled = !isMobileView
-	const sideBarMaxWidth = 450
-	const canvasWidth = isMobileView ? document.body.clientWidth : document.body.clientWidth - sideBarMaxWidth
+	const canvasWidth = isMobileView ? document.body.clientWidth : canvasParentWidth
 	const tmpw = dpr * Math.floor(canvasWidth)
 	canvas.width = tmpw
 	canvas.height = tmpw * (height / width)
@@ -226,7 +233,6 @@ function initCanvasSize(
 function drawCanvasLayers(
 	canvas,
 	ctx,
-	img,
 	strokeHistory,
 	showBees,
 	detectedBees,
@@ -235,7 +241,7 @@ function drawCanvasLayers(
 ) {
 	ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-	if(img){
+	if (img) {
 		ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
 	}
 
@@ -254,6 +260,7 @@ function drawCanvasLayers(
 
 let scrollIndex = 0
 let zoomTransforms = []
+let img;
 
 export default function DrawingCanvas({
 	imageUrl,
@@ -263,15 +270,14 @@ export default function DrawingCanvas({
 	detectedFrameResources,
 	onStrokeHistoryUpdate,
 }) {
-	if(!imageUrl){
+	if (!imageUrl) {
 		return
 	}
 	const ref = useRef(null)
 	const [showBees, setBeeVisibility] = useState(true)
 	const [showCells, setCellVisibility] = useState(true)
 	const [version, setVersion] = useState(0)
-	const [canvasUrl, setCanvasUrl] = useState(resizes && resizes.length>0 ? resizes[0].url : imageUrl)
-	const [img, setImg] = useState<HTMLImageElement|null>(null)
+	const [canvasUrl, setCanvasUrl] = useState(resizes && resizes.length > 0 ? resizes[0].url : imageUrl)
 
 	// trigger re-draw within useEffect
 	function clearHistory() {
@@ -289,14 +295,19 @@ export default function DrawingCanvas({
 
 	let canvas, ctx
 
-	function initImage(url) {
-		let tmpImg = document.createElement('img')
-		// resizes
-		tmpImg.src = url
-		console.log('loading url', url)
-		tmpImg.onload = () => {
-			setImg(tmpImg)
-		}
+	async function initImage(url) {
+		return new Promise((resolve, reject) => {
+			let tmpImg = document.createElement('img')
+			// resizes
+			tmpImg.src = url
+			tmpImg.onload = () => {
+				resolve(tmpImg)
+			}
+
+			tmpImg.onerror = (e) => {
+				reject(e)
+			}
+		})
 	}
 
 	function initCanvas() {
@@ -306,13 +317,11 @@ export default function DrawingCanvas({
 		function initAndRedraw() {
 			initCanvasSize(
 				canvas,
-				ctx,
-				img
+				ctx
 			)
 			drawCanvasLayers(
 				canvas,
 				ctx,
-				img,
 				strokeHistory,
 				showBees,
 				detectedBees,
@@ -435,11 +444,11 @@ export default function DrawingCanvas({
 		}
 	}
 
-
-	// initImage(canvasUrl)
 	useLayoutEffect(() => {
-		initImage(canvasUrl)
-		initCanvas()
+		(async () => {
+			img = await initImage(canvasUrl)
+			initCanvas()
+		})();
 	}, [imageUrl])
 
 	useLayoutEffect(() => {
@@ -449,7 +458,6 @@ export default function DrawingCanvas({
 		drawCanvasLayers(
 			canvas,
 			ctx,
-			img,
 			strokeHistory,
 			showBees,
 			detectedBees,
@@ -467,7 +475,9 @@ export default function DrawingCanvas({
 
 			if (globalCameraZoom > MED_ZOOM && canvasUrl != imageUrl) {
 				setCanvasUrl(imageUrl)
-				initImage(imageUrl)
+				initImage(imageUrl).then((r) => {
+					img = r;
+				})
 			}
 
 			if (zoomAmount < 0) {
@@ -523,7 +533,7 @@ export default function DrawingCanvas({
 		canvas.removeEventListener('wheel', handleScroll)
 		canvas.addEventListener('wheel', handleScroll)
 		return () => canvas.removeEventListener('wheel', handleScroll)
-	}, [imageUrl, img, version, showBees, showCells, detectedBees, detectedFrameResources])
+	}, [imageUrl, version, showBees, showCells, detectedBees, detectedFrameResources])
 
 
 	return (

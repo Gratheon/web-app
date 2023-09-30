@@ -114,7 +114,7 @@ export default function HiveEditForm() {
 					/>
 				</div>
 
-				<div className={styles.frameWrap}>
+				<div className={styles.frameWrap} id="frameWrap">
 					<Frame
 						apiaryId={apiaryId}
 						boxId={boxId}

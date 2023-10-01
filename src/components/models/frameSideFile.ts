@@ -7,6 +7,7 @@ type FrameSideFile = {
     strokeHistory: any
     detectedBees: any
     detectedFrameResources: any
+    detectedQueenCups: any
 	counts: any
 }
 export async function getFrameSideFile({frameSideId}):Promise<FrameSideFile>{
@@ -15,8 +16,13 @@ export async function getFrameSideFile({frameSideId}):Promise<FrameSideFile>{
         if(!row.detectedBees){
             row.detectedBees = []
         }
+        
         if(!row.detectedFrameResources){
             row.detectedFrameResources = []
+        }
+
+        if(!row.detectedQueenCups){
+            row.detectedQueenCups = []
         }
     }
     return row

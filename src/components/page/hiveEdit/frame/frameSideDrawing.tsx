@@ -66,6 +66,20 @@ export default function FrameSideDrawing({
 		}
 	})
 
+	useSubscription(gql`subscription onFrameQueenCupsDetected($frameSideId: String){
+			onFrameQueenCupsDetected(frameSideId:$frameSideId){
+				delta
+			}
+		}`, { frameSideId }, (_, response) => {
+		if (response) {
+			frameSideFile.detectedQueenCups = [
+				...frameSideFile.detectedQueenCups,
+				...response.onFrameQueenCupsDetected.delta
+			]
+			updateFrameSideFile(frameSideFile)
+		}
+	})
+
 	let [frameSideMutate, { error: errorFrameSide }] = useMutation(gql`mutation updateFrameSide($frameSide: FrameSideInput!) { updateFrameSide(frameSide: $frameSide) }`)
 	const onFrameSideStatChange = useMemo(
 		() =>
@@ -135,6 +149,8 @@ export default function FrameSideDrawing({
 				<DrawingCanvas
 					imageUrl={file.url}
 					resizes={file.resizes}
+
+					detectedQueenCups={frameSideFile.detectedQueenCups}
 					detectedBees={frameSideFile.detectedBees}
 					detectedFrameResources={frameSideFile.detectedFrameResources}
 					strokeHistory={frameSideFile.strokeHistory}

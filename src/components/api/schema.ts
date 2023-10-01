@@ -157,6 +157,7 @@ type Apiary {
     strokeHistory: JSON
     detectedBees: JSON
     detectedFrameResources: JSON
+    detectedQueenCups: JSON
   }
   
   input FrameSideInput {

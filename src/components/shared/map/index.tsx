@@ -95,7 +95,6 @@ type MapProps = {
 }
 
 const Map = ({ lat = null, lng = null, autoLocate = false, onMarkerSet }) => {
-	console.log({lat, lng})
 	if (lat === '' || isNaN(lat)) return;
 	if (lng === '' || isNaN(lng)) return;
 

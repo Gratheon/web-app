@@ -126,6 +126,39 @@ function drawDetectedFrameResources(detectedFrameCells, ctx, canvas) {
 		ctx.globalAlpha = 1
 	}
 }
+
+function drawQueenCups(queenCups, ctx, canvas) {
+	REL_PX = canvas.width / 1024
+	if (queenCups.length > 0) {
+		for (let dt of queenCups) {
+			const {n, x, y, x2, y2, c} = dt
+			ctx.globalAlpha = 1 //0.4 + c / 100
+
+			ctx.beginPath()
+			ctx.strokeStyle = 'red'
+			// ctx.fillStyle = 'blue'
+
+			ctx.lineWidth = 6 * REL_PX
+
+			ctx.roundRect(
+				
+				x * canvas.width,
+				y * canvas.height,
+				
+				(x2-x) * canvas.width,
+				(y2-y) * canvas.height,
+				
+				
+				10 * REL_PX
+			)
+
+			ctx.stroke();
+			// ctx.fill()
+		}
+		ctx.globalAlpha = 1
+	}
+}
+
 function drawDetectedBees(detectedBees, ctx, canvas) {
 	REL_PX = canvas.width / 1024
 	if (detectedBees.length > 0) {
@@ -237,7 +270,8 @@ function drawCanvasLayers(
 	showBees,
 	detectedBees,
 	showCells,
-	detectedFrameResources
+	detectedFrameResources,
+	queenCups
 ) {
 	ctx.clearRect(0, 0, canvas.width, canvas.height)
 
@@ -253,6 +287,10 @@ function drawCanvasLayers(
 		drawDetectedBees(detectedBees, ctx, canvas)
 	}
 
+	if(queenCups){
+		drawQueenCups(queenCups, ctx, canvas)
+	}
+
 	if (strokeHistory && strokeHistory.length > 0) {
 		redrawStrokes(canvas, ctx, strokeHistory)
 	}
@@ -266,6 +304,7 @@ export default function DrawingCanvas({
 	imageUrl,
 	resizes,
 	strokeHistory,
+	detectedQueenCups,
 	detectedBees,
 	detectedFrameResources,
 	onStrokeHistoryUpdate,
@@ -326,7 +365,8 @@ export default function DrawingCanvas({
 				showBees,
 				detectedBees,
 				showCells,
-				detectedFrameResources
+				detectedFrameResources,
+				detectedQueenCups
 			)
 		}
 
@@ -462,7 +502,8 @@ export default function DrawingCanvas({
 			showBees,
 			detectedBees,
 			showCells,
-			detectedFrameResources
+			detectedFrameResources,
+			detectedQueenCups
 		)
 
 		function handleScroll(event) {

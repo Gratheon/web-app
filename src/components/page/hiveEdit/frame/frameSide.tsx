@@ -29,7 +29,6 @@ export default function FrameSide({
 	}
 
 	let [estimatedDetectionTimeSec, setEstimatedDetectionTimeSec] = useState(0)
-	let [frameRemoving, setFrameRemoving] = useState<boolean>(false)
 
 	let file, frameSideFile, frameSide
 
@@ -97,6 +96,7 @@ export default function FrameSide({
 			strokeHistory: [],
 			detectedBees: [],
 			detectedFrameResources: [],
+			detectedQueenCups: [],
 			counts: []
 		});
 	}

@@ -4,7 +4,7 @@ import styles from './index.less'
 import { useNavigate } from 'react-router-dom'
 
 import colors from '@/components/colors'
-import CrownIcon from '@/icons/crownIcon'
+import QueenIcon from '@/icons/queenIcon'
 
 export default function BoxFrameHalf({ frameSide, className, href }) {
 	let navigate = useNavigate()
@@ -18,7 +18,7 @@ export default function BoxFrameHalf({ frameSide, className, href }) {
 		>
 
 			{frameSide?.queenDetected &&
-				<CrownIcon className={styles.crown} />
+				<QueenIcon className={styles.crown} />
 			}
 
 

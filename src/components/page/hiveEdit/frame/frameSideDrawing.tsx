@@ -15,6 +15,8 @@ import ErrorMessage from '@/components/shared/messageError'
 import styles from './styles.less'
 import DrawingCanvas from './drawingCanvas'
 import MetricList from './metricList'
+import Button from '@/components/shared/button'
+import QueenIcon from '@/icons/queenIcon'
 
 export default function FrameSideDrawing({
 	file,
@@ -22,7 +24,6 @@ export default function FrameSideDrawing({
 	frameSideFile,
 	frameId,
 	frameSideId,
-	extraButtons,
 }) {
 
 	if (!frameId || !frameSideId) {
@@ -133,6 +134,15 @@ export default function FrameSideDrawing({
 		)
 	}
 
+
+	const queenButton = (
+		<Button title="Toggle queen" onClick={onQueenToggle}>
+			<QueenIcon />
+			<span>Toggle Queen</span>
+		</Button>
+	)
+
+
 	return (
 		<div className={styles.frame}>
 			<div className={styles.body}>
@@ -142,9 +152,7 @@ export default function FrameSideDrawing({
 					<MetricList
 						onFrameSideStatChange={onFrameSideStatChange}
 						estimatedDetectionTimeSec={estimatedDetectionTimeSec}
-						frameSideFile={frameSideFile}
 						frameSide={frameSide} />
-					{extraButtons}
 				</div>
 				<DrawingCanvas
 					imageUrl={file.url}
@@ -155,6 +163,8 @@ export default function FrameSideDrawing({
 					detectedFrameResources={frameSideFile.detectedFrameResources}
 					strokeHistory={frameSideFile.strokeHistory}
 					onStrokeHistoryUpdate={onStrokeHistoryUpdate}
+					frameSideFile={frameSideFile}
+					queenButton={queenButton}
 				/>
 			</div>
 		</div>

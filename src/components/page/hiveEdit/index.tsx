@@ -103,7 +103,7 @@ export default function HiveEditForm() {
 			<HiveEditDetails hiveId={hiveId} />
 
 			<div className={styles.boxesFrameWrap}>
-				<div className={styles.boxesWrap}>
+				<div className={styles.boxesWrap} id="boxesWrap">
 				<Boxes
 						onError={onError}
 						apiaryId={apiaryId}
@@ -114,7 +114,7 @@ export default function HiveEditForm() {
 					/>
 				</div>
 
-				<div className={styles.frameWrap} id="frameWrap">
+				<div className={styles.frameWrap}>
 					<Frame
 						apiaryId={apiaryId}
 						boxId={boxId}

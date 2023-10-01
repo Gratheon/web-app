@@ -9,7 +9,7 @@ import { getFrame, removeFrame } from '@/components/models/frames'
 
 import Button from '@/components/shared/button'
 import Loading from '@/components/shared/loader'
-import CrownIcon from '@/icons/crownIcon'
+import CrownIcon from '@/icons/queenIcon'
 import ErrorMessage from '@/components/shared/messageError'
 import DeleteIcon from '@/icons/deleteIcon'
 

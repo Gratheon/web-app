@@ -3,26 +3,7 @@ import ResourceEditRow from './resourceEditRow'
 import colors from '@/components/colors'
 import { CountdownCircleTimer } from 'react-countdown-circle-timer'
 
-const beeTypeMap = {
-	'BEE_WORKER': { 
-		title: 'Worker bees', 
-		height: 22, 
-		iconUrl: '/assets/bee-worker.png'
-	},
-	'BEE_DRONE': {
-		title: 'Drones', 
-		height: 22, 
-		iconUrl: '/assets/bee-drone.png'
-	},
-	'BEE_QUEEN': {
-		title: 'Queen', 
-		height: 26, 
-		iconUrl: '/assets/bee-queen.png'
-	},
-}
-
 export default function MetricList({
-	frameSideFile,
 	estimatedDetectionTimeSec,
 	onFrameSideStatChange,
 	frameSide
@@ -96,15 +77,6 @@ export default function MetricList({
 				percent={frameSide.pollenPercent}
 				onChange={(e) => onResize('pollenPercent', e.target.value)}
 			/>
-			{frameSideFile.counts && frameSideFile.counts.map((row) => {
-				return <div title={beeTypeMap[row.type].title} style={{
-					padding: '4px',
-					height: '26px',
-				}}>
-					<img height={beeTypeMap[row.type].height} src={beeTypeMap[row.type].iconUrl} />
-					{row.count}
-				</div>
-			})}
 		</div>
 	</div>
 }

@@ -10,7 +10,7 @@ import { getFile } from '@/components/models/files'
 
 import Button from '@/components/shared/button'
 import Loading from '@/components/shared/loader'
-import CrownIcon from '@/icons/crownIcon'
+import QueenIcon from '@/icons/queenIcon'
 import ErrorMessage from '@/components/shared/messageError'
 
 import UploadFile from './uploadFile'
@@ -115,23 +115,12 @@ export default function FrameSide({
 			},
 		})
 	}
-
-	const extraButtons = (
-		<div style={{ display: 'flex', flexDirection: 'row-reverse', flexGrow: 1 }}>
-			<Button title="Toggle queen" onClick={onQueenToggle}>
-				<CrownIcon fill={frameSide.queenDetected ? 'gold' : '#555555'} stroke="gray" />
-				<span>Toggle Queen</span>
-			</Button>
-		</div>
-	)
-
 	const error = <ErrorMessage error={errorFile || errorFrameSide} />
 
 	if (!frameSideFile || !file) {
 		return (
 			<div style={{ flexGrow: 10, padding: 15 }}>
 				{error}
-				{extraButtons}
 				<UploadFile onUpload={onUpload} />
 			</div>
 		)
@@ -142,6 +131,5 @@ export default function FrameSide({
 		frameSide={frameSide}
 		frameSideFile={frameSideFile}
 		frameId={frameId}
-		frameSideId={frameSideId}
-		extraButtons={extraButtons} />
+		frameSideId={frameSideId}/>
 }

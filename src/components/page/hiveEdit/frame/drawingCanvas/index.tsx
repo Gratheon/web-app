@@ -21,6 +21,25 @@ let offsetsum = {
 	y: 0,
 }
 
+const beeTypeMap = {
+	'BEE_WORKER': {
+		title: 'Worker bees',
+		height: 22,
+		iconUrl: '/assets/bee-worker.png'
+	},
+	'BEE_DRONE': {
+		title: 'Drones',
+		height: 22,
+		iconUrl: '/assets/bee-drone.png'
+	},
+	'BEE_QUEEN': {
+		title: 'Queen',
+		height: 26,
+		iconUrl: '/assets/bee-queen.png'
+	},
+}
+
+
 function drawOnCanvas(canvas, ctx, stroke) {
 	ctx.strokeStyle = 'white'
 	ctx.lineCap = 'round'
@@ -131,7 +150,7 @@ function drawQueenCups(queenCups, ctx, canvas) {
 	REL_PX = canvas.width / 1024
 	if (queenCups.length > 0) {
 		for (let dt of queenCups) {
-			const {n, x, y, x2, y2, c} = dt
+			const { n, x, y, x2, y2, c } = dt
 			ctx.globalAlpha = 1 //0.4 + c / 100
 
 			ctx.beginPath()
@@ -141,14 +160,14 @@ function drawQueenCups(queenCups, ctx, canvas) {
 			ctx.lineWidth = 6 * REL_PX
 
 			ctx.roundRect(
-				
+
 				x * canvas.width,
 				y * canvas.height,
-				
-				(x2-x) * canvas.width,
-				(y2-y) * canvas.height,
-				
-				
+
+				(x2 - x) * canvas.width,
+				(y2 - y) * canvas.height,
+
+
 				10 * REL_PX
 			)
 
@@ -163,14 +182,14 @@ function drawDetectedBees(detectedBees, ctx, canvas) {
 	REL_PX = canvas.width / 1024
 	if (detectedBees.length > 0) {
 		for (let dt of detectedBees) {
-			ctx.globalAlpha = 0.3 + dt.c
+			ctx.globalAlpha = 0.4 + dt.c
 
 			ctx.beginPath()
 			switch (parseInt(dt.n, 10)) {
 				case 0: //bee-worker
 					ctx.fillStyle = ctx.strokeStyle = colors.beeWorker
 					dt.nText = 'worker'
-					ctx.lineWidth = 1 * REL_PX
+					ctx.lineWidth = 2 * REL_PX
 					break
 				case 1:
 					ctx.fillStyle = ctx.strokeStyle = colors.drone
@@ -242,12 +261,12 @@ function initCanvasSize(
 	var height = img ? parseInt(img.height) : 768
 
 	// see hiveEdit
-	const frameWrap = document.getElementById('frameWrap');
+	const boxesWrap = document.getElementById('boxesWrap');
 	let canvasParentWidth = 1024;
 
-	if (frameWrap) {
+	if (boxesWrap) {
 		// Access the width of the external HTML element using offsetWidth
-		canvasParentWidth = frameWrap.offsetWidth - 20;
+		canvasParentWidth = document.documentElement.clientWidth - boxesWrap.offsetWidth - 20;
 	}
 
 	//UI BREAKING POINT
@@ -271,6 +290,7 @@ function drawCanvasLayers(
 	detectedBees,
 	showCells,
 	detectedFrameResources,
+	showQueenCups,
 	queenCups
 ) {
 	ctx.clearRect(0, 0, canvas.width, canvas.height)
@@ -287,7 +307,7 @@ function drawCanvasLayers(
 		drawDetectedBees(detectedBees, ctx, canvas)
 	}
 
-	if(queenCups){
+	if (showQueenCups) {
 		drawQueenCups(queenCups, ctx, canvas)
 	}
 
@@ -308,6 +328,8 @@ export default function DrawingCanvas({
 	detectedBees,
 	detectedFrameResources,
 	onStrokeHistoryUpdate,
+	frameSideFile,
+	queenButton
 }) {
 	if (!imageUrl) {
 		return
@@ -315,6 +337,7 @@ export default function DrawingCanvas({
 	const ref = useRef(null)
 	const [showBees, setBeeVisibility] = useState(true)
 	const [showCells, setCellVisibility] = useState(true)
+	const [showQueenCups, setQueenCups] = useState(true)
 	const [version, setVersion] = useState(0)
 	const [canvasUrl, setCanvasUrl] = useState(resizes && resizes.length > 0 ? resizes[0].url : imageUrl)
 
@@ -366,6 +389,7 @@ export default function DrawingCanvas({
 				detectedBees,
 				showCells,
 				detectedFrameResources,
+				showQueenCups,
 				detectedQueenCups
 			)
 		}
@@ -503,6 +527,7 @@ export default function DrawingCanvas({
 			detectedBees,
 			showCells,
 			detectedFrameResources,
+			showQueenCups,
 			detectedQueenCups
 		)
 
@@ -574,27 +599,35 @@ export default function DrawingCanvas({
 		canvas.removeEventListener('wheel', handleScroll)
 		canvas.addEventListener('wheel', handleScroll)
 		return () => canvas.removeEventListener('wheel', handleScroll)
-	}, [imageUrl, version, showBees, showCells, detectedBees, detectedFrameResources])
+	}, [imageUrl, version, showBees, showCells, showQueenCups, detectedBees, detectedFrameResources])
 
 
 	return (
 		<div>
+			<div style={{ display: 'flex', margin: '3px 0' }}>
+
+				{detectedFrameResources && <Button onClick={() => { setCellVisibility(!showCells) }}>Toggle cells</Button>}
+				{detectedQueenCups && <Button onClick={() => { setQueenCups(!showQueenCups) }}>Toggle queen cups</Button>}
+				{queenButton}
+
+				<div title="Worker bees">
+					{frameSideFile.counts && frameSideFile.counts.map((row) => {
+						if(row.type!=='BEE_WORKER') return
+
+						return <Button onClick={() => { setBeeVisibility(!showBees) }}>
+							<img height={beeTypeMap[row.type].height} src={beeTypeMap[row.type].iconUrl} />
+							Toggle worker bees
+							</Button>
+					})}
+				</div>
+
+				<Button onClick={clearHistory}>Clear drawing</Button>
+				<Button onClick={undoDraw}>Undo draw</Button>
+			</div>
+
 			<canvas ref={ref} id="container" style="width:100%;">
 				Sorry, your browser is too old for this demo.
 			</canvas>
-			<div style={{ display: 'flex', margin: '3px 0' }}>
-				<Button onClick={() => {
-					setBeeVisibility(!showBees)
-				}}
-				>Toggle bees</Button>
-				<Button onClick={() => {
-					setCellVisibility(!showCells)
-				}}
-				>Toggle cells</Button>
-
-				<Button onClick={clearHistory}>Clear</Button>
-				<Button onClick={undoDraw}>Undo</Button>
-			</div>
 		</div>
 	)
 }

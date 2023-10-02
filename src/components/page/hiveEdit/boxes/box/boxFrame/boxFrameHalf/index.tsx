@@ -18,7 +18,7 @@ export default function BoxFrameHalf({ frameSide, className, href }) {
 		>
 
 			{frameSide?.queenDetected &&
-				<QueenIcon className={styles.crown} />
+				<QueenIcon className={styles.crown} size={16}/>
 			}
 
 

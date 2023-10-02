@@ -1,6 +1,9 @@
 import React, { useState, useRef, useLayoutEffect } from 'react'
 import Button from '@/components/shared/button'
 import colors from '@/components/colors'
+import QueenCupIcon from '@/icons/queenCup'
+import Checkbox from '@/icons/checkbox'
+import FrameCells from '@/icons/frameCells'
 
 let lineWidth = 0
 let isMousedown = false
@@ -605,6 +608,13 @@ export default function DrawingCanvas({
 	return (
 		<div>
 			<div style={{ display: 'flex', margin: '3px 0' }}>
+				{detectedFrameResources && 
+				<Button onClick={() => { setCellVisibility(!showCells) }}>
+					<Checkbox on={showCells}/>
+					<span>Frame cells</span>
+					<FrameCells />
+				</Button>}
+				
 				{queenButton}
 
 				<div title="Worker bees">
@@ -612,14 +622,16 @@ export default function DrawingCanvas({
 						if(row.type!=='BEE_WORKER') return
 
 						return <Button onClick={() => { setBeeVisibility(!showBees) }}>
-							<img height={beeTypeMap[row.type].height} src={beeTypeMap[row.type].iconUrl} />
-							Worker bees
+							<Checkbox on={showBees}/>
+							<span>Worker bees</span>
 							</Button>
 					})}
 				</div>
 
-				{detectedFrameResources && <Button onClick={() => { setCellVisibility(!showCells) }}>Frame cells</Button>}
-				{detectedQueenCups && <Button onClick={() => { setQueenCups(!showQueenCups) }}>Queen cups</Button>}
+				{detectedQueenCups && <Button onClick={() => { setQueenCups(!showQueenCups) }}>
+					<Checkbox on={showQueenCups}/>
+					<span>Queen cups</span>
+				</Button>}
 
 				<Button onClick={clearHistory}>Clear drawing</Button>
 				<Button onClick={undoDraw}>Undo draw</Button>

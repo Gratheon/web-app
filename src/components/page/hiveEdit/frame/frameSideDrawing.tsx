@@ -17,6 +17,7 @@ import DrawingCanvas from './drawingCanvas'
 import MetricList from './metricList'
 import Button from '@/components/shared/button'
 import QueenIcon from '@/icons/queenIcon'
+import Checkbox from '@/icons/checkbox'
 
 export default function FrameSideDrawing({
 	file,
@@ -137,8 +138,9 @@ export default function FrameSideDrawing({
 
 	const queenButton = (
 		<Button title="Toggle queen" onClick={onQueenToggle}>
-			<QueenIcon />
+			<Checkbox on={frameSide.queenDetected}/>
 			<span>Queen</span>
+			<QueenIcon size={14} color={'white'} />
 		</Button>
 	)
 

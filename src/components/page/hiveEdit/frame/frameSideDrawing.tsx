@@ -138,7 +138,7 @@ export default function FrameSideDrawing({
 	const queenButton = (
 		<Button title="Toggle queen" onClick={onQueenToggle}>
 			<QueenIcon />
-			<span>Toggle Queen</span>
+			<span>Queen</span>
 		</Button>
 	)
 

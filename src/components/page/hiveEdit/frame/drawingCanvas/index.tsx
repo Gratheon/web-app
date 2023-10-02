@@ -605,9 +605,6 @@ export default function DrawingCanvas({
 	return (
 		<div>
 			<div style={{ display: 'flex', margin: '3px 0' }}>
-
-				{detectedFrameResources && <Button onClick={() => { setCellVisibility(!showCells) }}>Toggle cells</Button>}
-				{detectedQueenCups && <Button onClick={() => { setQueenCups(!showQueenCups) }}>Toggle queen cups</Button>}
 				{queenButton}
 
 				<div title="Worker bees">
@@ -616,10 +613,13 @@ export default function DrawingCanvas({
 
 						return <Button onClick={() => { setBeeVisibility(!showBees) }}>
 							<img height={beeTypeMap[row.type].height} src={beeTypeMap[row.type].iconUrl} />
-							Toggle worker bees
+							Worker bees
 							</Button>
 					})}
 				</div>
+
+				{detectedFrameResources && <Button onClick={() => { setCellVisibility(!showCells) }}>Frame cells</Button>}
+				{detectedQueenCups && <Button onClick={() => { setQueenCups(!showQueenCups) }}>Queen cups</Button>}
 
 				<Button onClick={clearHistory}>Clear drawing</Button>
 				<Button onClick={undoDraw}>Undo draw</Button>

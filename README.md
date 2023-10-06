@@ -29,7 +29,7 @@ flowchart LR
 	graphql-router --> image-splitter("<a href='https://github.com/Gratheon/image-splitter'>image-splitter</a>\n:8800") --> mysql
 	
 	web-app --"upload frames"--> image-splitter --> aws-s3
-	image-splitter --"inference"--> models-yolov5("<a href='https://github.com/Gratheon/models-yolov5'>models-yolov5</a>\n:8700")
+	image-splitter --"inference"--> models-bee-detector("<a href='https://github.com/Gratheon/models-bee-detector'>models-bee-detector</a>\n:8700")
 	image-splitter --"inference"--> models-frame-resources("<a href='https://github.com/Gratheon/models-frame-resources'>models-frame-resources</a>\n:8540")
 	graphql-router --> user-cycle("<a href='https://github.com/Gratheon/user-cycle'>user-cycle</a>\n:4000") --> mysql
 	graphql-router --> user-cycle --> stripe

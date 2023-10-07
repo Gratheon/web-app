@@ -2,6 +2,7 @@ import React from 'react'
 
 import { graphqlWsClient } from '@/components/api'
 import isDev from '@/components/isDev'
+import T from '@/components/shared/translate'
 
 import ConnectionStatus from './connectionStatus'
 import styles from './styles.less'
@@ -23,10 +24,10 @@ export default function Footer() {
 				<a href={apiUrl}>API</a>
 			</li>
 			<li>
-				<a href="https://gratheon.com/terms.html">Terms of Use</a>
+				<a href="https://gratheon.com/terms.html"><T ctx="link in page footer">Terms of Use</T></a>
 			</li>
 			<li>
-				<a href="https://gratheon.com/privacy.html">Privacy policy</a>
+				<a href="https://gratheon.com/privacy.html"><T ctx="link in page footer">Privacy policy</T></a>
 			</li>
 		</ul>
 	)

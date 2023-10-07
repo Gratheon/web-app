@@ -7,6 +7,7 @@ import { useMutation } from '@/components/api'
 import Loading from '@/components/shared/loader'
 
 import DeleteIcon from '@/icons/deleteIcon'
+import T from '@/components/shared/translate'
 
 export default function deactivateButton({ hiveId }) {
 	let [updateHive] = useMutation(HIVE_DELETE_MUTATION)
@@ -28,7 +29,7 @@ export default function deactivateButton({ hiveId }) {
 
 	return (
 		<Button loading={deleting} className="red" onClick={deactivate} title="Remove hive">
-			<DeleteIcon /><span>Remove hive</span>
+			<DeleteIcon /><span><T ctx="this is a button">Remove hive</T></span>
 		</Button>
 	)
 }

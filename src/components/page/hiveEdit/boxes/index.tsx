@@ -10,7 +10,7 @@ import {
 	addBox,
 	maxBoxPosition
 } from '@/components/models/boxes'
-
+import T from '@/components/shared/translate'
 import { useQuery } from '@/components/api'
 
 import AddBoxIcon from '@/icons/addBox'
@@ -176,21 +176,21 @@ export default function Boxes({
 					className={['small', 'black']}
 					onClick={() => onBoxAdd(boxTypes.DEEP)}
 				>
-					<AddBoxIcon /><span>Add deep</span>
+					<AddBoxIcon /><span><T ctx="this is a button to add new section of beehive, a deep box that is intended for brood frames">Add deep</T></span>
 				</Button>
 				<Button
 					loading={adding}
 					title="Add super on top"
 					onClick={() => onBoxAdd(boxTypes.SUPER)}
 				>
-					<AddSuperIcon /><span>Add super</span>
+					<AddSuperIcon /><span><T ctx="this is a button to add new section of beehive, a super box that is intended for honey frames">Add super</T></span>
 				</Button>
 				<Button
 					loading={adding}
 					title="Add gate"
 					onClick={() => onBoxAdd(boxTypes.GATE)}
 				>
-					<GateIcon /><span>Add gate</span>
+					<GateIcon /><span><T ctx="this is a button to add new section of beehive, specifically holes, an entrance">Add entrance</T></span>
 				</Button>
 			</div>
 			<div>{boxesDivs}</div>

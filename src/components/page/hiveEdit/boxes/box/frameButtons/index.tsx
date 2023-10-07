@@ -12,6 +12,7 @@ import {
 	addFrame,
 } from '@/components/models/frames'
 import FoundationIcon from '@/icons/foundationIcon'
+import T from '@/components/shared/translate'
 
 export default function FrameButtons({ box, onError }) {
 	let [addFrameMutation] =
@@ -58,7 +59,7 @@ export default function FrameButtons({ box, onError }) {
 					onFrameAdd(box.id, frameTypes.EMPTY_COMB)
 				}}
 			>
-				<FramesIcon /><span>Add comb</span>
+				<FramesIcon /><span><T ctx="this is a button that adds new frame into a beehive which has wax added by bees on it">Add comb</T></span>
 			</Button>
 			<Button
 					loading={addingFrame}
@@ -67,7 +68,7 @@ export default function FrameButtons({ box, onError }) {
 					}}
 				>
 					<FoundationIcon />
-					<span>Add foundation</span>
+					<span><T ctx="this is a button that adds new frame into a beehive which has a layer of wax added for bees to build cells upon">Add foundation</T></span>
 				</Button>
 
 			<PopupButton>
@@ -77,24 +78,20 @@ export default function FrameButtons({ box, onError }) {
 						onFrameAdd(box.id, frameTypes.VOID)
 					}}
 				>
-					Add empty frame
+					<T ctx="this is a button that adds new frame into a beehive, but it has no cells or wax inside, only wooden frame">Add empty frame</T>
 				</Button>
 				<Button
 					loading={addingFrame}
 					onClick={() => {
 						onFrameAdd(box.id, frameTypes.FEEDER)
 					}}
-				>
-					Add feeder
-				</Button>
+				><T ctx="this is a button that adds new vertical frame-like container into a beehive, for sugar syrup to be poured in, to feed the bees">Add feeder</T></Button>
 				<Button
 					loading={addingFrame}
 					onClick={() => {
 						onFrameAdd(box.id, frameTypes.PARTITION)
 					}}
-				>
-					Add partition
-				</Button>
+				><T ctx="this is a button that adds new frame-like separator made of wood into a beehive to reduce available space for bees">Add partition</T></Button>
 			</PopupButton>
 		</PopupButtonGroup>
 	)

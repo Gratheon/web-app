@@ -5,6 +5,7 @@ import { gql, useQuery, useSubscription } from '@/components/api/index'
 import Link from '@/components/shared/link'
 import Loader from '@/components/shared/loader'
 import ErrorMsg from '@/components/shared/messageError'
+import T from '@/components/shared/translate'
 
 import ApiaryListRow from './apiaryListRow'
 import ApiariesPlaceholder from './apiariesPlaceholder'
@@ -60,7 +61,7 @@ export default function ApiaryList(props) {
 				))}
 
 			<div style={{ textAlign: 'center', marginTop: 20 }}>
-				<Link href="/apiaries/create">Setup new apiary</Link>
+				<Link href="/apiaries/create"><T ctx="its a button">Setup new apiary</T></Link>
 			</div>
 		</div>
 	)

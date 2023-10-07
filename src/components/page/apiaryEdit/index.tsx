@@ -17,6 +17,7 @@ import Weather from '@/components/shared/weather'
 import Plants from './plants'
 import MessageNotFound from '@/components/shared/messageNotFound'
 import DeleteIcon from '@/icons/deleteIcon'
+import T from '@/components/shared/translate'
 
 export default function ApiaryEditForm() {
 	let navigate = useNavigate()
@@ -53,15 +54,6 @@ export default function ApiaryEditForm() {
 		else {
 			return <MessageNotFound msg="Apiary not found" />
 		}
-
-		// updateApiary({
-		// 	id: +apiaryGet.apiary.id,
-		// 	name: apiaryGet.apiary.name,
-		// 	lat: `${apiaryGet.apiary.lat}`,
-		// 	lng: `${apiaryGet.apiary.lng}`,
-		// })
-
-		// return <Loader />
 	}
 
 	let [deactivateApiary] = useMutation(gql`
@@ -145,7 +137,7 @@ export default function ApiaryEditForm() {
 
 			<VisualForm style="padding:20px;" onSubmit={onSubmit.bind(this)}>
 				<div>
-					<label htmlFor="name">Name</label>
+					<label htmlFor="name"><T>Name</T></label>
 					<input
 						name="name"
 						id="name"
@@ -156,7 +148,7 @@ export default function ApiaryEditForm() {
 					/>
 				</div>
 				<div>
-					<label htmlFor="name">Location</label>
+					<label htmlFor="name"><T>Location</T></label>
 					<div>
 						<a
 							target="_blank"
@@ -169,15 +161,14 @@ export default function ApiaryEditForm() {
 				</div>
 
 				<VisualFormSubmit>
-					<Button type="submit" loading={saving} className="green">Update</Button>
-					<Button className="red" loading={saving} onClick={onDeleteApiary}><DeleteIcon /><span>Delete</span></Button>
+					<Button type="submit" loading={saving} className="green"><T>Save</T></Button>
+					<Button className="red" loading={saving} onClick={onDeleteApiary}><DeleteIcon /><span><T>Delete</T></span></Button>
 					<Button
 						style="margin-left:20px"
 						onClick={() => {
 							setAutoLocate(!autoLocate)
 						}}
-					>Locate me
-					</Button>
+					><T>Locate me</T></Button>
 				</VisualFormSubmit>
 			</VisualForm>
 

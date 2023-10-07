@@ -6,18 +6,14 @@ import debounce from 'lodash.debounce'
 import { gql, useMutation, useQuery } from '@/components/api'
 
 import { getFrame, removeFrame } from '@/components/models/frames'
-
+import T from '@/components/shared/translate'
 import Button from '@/components/shared/button'
 import Loading from '@/components/shared/loader'
-import CrownIcon from '@/icons/queenIcon'
 import ErrorMessage from '@/components/shared/messageError'
 import DeleteIcon from '@/icons/deleteIcon'
 
 import styles from './styles.less'
-import FRAME_SIDE_QUERY from './_api/getFrameFileObjectsQuery.graphql'
-import MessageNotFound from '@/components/shared/messageNotFound'
 import FrameSide from './frameSide'
-import box from '../boxes/box'
 
 export default function Frame({
 	apiaryId,
@@ -76,10 +72,10 @@ export default function Frame({
 				onClick={onFrameRemove}
 			>
 				<DeleteIcon />
-				<span>Remove frame</span>
+				<span><T>Remove frame</T></span>
 			</Button>
 
-			<Button onClick={onFrameClose}>Close</Button>
+			<Button onClick={onFrameClose}><T>Close</T></Button>
 		</div>
 	)
 

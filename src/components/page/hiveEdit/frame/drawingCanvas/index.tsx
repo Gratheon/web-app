@@ -4,6 +4,7 @@ import colors from '@/components/colors'
 import QueenCupIcon from '@/icons/queenCup'
 import Checkbox from '@/icons/checkbox'
 import FrameCells from '@/icons/frameCells'
+import T from '@/components/shared/translate'
 
 let lineWidth = 0
 let isMousedown = false
@@ -608,33 +609,34 @@ export default function DrawingCanvas({
 	return (
 		<div>
 			<div style={{ display: 'flex', margin: '3px 0' }}>
-				{detectedFrameResources && 
-				<Button onClick={() => { setCellVisibility(!showCells) }}>
-					<Checkbox on={showCells}/>
-					<span>Frame cells</span>
-					<FrameCells />
-				</Button>}
-				
+				{detectedFrameResources &&
+					<Button onClick={() => { setCellVisibility(!showCells) }}>
+						<Checkbox on={showCells} />
+						<span><T ctx="this is a button that toggles visibility of different types of cells in a beehive frame - brood, pollen, honey etc">Frame cells</T></span>
+						<FrameCells />
+					</Button>}
+
 				{queenButton}
 
 				<div title="Worker bees">
 					{frameSideFile.counts && frameSideFile.counts.map((row) => {
-						if(row.type!=='BEE_WORKER') return
-
-						return <Button onClick={() => { setBeeVisibility(!showBees) }}>
-							<Checkbox on={showBees}/>
-							<span>Worker bees</span>
+						if (row.type == 'BEE_WORKER') {
+							return <Button onClick={() => { setBeeVisibility(!showBees) }}>
+								<Checkbox on={showBees} />
+								<span><T ctx="this is a button that toggles visibility of worker bees on an image">Worker bees</T></span>
 							</Button>
+						}
 					})}
 				</div>
 
 				{detectedQueenCups && <Button onClick={() => { setQueenCups(!showQueenCups) }}>
-					<Checkbox on={showQueenCups}/>
-					<span>Queen cups</span>
+					<Checkbox on={showQueenCups} />
+					<span><T ctx="this is a button that toggles visibility (on an image) of beewax construction where queen bee is being nursed">Queen cups</T></span>
 				</Button>}
 
-				<Button onClick={clearHistory}>Clear drawing</Button>
-				<Button onClick={undoDraw}>Undo draw</Button>
+				<div></div>
+				<Button onClick={clearHistory}><T ctx="this is a button that cleans drawing made on an image with ipad pencil or mouse">Clear drawing</T></Button>
+				<Button onClick={undoDraw}><T>Undo</T></Button>
 			</div>
 
 			<canvas ref={ref} id="container" style="width:100%;">

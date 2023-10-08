@@ -77,6 +77,13 @@ type Apiary {
     family: FamilyInput
   }
   
+  type Locale{
+    id: ID
+    en: String
+    ru: String
+    et: String
+  }
+
   enum BoxType {
     DEEP
     SUPER

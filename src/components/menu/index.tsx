@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 import Header from '@/components/header'
 import { logout } from '@/components/user'
 import { getAppUri } from '@/components/uri'
+import T from '@/components/shared/translate'
 
 import styles from './styles.less'
 
@@ -46,22 +47,22 @@ const Menu = ({ isLoggedIn = false }) => {
 			<ul>
 				<li>
 					<Link activeClassName={styles.active} to="/apiaries">
-						Hives
+						<T>Hives</T>
 					</Link>
 				</li>
 				<li>
 					<Link activeClassName={styles.active} to="/account">
-						Account
+						<T>Account</T>
 					</Link>
 				</li>
 				<li>
 					<Link activeClassName={styles.active} to="/analytics">
-						Analytics
+						<T>Analytics</T>
 					</Link>
 				</li>
 				<li>
 					<a href="#" onClick={onLogoutClick}>
-						Log out
+						<T>Log out</T>
 					</a>
 				</li>
 			</ul>

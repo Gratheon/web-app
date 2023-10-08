@@ -12,8 +12,7 @@
 		"dev": "./node_modules/.bin/preact watch",
 		"prettier": "prettier --write --ignore-unknown .",
 		"test": "jest --config test/jest.config.ts --runInBand --color",
-		"test:e2e:write": "./node_modules/.bin/cypress open",
-		"start":"echo 1"
+		"test:e2e:write": "./node_modules/.bin/cypress open"
 	},
 	"dependencies": {
 		"@edorivai/react-smooth-dnd": "0.11.2",

@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 
+import T from '@/components/shared/translate'
 import { useQuery } from '@/components/api'
 import Boxes from './boxes'
 

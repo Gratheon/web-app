@@ -12,6 +12,7 @@ import { updateFile } from '@/components/models/files'
 
 import DragAndDrop from './dragDrop'
 import styles from './index.less'
+import T from '@/components/shared/translate'
 
 export default function UploadFile({ onUpload }) {
 	//todo
@@ -123,7 +124,7 @@ export default function UploadFile({ onUpload }) {
 
 							<label htmlFor="file" className={styles.fileUploadLabel}>
 								<UploadIcon />
-								Upload frame photo
+								<T ctx="this is a button which allows to select and upload a photo of a beehive frame">Upload frame photo</T>
 							</label>
 						</div>
 
@@ -132,7 +133,9 @@ export default function UploadFile({ onUpload }) {
 							fontSize: 10,
 							paddingTop: 5,
 							color: 'gray'
-						}}>Detection best works with high-resolution photos (17MP)</div>
+						}}>
+							<T>Detection best works with high-resolution photos (17MP)</T>
+						</div>
 					</div>
 				</DragAndDrop>
 			}

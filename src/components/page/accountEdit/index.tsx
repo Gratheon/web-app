@@ -8,6 +8,7 @@ import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
 import Button from '@/components/shared/button'
 import type { User } from '@/components/models/user'
 import { updateUser } from '@/components/models/user'
+import T from '@/components/shared/translate'
 
 import TokenList from './token_list'
 import Billing from './billing'
@@ -39,6 +40,7 @@ export default function AccountEdit() {
 				email
 				first_name
 				last_name
+				lang
 				date_expiration
 				date_added
 				hasSubscription
@@ -69,6 +71,7 @@ export default function AccountEdit() {
 			user: {
 				first_name: user?.first_name,
 				last_name: user?.last_name,
+				lang: user?.lang,
 			},
 		})
 
@@ -84,26 +87,20 @@ export default function AccountEdit() {
 		return <Loader />
 	}
 
-	let errorMsg
-
-	if (error) {
-		errorMsg = <ErrorMsg error={error} />
-	}
 
 	const md5Hash = user.email ? calculateMD5(user.email) : '';
 	const gravatarURL = `https://www.gravatar.com/avatar/${md5Hash}?s=200`;
 
 	return (
 		<div id={style.account_edit}>
-			<h2>Account</h2>
-
+			<h2><T>Account</T></h2>
+			<ErrorMsg error={error} />
 			<div style="display:flex;">
 				<img src={gravatarURL} style="border-radius:50px;width:100px;height:100px;" />
 
 				<VisualForm style="display: table;" onSubmit={onSubmit}>
-					{errorMsg}
 					<div>
-						<label htmlFor="name">Email</label>
+						<label htmlFor="name"><T>Email</T></label>
 						<input
 							name="email"
 							id="email"
@@ -112,7 +109,7 @@ export default function AccountEdit() {
 						/>
 					</div>
 					<div>
-						<label htmlFor="first_name">First name</label>
+						<label htmlFor="first_name"><T>First name</T></label>
 						<input
 							name="first_name"
 							id="first_name"
@@ -123,7 +120,7 @@ export default function AccountEdit() {
 						/>
 					</div>
 					<div>
-						<label htmlFor="last_name">Last name</label>
+						<label htmlFor="last_name"><T>Last name</T></label>
 						<input
 							name="last_name"
 							id="last_name"
@@ -133,9 +130,17 @@ export default function AccountEdit() {
 							onInput={onInput}
 						/>
 					</div>
+					<div>
+						<label htmlFor="last_name"><T>Language</T></label>
+						<select name="lang" onInput={onInput}>
+							<option value="en" selected={user.lang == "en"}>English</option>
+							<option value="ru" selected={user.lang == "ru"}>Русский</option>
+							<option value="et" selected={user.lang == "et"}>Eesti</option>
+						</select>
+					</div>
 					<VisualFormSubmit>
 						<Button type="submit" className={`green`} loading={saving}>
-							Save
+							<T>Save</T>
 						</Button>
 					</VisualFormSubmit>
 				</VisualForm>

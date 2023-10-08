@@ -9,6 +9,7 @@ import Loader from '@/components/shared/loader'
 import ErrorMsg from '@/components/shared/messageError'
 import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
 import Button from '@/components/shared/button'
+import T from '@/components/shared/translate'
 
 export default function ApiaryEditForm() {
 	let navigate = useNavigate()
@@ -56,7 +57,7 @@ export default function ApiaryEditForm() {
 		<div style={{ padding: 20 }}>
 			{errorMsg}
 
-			<h2 style={{ marginBottom: 10 }}>New apiary</h2>
+			<h2 style={{ marginBottom: 10 }}><T ctx="this is a headline to create new apiary form">New apiary</T></h2>
 			<Map
 					lat={lat}
 					lng={lng}
@@ -69,7 +70,7 @@ export default function ApiaryEditForm() {
 				
 			<VisualForm onSubmit={onSubmit}>
 				<div>
-					<label htmlFor="name">Name</label>
+					<label htmlFor="name"><T>Name</T></label>
 					<input
 						name="name"
 						id="name"
@@ -88,10 +89,10 @@ export default function ApiaryEditForm() {
 							setAutoLocate(!autoLocate)
 						}}
 					>
-						Locate me
+						<T>Locate me</T>
 					</Button>
 					<Button type="submit" className="green">
-						Create
+						<T>Create</T>
 					</Button>
 				</VisualFormSubmit>
 			</VisualForm>

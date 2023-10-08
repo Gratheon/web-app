@@ -4,7 +4,7 @@ import styles from './styles.less'
 import Slider from '@/components/shared/slider'
 
 export default ({
-	title,
+	children,
 	color,
 	percent,
 	onChange,
@@ -17,7 +17,7 @@ export default ({
 			style={{ backgroundColor: color }}
 			onClick={onClick}
 		>
-			{Math.round(percent)} %{expanded && title}
+			{Math.round(percent)} %{expanded && children}
 		</div>
 		{expanded && (
 			<Slider

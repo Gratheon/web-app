@@ -1,3 +1,4 @@
+import T from '@/components/shared/translate'
 import React from 'react'
 
 export default function () {
@@ -10,7 +11,7 @@ export default function () {
 				color: 'gray',
 			}}
 		>
-			<p>No apiaries here yet</p>
+			<p><T>No apiaries here yet</T></p>
 
 			<img height="64" src="/assets/flower.png" />
 		</div>

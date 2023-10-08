@@ -6,6 +6,7 @@ import Button from '@/components/shared/button';
 import { gql, useQuery, useMutation } from '@/components/api/index'
 import Loader from '@/components/shared/loader'
 import { gatewayUri } from '@/components/uri'
+import T from '@/components/shared/translate';
 
 interface Token {
 	id: number;
@@ -71,7 +72,7 @@ const TokenList: React.FC = () => {
 	const style = "background-color:#babca9; font-size:12px;padding:3px 5px; border-radius:3px;font-family:Consolas,Monospace;margin:0;"
 	return (
 		<div style="padding:10px">
-			<h3>API tokens</h3>
+			<h3><T>API tokens</T></h3>
 			<ErrorMsg error={error || generationError} />
 
 			<table>
@@ -84,20 +85,20 @@ const TokenList: React.FC = () => {
 								</div>
 							</td>
 							<td>
-								<Button className='small' onClick={() => copyToken(token.token)}>Copy</Button>
-								<Button className='small' onClick={() => toggleToken(token.id)}>Toggle</Button>
+								<Button className='small' onClick={() => copyToken(token.token)}><T>Copy</T></Button>
+								<Button className='small' onClick={() => toggleToken(token.id)}><T>Toggle</T></Button>
 							</td>
 						</tr>
 					))}
 				</tbody>
 			</table>
-			<Button className='green' loading={generatingToken} onClick={onGenerateToken}>Generate</Button>
+			<Button className='green' loading={generatingToken} onClick={onGenerateToken}><T>Generate</T></Button>
 
-			<p>You can use <a href="https://github.com/Gratheon/raspberry-pi-client">raspberry PI client</a> or access API directly with API tokens:</p>
-			<div style="display:flex">
-				<pre style={`${style}`} dangerouslySetInnerHTML={{ __html: htmlCode }} />
-				<Button onClick={() => copy(htmlCode)}>Copy</Button>
-			</div>
+			<p><T>You can use raspberry PI client or access API directly with API tokens</T></p>
+			
+			<pre style={`${style}`} dangerouslySetInnerHTML={{ __html: htmlCode }} />
+			<Button onClick={() => copy(htmlCode)}><T>Copy</T></Button>
+			
 		</div>
 	);
 };

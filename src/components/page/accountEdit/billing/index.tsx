@@ -7,6 +7,7 @@ import Button from '@/components/shared/button'
 import { gql, useMutation } from '@/components/api'
 import MessageSuccess from '@/components/shared/messageSuccess'
 import MessageError from '@/components/shared/messageError'
+import T from '@/components/shared/translate'
 
 export default function Billing({ user }) {
 	let { stripeStatus } = useParams()
@@ -53,7 +54,7 @@ export default function Billing({ user }) {
 
 	return (
 		<div style="margin-top:20px;">
-			<h2>Billing</h2>
+			<h2><T ctx="this is a headline for billing form">Billing</T></h2>
 
 			{expirationError}
 			{error && <MessageError error={error} />}
@@ -74,20 +75,19 @@ export default function Billing({ user }) {
 			>
 				<div style={{ flexGrow: 1 }}>
 					<div>
-						Created: {format(new Date(user.date_added), 'dd MMMM yyyy, hh:mm')}
+						<T>Created</T>: {format(new Date(user.date_added), 'dd MMMM yyyy, hh:mm')}
 					</div>
 					<div>
-						Expires at:{' '}
-						{format(new Date(user.date_expiration), 'dd MMMM yyyy, hh:mm')}
+						<T>Expires at</T>: {format(new Date(user.date_expiration), 'dd MMMM yyyy, hh:mm')}
 					</div>
 				</div>
 
 				<div>
 					{!user.hasSubscription && (
-						<Button onClick={onSubscribeClick}>Subscribe</Button>
+						<Button onClick={onSubscribeClick}><T ctx="this is a button that redirects to billing page to pay">Subscribe</T></Button>
 					)}
 					{user.hasSubscription && (
-						<Button onClick={onCancelSubscription}>Cancel subscription</Button>
+						<Button onClick={onCancelSubscription}><T ctx="this is a button that cancels billing subscription">Cancel subscription</T></Button>
 					)}
 				</div>
 			</div>

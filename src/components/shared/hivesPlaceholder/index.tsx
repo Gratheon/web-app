@@ -1,5 +1,6 @@
 import React from 'react'
 import HiveIcon from '../hiveIcon'
+import T from '../translate'
 
 export default function () {
 	return (
@@ -11,7 +12,7 @@ export default function () {
 				color: 'gray',
 			}}
 		>
-			<p>No hives here yet</p>
+			<p><T>No hives here yet</T></p>
 			
 			<img height="64" src="/assets/symbiosis.png" />
 		</div>

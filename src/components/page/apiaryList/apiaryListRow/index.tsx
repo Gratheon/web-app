@@ -3,6 +3,7 @@ import React from 'react'
 import HiveIcon from '@/components/shared/hiveIcon'
 import Button from '@/components/shared/button'
 import HivesPlaceholder from '@/components/shared/hivesPlaceholder'
+import T from '@/components/shared/translate'
 
 import AddHiveIcon from '@/icons/addHive'
 import HandIcon from '@/icons/handIcon'
@@ -18,10 +19,10 @@ export default function apiaryListRow(props) {
 				<h2>{apiary.name ? apiary.name : '...'}</h2>
 				<div className={styles.buttons}>
 					<Button href={`/apiaries/edit/${apiary.id}`}>
-						<HandIcon /><span>Edit</span>
+						<HandIcon /><span><T ctx="button to change beehive">Edit</T></span>
 					</Button>
 					<Button href={`/apiaries/${apiary.id}/hives/add`}>
-						<AddHiveIcon /><span>Add hive</span>
+						<AddHiveIcon /><span><T ctx="button to add beehive">Add hive</T></span>
 					</Button>
 				</div>
 			</div>

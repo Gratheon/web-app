@@ -12,6 +12,7 @@ import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
 import Button from '@/components/shared/button'
 import { Box } from '@/components/api/schema'
 import { boxTypes } from '@/components/models/boxes'
+import T from '@/components/shared/translate'
 const defaultBoxColor = '#ffc848'
 
 export default function HiveCreateForm() {
@@ -76,7 +77,7 @@ export default function HiveCreateForm() {
 	if (data) {
 		navigate('/apiaries', { replace: true })
 
-		return <div>Saved!</div>
+		return <div><T>Saved!</T></div>
 	}
 
 	return (
@@ -89,7 +90,7 @@ export default function HiveCreateForm() {
 
 				<VisualForm onSubmit={onSubmit.bind(this)} style="flex-grow:1">
 					<div>
-						<label htmlFor="name">Name</label>
+						<label htmlFor="name"><T>Name</T></label>
 						<input
 							name="name"
 							id="name"
@@ -101,7 +102,7 @@ export default function HiveCreateForm() {
 					</div>
 
 					<div>
-						<label htmlFor="boxCount">Box count</label>
+						<label htmlFor="boxCount"><T>Section count</T></label>
 
 						<input
 							style={{ width: 50 }}
@@ -127,7 +128,7 @@ export default function HiveCreateForm() {
 					</div>
 
 					<div>
-						<label htmlFor="frameCount">Frame count</label>
+						<label htmlFor="frameCount"><T>Frame count</T></label>
 
 						<input
 							style={{ width: 50 }}
@@ -143,9 +144,7 @@ export default function HiveCreateForm() {
 					</div>
 
 					<VisualFormSubmit>
-						<Button type="submit" className="green">
-							Create
-						</Button>
+						<Button type="submit" className="green"><T>Create</T></Button>
 					</VisualFormSubmit>
 				</VisualForm>
 			</div>

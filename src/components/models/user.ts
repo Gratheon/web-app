@@ -5,6 +5,7 @@ export type User = {
 	email?: string
 	first_name?: string
 	last_name?: string
+	lang?: string
 	date_expiration?: string
 	date_added?: string
 	hasSubscription?: boolean
@@ -13,7 +14,7 @@ export type User = {
 
 export async function getUser(): Promise<User>{
 	try {
-		const user = await db['user'].first()
+		const user = (await db['user'].toArray())[0]
 		if(user) return user
 		else return null
 	} catch (e) {

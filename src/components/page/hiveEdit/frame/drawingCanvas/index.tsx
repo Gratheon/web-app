@@ -616,8 +616,6 @@ export default function DrawingCanvas({
 						<FrameCells />
 					</Button>}
 
-				{queenButton}
-
 				<div title="Worker bees">
 					{frameSideFile.counts && frameSideFile.counts.map((row) => {
 						if (row.type == 'BEE_WORKER') {
@@ -628,6 +626,8 @@ export default function DrawingCanvas({
 						}
 					})}
 				</div>
+
+				{queenButton}
 
 				{detectedQueenCups && <Button onClick={() => { setQueenCups(!showQueenCups) }}>
 					<Checkbox on={showQueenCups} />

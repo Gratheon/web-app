@@ -18,7 +18,7 @@ function TRemote({ lang, children, tc }: { lang: string, children: any, tc: stri
 		}
 	}`, { variables: { en: children, tc } })
 
-	if (loading) return
+	if (loading || error) return children
 
 	return <>
 		{data && data.translate && data.translate[lang] ? data.translate[lang] : children}

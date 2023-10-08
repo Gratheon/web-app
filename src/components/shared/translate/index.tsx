@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { gql, useQuery } from '@/components/api'
 import { useLiveQuery } from 'dexie-react-hooks'
 
@@ -26,17 +26,25 @@ function TRemote({ lang, children, tc }: { lang: string, children: any, tc: stri
 export default function T({ children, ctx = '' }: { children: any, ctx?: string }) {
 	let user = useLiveQuery(() => getUser(), [])
 
-	if(!user || !user.lang){
-		return children
+	const [lang, setLanguageCode] = useState('en');
+
+	if (user && user.lang) {
+		setLanguageCode(user.lang)
 	}
 
+	useEffect(() => {
+		if (!user || !user.lang) {
+			setLanguageCode(navigator.language.substring(0, 2));
+		}
+	}, []);
+
 	let translated = useLiveQuery(() => {
-		if (!user || !user?.lang) return
+		if (!user || !lang) return
 		const where = { en: children }
 		return getLocale(where)
 	}, [user])
 
-	if (translated && translated[user.lang]) return <>{translated[user.lang]}</>
+	if (translated && translated[lang]) return <>{translated[lang]}</>
 
-	return <TRemote lang={user?.lang} tc={ctx}>{children}</TRemote>
+	return <TRemote lang={lang} tc={ctx}>{children}</TRemote>
 }

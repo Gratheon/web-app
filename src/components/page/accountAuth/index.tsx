@@ -7,6 +7,7 @@ import ErrorMsg from '@/components/shared/messageError'
 import Button from '@/components/shared/button'
 import { saveToken } from '@/components/user'
 import { getAppUri } from '@/components/uri'
+import T from '@/components/shared/translate'
 
 type Account = {
 	email?: string
@@ -71,7 +72,7 @@ export default function AccountAuth() {
 			{errorMsg}
 			<VisualForm onSubmit={onSubmit}>
 				<div>
-					<label htmlFor="email">Email</label>
+					<label htmlFor="email"><T>Email</T></label>
 					<input
 						name="email"
 						type="email"
@@ -81,7 +82,7 @@ export default function AccountAuth() {
 					/>
 				</div>
 				<div>
-					<label htmlFor="password">Password</label>
+					<label htmlFor="password"><T>Password</T></label>
 					<input
 						name="password"
 						id="password"
@@ -95,7 +96,7 @@ export default function AccountAuth() {
 			<div style={{ display: 'flex' }}>
 				<div style={{ flexGrow: 1 }}></div>
 				<Button type="submit" className="green" onClick={onSubmit}>
-					Login
+					<T>Login</T>
 				</Button>
 			</div>
 		</div>

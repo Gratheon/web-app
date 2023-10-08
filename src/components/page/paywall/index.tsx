@@ -5,6 +5,7 @@ const USER_QUERY = gql`
 	query user {
 		user {
 			id
+			lang
 			isSubscriptionExpired
 		}
 	}

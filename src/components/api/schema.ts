@@ -281,6 +281,7 @@ type Apiary {
     apiaries: [Apiary]
     inspection(inspectionId: ID!): Inspection
     user: User
+    translate: Locale
     invoices: [Invoice]
     weather(lat: String!, lng: String!): JSON
   }

@@ -10,6 +10,7 @@ const supportedLangs = ['en', 'ru', 'et'];
 function TRemote({ lang, children, tc }: { lang: string, children: any, tc: string }) {
 	const { loading, error, data } = useQuery(gql`query translate($en: String!, $tc: String){
 		translate(en: $en, tc: $tc){
+			__typename
 			id
 			en
 			ru
@@ -20,13 +21,14 @@ function TRemote({ lang, children, tc }: { lang: string, children: any, tc: stri
 
 	if (loading || error) return children
 
+	// console.log('received', data)
 	return <>
 		{data && data.translate && data.translate[lang] ? data.translate[lang] : children}
 	</>
 }
 
 export default function T({ children, ctx = '' }: { children: any, ctx?: string }) {
-	let user = useLiveQuery(() => getUser(), [])
+	let user = useLiveQuery(() => getUser(), [], false)
 
 	const [lang, setLanguageCode] = useState('en');
 
@@ -35,21 +37,28 @@ export default function T({ children, ctx = '' }: { children: any, ctx?: string 
 	}
 
 	useEffect(() => {
-		if (!user || !user.lang) {
+		if (user === null) {
 			const browserLang = navigator.language.substring(0, 2)
 			if(supportedLangs.indexOf(browserLang)>=0){
 				setLanguageCode(browserLang);
 			}
 		}
-	}, []);
+	}, [user]);
 
 	let translated = useLiveQuery(() => {
-		if (!user || !lang) return
 		const where = { en: children }
 		return getLocale(where)
-	}, [user])
+	}, [user], false)
 
+	// console.log({lang, translated})
+	// get cached translation
 	if (translated && translated[lang]) return <>{translated[lang]}</>
 
+	// loading cache?
+	if( translated == false) return children
+
+	// console.log({user, lang, translated})
+
+	// ask backend
 	return <TRemote lang={lang} tc={ctx}>{children}</TRemote>
 }

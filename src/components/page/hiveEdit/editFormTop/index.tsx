@@ -2,7 +2,7 @@ import React, { useMemo } from 'react'
 import debounce from 'lodash.debounce'
 import { useLiveQuery } from 'dexie-react-hooks'
 
-import T, { translate } from '@/components/shared/translate'
+import T from '@/components/shared/translate'
 import VisualForm from '@/components/shared/visualForm'
 import HiveIcon from '@/components/shared/hiveIcon'
 import DeactivateButton from '../deleteButton'

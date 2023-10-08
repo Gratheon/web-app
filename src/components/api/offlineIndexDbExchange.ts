@@ -103,6 +103,7 @@ export function offlineIndexDbExchange({
 						typeInfo.enter(node.name.value)
 						const propertyName = node.name.value
 
+						// collect path for typemap key to have a hierarchy 
 						const ancestorsArr = []
 						for (let ancestor of ancestors) {
 							if (ancestor.kind == 'Field') {
@@ -165,14 +166,16 @@ async function traverseResponse(
 			if (typeof value === 'object' && value !== null) {
 				const newPath = isNaN(key) ? [...path, key] : path
 				const pathString = newPath.join('.')
+				// console.log({pathString})
 				const objType = typeMap[pathString]
 
 				if (objType && !Array.isArray(value)) {
 					const tableName = objType?.ofType ? objType.ofType.name : objType.name
-
+					
 					// we reached some object that is no longer mapped onto a schema
 					// must be some JSON, no point to continue
 					if (tableName === 'JSON') {
+						// console.log(`Skipping JSON column`)
 						continue
 					}
 
@@ -200,6 +203,7 @@ async function traverseResponse(
 						}
 
 						try {
+							// console.log(`Calling writeHook for table ${tableName}`)
 							await writeHooks[tableName](
 								parent,
 								cleanedValue,

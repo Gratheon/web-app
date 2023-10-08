@@ -57,4 +57,8 @@ export const writeHooks = {
 		await upsertEntity('file', file)
 	},
 	User: async (_, user) => await upsertEntity('user', user),
+	Locale: async (_, locale) => {
+		// console.log('storing translation', locale)
+		await upsertEntity('locale', locale)
+	},
 }

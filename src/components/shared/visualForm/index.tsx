@@ -9,7 +9,7 @@ export default function VisualForm({
 }: {
 	children?: any
 	onSubmit?: any
-	style?: any
+	style?: any,
 }) {
 	return (
 		<form

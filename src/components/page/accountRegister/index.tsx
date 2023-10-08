@@ -65,7 +65,7 @@ export default function AccountRegister() {
 	if (data?.register?.key) {
 		saveToken(data.register.key)
 		//@ts-ignore
-		window.location = getAppUri() + '/apiaries/'
+		window.location = getAppUri() + '/'
 		return <Loader />
 	} else if (data?.register?.code) {
 		errorMsg = <ErrorMsg error="Invalid email or password" />
@@ -79,36 +79,39 @@ export default function AccountRegister() {
 		<div style={{ padding: 15, width: '300px' }}>
 			{errorMsg}
 			<VisualForm onSubmit={onSubmit}>
+				<input style="display: none" type="text" name="email" />
+				<input style="display: none" type="password" name="password" />
+
 				<div>
 					<label htmlFor="email"><T>Email</T></label>
 					<input
-						name="email"
 						type="email"
-						id="email"
+						name="email"
 						autoFocus
 						value={account.email}
 						onInput={onInput}
+						autocomplete="off"
 					/>
 				</div>
 				<div>
 					<label htmlFor="password"><T>Password</T></label>
 					<input
 						name="password"
-						id="password"
 						type="password"
 						autoFocus
 						value={account.password}
 						onInput={onInput}
+						autocomplete="new-password"
 					/>
 				</div>
 			</VisualForm>
 
 			<div style={{ display: 'flex' }}>
-					<div style={{ flexGrow: 1 }}></div>
-					<Button type="submit" className="green" onClick={onSubmit}>
-						<T>Register</T>
-					</Button>
-				</div>
+				<div style={{ flexGrow: 1 }}></div>
+				<Button type="submit" className="green" onClick={onSubmit}>
+					<T>Register</T>
+				</Button>
+			</div>
 		</div>
 	)
 }

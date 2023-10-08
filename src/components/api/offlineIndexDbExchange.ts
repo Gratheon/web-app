@@ -66,7 +66,7 @@ export function offlineIndexDbExchange({
 		else {
 			if (!bubble.data && bubble.error) {
 				useCacheOnly = true;
-				console.log('Error detected, using index-db cache');
+				console.error('Error detected, using index-db cache', bubble.error);
 				bubble.data = (
 					await execute({
 						schema: schemaObject,

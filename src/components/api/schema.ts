@@ -82,6 +82,8 @@ type Apiary {
     en: String
     ru: String
     et: String
+    pl: String
+    tr: String
   }
 
   enum BoxType {

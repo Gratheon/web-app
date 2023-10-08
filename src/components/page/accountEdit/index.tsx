@@ -135,6 +135,8 @@ export default function AccountEdit() {
 							<option value="en" selected={user.lang == "en"}>English</option>
 							<option value="ru" selected={user.lang == "ru"}>Русский</option>
 							<option value="et" selected={user.lang == "et"}>Eesti</option>
+							<option value="tr" selected={user.lang == "tr"}>Türkçe</option>
+							<option value="pl" selected={user.lang == "pl"}>Polski</option>
 						</select>
 					</div>
 					<VisualFormSubmit>

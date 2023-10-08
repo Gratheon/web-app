@@ -5,7 +5,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { getUser } from '@/components/models/user'
 import { getLocale } from '@/components/models/locales'
 
-const supportedLangs = ['en', 'ru', 'et'];
+const supportedLangs = ['en', 'ru', 'et','tr','pl'];
 
 function TRemote({ lang, children, tc }: { lang: string, children: any, tc: string }) {
 	const { loading, error, data } = useQuery(gql`query translate($en: String!, $tc: String){
@@ -15,6 +15,8 @@ function TRemote({ lang, children, tc }: { lang: string, children: any, tc: stri
 			en
 			ru
 			et
+			tr
+			pl
 			key
 		}
 	}`, { variables: { en: children, tc } })

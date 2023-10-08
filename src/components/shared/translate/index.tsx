@@ -11,6 +11,7 @@ function TRemote({ lang, children, tc }: { lang: string, children: any, tc: stri
 			id
 			en
 			ru
+			et
 			key
 		}
 	}`, { variables: { en: children, tc } })
@@ -25,14 +26,17 @@ function TRemote({ lang, children, tc }: { lang: string, children: any, tc: stri
 export default function T({ children, ctx = '' }: { children: any, ctx?: string }) {
 	let user = useLiveQuery(() => getUser(), [])
 
+	if(!user || !user.lang){
+		return children
+	}
+
 	let translated = useLiveQuery(() => {
 		if (!user || !user?.lang) return
-		const where = {}
-		where[user.lang] = children
+		const where = { en: children }
 		return getLocale(where)
 	}, [user])
 
-	if (translated) return <>{translated}</>
+	if (translated && translated[user.lang]) return <>{translated[user.lang]}</>
 
 	return <TRemote lang={user?.lang} tc={ctx}>{children}</TRemote>
 }

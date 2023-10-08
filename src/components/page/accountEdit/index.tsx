@@ -71,6 +71,7 @@ export default function AccountEdit() {
 			user: {
 				first_name: user?.first_name,
 				last_name: user?.last_name,
+				lang: user?.lang,
 			},
 		})
 
@@ -86,11 +87,6 @@ export default function AccountEdit() {
 		return <Loader />
 	}
 
-	let errorMsg
-
-	if (error) {
-		errorMsg = <ErrorMsg error={error} />
-	}
 
 	const md5Hash = user.email ? calculateMD5(user.email) : '';
 	const gravatarURL = `https://www.gravatar.com/avatar/${md5Hash}?s=200`;
@@ -98,12 +94,11 @@ export default function AccountEdit() {
 	return (
 		<div id={style.account_edit}>
 			<h2><T>Account</T></h2>
-
+			<ErrorMsg error={error} />
 			<div style="display:flex;">
 				<img src={gravatarURL} style="border-radius:50px;width:100px;height:100px;" />
 
 				<VisualForm style="display: table;" onSubmit={onSubmit}>
-					{errorMsg}
 					<div>
 						<label htmlFor="name"><T>Email</T></label>
 						<input
@@ -137,9 +132,10 @@ export default function AccountEdit() {
 					</div>
 					<div>
 						<label htmlFor="last_name"><T>Language</T></label>
-						<select name="language">
-							<option value="en" selected={user.lang=="en"}>English</option>
-							<option value="ru" selected={user.lang=="ru"}>Русский</option>
+						<select name="lang" onInput={onInput}>
+							<option value="en" selected={user.lang == "en"}>English</option>
+							<option value="ru" selected={user.lang == "ru"}>Русский</option>
+							<option value="et" selected={user.lang == "et"}>Eesti</option>
 						</select>
 					</div>
 					<VisualFormSubmit>

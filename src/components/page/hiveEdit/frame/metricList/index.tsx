@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react'
 import ResourceEditRow from './resourceEditRow'
 import colors from '@/components/colors'
 import { CountdownCircleTimer } from 'react-countdown-circle-timer'
+import T from '@/components/shared/translate'
 
 export default function MetricList({
 	estimatedDetectionTimeSec,
@@ -37,46 +38,42 @@ export default function MetricList({
 			<ResourceEditRow
 				expanded={expanded}
 				onClick={() => expand(!expanded)}
-				title={'Brood'}
 				color={colors.broodColor}
 				percent={frameSide.broodPercent}
 				onChange={(e) => onResize('broodPercent', e.target.value)}
-			/>
+			><T>Brood</T></ResourceEditRow>
 
 			<ResourceEditRow
 				expanded={expanded}
 				onClick={() => expand(!expanded)}
-				title={'Capped Brood'}
 				color={colors.cappedBroodColor}
 				percent={frameSide.cappedBroodPercent}
 				onChange={(e) => onResize('cappedBroodPercent', e.target.value)}
-			/>
+			><T>Capped Brood</T></ResourceEditRow>
 
 			<ResourceEditRow
 				expanded={expanded}
 				onClick={() => expand(!expanded)}
-				title={'Eggs'}
 				color={colors.eggsColor}
 				percent={frameSide.eggsPercent}
 				onChange={(e) => onResize('eggsPercent', e.target.value)}
-			/>
+			><T>Eggs</T></ResourceEditRow>
+			
 			<ResourceEditRow
 				expanded={expanded}
 				onClick={() => expand(!expanded)}
-				title={'Honey'}
 				color={colors.honeyColor}
 				percent={frameSide.honeyPercent}
 				onChange={(e) => onResize('honeyPercent', e.target.value)}
-			/>
+			><T>Honey</T></ResourceEditRow>
 
 			<ResourceEditRow
 				expanded={expanded}
 				onClick={() => expand(!expanded)}
-				title={'Pollen'}
 				color={colors.pollenColor}
 				percent={frameSide.pollenPercent}
 				onChange={(e) => onResize('pollenPercent', e.target.value)}
-			/>
+			><T>Pollen</T></ResourceEditRow>
 		</div>
 	</div>
 }

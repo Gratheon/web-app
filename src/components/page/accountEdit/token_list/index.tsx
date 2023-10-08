@@ -94,11 +94,11 @@ const TokenList: React.FC = () => {
 			</table>
 			<Button className='green' loading={generatingToken} onClick={onGenerateToken}><T>Generate</T></Button>
 
-			<p>You can use <a href="https://github.com/Gratheon/raspberry-pi-client">raspberry PI client</a> or access API directly with API tokens:</p>
-			<div style="display:flex">
-				<pre style={`${style}`} dangerouslySetInnerHTML={{ __html: htmlCode }} />
-				<Button onClick={() => copy(htmlCode)}><T>Copy</T></Button>
-			</div>
+			<p><T>You can use raspberry PI client or access API directly with API tokens</T></p>
+			
+			<pre style={`${style}`} dangerouslySetInnerHTML={{ __html: htmlCode }} />
+			<Button onClick={() => copy(htmlCode)}><T>Copy</T></Button>
+			
 		</div>
 	);
 };

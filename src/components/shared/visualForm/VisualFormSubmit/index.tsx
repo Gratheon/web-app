@@ -2,9 +2,9 @@ import React from 'react'
 
 export default ({ children }) => {
 	return (
-		<div style={{ display: 'flex' }}>
-			<div style={{ flexGrow: 1 }}></div>
-			<div style="display:flex;flex-direction:row-reverse;">
+		<div>
+			<div></div>
+			<div style="text-align:right;">
 				{children}
 			</div>
 		</div>

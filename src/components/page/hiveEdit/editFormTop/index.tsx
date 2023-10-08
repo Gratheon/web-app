@@ -179,10 +179,11 @@ export default function HiveEditDetails({ hiveId }) {
 				</div>
 				<VisualForm>
 					<div>
-						<label htmlFor="name"><T ctx="this is a form label for input of the beehive">Name</T></label>
+						<label htmlFor="name" style="width:120px;"><T ctx="this is a form label for input of the beehive">Name</T></label>
 						<input
 							name="name"
 							id="name"
+							style="width:100%;"
 							autoFocus
 							value={hive.name}
 							onInput={onNameChange}
@@ -194,6 +195,7 @@ export default function HiveEditDetails({ hiveId }) {
 						<div style="position:relative;">
 							<input
 								name="race"
+								style="width:200px"
 								className={styles.race}
 								value={family ? family.race : ''}
 								onInput={onRaceChange}
@@ -217,7 +219,11 @@ export default function HiveEditDetails({ hiveId }) {
 						<label htmlFor="notes"><T ctx="This is a label of beehive notes that beekeeper may leave after inspection">Notes</T></label>
 						<textarea
 							className={styles.notes}
-							style={{ background: hive.notes ? '#EEE' : 'white', minHeight: hive.notes ? 32 : 20 }}
+							style={{ 
+								background: hive.notes ? '#EEE' : 'white', 
+								minHeight: hive.notes ? 32 : 20,
+								width: `calc(100% - 20px)`
+							}}
 							name="notes"
 							id="notes"
 							value={hive.notes}

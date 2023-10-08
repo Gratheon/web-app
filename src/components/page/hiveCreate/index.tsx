@@ -90,7 +90,7 @@ export default function HiveCreateForm() {
 
 				<VisualForm onSubmit={onSubmit.bind(this)} style="flex-grow:1">
 					<div>
-						<label htmlFor="name"><T>Name</T></label>
+						<label htmlFor="name" style="width:120px;"><T>Name</T></label>
 						<input
 							name="name"
 							id="name"

@@ -100,34 +100,33 @@ export default function AccountEdit() {
 
 				<VisualForm style="display: table;" onSubmit={onSubmit}>
 					<div>
+						<label style="width:120px;" htmlFor="first_name"><T ctx="this is a label for the person full name">Name</T></label>
+						<input
+							name="first_name"
+							id="first_name"
+							style="width:40%; margin-right: 5px;"
+							placeholder="First name"
+							autoFocus
+							value={user.first_name}
+							onInput={onInput}
+						/>
+						<input
+							name="last_name"
+							id="last_name"
+							style="width:40%"
+							placeholder="Last name"
+							autoFocus
+							value={user.last_name}
+							onInput={onInput}
+						/>
+					</div>
+					<div>
 						<label htmlFor="name"><T>Email</T></label>
 						<input
 							name="email"
 							id="email"
 							disabled={true}
 							value={user.email}
-						/>
-					</div>
-					<div>
-						<label htmlFor="first_name"><T>First name</T></label>
-						<input
-							name="first_name"
-							id="first_name"
-							placeholder="First name"
-							autoFocus
-							value={user.first_name}
-							onInput={onInput}
-						/>
-					</div>
-					<div>
-						<label htmlFor="last_name"><T>Last name</T></label>
-						<input
-							name="last_name"
-							id="last_name"
-							placeholder="Last name"
-							autoFocus
-							value={user.last_name}
-							onInput={onInput}
 						/>
 					</div>
 					<div>

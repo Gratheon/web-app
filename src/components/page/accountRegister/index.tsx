@@ -76,41 +76,49 @@ export default function AccountRegister() {
 	}
 
 	return (
-		<div style={{ padding: 15, width: '300px' }}>
-			{errorMsg}
-			<VisualForm onSubmit={onSubmit}>
-				<input style="display: none" type="text" name="email" />
-				<input style="display: none" type="password" name="password" />
+		<div style="display:flex;height:100%;">
+			<div style="background: url('https://gratheon.s3.eu-central-1.amazonaws.com/www/register.webp'); background-position: center; background-repeat: no-repeat; background-size: cover; flex-grow:2;"></div>
+			<div style="min-width:300px; padding: 200px 50px;">
+				<img src="/assets/logo_v5.svg" style="width:60px;  display: block; margin-left: auto;margin-right: auto;" draggable={false} />
+				<div style={{ padding: 15, width: '300px' }}>
+					{errorMsg}
+					<VisualForm onSubmit={onSubmit}>
+						<input style="display: none" type="text" name="email" />
+						<input style="display: none" type="password" name="password" />
 
-				<div>
-					<label htmlFor="email"><T>Email</T></label>
-					<input
-						type="email"
-						name="email"
-						autoFocus
-						value={account.email}
-						onInput={onInput}
-						autocomplete="off"
-					/>
-				</div>
-				<div>
-					<label htmlFor="password"><T>Password</T></label>
-					<input
-						name="password"
-						type="password"
-						autoFocus
-						value={account.password}
-						onInput={onInput}
-						autocomplete="new-password"
-					/>
-				</div>
-			</VisualForm>
+						<div>
+							<label htmlFor="email" style="width:100px;"><T>Email</T></label>
+							<input
+								style="width:100%;"
+								type="email"
+								name="email"
+								autoFocus
+								value={account.email}
+								onInput={onInput}
+								autocomplete="off"
+							/>
+						</div>
+						<div>
+							<label htmlFor="password"><T>Password</T></label>
+							<input
+								style="width:100%;"
+								name="password"
+								type="password"
+								autoFocus
+								value={account.password}
+								onInput={onInput}
+								autocomplete="new-password"
+							/>
+						</div>
+					</VisualForm>
 
-			<div style={{ display: 'flex' }}>
-				<div style={{ flexGrow: 1 }}></div>
-				<Button type="submit" className="green" onClick={onSubmit}>
-					<T>Register</T>
-				</Button>
+					<div style={{ display: 'flex' }}>
+						<div style={{ flexGrow: 1 }}></div>
+						<Button type="submit" className="green" onClick={onSubmit}>
+							<T>Register</T>
+						</Button>
+					</div>
+				</div>
 			</div>
 		</div>
 	)

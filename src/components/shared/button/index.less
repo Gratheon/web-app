@@ -20,10 +20,10 @@ button {
 	svg {
 		position: relative;
 		top: 3px;
-		margin-left:1px;
+		margin-left: 1px;
 	}
 
-	span{
+	span {
 		display: inline;
 		margin-left: 4px;
 	}
@@ -45,6 +45,7 @@ button {
 			background: @color-ui-btn-red-hover;
 		}
 	}
+
 	&.green {
 		background: @color-ui-btn-green;
 		color: #f1f1f1;
@@ -60,6 +61,7 @@ button {
 		border-radius: 0 3px 3px 0;
 		text-shadow: none;
 	}
+
 	&.small {
 		svg {
 			top: 0;
@@ -74,12 +76,16 @@ button {
 	&.green.popupTrigger {
 		border-left: 1px solid @color-ui-btn-green-hover;
 	}
+
+	&[type=submit] {
+		margin: 0;
+	}
 }
 
 
-@media all and (max-width: 500px) { 
-	button{
-		span{
+@media all and (max-width: 500px) {
+	button {
+		span {
 			display: none;
 		}
 	}

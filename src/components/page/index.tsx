@@ -37,7 +37,7 @@ export default function Page() {
 	return (
 			<Routes>
 				<Route path="/account/authenticate" element={<ModalPage><AccountAuth /></ModalPage>} />
-				<Route path="/account/register" element={<ModalPage><AccountRegister /></ModalPage>} />
+				<Route path="/account/register" element={<AccountRegister />} />
 
 				<Route path="/apiaries/create" element={<LoggedInPage><ApiaryCreate /></LoggedInPage>} />
 				<Route path="/apiaries/edit/:id" element={<LoggedInPage><ApiaryEditForm /></LoggedInPage>} />

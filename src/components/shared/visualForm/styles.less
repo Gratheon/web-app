@@ -1,14 +1,15 @@
 @import '../../colors';
 
 .form {
-	// display: table;
 	width: 100%;
 	table-layout: fixed;
+	display: table;
 	box-sizing: border-box;
 	border-collapse: separate;
+	margin: 0;
 
 	&>div {
-		display: grid;
+		display: table-row;
 		grid-template-columns: auto 1fr;
 		padding: 2px;
 		box-sizing: border-box;
@@ -18,10 +19,9 @@
 			vertical-align: middle;
 			padding: 7px;
 			box-sizing: border-box;
-			width: 100px;
 		}
 
-		input{
+		input, select{
 			padding: 6px 10px;
 		}
 		
@@ -29,7 +29,6 @@
 		&>div {
 			display: table-cell;
 			margin: 0 0 3px 0;
-			width: 100%;
 			box-sizing: border-box;
 		}
 	}

@@ -70,7 +70,7 @@ export default function ApiaryEditForm() {
 				
 			<VisualForm onSubmit={onSubmit}>
 				<div>
-					<label htmlFor="name"><T>Name</T></label>
+					<label htmlFor="name" style="width:120px;"><T>Name</T></label>
 					<input
 						name="name"
 						id="name"

@@ -132,11 +132,13 @@ export default function AccountEdit() {
 					<div>
 						<label htmlFor="last_name"><T>Language</T></label>
 						<select name="lang" onInput={onInput}>
+							<option value="de" selected={user.lang == "de"}>Deutsch</option>
 							<option value="en" selected={user.lang == "en"}>English</option>
-							<option value="ru" selected={user.lang == "ru"}>Русский</option>
 							<option value="et" selected={user.lang == "et"}>Eesti</option>
-							<option value="tr" selected={user.lang == "tr"}>Türkçe</option>
+							<option value="fr" selected={user.lang == "fr"}>Français</option>
 							<option value="pl" selected={user.lang == "pl"}>Polski</option>
+							<option value="ru" selected={user.lang == "ru"}>Русский</option>
+							<option value="tr" selected={user.lang == "tr"}>Türkçe</option>
 						</select>
 					</div>
 					<VisualFormSubmit>

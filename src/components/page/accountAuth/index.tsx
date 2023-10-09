@@ -43,9 +43,11 @@ export default function AccountAuth() {
 	function onSubmit(e: React.ChangeEvent<HTMLFormElement>) {
 		e.preventDefault()
 
-		accountAuth({
-			email: account.email,
-			password: account.password,
+		logout().then(() => {
+			accountAuth({
+				email: account.email,
+				password: account.password,
+			})
 		})
 	}
 
@@ -57,12 +59,11 @@ export default function AccountAuth() {
 
 	if (data?.login?.key) {
 		// clear DB on login and on logout to have consistent structure in case of alters
-		logout().then(() => {
-			saveToken(data.login.key)
 
-			//@ts-ignore
-			window.location = getAppUri() + '/'
-		});
+		saveToken(data.login.key)
+
+		//@ts-ignore
+		window.location = getAppUri() + '/'
 		return <Loader />
 	} else if (data?.login?.code === 'INVALID_USERNAME_PASSWORD') {
 		errorMsg = <ErrorMsg error="Invalid email or password" />

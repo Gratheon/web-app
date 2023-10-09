@@ -7,6 +7,8 @@ export type Locale = {
 	et?: string
 	tr?: string
 	pl?: string
+	de?: string
+	fr?: string
 }
 
 export async function getLocale(where = {}): Promise<Locale> {

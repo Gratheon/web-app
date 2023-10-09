@@ -1,5 +1,6 @@
 @frameColor: #524034;
-@foundationColor: rgb(235, 255, 52);
+@foundationColor: rgb(255, 225, 0);
+@selectedColor: rgb(30, 95, 234);
 
 .position {
 	line-height: 15px;
@@ -17,23 +18,11 @@
 
 	&.positionSelected {
 		opacity: 1;
-		background: #ffd900;
 		border: 2px solid #000000;
 		text-shadow: 1px 1px #ffffff;
-		margin-top: -6px;
+		// margin-top: -2px;
 		font-weight: bold;
-	}
-
-	&.positionSelectedLeft {
-		opacity: 1;
-		border: 2px solid #aa9726;
-		border-left: 2px solid #ffe135;
-	}
-
-	&.positionSelectedRight {
-		opacity: 1;
-		border: 2px solid #aa9726;
-		border-right: 2px solid #ffe135;
+		border: 2px solid @selectedColor;
 	}
 }
 
@@ -85,7 +74,7 @@
 		}
 
 		.right {
-			background: #e4e2bb;
+			background: #f4f4f4;
 		}
 	}
 
@@ -103,5 +92,28 @@
 		display: flex;
 		flex-grow: 1;
 		background: @frameColor;
+	}
+}
+
+
+.left {
+	background: white;
+
+	&.sideSelected {
+		border: 2px solid @selectedColor;
+		border-radius: 0 0 0 5px;
+		box-sizing: border-box;
+		border-right:0;
+	}
+}
+
+.right {
+	background: #e4e2bb;
+
+	&.sideSelected {
+		border: 2px solid @selectedColor;
+		border-radius: 0 0 5px 0;
+		box-sizing: border-box;
+		border-left:0;
 	}
 }

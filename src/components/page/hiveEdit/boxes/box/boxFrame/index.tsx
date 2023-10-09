@@ -48,7 +48,7 @@ export default function BoxFrame({
 		frameInternal = (
 			<div className={styles.emptyComb}>
 				<FrameSide
-					className={styles.left}
+					className={frameSideId == frame.leftId ? `${styles.left} ${styles.sideSelected}` : styles.left}
 					href={`${frameURL}/${frame.leftId}`}
 					frameSide={frame.leftSide}
 				/>
@@ -56,7 +56,7 @@ export default function BoxFrame({
 				<div className={styles.foundation} />
 
 				<FrameSide
-					className={styles.right}
+					className={frameSideId == frame.rightId ? `${styles.right} ${styles.sideSelected}` : styles.right}
 					href={`${frameURL}/${frame.rightId}`}
 					frameSide={frame.rightSide}
 				/>
@@ -64,16 +64,13 @@ export default function BoxFrame({
 		)
 	}
 
+	// ${selectedFrame && +frameSideId === frame.leftId && styles.positionSelectedLeft}
+	// ${selectedFrame && +frameSideId === frame.rightId && styles.positionSelectedRight}
 	return (
 		<>
 			<div style={{ textAlign: 'center', height: 40 }}>
 				<span
-					className={`${styles.position} 
-					${selectedFrame && !frameSideId && styles.positionSelected}
-					${selectedFrame && +frameSideId === frame.leftId && styles.positionSelectedLeft}
-					${selectedFrame && +frameSideId === frame.rightId && styles.positionSelectedRight}
-					`}
-				>
+					className={`${styles.position} ${selectedFrame && styles.positionSelected}`}>
 					{frame.id}
 				</span>
 			</div>

@@ -9,6 +9,7 @@ import { saveToken } from '@/components/user'
 import { getAppUri } from '@/components/uri'
 import T from '@/components/shared/translate'
 import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
+import { logout } from '@/components/user'
 
 type Account = {
 	email?: string
@@ -55,10 +56,13 @@ export default function AccountAuth() {
 	let errorMsg
 
 	if (data?.login?.key) {
-		saveToken(data.login.key)
+		// clear DB on login and on logout to have consistent structure in case of alters
+		logout().then(() => {
+			saveToken(data.login.key)
 
-		//@ts-ignore
-		window.location = getAppUri() + '/'
+			//@ts-ignore
+			window.location = getAppUri() + '/'
+		});
 		return <Loader />
 	} else if (data?.login?.code === 'INVALID_USERNAME_PASSWORD') {
 		errorMsg = <ErrorMsg error="Invalid email or password" />

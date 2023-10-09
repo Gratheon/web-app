@@ -31,7 +31,7 @@ input{
 }
 
 input:focus, textarea:focus{
-	outline: 4px solid rgb(30, 95, 234);
+	outline: 2px solid rgb(30, 95, 234);
 }
 
 textarea{

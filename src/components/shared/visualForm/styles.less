@@ -11,12 +11,12 @@
 	&>div {
 		display: table-row;
 		grid-template-columns: auto 1fr;
-		padding: 2px;
+		padding: 0;
 		box-sizing: border-box;
 
 		&>label {
 			display: table-cell;
-			vertical-align: middle;
+			vertical-align: top;
 			padding: 7px;
 			box-sizing: border-box;
 		}
@@ -26,9 +26,10 @@
 		}
 		
 		&>input,
+		&>textarea,
 		&>div {
 			display: table-cell;
-			margin: 0 0 3px 0;
+			margin: 3px 0 3px 0;
 			box-sizing: border-box;
 		}
 	}

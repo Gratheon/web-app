@@ -22,6 +22,11 @@ export async function getLocale(where = {}): Promise<Locale> {
 
 
 export async function updateLocale(data: Locale) {
-	data.id = +data.id
-	return await db['locale'].put(data)
+	try {
+		data.id = +data.id
+		return await db['locale'].put(data)
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
 }

@@ -8,26 +8,31 @@ type FrameSideFile = {
     detectedBees: any
     detectedFrameResources: any
     detectedQueenCups: any
-	counts: any
+    counts: any
 }
-export async function getFrameSideFile({frameSideId}):Promise<FrameSideFile>{
+export async function getFrameSideFile({ frameSideId }): Promise<FrameSideFile> {
     const row = await db['framesidefile'].get(+frameSideId)
-    if(row){
-        if(!row.detectedBees){
+    if (row) {
+        if (!row.detectedBees) {
             row.detectedBees = []
         }
-        
-        if(!row.detectedFrameResources){
+
+        if (!row.detectedFrameResources) {
             row.detectedFrameResources = []
         }
 
-        if(!row.detectedQueenCups){
+        if (!row.detectedQueenCups) {
             row.detectedQueenCups = []
         }
     }
     return row
 }
 
-export async function updateFrameSideFile(data: FrameSideFile){
-    await db['framesidefile'].put(data)
+export async function updateFrameSideFile(data: FrameSideFile) {
+    try {
+        await db['framesidefile'].put(data)
+    } catch (e) {
+        console.error(e)
+        throw e
+    }
 }

@@ -7,6 +7,7 @@ import { logout } from '@/components/user'
 import { getAppUri } from '@/components/uri'
 import T from '@/components/shared/translate'
 
+import isDev from '@/components/isDev'
 import styles from './styles.less'
 
 async function onLogoutClick() {
@@ -40,6 +41,16 @@ const Menu = ({ isLoggedIn = false }) => {
 		)
 	}
 
+	// hide analytics until its ready for prod release
+	let analytics = null
+	if (isDev()) {
+		analytics = (<li>
+			<Link activeClassName={styles.active} to="/analytics">
+				<T>Analytics</T>
+			</Link>
+		</li>)
+	}
+
 	return (
 		<nav id={styles.menu}>
 			<Header />
@@ -55,11 +66,7 @@ const Menu = ({ isLoggedIn = false }) => {
 						<T>Account</T>
 					</Link>
 				</li>
-				<li>
-					<Link activeClassName={styles.active} to="/analytics">
-						<T>Analytics</T>
-					</Link>
-				</li>
+				{analytics}
 				<li>
 					<a href="#" onClick={onLogoutClick}>
 						<T>Log out</T>

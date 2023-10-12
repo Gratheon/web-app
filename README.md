@@ -64,8 +64,16 @@ flowchart LR
 |dexie| for storing data to index-db on the client for offline mode|
 
 ## Development
-Although Gratheon app is opensource, you do need to change configuration across all microservices.
+Running web-app as a frontend in development mode is easy.
+You will need [nvm](https://github.com/nvm-sh/nvm) for this, then run:
+```
+nvm use
+npm run install
+npm run dev
+```
 
-```
-tilt up
-```
+Next, the hardest part is to spin up the backend. 
+You will need to change configuration (in `config` folder) in all of the microservices (see the architecture)
+
+### Testing
+we don't have any unit, integration or e2e tests yet. Feel free to add these

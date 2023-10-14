@@ -26,6 +26,7 @@ export default function FrameSideDrawing({
 	frameSideFile,
 	frameId,
 	frameSideId,
+	extraButtons,
 }) {
 
 	if (!frameId || !frameSideId) {
@@ -139,7 +140,7 @@ export default function FrameSideDrawing({
 
 	const queenButton = (
 		<Button title="Toggle queen" onClick={onQueenToggle}>
-			<Checkbox on={frameSide.queenDetected}/>
+			<Checkbox on={frameSide.queenDetected} />
 			<span><T ctx="this is a button that toggles visibility of bee queen on an image">Queen</T></span>
 			<QueenIcon size={14} color={'white'} />
 		</Button>
@@ -151,15 +152,14 @@ export default function FrameSideDrawing({
 			<div className={styles.body}>
 				<ErrorMessage error={errorFrameSide || errorStrokes} />
 
-				<div style={{ display: 'flex', flexGrow: '1' }}>
-					<MetricList
-						onFrameSideStatChange={onFrameSideStatChange}
-						estimatedDetectionTimeSec={estimatedDetectionTimeSec}
-						frameSide={frameSide} />
-				</div>
 				<DrawingCanvas
 					imageUrl={file.url}
 					resizes={file.resizes}
+					extraButtons={extraButtons}
+					frameMetrics={<MetricList
+						onFrameSideStatChange={onFrameSideStatChange}
+						estimatedDetectionTimeSec={estimatedDetectionTimeSec}
+						frameSide={frameSide} />}
 
 					detectedQueenCups={frameSideFile.detectedQueenCups}
 					detectedBees={frameSideFile.detectedBees}

@@ -65,7 +65,7 @@ export default function Frame({
 	}
 
 	const extraButtons = (
-		<div style={{ display: 'flex', flexDirection: 'row-reverse', flexGrow: 1 }}>
+		<>
 			<Button
 				className="red"
 				title="Remove frame"
@@ -76,7 +76,7 @@ export default function Frame({
 			</Button>
 
 			<Button onClick={onFrameClose}><T>Close</T></Button>
-		</div>
+		</>
 	)
 
 	const error = <ErrorMessage error={errorFrameRemove} />
@@ -85,8 +85,9 @@ export default function Frame({
 		<div className={styles.frame}>
 			<div className={styles.body}>
 				{error}
-				{extraButtons}
+				{!frameSideId && <div style={{ display: 'flex', flexDirection: 'row-reverse', flexGrow: 1 }}>{extraButtons}</div>}
 				<FrameSide 
+					extraButtons={extraButtons}
 					hiveId={hiveId}
 					frameId={frameId} 
 					frameSideId={frameSideId} />

@@ -22,6 +22,7 @@ export default function FrameSide({
 	hiveId,
 	frameId,
 	frameSideId,
+	extraButtons,
 }) {
 
 	if (!frameId || !frameSideId) {
@@ -121,12 +122,14 @@ export default function FrameSide({
 		return (
 			<div style={{ flexGrow: 10, padding: 15 }}>
 				{error}
+				{extraButtons}
 				<UploadFile onUpload={onUpload} />
 			</div>
 		)
 	}
 
 	return <FrameSideDrawing
+		extraButtons={extraButtons}
 		file={file}
 		frameSide={frameSide}
 		frameSideFile={frameSideFile}

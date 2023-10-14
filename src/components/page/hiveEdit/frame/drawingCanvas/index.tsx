@@ -333,7 +333,9 @@ export default function DrawingCanvas({
 	detectedFrameResources,
 	onStrokeHistoryUpdate,
 	frameSideFile,
-	queenButton
+	frameMetrics,
+	queenButton,
+	extraButtons
 }) {
 	if (!imageUrl) {
 		return
@@ -608,13 +610,14 @@ export default function DrawingCanvas({
 
 	return (
 		<div>
-			<div style={{ display: 'flex', margin: '3px 0' }}>
+			<div style={{ display: 'flex' }}>
 				{detectedFrameResources &&
 					<Button onClick={() => { setCellVisibility(!showCells) }}>
 						<Checkbox on={showCells} />
-						<span><T ctx="this is a button that toggles visibility of different types of cells in a beehive frame - brood, pollen, honey etc">Frame cells</T></span>
-						<FrameCells />
+						<span><T ctx="this is a button that toggles visibility of different types of cells in a beehive frame - brood, pollen, honey etc">Frame cells</T><FrameCells /></span>
 					</Button>}
+
+				{showCells && frameMetrics}
 
 				<div title="Worker bees">
 					{frameSideFile.counts && frameSideFile.counts.map((row) => {
@@ -634,9 +637,11 @@ export default function DrawingCanvas({
 					<span><T ctx="this is a button that toggles visibility (on an image) of beewax construction where queen bee is being nursed">Queen cups</T></span>
 				</Button>}
 
-				<div></div>
+
+				<div style="flex-grow:1"></div>
 				<Button onClick={clearHistory}><T ctx="this is a button that cleans drawing made on an image with ipad pencil or mouse">Clear drawing</T></Button>
 				<Button onClick={undoDraw}><T>Undo</T></Button>
+				{extraButtons}
 			</div>
 
 			<canvas ref={ref} id="container" style="width:100%;">

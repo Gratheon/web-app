@@ -212,6 +212,9 @@ export default function HiveEditDetails({ hiveId }) {
 							/>
 
 							<QueenColor year={family?.added} />
+
+
+							<DeactivateButton hiveId={hive.id} />
 						</div>
 					</div>
 
@@ -219,8 +222,8 @@ export default function HiveEditDetails({ hiveId }) {
 						<label htmlFor="notes"><T ctx="This is a label of beehive notes that beekeeper may leave after inspection">Notes</T></label>
 						<textarea
 							className={styles.notes}
-							style={{ 
-								background: hive.notes ? '#EEE' : 'white', 
+							style={{
+								background: hive.notes ? '#EEE' : 'white',
 								minHeight: hive.notes ? 32 : 20,
 								width: `calc(100% - 20px)`
 							}}
@@ -231,11 +234,6 @@ export default function HiveEditDetails({ hiveId }) {
 						/>
 					</div>
 				</VisualForm>
-			</div>
-
-			<div className={styles.buttons}>
-				<div style={{flexGrow:1}}></div>
-				<DeactivateButton hiveId={hive.id} />
 			</div>
 		</div>
 	)

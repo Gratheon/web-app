@@ -208,7 +208,7 @@ function drawDetectedBees(detectedBees, ctx, canvas, showBees, showDrones) {
 				case 2: // bees carrying pollen
 					ctx.fillStyle = ctx.strokeStyle = colors.beeWorkerPollen
 					dt.nText = 'worker + pollen'
-					ctx.lineWidth = 1 * REL_PX
+					ctx.lineWidth = 2 * REL_PX
 					break
 
 				case 3:
@@ -623,14 +623,18 @@ export default function DrawingCanvas({
 			<div style={{ display: 'flex' }}>
 				{detectedFrameResources &&
 					<Button onClick={() => { setCellVisibility(!showCells) }}>
-						<Checkbox on={showCells} />
-						<span><T ctx="this is a button that toggles visibility of different types of cells in a beehive frame - brood, pollen, honey etc">Frame cells</T><FrameCells /></span>
+						{frameSideFile.isCellsDetectionComplete && <Checkbox on={showCells} />}
+						{!frameSideFile.isCellsDetectionComplete && <Loader size={0} />}
+
+						<span>
+							<T ctx="this is a button that toggles visibility of different types of cells in a beehive frame - brood, pollen, honey etc">Frame cells</T>
+							{frameSideFile.isCellsDetectionComplete && <FrameCells />}
+						</span>
 					</Button>}
 
 				{showCells && frameMetrics}
 
 				<div title="Worker bees">
-					{frameSideFile.isBeeDetectionComplete}
 					<Button onClick={() => { setBeeVisibility(!showBees) }}>
 						{frameSideFile.isBeeDetectionComplete && <Checkbox on={showBees} />}
 						{!frameSideFile.isBeeDetectionComplete && <Loader size={0} />}
@@ -651,7 +655,8 @@ export default function DrawingCanvas({
 				{queenButton}
 
 				{detectedQueenCups && <Button onClick={() => { setQueenCups(!showQueenCups) }}>
-					<Checkbox on={showQueenCups} />
+					{frameSideFile.isQueenCupsDetectionComplete && <Checkbox on={showQueenCups}  />}
+					{!frameSideFile.isQueenCupsDetectionComplete && <Loader size={0} />}
 					<span><T ctx="this is a button that toggles visibility (on an image) of beewax construction where queen bee is being nursed">Queen cups</T></span>
 				</Button>}
 

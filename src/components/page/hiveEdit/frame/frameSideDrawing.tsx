@@ -43,13 +43,23 @@ export default function FrameSideDrawing({
 	useSubscription(gql`subscription onFrameSideBeesPartiallyDetected($frameSideId: String){
 			onFrameSideBeesPartiallyDetected(frameSideId:$frameSideId){
 				delta
+				detectedQueenCount
+				detectedWorkerBeeCount
+				detectedDroneCount
+				isBeeDetectionComplete
 			}
 		}`, { frameSideId }, (_, response) => {
 		if (response) {
+			console.log({response})
 			frameSideFile.detectedBees = [
 				...frameSideFile.detectedBees,
 				...response.onFrameSideBeesPartiallyDetected.delta
 			]
+
+			frameSideFile.detectedQueenCount = response.onFrameSideBeesPartiallyDetected.detectedQueenCount
+			frameSideFile.detectedWorkerBeeCount = response.onFrameSideBeesPartiallyDetected.detectedWorkerBeeCount
+			frameSideFile.detectedDroneCount = response.onFrameSideBeesPartiallyDetected.detectedDroneCount
+			frameSideFile.isBeeDetectionComplete = response.onFrameSideBeesPartiallyDetected.isBeeDetectionComplete
 
 			updateFrameSideFile(frameSideFile)
 		}

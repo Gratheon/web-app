@@ -6,7 +6,6 @@ export default gql`
 			frameSideId
 			strokeHistory
 			
-			
 			detectedBees
 			detectedQueenCount
 			detectedWorkerBeeCount
@@ -15,7 +14,10 @@ export default gql`
 			isBeeDetectionComplete
 
 			detectedFrameResources
+			isCellsDetectionComplete
+
 			detectedQueenCups
+			isQueenCupsDetectionComplete
 
 			file{
 				id

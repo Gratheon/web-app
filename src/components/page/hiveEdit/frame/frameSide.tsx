@@ -8,9 +8,7 @@ import {
 import { getFrameSideFile, updateFrameSideFile } from '@/components/models/frameSideFile'
 import { getFile } from '@/components/models/files'
 
-import Button from '@/components/shared/button'
 import Loading from '@/components/shared/loader'
-import QueenIcon from '@/icons/queenIcon'
 import ErrorMessage from '@/components/shared/messageError'
 
 import UploadFile from './uploadFile'

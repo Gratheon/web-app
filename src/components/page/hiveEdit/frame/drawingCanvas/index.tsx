@@ -5,6 +5,7 @@ import QueenCupIcon from '@/icons/queenCup'
 import Checkbox from '@/icons/checkbox'
 import FrameCells from '@/icons/frameCells'
 import T from '@/components/shared/translate'
+import Loader from '@/components/shared/loader'
 
 let lineWidth = 0
 let isMousedown = false
@@ -182,10 +183,14 @@ function drawQueenCups(queenCups, ctx, canvas) {
 	}
 }
 
-function drawDetectedBees(detectedBees, ctx, canvas) {
+function drawDetectedBees(detectedBees, ctx, canvas, showBees, showDrones) {
 	REL_PX = canvas.width / 1024
 	if (detectedBees.length > 0) {
 		for (let dt of detectedBees) {
+			if (!showBees && (dt.n == 0 || dt.n == 2)) continue;
+			if (!showDrones && dt.n == 1) continue;
+			if (dt.n == 3) continue;// queen detection is too poor to show it
+
 			ctx.globalAlpha = 0.4 + dt.c
 
 			ctx.beginPath()
@@ -201,10 +206,11 @@ function drawDetectedBees(detectedBees, ctx, canvas) {
 					ctx.lineWidth = 2 * REL_PX
 					break
 				case 2: // bees carrying pollen
-					ctx.fillStyle = ctx.strokeStyle = 'gray'
-					dt.nText = 'worker with pollen'
+					ctx.fillStyle = ctx.strokeStyle = colors.beeWorkerPollen
+					dt.nText = 'worker + pollen'
 					ctx.lineWidth = 1 * REL_PX
 					break
+
 				case 3:
 					ctx.fillStyle = ctx.strokeStyle = colors.queen
 					dt.nText = 'queen'
@@ -291,6 +297,7 @@ function drawCanvasLayers(
 	ctx,
 	strokeHistory,
 	showBees,
+	showDrones,
 	detectedBees,
 	showCells,
 	detectedFrameResources,
@@ -307,8 +314,8 @@ function drawCanvasLayers(
 		drawDetectedFrameResources(detectedFrameResources, ctx, canvas)
 	}
 
-	if (showBees) {
-		drawDetectedBees(detectedBees, ctx, canvas)
+	if (showBees || showDrones) {
+		drawDetectedBees(detectedBees, ctx, canvas, showBees, showDrones)
 	}
 
 	if (showQueenCups) {
@@ -342,7 +349,8 @@ export default function DrawingCanvas({
 	}
 	const ref = useRef(null)
 	const [showBees, setBeeVisibility] = useState(true)
-	const [showCells, setCellVisibility] = useState(true)
+	const [showDrones, setDroneVisibility] = useState(true)
+	const [showCells, setCellVisibility] = useState(false)
 	const [showQueenCups, setQueenCups] = useState(true)
 	const [version, setVersion] = useState(0)
 	const [canvasUrl, setCanvasUrl] = useState(resizes && resizes.length > 0 ? resizes[0].url : imageUrl)
@@ -392,6 +400,7 @@ export default function DrawingCanvas({
 				ctx,
 				strokeHistory,
 				showBees,
+				showDrones,
 				detectedBees,
 				showCells,
 				detectedFrameResources,
@@ -530,6 +539,7 @@ export default function DrawingCanvas({
 			ctx,
 			strokeHistory,
 			showBees,
+			showDrones,
 			detectedBees,
 			showCells,
 			detectedFrameResources,
@@ -605,7 +615,7 @@ export default function DrawingCanvas({
 		canvas.removeEventListener('wheel', handleScroll)
 		canvas.addEventListener('wheel', handleScroll)
 		return () => canvas.removeEventListener('wheel', handleScroll)
-	}, [imageUrl, version, showBees, showCells, showQueenCups, detectedBees, detectedFrameResources])
+	}, [imageUrl, version, showBees, showDrones, showCells, showQueenCups, detectedBees, detectedFrameResources])
 
 
 	return (
@@ -620,14 +630,22 @@ export default function DrawingCanvas({
 				{showCells && frameMetrics}
 
 				<div title="Worker bees">
-					{frameSideFile.counts && frameSideFile.counts.map((row) => {
-						if (row.type == 'BEE_WORKER') {
-							return <Button onClick={() => { setBeeVisibility(!showBees) }}>
-								<Checkbox on={showBees} />
-								<span><T ctx="this is a button that toggles visibility of worker bees on an image">Worker bees</T></span>
-							</Button>
-						}
-					})}
+					{frameSideFile.isBeeDetectionComplete}
+					<Button onClick={() => { setBeeVisibility(!showBees) }}>
+						{frameSideFile.isBeeDetectionComplete && <Checkbox on={showBees} />}
+						{!frameSideFile.isBeeDetectionComplete && <Loader size={0} />}
+						<span>
+							<T ctx="this is a button that toggles visibility of worker bees on an image">Worker bees</T>
+							{frameSideFile.detectedWorkerBeeCount > 0 && <>({frameSideFile.detectedWorkerBeeCount})</>}
+						</span>
+					</Button><Button onClick={() => { setDroneVisibility(!showDrones) }}>
+						{frameSideFile.isBeeDetectionComplete && <Checkbox on={showDrones} />}
+						{!frameSideFile.isBeeDetectionComplete && <Loader size={0} />}
+						<span>
+							<T ctx="this is a button that toggles visibility of drone bees on an image">Drones</T>
+							{frameSideFile.detectedDroneCount > 0 && <>({frameSideFile.detectedDroneCount})</>}
+						</span>
+					</Button>
 				</div>
 
 				{queenButton}

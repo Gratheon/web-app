@@ -5,9 +5,15 @@ export default gql`
 		hiveFrameSideFile(frameSideId: $frameSideId) {
 			frameSideId
 			strokeHistory
-			estimatedDetectionTimeSec
+			
 			
 			detectedBees
+			detectedQueenCount
+			detectedWorkerBeeCount
+			detectedDroneCount
+			estimatedDetectionTimeSec
+			isBeeDetectionComplete
+
 			detectedFrameResources
 			detectedQueenCups
 
@@ -18,11 +24,6 @@ export default gql`
 					max_dimension_px
 					url
 				}
-			}
-
-			counts{
-				type
-				count
 			}
 		}
 	}

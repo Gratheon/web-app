@@ -55,7 +55,7 @@ export default function FrameSideDrawing({
 		}
 	})
 
-	useSubscription(gql`subscription onFrameSideBeesPartiallyDetected($frameSideId: String){
+	useSubscription(gql`subscription onFrameSideResourcesDetected($frameSideId: String){
 			onFrameSideResourcesDetected(frameSideId:$frameSideId){
 				delta
 			}

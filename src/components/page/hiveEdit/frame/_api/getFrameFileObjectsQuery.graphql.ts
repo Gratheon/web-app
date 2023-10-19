@@ -10,15 +10,16 @@ export default gql`
 			detectedQueenCount
 			detectedWorkerBeeCount
 			detectedDroneCount
-			estimatedDetectionTimeSec
 			isBeeDetectionComplete
 
-			detectedFrameResources
+			detectedCells
 			isCellsDetectionComplete
 
 			detectedQueenCups
 			isQueenCupsDetectionComplete
 
+			queenDetected
+			
 			file{
 				id
 				url

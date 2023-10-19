@@ -118,25 +118,20 @@ export async function addFrame(frameData) {
 		if (leftId) {
 			await db['frameside'].put({
 				id: leftId,
-				broodPercent: 0,
-				cappedBroodPercent: 0,
-				eggsPercent: 0,
-				honeyPercent: 0,
-				pollenPercent: 0,
-				queenDetected: false,
 			})
 		}
 
 		if (rightId) {
 			await db['frameside'].put({
 				id: rightId,
-				broodPercent: 0,
-				cappedBroodPercent: 0,
-				eggsPercent: 0,
-				honeyPercent: 0,
-				pollenPercent: 0,
-				queenDetected: false,
 			})
+
+			// broodPercent: 0,
+			// cappedBroodPercent: 0,
+			// eggsPercent: 0,
+			// honeyPercent: 0,
+			// pollenPercent: 0,
+			// queenDetected: false,
 		}
 		await db['frame'].put({
 			id,

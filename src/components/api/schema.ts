@@ -13,14 +13,6 @@ export type Box = {
 export type FrameType = 'VOID' | 'FOUNDATION' | 'EMPTY_COMB' | 'PARTITION' | 'FEEDER'
 export type FrameSide = {
   frameId?: number
-  queenDetected: boolean
-  broodPercent: number
-  cappedBroodPercent: number
-  eggsPercent: number
-  pollenPercent: number
-  honeyPercent: number
-  workerCount: number
-  droneCount: number
 }
 export type Frame = {
   id: number
@@ -148,14 +140,6 @@ type Apiary {
   type FrameSide {
     id: ID
     file: File
-    broodPercent: Int
-    cappedBroodPercent: Int
-    eggsPercent: Int
-    pollenPercent: Int
-    honeyPercent: Int
-    queenDetected: Boolean!
-    workerCount: Int
-    droneCount: Int
   }
   
   type FrameSideFile {
@@ -165,18 +149,32 @@ type Apiary {
     hiveId: ID
     strokeHistory: JSON
     detectedBees: JSON
-    detectedFrameResources: JSON
+    detectedCells: JSON
     detectedQueenCups: JSON
+    queenDetected: Boolean!
+  }
+
+  type FrameSideCells {
+    id: ID!
+    frameSideId: ID
+
+    broodPercent: Int
+    cappedBroodPercent: Int
+    eggsPercent: Int
+    pollenPercent: Int
+    honeyPercent: Int
   }
   
   input FrameSideInput {
+    id: ID
+  }
+  input FrameSideCellsInput {
     id: ID
     broodPercent: Int
     cappedBroodPercent: Int
     eggsPercent: Int
     pollenPercent: Int
     honeyPercent: Int
-    queenDetected: Boolean!
   }
   
   enum FrameType {
@@ -254,6 +252,7 @@ type Apiary {
     updateUser(user: UserUpdateInput!): UpdateUserResult
     createCheckoutSession: URL
     cancelSubscription: CancelSubscriptionResult
+    updateFrameSideCells(cells: FrameSideCellsInput!): Boolean!
   }
   
   type Plant {
@@ -277,6 +276,7 @@ type Apiary {
     file(id: ID!): File
     hiveFiles(hiveId: ID!): [FrameSideFile]
     hiveFrameSideFile(frameSideId: ID!): FrameSideFile
+    hiveFrameSideCells(frameSideId: ID!): FrameSideCells
     plants(lat: String!, lng: String!): [Plant]
     hive(id: ID!): Hive
     apiary(id: ID!): Apiary

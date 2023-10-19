@@ -2,12 +2,8 @@ import React, { useMemo, useState } from 'react'
 import debounce from 'lodash.debounce'
 
 import { gql, useMutation, useSubscription } from '@/components/api'
-import {
-	getFrameSide,
-	toggleQueen,
-	updateFrameStat,
-} from '@/components/models/frameSide'
-import { getFrameSideFile, updateFrameSideFile } from '@/components/models/frameSideFile'
+import { toggleQueen } from '@/components/models/frameSideFile'
+import { updateFrameSideFile } from '@/components/models/frameSideFile'
 
 import Loading from '@/components/shared/loader'
 import ErrorMessage from '@/components/shared/messageError'
@@ -19,10 +15,12 @@ import Button from '@/components/shared/button'
 import QueenIcon from '@/icons/queenIcon'
 import Checkbox from '@/icons/checkbox'
 import T from '@/components/shared/translate'
+import { getFrameSideCells, updateFrameStat } from '@/components/models/frameSideCells'
 
 export default function FrameSideDrawing({
 	file,
 	frameSide,
+	frameSideCells,
 	frameSideFile,
 	frameId,
 	frameSideId,
@@ -33,7 +31,6 @@ export default function FrameSideDrawing({
 		return
 	}
 
-	let [estimatedDetectionTimeSec, setEstimatedDetectionTimeSec] = useState(0)
 	let [frameRemoving, setFrameRemoving] = useState<boolean>(false)
 
 	if (!frameSide || !frameSideFile || frameRemoving) {
@@ -68,13 +65,28 @@ export default function FrameSideDrawing({
 	useSubscription(gql`subscription onFrameSideResourcesDetected($frameSideId: String){
 			onFrameSideResourcesDetected(frameSideId:$frameSideId){
 				delta
+				isCellsDetectionComplete
+
+				broodPercent
+				cappedBroodPercent
+				eggsPercent
+				pollenPercent
+				honeyPercent
 			}
 		}`, { frameSideId }, (_, response) => {
 		if (response) {
-			frameSideFile.detectedFrameResources = [
-				...frameSideFile.detectedFrameResources,
+			frameSideFile.detectedCells = [
+				...frameSideFile.detectedCells,
 				...response.onFrameSideResourcesDetected.delta
 			]
+
+			frameSideFile.isCellsDetectionComplete = response.onFrameSideResourcesDetected.isCellsDetectionComplete
+			
+			frameSideFile.broodPercent = response.onFrameSideResourcesDetected.broodPercent
+			frameSideFile.cappedBroodPercent = response.onFrameSideResourcesDetected.cappedBroodPercent
+			frameSideFile.eggsPercent = response.onFrameSideResourcesDetected.eggsPercent
+			frameSideFile.pollenPercent = response.onFrameSideResourcesDetected.pollenPercent
+			frameSideFile.honeyPercent = response.onFrameSideResourcesDetected.honeyPercent
 
 			updateFrameSideFile(frameSideFile)
 		}
@@ -83,6 +95,7 @@ export default function FrameSideDrawing({
 	useSubscription(gql`subscription onFrameQueenCupsDetected($frameSideId: String){
 			onFrameQueenCupsDetected(frameSideId:$frameSideId){
 				delta
+				isQueenCupsDetectionComplete
 			}
 		}`, { frameSideId }, (_, response) => {
 		if (response) {
@@ -90,26 +103,31 @@ export default function FrameSideDrawing({
 				...frameSideFile.detectedQueenCups,
 				...response.onFrameQueenCupsDetected.delta
 			]
+
+			frameSideFile.isQueenCupsDetectionComplete = response.onFrameQueenCupsDetected.isQueenCupsDetectionComplete
 			updateFrameSideFile(frameSideFile)
 		}
 	})
 
-	let [frameSideMutate, { error: errorFrameSide }] = useMutation(gql`mutation updateFrameSide($frameSide: FrameSideInput!) { updateFrameSide(frameSide: $frameSide) }`)
+	let [frameSideCellsMutate, { error: errorFrameSide }] = useMutation(
+		gql`mutation updateFrameSideCells($cells: FrameSideCellsInput!) {
+			updateFrameSideCells(cells: $cells)
+			}`)
+			
 	const onFrameSideStatChange = useMemo(
 		() =>
 			debounce(async function (key: string, percent: number) {
-				let frameSide2 = await getFrameSide(+frameSideId)
+				let frameSide2 = await getFrameSideCells(frameSideId)
 				frameSide2 = await updateFrameStat(frameSide2, key, percent)
 
-				await frameSideMutate({
-					frameSide: {
+				await frameSideCellsMutate({
+					cells: {
 						id: frameSide2.id,
 						pollenPercent: frameSide2.pollenPercent,
 						honeyPercent: frameSide2.honeyPercent,
 						eggsPercent: frameSide2.eggsPercent,
 						cappedBroodPercent: frameSide2.cappedBroodPercent,
 						broodPercent: frameSide2.broodPercent,
-						queenDetected: frameSide2.queenDetected,
 					},
 				})
 			}, 300),
@@ -117,21 +135,19 @@ export default function FrameSideDrawing({
 	)
 
 	async function onQueenToggle() {
-		frameSide = await toggleQueen(frameSide)
-		await frameSideMutate({
-			frameSide: {
-				id: frameSide.id,
-				pollenPercent: frameSide.pollenPercent,
-				honeyPercent: frameSide.honeyPercent,
-				eggsPercent: frameSide.eggsPercent,
-				cappedBroodPercent: frameSide.cappedBroodPercent,
-				broodPercent: frameSide.broodPercent,
-				queenDetected: frameSide.queenDetected,
-			},
-		})
+		let fsf = await toggleQueen(frameSideFile)
+		// await frameSideMutate({
+		// 	frameSideFile: {
+		// 		id: frameSide.id,
+		// 		queenDetected: fsf.queenDetected,
+		// 	},
+		// })
 	}
 
-	let [filesStrokeEditMutate, { error: errorStrokes }] = useMutation(gql`mutation filesStrokeEditMutation($files: [FilesUpdateInput]) { filesStrokeEditMutation(files: $files) }`)
+	let [filesStrokeEditMutate, { error: errorStrokes }] = useMutation(gql`mutation filesStrokeEditMutation($files: [FilesUpdateInput]) { 
+		filesStrokeEditMutation(files: $files) 
+		}`)
+
 	async function onStrokeHistoryUpdate(strokeHistory) {
 		filesStrokeEditMutate({
 			files: [{
@@ -168,12 +184,11 @@ export default function FrameSideDrawing({
 					extraButtons={extraButtons}
 					frameMetrics={<MetricList
 						onFrameSideStatChange={onFrameSideStatChange}
-						estimatedDetectionTimeSec={estimatedDetectionTimeSec}
-						frameSide={frameSide} />}
+						frameSideCells={frameSideCells} />}
 
 					detectedQueenCups={frameSideFile.detectedQueenCups}
 					detectedBees={frameSideFile.detectedBees}
-					detectedFrameResources={frameSideFile.detectedFrameResources}
+					detectedCells={frameSideFile.detectedCells}
 					strokeHistory={frameSideFile.strokeHistory}
 					onStrokeHistoryUpdate={onStrokeHistoryUpdate}
 					frameSideFile={frameSideFile}

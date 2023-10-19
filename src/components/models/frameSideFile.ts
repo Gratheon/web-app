@@ -1,15 +1,18 @@
 import { db } from './db'
 
-type FrameSideFile = {
+export type FrameSideFile = {
     id?: number // same as frameSideId, just for indexing
+    hiveId?: any // internal
     fileId: number
     frameSideId: number
     strokeHistory: any
     detectedBees: any
-    detectedFrameResources: any
+    detectedCells: any
     detectedQueenCups: any
     counts: any
+    queenDetected?: boolean
 }
+
 export async function getFrameSideFile({ frameSideId }): Promise<FrameSideFile> {
     const row = await db['framesidefile'].get(+frameSideId)
     if (row) {
@@ -17,8 +20,8 @@ export async function getFrameSideFile({ frameSideId }): Promise<FrameSideFile> 
             row.detectedBees = []
         }
 
-        if (!row.detectedFrameResources) {
-            row.detectedFrameResources = []
+        if (!row.detectedCells) {
+            row.detectedCells = []
         }
 
         if (!row.detectedQueenCups) {
@@ -35,4 +38,13 @@ export async function updateFrameSideFile(data: FrameSideFile) {
         console.error(e)
         throw e
     }
+}
+
+
+export async function toggleQueen(frameSide: FrameSideFile): Promise<FrameSideFile> {
+	frameSide.queenDetected = !frameSide.queenDetected;
+
+	await db['framesidefile'].put(frameSide)
+
+	return frameSide
 }

@@ -158,6 +158,7 @@ async function traverseResponse(
 	path = []
 ) {
 	for (const key in response) {
+		// console.log(response)
 		if (response.hasOwnProperty(key)) {
 			const value = response[key]
 
@@ -172,6 +173,8 @@ async function traverseResponse(
 				if (objType && !Array.isArray(value)) {
 					const tableName = objType?.ofType ? objType.ofType.name : objType.name
 					
+					// console.log(`using table name ${tableName}`)
+
 					// we reached some object that is no longer mapped onto a schema
 					// must be some JSON, no point to continue
 					if (tableName === 'JSON') {

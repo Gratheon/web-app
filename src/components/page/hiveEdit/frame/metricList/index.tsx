@@ -1,32 +1,12 @@
 import React, { useMemo, useState } from 'react'
 import ResourceEditRow from './resourceEditRow'
 import colors from '@/components/colors'
-import { CountdownCircleTimer } from 'react-countdown-circle-timer'
 import T from '@/components/shared/translate'
 
 export default function MetricList({
-	estimatedDetectionTimeSec,
 	onFrameSideStatChange,
-	frameSide
+	frameSideCells
 }) {
-	if (estimatedDetectionTimeSec > 0) {
-		return <div style="display:flex">
-
-			<div style="padding:5px">Detecting bees</div>
-			<CountdownCircleTimer
-				isPlaying
-				size={30}
-				strokeWidth={2}
-				duration={estimatedDetectionTimeSec}
-				colors={['#004777', '#F7B801', '#A30000', '#A30000']}
-				colorsTime={[7, 5, 2, 0]}
-				onComplete={() => { window.location.reload(); }}
-			>
-				{({ remainingTime }) => remainingTime}
-			</CountdownCircleTimer>
-		</div>
-	}
-
 	let [expanded, expand] = useState(false)
 
 	function onResize(key, value) {
@@ -39,7 +19,7 @@ export default function MetricList({
 				expanded={expanded}
 				onClick={() => expand(!expanded)}
 				color={colors.broodColor}
-				percent={frameSide.broodPercent}
+				percent={frameSideCells.broodPercent}
 				onChange={(e) => onResize('broodPercent', e.target.value)}
 			><T>Brood</T></ResourceEditRow>
 
@@ -47,7 +27,7 @@ export default function MetricList({
 				expanded={expanded}
 				onClick={() => expand(!expanded)}
 				color={colors.cappedBroodColor}
-				percent={frameSide.cappedBroodPercent}
+				percent={frameSideCells.cappedBroodPercent}
 				onChange={(e) => onResize('cappedBroodPercent', e.target.value)}
 			><T>Capped Brood</T></ResourceEditRow>
 
@@ -55,7 +35,7 @@ export default function MetricList({
 				expanded={expanded}
 				onClick={() => expand(!expanded)}
 				color={colors.eggsColor}
-				percent={frameSide.eggsPercent}
+				percent={frameSideCells.eggsPercent}
 				onChange={(e) => onResize('eggsPercent', e.target.value)}
 			><T>Eggs</T></ResourceEditRow>
 			
@@ -63,7 +43,7 @@ export default function MetricList({
 				expanded={expanded}
 				onClick={() => expand(!expanded)}
 				color={colors.honeyColor}
-				percent={frameSide.honeyPercent}
+				percent={frameSideCells.honeyPercent}
 				onChange={(e) => onResize('honeyPercent', e.target.value)}
 			><T>Honey</T></ResourceEditRow>
 
@@ -71,7 +51,7 @@ export default function MetricList({
 				expanded={expanded}
 				onClick={() => expand(!expanded)}
 				color={colors.pollenColor}
-				percent={frameSide.pollenPercent}
+				percent={frameSideCells.pollenPercent}
 				onChange={(e) => onResize('pollenPercent', e.target.value)}
 			><T>Pollen</T></ResourceEditRow>
 		</div>

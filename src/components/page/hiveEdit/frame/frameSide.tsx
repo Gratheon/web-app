@@ -1,11 +1,9 @@
 import React, { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { gql, useMutation, useQuery } from '@/components/api'
-import {
-	getFrameSide,
-	toggleQueen,
-} from '@/components/models/frameSide'
-import { getFrameSideFile, updateFrameSideFile } from '@/components/models/frameSideFile'
+import { getFrameSide } from '@/components/models/frameSide'
+import { getFrameSideCells } from '@/components/models/frameSideCells'
+import { getFrameSideFile, updateFrameSideFile, toggleQueen } from '@/components/models/frameSideFile'
 import { getFile } from '@/components/models/files'
 
 import Loading from '@/components/shared/loader'
@@ -27,12 +25,14 @@ export default function FrameSide({
 		return
 	}
 
-	let [estimatedDetectionTimeSec, setEstimatedDetectionTimeSec] = useState(0)
-
-	let file, frameSideFile, frameSide
+	let file, frameSideFile, frameSide, frameSideCells
 
 	frameSide = useLiveQuery(function () {
 		return getFrameSide(+frameSideId)
+	}, [frameSideId], null);
+
+	frameSideCells = useLiveQuery(function () {
+		return getFrameSideCells(+frameSideId)
 	}, [frameSideId], null);
 
 	frameSideFile = useLiveQuery(function () {
@@ -50,14 +50,29 @@ export default function FrameSide({
 	}, [frameSideFile?.fileId], null);
 
 
-	let { loading: loadingGet, data: frameSideFileRelDetails } = useQuery(
+	let { loading: loadingGet, data } = useQuery(
 		FRAME_SIDE_QUERY,
 		{ variables: { frameSideId } }
 	)
 
-	setEstimatedDetectionTimeSec(frameSideFileRelDetails?.hiveFrameSideFile?.estimatedDetectionTimeSec)
+	let { loading: loadingGet2, data: hiveFrameSideCells } = useQuery(
+		gql`
+	query hiveFrameSideCells($frameSideId: ID!) {
+		hiveFrameSideCells(frameSideId: $frameSideId) {
+			__typename
+			id
+			broodPercent
+			cappedBroodPercent
+			eggsPercent
+			pollenPercent
+			honeyPercent
+		}
+	}
+`,
+		{ variables: { frameSideId } }
+	)
 
-	if (loadingGet) {
+	if (loadingGet || loadingGet2) {
 		return <Loading />
 	}
 
@@ -65,18 +80,16 @@ export default function FrameSide({
 		return <MessageNotFound msg="Frame not found" />
 	}
 
-	let [frameSideMutate, { error: errorFrameSide }] = useMutation(gql`mutation updateFrameSide($frameSide: FrameSideInput!) { updateFrameSide(frameSide: $frameSide) }`)
+	let [frameSideMutate, { error: errorFrameSide }] = useMutation(
+		gql`mutation updateFrameSide($cells: FrameSideCellsInput!) { 
+			updateFrameSide(cells: $cells) 
+		}`)
 
 	let [linkFrameSideToFileMutation, { data: linkFrameSideToFileResult, error: errorFile }] = useMutation(
 		gql`mutation addFileToFrameSide($frameSideID: ID!, $fileID: ID!, $hiveID: ID!) { 
-			addFileToFrameSide(frameSideId: $frameSideID, fileId: $fileID, hiveId: $hiveID) {
-				estimatedDetectionTimeSec
-			}
+			addFileToFrameSide(frameSideId: $frameSideID, fileId: $fileID, hiveId: $hiveID)
 		}`
 	)
-	if (linkFrameSideToFileResult) {
-		setEstimatedDetectionTimeSec(linkFrameSideToFileResult?.addFileToFrameSide?.estimatedDetectionTimeSec)
-	}
 	async function onUpload(data) {
 		if (!data) {
 			return;
@@ -94,7 +107,7 @@ export default function FrameSide({
 			frameSideId: +frameSideId,
 			strokeHistory: [],
 			detectedBees: [],
-			detectedFrameResources: [],
+			detectedCells: [],
 			detectedQueenCups: [],
 			counts: []
 		});
@@ -110,7 +123,7 @@ export default function FrameSide({
 				eggsPercent: frameSide.eggsPercent,
 				cappedBroodPercent: frameSide.cappedBroodPercent,
 				broodPercent: frameSide.broodPercent,
-				queenDetected: frameSide.queenDetected,
+				// queenDetected: frameSide.queenDetected,
 			},
 		})
 	}
@@ -130,6 +143,7 @@ export default function FrameSide({
 		extraButtons={extraButtons}
 		file={file}
 		frameSide={frameSide}
+		frameSideCells={frameSideCells}
 		frameSideFile={frameSideFile}
 		frameId={frameId}
 		frameSideId={frameSideId}/>

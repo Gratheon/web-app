@@ -1,4 +1,6 @@
 import { FrameSide } from '@/components/api/schema'
+import { FrameSideFile } from '@/components/models/frameSideFile'
+import { FrameSideCells } from '@/components/models/frameSideCells'
 import { upsertEntity } from './index'
 
 export const writeHooks = {
@@ -28,19 +30,12 @@ export const writeHooks = {
 	FrameSide: async ({ id }, frameside:FrameSide) => {
 		frameside.frameId = +id
 
-		frameside.queenDetected= frameside?.queenDetected ? true : false;
-		frameside.broodPercent = frameside?.broodPercent ? +frameside.broodPercent : 0;
-		frameside.cappedBroodPercent= frameside?.cappedBroodPercent ? +frameside.cappedBroodPercent : 0;
-		frameside.eggsPercent= frameside?.eggsPercent ? +frameside.eggsPercent : 0;
-		frameside.pollenPercent= frameside?.pollenPercent ? +frameside.pollenPercent : 0;
-		frameside.honeyPercent= frameside?.honeyPercent ? +frameside.honeyPercent : 0;
-		frameside.workerCount= frameside?.workerCount ? +frameside.workerCount : 0;
-		frameside.droneCount= frameside?.droneCount ? +frameside.droneCount : 0;
-
 		await upsertEntity('frameside', frameside)
 	},
-	FrameSideFile: async (_, frameSideFile, { originalValue }) => {
+	FrameSideFile: async (_, frameSideFile: FrameSideFile, { originalValue }) => {
 		if (Object.keys(frameSideFile).length === 0) return
+
+		frameSideFile.queenDetected= frameSideFile?.queenDetected ? true : false;
 
 		delete frameSideFile.hiveId
 
@@ -51,6 +46,19 @@ export const writeHooks = {
 		if(frameSideFile.fileId){
 			await upsertEntity('framesidefile', frameSideFile)
 		}
+	},
+	FrameSideCells: async (_, cells: FrameSideCells, { originalValue }) => {
+		if (Object.keys(cells).length === 0) return
+
+		cells.broodPercent = cells?.broodPercent ? +cells.broodPercent : 0;
+		cells.cappedBroodPercent= cells?.cappedBroodPercent ? +cells.cappedBroodPercent : 0;
+		cells.eggsPercent= cells?.eggsPercent ? +cells.eggsPercent : 0;
+		cells.pollenPercent= cells?.pollenPercent ? +cells.pollenPercent : 0;
+		cells.honeyPercent= cells?.honeyPercent ? +cells.honeyPercent : 0;
+
+		cells.frameSideId = +cells.id
+		cells.id = +cells.id
+		await upsertEntity('framesidecells', cells)
 	},
 	File: async (_, file) => {
 		// file.hiveId = +hiveId

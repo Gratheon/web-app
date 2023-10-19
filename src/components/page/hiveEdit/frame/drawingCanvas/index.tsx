@@ -1,7 +1,6 @@
 import React, { useState, useRef, useLayoutEffect } from 'react'
 import Button from '@/components/shared/button'
 import colors from '@/components/colors'
-import QueenCupIcon from '@/icons/queenCup'
 import Checkbox from '@/icons/checkbox'
 import FrameCells from '@/icons/frameCells'
 import T from '@/components/shared/translate'
@@ -25,25 +24,6 @@ let offsetsum = {
 	x: 0,
 	y: 0,
 }
-
-const beeTypeMap = {
-	'BEE_WORKER': {
-		title: 'Worker bees',
-		height: 22,
-		iconUrl: '/assets/bee-worker.png'
-	},
-	'BEE_DRONE': {
-		title: 'Drones',
-		height: 22,
-		iconUrl: '/assets/bee-drone.png'
-	},
-	'BEE_QUEEN': {
-		title: 'Queen',
-		height: 26,
-		iconUrl: '/assets/bee-queen.png'
-	},
-}
-
 
 function drawOnCanvas(canvas, ctx, stroke) {
 	ctx.strokeStyle = 'white'
@@ -94,7 +74,7 @@ function redrawStrokes(canvas, ctx, strokeHistory) {
 }
 
 let REL_PX;
-function drawDetectedFrameResources(detectedFrameCells, ctx, canvas) {
+function drawDetectedCells(detectedFrameCells, ctx, canvas) {
 	REL_PX = canvas.width / 1024
 	if (detectedFrameCells.length > 0) {
 		for (let dt of detectedFrameCells) {
@@ -113,14 +93,17 @@ function drawDetectedFrameResources(detectedFrameCells, ctx, canvas) {
 					ctx.strokeStyle = colors.eggsColor
 					ctx.fillStyle = colors.eggsColor
 					break
+
 				case 2: //'honey':
 					ctx.strokeStyle = colors.honeyColor
 					ctx.fillStyle = colors.honeyColor
 					break
+
 				case 3: //brood = Larves
 					ctx.strokeStyle = colors.broodColor
 					ctx.fillStyle = colors.broodColor
 					break
+
 				case 4: //'nectar':
 					ctx.strokeStyle = colors.nectarColor
 					ctx.fillStyle = colors.nectarColor
@@ -300,7 +283,7 @@ function drawCanvasLayers(
 	showDrones,
 	detectedBees,
 	showCells,
-	detectedFrameResources,
+	detectedCells,
 	showQueenCups,
 	queenCups
 ) {
@@ -311,7 +294,7 @@ function drawCanvasLayers(
 	}
 
 	if (showCells) {
-		drawDetectedFrameResources(detectedFrameResources, ctx, canvas)
+		drawDetectedCells(detectedCells, ctx, canvas)
 	}
 
 	if (showBees || showDrones) {
@@ -337,7 +320,7 @@ export default function DrawingCanvas({
 	strokeHistory,
 	detectedQueenCups,
 	detectedBees,
-	detectedFrameResources,
+	detectedCells,
 	onStrokeHistoryUpdate,
 	frameSideFile,
 	frameMetrics,
@@ -350,7 +333,7 @@ export default function DrawingCanvas({
 	const ref = useRef(null)
 	const [showBees, setBeeVisibility] = useState(true)
 	const [showDrones, setDroneVisibility] = useState(true)
-	const [showCells, setCellVisibility] = useState(false)
+	const [showCells, setCellVisibility] = useState(frameSideFile.isCellsDetectionComplete)
 	const [showQueenCups, setQueenCups] = useState(true)
 	const [version, setVersion] = useState(0)
 	const [canvasUrl, setCanvasUrl] = useState(resizes && resizes.length > 0 ? resizes[0].url : imageUrl)
@@ -403,7 +386,7 @@ export default function DrawingCanvas({
 				showDrones,
 				detectedBees,
 				showCells,
-				detectedFrameResources,
+				detectedCells,
 				showQueenCups,
 				detectedQueenCups
 			)
@@ -542,7 +525,7 @@ export default function DrawingCanvas({
 			showDrones,
 			detectedBees,
 			showCells,
-			detectedFrameResources,
+			detectedCells,
 			showQueenCups,
 			detectedQueenCups
 		)
@@ -615,13 +598,13 @@ export default function DrawingCanvas({
 		canvas.removeEventListener('wheel', handleScroll)
 		canvas.addEventListener('wheel', handleScroll)
 		return () => canvas.removeEventListener('wheel', handleScroll)
-	}, [imageUrl, version, showBees, showDrones, showCells, showQueenCups, detectedBees, detectedFrameResources])
+	}, [imageUrl, version, showBees, showDrones, showCells, showQueenCups, detectedBees, detectedCells])
 
 
 	return (
 		<div>
 			<div style={{ display: 'flex' }}>
-				{detectedFrameResources &&
+				{detectedCells &&
 					<Button onClick={() => { setCellVisibility(!showCells) }}>
 						{frameSideFile.isCellsDetectionComplete && <Checkbox on={showCells} />}
 						{!frameSideFile.isCellsDetectionComplete && <Loader size={0} />}

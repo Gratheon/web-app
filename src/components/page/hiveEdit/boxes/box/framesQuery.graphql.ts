@@ -13,22 +13,10 @@ export default gql`
 
 					leftSide {
 						id
-						broodPercent
-						honeyPercent
-						pollenPercent
-						eggsPercent
-						cappedBroodPercent
-						queenDetected
 					}
 
 					rightSide {
 						id
-						broodPercent
-						honeyPercent
-						pollenPercent
-						eggsPercent
-						cappedBroodPercent
-						queenDetected
 					}
 				}
 			}

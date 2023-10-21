@@ -8,7 +8,7 @@ if (!isDev()) {
 }
 
 export default {
-	setUserId: (id) => { amplitude.setUserId(id) },
+	setUserId: amplitude.setUserId,
 
 	trackLogin: (extraInfo = {}) => {
 		if (isDev()) return

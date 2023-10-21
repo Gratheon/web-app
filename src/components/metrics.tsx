@@ -10,5 +10,7 @@ export default {
 	trackLogin: (extraInfo={})=>{ amplitude.track('user.logged_in', extraInfo)},
 	trackRegistration: (extraInfo={})=>{ amplitude.track('user.registered', extraInfo)},
 	trackApiaryCreated: (extraInfo={})=>{ amplitude.track('apiary.created', extraInfo)},
+	trackBoxCreated: (extraInfo={})=>{ amplitude.track('box.created', extraInfo)},
+	trackFrameAdded: (extraInfo={})=>{ amplitude.track('frame.created', extraInfo)},
 	trackFramePhotoUploaded: (extraInfo={})=>{ amplitude.track('frame.photoUploaded', extraInfo)}
 }

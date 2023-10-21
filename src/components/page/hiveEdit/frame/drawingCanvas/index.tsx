@@ -616,7 +616,7 @@ export default function DrawingCanvas({
 						</span>
 					</Button>}
 
-				{showCells && frameMetrics}
+				{showCells && frameSideFile.isCellsDetectionComplete && frameMetrics}
 
 				<div title="Worker bees">
 					<Button onClick={() => { setBeeVisibility(!showBees) }}>

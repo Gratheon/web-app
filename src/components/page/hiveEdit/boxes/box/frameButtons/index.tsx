@@ -13,6 +13,7 @@ import {
 } from '@/components/models/frames'
 import FoundationIcon from '@/icons/foundationIcon'
 import T from '@/components/shared/translate'
+import metrics from '@/components/metrics'
 
 export default function FrameButtons({ box, onError }) {
 	let [addFrameMutation] =
@@ -48,6 +49,8 @@ export default function FrameButtons({ box, onError }) {
 			leftId: +data.addFrame.leftSide?.id,
 			rightId: +data.addFrame.rightSide?.id,
 		})
+
+		metrics.trackFrameAdded()
 		setAdding(false)
 	}
 

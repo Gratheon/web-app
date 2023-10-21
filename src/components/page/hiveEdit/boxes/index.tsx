@@ -27,6 +27,7 @@ import styles from './styles.less'
 
 import BOXES_QUERY from './boxesQuery.graphql'
 import { useState } from 'react'
+import metrics from '@/components/metrics'
 
 type BoxesProps = {
 	hiveId: any
@@ -107,6 +108,8 @@ export default function Boxes({
 		})
 
 		setAdding(false)
+
+		metrics.trackBoxCreated()
 		navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${id}`, {
 			replace: true,
 		})

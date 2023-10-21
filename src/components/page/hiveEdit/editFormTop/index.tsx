@@ -176,6 +176,8 @@ export default function HiveEditDetails({ hiveId }) {
 			<div className={styles.form}>
 				<div style={{ width: 68, textAlign: 'center', marginRight: 6 }}>
 					<HiveIcon onColorChange={onColorChange} boxes={boxes} editable={true} />
+
+					{hive.beeCount && <>🐝{hive.beeCount} </> }
 				</div>
 				<VisualForm>
 					<div>

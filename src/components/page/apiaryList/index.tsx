@@ -20,6 +20,7 @@ export default function ApiaryList(props) {
 				hives {
 					id
 					name
+					beeCount
 
 					boxes {
 						id

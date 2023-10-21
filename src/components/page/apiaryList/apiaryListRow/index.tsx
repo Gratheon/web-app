@@ -36,6 +36,7 @@ export default function apiaryListRow(props) {
 								<HiveIcon boxes={hive.boxes} size={60} />
 								<div className={styles.title}>{hive.name}</div>
 							</a>
+							{hive.beeCount && <>🐝{hive.beeCount} </> }
 						</div>
 					))}
 			</div>

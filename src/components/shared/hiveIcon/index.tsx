@@ -46,6 +46,7 @@ const colors = [
 type HiveIconProps = {
 	boxes?: any
 	size?: number
+	beeCount?: number
 	editable?: boolean
 	onColorChange?: any
 }
@@ -55,6 +56,7 @@ export default function HiveIcon({
 	size = 60,
 	editable = false,
 	onColorChange=()=>null,
+	beeCount = null
 }: HiveIconProps) {
 	const [colorPickerVisibleAt, showColorPicker] = useState(null)
 	const [, updateState] = useState()

@@ -117,12 +117,7 @@ export default function FrameSide({
 		await frameSideMutate({
 			frameSide: {
 				id: frameSide.id,
-				pollenPercent: frameSide.pollenPercent,
-				honeyPercent: frameSide.honeyPercent,
-				eggsPercent: frameSide.eggsPercent,
-				cappedBroodPercent: frameSide.cappedBroodPercent,
-				broodPercent: frameSide.broodPercent,
-				// queenDetected: frameSide.queenDetected,
+				queenDetected: frameSide.queenDetected,
 			},
 		})
 	}

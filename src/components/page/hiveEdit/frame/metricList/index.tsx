@@ -10,7 +10,7 @@ export default function MetricList({
 	frameSideId
 }) {
 	let frameSideCells = useLiveQuery(function () {
-		return getFrameSideCells(+frameSideId)
+		return getFrameSideCells(frameSideId)
 	}, [frameSideId], null);
 
 	if(!frameSideCells){

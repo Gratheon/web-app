@@ -1,12 +1,15 @@
-import * as amplitude from '@amplitude/analytics-browser';
 import isDev from './isDev';
-amplitude.init('22c65699d4c0d9ee32ba08a9c3087dcd', {
-	defaultTracking: true,
-}); // API key, should be safe to be public
+let amplitude
+if (!isDev()) {
+	amplitude = import('@amplitude/analytics-browser');
+
+	amplitude.init('22c65699d4c0d9ee32ba08a9c3087dcd', {
+		defaultTracking: true,
+	}); // API key, should be safe to be public
+}
 
 export default {
-	setUserId: amplitude.setUserId,
-	track: amplitude.track,
+	setUserId: (id) => { amplitude.setUserId(id) },
 
 	trackLogin: (extraInfo = {}) => {
 		if (isDev()) return

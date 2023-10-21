@@ -14,21 +14,26 @@ export type FrameSideFile = {
 }
 
 export async function getFrameSideFile({ frameSideId }): Promise<FrameSideFile> {
-    const row = await db['framesidefile'].get(+frameSideId)
-    if (row) {
-        if (!row.detectedBees) {
-            row.detectedBees = []
-        }
+    try {
+        const row = await db['framesidefile'].get(+frameSideId)
+        if (row) {
+            if (!row.detectedBees) {
+                row.detectedBees = []
+            }
 
-        if (!row.detectedCells) {
-            row.detectedCells = []
-        }
+            if (!row.detectedCells) {
+                row.detectedCells = []
+            }
 
-        if (!row.detectedQueenCups) {
-            row.detectedQueenCups = []
+            if (!row.detectedQueenCups) {
+                row.detectedQueenCups = []
+            }
         }
+        return row
+    } catch (e) {
+        console.error(e)
+        throw e
     }
-    return row
 }
 
 export async function updateFrameSideFile(data: FrameSideFile) {
@@ -42,9 +47,14 @@ export async function updateFrameSideFile(data: FrameSideFile) {
 
 
 export async function setQueenPresense(frameSide: FrameSideFile, isPresent: boolean): Promise<FrameSideFile> {
-	frameSide.queenDetected = isPresent;
+    try {
+        frameSide.queenDetected = isPresent;
 
-	await db['framesidefile'].put(frameSide)
+        await db['framesidefile'].put(frameSide)
 
-	return frameSide
+        return frameSide
+    } catch (e) {
+        console.error(e)
+        throw e
+    }
 }

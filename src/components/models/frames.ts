@@ -52,65 +52,6 @@ export async function countBoxFrames(boxId): Promise<number> {
 	}
 }
 
-/*
-export function setFrames(data, where) {
-	remove(frames, where)
-
-	if (data) {
-		data.forEach((row) => {
-			frames.push({ ...row, ...where })
-		})
-	}
-}
-
-export function removeAllFromBox({
-	hiveId,
-	boxIndex,
-}: {
-	hiveId: number
-	boxIndex: number
-}) {
-	remove(frames, { hiveId, boxIndex })
-}
-
-export function swapBox({
-	hiveId,
-	boxIndex,
-	toBoxIndex,
-}: {
-	hiveId: number
-	boxIndex: number
-	toBoxIndex: number
-}) {
-	let tmpFrames = filter(frames, { hiveId })
-	tmpFrames.map((v) => {
-		if (v.boxIndex === boxIndex) {
-			v.boxIndex = toBoxIndex
-		} else if (v.boxIndex === toBoxIndex) {
-			v.boxIndex = boxIndex
-		}
-	})
-	setFrames(tmpFrames, { hiveId })
-}
-
-export function moveFramesToBox({
-	hiveId,
-	boxIndex,
-	toBoxIndex,
-}: {
-	hiveId: number
-	boxIndex: number
-	toBoxIndex: number
-}) {
-	let tmpFrames = filter(frames, { hiveId })
-	tmpFrames.map((v) => {
-		if (v.boxIndex === boxIndex) {
-			v.boxIndex = toBoxIndex
-		}
-	})
-	setFrames(tmpFrames, { hiveId })
-}
-*/
 export async function addFrame(frameData) {
 	try {
 		const { id, position, boxId, type, leftId, rightId } = frameData;
@@ -213,77 +154,8 @@ export async function removeFrame(frameId, boxId) {
 		throw e
 	}
 
-	// let tmpFrames = filter(frames, { hiveId, boxIndex })
-
-	// remove(tmpFrames, {
-	// 	hiveId,
-	// 	position: framePosition,
-	// })
-
-	// map(tmpFrames, (v) => {
-	// 	if (v.position > framePosition) {
-	// 		v.position--
-	// 	}
-	// })
-
-	// setFrames(tmpFrames, {
-	// 	hiveId,
-	// 	boxIndex,
-	// })
 }
 
-/*
-export function setFrameSideProperty({
-	hiveId,
-	boxIndex,
-	position,
-	side,
-	prop,
-	value,
-}: {
-	hiveId: number
-	boxIndex: number
-	position: number
-	side: string
-	prop: string
-	value: any
-}) {
-	const frame = find(frames, { hiveId, boxIndex, position })
-	frame[side] = {
-		...frame[side],
-	}
-	frame[side][prop] = value
-}
-
-export function removeFrame({
-	hiveId,
-	boxIndex,
-	framePosition,
-}: {
-	hiveId: number
-	boxIndex: number
-	framePosition: number
-}) {
-	let tmpFrames = filter(frames, { hiveId, boxIndex })
-
-	remove(tmpFrames, {
-		hiveId,
-		position: framePosition,
-	})
-
-	map(tmpFrames, (v) => {
-		if (v.position > framePosition) {
-			v.position--
-		}
-	})
-
-	setFrames(tmpFrames, {
-		hiveId,
-		boxIndex,
-	})
-}
-
-*/
 export function isFrameWithSides(frameType) {
 	return (
 		frameType === frameTypes.EMPTY_COMB ||

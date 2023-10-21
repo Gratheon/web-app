@@ -32,19 +32,19 @@ export const writeHooks = {
 
 		await upsertEntity('frameside', frameside)
 	},
-	FrameSideFile: async (_, frameSideFile: FrameSideFile, { originalValue }) => {
-		if (Object.keys(frameSideFile).length === 0) return
+	FrameSideFile: async (_, fsf: FrameSideFile, { originalValue }) => {
+		if (Object.keys(fsf).length === 0) return
 
-		frameSideFile.queenDetected= frameSideFile?.queenDetected ? true : false;
+		fsf.queenDetected= fsf?.queenDetected ? true : false;
 
-		delete frameSideFile.hiveId
+		delete fsf.hiveId
 
-		frameSideFile.fileId = +originalValue?.file?.id;
-		frameSideFile.frameSideId = +frameSideFile.frameSideId
-		frameSideFile.id = +frameSideFile.frameSideId
+		fsf.fileId = +originalValue?.file?.id;
+		fsf.frameSideId = +fsf.frameSideId
+		fsf.id = +fsf.frameSideId
 
-		if(frameSideFile.fileId){
-			await upsertEntity('framesidefile', frameSideFile)
+		if(fsf.fileId){
+			await upsertEntity('framesidefile', fsf)
 		}
 	},
 	FrameSideCells: async (_, cells: FrameSideCells, { originalValue }) => {

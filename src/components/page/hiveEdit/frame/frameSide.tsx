@@ -1,9 +1,8 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { gql, useMutation, useQuery } from '@/components/api'
 import { getFrameSide } from '@/components/models/frameSide'
-import { getFrameSideCells } from '@/components/models/frameSideCells'
-import { getFrameSideFile, updateFrameSideFile, setQueenPresense } from '@/components/models/frameSideFile'
+import { getFrameSideFile, updateFrameSideFile } from '@/components/models/frameSideFile'
 import { getFile } from '@/components/models/files'
 
 import Loading from '@/components/shared/loader'

@@ -4,5 +4,10 @@ type FrameSide = {
 	id: number
 }
 export async function getFrameSide(frameSideId: number): Promise<FrameSide> {
-	return await db['frameside'].get(frameSideId)
+	try {
+		return await db['frameside'].get(+frameSideId)
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
 }

@@ -25,24 +25,27 @@ export default function Box({
 	const navigate = useNavigate();
 	const framesDiv = []
 
-	const [updateFramesRemote, {error}] = useMutation(gql`mutation updateFrames($frames: [FrameInput]!) { updateFrames(frames: $frames) { id } }`)
+	const [updateFramesRemote, { error }] = useMutation(gql`mutation updateFrames($frames: [FrameInput]!) { updateFrames(frames: $frames) { id } }`)
 
-	const frames = useLiveQuery(async() => {
+	const frames = useLiveQuery(async () => {
 		let tmp = await getFrames({
 			boxId: +box.id
 		})
 
 		for (const r in tmp) {
-			if(!tmp[r].leftSide){
+			if (!tmp[r].leftSide) {
 				tmp[r].leftSide = {}
 			}
-
-			if(!tmp[r].rightSide){
-				tmp[r].rightSide = {}
+			else {
+				tmp[r].leftSide.cells = await getFrameSideCells(+tmp[r].leftId)
 			}
 
-			tmp[r].leftSide.cells = await getFrameSideCells(tmp[r].leftId)
-			tmp[r].rightSide.cells = await getFrameSideCells(tmp[r].rightId)
+			if (!tmp[r].rightSide) {
+				tmp[r].rightSide = {}
+			}
+			else {
+				tmp[r].rightSide.cells = await getFrameSideCells(+tmp[r].rightId)
+			}
 		}
 
 		return tmp
@@ -66,16 +69,18 @@ export default function Box({
 		})
 
 		const frames = await getFrames({ boxId: +boxId })
-		await updateFramesRemote({frames: frames.map((v)=>{
-			let r = {
-				...v
-			}
-			delete r.rightId
-			delete r.leftId
-			delete r.leftSide
-			delete r.rightSide
-			return r
-		})})
+		await updateFramesRemote({
+			frames: frames.map((v) => {
+				let r = {
+					...v
+				}
+				delete r.rightId
+				delete r.leftId
+				delete r.leftSide
+				delete r.rightSide
+				return r
+			})
+		})
 
 		if (!isNil(frameSideId)) {
 			navigate(

@@ -11,11 +11,21 @@ export type File = {
 	resizes: [FileResize]
 }
 
-export async function getFile(id:number): Promise<File>{
-	return await db['file'].get(+id);
+export async function getFile(id: number): Promise<File> {
+	try {
+		return await db['file'].get(+id);
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
 }
 
 
-export async function updateFile(data: File){
-    return await db['file'].put(data)
+export async function updateFile(data: File) {
+	try {
+		return await db['file'].put(data)
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
 }

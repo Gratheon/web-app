@@ -1,5 +1,6 @@
 import { buildSchema } from 'graphql'
 import { FrameSideCells } from '../models/frameSideCells'
+import { FrameSideFile } from '../models/frameSideFile'
 
 export type Box = {
   id: number
@@ -15,6 +16,7 @@ export type FrameType = 'VOID' | 'FOUNDATION' | 'EMPTY_COMB' | 'PARTITION' | 'FE
 export type FrameSide = {
   frameId?: number
   cells?: FrameSideCells
+  frameSideFile?: FrameSideFile
 }
 export type Frame = {
   id: number
@@ -154,6 +156,7 @@ type Apiary {
     detectedBees: JSON
     detectedCells: JSON
     detectedQueenCups: JSON
+
     queenDetected: Boolean!
   }
 

@@ -1,19 +1,24 @@
 import { db } from './db'
 
 export type FrameSideCells = {
-    id: number // same as frameSideId, just for indexing
-    frameSideId?: any // internal
-    hiveId?: any // internal
+	id: number // same as frameSideId, just for indexing
+	frameSideId?: any // internal
+	hiveId?: any // internal
 
-    pollenPercent?: number
-    honeyPercent?: number
-    eggsPercent?: number
-    cappedBroodPercent?: number
-    broodPercent?: number
+	pollenPercent?: number
+	honeyPercent?: number
+	eggsPercent?: number
+	cappedBroodPercent?: number
+	broodPercent?: number
 }
 
 export async function getFrameSideCells(frameSideId: number): Promise<FrameSideCells> {
-	return await db['framesidecells'].get(+frameSideId)
+	try {
+		return await db['framesidecells'].get(+frameSideId)
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
 }
 
 

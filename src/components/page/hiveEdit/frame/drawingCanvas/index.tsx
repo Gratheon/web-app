@@ -5,6 +5,7 @@ import Checkbox from '@/icons/checkbox'
 import FrameCells from '@/icons/frameCells'
 import T from '@/components/shared/translate'
 import Loader from '@/components/shared/loader'
+import { isUndefined } from 'lodash'
 
 let lineWidth = 0
 let isMousedown = false
@@ -333,7 +334,7 @@ export default function DrawingCanvas({
 	const ref = useRef(null)
 	const [showBees, setBeeVisibility] = useState(true)
 	const [showDrones, setDroneVisibility] = useState(true)
-	const [showCells, setCellVisibility] = useState(frameSideFile.isCellsDetectionComplete)
+	const [showCells, setCellVisibility] = useState(true)
 	const [showQueenCups, setQueenCups] = useState(true)
 	const [version, setVersion] = useState(0)
 	const [canvasUrl, setCanvasUrl] = useState(resizes && resizes.length > 0 ? resizes[0].url : imageUrl)

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import * as amplitude from "@amplitude/analytics-browser";
 
 import { gql, useMutation } from '@/components/api'
 import VisualForm from '@/components/shared/visualForm'
@@ -35,6 +36,10 @@ export default function AccountAuth() {
 				}
 				... on UserSession {
 					key
+					user{
+						__typename
+						id
+					}
 				}
 			}
 		}
@@ -59,8 +64,9 @@ export default function AccountAuth() {
 
 	if (data?.login?.key) {
 		// clear DB on login and on logout to have consistent structure in case of alters
-
 		saveToken(data.login.key)
+
+		amplitude.setUserId(data.login.user.id);
 
 		//@ts-ignore
 		window.location = getAppUri() + '/'

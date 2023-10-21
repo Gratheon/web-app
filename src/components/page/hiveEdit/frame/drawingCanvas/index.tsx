@@ -5,7 +5,7 @@ import Checkbox from '@/icons/checkbox'
 import FrameCells from '@/icons/frameCells'
 import T from '@/components/shared/translate'
 import Loader from '@/components/shared/loader'
-import { isUndefined } from 'lodash'
+import styles from './styles.less'
 
 let lineWidth = 0
 let isMousedown = false
@@ -604,21 +604,23 @@ export default function DrawingCanvas({
 
 	return (
 		<div>
-			<div style={{ display: 'flex' }}>
-				{detectedCells &&
-					<Button onClick={() => { setCellVisibility(!showCells) }}>
-						{frameSideFile.isCellsDetectionComplete && <Checkbox on={showCells} />}
-						{!frameSideFile.isCellsDetectionComplete && <Loader size={0} />}
+			<div className={styles.buttons}>
+				<div class={styles.buttonGrp}>
+					{detectedCells &&
+						<Button onClick={() => { setCellVisibility(!showCells) }}>
+							{frameSideFile.isCellsDetectionComplete && <Checkbox on={showCells} />}
+							{!frameSideFile.isCellsDetectionComplete && <Loader size={0} />}
 
-						<span>
-							<T ctx="this is a button that toggles visibility of different types of cells in a beehive frame - brood, pollen, honey etc">Frame cells</T>
-							{frameSideFile.isCellsDetectionComplete && <FrameCells />}
-						</span>
-					</Button>}
+							<span>
+								<T ctx="this is a button that toggles visibility of different types of cells in a beehive frame - brood, pollen, honey etc">Frame cells</T>
+								{frameSideFile.isCellsDetectionComplete && <FrameCells />}
+							</span>
+						</Button>}
 
-				{showCells && frameSideFile.isCellsDetectionComplete && frameMetrics}
+					{showCells && frameSideFile.isCellsDetectionComplete && frameMetrics}
+				</div>
 
-				<div title="Worker bees">
+				<div class={styles.buttonGrp}>
 					<Button onClick={() => { setBeeVisibility(!showBees) }}>
 						{frameSideFile.isBeeDetectionComplete && <Checkbox on={showBees} />}
 						{!frameSideFile.isBeeDetectionComplete && <Loader size={0} />}
@@ -634,21 +636,22 @@ export default function DrawingCanvas({
 							{frameSideFile.detectedDroneCount > 0 && <>({frameSideFile.detectedDroneCount})</>}
 						</span>
 					</Button>
+
+					{queenButton}
+
+					{detectedQueenCups && <Button onClick={() => { setQueenCups(!showQueenCups) }}>
+						{frameSideFile.isQueenCupsDetectionComplete && <Checkbox on={showQueenCups} />}
+						{!frameSideFile.isQueenCupsDetectionComplete && <Loader size={0} />}
+						<span><T ctx="this is a button that toggles visibility (on an image) of beewax construction where queen bee is being nursed">Queen cups</T></span>
+					</Button>}
 				</div>
 
-				{queenButton}
-
-				{detectedQueenCups && <Button onClick={() => { setQueenCups(!showQueenCups) }}>
-					{frameSideFile.isQueenCupsDetectionComplete && <Checkbox on={showQueenCups}  />}
-					{!frameSideFile.isQueenCupsDetectionComplete && <Loader size={0} />}
-					<span><T ctx="this is a button that toggles visibility (on an image) of beewax construction where queen bee is being nursed">Queen cups</T></span>
-				</Button>}
-
-
 				<div style="flex-grow:1"></div>
-				<Button onClick={clearHistory}><T ctx="this is a button that cleans drawing made on an image with ipad pencil or mouse">Clear drawing</T></Button>
-				<Button onClick={undoDraw}><T>Undo</T></Button>
-				{extraButtons}
+				<div class={styles.buttonGrp}>
+					<Button onClick={clearHistory}><T ctx="this is a button that cleans drawing made on an image with ipad pencil or mouse">Clear drawing</T></Button>
+					<Button onClick={undoDraw}><T>Undo</T></Button>
+					{extraButtons}
+				</div>
 			</div>
 
 			<canvas ref={ref} id="container" style="width:100%;">

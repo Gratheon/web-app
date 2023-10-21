@@ -51,20 +51,18 @@ export default function FrameSide({
 		{ variables: { frameSideId } }
 	)
 
-	let { loading: loadingGet2, data: hiveFrameSideCells } = useQuery(
-		gql`
-	query hiveFrameSideCells($frameSideId: ID!) {
-		hiveFrameSideCells(frameSideId: $frameSideId) {
-			__typename
-			id
-			broodPercent
-			cappedBroodPercent
-			eggsPercent
-			pollenPercent
-			honeyPercent
-		}
-	}
-`,
+	let { loading: loadingGet2, data: hiveFrameSideCells } = useQuery(gql`
+		query hiveFrameSideCells($frameSideId: ID!) {
+			hiveFrameSideCells(frameSideId: $frameSideId) {
+				__typename
+				id
+				broodPercent
+				cappedBroodPercent
+				eggsPercent
+				pollenPercent
+				honeyPercent
+			}
+		}`,
 		{ variables: { frameSideId } }
 	)
 

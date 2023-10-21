@@ -21,7 +21,6 @@ export async function getFrameSideCells(frameSideId: number): Promise<FrameSideC
 	}
 }
 
-
 export async function updateFrameStat(
 	cells: FrameSideCells,
 	key: string,

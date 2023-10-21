@@ -18,7 +18,7 @@ let cameraZoom = 1
 let globalCameraZoom = 1
 let MAX_ZOOM = 100
 let MIN_ZOOM = 1
-let MED_ZOOM = 3
+let MED_ZOOM = 2
 
 let zoomEnabled = false;
 
@@ -540,6 +540,7 @@ export default function DrawingCanvas({
 			zoomAmount = event.deltaY > 0 ? -0.1 : 0.1 //event.deltaY * SCROLL_SENSITIVITY;
 
 
+			// use high-res image if user starts to zoom
 			if (globalCameraZoom > MED_ZOOM && canvasUrl != imageUrl) {
 				setCanvasUrl(imageUrl)
 				initImage(imageUrl).then((r) => {

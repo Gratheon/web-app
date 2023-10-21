@@ -39,6 +39,7 @@ export const writeHooks = {
 
 		delete fsf.hiveId
 
+		fsf.detectedCells = originalValue?.detectedCells;
 		fsf.fileId = +originalValue?.file?.id;
 		fsf.frameSideId = +fsf.frameSideId
 		fsf.id = +fsf.frameSideId

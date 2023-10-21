@@ -1,8 +1,7 @@
 import isDev from './isDev';
-let amplitude
-if (!isDev()) {
-	amplitude = import('@amplitude/analytics-browser');
+import * as amplitude from '@amplitude/analytics-browser'
 
+if (!isDev()) {
 	amplitude.init('22c65699d4c0d9ee32ba08a9c3087dcd', {
 		defaultTracking: true,
 	}); // API key, should be safe to be public

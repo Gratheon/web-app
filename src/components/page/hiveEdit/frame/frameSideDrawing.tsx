@@ -47,7 +47,6 @@ export default function FrameSideDrawing({
 			}
 		}`, { frameSideId }, (_, response) => {
 		if (response) {
-			console.log({response})
 			frameSideFile.detectedBees = [
 				...frameSideFile.detectedBees,
 				...response.onFrameSideBeesPartiallyDetected.delta

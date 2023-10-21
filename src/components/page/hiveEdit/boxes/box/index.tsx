@@ -12,34 +12,50 @@ import Loader from '@/components/shared/loader'
 import styles from './index.less'
 import Frame from './boxFrame'
 import FRAMES_QUERY from './framesQuery.graphql'
+import { getFrameSideCells } from '@/components/models/frameSideCells';
 
-export default ({
+export default function Box({
 	box,
 	boxId,
 	frameId,
 	frameSideId,
 	apiaryId,
 	hiveId,
-}) => {
+}) {
 	const navigate = useNavigate();
 	const framesDiv = []
 
 	const [updateFramesRemote, {error}] = useMutation(gql`mutation updateFrames($frames: [FrameInput]!) { updateFrames(frames: $frames) { id } }`)
 
-	const frames = useLiveQuery(() => getFrames({
-		boxId: +box.id
-	}), [boxId, box], false);
+	const frames = useLiveQuery(async() => {
+		let tmp = await getFrames({
+			boxId: +box.id
+		})
+
+		for (const r in tmp) {
+			if(!tmp[r].leftSide){
+				tmp[r].leftSide = {}
+			}
+			tmp[r].leftSide.cells = await getFrameSideCells(tmp[r].leftId)
+
+
+			if(!tmp[r].rightSide){
+				tmp[r].rightSide = {}
+			}
+			tmp[r].rightSide.cells = await getFrameSideCells(tmp[r].rightId)
+		}
+
+		return tmp
+	}, [boxId, box], false);
 
 	if (frames === false) {
 		return <Loader />
 	}
 
-	if (frames?.length == 0) {
-		let { loading } = useQuery(FRAMES_QUERY, { variables: { id: +hiveId, apiaryId: +apiaryId } })
+	let { loading, data } = useQuery(FRAMES_QUERY, { variables: { id: +hiveId, apiaryId: +apiaryId } })
 
-		if (loading) {
-			return <Loader />
-		}
+	if (loading) {
+		return <Loader />
 	}
 
 	async function swapFrames({ removedIndex, addedIndex }) {

@@ -13,10 +13,27 @@ export default gql`
 
 					leftSide {
 						id
+
+						cells{
+							id
+							broodPercent
+							honeyPercent
+							pollenPercent
+							eggsPercent
+							cappedBroodPercent
+						}
 					}
 
 					rightSide {
 						id
+						cells{
+							id
+							broodPercent
+							honeyPercent
+							pollenPercent
+							eggsPercent
+							cappedBroodPercent
+						}
 					}
 				}
 			}

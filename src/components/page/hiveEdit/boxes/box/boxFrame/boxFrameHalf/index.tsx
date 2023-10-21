@@ -24,7 +24,7 @@ export default function BoxFrameHalf({ frameSide, className, href }) {
 
 			<div
 				style={{
-					height: `${frameSide?.cappedBroodPercent ? frameSide.cappedBroodPercent : 0
+					height: `${frameSide.cells?.cappedBroodPercent ? frameSide.cells.cappedBroodPercent : 0
 						}%`,
 					backgroundColor: colors.cappedBroodColor,
 				}}
@@ -33,7 +33,7 @@ export default function BoxFrameHalf({ frameSide, className, href }) {
 
 			<div
 				style={{
-					height: `${frameSide?.broodPercent ? frameSide.broodPercent : 0}%`,
+					height: `${frameSide.cells?.broodPercent ? frameSide.cells.broodPercent : 0}%`,
 					backgroundColor: colors.broodColor,
 				}}
 				title="Brood"
@@ -41,7 +41,7 @@ export default function BoxFrameHalf({ frameSide, className, href }) {
 
 			<div
 				style={{
-					height: `${frameSide?.eggsPercent ? frameSide.eggsPercent : 0
+					height: `${frameSide.cells?.eggsPercent ? frameSide.cells.eggsPercent : 0
 						}%`,
 					backgroundColor: colors.eggsColor,
 				}}
@@ -50,7 +50,7 @@ export default function BoxFrameHalf({ frameSide, className, href }) {
 
 			<div
 				style={{
-					height: `${frameSide?.pollenPercent ? frameSide.pollenPercent : 0}%`,
+					height: `${frameSide.cells?.pollenPercent ? frameSide.cells.pollenPercent : 0}%`,
 					backgroundColor: colors.pollenColor,
 				}}
 				title="Pollen"
@@ -58,7 +58,7 @@ export default function BoxFrameHalf({ frameSide, className, href }) {
 
 			<div
 				style={{
-					height: `${frameSide?.honeyPercent ? frameSide.honeyPercent : 0}%`,
+					height: `${frameSide.cells?.honeyPercent ? frameSide.cells.honeyPercent : 0}%`,
 					backgroundColor: colors.honeyColor,
 					backgroundSize: '3px 4px',
 				}}

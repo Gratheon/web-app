@@ -66,6 +66,8 @@ export default function Frame({
 
 	const extraButtons = (
 		<>
+
+			<Button onClick={onFrameClose}><T>Close</T></Button>
 			<Button
 				className="red"
 				title="Remove frame"
@@ -74,8 +76,6 @@ export default function Frame({
 				<DeleteIcon />
 				<span><T>Remove frame</T></span>
 			</Button>
-
-			<Button onClick={onFrameClose}><T>Close</T></Button>
 		</>
 	)
 

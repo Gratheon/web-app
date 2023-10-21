@@ -5,9 +5,16 @@ import { useNavigate } from 'react-router-dom'
 
 import colors from '@/components/colors'
 import QueenIcon from '@/icons/queenIcon'
+import { getFrameSideFile } from '@/components/models/frameSideFile'
+import { useLiveQuery } from 'dexie-react-hooks'
 
 export default function BoxFrameHalf({ frameSide, className, href }) {
 	let navigate = useNavigate()
+
+	const frameSideFile = useLiveQuery(async() => {
+		let tmp = await getFrameSideFile({frameSideId: frameSide.id })
+		return tmp
+	}, [frameSide.id]);
 
 	return (
 		<div
@@ -17,10 +24,9 @@ export default function BoxFrameHalf({ frameSide, className, href }) {
 			}}
 		>
 
-			{frameSide?.queenDetected &&
+			{frameSideFile?.queenDetected &&
 				<QueenIcon className={styles.crown} size={16}/>
 			}
-
 
 			<div
 				style={{

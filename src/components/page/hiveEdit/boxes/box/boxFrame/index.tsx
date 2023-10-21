@@ -19,7 +19,6 @@ export default function BoxFrame({
 	box,
 	apiaryId,
 	hiveId,
-	boxId,
 	frameId,
 	frameSideId,
 	frame

@@ -41,8 +41,8 @@ export async function updateFrameSideFile(data: FrameSideFile) {
 }
 
 
-export async function toggleQueen(frameSide: FrameSideFile): Promise<FrameSideFile> {
-	frameSide.queenDetected = !frameSide.queenDetected;
+export async function setQueenPresense(frameSide: FrameSideFile, isPresent: boolean): Promise<FrameSideFile> {
+	frameSide.queenDetected = isPresent;
 
 	await db['framesidefile'].put(frameSide)
 

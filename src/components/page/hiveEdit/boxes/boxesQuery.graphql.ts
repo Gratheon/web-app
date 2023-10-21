@@ -17,10 +17,22 @@ export default gql`
 
 					leftSide {
 						id
+
+						frameSideFile {
+							__typename
+							frameSideId
+							isQueenDetected
+						}
 					}
 
 					rightSide {
 						id
+
+						frameSideFile {
+							__typename
+							frameSideId
+							isQueenDetected
+						}
 					}
 				}
 			}

@@ -5,7 +5,6 @@ export type FrameSideCells = {
     frameSideId?: any // internal
     hiveId?: any // internal
 
-    queenDetected?: boolean
     pollenPercent?: number
     honeyPercent?: number
     eggsPercent?: number

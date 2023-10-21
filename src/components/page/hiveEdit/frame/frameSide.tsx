@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { gql, useMutation, useQuery } from '@/components/api'
 import { getFrameSide } from '@/components/models/frameSide'
 import { getFrameSideCells } from '@/components/models/frameSideCells'
-import { getFrameSideFile, updateFrameSideFile, toggleQueen } from '@/components/models/frameSideFile'
+import { getFrameSideFile, updateFrameSideFile, setQueenPresense } from '@/components/models/frameSideFile'
 import { getFile } from '@/components/models/files'
 
 import Loading from '@/components/shared/loader'
@@ -112,15 +112,6 @@ export default function FrameSide({
 		metrics.trackFramePhotoUploaded()
 	}
 
-	async function onQueenToggle() {
-		frameSide = await toggleQueen(frameSide)
-		await frameSideMutate({
-			frameSide: {
-				id: frameSide.id,
-				queenDetected: frameSide.queenDetected,
-			},
-		})
-	}
 	const error = <ErrorMessage error={errorFile || errorFrameSide} />
 
 	if (!frameSideFile || !file) {

@@ -6,6 +6,7 @@ import FrameCells from '@/icons/frameCells'
 import T from '@/components/shared/translate'
 import Loader from '@/components/shared/loader'
 import styles from './styles.less'
+import QueenButton from '../queenButton'
 
 let lineWidth = 0
 let isMousedown = false
@@ -325,7 +326,7 @@ export default function DrawingCanvas({
 	onStrokeHistoryUpdate,
 	frameSideFile,
 	frameMetrics,
-	queenButton,
+	frameSide,
 	extraButtons
 }) {
 	if (!imageUrl) {
@@ -620,6 +621,8 @@ export default function DrawingCanvas({
 					{showCells && frameSideFile.isCellsDetectionComplete && frameMetrics}
 				</div>
 
+				<div style="flex-grow:1"></div>
+
 				<div class={styles.buttonGrp}>
 					<Button onClick={() => { setBeeVisibility(!showBees) }}>
 						{frameSideFile.isBeeDetectionComplete && <Checkbox on={showBees} />}
@@ -628,7 +631,9 @@ export default function DrawingCanvas({
 							<T ctx="this is a button that toggles visibility of worker bees on an image">Worker bees</T>
 							{frameSideFile.detectedWorkerBeeCount > 0 && <>({frameSideFile.detectedWorkerBeeCount})</>}
 						</span>
-					</Button><Button onClick={() => { setDroneVisibility(!showDrones) }}>
+					</Button>
+
+					<Button onClick={() => { setDroneVisibility(!showDrones) }}>
 						{frameSideFile.isBeeDetectionComplete && <Checkbox on={showDrones} />}
 						{!frameSideFile.isBeeDetectionComplete && <Loader size={0} />}
 						<span>
@@ -637,7 +642,7 @@ export default function DrawingCanvas({
 						</span>
 					</Button>
 
-					{queenButton}
+					<QueenButton frameSide={frameSide} frameSideFile={frameSideFile} />
 
 					{detectedQueenCups && <Button onClick={() => { setQueenCups(!showQueenCups) }}>
 						{frameSideFile.isQueenCupsDetectionComplete && <Checkbox on={showQueenCups} />}
@@ -645,18 +650,19 @@ export default function DrawingCanvas({
 						<span><T ctx="this is a button that toggles visibility (on an image) of beewax construction where queen bee is being nursed">Queen cups</T></span>
 					</Button>}
 				</div>
-
-				<div style="flex-grow:1"></div>
-				<div class={styles.buttonGrp}>
-					<Button onClick={clearHistory}><T ctx="this is a button that cleans drawing made on an image with ipad pencil or mouse">Clear drawing</T></Button>
-					<Button onClick={undoDraw}><T>Undo</T></Button>
-					{extraButtons}
-				</div>
 			</div>
 
 			<canvas ref={ref} id="container" style="width:100%;">
 				Sorry, your browser is too old for this demo.
 			</canvas>
+
+			<div class={styles.buttonGrp}>
+				{extraButtons}
+
+				<div style="flex-grow:1"></div>
+				<Button onClick={clearHistory}><T ctx="this is a button that cleans drawing made on an image with ipad pencil or mouse">Clear drawing</T></Button>
+				<Button onClick={undoDraw}><T>Undo</T></Button>
+			</div>
 		</div>
 	)
 }

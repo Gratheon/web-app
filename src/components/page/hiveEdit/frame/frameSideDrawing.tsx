@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react'
 import debounce from 'lodash.debounce'
 
 import { gql, useMutation, useSubscription } from '@/components/api'
-import { toggleQueen } from '@/components/models/frameSideFile'
 import { updateFrameSideFile } from '@/components/models/frameSideFile'
 
 import Loading from '@/components/shared/loader'
@@ -107,10 +106,8 @@ export default function FrameSideDrawing({
 		}
 	})
 
-	let [frameSideCellsMutate, { error: errorFrameSide }] = useMutation(
-		gql`mutation updateFrameSideCells($cells: FrameSideCellsInput!) {
-			updateFrameSideCells(cells: $cells)
-			}`)
+	let [frameSideCellsMutate, { error: errorFrameSideCells }] = useMutation(gql`mutation updateFrameSideCells($cells: FrameSideCellsInput!) {
+		updateFrameSideCells(cells: $cells) }`)
 			
 	const onFrameSideStatChange = useMemo(
 		() =>
@@ -132,15 +129,6 @@ export default function FrameSideDrawing({
 		[frameSideId]
 	)
 
-	async function onQueenToggle() {
-		let fsf = await toggleQueen(frameSideFile)
-		// await frameSideMutate({
-		// 	frameSideFile: {
-		// 		id: frameSide.id,
-		// 		queenDetected: fsf.queenDetected,
-		// 	},
-		// })
-	}
 
 	let [filesStrokeEditMutate, { error: errorStrokes }] = useMutation(gql`mutation filesStrokeEditMutation($files: [FilesUpdateInput]) { 
 		filesStrokeEditMutation(files: $files) 
@@ -161,20 +149,10 @@ export default function FrameSideDrawing({
 		)
 	}
 
-
-	const queenButton = (
-		<Button title="Toggle queen" onClick={onQueenToggle}>
-			<Checkbox on={frameSide.queenDetected} />
-			<span><T ctx="this is a button that toggles visibility of bee queen on an image">Queen</T></span>
-			<QueenIcon size={14} color={'white'} />
-		</Button>
-	)
-
-
 	return (
 		<div className={styles.frame}>
 			<div className={styles.body}>
-				<ErrorMessage error={errorFrameSide || errorStrokes} />
+				<ErrorMessage error={errorStrokes} />
 
 				<DrawingCanvas
 					imageUrl={file.url}
@@ -192,7 +170,7 @@ export default function FrameSideDrawing({
 					strokeHistory={frameSideFile.strokeHistory}
 					onStrokeHistoryUpdate={onStrokeHistoryUpdate}
 					frameSideFile={frameSideFile}
-					queenButton={queenButton}
+					frameSide={frameSide}
 				/>
 			</div>
 		</div>

@@ -36,12 +36,12 @@ export default function Box({
 			if(!tmp[r].leftSide){
 				tmp[r].leftSide = {}
 			}
-			tmp[r].leftSide.cells = await getFrameSideCells(tmp[r].leftId)
-
 
 			if(!tmp[r].rightSide){
 				tmp[r].rightSide = {}
 			}
+
+			tmp[r].leftSide.cells = await getFrameSideCells(tmp[r].leftId)
 			tmp[r].rightSide.cells = await getFrameSideCells(tmp[r].rightId)
 		}
 
@@ -93,7 +93,6 @@ export default function Box({
 				</* @ts-ignore */ Draggable key={i}>
 					<Frame
 						box={box}
-						boxId={boxId}
 						frameId={frameId}
 						frameSideId={frameSideId}
 

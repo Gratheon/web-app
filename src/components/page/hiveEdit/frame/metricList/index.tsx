@@ -2,11 +2,21 @@ import React, { useMemo, useState } from 'react'
 import ResourceEditRow from './resourceEditRow'
 import colors from '@/components/colors'
 import T from '@/components/shared/translate'
+import { getFrameSideCells } from '@/components/models/frameSideCells'
+import { useLiveQuery } from 'dexie-react-hooks'
 
 export default function MetricList({
 	onFrameSideStatChange,
-	frameSideCells
+	frameSideId
 }) {
+	let frameSideCells = useLiveQuery(function () {
+		return getFrameSideCells(+frameSideId)
+	}, [frameSideId], null);
+
+	if(!frameSideCells){
+		return
+	}
+
 	let [expanded, expand] = useState(false)
 
 	function onResize(key, value) {

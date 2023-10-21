@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
-import * as amplitude from "@amplitude/analytics-browser";
-
 import { gql, useMutation } from '@/components/api'
+import metrics from '@/components/metrics'
+
 import VisualForm from '@/components/shared/visualForm'
 import Loader from '@/components/shared/loader'
 import ErrorMsg from '@/components/shared/messageError'
@@ -66,7 +66,8 @@ export default function AccountAuth() {
 		// clear DB on login and on logout to have consistent structure in case of alters
 		saveToken(data.login.key)
 
-		amplitude.setUserId(data.login.user.id);
+		metrics.setUserId(data.login.user.id);
+		metrics.trackLogin()
 
 		//@ts-ignore
 		window.location = getAppUri() + '/'

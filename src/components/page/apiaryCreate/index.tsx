@@ -5,11 +5,11 @@ import { gql, useMutation } from '@/components/api'
 
 import Map from '@/components/shared/map'
 import VisualForm from '@/components/shared/visualForm'
-import Loader from '@/components/shared/loader'
 import ErrorMsg from '@/components/shared/messageError'
 import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
 import Button from '@/components/shared/button'
 import T from '@/components/shared/translate'
+import metrics from '@/components/metrics'
 
 export default function ApiaryEditForm() {
 	let navigate = useNavigate()
@@ -42,6 +42,7 @@ export default function ApiaryEditForm() {
 	}
 
 	if (data) {
+		metrics.trackApiaryCreated()
 		navigate('/apiaries', { replace: true })
 
 		return <div>Saved!</div>

@@ -20,7 +20,6 @@ import { getFrameSideCells, updateFrameStat } from '@/components/models/frameSid
 export default function FrameSideDrawing({
 	file,
 	frameSide,
-	frameSideCells,
 	frameSideFile,
 	frameId,
 	frameSideId,
@@ -181,9 +180,11 @@ export default function FrameSideDrawing({
 					imageUrl={file.url}
 					resizes={file.resizes}
 					extraButtons={extraButtons}
-					frameMetrics={<MetricList
-						onFrameSideStatChange={onFrameSideStatChange}
-						frameSideCells={frameSideCells} />}
+					frameMetrics={
+						<MetricList
+							onFrameSideStatChange={onFrameSideStatChange}
+							frameSideId={frameSide.id} />
+						}
 
 					detectedQueenCups={frameSideFile.detectedQueenCups}
 					detectedBees={frameSideFile.detectedBees}

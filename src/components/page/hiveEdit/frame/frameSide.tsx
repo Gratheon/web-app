@@ -13,6 +13,7 @@ import UploadFile from './uploadFile'
 import FRAME_SIDE_QUERY from './_api/getFrameFileObjectsQuery.graphql'
 import MessageNotFound from '@/components/shared/messageNotFound'
 import FrameSideDrawing from './frameSideDrawing'
+import metrics from '@/components/metrics'
 
 export default function FrameSide({
 	hiveId,
@@ -25,14 +26,10 @@ export default function FrameSide({
 		return
 	}
 
-	let file, frameSideFile, frameSide, frameSideCells
+	let file, frameSideFile, frameSide
 
 	frameSide = useLiveQuery(function () {
 		return getFrameSide(+frameSideId)
-	}, [frameSideId], null);
-
-	frameSideCells = useLiveQuery(function () {
-		return getFrameSideCells(+frameSideId)
 	}, [frameSideId], null);
 
 	frameSideFile = useLiveQuery(function () {
@@ -111,6 +108,8 @@ export default function FrameSide({
 			detectedQueenCups: [],
 			counts: []
 		});
+
+		metrics.trackFramePhotoUploaded()
 	}
 
 	async function onQueenToggle() {
@@ -143,7 +142,6 @@ export default function FrameSide({
 		extraButtons={extraButtons}
 		file={file}
 		frameSide={frameSide}
-		frameSideCells={frameSideCells}
 		frameSideFile={frameSideFile}
 		frameId={frameId}
 		frameSideId={frameSideId}/>

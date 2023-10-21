@@ -9,6 +9,7 @@ import Button from '@/components/shared/button'
 import { saveToken } from '@/components/user'
 import { getAppUri } from '@/components/uri'
 import T from '@/components/shared/translate'
+import metrics from '@/components/metrics'
 
 type Account = {
 	email?: string
@@ -26,7 +27,7 @@ export default function AccountRegister() {
 		})
 	}
 
-	let [accountAuth, { error, data }] = useMutation(gql`
+	let [accountCreate, { error, data }] = useMutation(gql`
 		mutation register($email: String!, $password: String!) {
 			register(email: $email, password: $password) {
 				__typename
@@ -43,7 +44,7 @@ export default function AccountRegister() {
 	function onSubmit(e: any) {
 		e.preventDefault()
 
-		accountAuth({
+		accountCreate({
 			email: account?.email,
 			password: account?.password,
 		})
@@ -64,6 +65,8 @@ export default function AccountRegister() {
 
 	if (data?.register?.key) {
 		saveToken(data.register.key)
+
+		metrics.trackRegistration()
 		//@ts-ignore
 		window.location = getAppUri() + '/'
 		return <Loader />

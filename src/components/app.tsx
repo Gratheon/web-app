@@ -9,6 +9,10 @@ import Paywall from './page/paywall'
 import { isLoggedIn } from './user'
 import isDev from './isDev'
 
+import initErrorReporting from './error_reporter'
+
+initErrorReporting();
+
 export default function App() {
 	if (typeof window === 'undefined') {
 		return

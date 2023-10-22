@@ -1,14 +1,21 @@
 import isDev from './isDev';
 import * as amplitude from '@amplitude/analytics-browser'
 
-if (!isDev()) {
-	amplitude.init('22c65699d4c0d9ee32ba08a9c3087dcd', {
-		defaultTracking: true,
-	}); // API key, should be safe to be public
-}
+
+// API key, should be safe to be public
+amplitude.init('22c65699d4c0d9ee32ba08a9c3087dcd', {
+	instanceName: isDev() ? "dev" : "prod",
+	defaultTracking: true,
+	flushQueueSize: 30, // flush queued events when there are 30 or more
+});
 
 export default {
-	setUserId: amplitude.setUserId,
+	setUserId: (id) => {
+		function padNumber(number, width) {
+			return number.toString().padStart(width, '0');
+		}
+		amplitude.setUserId(padNumber(id, 5))
+	},
 
 	trackLogin: (extraInfo = {}) => {
 		if (isDev()) return

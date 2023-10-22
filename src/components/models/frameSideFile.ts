@@ -31,7 +31,9 @@ export async function getFrameSideFile({ frameSideId }): Promise<FrameSideFile> 
         }
         return row
     } catch (e) {
-        console.error(e)
+        console.error(e, {
+            frameSideId
+        })
         throw e
     }
 }

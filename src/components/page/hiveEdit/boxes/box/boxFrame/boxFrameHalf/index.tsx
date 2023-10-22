@@ -11,6 +11,8 @@ import { useLiveQuery } from 'dexie-react-hooks'
 export default function BoxFrameHalf({ frameSide, className, href }) {
 	let navigate = useNavigate()
 
+	if(!frameSide) return;
+
 	const frameSideFile = useLiveQuery(async() => {
 		let tmp = await getFrameSideFile({frameSideId: frameSide.id })
 		return tmp

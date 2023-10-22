@@ -8,6 +8,7 @@ import { gql, useMutation } from '@/components/api'
 import MessageSuccess from '@/components/shared/messageSuccess'
 import MessageError from '@/components/shared/messageError'
 import T from '@/components/shared/translate'
+import metrics from '@/components/metrics'
 
 export default function Billing({ user }) {
 	let { stripeStatus } = useParams()
@@ -34,6 +35,7 @@ export default function Billing({ user }) {
 	async function onSubscribeClick() {
 		const result = await createCheckoutSession()
 
+		metrics.trackBillingClicked()
 		if (result?.data) {
 			window.location = result.data.createCheckoutSession
 		}

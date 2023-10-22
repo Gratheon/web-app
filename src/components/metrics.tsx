@@ -40,5 +40,9 @@ export default {
 	trackFramePhotoUploaded: (extraInfo = {}) => {
 		if (isDev()) return
 		amplitude.track('frame.photoUploaded', extraInfo)
+	},
+	trackBillingClicked: (extraInfo = {}) => {
+		if (isDev()) return
+		amplitude.track('billing.clicked', extraInfo)
 	}
 }

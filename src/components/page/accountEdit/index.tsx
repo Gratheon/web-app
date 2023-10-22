@@ -49,6 +49,10 @@ export default function AccountEdit() {
 		}
 	`)
 
+	if (accountData && (!user || !user.id)) {
+		setUser(accountData.user)
+	}
+
 	let [updateAccount, { error }] = useMutation(gql`
 		mutation updateUser($user: UserUpdateInput!) {
 			updateUser(user: $user) {
@@ -77,10 +81,6 @@ export default function AccountEdit() {
 
 		await updateUser(user)
 		setSaving(false);
-	}
-
-	if (accountData && !user.id) {
-		setUser(accountData.user)
 	}
 
 	if (!user.id || loadingGet) {

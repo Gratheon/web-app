@@ -33,17 +33,11 @@ export default function Box({
 		})
 
 		for (const r in tmp) {
-			if (!tmp[r].leftSide) {
-				tmp[r].leftSide = {}
-			}
-			else {
+			if (tmp[r].leftSide) {
 				tmp[r].leftSide.cells = await getFrameSideCells(+tmp[r].leftId)
 			}
 
-			if (!tmp[r].rightSide) {
-				tmp[r].rightSide = {}
-			}
-			else {
+			if (tmp[r].rightSide) {
 				tmp[r].rightSide.cells = await getFrameSideCells(+tmp[r].rightId)
 			}
 		}

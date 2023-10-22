@@ -8,4 +8,4 @@ npm run build-clean
 npm run build-move
 
 # copy file for google play app
-cp -r .wellknown public/
+cp -r .well-known public/

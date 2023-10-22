@@ -6,3 +6,6 @@ npm install
 npm run build
 npm run build-clean
 npm run build-move
+
+# copy file for google play app
+cp -r .wellknown public/

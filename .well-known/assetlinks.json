@@ -3,6 +3,9 @@
       "target": {
         "namespace": "android_app",
         "package_name": "com.gratheon.app.twa",
-        "sha256_cert_fingerprints": ["48:D5:FF:50:51:85:0F:C6:D3:78:7A:B2:E7:CB:70:ED:A5:78:89:2D:7F:43:1A:89:92:59:83:8F:99:02:27:9E"]
+        "sha256_cert_fingerprints": [
+          "48:D5:FF:50:51:85:0F:C6:D3:78:7A:B2:E7:CB:70:ED:A5:78:89:2D:7F:43:1A:89:92:59:83:8F:99:02:27:9E",
+          "1B:2D:DA:CC:F2:B6:44:B0:E2:C9:8C:F3:82:3A:99:67:EC:57:3B:50:A7:1E:81:16:7E:9A:C5:81:E6:4F:78:64"
+        ]
       }
     }]

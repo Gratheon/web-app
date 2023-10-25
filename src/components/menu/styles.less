@@ -1,3 +1,5 @@
+@import '../layout';
+
 #menu {
 	background-color: #f8f8f8;
 	border-bottom: 1px solid #c5c5c5;
@@ -5,7 +7,7 @@
 	display: flex;
 
 	ul {
-		padding: 0;
+		padding: 5px 10px;
 		display: flex;
 		list-style: none;
 		margin: auto 0;
@@ -14,8 +16,10 @@
 		li {
 			width: auto;
 			text-align:left;
-			padding: 10px 20px 5px;
+			padding: 5px;
 			flex-grow:1;
+
+			text-align: center;
 
 			a {
 				color: black;
@@ -28,26 +32,14 @@
 	}
 }
 
-@media all and (max-width: 150px) { 
-	#menu{
-		ul{
-			margin-top:5px;
-			li{
-				width: 100px;
-				text-align: center;
-				padding: 5px;
-			}
-		}
-	}
-}
-@media all and (max-width: 500px) { 
+@media all and (min-width: @maxMobileWidthPx) { 
 	#menu{
 		ul{
 			margin-top:10px;
 			li{
-				width: 100px;
-				text-align: center;
-				padding: 5px;
+				// width: 80px;
+				// text-align: center;
+				padding: 10px 20px;
 			}
 		}
 	}

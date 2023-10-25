@@ -43,13 +43,13 @@ const Menu = ({ isLoggedIn = false }) => {
 
 	// hide analytics until its ready for prod release
 	let analytics = null
-	if (isDev()) {
-		analytics = (<li>
-			<Link activeClassName={styles.active} to="/analytics">
-				<T>Analytics</T>
-			</Link>
-		</li>)
-	}
+	// if (isDev()) {
+	// 	analytics = (<li>
+	// 		<Link activeClassName={styles.active} to="/analytics">
+	// 			<T>Analytics</T>
+	// 		</Link>
+	// 	</li>)
+	// }
 
 	return (
 		<nav id={styles.menu}>

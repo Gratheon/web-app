@@ -174,68 +174,72 @@ export default function HiveEditDetails({ hiveId }) {
 		<div>
 			<ErrorMessage error={errorColor || errorHive} />
 			<div className={styles.form}>
-				<div style={{ width: 68, textAlign: 'center', marginRight: 6 }}>
-					<HiveIcon onColorChange={onColorChange} boxes={boxes} editable={true} />
-
-					{hive.beeCount && <>🐝{hive.beeCount} </> }
-				</div>
-				<VisualForm>
-					<div>
-						<label htmlFor="name" style="width:120px;"><T ctx="this is a form label for input of the beehive">Name</T></label>
-						<input
-							name="name"
-							id="name"
-							style="width:100%;"
-							autoFocus
-							value={hive.name}
-							onInput={onNameChange}
-						/>
-					</div>
-					<div>
-						<label htmlFor="race"><T ctx="this is a form label for input of the bee queen race and year">Queen</T></label>
-
-						<div style="position:relative;">
+				<div>
+					<VisualForm>
+						<div>
+							<label htmlFor="name" style="width:100px;"><T ctx="this is a form label for input of the beehive">Name</T></label>
 							<input
-								name="race"
-								style="width:200px"
-								className={styles.race}
-								value={family ? family.race : ''}
-								onInput={onRaceChange}
+								name="name"
+								id="name"
+								style="width:100%;"
+								autoFocus
+								value={hive.name}
+								onInput={onNameChange}
 							/>
-
-							<input
-								name="queenYear"
-								id="queenYear"
-								minLength={4}
-								maxLength={4}
-								className={styles.year}
-								value={family ? family.added : ''}
-								onInput={onQueenYearChange}
-							/>
-
-							<QueenColor year={family?.added} />
-
-
-							<DeactivateButton hiveId={hive.id} />
 						</div>
+						<div>
+							<label htmlFor="race"><T ctx="this is a form label for input of the bee queen race and year">Queen</T></label>
+
+							<div>
+								<input
+									name="race"
+									placeholder="Race"
+									className={styles.race}
+									value={family ? family.race : ''}
+									onInput={onRaceChange}
+								/>
+
+								<div style="position:relative;display:inline-block;">
+									<input
+										placeholder="Year"
+										name="queenYear"
+										id="queenYear"
+										minLength={4}
+										maxLength={4}
+										className={styles.year}
+										value={family ? family.added : ''}
+										onInput={onQueenYearChange}
+									/>
+
+									<QueenColor year={family?.added} />
+								</div>
+							</div>
+						</div>
+					</VisualForm>
+
+					<textarea
+						className={styles.notes}
+						style={{
+							marginTop:3,
+							background: hive.notes ? '#EEE' : 'white',
+							minHeight: hive.notes ? 32 : 20,
+							width: `calc(100% - 20px)`
+						}}
+						name="notes"
+						placeholder="Notes"
+						id="notes"
+						value={hive.notes}
+						onChange={onNotesChange}
+					/>
+				</div>
+				<div style={{ textAlign: 'center', marginLeft: 6 }}>
+					<HiveIcon onColorChange={onColorChange} boxes={boxes} editable={true} />
+					<div style="font-size:12px">
+						{hive.beeCount && <>🐝{hive.beeCount} </>}
 					</div>
 
-					<div>
-						<label htmlFor="notes"><T ctx="This is a label of beehive notes that beekeeper may leave after inspection">Notes</T></label>
-						<textarea
-							className={styles.notes}
-							style={{
-								background: hive.notes ? '#EEE' : 'white',
-								minHeight: hive.notes ? 32 : 20,
-								width: `calc(100% - 20px)`
-							}}
-							name="notes"
-							id="notes"
-							value={hive.notes}
-							onChange={onNotesChange}
-						/>
-					</div>
-				</VisualForm>
+					<DeactivateButton hiveId={hive.id} />
+				</div>
 			</div>
 		</div>
 	)

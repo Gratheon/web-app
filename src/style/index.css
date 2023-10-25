@@ -9,6 +9,8 @@ body {
 	background: white;
 	height: 100%;
 	display: block;
+	overflow: auto;
+	overscroll-behavior-y: none;
 }
 
 * {

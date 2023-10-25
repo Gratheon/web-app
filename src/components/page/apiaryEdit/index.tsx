@@ -85,13 +85,15 @@ export default function ApiaryEditForm() {
 	const [saving, setSaving] = useState(false)
 
 	async function onDeleteApiary() {
-		setSaving(true);
-		await deactivateApiary({
-			id,
-		})
+		if (confirm('Are you sure?')) {
+			setSaving(true);
+			await deactivateApiary({
+				id,
+			})
 
-		setSaving(false);
-		navigate(`/apiaries`, { replace: true })
+			setSaving(false);
+			navigate(`/apiaries`, { replace: true })
+		}
 	}
 
 	function onSubmit(e) {
@@ -135,45 +137,44 @@ export default function ApiaryEditForm() {
 				}}
 			/>
 
-			<VisualForm style="padding:20px;" onSubmit={onSubmit.bind(this)}>
-				<div>
-					<label htmlFor="name" style="width:120px;"><T>Name</T></label>
-					<input
-						name="name"
-						id="name"
-						style={{ width: '100%' }}
-						autoFocus
-						onInput={onNameChange}
-						value={name}
-					/>
-				</div>
-				<div>
-					<label htmlFor="name"><T>Location</T></label>
+			<div style="padding:20px;">
+				<VisualForm onSubmit={onSubmit.bind(this)}>
 					<div>
-						<a
-							target="_blank"
-							href={`https://www.google.com/maps/@${lat},${lng},16z/data=!3m1!1e3`}
-							rel="noreferrer"
-						>
-							Google maps
-						</a>
+						<label htmlFor="name" style="width:120px;"><T>Name</T></label>
+						<div>
+							<input
+								name="name"
+								id="name"
+								style={{ width: '100%' }}
+								autoFocus
+								onInput={onNameChange}
+								value={name}
+							/>
+							{/* <a
+								target="_blank"
+								href={`https://www.google.com/maps/@${lat},${lng},16z/data=!3m1!1e3`}
+								rel="noreferrer"
+							>
+								Google maps
+							</a> */}
+						</div>
 					</div>
-				</div>
 
-				<VisualFormSubmit>
-					<Button type="submit" loading={saving} className="green"><T>Save</T></Button>
-					<Button className="red" loading={saving} onClick={onDeleteApiary}><DeleteIcon /><span><T>Delete</T></span></Button>
-					<Button
-						style="margin-left:20px"
-						onClick={() => {
-							setAutoLocate(!autoLocate)
-						}}
-					><T>Locate me</T></Button>
-				</VisualFormSubmit>
-			</VisualForm>
+					<VisualFormSubmit>
 
-			{apiary && <Weather lat={lat} lng={lng} />}
-			{apiary && <Plants lat={lat} lng={lng} />}
+						<Button className="red" loading={saving} onClick={onDeleteApiary}><DeleteIcon /><span><T>Delete</T></span></Button>
+						<Button
+							onClick={() => {
+								setAutoLocate(!autoLocate)
+							}}
+						><T>Locate me</T></Button>
+						<Button type="submit" loading={saving} className="green"><T>Save</T></Button>
+					</VisualFormSubmit>
+				</VisualForm>
+
+				{apiary && <Weather lat={lat} lng={lng} />}
+				{apiary && <Plants lat={lat} lng={lng} />}
+			</div>
 		</div>
 	)
 }

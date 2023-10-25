@@ -1,0 +1,16 @@
+@import '../../layout.less';
+
+.apiary {
+	padding: @mobilePadPx;
+}
+
+h2 {
+	padding: 10px;
+}
+
+// ipad and desktop
+@media all and (min-width: @maxMobileWidthPx) {
+	.apiary {
+		padding: @desktopPadPx;
+	}
+}

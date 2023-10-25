@@ -11,6 +11,8 @@ import Button from '@/components/shared/button'
 import T from '@/components/shared/translate'
 import metrics from '@/components/metrics'
 
+import style from './style.less'
+
 export default function ApiaryEditForm() {
 	let navigate = useNavigate()
 	let [name, setName] = useState('')
@@ -55,48 +57,50 @@ export default function ApiaryEditForm() {
 	}
 
 	return (
-		<div style={{ padding: 20 }}>
+		<div>
 			{errorMsg}
 
-			<h2 style={{ marginBottom: 10 }}><T ctx="this is a headline to create new apiary form">New apiary</T></h2>
+			<h2><T ctx="this is a headline to create new apiary form">New apiary</T></h2>
 			<Map
-					lat={lat}
-					lng={lng}
-					autoLocate={autoLocate}
-					onMarkerSet={(coords) => {
-						setLat(coords.lat)
-						setLng(coords.lng)
-					}}
-				/>
-				
-			<VisualForm onSubmit={onSubmit}>
-				<div>
-					<label htmlFor="name" style="width:120px;"><T>Name</T></label>
-					<input
-						name="name"
-						id="name"
-						style={{ width: '100%' }}
-						autoFocus
-						value={name}
-						onInput={(e: any) => {
-							setName(e.target.value)
-						}}
-					/>
-				</div>
+				lat={lat}
+				lng={lng}
+				autoLocate={autoLocate}
+				onMarkerSet={(coords) => {
+					setLat(coords.lat)
+					setLng(coords.lng)
+				}}
+			/>
 
-				<VisualFormSubmit>
-					<Button
-						onClick={() => {
-							setAutoLocate(!autoLocate)
-						}}
-					>
-						<T>Locate me</T>
-					</Button>
-					<Button type="submit" className="green">
-						<T>Create</T>
-					</Button>
-				</VisualFormSubmit>
-			</VisualForm>
+			<div className={style.apiary}>
+				<VisualForm onSubmit={onSubmit}>
+					<div>
+						<label htmlFor="name" style="width:120px;"><T>Name</T></label>
+						<input
+							name="name"
+							id="name"
+							style={{ width: '100%' }}
+							autoFocus
+							value={name}
+							onInput={(e: any) => {
+								setName(e.target.value)
+							}}
+						/>
+					</div>
+
+					<VisualFormSubmit>
+						<Button
+							onClick={() => {
+								setAutoLocate(!autoLocate)
+							}}
+						>
+							<T>Locate me</T>
+						</Button>
+						<Button type="submit" className="green">
+							<T>Create</T>
+						</Button>
+					</VisualFormSubmit>
+				</VisualForm>
+			</div>
 		</div>
 	)
 }

@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 
 import Header from '@/components/header'
 import { logout } from '@/components/user'
@@ -22,14 +22,14 @@ const Menu = ({ isLoggedIn = false }) => {
 				<Header />
 				<ul>
 					<li>
-						<Link activeClassName={styles.active} to="/account/authenticate">
+						<NavLink activeClassName={styles.active} to="/account/authenticate">
 							Authentication
-						</Link>
+						</NavLink>
 					</li>
 					<li>
-						<Link activeClassName={styles.active} to="/account/register">
-							Registration
-						</Link>
+						<NavLink activeClassName={styles.active} to="/account/register">
+							Registration``
+						</NavLink>
 					</li>
 					{/*<li>*/}
 					{/*	<Link activeClassName={styles.active} href="/account/restore">*/}
@@ -57,14 +57,22 @@ const Menu = ({ isLoggedIn = false }) => {
 
 			<ul>
 				<li>
-					<Link activeClassName={styles.active} to="/apiaries">
+					<NavLink
+						className={({ isActive, isPending }) =>
+							isActive ? styles.active : ""
+						}
+						to="/apiaries">
 						<T>Hives</T>
-					</Link>
+					</NavLink>
 				</li>
 				<li>
-					<Link activeClassName={styles.active} to="/account">
+					<NavLink
+						className={({ isActive, isPending }) =>
+							isActive ? styles.active : ""
+						}
+						to="/account">
 						<T>Account</T>
-					</Link>
+					</NavLink>
 				</li>
 				{analytics}
 				<li>

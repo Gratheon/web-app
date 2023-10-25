@@ -96,7 +96,7 @@ export default function AccountEdit() {
 			<h2><T>Account</T></h2>
 			<ErrorMsg error={error} />
 			<div style="display:flex;">
-				<img src={gravatarURL} style="border-radius:50px;width:100px;height:100px;" />
+				<img src={gravatarURL} className={style.avatar} />
 
 				<VisualForm style="display: table;" onSubmit={onSubmit}>
 					<div>

@@ -1,5 +1,15 @@
-import { Box } from '@/components/api/schema'
+import { Frame } from '@/components/api/schema'
 import { db } from './db'
+
+export type Box = {
+	id: number
+	type: string
+	position: number
+	color?: string
+
+	hiveId?: number //reference
+	frames?: Frame[]
+}
 
 let boxes: Box[] = [] // db.get('boxes')
 

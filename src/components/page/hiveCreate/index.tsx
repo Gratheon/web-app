@@ -6,12 +6,10 @@ import { gql, useMutation } from '@/components/api'
 
 import VisualForm from '@/components/shared/visualForm'
 import HiveIcon from '@/components/shared/hiveIcon'
-import Loader from '@/components/shared/loader'
 import ErrorMsg from '@/components/shared/messageError'
 import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
 import Button from '@/components/shared/button'
-import { Box } from '@/components/api/schema'
-import { boxTypes } from '@/components/models/boxes'
+import { Box, boxTypes } from '@/components/models/boxes'
 import T from '@/components/shared/translate'
 const defaultBoxColor = '#ffc848'
 

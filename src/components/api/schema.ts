@@ -2,16 +2,6 @@ import { buildSchema } from 'graphql'
 import { FrameSideCells } from '../models/frameSideCells'
 import { FrameSideFile } from '../models/frameSideFile'
 
-export type Box = {
-  id: number
-	type: string
-	position: number
-	color?: string
-  
-  hiveId?: number //reference
-	frames?: Frame[]
-}
-
 export type FrameType = 'VOID' | 'FOUNDATION' | 'EMPTY_COMB' | 'PARTITION' | 'FEEDER'
 export type FrameSide = {
   frameId?: number

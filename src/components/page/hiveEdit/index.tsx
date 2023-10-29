@@ -125,10 +125,10 @@ export default function HiveEditForm() {
 						frameSideId={frameSideId}
 					/>
 
-					<HiveAdvisor 
+					{!frameId && <HiveAdvisor 
 						apiary={apiary}
 						hive={hive}
-						hiveId={hiveId} />
+						hiveId={hiveId} />}
 				</div>
 
 

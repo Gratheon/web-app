@@ -26,13 +26,16 @@ mutation generateHiveAdvice($hiveID: ID, $adviceContext: JSON, $langCode: String
 }
 `)
 
+	let showLoader = (loading || saving)
 	return <div>
 		<ErrorMsg error={errorGet || mutateError} />
-		<div style="display:flex;margin:20px auto">
+		<div style="display:flex;margin:20px auto;">
 			<div style="flex-grow:1; text-align:center;">
-				{(loading || saving) && <Loader />}
-				{!(loading || saving) && <div className={style.message}>
-					{!data?.getExistingHiveAdvice && <>...</>}
+				{showLoader && <Loader />}
+
+				{!showLoader && <div className={style.message}>
+					{!data?.getExistingHiveAdvice && <div>Need advice from AI?</div>}
+
 					{!data2 && data && data?.getExistingHiveAdvice &&
 						<div dangerouslySetInnerHTML={{ __html: data.getExistingHiveAdvice }} />}
 					{data2 && data2?.generateHiveAdvice &&
@@ -40,8 +43,9 @@ mutation generateHiveAdvice($hiveID: ID, $adviceContext: JSON, $langCode: String
 				</div>}
 			</div>
 
-			<div style="padding: 16px;text-align:center;">
+			<div style="padding: 16px;text-align:center;min-width:100px;">
 				<img src="/assets/beekeeper.png" style="width:60px; height: 60px;" />
+				<br />
 
 				<Button onClick={async () => {
 					setSaving(true)
@@ -58,10 +62,12 @@ mutation generateHiveAdvice($hiveID: ID, $adviceContext: JSON, $langCode: String
 						frames: {}
 					}
 					for (let i in boxes) {
-						let frames = Object.assign({},await getFrames({ boxId: +boxes[i].id }))
+						let frames = Object.assign({}, await getFrames({ boxId: +boxes[i].id }))
 						delete boxes[i].color
 
 						for (let j in frames) {
+							if(!frames[j].leftSide || !frames[j].rightSide) continue
+
 							frames[j].leftSide.cells = await getFrameSideCells(+frames[j].leftId)
 							frames[j].rightSide.cells = await getFrameSideCells(+frames[j].rightId)
 
@@ -83,7 +89,6 @@ mutation generateHiveAdvice($hiveID: ID, $adviceContext: JSON, $langCode: String
 						adviceContext['frames'][boxes[i].id] = frames
 					}
 
-					console.log({ adviceContext })
 					await generateAdvice({
 						hiveID: hiveId,
 						langCode: user.lang,
@@ -91,7 +96,7 @@ mutation generateHiveAdvice($hiveID: ID, $adviceContext: JSON, $langCode: String
 					})
 					setSaving(false)
 
-				}}>Need advice?</Button>
+				}}>Review</Button>
 			</div>
 		</div>
 	</div>

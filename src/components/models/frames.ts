@@ -23,7 +23,7 @@ export async function getFrame(id: number): Promise<Frame> {
 	}
 }
 
-export async function getFrames(where = {}): Promise<Frame[]> {
+export async function getFrames(where = {}): Promise<Frame[]|null> {
 	if (!where) return []
 	try {
 		const frames = await db['frame'].where(where).sortBy('position')
@@ -39,7 +39,7 @@ export async function getFrames(where = {}): Promise<Frame[]> {
 		return frames
 	} catch (e) {
 		console.error(e)
-		throw e
+		return null
 	}
 }
 

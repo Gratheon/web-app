@@ -12,12 +12,12 @@ export type FrameSideCells = {
 	broodPercent?: number
 }
 
-export async function getFrameSideCells(frameSideId: number): Promise<FrameSideCells> {
+export async function getFrameSideCells(frameSideId: number): Promise<FrameSideCells|null> {
 	try {
 		return await db['framesidecells'].get(+frameSideId)
 	} catch (e) {
 		console.error(e)
-		throw e
+		return null
 	}
 }
 

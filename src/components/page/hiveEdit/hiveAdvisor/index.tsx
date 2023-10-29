@@ -12,6 +12,7 @@ import { getFamilyByHive } from "@/components/models/family";
 import { getFrames } from "@/components/models/frames";
 import { getFrameSideCells } from "@/components/models/frameSideCells";
 import { getFrameSideFile } from "@/components/models/frameSideFile";
+import T from "@/components/shared/translate";
 
 export default function HiveAdvisor({ hiveId, apiary, hive }) {
 	let [saving, setSaving] = useState(false);
@@ -34,10 +35,11 @@ mutation generateHiveAdvice($hiveID: ID, $adviceContext: JSON, $langCode: String
 				{showLoader && <Loader />}
 
 				{!showLoader && <div className={style.message}>
-					{!data?.getExistingHiveAdvice && <div>Need advice from AI?</div>}
+					{!data?.getExistingHiveAdvice && !data2?.generateHiveAdvice && <div><T>Need advice from AI?</T></div>}
 
 					{!data2 && data && data?.getExistingHiveAdvice &&
 						<div dangerouslySetInnerHTML={{ __html: data.getExistingHiveAdvice }} />}
+
 					{data2 && data2?.generateHiveAdvice &&
 						<div dangerouslySetInnerHTML={{ __html: data2.generateHiveAdvice }} />}
 				</div>}
@@ -96,7 +98,7 @@ mutation generateHiveAdvice($hiveID: ID, $adviceContext: JSON, $langCode: String
 					})
 					setSaving(false)
 
-				}}>Review</Button>
+				}}><T>Review</T></Button>
 			</div>
 		</div>
 	</div>

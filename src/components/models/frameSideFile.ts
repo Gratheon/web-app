@@ -13,7 +13,7 @@ export type FrameSideFile = {
     queenDetected?: boolean
 }
 
-export async function getFrameSideFile({ frameSideId }): Promise<FrameSideFile> {
+export async function getFrameSideFile({ frameSideId }): Promise<FrameSideFile|null> {
     try {
         const row = await db['framesidefile'].get(+frameSideId)
         if (row) {
@@ -34,7 +34,7 @@ export async function getFrameSideFile({ frameSideId }): Promise<FrameSideFile> 
         console.error(e, {
             frameSideId
         })
-        throw e
+        return null
     }
 }
 

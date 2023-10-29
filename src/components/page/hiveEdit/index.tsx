@@ -22,6 +22,7 @@ import Frame from './frame'
 import styles from './styles.less'
 import Gate from '@/components/page/hiveEdit/gate'
 import MessageNotFound from '@/components/shared/messageNotFound'
+import HiveAdvisor from './hiveAdvisor'
 
 export default function HiveEditForm() {
 	let { apiaryId, hiveId, boxId, frameId, frameSideId } = useParams()
@@ -123,6 +124,11 @@ export default function HiveEditForm() {
 						hiveId={hiveId}
 						frameSideId={frameSideId}
 					/>
+
+					{!frameId && <HiveAdvisor 
+						apiary={apiary}
+						hive={hive}
+						hiveId={hiveId} />}
 				</div>
 
 

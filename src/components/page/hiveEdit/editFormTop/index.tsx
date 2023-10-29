@@ -11,11 +11,11 @@ import styles from './styles.less'
 
 import { useMutation } from '@/components/api'
 import { updateHive, getHive } from '@/components/models/hive'
-import { getBoxes, updateBox } from '@/components/models/boxes'
+import { Box, getBoxes, updateBox } from '@/components/models/boxes'
 import { getFamilyByHive, updateFamily } from '@/components/models/family'
 import Loader from '@/components/shared/loader'
 import ErrorMessage from '@/components/shared/messageError'
-import { Box, Family } from '@/components/api/schema'
+import { Family } from '@/components/api/schema'
 
 export default function HiveEditDetails({ hiveId }) {
 	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId])

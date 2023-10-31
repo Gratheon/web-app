@@ -7,6 +7,9 @@ export default gql`
 			strokeHistory
 			
 			detectedBees
+			detectedVarroa
+			varroaCount
+			
 			detectedQueenCount
 			detectedWorkerBeeCount
 			detectedDroneCount

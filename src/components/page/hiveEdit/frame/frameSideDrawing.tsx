@@ -10,10 +10,6 @@ import ErrorMessage from '@/components/shared/messageError'
 import styles from './styles.less'
 import DrawingCanvas from './drawingCanvas'
 import MetricList from './metricList'
-import Button from '@/components/shared/button'
-import QueenIcon from '@/icons/queenIcon'
-import Checkbox from '@/icons/checkbox'
-import T from '@/components/shared/translate'
 import { getFrameSideCells, updateFrameStat } from '@/components/models/frameSideCells'
 
 export default function FrameSideDrawing({
@@ -167,6 +163,8 @@ export default function FrameSideDrawing({
 					detectedQueenCups={frameSideFile.detectedQueenCups}
 					detectedBees={frameSideFile.detectedBees}
 					detectedCells={frameSideFile.detectedCells}
+					detectedVarroa={frameSideFile.detectedVarroa}
+
 					strokeHistory={frameSideFile.strokeHistory}
 					onStrokeHistoryUpdate={onStrokeHistoryUpdate}
 					frameSideFile={frameSideFile}

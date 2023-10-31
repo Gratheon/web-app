@@ -103,6 +103,7 @@ export default function FrameSide({
 			detectedBees: [],
 			detectedCells: [],
 			detectedQueenCups: [],
+			detectedVarroa: [],
 			counts: []
 		});
 

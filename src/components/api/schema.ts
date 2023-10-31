@@ -146,6 +146,7 @@ type Apiary {
     detectedBees: JSON
     detectedCells: JSON
     detectedQueenCups: JSON
+    detectedVarroa: JSON
 
     queenDetected: Boolean!
   }

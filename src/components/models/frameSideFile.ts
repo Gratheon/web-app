@@ -5,10 +5,18 @@ export type FrameSideFile = {
     hiveId?: any // internal
     fileId: number
     frameSideId: number
+
     strokeHistory: any
     detectedBees: any
     detectedCells: any
     detectedQueenCups: any
+    detectedVarroa: any
+
+    detectedQueenCount: number
+    detectedWorkerBeeCount: number
+    detectedDroneCount: number
+    varroaCount: number
+    
     counts: any
     queenDetected?: boolean
 }
@@ -27,6 +35,10 @@ export async function getFrameSideFile({ frameSideId }): Promise<FrameSideFile|n
 
             if (!row.detectedQueenCups) {
                 row.detectedQueenCups = []
+            }
+            
+            if (!row.detectedVarroa) {
+                row.detectedVarroa = []
             }
         }
         return row

@@ -136,6 +136,31 @@ function drawDetectedCells(detectedFrameCells, ctx, canvas) {
 	}
 }
 
+
+function drawDetectedVarroa(ctx, detectedVarroa, canvas) {
+	REL_PX = canvas.width / 1024
+	if (detectedVarroa.length > 0) {
+		for (let dt of detectedVarroa) {
+			let { c, h, n, w, x, y } = dt
+			ctx.globalAlpha = 0.5 + c / 100
+
+			ctx.beginPath()
+			ctx.strokeStyle = 'red'
+			ctx.lineWidth = 8 * REL_PX
+			ctx.arc(
+				x * canvas.width,
+				y * canvas.height,
+				w * canvas.width * 1.5,
+				0,
+				2 * Math.PI
+			)
+
+			ctx.stroke()
+		}
+		ctx.globalAlpha = 1
+	}
+}
+
 function drawQueenCups(queenCups, ctx, canvas) {
 	REL_PX = canvas.width / 1024
 	if (queenCups.length > 0) {
@@ -281,13 +306,12 @@ function drawCanvasLayers(
 	canvas,
 	ctx,
 	strokeHistory,
-	showBees,
-	showDrones,
-	detectedBees,
-	showCells,
-	detectedCells,
-	showQueenCups,
-	queenCups
+
+	showBees, showDrones, detectedBees,
+	showCells, detectedCells,
+	showQueenCups, queenCups,
+
+	showVarroa, detectedVarroa
 ) {
 	ctx.clearRect(0, 0, canvas.width, canvas.height)
 
@@ -297,6 +321,10 @@ function drawCanvasLayers(
 
 	if (showCells) {
 		drawDetectedCells(detectedCells, ctx, canvas)
+	}
+
+	if (showVarroa) {
+		drawDetectedVarroa(ctx, detectedVarroa, canvas)
 	}
 
 	if (showBees || showDrones) {
@@ -320,9 +348,12 @@ export default function DrawingCanvas({
 	imageUrl,
 	resizes,
 	strokeHistory,
+
 	detectedQueenCups,
 	detectedBees,
 	detectedCells,
+	detectedVarroa,
+
 	onStrokeHistoryUpdate,
 	frameSideFile,
 	frameMetrics,
@@ -337,6 +368,7 @@ export default function DrawingCanvas({
 	const [showDrones, setDroneVisibility] = useState(true)
 	const [showCells, setCellVisibility] = useState(true)
 	const [showQueenCups, setQueenCups] = useState(true)
+	const [showVarroa, setShowVarroa] = useState(true)
 	const [version, setVersion] = useState(0)
 	const [canvasUrl, setCanvasUrl] = useState(resizes && resizes.length > 0 ? resizes[0].url : imageUrl)
 
@@ -390,7 +422,9 @@ export default function DrawingCanvas({
 				showCells,
 				detectedCells,
 				showQueenCups,
-				detectedQueenCups
+				detectedQueenCups,
+				showVarroa,
+				detectedVarroa
 			)
 		}
 
@@ -529,7 +563,9 @@ export default function DrawingCanvas({
 			showCells,
 			detectedCells,
 			showQueenCups,
-			detectedQueenCups
+			detectedQueenCups,
+			showVarroa,
+			detectedVarroa
 		)
 
 		function handleScroll(event) {
@@ -601,7 +637,7 @@ export default function DrawingCanvas({
 		canvas.removeEventListener('wheel', handleScroll)
 		canvas.addEventListener('wheel', handleScroll)
 		return () => canvas.removeEventListener('wheel', handleScroll)
-	}, [imageUrl, version, showBees, showDrones, showCells, showQueenCups, detectedBees, detectedCells])
+	}, [imageUrl, version, showBees, showVarroa, showDrones, showCells, showQueenCups, detectedBees, detectedCells, detectedVarroa])
 
 
 	return (
@@ -625,6 +661,15 @@ export default function DrawingCanvas({
 				<div style="flex-grow:1"></div>
 
 				<div class={styles.buttonGrp}>
+					<Button onClick={() => { setShowVarroa(!showVarroa) }}>
+						{frameSideFile.isBeeDetectionComplete && <Checkbox on={showVarroa} />}
+						{!frameSideFile.isBeeDetectionComplete && <Loader size={0} />}
+						<span>
+							<T ctx="this is a button that toggles visibility of varroa destructor mites on an image">Varroa mites</T>
+							{frameSideFile.varroaCount > 0 && <>({frameSideFile.varroaCount})</>}
+						</span>
+					</Button>
+
 					<Button onClick={() => { setBeeVisibility(!showBees) }}>
 						{frameSideFile.isBeeDetectionComplete && <Checkbox on={showBees} />}
 						{!frameSideFile.isBeeDetectionComplete && <Loader size={0} />}

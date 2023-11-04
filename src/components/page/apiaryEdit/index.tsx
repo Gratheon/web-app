@@ -19,6 +19,9 @@ import MessageNotFound from '@/components/shared/messageNotFound'
 import DeleteIcon from '@/icons/deleteIcon'
 import T from '@/components/shared/translate'
 
+import style from './style.less'
+import PollinationTab from './pollinationTab'
+
 export default function ApiaryEditForm() {
 	let navigate = useNavigate()
 	let { id } = useParams()
@@ -26,6 +29,8 @@ export default function ApiaryEditForm() {
 	let [name, setName] = useState('')
 	let [lat, setLat] = useState(0)
 	let [lng, setLng] = useState(0)
+
+	let [mapTab, setMapTab] = useState(0)
 
 	let apiary = useLiveQuery(() => getApiary(+id), [id])
 
@@ -68,6 +73,13 @@ export default function ApiaryEditForm() {
 			}
 		}
 	`)
+	let [analyzeCrops, { error: error2, data: data2 }] = useMutation(gql`
+		mutation analyzeCropArea($id: ID!, $apiary: ApiaryInput!) {
+			analyzeCropArea(id: $id, apiary: $apiary) {
+				id
+			}
+		}
+	`)
 
 	// only initial load should set values, otherwise use state
 	if (apiary && name == '') {
@@ -83,6 +95,7 @@ export default function ApiaryEditForm() {
 
 
 	const [saving, setSaving] = useState(false)
+	const [analyzing, setAnalyzing] = useState(false)
 
 	async function onDeleteApiary() {
 		if (confirm('Are you sure?')) {
@@ -122,20 +135,20 @@ export default function ApiaryEditForm() {
 		setName(e.target.value)
 	}
 
+	let estonia_plane_map;
+
+	// conditionally show Estonia
+	if (lng > 21 && lng < 28 && lat > 57 && lat < 60) {
+		estonia_plane_map = <iframe style="width:100%;height:600px; border:0;" src="https://kls.pria.ee/kaart/"></iframe>
+	}
+
+	let satellite_map = <iframe style="width:100%;height:600px; border:0;" src={`https://apps.sentinel-hub.com/eo-browser/?zoom=15&lat=${lat}&lng=${lng}&themeId=DEFAULT-THEME&visualizationUrl=https%3A%2F%2Fservices.sentinel-hub.com%2Fogc%2Fwms%2Fbd86bcc0-f318-402b-a145-015f85b9427e&datasetId=S2L2A&fromTime=2023-09-14T00%3A00%3A00.000Z&toTime=2023-09-14T23%3A59%3A59.999Z&layerId=2_TONEMAPPED_NATURAL_COLOR&demSource3D=%22MAPZEN%22`}></iframe>
+	let moisture_map = <iframe style="width:100%;height:600px; border:0;" src={`https://dataspace.copernicus.eu/browser/?zoom=15&lat=${lat}&lng=${lng}&themeId=DEFAULT-THEME&visualizationUrl=https%3A%2F%2Fsh.dataspace.copernicus.eu%2Fogc%2Fwms%2Fa91f72b5-f393-4320-bc0f-990129bd9e63&datasetId=S2_L2A_CDAS&fromTime=2023-10-01T00%3A00%3A00.000Z&toTime=2023-10-01T23%3A59%3A59.999Z&layerId=5-MOISTURE-INDEX1&demSource3D=%22MAPZEN%22&cloudCoverage=30`}></iframe>
+
 	return (
 		<div>
 			{data && <OkMsg />}
 			<ErrorMsg error={error || errorGet} />
-
-			<Map
-				lat={lat}
-				lng={lng}
-				autoLocate={autoLocate}
-				onMarkerSet={(coords) => {
-					setLat(coords.lat)
-					setLng(coords.lng)
-				}}
-			/>
 
 			<div style="padding:20px;">
 				<VisualForm onSubmit={onSubmit.bind(this)}>
@@ -150,27 +163,65 @@ export default function ApiaryEditForm() {
 								onInput={onNameChange}
 								value={name}
 							/>
-							{/* <a
-								target="_blank"
-								href={`https://www.google.com/maps/@${lat},${lng},16z/data=!3m1!1e3`}
-								rel="noreferrer"
-							>
-								Google maps
-							</a> */}
 						</div>
 					</div>
 
 					<VisualFormSubmit>
 
 						<Button className="red" loading={saving} onClick={onDeleteApiary}><DeleteIcon /><span><T>Delete</T></span></Button>
+						<Button type="submit" loading={saving} className="green"><T>Save</T></Button>
+
+
 						<Button
 							onClick={() => {
 								setAutoLocate(!autoLocate)
 							}}
 						><T>Locate me</T></Button>
-						<Button type="submit" loading={saving} className="green"><T>Save</T></Button>
+						<Button
+							onClick={async () => {
+								setAnalyzing(true);
+								await analyzeCrops();
+								setAnalyzing(false)
+							}}
+							loading={analyzing}
+							className="green"><T>Analyze crops</T></Button>
+
 					</VisualFormSubmit>
 				</VisualForm>
+
+				<PollinationTab />
+				
+				<div className={style.tab} onClick={() => { setMapTab(0) }}>Position</div>
+				<div className={style.tab} onClick={() => { setMapTab(1) }}>Satellite</div>
+				<div className={style.tab} onClick={() => { setMapTab(3) }}>Moisture</div>
+				<div className={style.tab} onClick={() => { setMapTab(2) }}>High resolution</div>
+
+				{mapTab == 0 && <Map
+					lat={lat}
+					lng={lng}
+					autoLocate={autoLocate}
+					onMarkerSet={(coords) => {
+						setLat(coords.lat)
+						setLng(coords.lng)
+					}}
+				/>}
+
+				{mapTab == 1 && satellite_map}
+				{mapTab == 2 && estonia_plane_map}
+				{mapTab == 3 && moisture_map}
+
+
+				<div>
+					Metadata: lat={lat}, lng={lng}.
+					<a
+						target="_blank"
+						href={`https://www.google.com/maps/@${lat},${lng},16z/data=!3m1!1e3`}
+						rel="noreferrer"
+					>
+						Google maps
+					</a>
+
+				</div>
 
 				{apiary && <Weather lat={lat} lng={lng} />}
 				{apiary && <Plants lat={lat} lng={lng} />}

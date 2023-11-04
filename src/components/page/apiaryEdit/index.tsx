@@ -20,6 +20,7 @@ import DeleteIcon from '@/icons/deleteIcon'
 import T from '@/components/shared/translate'
 
 import style from './style.less'
+import PollinationTab from './pollinationTab'
 
 export default function ApiaryEditForm() {
 	let navigate = useNavigate()
@@ -176,19 +177,20 @@ export default function ApiaryEditForm() {
 								setAutoLocate(!autoLocate)
 							}}
 						><T>Locate me</T></Button>
-						<Button 
+						<Button
 							onClick={async () => {
 								setAnalyzing(true);
 								await analyzeCrops();
 								setAnalyzing(false)
 							}}
-							loading={analyzing} 
+							loading={analyzing}
 							className="green"><T>Analyze crops</T></Button>
 
 					</VisualFormSubmit>
 				</VisualForm>
 
-
+				<PollinationTab />
+				
 				<div className={style.tab} onClick={() => { setMapTab(0) }}>Position</div>
 				<div className={style.tab} onClick={() => { setMapTab(1) }}>Satellite</div>
 				<div className={style.tab} onClick={() => { setMapTab(3) }}>Moisture</div>

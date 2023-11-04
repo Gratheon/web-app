@@ -101,7 +101,7 @@ const Map = ({ lat = null, lng = null, autoLocate = false, onMarkerSet }) => {
 	return (
 		<div>
 			<MapContainer
-				style={{ width: '100%', height: 300 }}
+				style={{ width: '100%', height: 600 }}
 				center={[lat, lng]}
 				zoom={15}
 				zoomControl={true}

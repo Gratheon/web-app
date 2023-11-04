@@ -22,6 +22,7 @@ import T from '@/components/shared/translate'
 import style from './style.less'
 import PollinationTab from './pollinationTab'
 
+
 export default function ApiaryEditForm() {
 	let navigate = useNavigate()
 	let { id } = useParams()
@@ -73,13 +74,6 @@ export default function ApiaryEditForm() {
 			}
 		}
 	`)
-	let [analyzeCrops, { error: error2, data: data2 }] = useMutation(gql`
-		mutation analyzeCropArea($id: ID!, $apiary: ApiaryInput!) {
-			analyzeCropArea(id: $id, apiary: $apiary) {
-				id
-			}
-		}
-	`)
 
 	// only initial load should set values, otherwise use state
 	if (apiary && name == '') {
@@ -95,7 +89,6 @@ export default function ApiaryEditForm() {
 
 
 	const [saving, setSaving] = useState(false)
-	const [analyzing, setAnalyzing] = useState(false)
 
 	async function onDeleteApiary() {
 		if (confirm('Are you sure?')) {
@@ -139,7 +132,7 @@ export default function ApiaryEditForm() {
 
 	// conditionally show Estonia
 	if (lng > 21 && lng < 28 && lat > 57 && lat < 60) {
-		estonia_plane_map = <iframe style="width:100%;height:600px; border:0;" src="https://kls.pria.ee/kaart/"></iframe>
+		estonia_plane_map = <iframe style="width:100%;height:600px; border:0;" src={`https://kls.pria.ee/kaart/`}></iframe>
 	}
 
 	let satellite_map = <iframe style="width:100%;height:600px; border:0;" src={`https://apps.sentinel-hub.com/eo-browser/?zoom=15&lat=${lat}&lng=${lng}&themeId=DEFAULT-THEME&visualizationUrl=https%3A%2F%2Fservices.sentinel-hub.com%2Fogc%2Fwms%2Fbd86bcc0-f318-402b-a145-015f85b9427e&datasetId=S2L2A&fromTime=2023-09-14T00%3A00%3A00.000Z&toTime=2023-09-14T23%3A59%3A59.999Z&layerId=2_TONEMAPPED_NATURAL_COLOR&demSource3D=%22MAPZEN%22`}></iframe>
@@ -177,20 +170,12 @@ export default function ApiaryEditForm() {
 								setAutoLocate(!autoLocate)
 							}}
 						><T>Locate me</T></Button>
-						<Button
-							onClick={async () => {
-								setAnalyzing(true);
-								await analyzeCrops();
-								setAnalyzing(false)
-							}}
-							loading={analyzing}
-							className="green"><T>Analyze crops</T></Button>
 
 					</VisualFormSubmit>
 				</VisualForm>
 
-				<PollinationTab />
-				
+				<PollinationTab lat={lat} lng={lng} />
+
 				<div className={style.tab} onClick={() => { setMapTab(0) }}>Position</div>
 				<div className={style.tab} onClick={() => { setMapTab(1) }}>Satellite</div>
 				<div className={style.tab} onClick={() => { setMapTab(3) }}>Moisture</div>

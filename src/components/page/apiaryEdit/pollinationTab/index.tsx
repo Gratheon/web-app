@@ -35,18 +35,19 @@ export default function PollinationTab({
 		<h3>Pollination map</h3>
 
 		{!loaded && <p>
-			We can classify satellite imagery to classify fields and forest areas by type. 
+			We can classify satellite imagery to classify fields and forest areas by type.
 			By knowing environment, you can predict nectar flow, honey composition and optimize for pollen diversity for bee health.
 			Position your hives for max efficiency of pollination.
-			</p>}
+		</p>}
 
-		{loaded && <div style="color:orange; padding:5px; border:1px solid orange;">
+		{loaded && <div style="color:red; padding:5px; border:1px solid red;border-radius:3px;margin: 5px 0;">
 			Warning! Industrial plant detected<br />
 			Warning! Pollen diversity is too low for healthy bee colony
 		</div>}
 
-		<div style="display:flex;">
-			{loaded &&
+		{loaded && <div>
+
+			<div style="max-height:250px;overflow: auto;">
 				<table className={style.table}>
 					<tr>
 						<th></th>
@@ -76,8 +77,8 @@ export default function PollinationTab({
 								{icons[i]}
 							</td>
 							<td>{k}</td>
-							<td>{Math.floor(Math.random()*10)}%</td>
-							<td>{Math.floor(Math.random()*100)}</td>
+							<td>{Math.floor(Math.random() * 10)}%</td>
+							<td>{Math.floor(Math.random() * 100)}</td>
 
 
 							<th></th>
@@ -89,16 +90,16 @@ export default function PollinationTab({
 							<th></th>
 						</tr>)
 					})}
-
-					<tr>
-						<td></td>
-						<td style="border-top:2px solid black;">Expected nectar</td>
-						<td style="border-top:2px solid black;"></td>
-						<td style="border-top:2px solid black;font-weight:bold;">80 kg / month</td>
-					</tr>
 				</table>
-			}
+			</div>
+
+
+			<div style="font-size: 20px; background: green; color:white; font-weight: bold; padding: 10px; text-align:center;">
+					Expected nectar: 80kg
+				</div>
 		</div>
+		}
+
 		{apr &&
 			<div style="display: flex;">
 				<table>

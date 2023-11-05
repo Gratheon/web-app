@@ -104,18 +104,15 @@ export default function PollinationTab({
 				<table>
 					<tr>
 						<th>April</th>
+						<th>Pollination map</th>
 						<th>May</th>
-						<th>June</th>
 					</tr>
 					<tr>
 						<td><img src={apr} alt="Base64 Image" /></td>
-						<td><img src={may} alt="Base64 Image" /></td>
 						<td>
-							<div style="background:url('https://gratheon.com/example.png') center;width:512px;height:512px;">
-
-							</div>
-							{/* <img src={jun} alt="Base64 Image" /> */}
+							<div style="background:url('https://gratheon.com/example.png') center;width:512px;height:512px;"></div>
 						</td>
+						<td><img src={may} alt="Base64 Image" /></td>
 					</tr>
 				</table>
 

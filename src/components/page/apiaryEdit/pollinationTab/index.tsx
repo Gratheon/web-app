@@ -27,10 +27,19 @@ export default function PollinationTab({
 	const [apr, setApr] = useState('')
 	const [may, setMay] = useState('')
 	const [jun, setJun] = useState('')
+	const [class_names_en, setClsNames] = useState([])
+	const [icons, setIcons] = useState([])
 
 
 	return <div style="padding:20px;">
-		<h3>Pollination area</h3>
+		<h3>Pollination map</h3>
+
+		{!loaded && <p>
+			We can classify satellite imagery to classify fields and forest areas by type. 
+			By knowing environment, you can predict nectar flow, honey composition and optimize for pollen diversity for bee health.
+			Position your hives for max efficiency of pollination.
+			</p>}
+
 		{loaded && <div style="color:orange; padding:5px; border:1px solid orange;">
 			Warning! Industrial plant detected<br />
 			Warning! Pollen diversity is too low for healthy bee colony
@@ -60,152 +69,58 @@ export default function PollinationTab({
 						<th>Sep</th>
 						<th>Oct</th>
 					</tr>
-					<tr>
-						<td><div style="background:yellow;width:15px;height:15px;"></div></td>
-						<td>barley</td>
-						<td>10%</td>
-						<td>20</td>
+
+					{class_names_en.map((k, i) => {
+						return (<tr>
+							<td>
+								{icons[i]}
+							</td>
+							<td>{k}</td>
+							<td>{Math.floor(Math.random()*10)}%</td>
+							<td>{Math.floor(Math.random()*100)}</td>
 
 
-						<th></th>
-						<th>🟩</th>
-						<th>🟩</th>
-						<th></th>
-						<th></th>
-						<th></th>
-						<th></th>
-					</tr>
-					<tr>
-						<td><div style="background:yellow;width:15px;height:15px;"></div></td>
-						<td>corn</td>
-						<td>10%</td>
-						<td>60</td>
+							<th></th>
+							<th>🟩</th>
+							<th>🟩</th>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+						</tr>)
+					})}
 
-
-						<th></th>
-						<th>🟩</th>
-						<th>🟩</th>
-						<th></th>
-						<th></th>
-						<th></th>
-						<th></th>
-					</tr>
-					<tr>
-						<td><div style="background:yellow;width:15px;height:15px;"></div></td>
-						<td>buckwheat</td>
-						<td>20%</td>
-						<td>80</td>
-
-
-						<th></th>
-						<th>🟩</th>
-						<th>🟩</th>
-						<th></th>
-						<th></th>
-						<th></th>
-						<th></th>
-					</tr>
-					<tr>
-						<td><div style="background:green;width:15px;height:15px;"></div></td>
-						<td>clover</td>
-						<td>15%</td>
-
-						<th>100</th>
-						<th>🟩</th>
-						<th>🟩</th>
-						<th>🟩</th>
-						<th>🟩</th>
-						<th></th>
-						<th></th>
-					</tr>
-					<tr>
-						<td><div style="background:purple;width:15px;height:15px;"></div></td>
-						<td>heather (Calluna vulgaris)</td>
-						<td>15%</td>
-						<td>60—100</td>
-
-						<th></th>
-						<th>🟩</th>
-						<th>🟩</th>
-						<th></th>
-						<th></th>
-						<th></th>
-						<th></th>
-					</tr>
-					<tr>
-						<td><div style="background:lime;width:15px;height:15px;"></div></td>
-						<td>wild grassland</td>
-						<td>5%</td>
-						<td>20</td>
-
-						<th></th>
-						<th>🟩</th>
-						<th>🟩</th>
-						<th>🟩</th>
-						<th>🟩</th>
-						<th>🟩</th>
-						<th></th>
-					</tr>
-					<tr>
-						<td><div style="background:black;width:15px;height:15px;"></div></td>
-						<td>forest</td>
-						<td>5%</td>
-						<td>40</td>
-
-						<th></th>
-						<th>🟩</th>
-						<th>🟩</th>
-						<th></th>
-						<th></th>
-						<th></th>
-						<th></th>
-					</tr>
-					<tr>
-						<td><div style="background:blue;width:15px;height:15px;"></div></td>
-						<td>river</td>
-						<td>5%</td>
-						<td>40</td>
-					</tr>
-					<tr>
-						<td><div style="background:light-gray;width:15px;height:15px;"></div></td>
-						<td>road</td>
-						<td>8%</td>
-						<td>0</td>
-					</tr>
-					<tr>
-						<td><div style="background:gray;width:15px;height:15px;"></div></td>
-						<td>building</td>
-						<td>2%</td>
-						<td>0</td>
-					</tr>
 					<tr>
 						<td></td>
 						<td style="border-top:2px solid black;">Expected nectar</td>
 						<td style="border-top:2px solid black;"></td>
-						<td style="border-top:2px solid black;">80 kg / month</td>
+						<td style="border-top:2px solid black;font-weight:bold;">80 kg / month</td>
 					</tr>
 				</table>
 			}
-
-
-			{loaded && <img src="https://gratheon.com/gif.gif" />}
 		</div>
 		{apr &&
-				<div style="display: flex;">
-					<table>
-						<tr>
-							<th>April</th>
-							<th>May</th>
-							<th>June</th>
-						</tr>
-						<tr>
-							<td><img src={apr} alt="Base64 Image" /></td>
-							<td><img src={may} alt="Base64 Image" /></td>
-							<td><img src={jun} alt="Base64 Image" /></td>
-						</tr>
-					</table>
-					
-				</div>}
+			<div style="display: flex;">
+				<table>
+					<tr>
+						<th>April</th>
+						<th>May</th>
+						<th>June</th>
+					</tr>
+					<tr>
+						<td><img src={apr} alt="Base64 Image" /></td>
+						<td><img src={may} alt="Base64 Image" /></td>
+						<td>
+							<div style="background:url('https://gratheon.com/example.png') center;width:512px;height:512px;">
+
+							</div>
+							{/* <img src={jun} alt="Base64 Image" /> */}
+						</td>
+					</tr>
+				</table>
+
+			</div>}
+
 		<Button
 			onClick={async () => {
 				setAnalyzing(true);
@@ -216,9 +131,13 @@ export default function PollinationTab({
 					throw new Error('Network response was not ok');
 				}
 				let parsedJSON = await response.json();
+
 				setApr('data:image/png;base64,' + parsedJSON?.apr)
 				setMay('data:image/png;base64,' + parsedJSON?.may)
 				setJun('data:image/png;base64,' + parsedJSON?.jun)
+
+				setClsNames(parsedJSON?.class_names_en)
+				setIcons(parsedJSON?.icons)
 
 				setAnalyzing(false)
 				setLoaded(true);

@@ -23,7 +23,9 @@ export default function PollinationTab({
 	lat, lng
 }) {
 	const [analyzing, setAnalyzing] = useState(false)
-	const [img, setImg] = useState('')
+	const [apr, setApr] = useState('')
+	const [may, setMay] = useState('')
+	const [jun, setJun] = useState('')
 
 
 	return <div style="padding:20px;">
@@ -184,7 +186,12 @@ export default function PollinationTab({
 				</tr>
 			</table>
 
-			{img && <img src={img} alt="Base64 Image" />}
+			{apr && 
+				<div style="display: flex;">
+					<img src={apr} alt="Base64 Image" />
+					<img src={may} alt="Base64 Image" />
+					<img src={jun} alt="Base64 Image" />
+				</div>}
 		</div>
 		<Button
 			onClick={async () => {
@@ -195,7 +202,9 @@ export default function PollinationTab({
 					throw new Error('Network response was not ok');
 				}
 				let parsedJSON = await response.json();
-				setImg('data:image/png;base64,' + parsedJSON?.image_base64)
+				setApr('data:image/png;base64,' + parsedJSON?.apr)
+				setMay('data:image/png;base64,' + parsedJSON?.may)
+				setJun('data:image/png;base64,' + parsedJSON?.jun)
 
 				setAnalyzing(false)
 			}}

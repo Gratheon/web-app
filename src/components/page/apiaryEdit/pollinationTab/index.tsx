@@ -31,21 +31,19 @@ export default function PollinationTab({
 	const [icons, setIcons] = useState([])
 
 
-	return <div style="padding:20px;">
-		<h3>Pollination map</h3>
-
-		{!loaded && <p>
+	return <div style="padding:20px;text-align:center;min-height: 300px;">
+		{/* {!loaded && false && <p>
 			We can classify satellite imagery to classify fields and forest areas by type.
 			By knowing environment, you can predict nectar flow, honey composition and optimize for pollen diversity for bee health.
 			Position your hives for max efficiency of pollination.
-		</p>}
+		</p>} */}
 
-		{loaded && <div style="color:red; padding:5px; border:1px solid red;border-radius:3px;margin: 5px 0;">
+		{/* {loaded && false && <div style="color:red; padding:5px; border:1px solid red;border-radius:3px;margin: 5px 0;">
 			Warning! Industrial plant detected<br />
 			Warning! Pollen diversity is too low for healthy bee colony
-		</div>}
+		</div>} */}
 
-		{loaded && <div>
+		{/* {loaded && <div>
 
 			<div style="max-height:250px;overflow: auto;">
 				<table className={style.table}>
@@ -98,22 +96,24 @@ export default function PollinationTab({
 					Expected nectar: 80kg
 				</div>
 		</div>
-		}
+		} */}
 
 		{apr &&
 			<div style="display: flex;">
 				<table>
 					<tr>
 						<th>April</th>
-						<th>Pollination map</th>
+						{/* <th>Pollination map</th> */}
 						<th>May</th>
+						<th>June</th>
 					</tr>
 					<tr>
 						<td><img src={apr} alt="Base64 Image" /></td>
-						<td>
+						{/* <td>
 							<div style="background:url('https://gratheon.com/example.png') center;width:512px;height:512px;"></div>
-						</td>
+						</td> */}
 						<td><img src={may} alt="Base64 Image" /></td>
+						<td><img src={jun} alt="Base64 Image" /></td>
 					</tr>
 				</table>
 
@@ -141,6 +141,6 @@ export default function PollinationTab({
 				setLoaded(true);
 			}}
 			loading={analyzing}
-			className="green"><T>Analyze crops</T></Button>
+			className="green"><T>Load historical field map</T></Button>
 	</div>
 }

@@ -1,0 +1,28 @@
+@import '../../layout.less';
+
+.tab {
+	border-radius: 5px;
+	display: inline;
+	padding: 8px 15px;
+	cursor: pointer;
+}
+
+.selected {
+	background: green;
+	color: white;
+}
+.tabBar {
+	display: flex;
+	flex-wrap: wrap;
+	padding-left: 5px;
+}
+
+// ipad and desktop
+@media all and (min-width: @maxMobileWidthPx) {
+	.tab {
+		border-radius: 5px 5px 0 0;
+	}
+	.tabBar {
+		padding-left: 20px;
+	}
+}

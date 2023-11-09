@@ -11,6 +11,7 @@ import { getAppUri } from '@/components/uri'
 import T from '@/components/shared/translate'
 import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
 import { logout } from '@/components/user'
+import { Link } from 'react-router-dom'
 
 type Account = {
 	email?: string
@@ -113,6 +114,8 @@ export default function AccountAuth() {
 					</Button>
 				</VisualFormSubmit>
 			</VisualForm>
+
+			<div style="margin-top:15px;border-top:1px solid #ccc; text-align:center;padding-top:15px;color:gray;">Not a user?	<Link to="/account/register">Register</Link></div>
 		</div>
 	)
 }

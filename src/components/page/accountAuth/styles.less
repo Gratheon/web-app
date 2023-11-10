@@ -1,0 +1,72 @@
+.loginPage {
+	background: url('https://gratheon.s3-accelerate.amazonaws.com/www/login.webp');
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: cover;
+	height: 100%;
+	box-sizing: border-box;
+	display: flex;
+
+	.loginModal {
+		width: 400px;
+		margin: auto;
+
+		.loginModalWithLogo{
+			display:flex;
+
+			.balancer{
+				flex-basis: 60px;
+				flex-shrink:1;
+			}
+		}
+
+		#logo {
+			width: 60px;
+			height: 60px;
+			display: block;
+			background: white;
+			border-radius: 10px 0 0 10px;
+			margin-top:20px;
+			padding: 5px;
+			// border: 1px solid rgb(242, 255, 0);
+		}
+
+		.loginModalInternal {
+			border-radius: 5px;
+			background: white;
+			padding: 15px;
+			flex-grow:1;
+			// border: 1px solid rgb(242, 255, 0);
+
+			form {
+				input {
+					padding: 8px 10px;
+					margin-bottom: 8px;
+					border: 2px solid rgb(232, 232, 232);
+					font-size:15px;
+
+					&::placeholder {
+						color: rgb(95, 95, 95);
+					}
+				}
+
+				button {
+					margin-top: 5px;
+					width: 100%;
+					text-align: center;
+				}
+			}
+		}
+	}
+}
+
+.linkToRegister {
+	margin-top: 5px;
+	text-align: center;
+	color: gray;
+
+	a,
+	a:visited {
+		color: white;
+	}
+}

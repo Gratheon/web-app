@@ -13,6 +13,8 @@ import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
 import { logout } from '@/components/user'
 import { Link } from 'react-router-dom'
 
+import style from './styles.less'
+
 type Account = {
 	email?: string
 	password?: string
@@ -67,7 +69,7 @@ export default function AccountAuth() {
 		// clear DB on login and on logout to have consistent structure in case of alters
 		saveToken(data.login.key)
 
-		if(data.login.user.id) metrics.setUserId(data.login.user.id);
+		if (data.login.user.id) metrics.setUserId(data.login.user.id);
 		metrics.trackLogin()
 
 		//@ts-ignore
@@ -82,40 +84,48 @@ export default function AccountAuth() {
 	}
 
 	return (
-		<div style={{ padding: 15, width: '300px' }}>
-			{errorMsg}
-			<VisualForm onSubmit={onSubmit}>
-				<div>
-					<label htmlFor="email" style="width:100px;"><T>Email</T></label>
-					<input
-						style="width:100%;"
-						name="email"
-						type="email"
-						id="email"
-						value={account.email}
-						onChange={onInput}
-					/>
-				</div>
-				<div>
-					<label htmlFor="password"><T>Password</T></label>
-					<input
-						style="width:100%;"
-						name="password"
-						id="password"
-						type="password"
-						value={account.password}
-						onChange={onInput}
-					/>
-				</div>
+		<div className={style.loginPage}>
+			<div className={style.loginModal}>
+				<div className={style.loginModalWithLogo}>
+					<img src="/assets/logo_v5.svg" id={style.logo} draggable={false} />
 
-				<VisualFormSubmit>
-					<Button type="submit" className="green" onClick={onSubmit}>
-						<T>Login</T>
-					</Button>
-				</VisualFormSubmit>
-			</VisualForm>
+					<div className={style.loginModalInternal}>
+						{errorMsg}
+						<form method="POST" onSubmit={onSubmit}>
+							<div>
+								<input
+									style="width:100%;"
+									name="email"
+									type="email"
+									id="email"
+									placeholder="Email"
+									value={account.email}
+									onChange={onInput}
+								/>
+							</div>
+							<div>
+								<input
+									style="width:100%;"
+									name="password"
+									id="password"
+									type="password"
+									placeholder="Password"
+									value={account.password}
+									onChange={onInput}
+								/>
+							</div>
 
-			<div style="margin-top:15px;border-top:1px solid #ccc; text-align:center;padding-top:15px;color:gray;">Not a user?	<Link to="/account/register">Register</Link></div>
+							<VisualFormSubmit>
+								<Button type="submit" className="green" onClick={onSubmit}>
+									<T>Log In</T>
+								</Button>
+							</VisualFormSubmit>
+						</form>
+					</div>
+					<div className={style.balancer}></div>
+				</div>
+				<div className={style.linkToRegister}><Link to="/account/register"><T>Create new account</T></Link></div>
+			</div>
 		</div>
 	)
 }

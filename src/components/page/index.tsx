@@ -26,17 +26,11 @@ function LoggedInPage({ children }) {
 	</div>
 }
 
-function ModalPage({ children }) {
-	return <div style="max-width:300px; padding-top: 200px; margin: auto;">
-		<img src="/assets/logo_v5.svg" style="width:60px;  display: block; margin-left: auto;margin-right: auto;" draggable={false} />
-		{children}
-	</div>
-}
-
 export default function Page() {
 	return (
 			<Routes>
-				<Route path="/account/authenticate" element={<ModalPage><AccountAuth /></ModalPage>} />
+				<Route path="/account/authenticate" element={<AccountAuth />} />
+
 				<Route path="/account/register" element={<AccountRegister />} />
 				<Route path="/apiaries/create" element={<LoggedInPage><ApiaryCreate /></LoggedInPage>} />
 				<Route path="/apiaries/edit/:id" element={<LoggedInPage><ApiaryEditForm /></LoggedInPage>} />

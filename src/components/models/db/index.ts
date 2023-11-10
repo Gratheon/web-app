@@ -3,11 +3,13 @@ import Dexie from 'dexie'
 import { addCustomIndexes } from './addCustomIndexes'
 
 const DB_NAME = 'gratheon'
-export const db = new Dexie(DB_NAME)
+export const db = new Dexie(DB_NAME, {
+	autoOpen: true
+})
 Dexie.debug = 'dexie'
 
 export async function dropDatabase(){
-	return db.delete()
+	return await db.delete()
 }
 
 export function syncGraphqlSchemaToIndexDB(schemaObject) {

@@ -26,6 +26,8 @@ export default function AccountAuth() {
 		password: ''
 	})
 
+	let [loading, setLoading] = useState(false)
+
 	function onInput(e: any) {
 		const { name, value } = e.target
 		account[name] = value;
@@ -48,15 +50,16 @@ export default function AccountAuth() {
 		}
 	`)
 
-	function onSubmit(e: React.ChangeEvent<HTMLFormElement>) {
+	async function onSubmit(e: React.ChangeEvent<HTMLFormElement>) {
 		e.preventDefault()
+		setLoading(true)
 
-		logout().then(() => {
-			accountAuth({
-				email: account.email,
-				password: account.password,
-			})
+		await logout()
+		await accountAuth({
+			email: account.email,
+			password: account.password,
 		})
+		setLoading(false)
 	}
 
 	if (!account) {
@@ -116,7 +119,11 @@ export default function AccountAuth() {
 							</div>
 
 							<VisualFormSubmit>
-								<Button type="submit" className="green" onClick={onSubmit}>
+								<Button 
+									loading={loading}
+									type="submit" 
+									className="green" 
+									onClick={onSubmit}>
 									<T>Log In</T>
 								</Button>
 							</VisualFormSubmit>

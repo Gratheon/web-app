@@ -28,7 +28,7 @@ const Menu = ({ isLoggedIn = false }) => {
 					</li>
 					<li>
 						<NavLink activeClassName={styles.active} to="/account/register">
-							Registration``
+							Registration
 						</NavLink>
 					</li>
 					{/*<li>*/}

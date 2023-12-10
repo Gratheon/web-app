@@ -104,7 +104,11 @@ export default function FrameSide({
 			detectedCells: [],
 			detectedQueenCups: [],
 			detectedVarroa: [],
-			counts: []
+			counts: [],
+			detectedQueenCount: 0,
+			detectedWorkerBeeCount: 0,
+			detectedDroneCount: 0,
+			varroaCount: 0
 		});
 
 		metrics.trackFramePhotoUploaded()

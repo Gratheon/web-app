@@ -5,8 +5,8 @@ import ErrorMsg from '@/components/shared/messageError'
 import Button from '@/components/shared/button';
 import { gql, useQuery, useMutation } from '@/components/api/index'
 import Loader from '@/components/shared/loader'
-import { gatewayUri } from '@/components/uri'
 import T from '@/components/shared/translate';
+import style from './style.less'
 
 interface Token {
 	id: number;
@@ -63,41 +63,29 @@ const TokenList: React.FC = () => {
 		// You can provide some feedback to the user that the token was copied, e.g., a toast or a message.
 	};
 
-	const gate_url = gatewayUri()
-	const htmlCode = `curl --location '${gate_url}' \\
---header 'Content-Type: application/json' \\
---data '{"query":"{ apiaries { id name } }"}' \\
---header 'Authorization: Bearer API_TOKEN_HERE'`;
-
-	const style = "background-color:#babca9; font-size:12px;padding:3px 5px; border-radius:3px;font-family:Consolas,Monospace;margin:0;"
 	return (
-		<div style="padding:10px">
+		<div style="padding:10px;border: 1px solid gray;border-radius:5px;margin-bottom: 5px;">
 			<h3><T>API tokens</T></h3>
+			<p>
+				<T>API tokens are used to authenticate your requests to our API. You can create multiple tokens to use in different applications.</T>
+				See <a href="https://github.com/Gratheon/graphql-router?tab=readme-ov-file#authentication">documentation</a> on how to access API
+			</p>
 			<ErrorMsg error={error || generationError} />
 
-			<table>
-				<tbody>
-					{tokens.map((token) => (
-						<tr key={token.id}>
-							<td style="min-width:200px">
-								<div style={style}>
-									{hiddenTokens.includes(token.id) ? '*'.repeat(token.token.length) : token.token}
-								</div>
-							</td>
-							<td>
-								<Button className='small' onClick={() => copyToken(token.token)}><T>Copy</T></Button>
-								<Button className='small' onClick={() => toggleToken(token.id)}><T>Toggle</T></Button>
-							</td>
-						</tr>
-					))}
-				</tbody>
-			</table>
-			<Button className='green' loading={generatingToken} onClick={onGenerateToken}><T>Generate</T></Button>
-
-			<p><T>You can use raspberry PI client or access API directly with API tokens</T></p>
-			
-			<pre style={`${style}`} dangerouslySetInnerHTML={{ __html: htmlCode }} />
-			<Button onClick={() => copy(htmlCode)}><T>Copy</T></Button>
+			{tokens.map((token) => (
+				<div key={token.id} className={style.apiToken}>
+					<div style="min-width:200px">
+						<div className={style.token}>
+							{hiddenTokens.includes(token.id) ? '*'.repeat(token.token.length) : token.token}
+						</div>
+					</div>
+					<div className={style.buttons}>
+						<Button className='small' onClick={() => toggleToken(token.id)}><T>Toggle</T></Button>
+						<Button className='small' onClick={() => copyToken(token.token)}><T>Copy</T></Button>
+					</div>
+				</div>
+			))}
+			<Button className='green' loading={generatingToken} onClick={onGenerateToken}><T>Generate</T></Button>			
 			
 		</div>
 	);

@@ -1,0 +1,26 @@
+@import '../../../layout.less';
+
+.apiToken {
+	display: block;
+	margin-bottom: 10px;
+
+	.token {
+		background-color: lightgray;
+		padding: 3px 5px;
+		border-radius: 3px;
+		font-family: Consolas, Monospace;
+		margin: 0;
+	}
+
+	.buttons{
+		text-align: center;
+	}
+}
+
+// ipad and desktop
+@media all and (min-width: @maxMobileWidthPx) {
+	.apiToken {
+		display: flex;
+		padding: 5px;
+	}
+}

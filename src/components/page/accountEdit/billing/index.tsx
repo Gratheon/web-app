@@ -55,8 +55,8 @@ export default function Billing({ user }) {
 	) : null
 
 	return (
-		<div style="margin-top:20px;">
-			<h2><T ctx="this is a headline for billing form">Billing</T></h2>
+		<div style="margin-bottom:5px; border: 1px dotted gray; padding: 10px; border-radius: 5px;">
+			<h3><T ctx="this is a headline for billing form">Billing</T></h3>
 
 			{expirationError}
 			{error && <MessageError error={error} />}
@@ -68,10 +68,6 @@ export default function Billing({ user }) {
 			{stripeStatus === 'cancel' && <MessageError error="Payment cancelled" />}
 			<div
 				style={{
-					fontSize: 12,
-					borderRadius: 5,
-					border: '1px dotted gray',
-					padding: 20,
 					display: 'flex',
 				}}
 			>

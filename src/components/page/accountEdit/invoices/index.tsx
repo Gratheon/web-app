@@ -33,7 +33,7 @@ export default function Invoices() {
 	return (
 		<div>
 			{invoices?.invoices?.length > 0 && (
-				<div style={{ margin: '10px 0' }}>
+				<div style="margin-bottom:5px">
 					<h3>Invoices</h3>
 					<table>
 						<thead style={{ fontSize: 10 }}>

@@ -19,3 +19,15 @@ deploy-copy:
 deploy:
 	deploy-copy
 	deploy-run
+
+test-ui:
+	npx playwright test --ui
+
+test-ui-headless:
+	npx playwright test
+
+test-ui-create:
+	npx playwright codegen
+
+test-ui-report:
+	npx playwright show-report

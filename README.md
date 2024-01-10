@@ -76,4 +76,14 @@ Next, the hardest part is to spin up the backend.
 You will need to change configuration (in `config` folder) in all of the microservices (see the architecture)
 
 ### Testing
-we don't have any unit, integration or e2e tests yet. Feel free to add these
+
+#### UI tests
+We use playwright. Tests are not automated, meaning not running in CI, but you can run them locally.
+```
+make test-ui-headless
+```
+
+To create new test use:
+```
+test-ui-create
+```

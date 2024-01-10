@@ -5,3 +5,7 @@ public
 coverage
 .dccache
 build
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

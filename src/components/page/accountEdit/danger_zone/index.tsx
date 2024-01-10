@@ -22,6 +22,7 @@ export default function DangerZone() {
 
 			if(!error && !deleteResultError?.code){
 				await logout()
+				window.location.reload()
 			}
 		}
 	}

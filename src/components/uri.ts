@@ -25,7 +25,8 @@ export function gatewayUri() {
 
 	if (isDev()) {
 		// graphql-router
-		uri = 'http://' + window.location.host.split(':')[0] + ':6100/graphql'
+		// window.location.host.split(':')[0]
+		uri = 'http://0.0.0.0:6100/graphql'
 	}
 	return uri
 }

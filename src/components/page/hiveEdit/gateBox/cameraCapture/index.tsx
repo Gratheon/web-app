@@ -151,7 +151,7 @@ const VideoCapture = ({ boxId }) => {
   return (
     <div>
       {!hasCameraPermission && (
-        <button onClick={requestPermissions}>Allow Camera Access</button>
+        <button onClick={requestPermissions}>Allow camera access</button>
       )}
       {hasCameraPermission && (
         <>
@@ -164,14 +164,26 @@ const VideoCapture = ({ boxId }) => {
             ))}
           </select>
           {!isCaptureStarted && (
-            <button onClick={handleCaptureStart}>Start counting</button>
+            <button onClick={handleCaptureStart}>Start stream</button>
           )}
           {isCaptureStarted && (
-            <button onClick={handleCaptureStop}>Stop counting</button>
+            <button onClick={handleCaptureStop}>Stop stream</button>
           )}
         </>
       )}
-      <video ref={videoRef} style={{ width: '100%', maxHeight: '600px' }} autoPlay></video>
+      {isCaptureStarted && <video ref={videoRef} style={{ width: '100%', maxHeight: '600px' }} autoPlay></video>}
+
+      {!isCaptureStarted &&
+        <div style="padding:10px;display:flex;">
+          <img width="100"
+            src="https://github.com/Gratheon/models-gate-tracker/raw/main/readmeFiles/ks_1.jpg" />
+
+          <p style="padding:10px;">
+            You can stream video of your hive entrance directly from the app to the cloud.
+            Position it above hive entrance. Use green landing board for bee detection to work.
+          </p>
+        </div>
+      }
     </div>
   );
 };

@@ -1,12 +1,12 @@
 import Hls from 'hls.js';
 import React, { useEffect, RefObject } from 'react';
-
+import styles from './style.less'
 
 function ReactHlsPlayer({
   hlsConfig,
   playerRef = React.createRef<HTMLVideoElement>(),
   src,
-  autoPlay=true,
+  autoPlay = true,
   ...props
 }) {
   useEffect(() => {
@@ -80,7 +80,18 @@ function ReactHlsPlayer({
   return <video ref={playerRef} src={src} autoPlay={autoPlay} {...props} />;
 }
 
-export default function StreamPlayer({ playlistURL }) {
-  //@ts-ignore
-  return <ReactHlsPlayer src={playlistURL} autoPlay controls={true} style={{width: "100%" }} />
+export default function StreamPlayer({ videoStreams }) {
+  let playlistURL = videoStreams[videoStreams.length-1].playlistURL
+
+  // 720px for 12h at 1 min = 1 px
+  
+  return <>
+    <div id={styles.timeline}>
+      <div style="width: 10px;left:300px;"></div>
+    </div>
+
+    {//@ts-ignore
+    }<ReactHlsPlayer src={playlistURL} autoPlay controls={true} style={{ width: "720px" }} />
+    
+  </>
 }

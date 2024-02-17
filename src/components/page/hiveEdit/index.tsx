@@ -20,7 +20,7 @@ import isDev from '@/components/isDev'
 
 import Frame from './frame'
 import styles from './styles.less'
-import Gate from '@/components/page/hiveEdit/gate'
+import GateBox from './gateBox/GateBox'
 import MessageNotFound from '@/components/shared/messageNotFound'
 import HiveAdvisor from './hiveAdvisor'
 
@@ -129,12 +129,12 @@ export default function HiveEditForm() {
 						apiary={apiary}
 						hive={hive}
 						hiveId={hiveId} />}
+
+
+					{box && box.type === boxTypes.GATE && isDev() &&
+						<GateBox boxId={boxId} />
+					}
 				</div>
-
-
-				{box && box.type === boxTypes.GATE && isDev() &&
-					<Gate boxId={boxId} />
-				}
 			</div>
 		</div>
 	)

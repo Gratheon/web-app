@@ -125,7 +125,7 @@ export default function HiveEditForm() {
 						frameSideId={frameSideId}
 					/>
 
-					{!frameId && <HiveAdvisor 
+					{!frameId && box && box.type !== boxTypes.GATE && <HiveAdvisor 
 						apiary={apiary}
 						hive={hive}
 						hiveId={hiveId} />}

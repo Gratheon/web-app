@@ -4,8 +4,12 @@ import { Dedupe } from "@sentry/integrations";
 import isDev from './isDev'
 
 export default function initErrorReporting() {
+	if (isDev()) {
+		return;
+	}
+
 	Sentry.init({
-		environment: isDev() ? "dev" : "production",
+		environment: "production",
 		dsn: "https://801a5f0788de882d5021e79cf557d719@o4504323550216192.ingest.sentry.io/4506093924122624",
 		integrations: [
 			new Sentry.BrowserTracing({

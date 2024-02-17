@@ -98,13 +98,13 @@ export default function AccountEdit() {
 			<ErrorMsg error={error} />
 			<div style="padding: 10px; border: 1px solid black; margin-bottom: 5px; border-radius: 5px;">
 				<div style="display:flex; ">
-					<VisualForm style="display: table;" onSubmit={onSubmit}>
+					<VisualForm style="display: table;width:auto;" onSubmit={onSubmit}>
 						<div>
 							<label style="width:120px;" htmlFor="first_name"><T ctx="this is a label for the person full name">Name</T></label>
 							<input
 								name="first_name"
 								id="first_name"
-								style="width:40%; margin-right: 5px;"
+								style="width:150px; margin-right: 5px;"
 								placeholder="First name"
 								autoFocus
 								value={user.first_name}
@@ -113,7 +113,7 @@ export default function AccountEdit() {
 							<input
 								name="last_name"
 								id="last_name"
-								style="width:40%"
+								style="width:150px"
 								placeholder="Last name"
 								autoFocus
 								value={user.last_name}
@@ -144,7 +144,7 @@ export default function AccountEdit() {
 					</VisualForm>
 
 					<div style="flex-grow:0;text-align:center;">
-						<img src={gravatarURL} className={style.avatar} />
+						<img src={gravatarURL} className={style.avatar} /><br />
 						<Button type="submit" className={`green`} loading={saving}>
 							<T>Save</T>
 						</Button>

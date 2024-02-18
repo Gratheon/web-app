@@ -23,8 +23,8 @@ See all features [in Notion](https://gratheon.notion.site/App-platform-2937ed264
 | local | http://0.0.0.0:8080/      |
 | live  | https://app.gratheon.com/ |
 
+![detection](https://github.com/Gratheon/web-app/assets/445122/ae038ae3-e7db-40f1-8a33-047a9312993d)
 
-![Screenshot_20221215_145008](https://user-images.githubusercontent.com/445122/208070865-e9c486bb-84ed-4205-a269-70693016d808.png)
 
 
 ## Architecture

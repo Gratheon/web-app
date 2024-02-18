@@ -178,10 +178,13 @@ const VideoCapture = ({ boxId }) => {
           <img width="100"
             src="https://github.com/Gratheon/models-gate-tracker/raw/main/readmeFiles/ks_1.jpg" />
 
-          <p style="padding:10px;">
+
+          <div style="padding:10px;">
             You can stream video of your hive entrance directly from the app to the cloud.
             Position it above hive entrance. Use green landing board for bee detection to work.
-          </p>
+
+            Alternatively you can upload video files using raspberry-pi client library
+          </div>
         </div>
       }
     </div>

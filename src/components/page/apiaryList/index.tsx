@@ -42,10 +42,6 @@ export default function ApiaryList(props) {
 		}
 	`)
 
-	if (error) {
-		return <ErrorMsg error={error} />
-	}
-
 	if (loading) {
 		return <Loader />
 	}
@@ -53,16 +49,19 @@ export default function ApiaryList(props) {
 	const { apiaries } = data
 
 	return (
-		<div style={{ maxWidth: 800, paddingLeft: 20 }}>
-			{!apiaries || (apiaries.length === 0 && <ApiariesPlaceholder />)}
+		<div>
+			<ErrorMsg error={error} />
+			<div style={{ maxWidth: 800, paddingLeft: 20 }}>
+				{!apiaries || (apiaries.length === 0 && <ApiariesPlaceholder />)}
 
-			{apiaries &&
-				apiaries.map((apiary, i) => (
-					<ApiaryListRow key={i} apiary={apiary} selectedId={props.id} />
-				))}
+				{apiaries &&
+					apiaries.map((apiary, i) => (
+						<ApiaryListRow key={i} apiary={apiary} selectedId={props.id} />
+					))}
 
-			<div style={{ textAlign: 'center', marginTop: 20 }}>
-				<Link href="/apiaries/create"><T ctx="its a button">Setup new apiary</T></Link>
+				<div style={{ textAlign: 'center', marginTop: 20 }}>
+					<Link href="/apiaries/create"><T ctx="its a button">Setup new apiary</T></Link>
+				</div>
 			</div>
 		</div>
 	)

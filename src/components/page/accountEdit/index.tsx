@@ -4,7 +4,6 @@ import { gql, useMutation, useQuery } from '@/components/api'
 import VisualForm from '@/components/shared/visualForm'
 import Loader from '@/components/shared/loader'
 import ErrorMsg from '@/components/shared/messageError'
-import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
 import Button from '@/components/shared/button'
 import type { User } from '@/components/models/user'
 import { updateUser } from '@/components/models/user'
@@ -13,13 +12,10 @@ import T from '@/components/shared/translate'
 import TokenList from './token_list'
 import Billing from './billing'
 import Invoices from './invoices'
-import md5 from 'md5';
 import style from './style.less'
 import DangerZone from './danger_zone'
+import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
 
-function calculateMD5(email) {
-	return md5(email.trim().toLowerCase());
-}
 
 export default function AccountEdit() {
 	let [user, setUser] = useState<User>({})
@@ -89,16 +85,14 @@ export default function AccountEdit() {
 	}
 
 
-	const md5Hash = user.email ? calculateMD5(user.email) : '';
-	const gravatarURL = `https://www.gravatar.com/avatar/${md5Hash}?s=200`;
 
 	return (
 		<div id={style.account_edit}>
 			
 			<ErrorMsg error={error} />
 			<div style="padding: 10px; border: 1px solid black; margin-bottom: 5px; border-radius: 5px;">
-				<div style="display:flex; ">
-					<VisualForm style="display: table;width:auto;" onSubmit={onSubmit}>
+				<div style="display:flex;">
+					<VisualForm style="display: table;width:auto;flex-grow:1" onSubmit={onSubmit}>
 						<div>
 							<label style="width:120px;" htmlFor="first_name"><T ctx="this is a label for the person full name">Name</T></label>
 							<input
@@ -141,14 +135,13 @@ export default function AccountEdit() {
 								<option value="tr" selected={user.lang == "tr"}>Türkçe</option>
 							</select>
 						</div>
-					</VisualForm>
 
-					<div style="flex-grow:0;text-align:center;">
-						<img src={gravatarURL} className={style.avatar} /><br />
-						<Button type="submit" className={`green`} loading={saving}>
-							<T>Save</T>
-						</Button>
-					</div>
+						<VisualFormSubmit>
+							<Button type="submit" className={`green`} loading={saving}>
+								<T>Save</T>
+							</Button>
+						</VisualFormSubmit>
+					</VisualForm>
 				</div>
 			</div>
 

@@ -1,0 +1,41 @@
+import { useState } from 'react';
+import md5 from 'md5';
+
+import { gql, useQuery } from '@/components/api';
+import type { User } from '@/components/models/user'
+
+import styles from './style.less';
+
+function calculateMD5(email) {
+	return md5(email.trim().toLowerCase());
+}
+
+export default function Avatar({ style = "" }) {
+	let [user, setUser] = useState<User>({})
+
+	let { loading: loadingGet, data: accountData } = useQuery(gql`
+		query user {
+			user {
+				id
+				email
+			}
+		}
+	`)
+
+	if (accountData && (!user || !user.id)) {
+		setUser(accountData.user)
+	}
+
+	if(loadingGet){
+		return null;
+	}
+
+
+	const md5Hash = user.email ? calculateMD5(user.email) : '';
+	const gravatarURL = `https://www.gravatar.com/avatar/${md5Hash}?s=200`;
+
+
+	return (
+		<img src={gravatarURL} className={styles.avatar} alt="avatar" style={style} />
+	)
+}

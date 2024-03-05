@@ -6,6 +6,7 @@ import Header from '@/components/header'
 import { logout } from '@/components/user'
 import { getAppUri } from '@/components/uri'
 import T from '@/components/shared/translate'
+import Avatar from '@/components/shared/avatar'
 
 import isDev from '@/components/isDev'
 import styles from './styles.less'
@@ -72,7 +73,10 @@ const Menu = ({ isLoggedIn = false }) => {
 							isActive ? styles.active : ""
 						}
 						to="/account">
-						<T>Account</T>
+						<div style="display:flex;">
+							<Avatar style="margin-right:5px;" />
+							<T>Account</T>
+						</div>
 					</NavLink>
 				</li>
 				{analytics}

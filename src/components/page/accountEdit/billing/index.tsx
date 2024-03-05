@@ -66,11 +66,7 @@ export default function Billing({ user }) {
 				<MessageSuccess title="Payment completed" />
 			)}
 			{stripeStatus === 'cancel' && <MessageError error="Payment cancelled" />}
-			<div
-				style={{
-					display: 'flex',
-				}}
-			>
+			<div style=" display: flex">
 				<div style={{ flexGrow: 1 }}>
 					<div>
 						<T>Created</T>: {format(new Date(user.date_added), 'dd MMMM yyyy, hh:mm')}

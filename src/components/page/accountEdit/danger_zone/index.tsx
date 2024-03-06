@@ -30,8 +30,8 @@ export default function DangerZone() {
 	return <div id={styles.danger_zone}>
 		<ErrorMsg error={error} />
 		<div>
-			<h3>Danger Zone</h3>
-			<p>Here you can delete your account. This action is irreversible, your sensitive data will be removed.</p>
+			<h3><T>Danger Zone</T></h3>
+			<p><T>Here you can delete your account. This action is irreversible, your sensitive data will be removed.</T></p>
 		</div>
 		<Button className='red' onClick={deleteAccount}><T>Delete Account</T></Button>
 	</div>

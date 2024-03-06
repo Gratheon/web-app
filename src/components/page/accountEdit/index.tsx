@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
 
 import { gql, useMutation, useQuery } from '@/components/api'
 import VisualForm from '@/components/shared/visualForm'
@@ -6,16 +7,15 @@ import Loader from '@/components/shared/loader'
 import ErrorMsg from '@/components/shared/messageError'
 import Button from '@/components/shared/button'
 import type { User } from '@/components/models/user'
-import { updateUser } from '@/components/models/user'
+import { getUser, updateUser } from '@/components/models/user'
 import T from '@/components/shared/translate'
+import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
 
 import TokenList from './token_list'
 import Billing from './billing'
 import Invoices from './invoices'
 import style from './style.less'
 import DangerZone from './danger_zone'
-import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
-
 
 export default function AccountEdit() {
 	let [user, setUser] = useState<User>({})
@@ -46,9 +46,11 @@ export default function AccountEdit() {
 		}
 	`)
 
-	if (accountData && (!user || !user.id)) {
-		setUser(accountData.user)
+	if(loadingGet){
+		return <Loader />
 	}
+
+	let userStored = useLiveQuery(() =>  getUser(), [], null)
 
 	let [updateAccount, { error }] = useMutation(gql`
 		mutation updateUser($user: UserUpdateInput!) {
@@ -76,19 +78,24 @@ export default function AccountEdit() {
 			},
 		})
 
-		await updateUser(user)
+		await updateUser({
+			...userStored,
+			...user
+		})
 		setSaving(false);
 	}
 
-	if (!user.id || loadingGet) {
+	if(userStored && !user.id){
+		setUser(userStored)
+	}
+
+	if (!user || !userStored || loadingGet) {
 		return <Loader />
 	}
 
-
-
 	return (
 		<div id={style.account_edit}>
-			
+
 			<ErrorMsg error={error} />
 			<div style="padding: 10px; border: 1px solid black; margin-bottom: 5px; border-radius: 5px;">
 				<div style="display:flex;">
@@ -145,7 +152,7 @@ export default function AccountEdit() {
 				</div>
 			</div>
 
-			<Billing user={user} />
+			<Billing user={userStored} />
 			<Invoices />
 			<TokenList />
 			<DangerZone />

@@ -1,14 +1,17 @@
 import React from 'react'
-import { format } from 'date-fns'
+import { format, formatDistance } from 'date-fns'
 import { useParams } from 'react-router-dom'
 
-import Loading from '@/components/shared/loader'
 import Button from '@/components/shared/button'
 import { gql, useMutation } from '@/components/api'
 import MessageSuccess from '@/components/shared/messageSuccess'
 import MessageError from '@/components/shared/messageError'
 import T from '@/components/shared/translate'
 import metrics from '@/components/metrics'
+
+import { de, et, fr, pl, ru, tr } from 'date-fns/locale'
+
+const loadedDateLocales = { de, et, fr, pl, ru, tr }
 
 export default function Billing({ user }) {
 	let { stripeStatus } = useParams()
@@ -48,11 +51,16 @@ export default function Billing({ user }) {
 			user.hasSubscription = cancelResult.hasSubscription
 		}
 	}
-	// createCheckoutSession
 
 	let expirationError = user.isSubscriptionExpired ? (
 		<MessageError error="Subscription expired, please extend" />
 	) : null
+
+	if(!user.lang){
+		return
+	}
+
+	const dateLangOptions = { locale: loadedDateLocales[user.lang] }
 
 	return (
 		<div style="margin-bottom:5px; border: 1px dotted gray; padding: 10px; border-radius: 5px;">
@@ -68,11 +76,12 @@ export default function Billing({ user }) {
 			{stripeStatus === 'cancel' && <MessageError error="Payment cancelled" />}
 			<div style=" display: flex">
 				<div style={{ flexGrow: 1 }}>
-					<div>
-						<T>Created</T>: {format(new Date(user.date_added), 'dd MMMM yyyy, hh:mm')}
+					<div style="margin-top:5px;">
+						<T>Expires in</T> {formatDistance(new Date(user.date_expiration), new Date(), dateLangOptions)} &mdash; {format(new Date(user.date_expiration), 'dd MMMM yyyy, hh:mm', dateLangOptions)}
 					</div>
+
 					<div>
-						<T>Expires at</T>: {format(new Date(user.date_expiration), 'dd MMMM yyyy, hh:mm')}
+						<T>Account created</T>: {format(new Date(user.date_added), 'dd MMMM yyyy, hh:mm', dateLangOptions)}
 					</div>
 				</div>
 

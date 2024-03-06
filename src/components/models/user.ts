@@ -15,6 +15,7 @@ export type User = {
 export async function getUser(): Promise<User> {
 	try {
 		const user = (await db['user'].toArray())[0]
+
 		if (user) return user
 		else return null
 	} catch (e) {
@@ -27,6 +28,7 @@ export async function getUser(): Promise<User> {
 export async function updateUser(data: User) {
 	try {
 		data.id = +data.id
+
 		return await db['user'].put(data)
 	} catch (e) {
 		console.error(e)

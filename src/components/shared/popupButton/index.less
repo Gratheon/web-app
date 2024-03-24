@@ -11,22 +11,23 @@
 		}
 
 		.popupTrigger {
-			background-color: white;
-			border-left: none;
-			height: 100%;
+
+			left: -6px;
+			border-left: 1px solid #2c2c2c;
+
 			border-radius: 0 3px 3px 0;
+			text-shadow:none;
 		}
 	}
 }
 
-.black {
-	:global {
-		.popupTrigger {
-			border: 1px solid black;
-			color: black;
-		}
-	}
-}
+// .black {
+// 	:global {
+// 		.popupTrigger {
+// 			border: 1px solid black;
+// 		}
+// 	}
+// }
 
 .green {
 	button[type='submit'] {
@@ -51,9 +52,9 @@
 
 .popup {
 	position: absolute;
-	top: 35px;
+	top: 32px;
 	left: 3px;
-	right: 3px;
+	right: 8px;
 	background-color: white;
 	padding: 0;
 	display: flex;

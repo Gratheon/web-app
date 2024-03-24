@@ -142,7 +142,7 @@ export default function HiveCreateForm() {
 					</div>
 
 					<VisualFormSubmit>
-						<Button type="submit" className="green"><T>Create</T></Button>
+						<Button type="submit" color="green"><T>Create</T></Button>
 					</VisualFormSubmit>
 				</VisualForm>
 			</div>

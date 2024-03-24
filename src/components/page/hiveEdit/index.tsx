@@ -65,7 +65,7 @@ export default function HiveEditForm() {
 
 	if (apiary) {
 		breadcrumbs[0] = {
-			name: `Apiary ${apiary.name}`,
+			name: `Apiary "${apiary.name}"`,
 			uri: `/apiaries/edit/${apiaryId}`,
 		}
 	}
@@ -73,7 +73,7 @@ export default function HiveEditForm() {
 
 	if (hive) {
 		breadcrumbs[1] = {
-			name: `Hive ${hive.name}`,
+			name: `Hive "${hive.name}"`,
 				uri: `/apiaries/${apiaryId}/hives/${hiveId}`,
 		}
 	}

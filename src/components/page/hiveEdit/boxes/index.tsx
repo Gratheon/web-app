@@ -176,7 +176,7 @@ export default function Boxes({
 				<Button
 					title="Add box on top"
 					loading={adding}
-					className={['small', 'black']}
+					color='black'
 					onClick={() => onBoxAdd(boxTypes.DEEP)}
 				>
 					<AddBoxIcon /><span><T ctx="this is a button to add new section of beehive, a deep box that is intended for brood frames">Add deep</T></span>

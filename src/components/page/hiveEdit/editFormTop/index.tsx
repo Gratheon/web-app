@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import debounce from 'lodash.debounce'
 import { useLiveQuery } from 'dexie-react-hooks'
 
@@ -13,13 +13,17 @@ import { useMutation } from '@/components/api'
 import { updateHive, getHive } from '@/components/models/hive'
 import { Box, getBoxes, updateBox } from '@/components/models/boxes'
 import { getFamilyByHive, updateFamily } from '@/components/models/family'
+
 import Loader from '@/components/shared/loader'
 import ErrorMessage from '@/components/shared/messageError'
 import { Family } from '@/components/api/schema'
 import Button from '@/components/shared/button'
 import { PopupButton, PopupButtonGroup } from '@/components/shared/popupButton'
+import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
 
 export default function HiveEditDetails({ hiveId }) {
+	let [creatingInspection, setCreatingInspection] = useState(false)
+
 	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId])
 	let boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId])
 	let family = useLiveQuery(() => getFamilyByHive(+hiveId), [hiveId])
@@ -36,8 +40,30 @@ export default function HiveEditDetails({ hiveId }) {
 				id
 			}
 		}
-	}
-`)
+	}`)
+	let [mutateInspection, { error: errorInspection }] = useMutation(`	mutation addInspection($inspection: InspectionInput!) {
+		addInspection(inspection: $inspection) {
+			id
+		}
+	}`)
+
+	const onCreateInspection = useMemo(
+		() =>
+			debounce(async function (v) {
+				setCreatingInspection(true)
+
+				await mutateInspection({
+					inspection: {
+						hiveId: +hiveId,
+						data: {}
+					},
+				})
+				setCreatingInspection(false)
+
+			}, 1000),
+		[]
+	)
+
 	const onNameChange = useMemo(
 		() =>
 			debounce(async function (v) {
@@ -67,7 +93,7 @@ export default function HiveEditDetails({ hiveId }) {
 				})
 
 				await updateHive(hive)
-			}, 1000),
+			}, 300),
 		[]
 	)
 
@@ -99,7 +125,7 @@ export default function HiveEditDetails({ hiveId }) {
 					},
 				})
 				await updateHive(hive)
-			}, 1000),
+			}, 300),
 		[]
 	)
 
@@ -176,6 +202,12 @@ export default function HiveEditDetails({ hiveId }) {
 		<div>
 			<ErrorMessage error={errorColor || errorHive} />
 			<div className={styles.form}>
+				<div style="padding-right:10px;">
+					<HiveIcon onColorChange={onColorChange} boxes={boxes} editable={true} />
+					<div style="font-size:12px">
+						{hive.beeCount && <>🐝{hive.beeCount} </>}
+					</div>
+				</div>
 				<div>
 					<VisualForm>
 						<div>
@@ -233,19 +265,16 @@ export default function HiveEditDetails({ hiveId }) {
 						value={hive.notes}
 						onChange={onNotesChange}
 					/>
-				</div>
-				<div style={{ textAlign: 'center', marginLeft: 6 }}>
-					<HiveIcon onColorChange={onColorChange} boxes={boxes} editable={true} />
-					<div style="font-size:12px">
-						{hive.beeCount && <>🐝{hive.beeCount} </>}
-					</div>
 
-					<PopupButtonGroup style={`margin-right:3px;flex-grow:1;`}>
-						<Button><T>Save Inspection</T></Button>
-						<PopupButton>
-							<DeactivateButton hiveId={hive.id} />
-						</PopupButton>
-					</PopupButtonGroup>
+					<VisualFormSubmit>
+						<PopupButtonGroup>
+							<Button loading={creatingInspection} onClick={onCreateInspection}><T>Save Inspection</T></Button>
+							<PopupButton>
+								<DeactivateButton hiveId={hive.id} />
+							</PopupButton>
+						</PopupButtonGroup>
+					</VisualFormSubmit>
+
 				</div>
 			</div>
 		</div>

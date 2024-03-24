@@ -50,7 +50,7 @@ export function PopupButton({ children, className = '' }: PopupButtonProps) {
 	return (
 		<div ref={modalRef}>
 			<Button
-				className={`popupTrigger ${className}`}
+				className={`${className} popupTrigger`}
 				onClick={(e: any) => {
 					setExtraButtonsVisible(!extraButtonsVisible)
 					e.preventDefault()

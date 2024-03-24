@@ -171,8 +171,8 @@ export default function ApiaryEditForm() {
 
 					<VisualFormSubmit>
 
-						<Button className="red" loading={saving} onClick={onDeleteApiary}><DeleteIcon /><span><T>Delete</T></span></Button>
-						<Button type="submit" loading={saving} className="green"><T>Save</T></Button>
+						<Button color="red" loading={saving} onClick={onDeleteApiary}><DeleteIcon /><span><T>Delete</T></span></Button>
+						<Button type="submit" loading={saving} color="green"><T>Save</T></Button>
 
 
 						<Button

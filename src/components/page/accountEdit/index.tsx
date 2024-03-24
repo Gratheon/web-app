@@ -144,7 +144,7 @@ export default function AccountEdit() {
 						</div>
 
 						<VisualFormSubmit>
-							<Button type="submit" className={`green`} loading={saving}>
+							<Button type="submit" color='green' loading={saving}>
 								<T>Save</T>
 							</Button>
 						</VisualFormSubmit>

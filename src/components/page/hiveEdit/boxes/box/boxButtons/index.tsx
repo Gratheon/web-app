@@ -117,7 +117,7 @@ export default function BoxButtons({ box, onError, style = "display:flex;" }) {
 			)}
 
 			<Button
-				className="red"
+				color="red"
 				title="Delete box"
 				loading={removingBox}
 				onClick={() => {

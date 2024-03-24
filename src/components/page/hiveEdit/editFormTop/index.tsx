@@ -16,6 +16,8 @@ import { getFamilyByHive, updateFamily } from '@/components/models/family'
 import Loader from '@/components/shared/loader'
 import ErrorMessage from '@/components/shared/messageError'
 import { Family } from '@/components/api/schema'
+import Button from '@/components/shared/button'
+import { PopupButton, PopupButtonGroup } from '@/components/shared/popupButton'
 
 export default function HiveEditDetails({ hiveId }) {
 	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId])
@@ -238,7 +240,12 @@ export default function HiveEditDetails({ hiveId }) {
 						{hive.beeCount && <>🐝{hive.beeCount} </>}
 					</div>
 
-					<DeactivateButton hiveId={hive.id} />
+					<PopupButtonGroup style={`margin-right:3px;flex-grow:1;`}>
+						<Button><T>Save Inspection</T></Button>
+						<PopupButton>
+							<DeactivateButton hiveId={hive.id} />
+						</PopupButton>
+					</PopupButtonGroup>
 				</div>
 			</div>
 		</div>

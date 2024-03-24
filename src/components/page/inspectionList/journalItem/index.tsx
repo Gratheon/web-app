@@ -1,5 +1,5 @@
-import Link from '../../link'
-import DateFormat from '../../dateFormat'
+import Link from '../../../shared/link'
+import DateFormat from '../../../shared/dateFormat'
 import React from 'react'
 import colors from '../../../colors'
 import styles from './styles.less'

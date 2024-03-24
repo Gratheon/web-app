@@ -15,6 +15,7 @@ import AccountEdit from './accountEdit'
 import AccountAuth from './accountAuth'
 import AccountRegister from './accountRegister'
 import Grafana from './grafana'
+import InspectionList from './inspectionList'
 
 function LoggedInPage({ children }) {
 	return <div style={{ display: 'flex', flexDirection: 'column', height:"100%" }}>
@@ -55,6 +56,11 @@ export default function Page() {
 				<Route
 					path="/apiaries/:apiaryId/hives/:hiveId/box/:boxId/frame/:frameId/:frameSideId"
 					element={<LoggedInPage><HiveEditView /></LoggedInPage>}
+				/>
+
+				<Route
+					path="/apiaries/:apiaryId/hives/:hiveId/inspections/"
+					element={<LoggedInPage><InspectionList /></LoggedInPage>}
 				/>
 
 				<Route

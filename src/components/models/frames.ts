@@ -1,8 +1,27 @@
-import { Frame } from '@/components/api/schema'
-
 import { db } from './db'
+import { getBoxes } from './boxes';
+import { FrameSideCells } from './frameSideCells';
+import { FrameSideFile } from './frameSideFile';
 
-let frames = [] //db.get('frames')
+export type FrameType = 'VOID' | 'FOUNDATION' | 'EMPTY_COMB' | 'PARTITION' | 'FEEDER'
+
+export type FrameSide = {
+	frameId?: number
+	cells?: FrameSideCells
+	frameSideFile?: FrameSideFile
+}
+
+export type Frame = {
+	id: number
+	position: number
+	type: FrameType
+	leftSide?: FrameSide
+	rightSide?: FrameSide
+
+	leftId: number
+	rightId: number
+}
+
 export const frameTypes = {
 	VOID: 'VOID',
 	FOUNDATION: 'FOUNDATION',
@@ -23,7 +42,20 @@ export async function getFrame(id: number): Promise<Frame> {
 	}
 }
 
-export async function getFrames(where = {}): Promise<Frame[]|null> {
+export async function getFramesByHive(hiveId: number): Promise<Frame[]> {
+	let boxes = await getBoxes({ hiveId: hiveId })
+
+	let frames: Frame[] = []
+
+	for await (const box of boxes) {
+		let tmpResult = await getFrames({ boxId: +box.id });
+		frames.push(...tmpResult)
+	}
+
+	return frames
+}
+
+export async function getFrames(where = {}): Promise<Frame[] | null> {
 	if (!where) return []
 	try {
 		const frames = await db['frame'].where(where).sortBy('position')
@@ -108,8 +140,8 @@ export async function moveFrame({
 	// update other frame positions
 	let i = 1;
 	tmpFrames.forEach((v) => {
-		if(i == addedIndex){
-			i++ 
+		if (i == addedIndex) {
+			i++
 		}
 		if (v.position !== -1) {
 			v.position = i;
@@ -139,7 +171,6 @@ export async function updateFrame(data: Frame) {
 		throw e
 	}
 }
-
 
 export async function removeFrame(frameId, boxId) {
 	try {

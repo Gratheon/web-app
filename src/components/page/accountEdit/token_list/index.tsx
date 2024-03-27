@@ -80,12 +80,12 @@ const TokenList: React.FC = () => {
 						</div>
 					</div>
 					<div className={style.buttons}>
-						<Button className='small' onClick={() => toggleToken(token.id)}><T>Toggle</T></Button>
-						<Button className='small' onClick={() => copyToken(token.token)}><T>Copy</T></Button>
+						<Button size='small' onClick={() => toggleToken(token.id)}><T>Toggle</T></Button>
+						<Button size='small' onClick={() => copyToken(token.token)}><T>Copy</T></Button>
 					</div>
 				</div>
 			))}
-			<Button className='green' loading={generatingToken} onClick={onGenerateToken}><T>Generate</T></Button>			
+			<Button color='green' loading={generatingToken} onClick={onGenerateToken}><T>Generate</T></Button>			
 			
 		</div>
 	);

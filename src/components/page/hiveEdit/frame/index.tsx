@@ -69,7 +69,7 @@ export default function Frame({
 
 			<Button onClick={onFrameClose}><T>Close</T></Button>
 			<Button
-				className="red"
+				color="red"
 				title="Remove frame"
 				onClick={onFrameRemove}
 			>

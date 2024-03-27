@@ -1,6 +1,6 @@
 import { db } from './db'
 
-type Hive = {
+export type Hive = {
 	id: number
 	name?: string
 	notes?: string

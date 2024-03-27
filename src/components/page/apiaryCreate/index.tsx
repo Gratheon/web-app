@@ -95,7 +95,7 @@ export default function ApiaryEditForm() {
 						>
 							<T>Locate me</T>
 						</Button>
-						<Button type="submit" className="green">
+						<Button type="submit" color="green">
 							<T>Create</T>
 						</Button>
 					</VisualFormSubmit>

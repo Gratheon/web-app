@@ -1,18 +1,19 @@
-import { FrameSide } from '@/components/api/schema'
 import { FrameSideFile } from '@/components/models/frameSideFile'
 import { FrameSideCells } from '@/components/models/frameSideCells'
+import { Hive } from '@/components/models/hive'
 import { upsertEntity } from './index'
+import { FrameSide } from '../frames'
 
 export const writeHooks = {
-	Apiary: async (_, apiary) => await upsertEntity('apiary', apiary),
-	Hive: async (_, hive) => await upsertEntity('hive', hive),
-	Box: async (parent, box) => {
-		box.hiveId = +parent.id
-		await upsertEntity('box', box)
+	Apiary: async (_, entity) => await upsertEntity('apiary', entity),
+	Hive: async (_, entity) => await upsertEntity('hive', entity),
+	Box: async (parent, entity) => {
+		entity.hiveId = +parent.id
+		await upsertEntity('box', entity)
 	},
-	Family: async ({ id }, family) => {
-		family.hiveId = +id
-		await upsertEntity('family', family)
+	Family: async ({ id }, entity) => {
+		entity.hiveId = +id
+		await upsertEntity('family', entity)
 	},
 	Frame: async (parent, value, { originalValue: frame }) => {
 		value.boxId = +parent.id
@@ -64,13 +65,15 @@ export const writeHooks = {
 		cells.id = +cells.id
 		await upsertEntity('framesidecells', cells)
 	},
-	File: async (_, file) => {
-		// file.hiveId = +hiveId
-		await upsertEntity('file', file)
+	File: async (_, entity) => {
+		await upsertEntity('file', entity)
 	},
-	User: async (_, user) => await upsertEntity('user', user),
-	Locale: async (_, locale) => {
-		// console.log('storing translation', locale)
-		await upsertEntity('locale', locale)
+	Inspection: async (parent: Hive, entity) => {
+		entity.hiveId = +parent.id
+		await upsertEntity('inspection', entity)
+	},
+	User: async (_, entity) => await upsertEntity('user', entity),
+	Locale: async (_, entity) => {
+		await upsertEntity('locale', entity)
 	},
 }

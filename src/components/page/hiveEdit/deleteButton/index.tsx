@@ -28,7 +28,7 @@ export default function deactivateButton({ hiveId }) {
 	}
 
 	return (
-		<Button loading={deleting} className="red" onClick={deactivate} title="Remove hive">
+		<Button loading={deleting} color="red" onClick={deactivate} title="Remove hive">
 			<DeleteIcon /><span><T ctx="this is a button">Remove hive</T></span>
 		</Button>
 	)

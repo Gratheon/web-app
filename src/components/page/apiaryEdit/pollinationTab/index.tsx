@@ -141,6 +141,6 @@ export default function PollinationTab({
 				setLoaded(true);
 			}}
 			loading={analyzing}
-			className="green"><T>Load historical field map</T></Button>
+			color="green"><T>Load historical field map</T></Button>
 	</div>
 }

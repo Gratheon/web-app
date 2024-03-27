@@ -1,10 +1,10 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import styles from './index.less'
 import FrameSide from './boxFrameHalf'
-import { Frame } from '@/components/api/schema'
-import { useNavigate } from 'react-router-dom'
 import { Box } from '@/components/models/boxes'
+import { Frame } from '@/components/models/frames'
 
 type BoxFrameProps = {
 	box: Box

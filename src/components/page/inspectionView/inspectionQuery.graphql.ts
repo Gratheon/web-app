@@ -10,12 +10,6 @@ export default gql`
 		hive(id: $hiveId) {
 			id
 			name
-
-			inspections(limit: 20) {
-				id
-				added
-				data
-			}
 		}
 	}
 `

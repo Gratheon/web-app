@@ -117,7 +117,7 @@ export default function AccountRegister() {
 
 					<div style={{ display: 'flex' }}>
 						<div style={{ flexGrow: 1 }}></div>
-						<Button type="submit" className="green" onClick={onSubmit}>
+						<Button type="submit" color="green" onClick={onSubmit}>
 							<T>Register</T>
 						</Button>
 					</div>

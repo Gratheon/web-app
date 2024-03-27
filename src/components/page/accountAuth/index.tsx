@@ -122,7 +122,7 @@ export default function AccountAuth() {
 								<Button 
 									loading={loading}
 									type="submit" 
-									className="green" 
+									color="green" 
 									onClick={onSubmit}>
 									<T>Log In</T>
 								</Button>

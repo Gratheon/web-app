@@ -8,6 +8,7 @@ export type User = {
 	lang?: string
 	date_expiration?: string
 	date_added?: string
+
 	hasSubscription?: boolean
 	isSubscriptionExpired?: boolean
 }

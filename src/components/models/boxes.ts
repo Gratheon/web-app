@@ -1,5 +1,5 @@
-import { Frame } from '@/components/api/schema'
 import { db } from './db'
+import { Frame } from './frames'
 
 export type Box = {
 	id: number

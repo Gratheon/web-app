@@ -1,23 +1,4 @@
 import { buildSchema } from 'graphql'
-import { FrameSideCells } from '../models/frameSideCells'
-import { FrameSideFile } from '../models/frameSideFile'
-
-export type FrameType = 'VOID' | 'FOUNDATION' | 'EMPTY_COMB' | 'PARTITION' | 'FEEDER'
-export type FrameSide = {
-  frameId?: number
-  cells?: FrameSideCells
-  frameSideFile?: FrameSideFile
-}
-export type Frame = {
-  id: number
-	position: number
-  type: FrameType
-  leftSide?: FrameSide
-  rightSide?: FrameSide
-
-  leftId: number
-  rightId: number
-}
 
 export type Family = {
   hiveId?: number //reference

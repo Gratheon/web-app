@@ -7,6 +7,8 @@ import Loader from '../loader'
 type ButtonProps = {
 	onClick?: any
 	className?: string | string[] // small, green
+	color?: string
+	size?: string
 	style?: any
 	title?: string
 	loading?: boolean
@@ -19,7 +21,9 @@ export default function Button({
 	style = {},
 	title = '',
 	loading = false,
-	className = 'black',
+	className = null,
+	size = null,
+	color = 'black',
 	type = 'button',
 	onClick = () => {},
 	children = null,
@@ -28,13 +32,14 @@ export default function Button({
 	let navigate = useNavigate()
 
 	let classNames = []
+	if (typeof color === 'string') {
+		classNames.push(styles[color])
+	}
+	if (typeof size === 'string') {
+		classNames.push(styles[size])
+	}
 	if (typeof className === 'string') {
-		classNames = [styles[className]]
-	} else {
-		// @ts-ignore
-		for (const v of className) {
-			classNames.push(styles[`${styles[v]}`])
-		}
+		classNames.push(className)
 	}
 
 	if(href !== null){

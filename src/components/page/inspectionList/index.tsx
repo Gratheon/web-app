@@ -16,7 +16,7 @@ import MessageNotFound from '@/components/shared/messageNotFound'
 import BreadCrumbs from '@/components/shared/breadcrumbs'
 import SubMenu from '@/components/shared/submenu'
 import JournalItem from './journalItem'
-import { listInspections } from '@/components/models/inspections'
+import { listInspections, Inspection } from '@/components/models/inspections'
 
 export default function InspectionList() {
 	let { apiaryId, hiveId, boxId, frameId, frameSideId, selectedInspectionId } = useParams()
@@ -105,9 +105,9 @@ export default function InspectionList() {
 			{!inspections && <MessageNotFound msg="No inspections found" />}
 
 			<div style={{ flexGrow: 1, display: 'flex' }}>
-				{inspections && inspections.map((inspection) => (
+				{inspections && inspections.map((inspection: Inspection) => (
 					<JournalItem
-						selected={selectedInspectionId == inspection.id}
+						selected={+selectedInspectionId == inspection.id}
 						apiaryId={apiaryId}
 						hiveId={hive.id}
 						id={inspection.id}

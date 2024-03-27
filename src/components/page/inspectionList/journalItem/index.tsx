@@ -22,10 +22,10 @@ export default function journalItem({
 	id,
 }: JournalItemProps) {
 	let tmpdata = JSON.parse(data)
-	let stats = tmpdata.stats
+	let stats = tmpdata
 
-	stats.brood = Math.round(stats.brood * 5)
-	stats.honey = Math.round(stats.honey * 5)
+	stats.brood = Math.round(stats?.brood * 5)
+	stats.honey = Math.round(stats?.honey * 5)
 	return (
 		<div
 			className={`${styles.journalItem} ${

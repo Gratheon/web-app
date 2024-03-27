@@ -23,18 +23,18 @@ export default function InspectionBar({
 	id,
 }: InspectionBarProps) {
 	let tmpdata: InspectionSnapshot = JSON.parse(data)
-	let stats = tmpdata.stats
+	let stats = tmpdata.cellStats
 
 	stats.broodPercent = Math.round(stats?.broodPercent)
 	stats.honeyPercent = Math.round(stats?.honeyPercent)
 	stats.pollenPercent = Math.round(stats?.pollenPercent)
 	return (
 		<div
-			className={`${styles.journalItem} ${
-				selected ? styles.journalItemSelected : ''
-			}`}
+			className={`${styles.journalItem} ${selected ? styles.journalItemSelected : ''
+				}`}
 		>
-			<Link href={`/apiaries/${apiaryId}/hives/${hiveId}/inspections/${id}`}>
+			{/* <Link href={`/apiaries/${apiaryId}/hives/${hiveId}/inspections/${id}`}> */}
+			<div className={styles.bottle}>
 				<DateFormat datetime={added} />
 				<div className={styles.journalItemStats}>
 					<div
@@ -57,8 +57,23 @@ export default function InspectionBar({
 							borderTop: '1px solid #ffAA00;',
 						}}
 					></div>
+					<div
+						style={{
+							backgroundColor: colors.eggsColor,
+							height: `${stats.eggsPercent}%`,
+							borderTop: '1px solid #ffAA00;',
+						}}
+					></div>
+					<div
+						style={{
+							backgroundColor: colors.cappedBroodColor,
+							height: `${stats.cappedBroodPercent}%`,
+							borderTop: '1px solid #ffAA00;',
+						}}
+					></div>
 				</div>
-			</Link>
+			</div>
+			{/* </Link> */}
 		</div>
 	)
 }

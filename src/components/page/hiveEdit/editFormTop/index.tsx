@@ -22,6 +22,7 @@ import { PopupButton, PopupButtonGroup } from '@/components/shared/popupButton'
 import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
 import { InspectionSnapshot } from '@/components/models/inspections'
 import { getFrames, getFramesByHive } from '@/components/models/frames'
+import { getHiveInspectionStats } from '@/components/models/frameSideCells'
 
 export default function HiveEditDetails({ hiveId }) {
 	let [creatingInspection, setCreatingInspection] = useState(false)
@@ -61,31 +62,20 @@ export default function HiveEditDetails({ hiveId }) {
 				let boxes = await getBoxes({ hiveId: +hiveId })
 				let family = await getFamilyByHive(+hiveId)
 				let frames = await getFramesByHive(+hiveId)
+				let cellStats = await getHiveInspectionStats(frames)
 
-				console.log({
-					frames
-				})
-
-				let inspectionStats : InspectionSnapshot = {
-					hive: hive,
-					family: family,
-					boxes: boxes,
-					frames: frames,
-
-					stats: {
-						broodPercent: 0,
-						honeyPercent: 0,
-						pollenPercent: 0,
-						workerBeeCount: 0,
-						queenCount: 0,
-						varroaCount: 0,
-					}
+				let inspectionSnapshot : InspectionSnapshot = {
+					hive,
+					family,
+					boxes,
+					frames,
+					cellStats
 				}
 
 				await mutateInspection({
 					inspection: {
 						hiveId: +hiveId,
-						data: JSON.stringify(inspectionStats)
+						data: JSON.stringify(inspectionSnapshot)
 					},
 				})
 				setCreatingInspection(false)

@@ -15,7 +15,7 @@ import Loader from '@/components/shared/loader'
 import MessageNotFound from '@/components/shared/messageNotFound'
 import BreadCrumbs from '@/components/shared/breadcrumbs'
 import SubMenu from '@/components/shared/submenu'
-import JournalItem from './journalItem'
+import JournalItem from './inspectionBar'
 import { listInspections, Inspection } from '@/components/models/inspections'
 
 export default function InspectionList() {

@@ -3,8 +3,9 @@ import DateFormat from '../../../shared/dateFormat'
 import React from 'react'
 import colors from '../../../colors'
 import styles from './styles.less'
+import { InspectionSnapshot } from '@/components/models/inspections'
 
-type JournalItemProps = {
+type InspectionBarProps = {
 	selected: boolean
 	apiaryId: string | number
 	data: any
@@ -13,19 +14,20 @@ type JournalItemProps = {
 	id: number
 }
 
-export default function journalItem({
+export default function InspectionBar({
 	selected = false,
 	apiaryId,
 	data,
 	hiveId,
 	added,
 	id,
-}: JournalItemProps) {
-	let tmpdata = JSON.parse(data)
-	let stats = tmpdata
+}: InspectionBarProps) {
+	let tmpdata: InspectionSnapshot = JSON.parse(data)
+	let stats = tmpdata.stats
 
-	stats.brood = Math.round(stats?.brood * 5)
-	stats.honey = Math.round(stats?.honey * 5)
+	stats.broodPercent = Math.round(stats?.broodPercent)
+	stats.honeyPercent = Math.round(stats?.honeyPercent)
+	stats.pollenPercent = Math.round(stats?.pollenPercent)
 	return (
 		<div
 			className={`${styles.journalItem} ${
@@ -38,13 +40,20 @@ export default function journalItem({
 					<div
 						style={{
 							backgroundColor: colors.broodColor,
-							height: stats.brood,
+							height: `${stats.broodPercent}%`,
 						}}
 					></div>
 					<div
 						style={{
 							backgroundColor: colors.honeyColor,
-							height: stats.honey,
+							height: `${stats.honeyPercent}%`,
+							borderTop: '1px solid #ffAA00;',
+						}}
+					></div>
+					<div
+						style={{
+							backgroundColor: colors.pollenColor,
+							height: `${stats.pollenPercent}%`,
 							borderTop: '1px solid #ffAA00;',
 						}}
 					></div>

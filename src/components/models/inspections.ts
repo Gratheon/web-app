@@ -1,10 +1,31 @@
+import { Family } from '../api/schema'
+import { Box } from './boxes'
 import { db } from './db'
+import { Frame } from './frames'
+import { Hive } from './hive'
 
 export type Inspection = {
 	id: number
 	hiveId: number
 	data: string
 	added: string
+}
+
+export type InspectionSnapshot = {
+	hive: Hive
+	family: Family
+	frames: Frame[]
+	boxes: Box[]
+
+	stats: {
+		broodPercent: number
+		honeyPercent: number
+		pollenPercent: number
+
+		workerBeeCount: number
+		queenCount: number
+		varroaCount: number
+	}
 }
 
 export async function getInspection(id: number): Promise<Inspection> {

@@ -1,8 +1,8 @@
-import { FrameSide } from '@/components/api/schema'
 import { FrameSideFile } from '@/components/models/frameSideFile'
 import { FrameSideCells } from '@/components/models/frameSideCells'
 import { Hive } from '@/components/models/hive'
 import { upsertEntity } from './index'
+import { FrameSide } from '../frames'
 
 export const writeHooks = {
 	Apiary: async (_, entity) => await upsertEntity('apiary', entity),

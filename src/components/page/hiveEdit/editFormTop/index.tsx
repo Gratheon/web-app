@@ -20,6 +20,8 @@ import { Family } from '@/components/api/schema'
 import Button from '@/components/shared/button'
 import { PopupButton, PopupButtonGroup } from '@/components/shared/popupButton'
 import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
+import { InspectionSnapshot } from '@/components/models/inspections'
+import { getFrames, getFramesByHive } from '@/components/models/frames'
 
 export default function HiveEditDetails({ hiveId }) {
 	let [creatingInspection, setCreatingInspection] = useState(false)
@@ -27,6 +29,9 @@ export default function HiveEditDetails({ hiveId }) {
 	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId])
 	let boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId])
 	let family = useLiveQuery(() => getFamilyByHive(+hiveId), [hiveId])
+	let frames = useLiveQuery(() => getFrames({hiveId: +hiveId}), [hiveId])
+
+	console.log({hive, boxes, family, frames})
 
 	let [mutateBoxColor, { error: errorColor }] = useMutation(
 		`mutation updateBoxColor($boxID: ID!, $color: String!) { updateBoxColor(id: $boxID, color: $color) }`
@@ -52,10 +57,35 @@ export default function HiveEditDetails({ hiveId }) {
 			debounce(async function (v) {
 				setCreatingInspection(true)
 
+				let hive = await getHive(+hiveId)
+				let boxes = await getBoxes({ hiveId: +hiveId })
+				let family = await getFamilyByHive(+hiveId)
+				let frames = await getFramesByHive(+hiveId)
+
+				console.log({
+					frames
+				})
+
+				let inspectionStats : InspectionSnapshot = {
+					hive: hive,
+					family: family,
+					boxes: boxes,
+					frames: frames,
+
+					stats: {
+						broodPercent: 0,
+						honeyPercent: 0,
+						pollenPercent: 0,
+						workerBeeCount: 0,
+						queenCount: 0,
+						varroaCount: 0,
+					}
+				}
+
 				await mutateInspection({
 					inspection: {
 						hiveId: +hiveId,
-						data: {}
+						data: JSON.stringify(inspectionStats)
 					},
 				})
 				setCreatingInspection(false)

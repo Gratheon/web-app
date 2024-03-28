@@ -10,6 +10,7 @@ export default gql`
 			id
 			name
 			notes
+			beeCount
 
 			files {
 				hiveId

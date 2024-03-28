@@ -21,7 +21,7 @@ import Button from '@/components/shared/button'
 import { PopupButton, PopupButtonGroup } from '@/components/shared/popupButton'
 import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
 import { InspectionSnapshot } from '@/components/models/inspections'
-import { getFrames, getFramesByHive } from '@/components/models/frames'
+import { getFramesByHive } from '@/components/models/frames'
 import { getHiveInspectionStats } from '@/components/models/frameSideCells'
 
 export default function HiveEditDetails({ hiveId }) {
@@ -30,9 +30,6 @@ export default function HiveEditDetails({ hiveId }) {
 	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId])
 	let boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId])
 	let family = useLiveQuery(() => getFamilyByHive(+hiveId), [hiveId])
-	let frames = useLiveQuery(() => getFrames({hiveId: +hiveId}), [hiveId])
-
-	console.log({hive, boxes, family, frames})
 
 	let [mutateBoxColor, { error: errorColor }] = useMutation(
 		`mutation updateBoxColor($boxID: ID!, $color: String!) { updateBoxColor(id: $boxID, color: $color) }`
@@ -269,22 +266,29 @@ export default function HiveEditDetails({ hiveId }) {
 								</div>
 							</div>
 						</div>
-					</VisualForm>
 
-					<textarea
-						className={styles.notes}
-						style={{
-							marginTop:3,
-							background: hive.notes ? '#EEE' : 'white',
-							minHeight: hive.notes ? 32 : 20,
-							width: `calc(100% - 20px)`
-						}}
-						name="notes"
-						placeholder="Notes"
-						id="notes"
-						value={hive.notes}
-						onChange={onNotesChange}
-					/>
+						<div>
+							<label htmlFor="race">
+							</label>
+
+							<div>
+								<textarea
+									className={styles.notes}
+									style={{
+										marginTop:3,
+										background: hive.notes ? '#EEE' : 'white',
+										minHeight: hive.notes ? 40 : 20,
+										width: `calc(100% - 20px)`
+									}}
+									name="notes"
+									placeholder="Notes"
+									id="notes"
+									value={hive.notes}
+									onChange={onNotesChange}
+								/>
+							</div>
+						</div>
+					</VisualForm>
 
 					<VisualFormSubmit>
 						<PopupButtonGroup>

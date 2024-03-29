@@ -292,7 +292,9 @@ export default function HiveEditDetails({ hiveId }) {
 
 					<VisualFormSubmit>
 						<PopupButtonGroup>
-							<Button loading={creatingInspection} onClick={onCreateInspection}><T>Save Inspection</T></Button>
+							<Button loading={creatingInspection} onClick={onCreateInspection}>
+								<T ctx="This is a button that adds new beehive inspection as a snapshot of current beehive state">Create Inspection</T>
+							</Button>
 							<PopupButton>
 								<DeactivateButton hiveId={hive.id} />
 							</PopupButton>

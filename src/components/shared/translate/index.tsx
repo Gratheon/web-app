@@ -31,7 +31,7 @@ function TRemote({ lang, children, tc }: { lang: string, children: any, tc: stri
 	</>
 }
 
-export default function T({ children, key=null, ctx = '' }: { children: any, key?: string, ctx?: string }) {
+export default function T({ children, key = null, ctx = '' }: { children: any, key?: string, ctx?: string }) {
 	let user = useLiveQuery(() => getUser(), [], false)
 
 	const [lang, setLanguageCode] = useState('en');

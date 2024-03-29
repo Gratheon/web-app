@@ -1,6 +1,6 @@
 @frameColor: #524034;
 @foundationColor: rgb(255, 225, 0);
-@selectedColor: rgb(30, 95, 234);
+@selectedColor: rgb(25, 121, 255);
 
 .position {
 	line-height: 15px;
@@ -28,7 +28,7 @@
 
 
 .frame {
-	margin: -5px 2px 0;
+	margin: 5px 2px 0;
 	width: 34px;
 	border-radius: 5px;
 	display: flex;
@@ -40,7 +40,7 @@
 	box-sizing: border-box;
 
 	&.frameSelected {
-		margin-top: -18px;
+		margin-top: 15px;
 	}
 
 	.foundationFrame {
@@ -68,14 +68,6 @@
 		border-top: 6px solid @frameColor;
 		display: flex;
 		flex-grow: 1;
-
-		.left {
-			background: white;
-		}
-
-		.right {
-			background: #f4f4f4;
-		}
 	}
 
 	.feeder {
@@ -100,20 +92,18 @@
 	background: white;
 
 	&.sideSelected {
-		border: 2px solid @selectedColor;
+		background-color: @selectedColor;
 		border-radius: 0 0 0 5px;
 		box-sizing: border-box;
-		border-right:0;
 	}
 }
 
 .right {
-	background: #e4e2bb;
+	background: #f9f8e9;
 
 	&.sideSelected {
-		border: 2px solid @selectedColor;
+		background-color: @selectedColor;
 		border-radius: 0 0 5px 0;
 		box-sizing: border-box;
-		border-left:0;
 	}
 }

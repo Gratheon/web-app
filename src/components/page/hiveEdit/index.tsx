@@ -55,8 +55,6 @@ export default function HiveEditForm() {
 		}
 	}
 
-	let okMsg
-
 	// inline error from deeper components
 	let errorMsg = <ErrorMsg error={error || errorGet || errorNetwork} />
 
@@ -65,7 +63,7 @@ export default function HiveEditForm() {
 
 	if (apiary) {
 		breadcrumbs[0] = {
-			name: `Apiary "${apiary.name}"`,
+			name: `«${apiary.name}» apiary`,
 			uri: `/apiaries/edit/${apiaryId}`,
 		}
 	}
@@ -73,7 +71,7 @@ export default function HiveEditForm() {
 
 	if (hive) {
 		breadcrumbs[1] = {
-			name: `Hive "${hive.name}"`,
+			name: `«${hive.name}» hive`,
 				uri: `/apiaries/${apiaryId}/hives/${hiveId}`,
 		}
 	}
@@ -81,15 +79,22 @@ export default function HiveEditForm() {
 	if (box) {
 		if (box.type === boxTypes.GATE) {
 			breadcrumbs.push({
-				'name': `Entrance #${box.id}`,
+				'name': `#${box.id} entrance`,
 				uri: `/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`,
 			})
 		} else {
 			breadcrumbs.push({
-				'name': `Box #${box.id}`,
+				'name': `#${box.id} section`,
 				uri: `/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`,
 			})
 		}
+	}
+
+	if(frameId){
+		breadcrumbs.push({
+			'name': `#${frameId} frame`,
+			uri: `/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}/frame/${frameId}`,
+		})
 	}
 
 	return (
@@ -103,7 +108,6 @@ export default function HiveEditForm() {
 			</BreadCrumbs>
 			<ErrorGeneral />
 
-			{okMsg}
 			{errorMsg}
 
 			<HiveEditDetails hiveId={hiveId} />

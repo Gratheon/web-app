@@ -68,12 +68,12 @@ export default function BoxFrame({
 	// ${selectedFrame && +frameSideId === frame.rightId && styles.positionSelectedRight}
 	return (
 		<>
-			<div style={{ textAlign: 'center', height: 40 }}>
+			{/* <div style={{ textAlign: 'center', height: 40 }}>
 				<span
 					className={`${styles.position} ${selectedFrame && styles.positionSelected}`}>
 					{frame.id}
 				</span>
-			</div>
+			</div> */}
 			<div className={`${styles.frame} ${selectedFrame && styles.frameSelected}`}>
 				{frameInternal}
 			</div>

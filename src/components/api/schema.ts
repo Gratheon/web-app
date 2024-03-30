@@ -172,6 +172,7 @@ type Apiary {
     boxes: [Box]
     family: Family
     inspections(limit: Int): [Inspection]
+    inspectionCount: Int
   }
   
   input HiveInput {
@@ -264,7 +265,6 @@ type Apiary {
     translate: Locale
     invoices: [Invoice]
     weather(lat: String!, lng: String!): JSON
-
     inspection(inspectionId: ID!): Inspection
     inspections(hiveId: ID!, limit: Int): [Inspection]
   }

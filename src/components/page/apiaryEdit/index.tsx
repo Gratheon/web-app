@@ -67,7 +67,9 @@ export default function ApiaryEditForm() {
 			return <Loader />
 		}
 		else {
-			return <MessageNotFound msg="Apiary not found" />
+			return <MessageNotFound msg="Apiary not found">
+				<div><T ctx="this is a not-found error message">Apiary was either deleted, never existed or we have a navigation or backend error. You can create new apiary from apiary list view</T></div>
+			</MessageNotFound>
 		}
 	}
 

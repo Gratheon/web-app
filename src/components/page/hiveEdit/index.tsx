@@ -23,6 +23,7 @@ import MessageNotFound from '@/components/shared/messageNotFound'
 import HiveAdvisor from './hiveAdvisor'
 import BreadCrumbs from '@/components/shared/breadcrumbs'
 import SubMenu from '@/components/shared/submenu'
+import T from '@/components/shared/translate'
 
 export default function HiveEditForm() {
 	let { apiaryId, hiveId, boxId, frameId, frameSideId } = useParams()
@@ -53,7 +54,9 @@ export default function HiveEditForm() {
 		}
 		
 		if(!hive){
-			return <MessageNotFound msg="Hive not found"></MessageNotFound>
+			return <MessageNotFound msg="Hive not found">
+			<div><T ctx="this is a not-found error message">Hive was either deleted, never existed or we have a navigation or backend error. You can create new hive from apiary list view</T></div>
+		</MessageNotFound>
 		}
 	}
 

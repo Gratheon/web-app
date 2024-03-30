@@ -17,6 +17,7 @@ import BreadCrumbs from '@/components/shared/breadcrumbs'
 import SubMenu from '@/components/shared/submenu'
 import JournalItem from './inspectionBar'
 import { listInspections, Inspection } from '@/components/models/inspections'
+import T from '@/components/shared/translate'
 
 export default function InspectionList() {
 	let { apiaryId, hiveId, boxId, frameId, frameSideId, selectedInspectionId } = useParams()
@@ -98,7 +99,11 @@ export default function InspectionList() {
 			{okMsg}
 			{errorMsg}
 
-			{!inspections && <MessageNotFound msg="No inspections found" />}
+			{!inspections.length && <MessageNotFound msg="No inspections found">
+				<div>
+					<T ctx="this is an error message that explains why no inspections are viewed">Inspection is a snapshot state of beehive at specific time. Inspection can be created from hive view</T>
+				</div>
+				</MessageNotFound>}
 
 			<div style={{ flexGrow: 1, display: 'flex' }}>
 				{inspections && inspections.map((inspection: Inspection) => (

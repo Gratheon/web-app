@@ -192,6 +192,7 @@ type Apiary {
   
   type Inspection {
     id: ID!
+    hiveId: ID!
     data: JSON!
     added: DateTime!
   }
@@ -259,11 +260,13 @@ type Apiary {
     hive(id: ID!): Hive
     apiary(id: ID!): Apiary
     apiaries: [Apiary]
-    inspection(inspectionId: ID!): Inspection
     user: User
     translate: Locale
     invoices: [Invoice]
     weather(lat: String!, lng: String!): JSON
+
+    inspection(inspectionId: ID!): Inspection
+    inspections(hiveId: ID!, limit: Int): [Inspection]
   }
   
   union UpdateUserResult = User | Error

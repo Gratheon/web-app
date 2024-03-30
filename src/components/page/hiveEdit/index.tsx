@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 
-import { useQuery } from '@/components/api'
+import { gql, useQuery } from '@/components/api'
 import Boxes from './boxes'
 
 import HIVE_QUERY from './_api/hiveQuery.graphql'
@@ -41,7 +41,7 @@ export default function HiveEditForm() {
 		errorNetwork
 
 	// if local cache is empty - query
-	if (!apiary || !hive) {
+	if (!apiary || !hive || !hive.inspectionCount) {
 		({
 			loading,
 			error: errorGet,
@@ -103,7 +103,7 @@ export default function HiveEditForm() {
 				<SubMenu
 					currentUrl={`/apiaries/${apiaryId}/hives/${hiveId}`}
 					inspectionsUrl={`/apiaries/${apiaryId}/hives/${hiveId}/inspections`}
-					hasInspections={true}
+					inspectionCount={hive.inspectionCount}
 				/>
 			</BreadCrumbs>
 			<ErrorGeneral />

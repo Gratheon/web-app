@@ -6,13 +6,15 @@ export default gql`
 			__typename
 			id
 			name
+			inspectionCount
+		}
 
-			inspections(limit: 20) {
-				__typename
-				id
-				added
-				data
-			}
+		inspections(hiveId: $hiveId, limit: 20) {
+			__typename
+			id
+			hiveId
+			added
+			data
 		}
 	}
 `

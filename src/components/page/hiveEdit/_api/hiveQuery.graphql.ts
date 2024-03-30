@@ -11,6 +11,7 @@ export default gql`
 			name
 			notes
 			beeCount
+			inspectionCount
 
 			files {
 				hiveId

@@ -33,19 +33,15 @@ export default function InspectionList() {
 	
 	let loading,
 		errorGet,
-		data,
 		errorNetwork
 
 	// if local cache is empty - query
-	if (!inspections) {
+	if (inspections == null || inspections.length===0) {
 		({
 			loading,
-			data,
 			error: errorGet,
 			errorNetwork
 		} = useQuery(INSPECTION_QUERY, { variables: { hiveId: +hiveId } }))
-
-		console.log({data})
 
 		if (loading) {
 			return <Loader />
@@ -91,11 +87,11 @@ export default function InspectionList() {
 	return (
 		<div>
 			<BreadCrumbs items={breadcrumbs}>
-				<SubMenu
+				{hive && <SubMenu
 					currentUrl={`/apiaries/${apiaryId}/hives/${hiveId}`}
 					inspectionsUrl={`/apiaries/${apiaryId}/hives/${hiveId}/inspections`}
-					hasInspections={true}
-				/>
+					inspectionCount={hive.inspectionCount}
+				/>}
 			</BreadCrumbs>
 			<ErrorGeneral />
 

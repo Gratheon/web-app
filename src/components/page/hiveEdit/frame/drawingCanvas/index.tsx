@@ -658,7 +658,7 @@ export default function DrawingCanvas({
 							</span>
 						</Button>}
 
-					{showCells && frameSideFile.isCellsDetectionComplete && frameMetrics}
+					{showCells && frameMetrics}
 				</div>
 
 				<div style="flex-grow:1"></div>

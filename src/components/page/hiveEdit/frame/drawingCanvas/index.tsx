@@ -405,6 +405,9 @@ export default function DrawingCanvas({
 
 	function initCanvas() {
 		canvas = ref.current
+
+		if(!canvas) return
+
 		ctx = canvas.getContext('2d')
 
 		function initAndRedraw() {

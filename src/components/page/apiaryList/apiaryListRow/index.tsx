@@ -9,6 +9,7 @@ import AddHiveIcon from '@/icons/addHive'
 import HandIcon from '@/icons/handIcon'
 
 import styles from './index.less'
+import BeeCounter from '@/components/shared/beeCounter'
 
 export default function apiaryListRow(props) {
 	const { apiary } = props
@@ -36,7 +37,7 @@ export default function apiaryListRow(props) {
 								<HiveIcon boxes={hive.boxes} size={60} />
 								<div className={styles.title}>{hive.name}</div>
 							</a>
-							{hive.beeCount && <>🐝{hive.beeCount} </> }
+							<BeeCounter count={hive.beeCount} />
 						</div>
 					))}
 			</div>

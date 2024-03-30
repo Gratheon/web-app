@@ -4,6 +4,7 @@ import React from 'react'
 import colors from '../../../colors'
 import styles from './styles.less'
 import { InspectionSnapshot } from '@/components/models/inspections'
+import BeeCounter from '@/components/shared/beeCounter'
 
 type InspectionBarProps = {
 	selected: boolean
@@ -24,6 +25,8 @@ export default function InspectionBar({
 }: InspectionBarProps) {
 	let tmpdata: InspectionSnapshot = JSON.parse(data)
 	let stats = tmpdata.cellStats
+
+	console.log({stats})
 
 	stats.broodPercent = Math.round(stats?.broodPercent)
 	stats.honeyPercent = Math.round(stats?.honeyPercent)
@@ -72,6 +75,8 @@ export default function InspectionBar({
 						}}
 					></div>
 				</div>
+				
+				<BeeCounter count={tmpdata?.hive?.beeCount} />
 			</div>
 			{/* </Link> */}
 		</div>

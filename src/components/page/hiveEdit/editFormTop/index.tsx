@@ -23,6 +23,7 @@ import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
 import { InspectionSnapshot } from '@/components/models/inspections'
 import { getFramesByHive } from '@/components/models/frames'
 import { getHiveInspectionStats } from '@/components/models/frameSideCells'
+import BeeCounter from '@/components/shared/beeCounter'
 
 export default function HiveEditDetails({ hiveId }) {
 	let [creatingInspection, setCreatingInspection] = useState(false)
@@ -224,9 +225,7 @@ export default function HiveEditDetails({ hiveId }) {
 			<div className={styles.form}>
 				<div style="padding-right:10px;">
 					<HiveIcon onColorChange={onColorChange} boxes={boxes} editable={true} />
-					<div style="font-size:12px">
-						{hive.beeCount && <>🐝{hive.beeCount} </>}
-					</div>
+					<BeeCounter	count={hive.beeCount} />
 				</div>
 				<div>
 					<VisualForm>

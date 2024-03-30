@@ -59,29 +59,15 @@ export default function InspectionList() {
 
 	if (apiary) {
 		breadcrumbs[0] = {
-			name: `Apiary ${apiary.name}`,
+			name: <>«{apiary.name}» <T>apiary</T></>,
 			uri: `/apiaries/edit/${apiaryId}`,
 		}
 	}
 
 	if (hive) {
 		breadcrumbs[1] = {
-			name: `Hive ${hive.name}`,
-				uri: `/apiaries/${apiaryId}/hives/${hiveId}`,
-		}
-	}
-
-	if (box) {
-		if (box.type === boxTypes.GATE) {
-			breadcrumbs.push({
-				'name': `Entrance #${box.id}`,
-				uri: `/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`,
-			})
-		} else {
-			breadcrumbs.push({
-				'name': `Box #${box.id}`,
-				uri: `/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`,
-			})
+			name: <>«{hive.name}» <T>hive</T></>,
+			uri: `/apiaries/${apiaryId}/hives/${hiveId}`,
 		}
 	}
 

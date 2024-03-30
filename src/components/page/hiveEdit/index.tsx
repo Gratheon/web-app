@@ -68,7 +68,7 @@ export default function HiveEditForm() {
 
 	if (apiary) {
 		breadcrumbs[0] = {
-			name: `«${apiary.name}» apiary`,
+			name: <>«{apiary.name}» <T>apiary</T></>,
 			uri: `/apiaries/edit/${apiaryId}`,
 		}
 	}
@@ -76,20 +76,20 @@ export default function HiveEditForm() {
 
 	if (hive) {
 		breadcrumbs[1] = {
-			name: `«${hive.name}» hive`,
-				uri: `/apiaries/${apiaryId}/hives/${hiveId}`,
+			name: <>«{hive.name}» <T>hive</T></>,
+			uri: `/apiaries/${apiaryId}/hives/${hiveId}`,
 		}
 	}
 
 	if (box) {
 		if (box.type === boxTypes.GATE) {
 			breadcrumbs.push({
-				'name': `#${box.id} entrance`,
+				'name': <>{box.id} <T ctx="this is part of the beehive where bees enter or exit">entrance</T></>,
 				uri: `/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`,
 			})
 		} else {
 			breadcrumbs.push({
-				'name': `#${box.id} section`,
+				'name': <>{box.id} <T ctx="this is a box or a section of the vertical beehive">section</T></>,
 				uri: `/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`,
 			})
 		}
@@ -97,7 +97,7 @@ export default function HiveEditForm() {
 
 	if(frameId){
 		breadcrumbs.push({
-			'name': `#${frameId} frame`,
+			'name': <>{frameId} <T ctx="this is internal wooden part of the beehive where bees have comb and store honey or keep eggs or larvae">frame</T></>,
 			uri: `/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}/frame/${frameId}`,
 		})
 	}

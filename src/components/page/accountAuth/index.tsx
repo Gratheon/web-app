@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState } from 'react'
 import { gql, useMutation } from '@/components/api'
 import metrics from '@/components/metrics'
 
-import VisualForm from '@/components/shared/visualForm'
 import Loader from '@/components/shared/loader'
 import ErrorMsg from '@/components/shared/messageError'
 import Button from '@/components/shared/button'
@@ -32,7 +31,7 @@ export default function AccountAuth() {
 		const { name, value } = e.target
 		account[name] = value;
 	}
-	let [accountAuth, { error, data }] = useMutation(gql`
+	let [accountAuth, { error, data, loading: loadingMutation }] = useMutation(gql`
 		mutation login($email: String!, $password: String!) {
 			login(email: $email, password: $password) {
 				__typename
@@ -55,6 +54,7 @@ export default function AccountAuth() {
 		setLoading(true)
 
 		await logout()
+
 		await accountAuth({
 			email: account.email,
 			password: account.password,
@@ -120,7 +120,7 @@ export default function AccountAuth() {
 
 							<VisualFormSubmit>
 								<Button 
-									loading={loading}
+									loading={loading || loadingMutation}
 									type="submit" 
 									color="green" 
 									onClick={onSubmit}>

@@ -38,8 +38,7 @@ export function syncGraphqlSchemaToIndexDB(schemaObject) {
 	}
 	try {
 		addCustomIndexes(dbSchema)
-
-		db.version(1).stores(dbSchema)
+		db.version(2).stores(dbSchema)
 	} catch (e) {
 		console.error(e)
 		throw e

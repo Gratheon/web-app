@@ -24,9 +24,14 @@ export async function logout() {
 	}
 
 	setCookie('token', '', -1)
+
 	localStorage.clear()
 
-	await dropDatabase()
+	try {
+		await dropDatabase()
+	} catch (e) {
+		console.error(e)
+	}
 }
 
 function getCookie(name) {

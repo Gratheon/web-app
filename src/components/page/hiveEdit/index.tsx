@@ -50,8 +50,10 @@ export default function HiveEditForm() {
 
 		if (loading) {
 			return <Loader />
-		} else{
-			return <MessageNotFound msg="Hive not found" />
+		}
+		
+		if(!hive){
+			return <MessageNotFound msg="Hive not found"></MessageNotFound>
 		}
 	}
 

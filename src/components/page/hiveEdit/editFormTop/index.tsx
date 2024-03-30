@@ -75,6 +75,9 @@ export default function HiveEditDetails({ hiveId }) {
 						data: JSON.stringify(inspectionSnapshot)
 					},
 				})
+
+				hive.inspectionCount = hive.inspectionCount + 1
+				updateHive(hive)
 				setCreatingInspection(false)
 
 			}, 1000),

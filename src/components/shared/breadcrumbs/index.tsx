@@ -1,5 +1,6 @@
 import React from 'react'
 import styles from './index.less'
+import { NavLink } from 'react-router-dom'
 
 export default function BreadCrumbs({ items, children }) {
 	return (
@@ -8,7 +9,7 @@ export default function BreadCrumbs({ items, children }) {
 				{items.map((row, i) => {
 					return (
 						<span key={i}>
-							<a href={row.uri}>{row.name}</a>
+							<NavLink to={row.uri}>{row.name}</NavLink>
 							{i + 1 < items.length && <span>&nbsp;&rarr;&nbsp;</span>}
 						</span>
 					)

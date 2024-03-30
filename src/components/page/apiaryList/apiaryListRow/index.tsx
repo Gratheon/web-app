@@ -10,6 +10,7 @@ import HandIcon from '@/icons/handIcon'
 
 import styles from './index.less'
 import BeeCounter from '@/components/shared/beeCounter'
+import { NavLink } from 'react-router-dom'
 
 export default function apiaryListRow(props) {
 	const { apiary } = props
@@ -33,10 +34,10 @@ export default function apiaryListRow(props) {
 				{apiary.hives &&
 					apiary.hives.map((hive, i) => (
 						<div key={i} className={styles.hive}>
-							<a href={`/apiaries/${apiary.id}/hives/${hive.id}`}>
+							<NavLink to={`/apiaries/${apiary.id}/hives/${hive.id}`}>
 								<HiveIcon boxes={hive.boxes} size={60} />
 								<div className={styles.title}>{hive.name}</div>
-							</a>
+							</NavLink>
 							<BeeCounter count={hive.beeCount} />
 						</div>
 					))}

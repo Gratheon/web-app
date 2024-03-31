@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useLocation, useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { gql, useQuery } from '@/components/api'
@@ -24,8 +24,11 @@ import HiveAdvisor from './hiveAdvisor'
 import BreadCrumbs from '@/components/shared/breadcrumbs'
 import SubMenu from '@/components/shared/submenu'
 import T from '@/components/shared/translate'
+import MessageSuccess from '@/components/shared/messageSuccess'
 
 export default function HiveEditForm() {
+	const { state } = useLocation();
+	
 	let { apiaryId, hiveId, boxId, frameId, frameSideId } = useParams()
 	let [error, onError] = useState(null)
 
@@ -104,6 +107,11 @@ export default function HiveEditForm() {
 
 	return (
 		<div>
+			<ErrorGeneral />
+
+			{errorMsg}
+			{state && <MessageSuccess title={<T>{state.title}</T>} message={<T>{state.message}</T>} />}
+
 			<BreadCrumbs items={breadcrumbs}>
 				<SubMenu
 					currentUrl={`/apiaries/${apiaryId}/hives/${hiveId}`}
@@ -111,10 +119,6 @@ export default function HiveEditForm() {
 					inspectionCount={hive.inspectionCount}
 				/>
 			</BreadCrumbs>
-			<ErrorGeneral />
-
-			{errorMsg}
-
 			<HiveEditDetails hiveId={hiveId} />
 
 			<div className={styles.boxesFrameWrap}>

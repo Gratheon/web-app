@@ -11,6 +11,7 @@ import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
 import Button from '@/components/shared/button'
 import { Box, boxTypes } from '@/components/models/boxes'
 import T from '@/components/shared/translate'
+import MessageSuccess from '@/components/shared/messageSuccess'
 const defaultBoxColor = '#ffc848'
 
 export default function HiveCreateForm() {
@@ -58,10 +59,10 @@ export default function HiveCreateForm() {
 		{ errorPolicy: 'all' }
 	)
 
-	function onSubmit(e) {
+	async function onSubmit(e) {
 		e.preventDefault()
 
-		addHive({
+		const result = await addHive({
 			apiaryId: id,
 			name,
 			boxCount,
@@ -70,12 +71,11 @@ export default function HiveCreateForm() {
 				return b.color
 			}),
 		})
-	}
 
-	if (data) {
-		navigate('/apiaries', { replace: true })
-
-		return <div><T>Saved!</T></div>
+		navigate(`/apiaries/${id}/hives/${result.data.addHive.id}`, { replace: true, state: {
+			title: "Hive added successfully",
+			message: "Try adding frame photos"
+		} })
 	}
 
 	return (

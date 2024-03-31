@@ -22,12 +22,15 @@ import { PopupButton, PopupButtonGroup } from '@/components/shared/popupButton'
 import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
 import { InspectionSnapshot } from '@/components/models/inspections'
 import { getFramesByHive } from '@/components/models/frames'
-import { getHiveInspectionStats } from '@/components/models/frameSideCells'
+import { getHiveInspectionStats, deleteCellsByFrameSideIDs } from '@/components/models/frameSideCells'
 import BeeCounter from '@/components/shared/beeCounter'
 import { getFrameSideIDsFrames } from '@/components/models/frameSide'
+import { deleteFilesByFrameSideIDs } from '@/components/models/frameSideFile'
+import MessageSuccess from '@/components/shared/messageSuccess'
 
 export default function HiveEditDetails({ hiveId }) {
 	let [creatingInspection, setCreatingInspection] = useState(false)
+	let [okMsg, setOkMsg] = useState(null)
 
 	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId])
 	let boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId])
@@ -88,12 +91,16 @@ export default function HiveEditDetails({ hiveId }) {
 					}
 				)
 
-				// todo
-				// delete old frame sides
+				deleteCellsByFrameSideIDs(frameSideIDs)
+				deleteFilesByFrameSideIDs(frameSideIDs)
 
 				hive.inspectionCount = hive.inspectionCount + 1
 				updateHive(hive)
 				setCreatingInspection(false)
+
+				setOkMsg(
+					<MessageSuccess title={<T>Inspection created</T>} message={<T>All frame statistics is reset for the new state</T>} />
+				)
 
 			}, 1000),
 		[]
@@ -236,6 +243,8 @@ export default function HiveEditDetails({ hiveId }) {
 	return (
 		<div>
 			<ErrorMessage error={errorColor || errorHive} />
+			{okMsg}
+
 			<div className={styles.form}>
 				<div style="padding-right:10px;">
 					<HiveIcon onColorChange={onColorChange} boxes={boxes} editable={true} />

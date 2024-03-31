@@ -9,7 +9,7 @@ import VisualForm from '@/components/shared/visualForm'
 import { gql, useMutation, useQuery } from '@/components/api'
 import Loader from '@/components/shared/loader'
 import ErrorMsg from '@/components/shared/messageError'
-import OkMsg from '@/components/shared/messageSuccess'
+import MessageSuccess from '@/components/shared/messageSuccess'
 import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
 import Button from '@/components/shared/button'
 import Map from '@/components/shared/map'
@@ -152,7 +152,7 @@ export default function ApiaryEditForm() {
 
 	return (
 		<div>
-			{data && <OkMsg />}
+			{data && <MessageSuccess title={<T>Apiary saved</T>} />}
 			<ErrorMsg error={error || errorGet} />
 
 			<div style="padding:20px;">

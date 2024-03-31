@@ -59,7 +59,6 @@ export async function updateFrameSideFile(data: FrameSideFile) {
     }
 }
 
-
 export async function setQueenPresense(frameSide: FrameSideFile, isPresent: boolean): Promise<FrameSideFile> {
     try {
         frameSide.queenDetected = isPresent;
@@ -67,6 +66,15 @@ export async function setQueenPresense(frameSide: FrameSideFile, isPresent: bool
         await db['framesidefile'].put(frameSide)
 
         return frameSide
+    } catch (e) {
+        console.error(e)
+        throw e
+    }
+}
+
+export async function deleteFilesByFrameSideIDs(frameSideIds: number[]) {
+    try {
+        await db['framesidefile'].where('frameSideId').anyOf(frameSideIds).delete()
     } catch (e) {
         console.error(e)
         throw e

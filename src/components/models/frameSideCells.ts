@@ -113,3 +113,13 @@ export async function getHiveInspectionStats(frames: Frame[]): Promise<HiveInspe
 
 	return stats
 }
+
+
+export async function deleteCellsByFrameSideIDs(frameSideIds: number[]) {
+    try {
+        await db['framesidecells'].where('frameSideId').anyOf(frameSideIds).delete()
+    } catch (e) {
+        console.error(e)
+        throw e
+    }
+}

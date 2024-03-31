@@ -23,7 +23,7 @@ export default function MetricList({
 		onFrameSideStatChange(key, Math.round(1 * value))
 	}
 
-	return <div>
+	return <div style="border-radius: 5px 5px 0px 0px; overflow: hidden;">
 		<div style={{ display: expanded ? 'block' : 'flex' }}>
 			<ResourceEditRow
 				expanded={expanded}

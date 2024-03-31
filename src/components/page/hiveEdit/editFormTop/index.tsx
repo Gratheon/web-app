@@ -24,6 +24,7 @@ import { InspectionSnapshot } from '@/components/models/inspections'
 import { getFramesByHive } from '@/components/models/frames'
 import { getHiveInspectionStats } from '@/components/models/frameSideCells'
 import BeeCounter from '@/components/shared/beeCounter'
+import { getFrameSideIDsFrames } from '@/components/models/frameSide'
 
 export default function HiveEditDetails({ hiveId }) {
 	let [creatingInspection, setCreatingInspection] = useState(false)
@@ -50,6 +51,9 @@ export default function HiveEditDetails({ hiveId }) {
 			id
 		}
 	}`)
+	let [cloneFramesForInspection, { error: errorInspection2 }] = useMutation(`mutation cloneFramesForInspection($frameSideIDs: [ID], $inspectionId: ID!) {
+		cloneFramesForInspection(frameSideIDs: $frameSideIDs, inspectionId: $inspectionId)
+	}`)
 
 	const onCreateInspection = useMemo(
 		() =>
@@ -60,6 +64,7 @@ export default function HiveEditDetails({ hiveId }) {
 				let boxes = await getBoxes({ hiveId: +hiveId })
 				let family = await getFamilyByHive(+hiveId)
 				let frames = await getFramesByHive(+hiveId)
+				let frameSideIDs = getFrameSideIDsFrames(frames)
 				let cellStats = await getHiveInspectionStats(frames)
 
 				let inspectionSnapshot : InspectionSnapshot = {
@@ -70,12 +75,21 @@ export default function HiveEditDetails({ hiveId }) {
 					cellStats
 				}
 
-				await mutateInspection({
+				let createdInspection = await mutateInspection({
 					inspection: {
 						hiveId: +hiveId,
 						data: JSON.stringify(inspectionSnapshot)
 					},
 				})
+
+				await cloneFramesForInspection({
+						inspectionId: createdInspection.data.addInspection.id,
+						frameSideIDs
+					}
+				)
+
+				// todo
+				// delete old frame sides
 
 				hive.inspectionCount = hive.inspectionCount + 1
 				updateHive(hive)

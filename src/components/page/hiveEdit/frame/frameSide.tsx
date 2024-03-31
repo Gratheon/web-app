@@ -13,6 +13,7 @@ import FRAME_SIDE_QUERY from './_api/getFrameFileObjectsQuery.graphql'
 import MessageNotFound from '@/components/shared/messageNotFound'
 import FrameSideDrawing from './frameSideDrawing'
 import metrics from '@/components/metrics'
+import T from '@/components/shared/translate'
 
 export default function FrameSide({
 	hiveId,
@@ -25,13 +26,11 @@ export default function FrameSide({
 		return
 	}
 
-	let file, frameSideFile, frameSide
-
-	frameSide = useLiveQuery(function () {
+	let frameSide = useLiveQuery(function () {
 		return getFrameSide(+frameSideId)
 	}, [frameSideId], null);
 
-	frameSideFile = useLiveQuery(function () {
+	let frameSideFile = useLiveQuery(function () {
 		if (!frameSide) return null
 
 		return getFrameSideFile({
@@ -39,39 +38,32 @@ export default function FrameSide({
 		})
 	}, [frameSide?.id], null);
 
-	file = useLiveQuery(function () {
+	let file = useLiveQuery(function () {
 		if (!frameSideFile?.fileId) return null
 
 		return getFile(frameSideFile.fileId)
 	}, [frameSideFile?.fileId], null);
 
 
-	let { loading: loadingGet, data } = useQuery(
+	let { loading: loadingGet } = useQuery(
 		FRAME_SIDE_QUERY,
 		{ variables: { frameSideId } }
 	)
 
-	let { loading: loadingGet2, data: hiveFrameSideCells } = useQuery(gql`
-		query hiveFrameSideCells($frameSideId: ID!) {
-			hiveFrameSideCells(frameSideId: $frameSideId) {
-				__typename
-				id
-				broodPercent
-				cappedBroodPercent
-				eggsPercent
-				pollenPercent
-				honeyPercent
-			}
-		}`,
-		{ variables: { frameSideId } }
-	)
-
-	if (loadingGet || loadingGet2) {
+	if (loadingGet) {
 		return <Loading />
 	}
 
 	if (!frameSide) {
-		return <MessageNotFound msg="Frame not found" />
+		return (<MessageNotFound msg={
+			<T ctx="A frame is a small beehive wooden rectangular plank with beewax comb on it">Frame not found</T>
+		}>
+			<div>
+				<T ctx="A frame is a small beehive wooden rectangular plank with beewax comb on it">
+					Either frame was deleted, URL is invalid or there is some error on our side
+				</T>
+			</div>
+		</MessageNotFound>)
 	}
 
 	let [frameSideMutate, { error: errorFrameSide }] = useMutation(
@@ -132,5 +124,5 @@ export default function FrameSide({
 		frameSide={frameSide}
 		frameSideFile={frameSideFile}
 		frameId={frameId}
-		frameSideId={frameSideId}/>
+		frameSideId={frameSideId} />
 }

@@ -54,7 +54,7 @@ export default function HiveEditForm() {
 		}
 		
 		if(!hive){
-			return <MessageNotFound msg="Hive not found">
+			return <MessageNotFound msg={<T>Hive not found</T>}>
 			<div><T ctx="this is a not-found error message">Hive was either deleted, never existed or we have a navigation or backend error. You can create new hive from apiary list view</T></div>
 		</MessageNotFound>
 		}

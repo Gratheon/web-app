@@ -85,7 +85,7 @@ export default function InspectionList() {
 			{okMsg}
 			{errorMsg}
 
-			{!inspections.length && <MessageNotFound msg="No inspections found">
+			{!inspections.length && <MessageNotFound msg={<T>No inspections found</T>}>
 				<div>
 					<T ctx="this is an error message that explains why no inspections are viewed">Inspection is a snapshot state of beehive at specific time. Inspection can be created from hive view</T>
 				</div>

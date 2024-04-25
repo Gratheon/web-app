@@ -62,24 +62,25 @@ flowchart LR
 
 ```
 
-### Video processing
+### Video processing, playback and analytics
 
 ```mermaid
 flowchart LR
 	web-app("<a href='https://github.com/Gratheon/web-app'>web-app</a>\n:8080") --> graphql-router("<a href='https://github.com/Gratheon/graphql-router'>graphql-router</a>") --"list video stream URLs"--> gate-video-stream -- "get data for playback" --> mysql
-	web-app --"stream gate video"--> gate-video-stream("<a href='https://github.com/Gratheon/gate-video-stream'>gate-video-stream</a>\n:8900") --"inference"--> models-gate-tracker("<a href='https://github.com/Gratheon/models-gate-tracker'>models-gate-tracker</a>")--"post results"-->redis-->event-stream-filter
-	gate-video-stream --"store for re-training with 1 month TTL"--> aws-s3
+
+	webcam --"recorded video from \n browser & mobile app"--> web-app
+	web-app --"stream gate video"--> gate-video-stream("<a href='https://github.com/Gratheon/gate-video-stream'>gate-video-stream</a>\n:8900") --"inference video"--> models-gate-tracker("<a href='https://github.com/Gratheon/models-gate-tracker'>models-gate-tracker</a>")
+	gate-video-stream --"store video re-training with 1 month TTL"--> aws-s3
 	gate-video-stream --"store results long-term" --> mysql
 
-	raspberry-pi-client("<a href='https://github.com/Gratheon/raspberry-pi-client'>raspberry-pi-client</a>") --"upload"--> gate-video-stream
-```
+	beehive-entrance-video-processor("<a href='https://github.com/Gratheon/beehive-entrance-video-processor'>beehive-entrance-video-processor</a>") --"upload video chunks\nsend edge-computed telemetry"--> gate-video-stream --"store timeseries counts"--> telemetry-api
 
-### Analytics and telemetry APIs
-```mermaid
-flowchart LR
-	web-app --"include analytics page"--> grafana("<a href='https://github.com/Gratheon/grafana'>grafana</a>\n:9000") --"read"--> influxdb("influxdb:5300")
+	webcam --"record 10sec video"--> beehive-entrance-video-processor
+	webcam --"run in-memory stream"-->models-bee-detector
+	models-bee-detector --"bee counts"--> beehive-entrance-video-processor
+	
 
-	web-app --> graphql-router -.-> telemetry-api --"write bee counts, temperature\n humidity, weight"--> influxdb
+	web-app --"include analytics page"--> grafana("<a href='https://github.com/Gratheon/grafana'>grafana</a>\n:9000") --"read bee traffic over time"--> influxdb("influxdb:5300")
 ```
 
 ### Tech stack

@@ -14,7 +14,6 @@ import { boxTypes, getBox } from '@/components/models/boxes'
 import { getHive } from '@/components/models/hive'
 import { getApiary } from '@/components/models/apiary'
 import Loader from '@/components/shared/loader'
-import isDev from '@/components/isDev'
 
 import Frame from './frame'
 import styles from './styles.less'
@@ -148,7 +147,7 @@ export default function HiveEditForm() {
 						hiveId={hiveId} />}
 
 
-					{box && box.type === boxTypes.GATE && isDev() &&
+					{box && box.type === boxTypes.GATE && 
 						<GateBox boxId={boxId} />
 					}
 				</div>

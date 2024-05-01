@@ -28,7 +28,9 @@
 
 .hive {
 	display: flex;
-	flex-direction: column;
+
+	// this is needed so that beehives look as if they stand on the ground
+	flex-direction: column-reverse;
 
 	padding: 10px;
 	float: left;
@@ -48,7 +50,9 @@
 	}
 
 	.title {
-		max-height: 40px;
+		// this is needed also so that hives look as if they stand on the ground
+		// and are matching this level
+		height: 40px;
 		line-height: 13px;
 		overflow: hidden;
 	}

@@ -125,7 +125,7 @@ export default function StreamPlayer({ videoStreams }) {
     })}
 
     {//@ts-ignore
-    }<ReactHlsPlayer src={playlistURL} autoPlay controls={true} style={{ width: "720px" }} />
+    }<ReactHlsPlayer src={playlistURL} autoPlay={false} controls={true} style={{ width: "720px" }} />
 
   </div>
 }

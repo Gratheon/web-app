@@ -49,17 +49,19 @@ function ReactHlsPlayer({
 
       newHls.on(Hls.Events.ERROR, function (event, data) {
         if (data.fatal) {
-          switch (data.type) {
-            case Hls.ErrorTypes.NETWORK_ERROR:
-              newHls.startLoad();
-              break;
-            case Hls.ErrorTypes.MEDIA_ERROR:
-              newHls.recoverMediaError();
-              break;
-            default:
-              _initPlayer();
-              break;
-          }
+          console.error(data)
+          // switch (data.type) {
+            // case Hls.ErrorTypes.NETWORK_ERROR:
+            //   newHls.startLoad();
+            //   break;
+            // case Hls.ErrorTypes.MEDIA_ERROR:
+            //   newHls.recoverMediaError();
+            //   break;
+            // default:
+            //   console.error(data)
+            //   // _initPlayer();
+            //   break;
+          // }
         }
       });
 

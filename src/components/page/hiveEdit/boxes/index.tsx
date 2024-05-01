@@ -163,7 +163,11 @@ export default function Boxes({
 						/>
 					}
 
-					{box.type == boxTypes.GATE && <Gate />}
+					{box.type == boxTypes.GATE && 
+						<Gate 
+							box={box}
+							boxId={+boxId}
+						 />}
 				</div>
 			</div>
 		)

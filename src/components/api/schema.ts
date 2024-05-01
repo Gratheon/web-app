@@ -284,6 +284,7 @@ type Apiary {
     date_expiration: DateTime
     hasSubscription: Boolean
     isSubscriptionExpired: Boolean
+    billingPlan: String
   }
   
   type UserSession {

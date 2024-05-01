@@ -153,9 +153,9 @@ const VideoCapture = ({ boxId }) => {
     <div>
 
       {!isCaptureStarted &&
-        <div style="padding:10px;display:flex;">
-          <div style="padding:10px;">
-            <h3><T>Beehive entrance camera</T></h3>
+        <div style="display:flex;">
+          <div>
+            <h3>👁️‍🗨️ <T>Beehive entrance camera</T></h3>
             <p>
               <T>
                 You can stream video of your hive entrance directly from the mobile app to the cloud.
@@ -168,7 +168,7 @@ const VideoCapture = ({ boxId }) => {
           </div>
 
           <img
-            style="border-radius: 5px;"
+            style="border-radius: 5px;margin-left:10px;"
             width="150"
             src="/assets/gatehouse-vectorized.jpg" />
         </div>
@@ -179,7 +179,7 @@ const VideoCapture = ({ boxId }) => {
       )}
       {hasCameraPermission && (
         <>
-          <label htmlFor="camera-select">Camera:</label>
+          <label htmlFor="camera-select"><T>Camera</T></label>
           <select id="camera-select" value={selectedCameraDeviceId} onChange={handleCameraChange}>
             {cameraDevices.map(camera => (
               <option key={camera.deviceId} value={camera.deviceId}>
@@ -188,10 +188,12 @@ const VideoCapture = ({ boxId }) => {
             ))}
           </select>
           {!isCaptureStarted && (
-            <button onClick={handleCaptureStart}>Start stream</button>
+            <button onClick={handleCaptureStart}>
+              <T>Start stream</T>
+            </button>
           )}
           {isCaptureStarted && (
-            <button onClick={handleCaptureStop}>Stop stream</button>
+            <button onClick={handleCaptureStop}><T>Stop stream</T></button>
           )}
         </>
       )}

@@ -88,10 +88,6 @@ export default function StreamPlayer({ videoStreams }) {
   // 720px for 12h at 1 min = 1 px
   
   return <>
-    <div id={styles.timeline}>
-      <div style="width: 10px;left:300px;"></div>
-    </div>
-
     {//@ts-ignore
     }<ReactHlsPlayer src={playlistURL} autoPlay controls={true} style={{ width: "720px" }} />
     

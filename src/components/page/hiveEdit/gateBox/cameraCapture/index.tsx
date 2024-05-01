@@ -12,7 +12,8 @@ const VideoCapture = ({ boxId }) => {
   const [selectedCameraDeviceId, setSelectedCameraDeviceId] = useState('');
   const [isCaptureStarted, setIsCaptureStarted] = useState(false);
 
-  const [uploadFile, /*{ loading, error, data }*/] = useUploadMutation(gql`
+  // @ts-ignore
+  const [uploadFile, { data: uploadResponse }] = useUploadMutation(gql`
   mutation uploadGateVideo($file: Upload!, $boxId: ID!) {
     uploadGateVideo(file: $file, boxId: $boxId)
   }
@@ -151,11 +152,10 @@ const VideoCapture = ({ boxId }) => {
 
   return (
     <div style="padding: 5px 10px;">
-
+      <h3>👁️‍🗨️ <T>Beehive entrance camera</T></h3>
       {!isCaptureStarted &&
-        <div style="display:flex;">
+        <div style="display:flex;width:100%;">
           <div>
-            <h3>👁️‍🗨️ <T>Beehive entrance camera</T></h3>
             <p>
               <T>
                 You can stream video of your hive entrance directly from the mobile app to the cloud.
@@ -165,11 +165,16 @@ const VideoCapture = ({ boxId }) => {
             <p>
               <T>For best performance we recommend our product, Beehive Gatehouse with built-in AI-assisted video processing.</T>
             </p>
+
+            <p>
+              <T>For third-party API integration, please consult the API reference or our open-source libraries</T> -
+              <a href="https://github.com/Gratheon/beehive-entrance-video-processor">beehive-entrance-video-processor</a>
+            </p>
           </div>
 
           <img
             style="border-radius: 5px;margin-left:10px;"
-            width="150"
+            width="200"
             src="/assets/gatehouse-vectorized.jpg" />
         </div>
       }
@@ -178,26 +183,52 @@ const VideoCapture = ({ boxId }) => {
         <button onClick={requestPermissions}>Allow camera access</button>
       )}
       {hasCameraPermission && (
-        <>
-          <label htmlFor="camera-select"><T>Camera</T></label>
-          <select id="camera-select" value={selectedCameraDeviceId} onChange={handleCameraChange}>
-            {cameraDevices.map(camera => (
-              <option key={camera.deviceId} value={camera.deviceId}>
-                {camera.label || `Camera ${camera.deviceId}`}
-              </option>
-            ))}
-          </select>
-          {!isCaptureStarted && (
-            <button onClick={handleCaptureStart}>
-              <T>Start stream</T>
-            </button>
-          )}
-          {isCaptureStarted && (
-            <button onClick={handleCaptureStop}><T>Stop stream</T></button>
-          )}
-        </>
+        <div style="display:flex;width:100%;">
+          <div style="flex-grow:1">
+            <label htmlFor="camera-select"><T>Camera</T></label>
+            <select id="camera-select" value={selectedCameraDeviceId} onChange={handleCameraChange}>
+              {cameraDevices.map(camera => (
+                <option key={camera.deviceId} value={camera.deviceId}>
+                  {camera.label || `Camera ${camera.deviceId}`}
+                </option>
+              ))}
+            </select>
+
+            {isCaptureStarted &&
+              <div>
+                🟢 <T>Video recording in progress</T> <br />
+
+                {uploadResponse && uploadResponse?.uploadGateVideo && <>
+                  🟢 <T>Fragment upload succeeded</T>
+                </>}
+
+                {uploadResponse && !uploadResponse?.uploadGateVideo && <>
+                  🔴 <T>Fragment upload failed</T>
+                </>}
+              </div>
+            }
+          </div>
+
+          <div style="width:200px">
+            {isCaptureStarted &&
+              <video
+                title="Local video stream preview"
+                ref={videoRef} style={{ width: '200px' }}
+                autoPlay></video>
+            }
+
+            {!isCaptureStarted && (
+              <button onClick={handleCaptureStart}>
+                <T>Start stream</T>
+              </button>
+            )}
+            {isCaptureStarted && (
+              <button onClick={handleCaptureStop}><T>Stop stream</T></button>
+            )}
+          </div>
+
+        </div>
       )}
-      {isCaptureStarted && <video ref={videoRef} style={{ width: '100%', maxHeight: '600px' }} autoPlay></video>}
     </div>
   );
 };

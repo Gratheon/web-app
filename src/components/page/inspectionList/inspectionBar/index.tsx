@@ -26,8 +26,6 @@ export default function InspectionBar({
 	let tmpdata: InspectionSnapshot = JSON.parse(data)
 	let stats = tmpdata.cellStats
 
-	console.log({stats})
-
 	stats.broodPercent = Math.round(stats?.broodPercent)
 	stats.honeyPercent = Math.round(stats?.honeyPercent)
 	stats.pollenPercent = Math.round(stats?.pollenPercent)

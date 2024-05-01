@@ -25,7 +25,6 @@ function TRemote({ lang, children, tc }: { lang: string, children: any, tc: stri
 
 	if (loading || error) return children
 
-	// console.log('received', data)
 	return <>
 		{data && data.translate && data.translate[lang] ? data.translate[lang] : children}
 	</>
@@ -54,14 +53,11 @@ export default function T({ children, key = null, ctx = '' }: { children: any, k
 		return getLocale(where)
 	}, [user], false)
 
-	// console.log({lang, translated})
 	// get cached translation
 	if (translated && translated[lang]) return <>{translated[lang]}</>
 
 	// loading cache?
 	if( translated == false) return children
-
-	// console.log({user, lang, translated})
 
 	// ask backend
 	return <TRemote lang={lang} key={key} tc={ctx}>{children}</TRemote>

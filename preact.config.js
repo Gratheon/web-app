@@ -67,7 +67,6 @@ export default (config, env, helpers, options) => {
 	preactCliSvgLoader(config, helpers)
 
 	config.resolve.modules.push(env.src);
-	console.log('webpack config', config.resolve.alias);
 	config.resolve.alias = {
 		...config.resolve.alias,
 		'@':path.resolve(__dirname, 'src')

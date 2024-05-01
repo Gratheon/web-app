@@ -34,11 +34,12 @@ export default function apiaryListRow(props) {
 				{apiary.hives &&
 					apiary.hives.map((hive, i) => (
 						<div key={i} className={styles.hive}>
+							<BeeCounter count={hive.beeCount} />
+							
 							<NavLink to={`/apiaries/${apiary.id}/hives/${hive.id}`}>
 								<HiveIcon boxes={hive.boxes} size={60} />
 								<div className={styles.title}>{hive.name}</div>
 							</NavLink>
-							<BeeCounter count={hive.beeCount} />
 						</div>
 					))}
 			</div>

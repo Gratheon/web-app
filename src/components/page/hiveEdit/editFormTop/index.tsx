@@ -135,7 +135,7 @@ export default function HiveEditDetails({ hiveId }) {
 				})
 
 				await updateHive(hive)
-			}, 300),
+			}, 1000),
 		[]
 	)
 

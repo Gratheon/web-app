@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { videoUploadUri } from '@/components/uri'
 import { useUploadMutation, gql } from '@/components/api'
+import T from '@/components/shared/translate';
 
 const VideoCapture = ({ boxId }) => {
   const videoRef = useRef(null);
@@ -151,27 +152,28 @@ const VideoCapture = ({ boxId }) => {
   return (
     <div>
 
-    {!isCaptureStarted &&
-      <div style="padding:10px;display:flex;">
-        <div style="padding:10px;">
-          <h3>Gatehouse camera</h3>
-          <p>
-            You can stream video of your hive entrance directly from the mobile app to the cloud.
-            Position camera above hive entrance. 
+      {!isCaptureStarted &&
+        <div style="padding:10px;display:flex;">
+          <div style="padding:10px;">
+            <h3><T>Beehive entrance camera</T></h3>
+            <p>
+              <T>
+                You can stream video of your hive entrance directly from the mobile app to the cloud.
+                Position camera above hive entrance.
+              </T>
             </p>
-          <p>
-            Alternatively you can upload video files using <a href="https://github.com/Gratheon/beehive-entrance-video-processor">beehive-entrance-video-processor</a>.
-            We recommend NVidia Jetson Orin for best performance.
-          </p>
-        </div>
+            <p>
+              <T>For best performance we recommend our product, Beehive Gatehouse with built-in AI-assisted video processing.</T>
+            </p>
+          </div>
 
-        <img 
-          style="border-radius: 5px;"
-          width="150" 
-          src="/assets/gatehouse-vectorized.jpg" />
-      </div>
-    }
-    
+          <img
+            style="border-radius: 5px;"
+            width="150"
+            src="/assets/gatehouse-vectorized.jpg" />
+        </div>
+      }
+
       {!hasCameraPermission && (
         <button onClick={requestPermissions}>Allow camera access</button>
       )}

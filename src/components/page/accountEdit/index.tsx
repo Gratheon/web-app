@@ -42,6 +42,7 @@ export default function AccountEdit() {
 				date_added
 				hasSubscription
 				isSubscriptionExpired
+				billingPlan
 			}
 		}
 	`)

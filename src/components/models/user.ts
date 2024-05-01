@@ -11,6 +11,7 @@ export type User = {
 
 	hasSubscription?: boolean
 	isSubscriptionExpired?: boolean
+	billingPlan?: string
 }
 
 export async function getUser(): Promise<User> {

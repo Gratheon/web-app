@@ -8,6 +8,7 @@ const USER_QUERY = gql`
 			id
 			lang
 			isSubscriptionExpired
+			billingPlan
 		}
 	}
 `
@@ -21,7 +22,8 @@ export default function Paywall({ isLoggedIn = false }) {
 	if (
 		isLoggedIn &&
 		!isInAccountView &&
-		accountData?.user?.isSubscriptionExpired === true
+		accountData?.user?.isSubscriptionExpired === true &&
+		accountData?.user?.billingPlan !== 'free'
 	) {
 		navigate(`/account`, { replace: true })
 	}

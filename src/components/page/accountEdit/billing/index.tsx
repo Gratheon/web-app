@@ -53,7 +53,7 @@ export default function Billing({ user }) {
 	}
 
 	let expirationError = user.isSubscriptionExpired ? (
-		<MessageError error="Subscription expired, please extend" />
+		<MessageError error={<T>Subscription has expired, please extend</T>} />
 	) : null
 
 	if (!user.lang) {
@@ -67,7 +67,7 @@ export default function Billing({ user }) {
 			{stripeStatus === 'success' && (
 				<MessageSuccess title={<T>Payment completed</T>} />
 			)}
-			{stripeStatus === 'cancel' && <MessageError error="Payment cancelled" />}
+			{stripeStatus === 'cancel' && <MessageError error={<T>Payment was cancelled</T>} />}
 
 			<div style="margin-bottom:5px; border: 1px dotted gray; padding: 10px; border-radius: 5px;">
 				<h3><T ctx="this is a headline for billing form">Billing</T></h3>
@@ -77,14 +77,26 @@ export default function Billing({ user }) {
 				{errorCancel && <MessageError error={errorCancel} />}
 
 				<div style=" display: flex">
-					<div style={{ flexGrow: 1 }}>
-						<div style="margin-top:5px;">
-							<T>Expires in</T> {formatDistance(new Date(user.date_expiration), new Date(), dateLangOptions)} &mdash; {format(new Date(user.date_expiration), 'dd MMMM yyyy, hh:mm', dateLangOptions)}
-						</div>
-
+					<div style={{ flexGrow: 1, marginTop: 5 }}>
 						<div>
 							<T>Account created</T>: {format(new Date(user.date_added), 'dd MMMM yyyy, hh:mm', dateLangOptions)}
 						</div>
+
+						<div>
+							<a href="https://gratheon.com/prices.html"><T>Billing plan</T></a>: {user.billingPlan}
+						</div>
+
+						{user.isSubscriptionExpired &&
+							<div>
+								<T>Expired</T> {formatDistance(new Date(user.date_expiration), new Date(), dateLangOptions)} &mdash; {format(new Date(user.date_expiration), 'dd MMMM yyyy, hh:mm', dateLangOptions)}
+							</div>
+						}
+
+						{!user.isSubscriptionExpired &&
+							<div>
+								<T>Expires in</T> {formatDistance(new Date(user.date_expiration), new Date(), dateLangOptions)} &mdash; {format(new Date(user.date_expiration), 'dd MMMM yyyy, hh:mm', dateLangOptions)}
+							</div>
+						}
 					</div>
 
 					<div>

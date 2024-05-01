@@ -81,6 +81,8 @@ function ReactHlsPlayer({
 }
 
 export default function StreamPlayer({ videoStreams }) {
+  if(!videoStreams) return
+
   let playlistURL = videoStreams[videoStreams.length-1].playlistURL
 
   // 720px for 12h at 1 min = 1 px

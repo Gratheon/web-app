@@ -27,10 +27,12 @@ export default function GateBox({ boxId }) {
 
 	// find active stream
 	let hasActiveStream = false;
-	for (const stream of data.videoStreams) {
-		if (stream.active) {
-			hasActiveStream = true;
-			break;
+	if (data?.videoStreams) {
+		for (const stream of data.videoStreams) {
+			if (stream.active) {
+				hasActiveStream = true;
+				break;
+			}
 		}
 	}
 
@@ -42,13 +44,11 @@ export default function GateBox({ boxId }) {
 		</div>
 	);
 
-	console.log(data.videoStreams)
-
 	return <div>
 		{streamStart}
 
 		{/* <CalendarSelector /> */}
 
-		<StreamPlayer videoStreams={data.videoStreams} />
+		<StreamPlayer videoStreams={data?.videoStreams} />
 	</div>;
 }

@@ -150,6 +150,28 @@ const VideoCapture = ({ boxId }) => {
 
   return (
     <div>
+
+    {!isCaptureStarted &&
+      <div style="padding:10px;display:flex;">
+        <div style="padding:10px;">
+          <h3>Gatehouse camera</h3>
+          <p>
+            You can stream video of your hive entrance directly from the mobile app to the cloud.
+            Position camera above hive entrance. 
+            </p>
+          <p>
+            Alternatively you can upload video files using <a href="https://github.com/Gratheon/beehive-entrance-video-processor">beehive-entrance-video-processor</a>.
+            We recommend NVidia Jetson Orin for best performance.
+          </p>
+        </div>
+
+        <img 
+          style="border-radius: 5px;"
+          width="150" 
+          src="/assets/gatehouse-vectorized.jpg" />
+      </div>
+    }
+    
       {!hasCameraPermission && (
         <button onClick={requestPermissions}>Allow camera access</button>
       )}
@@ -172,21 +194,6 @@ const VideoCapture = ({ boxId }) => {
         </>
       )}
       {isCaptureStarted && <video ref={videoRef} style={{ width: '100%', maxHeight: '600px' }} autoPlay></video>}
-
-      {!isCaptureStarted &&
-        <div style="padding:10px;display:flex;">
-          <img width="100"
-            src="https://github.com/Gratheon/models-gate-tracker/raw/main/readmeFiles/ks_1.jpg" />
-
-
-          <div style="padding:10px;">
-            You can stream video of your hive entrance directly from the app to the cloud.
-            Position it above hive entrance. Use green landing board for bee detection to work.
-
-            Alternatively you can upload video files using raspberry-pi client library
-          </div>
-        </div>
-      }
     </div>
   );
 };

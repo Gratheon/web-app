@@ -29,7 +29,6 @@ export default function ErrorMsg({ error }) {
 							<pre key={i}>
 								<strong>{e.path?.join(' > ')}</strong> {e.message}
 							</pre>
-							</pre>
 						)
 					})}
 			</div>

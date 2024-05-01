@@ -150,7 +150,7 @@ const VideoCapture = ({ boxId }) => {
   };
 
   return (
-    <div>
+    <div style="padding: 5px 10px;">
 
       {!isCaptureStarted &&
         <div style="display:flex;">

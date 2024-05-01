@@ -1,6 +1,11 @@
 import Hls from 'hls.js';
 import React, { useEffect, RefObject } from 'react';
 import styles from './style.less'
+import { format } from 'date-fns';
+import {de, et, fr, pl, ru, tr} from 'date-fns/locale'
+import { useLiveQuery } from 'dexie-react-hooks';
+import { getUser } from '@/components/models/user';
+const loadedDateLocales = { de, et, fr, pl, ru, tr }
 
 function ReactHlsPlayer({
   hlsConfig,
@@ -81,15 +86,46 @@ function ReactHlsPlayer({
 }
 
 export default function StreamPlayer({ videoStreams }) {
-  if(!videoStreams) return
 
-  let playlistURL = videoStreams[videoStreams.length-1]?.playlistURL
+  let [selectedStream, selectStream] = React.useState(videoStreams.length - 1)
 
+  console.log({
+    videoStreams
+  })
+
+  if (!videoStreams) return
+
+  let playlistURL = videoStreams[selectedStream]?.playlistURL
+
+  if (!playlistURL) return
   // 720px for 12h at 1 min = 1 px
+
+  let userStored = useLiveQuery(() =>  getUser(), [], null)
+
+  if(!userStored){
+    return;
+  }
+  const dateLangOptions = { locale: loadedDateLocales[userStored.lang] }
   
-  return <>
+  return <div>
+    {videoStreams.map((stream, index) => {
+      return <div
+        key={index}
+        onClick={() => selectStream(index)}
+        className={styles.streamSelector}
+        style={{
+          backgroundColor: selectedStream === index ? "rgba(0, 0, 0, 0.3)" : "rgba(0, 0, 0, 0.1)"
+        }}
+      >
+        {format(new Date(stream.startTime), 'dd MMMM yyyy, hh:mm', dateLangOptions)} &mdash;
+        {format(new Date(stream.endTime), 'dd MMMM yyyy, hh:mm', dateLangOptions)}
+
+        ({stream.maxSegment * 10} sec)
+      </div>
+    })}
+
     {//@ts-ignore
     }<ReactHlsPlayer src={playlistURL} autoPlay controls={true} style={{ width: "720px" }} />
-    
-  </>
+
+  </div>
 }

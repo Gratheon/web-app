@@ -10,7 +10,6 @@ import T from '@/components/shared/translate'
 import metrics from '@/components/metrics'
 
 import { de, et, fr, pl, ru, tr } from 'date-fns/locale'
-
 const loadedDateLocales = { de, et, fr, pl, ru, tr }
 
 export default function Billing({ user }) {

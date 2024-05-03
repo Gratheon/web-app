@@ -91,10 +91,6 @@ export default function StreamPlayer({ videoStreams }) {
 
   let [selectedStream, selectStream] = React.useState(videoStreams.length - 1)
 
-  console.log({
-    videoStreams
-  })
-
   if (!videoStreams) return
 
   let playlistURL = videoStreams[selectedStream]?.playlistURL

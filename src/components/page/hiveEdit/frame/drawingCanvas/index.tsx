@@ -193,13 +193,14 @@ function drawQueenCups(queenCups, ctx, canvas) {
 	}
 }
 
-function drawDetectedBees(detectedBees, ctx, canvas, showBees, showDrones) {
+function drawDetectedBees(detectedBees, ctx, canvas, showBees, showDrones, showQueens) {
 	REL_PX = canvas.width / 1024
 	if (detectedBees.length > 0) {
 		for (let dt of detectedBees) {
 			if (!showBees && (dt.n == 0 || dt.n == 2)) continue;
 			if (!showDrones && dt.n == 1) continue;
-			if (dt.n == 3) continue;// queen detection is too poor to show it
+			if (!showQueens && dt.n == 3) continue;
+			// if (dt.n == 3) continue;// queen detection is too poor to show it
 
 			ctx.globalAlpha = 0.4 + dt.c
 
@@ -224,10 +225,9 @@ function drawDetectedBees(detectedBees, ctx, canvas, showBees, showDrones) {
 				case 3:
 					ctx.fillStyle = ctx.strokeStyle = colors.queen
 					dt.nText = 'queen'
-					ctx.lineWidth = 3 * REL_PX
+					ctx.lineWidth = 4 * REL_PX
 					break
 			}
-
 
 			ctx.roundRect(
 				(dt.x - dt.w / 2) * canvas.width,
@@ -307,7 +307,7 @@ function drawCanvasLayers(
 	ctx,
 	strokeHistory,
 
-	showBees, showDrones, detectedBees,
+	showBees, showDrones, showQueens, detectedBees,
 	showCells, detectedCells,
 	showQueenCups, queenCups,
 
@@ -327,8 +327,8 @@ function drawCanvasLayers(
 		drawDetectedVarroa(ctx, detectedVarroa, canvas)
 	}
 
-	if (showBees || showDrones) {
-		drawDetectedBees(detectedBees, ctx, canvas, showBees, showDrones)
+	if (showBees || showDrones || showQueens) {
+		drawDetectedBees(detectedBees, ctx, canvas, showBees, showDrones, showQueens)
 	}
 
 	if (showQueenCups) {
@@ -368,9 +368,11 @@ export default function DrawingCanvas({
 	const [showDrones, setDroneVisibility] = useState(true)
 	const [showCells, setCellVisibility] = useState(true)
 	const [showQueenCups, setQueenCups] = useState(true)
-	const [showVarroa, setShowVarroa] = useState(true)
+	const [showVarroa, setShowVarroa] = useState(false)
 	const [version, setVersion] = useState(0)
 	const [canvasUrl, setCanvasUrl] = useState(resizes && resizes.length > 0 ? resizes[0].url : imageUrl)
+
+	const showQueens = frameSideFile.queenDetected
 
 	// trigger re-draw within useEffect
 	function clearHistory() {
@@ -419,15 +421,12 @@ export default function DrawingCanvas({
 				canvas,
 				ctx,
 				strokeHistory,
-				showBees,
-				showDrones,
-				detectedBees,
-				showCells,
-				detectedCells,
-				showQueenCups,
-				detectedQueenCups,
-				showVarroa,
-				detectedVarroa
+
+				showBees, showDrones, showQueens, detectedBees,
+
+				showCells, detectedCells,
+				showQueenCups, detectedQueenCups,
+				showVarroa, detectedVarroa
 			)
 		}
 
@@ -562,6 +561,7 @@ export default function DrawingCanvas({
 			strokeHistory,
 			showBees,
 			showDrones,
+			showQueens,
 			detectedBees,
 			showCells,
 			detectedCells,
@@ -691,7 +691,9 @@ export default function DrawingCanvas({
 						</span>
 					</Button>
 
-					<QueenButton frameSide={frameSide} frameSideFile={frameSideFile} />
+					<QueenButton 
+						frameSide={frameSide} 
+						frameSideFile={frameSideFile} />
 
 					{detectedQueenCups && <Button onClick={() => { setQueenCups(!showQueenCups) }}>
 						{frameSideFile.isQueenCupsDetectionComplete && <Checkbox on={showQueenCups} />}

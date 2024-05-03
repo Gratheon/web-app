@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { videoUploadUri } from '@/components/uri'
 import { useUploadMutation, gql } from '@/components/api'
 import T from '@/components/shared/translate';
+import VisualForm from '@/components/shared/visualForm';
+import Button from '@/components/shared/button';
 
 const VideoCapture = ({ boxId }) => {
   const videoRef = useRef(null);
@@ -142,12 +144,15 @@ const VideoCapture = ({ boxId }) => {
     setSelectedCameraDeviceId(newCameraDeviceId);
   };
 
-  const handleCaptureStart = () => {
+  const handleCaptureStart = (e) => {
     setIsCaptureStarted(true);
+    e.preventDefault();
   };
 
-  const handleCaptureStop = () => {
+  const handleCaptureStop = (e) => {
     setIsCaptureStarted(false);
+    e.preventDefault();
+    
   };
 
   return (
@@ -172,10 +177,10 @@ const VideoCapture = ({ boxId }) => {
             </p>
           </div>
 
-          <img
-            style="border-radius: 5px;margin-left:10px;"
-            width="200"
+          <div><img
+            style="border-radius: 5px;margin-left:10px;max-width:200px;"
             src="/assets/gatehouse-vectorized.jpg" />
+          </div>
         </div>
       }
 
@@ -184,15 +189,29 @@ const VideoCapture = ({ boxId }) => {
       )}
       {hasCameraPermission && (
         <div style="display:flex;width:100%;">
-          <div style="flex-grow:1">
-            <label htmlFor="camera-select"><T>Camera</T></label>
-            <select id="camera-select" value={selectedCameraDeviceId} onChange={handleCameraChange}>
-              {cameraDevices.map(camera => (
-                <option key={camera.deviceId} value={camera.deviceId}>
-                  {camera.label || `Camera ${camera.deviceId}`}
-                </option>
-              ))}
-            </select>
+          <div style="flex:1;">
+
+            <VisualForm>
+              <div>
+                <label htmlFor="camera-select" style="width:120px;"><T>Camera</T></label>
+                <select id="camera-select" value={selectedCameraDeviceId} onChange={handleCameraChange}>
+                  {cameraDevices.map(camera => (
+                    <option key={camera.deviceId} value={camera.deviceId}>
+                      {camera.label || `Camera ${camera.deviceId}`}
+                    </option>
+                  ))}
+                </select>
+
+                {!isCaptureStarted && (
+                  <Button onClick={handleCaptureStart} type="button">
+                    <T>Start stream</T>
+                  </Button>
+                )}
+                {isCaptureStarted && (
+                  <Button onClick={handleCaptureStop} type="button"><T>Stop stream</T></Button>
+                )}
+              </div>
+            </VisualForm>
 
             {isCaptureStarted &&
               <div>
@@ -207,24 +226,13 @@ const VideoCapture = ({ boxId }) => {
                 </>}
               </div>
             }
-          </div>
 
-          <div style="width:200px">
             {isCaptureStarted &&
               <video
                 title="Local video stream preview"
-                ref={videoRef} style={{ width: '200px' }}
+                ref={videoRef} style={{ width: '100%', maxWidth: '400px' }}
                 autoPlay></video>
             }
-
-            {!isCaptureStarted && (
-              <button onClick={handleCaptureStart}>
-                <T>Start stream</T>
-              </button>
-            )}
-            {isCaptureStarted && (
-              <button onClick={handleCaptureStop}><T>Stop stream</T></button>
-            )}
           </div>
 
         </div>

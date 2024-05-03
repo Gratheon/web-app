@@ -43,7 +43,7 @@ export default function GateBox({ boxId }) {
 	return <div>
 		{streamStart}
 
-		{data?.videoStreams && <div>
+		{data?.videoStreams && data?.videoStreams.length>0 && <div>
 			<h3>Past stream playback</h3>
 			<StreamPlayer videoStreams={data?.videoStreams} />
 		</div>}

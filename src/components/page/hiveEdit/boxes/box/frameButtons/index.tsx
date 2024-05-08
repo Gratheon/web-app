@@ -88,7 +88,7 @@ export default function FrameButtons({ box, onError }) {
 					onClick={() => {
 						onFrameAdd(box.id, frameTypes.FEEDER)
 					}}
-				><T ctx="this is a button that adds new vertical frame-like container into a beehive, for sugar syrup to be poured in, to feed the bees">Add feeder</T></Button>
+				><T ctx="this is a button that adds new vertical frame-like container into a beehive, for sugar syrup to be poured in, to feed the bees">Add vertical feeder</T></Button>
 				<Button
 					loading={addingFrame}
 					onClick={() => {

@@ -146,7 +146,6 @@ export default function HiveEditForm() {
 						hive={hive}
 						hiveId={hiveId} />}
 
-
 					{box && box.type === boxTypes.GATE && 
 						<GateBox boxId={boxId} />
 					}

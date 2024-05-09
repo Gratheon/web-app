@@ -1,0 +1,41 @@
+.feeder {
+	background: rgb(228, 228, 228);
+	flex-direction: reverse-row;
+	position: relative;
+	cursor: pointer;
+	height: 40px;
+	border: 5px solid rgb(45, 45, 45);
+	border-top: none;
+}
+
+.sugarArea {
+	background: rgba(227, 227, 227, 0.5);
+	height: 20px;
+	position: absolute;
+	bottom: 0;
+	display: none;
+	z-index: 1;
+	width: 100%;
+}
+
+.beeArea {
+	width: 40%;
+	margin: 0 auto;
+	height: 100%;
+	display: none;
+
+	svg {
+		width: 100%;
+		height: 100%;
+	}
+}
+
+.selected {
+	opacity: 1;
+	background: rgb(86, 86, 86);
+
+	.sugarArea,
+	.beeArea {
+		display: block;
+	}
+}

@@ -87,6 +87,12 @@ export default function HiveIcon({
 			if (box.type === 'GATE') {
 				boxStyle.paddingTop = `${size / 10}px`
 			}
+			else if (box.type === 'VENTILATION' || box.type === 'QUEEN_EXCLUDER') {
+				boxStyle.paddingTop = `${size / 20}px`
+			}
+			else if (box.type === 'HORIZONTAL_FEEDER') {
+				boxStyle.paddingTop = `${size / 4.5}px`
+			}
 			else if (box.type === 'SUPER') {
 				boxStyle.paddingTop = `${size / 4}px`
 			} else {
@@ -119,7 +125,10 @@ export default function HiveIcon({
 					)}
 
 					{box.type === 'GATE' &&
-						<div className={styles.flightEntrance}></div>
+						<div className={styles.gate}></div>
+					}
+					{box.type === 'VENTILATION' &&
+						<div className={styles.ventilation}></div>
 					}
 				</div>
 			)

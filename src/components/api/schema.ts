@@ -56,6 +56,10 @@ type Apiary {
   enum BoxType {
     DEEP
     SUPER
+    GATE
+    VENTILATION
+    QUEEN_EXCLUDER
+    HORIZONTAL_FEEDER
   }
   
   union CancelSubscriptionResult = User | Error

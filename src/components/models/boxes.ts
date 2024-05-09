@@ -17,6 +17,9 @@ export const boxTypes = {
 	DEEP: 'DEEP',
 	SUPER: 'SUPER',
 	GATE: 'GATE',
+	VENTILATION: 'VENTILATION',
+	QUEEN_EXCLUDER: 'QUEEN_EXCLUDER',
+	HORIZONTAL_FEEDER: 'HORIZONTAL_FEEDER',
 }
 
 export async function getBox(id: number): Promise<Box> {

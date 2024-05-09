@@ -28,6 +28,9 @@ import styles from './styles.less'
 import BOXES_QUERY from './boxesQuery.graphql'
 import { useState } from 'react'
 import metrics from '@/components/metrics'
+import Ventilation from './ventilation'
+import QueenExcluder from './queenExcluder'
+import FeederHorizontal from './feederHorizontal'
 
 type BoxesProps = {
 	hiveId: any
@@ -115,15 +118,12 @@ export default function Boxes({
 		})
 	}
 
-	
+
 	function onBoxClick({ event, boxId }) {
 		// match only background div to consider it as a selection to avoid overriding redirect to frame click
 		if (
 			typeof event.target.className === 'string' &&
-			(
-				event.target.className.indexOf('gate') === 0 ||
-				event.target.className.indexOf('box') === 0
-			)
+			event.target.className.length > 0
 		) {
 			event.stopPropagation()
 			navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`, {
@@ -144,15 +144,18 @@ export default function Boxes({
 				}}
 			>
 				{currentBoxSelected && (
-					<div style={{ height: 35, display: 'flex' }}>
-						{box.type != boxTypes.GATE &&
+					<div style={{ height: 35, display: 'flex', flexDirection: 'row-reverse' }}>
+						<BoxButtons onError={onError} box={box} />
+
+						{(box.type == boxTypes.DEEP || box.type==boxTypes.SUPER) &&
 							<FrameButtons box={box} onError={onError} />
 						}
-						<BoxButtons onError={onError} box={box} />
+
 					</div>
 				)}
+
 				<div className={styles.box + ` boxOuterClick`}>
-					{box.type != boxTypes.GATE &&
+					{(box.type == boxTypes.DEEP || box.type == boxTypes.SUPER) &&
 						<Box
 							box={box}
 							boxId={boxId}
@@ -163,11 +166,10 @@ export default function Boxes({
 						/>
 					}
 
-					{box.type == boxTypes.GATE && 
-						<Gate 
-							box={box}
-							boxId={+boxId}
-						 />}
+					{box.type == boxTypes.GATE && <Gate box={box} boxId={+boxId} />}
+					{box.type === boxTypes.VENTILATION && <Ventilation selected={+boxId === box.id}/>}
+					{box.type === boxTypes.QUEEN_EXCLUDER && <QueenExcluder selected={+boxId === box.id}/>}
+					{box.type === boxTypes.HORIZONTAL_FEEDER && <FeederHorizontal selected={+boxId === box.id}/>}
 				</div>
 			</div>
 		)
@@ -197,7 +199,29 @@ export default function Boxes({
 					title="Add gate"
 					onClick={() => onBoxAdd(boxTypes.GATE)}
 				>
-					<GateIcon /><span><T ctx="this is a button to add new section of beehive, specifically holes, an entrance">Add entrance</T></span>
+					<GateIcon /><span><T ctx="this is a button to add new section of beehive, specifically holes, an entrance">Add base</T></span>
+				</Button>
+			</div>
+
+			<div>
+
+				<Button
+					loading={adding}
+					title="Add ventilation"
+					onClick={() => onBoxAdd(boxTypes.VENTILATION)}
+				><span><T ctx="this is a button to add tiny part of beehive, specifically holes on top for ventilation">Add inner lid</T></span>
+				</Button>
+				<Button
+					loading={adding}
+					title="Add queen excluder"
+					onClick={() => onBoxAdd(boxTypes.QUEEN_EXCLUDER)}
+				><span><T ctx="this is a button to add tiny part of beehive, a horizontal layer that prevents queen bee from moving through this">Add queen excluder</T></span>
+				</Button>
+				<Button
+					loading={adding}
+					title="Add feeder"
+					onClick={() => onBoxAdd(boxTypes.HORIZONTAL_FEEDER)}
+				><span><T ctx="this is a button to add tiny part of beehive, a horizontal box where sugar syrup can be poured to feed bees">Add feeder</T></span>
 				</Button>
 			</div>
 			<div>{boxesDivs}</div>

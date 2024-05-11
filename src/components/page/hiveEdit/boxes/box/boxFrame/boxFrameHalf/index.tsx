@@ -1,16 +1,13 @@
 import React from 'react'
 
 import styles from './index.less'
-import { useNavigate } from 'react-router-dom'
 
 import colors from '@/components/colors'
 import QueenIcon from '@/icons/queenIcon'
 import { getFrameSideFile } from '@/components/models/frameSideFile'
 import { useLiveQuery } from 'dexie-react-hooks'
 
-export default function BoxFrameHalf({ frameSide, className, href }) {
-	let navigate = useNavigate()
-
+export default function BoxFrameHalf({ frameSide, className, onFrameSideClick }) {
 	if(!frameSide) return;
 
 	const frameSideFile = useLiveQuery(async() => {
@@ -21,9 +18,7 @@ export default function BoxFrameHalf({ frameSide, className, href }) {
 	return (
 		<div
 			className={`${styles.frameSide} ${className}`}
-			onClick={() => {
-				navigate(href, { replace: true })
-			}}
+			onClick={onFrameSideClick}
 		>
 
 			{frameSideFile?.queenDetected &&

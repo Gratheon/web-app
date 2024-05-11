@@ -6,12 +6,13 @@ export default function BreadCrumbs({ items, children }) {
 	return (
 		<div className={styles.breadcrumbs}>
 			<div>
-				{items.map((row, i) => {
+				{items.map((breadcrumb, i) => {
 					return (
-						<span key={i}>
-							<NavLink to={row.uri}>{row.name}</NavLink>
+						<>
+							{breadcrumb.icon}
+							<span><NavLink to={breadcrumb.uri}>{breadcrumb.name}</NavLink></span>
 							{i + 1 < items.length && <span>&nbsp;&rarr;&nbsp;</span>}
-						</span>
+						</>
 					)
 				})}
 			</div>

@@ -12,10 +12,12 @@ type LinkProps = {
 export default function Link({
 	href,
 	children,
-	className = styles.small,
+	// className = styles.small,
 }: LinkProps) {
 	return (
-		<a href={href} className={className}>
+		<a href={href} 
+		// className={className}
+		>
 			{children}
 		</a>
 	)

@@ -5,6 +5,7 @@ import Link from '@/components/shared/link'
 import { gql, useQuery } from '@/components/api'
 import Loading from '@/components/shared/loader'
 import MessageError from '@/components/shared/messageError'
+import Button from '@/components/shared/button'
 
 export default function Invoices() {
 	let {
@@ -60,7 +61,7 @@ export default function Invoices() {
 										</td>
 										<td>{formatter.format(invoice.total / 100)}</td>
 										<td>
-											<Link href={invoice.url}>PDF</Link>
+											<Button color='green' href={invoice.url}>PDF</Button>
 										</td>
 									</tr>
 								)

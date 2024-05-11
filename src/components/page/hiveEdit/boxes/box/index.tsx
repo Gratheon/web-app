@@ -21,9 +21,10 @@ export default function Box({
 	frameSideId,
 	apiaryId,
 	hiveId,
+	editable = true
 }) {
 	const navigate = useNavigate();
-	const framesDiv = []
+	let framesDiv = []
 
 	const [updateFramesRemote, { error }] = useMutation(gql`mutation updateFrames($frames: [FrameInput]!) { updateFrames(frames: $frames) { id } }`)
 
@@ -88,20 +89,35 @@ export default function Box({
 		for (let i = 0; i < frames.length; i++) {
 			const frame = frames[i]
 
-			framesDiv.push(
-				</* @ts-ignore */ Draggable key={i}>
-					<Frame
-						box={box}
-						frameId={frameId}
-						frameSideId={frameSideId}
+			let frameDiv = <Frame
+				box={box}
+				frameId={frameId}
+				frameSideId={frameSideId}
+				hiveId={hiveId}
+				apiaryId={apiaryId}
+				frame={frame}
+				editable={editable}
+			/>
 
-						hiveId={hiveId}
-						apiaryId={apiaryId}
-						frame={frame}
-					/>
-				</Draggable>
-			)
+			if (editable) {
+				framesDiv.push(</* @ts-ignore */ Draggable key={i}>{frameDiv}</Draggable>)
+			} else {
+				framesDiv.push(frameDiv)
+			}
 		}
+	}
+
+	let framesWrapped: any = framesDiv
+
+	if(editable){
+		framesWrapped = (<>
+			{/* @ts-ignore */}
+			<Container
+				style={{ height: `calc(100% - 10px)` }}
+				onDrop={swapFrames}
+				orientation="horizontal"
+			>{framesDiv}</Container>
+		</>)
 	}
 
 	return (
@@ -115,14 +131,7 @@ export default function Box({
 				<div className={styles.boxInner}>
 					{!frames && <Loader size={1} />}
 
-					{/* @ts-ignore */}
-					<Container
-						style={{ height: `calc(100% - 10px)` }}
-						onDrop={swapFrames}
-						orientation="horizontal"
-					>
-						{framesDiv}
-					</Container>
+					{framesWrapped}
 				</div>
 			</div>
 		</div>

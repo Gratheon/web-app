@@ -1,11 +1,11 @@
 import React from 'react'
 
-import HiveIcon from '@/components/shared/hiveIcon'
+import Hive from '@/components/shared/hive'
 import Button from '@/components/shared/button'
 import HivesPlaceholder from '@/components/shared/hivesPlaceholder'
 import T from '@/components/shared/translate'
 
-import AddHiveIcon from '@/icons/addHive'
+import HiveIcon from '@/icons/hive'
 import HandIcon from '@/icons/handIcon'
 
 import styles from './index.less'
@@ -39,7 +39,7 @@ export default function apiaryListRow(props) {
 						<HandIcon /><span><T ctx="button to change beehive">Edit</T></span>
 					</Button>
 					<Button href={`/apiaries/${apiary.id}/hives/add`}>
-						<AddHiveIcon /><span><T ctx="button to add beehive">Add hive</T></span>
+						<HiveIcon /><span><T ctx="button to add beehive">Add hive</T></span>
 					</Button>
 				</div>
 			</div>
@@ -50,7 +50,7 @@ export default function apiaryListRow(props) {
 					apiary.hives.map((hive, i) => (
 						<div key={i} className={styles.hive}>
 							<NavLink to={`/apiaries/${apiary.id}/hives/${hive.id}`}>
-								<HiveIcon boxes={hive.boxes} size={60} />
+								<Hive boxes={hive.boxes} size={60} />
 								<div className={styles.title}>{hive.name}</div>
 							</NavLink>
 
@@ -73,7 +73,7 @@ export default function apiaryListRow(props) {
 									<tr key={i}>
 										<td>
 											<NavLink to={`/apiaries/${apiary.id}/hives/${hive.id}`}>
-												<HiveIcon boxes={hive.boxes} size={20} />
+												<Hive boxes={hive.boxes} size={20} />
 											</NavLink>
 										</td>
 										<td>

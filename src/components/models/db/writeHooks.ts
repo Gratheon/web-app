@@ -69,6 +69,7 @@ export const writeHooks = {
 		await upsertEntity('file', entity)
 	},
 	Inspection: async (_, entity) => {
+		console.log('writing inspection', entity)
 		entity.hiveId = +entity.hiveId
 		await upsertEntity('inspection', entity)
 	},

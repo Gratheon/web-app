@@ -1,9 +1,8 @@
-import React, { useMemo, useState } from 'react'
+import React, { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate } from 'react-router-dom'
-import debounce from 'lodash.debounce'
 
-import { gql, useMutation, useQuery } from '@/components/api'
+import { useMutation } from '@/components/api'
 
 import { getFrame, removeFrame } from '@/components/models/frames'
 import T from '@/components/shared/translate'

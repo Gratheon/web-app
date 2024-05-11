@@ -9,6 +9,7 @@ import T from '@/components/shared/translate'
 
 import ApiaryListRow from './apiaryListRow'
 import ApiariesPlaceholder from './apiariesPlaceholder'
+import Button from '@/components/shared/button'
 
 export default function ApiaryList(props) {
 	const { loading, error, data } = useQuery(gql`
@@ -60,7 +61,9 @@ export default function ApiaryList(props) {
 					))}
 
 				<div style={{ textAlign: 'center', marginTop: 20 }}>
-					<Link href="/apiaries/create"><T ctx="its a button">Setup new apiary</T></Link>
+					<Button 
+						color='green'
+						href="/apiaries/create"><T ctx="its a button">Setup new apiary</T></Button>
 				</div>
 			</div>
 		</div>

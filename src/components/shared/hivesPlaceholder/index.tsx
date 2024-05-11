@@ -1,5 +1,5 @@
 import React from 'react'
-import HiveIcon from '../hiveIcon'
+import HiveIcon from '../hive'
 import T from '../translate'
 
 export default function () {

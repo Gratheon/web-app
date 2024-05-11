@@ -4,7 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 
 import T from '@/components/shared/translate'
 import VisualForm from '@/components/shared/visualForm'
-import HiveIcon from '@/components/shared/hiveIcon'
+import HiveIcon from '@/components/shared/hive'
 import DeactivateButton from '../deleteButton'
 import QueenColor from './queenColor'
 import styles from './styles.less'
@@ -27,8 +27,10 @@ import BeeCounter from '@/components/shared/beeCounter'
 import { getFrameSideIDsFrames } from '@/components/models/frameSide'
 import { deleteFilesByFrameSideIDs } from '@/components/models/frameSideFile'
 import MessageSuccess from '@/components/shared/messageSuccess'
+import InspectionIcon from '@/icons/inspection'
+import ShareIcon from '@/icons/share'
 
-export default function HiveEditDetails({ hiveId }) {
+export default function HiveEditDetails({ apiaryId, hiveId }) {
 	let [creatingInspection, setCreatingInspection] = useState(false)
 	let [okMsg, setOkMsg] = useState(null)
 
@@ -70,7 +72,7 @@ export default function HiveEditDetails({ hiveId }) {
 				let frameSideIDs = getFrameSideIDsFrames(frames)
 				let cellStats = await getHiveInspectionStats(frames)
 
-				let inspectionSnapshot : InspectionSnapshot = {
+				let inspectionSnapshot: InspectionSnapshot = {
 					hive,
 					family,
 					boxes,
@@ -86,9 +88,9 @@ export default function HiveEditDetails({ hiveId }) {
 				})
 
 				await cloneFramesForInspection({
-						inspectionId: createdInspection.data.addInspection.id,
-						frameSideIDs
-					}
+					inspectionId: createdInspection.data.addInspection.id,
+					frameSideIDs
+				}
 				)
 
 				deleteCellsByFrameSideIDs(frameSideIDs)
@@ -248,7 +250,7 @@ export default function HiveEditDetails({ hiveId }) {
 			<div className={styles.form}>
 				<div style="padding-right:10px;">
 					<HiveIcon onColorChange={onColorChange} boxes={boxes} editable={true} />
-					<BeeCounter	count={hive.beeCount} />
+					<BeeCounter count={hive.beeCount} />
 				</div>
 				<div>
 					<VisualForm>
@@ -300,7 +302,7 @@ export default function HiveEditDetails({ hiveId }) {
 								<textarea
 									className={styles.notes}
 									style={{
-										marginTop:3,
+										marginTop: 3,
 										background: hive.notes ? '#EEE' : 'white',
 										minHeight: hive.notes ? 40 : 20,
 										width: `calc(100% - 20px)`
@@ -317,7 +319,13 @@ export default function HiveEditDetails({ hiveId }) {
 
 					<VisualFormSubmit>
 						<PopupButtonGroup>
+							{/* <Button href={`/apiaries/${apiaryId}/hive/${hiveId}/share`} className="button">
+								<ShareIcon />
+								Share
+							</Button> */}
+
 							<Button loading={creatingInspection} onClick={onCreateInspection}>
+								<InspectionIcon />
 								<T ctx="This is a button that adds new beehive inspection as a snapshot of current beehive state">Create Inspection</T>
 							</Button>
 							<PopupButton>

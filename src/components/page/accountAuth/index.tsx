@@ -131,7 +131,9 @@ export default function AccountAuth() {
 					</div>
 					<div className={style.balancer}></div>
 				</div>
-				<div className={style.linkToRegister}><Link to="/account/register"><T>Create new account</T></Link></div>
+				<div className={style.linkToRegister}>
+					<Link to="/account/register"><T>Create new account</T></Link>
+				</div>
 			</div>
 		</div>
 	)

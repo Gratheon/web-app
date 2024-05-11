@@ -1,10 +1,9 @@
-import Link from '../../../shared/link'
 import DateFormat from '../../../shared/dateFormat'
-import React from 'react'
 import colors from '../../../colors'
 import styles from './styles.less'
 import { InspectionSnapshot } from '@/components/models/inspections'
 import BeeCounter from '@/components/shared/beeCounter'
+import { useNavigate } from 'react-router-dom'
 
 type InspectionBarProps = {
 	selected: boolean
@@ -23,6 +22,7 @@ export default function InspectionBar({
 	added,
 	id,
 }: InspectionBarProps) {
+	let navigate = useNavigate()
 	let tmpdata: InspectionSnapshot = JSON.parse(data)
 	let stats = tmpdata.cellStats
 
@@ -31,11 +31,13 @@ export default function InspectionBar({
 	stats.pollenPercent = Math.round(stats?.pollenPercent)
 	return (
 		<div
-			className={`${styles.journalItem} ${selected ? styles.journalItemSelected : ''
+			className={`${styles.inspectionBar} ${selected ? styles.selected : ''
 				}`}
 		>
-			{/* <Link href={`/apiaries/${apiaryId}/hives/${hiveId}/inspections/${id}`}> */}
-			<div className={styles.bottle}>
+			<div className={styles.bottle}
+				onClick={() => {
+					navigate(`/apiaries/${apiaryId}/hives/${hiveId}/inspections/${id}`, { replace: true })
+				}}>
 				<DateFormat datetime={added} />
 				<div className={styles.journalItemStats}>
 					<div
@@ -73,10 +75,9 @@ export default function InspectionBar({
 						}}
 					></div>
 				</div>
-				
+
 				<BeeCounter count={tmpdata?.hive?.beeCount} />
 			</div>
-			{/* </Link> */}
 		</div>
 	)
 }

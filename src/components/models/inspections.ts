@@ -41,9 +41,7 @@ export async function listInspections(hiveId: number): Promise<Inspection> {
 	}
 
 	try {
-		return await db['inspection'].where({
-			hiveId
-		}).limit(100).toArray()
+		return await db['inspection'].where({ hiveId }).limit(100).toArray()
 	} catch (e) {
 		console.error(e)
 		throw e

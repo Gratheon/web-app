@@ -8,45 +8,50 @@ import INSPECTION_QUERY from './inspectionQuery.graphql'
 
 import ErrorMsg from '@/components/shared/messageError'
 import ErrorGeneral from '@/components/shared/messageErrorGlobal'
-import { boxTypes, getBox } from '@/components/models/boxes'
+import { getBox } from '@/components/models/boxes'
 import { getHive } from '@/components/models/hive'
 import { getApiary } from '@/components/models/apiary'
 import Loader from '@/components/shared/loader'
 import MessageNotFound from '@/components/shared/messageNotFound'
 import BreadCrumbs from '@/components/shared/breadcrumbs'
 import SubMenu from '@/components/shared/submenu'
-import JournalItem from './inspectionBar'
+import InspectionBar from './inspectionBar'
 import { listInspections, Inspection } from '@/components/models/inspections'
 import T from '@/components/shared/translate'
+import InspectionView from './inspectionView'
+import DateFormat from '@/components/shared/dateFormat'
+import HiveIcon from '@/icons/hive'
 
 export default function InspectionList() {
-	let { apiaryId, hiveId, boxId, frameId, frameSideId, selectedInspectionId } = useParams()
+	let { apiaryId, hiveId, boxId, frameId, frameSideId, inspectionId } = useParams()
 	let [error, onError] = useState(null)
 
 	const apiary = useLiveQuery(() => getApiary(+apiaryId), [apiaryId], null)
 	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId], null)
 	const box = useLiveQuery(() => getBox(+boxId), [boxId], null)
-	const inspections = useLiveQuery(() => listInspections(+hiveId), [hiveId], null)
 
-	if(apiary ===null || hive === null){
-		return <Loader/>
+	if (apiary === null || hive === null) {
+		return <Loader />
 	}
-	
+
 	let loading,
 		errorGet,
 		errorNetwork
 
+	const inspections = useLiveQuery(() => listInspections(+hiveId), [hiveId], null)
 	// if local cache is empty - query
-	if (inspections == null || inspections.length===0) {
+	if (inspections == null || inspections.length === 0) {
 		({
 			loading,
 			error: errorGet,
 			errorNetwork
 		} = useQuery(INSPECTION_QUERY, { variables: { hiveId: +hiveId } }))
+	}
 
-		if (loading) {
-			return <Loader />
-		}
+	console.log({ inspections })
+
+	if (loading) {
+		return <Loader />
 	}
 
 	let okMsg
@@ -66,9 +71,39 @@ export default function InspectionList() {
 
 	if (hive) {
 		breadcrumbs[1] = {
+			icon: <HiveIcon size={12}/>,
 			name: <>«{hive.name}» <T>hive</T></>,
 			uri: `/apiaries/${apiaryId}/hives/${hiveId}`,
 		}
+	}
+
+	if (inspectionId) {
+		let selectedInspection = inspections.find((i: Inspection) => i.id == +inspectionId)
+		if (selectedInspection) {
+			breadcrumbs[2] = {
+				name: (<><T>inspection</T> <DateFormat
+					options={{
+						month: 'long',
+						day: '2-digit',
+						year: 'numeric',
+					}}
+					datetime={selectedInspection?.added}
+				/>
+				</>),
+				uri: `/apiaries/${apiaryId}/hives/${hiveId}/inspections/${inspectionId}`,
+			}
+		}
+	}
+
+
+	if (!inspections || inspections.length === 0) {
+		return (
+			<MessageNotFound msg={<T>No inspections found</T>}>
+				<div>
+					<T ctx="this is an error message that explains why no inspections are viewed">Inspection is a snapshot state of beehive at specific time. Inspection can be created from hive view</T>
+				</div>
+			</MessageNotFound>
+		)
 	}
 
 	return (
@@ -85,25 +120,29 @@ export default function InspectionList() {
 			{okMsg}
 			{errorMsg}
 
-			{!inspections.length && <MessageNotFound msg={<T>No inspections found</T>}>
-				<div>
-					<T ctx="this is an error message that explains why no inspections are viewed">Inspection is a snapshot state of beehive at specific time. Inspection can be created from hive view</T>
+			{inspections.length > 0 && <>
+				<div style={{ flexGrow: 1, display: 'flex', padding: 20 }}>
+					{inspections.map((inspection: Inspection) => (
+						<InspectionBar
+							selected={+inspectionId == inspection.id}
+							apiaryId={apiaryId}
+							hiveId={hive.id}
+							id={inspection.id}
+							key={inspection.id}
+							data={inspection.data}
+							added={inspection.added}
+						/>
+					))}
 				</div>
-				</MessageNotFound>}
 
-			<div style={{ flexGrow: 1, display: 'flex' }}>
-				{inspections && inspections.map((inspection: Inspection) => (
-					<JournalItem
-						selected={+selectedInspectionId == inspection.id}
+				<div>
+					{inspectionId && <InspectionView
 						apiaryId={apiaryId}
 						hiveId={hive.id}
-						id={inspection.id}
-						key={inspection.id}
-						data={inspection.data}
-						added={inspection.added}
-					/>
-				))}
-			</div>
+						inspectionId={inspectionId}
+					/>}
+				</div>
+			</>}
 		</div>
 	)
 }

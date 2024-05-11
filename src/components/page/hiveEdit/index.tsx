@@ -24,6 +24,7 @@ import BreadCrumbs from '@/components/shared/breadcrumbs'
 import SubMenu from '@/components/shared/submenu'
 import T from '@/components/shared/translate'
 import MessageSuccess from '@/components/shared/messageSuccess'
+import HiveIcon from '@/icons/hive'
 
 export default function HiveEditForm() {
 	const { state } = useLocation();
@@ -78,6 +79,7 @@ export default function HiveEditForm() {
 
 	if (hive) {
 		breadcrumbs[1] = {
+			icon: <HiveIcon size={12}/>,
 			name: <>«{hive.name}» <T>hive</T></>,
 			uri: `/apiaries/${apiaryId}/hives/${hiveId}`,
 		}
@@ -118,17 +120,17 @@ export default function HiveEditForm() {
 					inspectionCount={hive.inspectionCount}
 				/>
 			</BreadCrumbs>
-			<HiveEditDetails hiveId={hiveId} />
+			<HiveEditDetails apiaryId={apiaryId} hiveId={hiveId} />
 
 			<div className={styles.boxesFrameWrap}>
 				<div className={styles.boxesWrap} id="boxesWrap">
 				<Boxes
-						onError={onError}
-						apiaryId={apiaryId}
-						hiveId={hiveId}
-						boxId={boxId}
-						frameId={frameId}
-						frameSideId={frameSideId}
+					onError={onError}
+					apiaryId={apiaryId}
+					hiveId={hiveId}
+					boxId={boxId}
+					frameId={frameId}
+					frameSideId={frameSideId}
 					/>
 				</div>
 

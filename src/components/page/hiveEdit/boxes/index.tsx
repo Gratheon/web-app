@@ -73,7 +73,6 @@ export default function Boxes({
 
 	return (
 		<div>
-			{editable && <HiveButtons apiaryId={apiaryId} hiveId={hiveId}/> }
 			<HiveBoxes
 				boxes={boxes}
 

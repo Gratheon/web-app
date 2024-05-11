@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useLocation, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { gql, useQuery } from '@/components/api'
@@ -25,10 +25,12 @@ import SubMenu from '@/components/shared/submenu'
 import T from '@/components/shared/translate'
 import MessageSuccess from '@/components/shared/messageSuccess'
 import HiveIcon from '@/icons/hive'
+import HiveButtons from './boxes/hiveButtons'
+import Button from '@/components/shared/button'
 
 export default function HiveEditForm() {
 	const { state } = useLocation();
-	
+
 	let { apiaryId, hiveId, boxId, frameId, frameSideId } = useParams()
 	let [error, onError] = useState(null)
 
@@ -36,10 +38,10 @@ export default function HiveEditForm() {
 	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId], null)
 	const box = useLiveQuery(() => getBox(+boxId), [boxId], null)
 
-	if(apiary ===null || hive === null){
-		return <Loader/>
+	if (apiary === null || hive === null) {
+		return <Loader />
 	}
-	
+
 	let loading,
 		errorGet,
 		errorNetwork
@@ -55,11 +57,11 @@ export default function HiveEditForm() {
 		if (loading) {
 			return <Loader />
 		}
-		
-		if(!hive){
+
+		if (!hive) {
 			return <MessageNotFound msg={<T>Hive not found</T>}>
-			<div><T ctx="this is a not-found error message">Hive was either deleted, never existed or we have a navigation or backend error. You can create new hive from apiary list view</T></div>
-		</MessageNotFound>
+				<div><T ctx="this is a not-found error message">Hive was either deleted, never existed or we have a navigation or backend error. You can create new hive from apiary list view</T></div>
+			</MessageNotFound>
 		}
 	}
 
@@ -79,7 +81,7 @@ export default function HiveEditForm() {
 
 	if (hive) {
 		breadcrumbs[1] = {
-			icon: <HiveIcon size={12}/>,
+			icon: <HiveIcon size={12} />,
 			name: <>«{hive.name}» <T>hive</T></>,
 			uri: `/apiaries/${apiaryId}/hives/${hiveId}`,
 		}
@@ -99,10 +101,18 @@ export default function HiveEditForm() {
 		}
 	}
 
-	if(frameId){
+	if (frameId) {
 		breadcrumbs.push({
 			'name': <>{frameId} <T ctx="this is internal wooden part of the beehive where bees have comb and store honey or keep eggs or larvae">frame</T></>,
 			uri: `/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}/frame/${frameId}`,
+		})
+	}
+
+	const navigate = useNavigate()
+	function onBoxClose(event) {
+		event.stopPropagation()
+		navigate(`/apiaries/${apiaryId}/hives/${hiveId}`, {
+			replace: true,
 		})
 	}
 
@@ -124,33 +134,41 @@ export default function HiveEditForm() {
 
 			<div className={styles.boxesFrameWrap}>
 				<div className={styles.boxesWrap} id="boxesWrap">
-				<Boxes
-					onError={onError}
-					apiaryId={apiaryId}
-					hiveId={hiveId}
-					boxId={boxId}
-					frameId={frameId}
-					frameSideId={frameSideId}
+					<Boxes
+						onError={onError}
+						apiaryId={apiaryId}
+						hiveId={hiveId}
+						boxId={boxId}
+						frameId={frameId}
+						frameSideId={frameSideId}
 					/>
 				</div>
 
 				<div className={styles.frameWrap}>
+					{!frameId && !boxId && <HiveButtons apiaryId={apiaryId} hiveId={hiveId} />}
+
 					<Frame
 						apiaryId={apiaryId}
 						boxId={boxId}
 						frameId={frameId}
 						hiveId={hiveId}
 						frameSideId={frameSideId}
+						extraButtons={<Button onClick={onBoxClose}><T>Close</T></Button>}
 					/>
 
-					{!frameId && !box && <HiveAdvisor 
+					{!frameId && !box && <HiveAdvisor
 						apiary={apiary}
 						hive={hive}
 						hiveId={hiveId} />}
 
-					{box && box.type === boxTypes.GATE && 
+					{box && box.type === boxTypes.GATE &&
 						<GateBox boxId={boxId} />
 					}
+
+					{boxId && !frameId &&
+						<div style={{ display: 'flex', flexDirection: 'row-reverse', flexGrow: 1 }}>
+							<Button onClick={onBoxClose}><T>Close</T></Button>
+						</div>}
 				</div>
 			</div>
 		</div>

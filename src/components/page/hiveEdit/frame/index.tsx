@@ -20,6 +20,7 @@ export default function Frame({
 	boxId,
 	frameId,
 	frameSideId,
+	extraButtons
 }) {
 
 	if (!frameId) {
@@ -36,12 +37,12 @@ export default function Frame({
 
 
 	const navigate = useNavigate()
-	function onFrameClose(event) {
-		event.stopPropagation()
-		navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`, {
-			replace: true,
-		})
-	}
+	// function onFrameClose(event) {
+	// 	event.stopPropagation()
+	// 	navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`, {
+	// 		replace: true,
+	// 	})
+	// }
 
 	let [removeFrameMutation, { error: errorFrameRemove }] = useMutation(`mutation deactivateFrame($id: ID!) {
 		deactivateFrame(id: $id)
@@ -63,10 +64,9 @@ export default function Frame({
 		}
 	}
 
-	const extraButtons = (
+	extraButtons = (
 		<>
-
-			<Button onClick={onFrameClose}><T>Close</T></Button>
+			{extraButtons}
 			<Button
 				color="red"
 				title="Remove frame"

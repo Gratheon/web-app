@@ -78,7 +78,7 @@ export default function HiveButtons({
 	return (
 		<>
 			<ErrorMessage error={error} />
-			<div style={{ display: 'flex', marginBottom: 1 }}>
+			<div style="display: grid; gap: 1px; grid-template-columns: repeat(3, 1fr);">
 				<Button
 					title="Add box on top"
 					loading={adding}
@@ -101,10 +101,6 @@ export default function HiveButtons({
 				>
 					<GateIcon /><span><T ctx="this is a button to add new section of beehive, specifically holes, an entrance">Add base</T></span>
 				</Button>
-			</div>
-
-			<div>
-
 				<Button
 					loading={adding}
 					title="Add ventilation"

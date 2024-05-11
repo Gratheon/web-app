@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 
 import FramesIcon from '@/icons/framesIcon'
 
-import { PopupButtonGroup, PopupButton } from '@/components/shared/popupButton'
 import Button from '@/components/shared/button'
 import { useMutation } from '@/components/api'
 
@@ -14,6 +13,9 @@ import {
 import FoundationIcon from '@/icons/foundationIcon'
 import T from '@/components/shared/translate'
 import metrics from '@/components/metrics'
+import EmptyFrameIcon from '@/icons/emptyFrameIcon'
+import FeederIcon from '@/icons/feederIcon'
+import ButtonWithHover from '@/components/shared/buttonWithHover'
 
 export default function FrameButtons({ box, onError }) {
 	let [addFrameMutation] =
@@ -55,47 +57,51 @@ export default function FrameButtons({ box, onError }) {
 	}
 
 	return (
-		<PopupButtonGroup style={`margin-right:3px;flex-grow:1;`}>
-			<Button
+		<>
+			<div style="display:flex">
+				<ButtonWithHover
+					loading={addingFrame}
+					onClick={() => {
+						onFrameAdd(box.id, frameTypes.EMPTY_COMB)
+					}}
+					title={<span><T ctx="this is a button that adds new frame into a beehive which has wax added by bees on it">Add comb</T></span>}
+				>
+					<FramesIcon />
+				</ButtonWithHover>
+			</div>
+
+			<ButtonWithHover
 				loading={addingFrame}
 				onClick={() => {
-					onFrameAdd(box.id, frameTypes.EMPTY_COMB)
+					onFrameAdd(box.id, frameTypes.FOUNDATION)
 				}}
-			>
-				<FramesIcon /><span><T ctx="this is a button that adds new frame into a beehive which has wax added by bees on it">Add comb</T></span>
-			</Button>
-			<Button
-					loading={addingFrame}
-					onClick={() => {
-						onFrameAdd(box.id, frameTypes.FOUNDATION)
-					}}
-				>
-					<FoundationIcon />
-					<span><T ctx="this is a button that adds new frame into a beehive which has a layer of wax added for bees to build cells upon">Add foundation</T></span>
-				</Button>
+				title={<span><T ctx="this is a button that adds new frame into a beehive which has a layer of wax added for bees to build cells upon">Add foundation</T></span>}
+			><FoundationIcon /></ButtonWithHover>
 
-			<PopupButton>
-				<Button
-					loading={addingFrame}
-					onClick={() => {
-						onFrameAdd(box.id, frameTypes.VOID)
-					}}
-				>
-					<T ctx="this is a button that adds new frame into a beehive, but it has no cells or wax inside, only wooden frame">Add empty frame</T>
-				</Button>
-				<Button
-					loading={addingFrame}
-					onClick={() => {
-						onFrameAdd(box.id, frameTypes.FEEDER)
-					}}
-				><T ctx="this is a button that adds new vertical frame-like container into a beehive, for sugar syrup to be poured in, to feed the bees">Add vertical feeder</T></Button>
-				<Button
-					loading={addingFrame}
-					onClick={() => {
-						onFrameAdd(box.id, frameTypes.PARTITION)
-					}}
-				><T ctx="this is a button that adds new frame-like separator made of wood into a beehive to reduce available space for bees">Add partition</T></Button>
-			</PopupButton>
-		</PopupButtonGroup>
+			<ButtonWithHover
+				loading={addingFrame}
+				onClick={() => {
+					onFrameAdd(box.id, frameTypes.VOID)
+				}}
+				title={<T ctx="this is a button that adds new frame into a beehive, but it has no cells or wax inside, only wooden frame">Add empty frame</T>}
+			><EmptyFrameIcon /></ButtonWithHover>
+
+			<ButtonWithHover
+				loading={addingFrame}
+				onClick={() => {
+					onFrameAdd(box.id, frameTypes.FEEDER)
+				}}
+				title={<T ctx="this is a button that adds new vertical frame-like container into a beehive, for sugar syrup to be poured in, to feed the bees">Add vertical feeder</T>}
+			><FeederIcon /></ButtonWithHover>
+
+			<ButtonWithHover
+				loading={addingFrame}
+				onClick={() => {
+					onFrameAdd(box.id, frameTypes.PARTITION)
+				}}
+				title={<T ctx="this is a button that adds new frame-like separator made of wood into a beehive to reduce available space for bees">Add partition</T>}
+			>..</ButtonWithHover>
+
+		</>
 	)
 }

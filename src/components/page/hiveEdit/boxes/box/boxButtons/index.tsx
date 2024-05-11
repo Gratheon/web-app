@@ -1,10 +1,8 @@
 import React, { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 
-import FramesIcon from '@/icons/framesIcon'
 import DeleteIcon from '@/icons/deleteIcon'
 
-import { PopupButtonGroup, PopupButton } from '@/components/shared/popupButton'
 import Button from '@/components/shared/button'
 import DownIcon from '@/icons/downIcon'
 import UpIcon from '@/icons/upIcon'
@@ -17,8 +15,10 @@ import {
 	getBoxAtPositionBelow,
 	getBox,
 } from '@/components/models/boxes'
+import ButtonWithHover from '@/components/shared/buttonWithHover'
+import T from '@/components/shared/translate'
 
-export default function BoxButtons({ box, onError, style = "display:flex;" }) {
+export default function BoxButtons({ box, onError }) {
 	let buttonDirections = useLiveQuery(async () => {
 		return [
 			await getBoxAtPositionBelow(box.hiveId, box.position) !== null,
@@ -81,7 +81,7 @@ export default function BoxButtons({ box, onError, style = "display:flex;" }) {
 
 	const [removingBox, setRemovingBox] = useState(false);
 	async function onBoxRemove(id: number) {
-		if (confirm('Are you sure?')) {
+		if (confirm('Are you sure you want to remove this box?')) {
 			setRemovingBox(true)
 			const { error } = await removeBoxMutation({ id })
 
@@ -95,37 +95,37 @@ export default function BoxButtons({ box, onError, style = "display:flex;" }) {
 	}
 
 	return (
-		<div style={style}>
-			{showDownButton && (
-				<Button
-					loading={movingBox}
-					title="Move down"
-					onClick={() => {
-						onMoveDown(+box.id)
-					}}
-				><DownIcon /></Button>
-			)}
-
+		<div>
 			{showUpButton && (
-				<Button
+				<ButtonWithHover
 					loading={movingBox}
-					title="Move up"
 					onClick={() => {
 						onMoveUp(+box.id)
 					}}
-				><UpIcon /></Button>
+					title={<T>Move up</T>}
+				><UpIcon /></ButtonWithHover>
 			)}
 
-			<Button
+			{showDownButton && (
+				<ButtonWithHover
+					loading={movingBox}
+					onClick={() => {
+						onMoveDown(+box.id)
+					}}
+					title={<T>Move down</T>}
+				><DownIcon /></ButtonWithHover>
+			)}
+
+			<ButtonWithHover
 				color="red"
-				title="Delete box"
 				loading={removingBox}
 				onClick={() => {
 					onBoxRemove(+box.id)
 				}}
+				title={<T>Remove box</T>}
 			>
 				<DeleteIcon />
-			</Button>
+			</ButtonWithHover>
 		</div>
 	)
 }

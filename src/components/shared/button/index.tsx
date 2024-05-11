@@ -6,6 +6,8 @@ import Loader from '../loader'
 
 type ButtonProps = {
 	onClick?: any
+	onMouseOver?: any
+	onMouseOut?: any
 	className?: string | string[] // small, green
 	color?: string
 	size?: string
@@ -26,6 +28,8 @@ export default function Button({
 	color = 'black',
 	type = 'button',
 	onClick = () => {},
+	onMouseOver = () => {},
+	onMouseOut = () => {},
 	children = null,
 	href = null
 }: ButtonProps) {
@@ -56,6 +60,8 @@ export default function Button({
 			title={title}
 			className={classNames.join(' ')}
 			onClick={onClick}
+			onMouseOver={onMouseOver}
+			onMouseOut={onMouseOut}
 		>
 			{loading && <Loader size={0} />}
 			{!loading && children}

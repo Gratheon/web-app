@@ -32,22 +32,20 @@ export default function HiveBoxes(
 
 		boxesDivs.push(
 			<div
+				style="margin-right:30px; display: flex;"
 				onClick={(event) => {
 					onBoxClick({ event, boxId: box.id })
 				}}
 			>
-				{currentBoxSelected && (
-					<div style={{ height: 35, display: 'flex', flexDirection: 'row-reverse' }}>
-						<BoxButtons onError={onError} box={box} />
 
-						{(box.type == boxTypes.DEEP || box.type == boxTypes.SUPER) &&
-							<FrameButtons box={box} onError={onError} />
-						}
-
+				<div style={{ width: 35, display: 'flex', flexDirection: 'column', zIndex: 2, position:'relative' }}>
+					<div style="position:absolute;">
+					{currentBoxSelected && (<BoxButtons onError={onError} box={box} />)}
 					</div>
-				)}
+				</div>
 
-				<div className={styles.box + ` boxOuterClick`}>
+
+				<div className={styles.box + ` boxOuterClick`} style="flex-grow:1;">
 					{(box.type == boxTypes.DEEP || box.type == boxTypes.SUPER) &&
 						<Box
 							box={box}
@@ -65,6 +63,13 @@ export default function HiveBoxes(
 					{box.type === boxTypes.VENTILATION && <Ventilation selected={+boxId === box.id} />}
 					{box.type === boxTypes.QUEEN_EXCLUDER && <QueenExcluder selected={+boxId === box.id} />}
 					{box.type === boxTypes.HORIZONTAL_FEEDER && <FeederHorizontal selected={+boxId === box.id} />}
+				</div>
+
+
+				<div style={{ width: 35, display: 'flex', flexDirection: 'column', zIndex: 2, position:'relative' }}>
+					{currentBoxSelected && ((box.type == boxTypes.DEEP || box.type == boxTypes.SUPER) &&
+						<FrameButtons box={box} onError={onError} />
+					)}
 				</div>
 			</div>
 		)

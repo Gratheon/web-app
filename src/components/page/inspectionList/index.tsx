@@ -21,6 +21,7 @@ import T from '@/components/shared/translate'
 import InspectionView from './inspectionView'
 import DateFormat from '@/components/shared/dateFormat'
 import HiveIcon from '@/icons/hive'
+import InspectionIcon from '@/icons/inspection'
 
 export default function InspectionList() {
 	let { apiaryId, hiveId, boxId, frameId, frameSideId, inspectionId } = useParams()
@@ -81,14 +82,15 @@ export default function InspectionList() {
 		let selectedInspection = inspections.find((i: Inspection) => i.id == +inspectionId)
 		if (selectedInspection) {
 			breadcrumbs[2] = {
-				name: (<><T>inspection</T> <DateFormat
+				icon: <InspectionIcon size={12}/>,
+				name: (<><DateFormat
 					options={{
 						month: 'long',
 						day: '2-digit',
 						year: 'numeric',
 					}}
 					datetime={selectedInspection?.added}
-				/>
+				/> <T>inspection</T>
 				</>),
 				uri: `/apiaries/${apiaryId}/hives/${hiveId}/inspections/${inspectionId}`,
 			}

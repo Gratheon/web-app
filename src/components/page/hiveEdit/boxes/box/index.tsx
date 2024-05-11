@@ -50,39 +50,10 @@ export default function Box({
 		return <Loader />
 	}
 
-	let { loading, data } = useQuery(FRAMES_QUERY, { variables: { id: +hiveId, apiaryId: +apiaryId } })
+	let { loading } = useQuery(FRAMES_QUERY, { variables: { id: +hiveId, apiaryId: +apiaryId } })
 
 	if (loading) {
 		return <Loader />
-	}
-
-	async function swapFrames({ removedIndex, addedIndex }) {
-		await moveFrame({
-			boxId,
-			addedIndex,
-			removedIndex
-		})
-
-		const frames = await getFrames({ boxId: +boxId })
-		await updateFramesRemote({
-			frames: frames.map((v) => {
-				let r = {
-					...v
-				}
-				delete r.rightId
-				delete r.leftId
-				delete r.leftSide
-				delete r.rightSide
-				return r
-			})
-		})
-
-		if (!isNil(frameSideId)) {
-			navigate(
-				`/apiaries/${apiaryId}/hives/${hiveId}/box/${box.id}/frame/${frameId}/${frameSideId}`,
-				{ replace: true }
-			)
-		}
 	}
 
 	if (frames && frames.length > 0) {
@@ -109,7 +80,36 @@ export default function Box({
 
 	let framesWrapped: any = framesDiv
 
-	if(editable){
+	if (editable) {
+		async function swapFrames({ removedIndex, addedIndex }) {
+			await moveFrame({
+				boxId,
+				addedIndex,
+				removedIndex
+			})
+
+			const frames = await getFrames({ boxId: +boxId })
+			await updateFramesRemote({
+				frames: frames.map((v) => {
+					let r = {
+						...v
+					}
+					delete r.rightId
+					delete r.leftId
+					delete r.leftSide
+					delete r.rightSide
+					return r
+				})
+			})
+
+			if (!isNil(frameSideId)) {
+				navigate(
+					`/apiaries/${apiaryId}/hives/${hiveId}/box/${box.id}/frame/${frameId}/${frameSideId}`,
+					{ replace: true }
+				)
+			}
+		}
+
 		framesWrapped = (<>
 			{/* @ts-ignore */}
 			<Container

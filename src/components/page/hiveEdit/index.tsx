@@ -24,7 +24,7 @@ import BreadCrumbs from '@/components/shared/breadcrumbs'
 import SubMenu from '@/components/shared/submenu'
 import T from '@/components/shared/translate'
 import MessageSuccess from '@/components/shared/messageSuccess'
-import HiveIcon from '@/icons/hive'
+import HiveIcon from '@/components/icons/hive'
 import HiveButtons from './boxes/hiveButtons'
 import Button from '@/components/shared/button'
 

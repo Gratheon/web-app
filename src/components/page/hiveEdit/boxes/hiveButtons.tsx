@@ -13,9 +13,9 @@ import {
 import T from '@/components/shared/translate'
 import { useQuery } from '@/components/api'
 
-import AddBoxIcon from '@/icons/addBox'
-import AddSuperIcon from '@/icons/addSuper'
-import GateIcon from '@/icons/gate'
+import AddBoxIcon from '@/components/icons/addBox'
+import AddSuperIcon from '@/components/icons/addSuper'
+import GateIcon from '@/components/icons/gate'
 import ErrorMessage from '@/components/shared/messageError'
 import Loader from '@/components/shared/loader'
 

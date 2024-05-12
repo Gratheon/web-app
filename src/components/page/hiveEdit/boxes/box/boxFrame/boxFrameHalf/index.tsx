@@ -3,7 +3,7 @@ import React from 'react'
 import styles from './index.less'
 
 import colors from '@/components/colors'
-import QueenIcon from '@/icons/queenIcon'
+import QueenIcon from '@/components/icons/queenIcon'
 import { getFrameSideFile } from '@/components/models/frameSideFile'
 import { useLiveQuery } from 'dexie-react-hooks'
 

@@ -7,7 +7,7 @@ import { useUploadMutation, gql } from '@/components/api'
 import ErrorMessage from '@/components/shared/messageError'
 import Loader from '@/components/shared/loader'
 
-import UploadIcon from '@/icons/uploadIcon'
+import UploadIcon from '@/components/icons/uploadIcon'
 import { updateFile } from '@/components/models/files'
 
 import DragAndDrop from './dragDrop'

@@ -9,7 +9,7 @@ import T from '@/components/shared/translate'
 import Button from '@/components/shared/button'
 import Loading from '@/components/shared/loader'
 import ErrorMessage from '@/components/shared/messageError'
-import DeleteIcon from '@/icons/deleteIcon'
+import DeleteIcon from '@/components/icons/deleteIcon'
 
 import styles from './styles.less'
 import FrameSide from './frameSide'

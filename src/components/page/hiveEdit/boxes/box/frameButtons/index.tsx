@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 
-import FramesIcon from '@/icons/framesIcon'
+import FramesIcon from '@/components/icons/framesIcon'
 
 import Button from '@/components/shared/button'
 import { useMutation } from '@/components/api'
@@ -10,12 +10,13 @@ import {
 	frameTypes,
 	addFrame,
 } from '@/components/models/frames'
-import FoundationIcon from '@/icons/foundationIcon'
+import FoundationIcon from '@/components/icons/foundationIcon'
 import T from '@/components/shared/translate'
 import metrics from '@/components/metrics'
-import EmptyFrameIcon from '@/icons/emptyFrameIcon'
-import FeederIcon from '@/icons/feederIcon'
+import EmptyFrameIcon from '@/components/icons/emptyFrameIcon'
+import FeederIcon from '@/components/icons/feederIcon'
 import ButtonWithHover from '@/components/shared/buttonWithHover'
+import PartitionIcon from '@/components/icons/partitionIcon'
 
 export default function FrameButtons({ box, onError }) {
 	let [addFrameMutation] =
@@ -100,7 +101,7 @@ export default function FrameButtons({ box, onError }) {
 					onFrameAdd(box.id, frameTypes.PARTITION)
 				}}
 				title={<T ctx="this is a button that adds new frame-like separator made of wood into a beehive to reduce available space for bees">Add partition</T>}
-			>..</ButtonWithHover>
+			><PartitionIcon /></ButtonWithHover>
 
 		</>
 	)

@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 
-import DeleteIcon from '@/icons/deleteIcon'
+import DeleteIcon from '@/components/icons/deleteIcon'
 
 import Button from '@/components/shared/button'
-import DownIcon from '@/icons/downIcon'
-import UpIcon from '@/icons/upIcon'
+import DownIcon from '@/components/icons/downIcon'
+import UpIcon from '@/components/icons/upIcon'
 import { useMutation } from '@/components/api'
 
 import {

@@ -1,4 +1,4 @@
-import InspectionIcon from '@/icons/inspection'
+import InspectionIcon from '@/components/icons/inspection'
 import T from '../translate'
 import styles from './index.less'
 import { NavLink } from 'react-router-dom'

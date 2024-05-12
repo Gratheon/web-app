@@ -6,7 +6,7 @@ import HIVE_DELETE_MUTATION from './hiveDeleteMutation.graphql'
 import { useMutation } from '@/components/api'
 import Loading from '@/components/shared/loader'
 
-import DeleteIcon from '@/icons/deleteIcon'
+import DeleteIcon from '@/components/icons/deleteIcon'
 import T from '@/components/shared/translate'
 
 export default function deactivateButton({ hiveId }) {

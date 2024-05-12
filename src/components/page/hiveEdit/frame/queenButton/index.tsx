@@ -1,7 +1,7 @@
 import { gql, useMutation } from "@/components/api"
 import Button from "@/components/shared/button"
-import Checkbox from "@/icons/checkbox"
-import QueenIcon from "@/icons/queenIcon"
+import Checkbox from "@/components/icons/checkbox"
+import QueenIcon from "@/components/icons/queenIcon"
 import { setQueenPresense } from '@/components/models/frameSideFile'
 import T from "@/components/shared/translate"
 import ErrorMessage from '@/components/shared/messageError'

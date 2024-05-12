@@ -20,8 +20,8 @@ import { listInspections, Inspection } from '@/components/models/inspections'
 import T from '@/components/shared/translate'
 import InspectionView from './inspectionView'
 import DateFormat from '@/components/shared/dateFormat'
-import HiveIcon from '@/icons/hive'
-import InspectionIcon from '@/icons/inspection'
+import HiveIcon from '@/components/icons/hive'
+import InspectionIcon from '@/components/icons/inspection'
 
 export default function InspectionList() {
 	let { apiaryId, hiveId, boxId, frameId, frameSideId, inspectionId } = useParams()

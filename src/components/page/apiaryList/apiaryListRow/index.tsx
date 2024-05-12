@@ -5,8 +5,8 @@ import Button from '@/components/shared/button'
 import HivesPlaceholder from '@/components/shared/hivesPlaceholder'
 import T from '@/components/shared/translate'
 
-import HiveIcon from '@/icons/hive'
-import HandIcon from '@/icons/handIcon'
+import HiveIcon from '@/components/icons/hive'
+import HandIcon from '@/components/icons/handIcon'
 
 import styles from './index.less'
 import BeeCounter from '@/components/shared/beeCounter'

@@ -27,8 +27,8 @@ import BeeCounter from '@/components/shared/beeCounter'
 import { getFrameSideIDsFrames } from '@/components/models/frameSide'
 import { deleteFilesByFrameSideIDs } from '@/components/models/frameSideFile'
 import MessageSuccess from '@/components/shared/messageSuccess'
-import InspectionIcon from '@/icons/inspection'
-import ShareIcon from '@/icons/share'
+import InspectionIcon from '@/components/icons/inspection'
+import ShareIcon from '@/components/icons/share'
 
 export default function HiveEditDetails({ apiaryId, hiveId }) {
 	let [creatingInspection, setCreatingInspection] = useState(false)

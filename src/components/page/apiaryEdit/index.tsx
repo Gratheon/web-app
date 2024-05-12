@@ -16,12 +16,12 @@ import Map from '@/components/shared/map'
 import Weather from '@/components/shared/weather'
 import Plants from './plants'
 import MessageNotFound from '@/components/shared/messageNotFound'
-import DeleteIcon from '@/icons/deleteIcon'
+import DeleteIcon from '@/components/icons/deleteIcon'
 import T from '@/components/shared/translate'
 
 import PollinationTab from './pollinationTab'
 import { Tab, TabBar } from '@/components/shared/tab'
-import LocationMarker from '@/icons/locationMarker'
+import LocationMarker from '@/components/icons/locationMarker'
 
 // coordinate conversion for PRIA
 proj4.defs("EPSG:4326", "+proj=longlat +datum=WGS84 +no_defs");

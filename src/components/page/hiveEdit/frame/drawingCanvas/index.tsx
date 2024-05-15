@@ -286,7 +286,7 @@ function initCanvasSize(
 
 	if (boxesWrap) {
 		// Access the width of the external HTML element using offsetWidth
-		canvasParentWidth = document.documentElement.clientWidth - boxesWrap.offsetWidth - 20;
+		canvasParentWidth = document.documentElement.clientWidth - boxesWrap.offsetWidth - 40;
 	}
 
 	//UI BREAKING POINT

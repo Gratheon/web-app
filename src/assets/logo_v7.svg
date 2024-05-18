@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+  <ellipse style="stroke-miterlimit: 4.63; stroke-linejoin: round; stroke: rgb(255, 255, 255); stroke-linecap: round; stroke-width: 0px; fill: rgb(255, 255, 255);" cx="255.083" cy="132.5" rx="131.637" ry="131.637">
+    <title>sun-white</title>
+  </ellipse>
+  <polygon style="stroke-linejoin: round; stroke-linecap: round; stroke: rgb(255, 255, 255); fill: rgb(255, 255, 255); stroke-width: 20px;" points="69.746 108.133 439.372 107.107 368.351 200.495 144.119 198.095">
+    <title>T-top-white</title>
+  </polygon>
+  <rect x="203.572" y="156.9" width="105.968" height="165.152" style="stroke: rgb(255, 255, 255); stroke-width: 0px; fill: rgb(255, 255, 255);">
+    <title>T</title>
+  </rect>
+  <rect x="131.904" y="157.543" width="246.957" height="272.519" style="fill: rgb(255, 255, 255); stroke-linecap: round; stroke: rgb(255, 255, 255); stroke-linejoin: round; stroke-width: 30px;">
+    <title>H-white-bg</title>
+  </rect>
+  <ellipse style="fill: rgb(255, 217, 0); stroke-miterlimit: 4.63; stroke-linejoin: round; stroke: rgb(255, 255, 255); stroke-linecap: round; stroke-width: 0px;" cx="257.211" cy="129.088" rx="99.095" ry="99.095">
+    <title>sun</title>
+  </ellipse>
+  <g transform="matrix(0.7346280217170715, 0, 0, 0.7346280217170715, -13.765773024645, 81.82061889500346)" style="">
+    <title>H</title>
+    <line stroke-linecap="undefined" stroke-linejoin="undefined" id="svg_1" y2="444.19325" x2="261.99234" y1="155.15" x1="261.99234" stroke-width="60" fill="none" style="" stroke="#000">
+      <title>H-left</title>
+    </line>
+    <line stroke-linecap="undefined" stroke-linejoin="undefined" id="svg_2" y2="444.69325" x2="472.22333" y1="155.65" x1="472.22333" stroke-width="60" fill="none" style="" stroke="#000">
+      <title>H-right</title>
+    </line>
+    <line stroke-linecap="undefined" stroke-linejoin="undefined" id="svg_3" y2="367.8" x2="471.93503" y1="367.8" x1="261.4" fill-opacity="null" stroke-opacity="null" stroke-width="60" fill="none" style="" stroke="#000">
+      <title>H-mid</title>
+    </line>
+  </g>
+  <line style="fill: rgb(216, 216, 216); stroke-linecap: round; stroke: rgb(0, 170, 0); stroke-width: 6px;" x1="157.667" y1="410.8" x2="200.339" y2="410.793"/>
+  <g style="" transform="matrix(3.782010078430176, 0, 0, 2.137332916259765, -799.6566891619068, 11.96138209046994)">
+    <title>T-top</title>
+    <rect x="273.694" y="68.839" width="11.729" height="62.841" style="stroke: rgb(255, 255, 255); stroke-width: 0px;">
+      <title>T</title>
+    </rect>
+    <path style="stroke-linejoin: round; stroke-linecap: round; stroke: rgb(255, 255, 255); stroke-width: 0px;" d="M 241.445 52.589 L 317.147 52.589 L 306.342 71.902 L 252.26 71.589 Z"/>
+    <path style="stroke: rgb(255, 255, 255); stroke-width: 0px;" d="M 273.669 127.866 C 276.896 129.308 282.86 129.302 285.54 127.776 L 285.241 135.857 C 280.471 137.573 279.431 137.594 273.877 135.765 L 273.669 127.866 Z"/>
+    <path style="fill: rgb(255, 217, 0); stroke: rgb(255, 255, 255); stroke-width: 0px;" d="M 273.587 99.916 C 276.843 101.358 282.865 101.352 285.57 99.826 L 285.568 108.01 C 281.328 109.889 277.859 109.572 273.587 108.21 L 273.587 99.916 Z"/>
+    <path style="fill: rgb(255, 217, 0); stroke: rgb(255, 255, 255); stroke-width: 0px;" d="M 273.541 112.015 C 276.797 113.457 282.818 113.451 285.524 111.925 L 285.522 120.109 C 281.282 121.988 277.812 121.671 273.541 120.309 L 273.541 112.015 Z"/>
+    <path style="fill: rgb(255, 217, 0); stroke: rgb(255, 255, 255); stroke-width: 0px;" d="M 273.564 124.108 C 276.821 125.55 282.842 125.544 285.547 124.018 L 285.545 132.202 C 281.305 134.081 277.837 133.764 273.564 132.402 L 273.564 124.108 Z"/>
+  </g>
+  <line style="fill: rgb(216, 216, 216); stroke-linecap: round; stroke: rgb(0, 170, 0); stroke-width: 6px;" x1="311.544" y1="410.525" x2="354.217" y2="410.517"/>
+  <line style="fill: rgb(216, 216, 216); stroke-linecap: square; stroke: rgb(2, 72, 255); stroke-width: 7px;" x1="161.368" y1="127.554" x2="353.239" y2="127.864"/>
+</svg>

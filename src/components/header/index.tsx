@@ -9,7 +9,7 @@ export default function Header() {
 		return (
 			<nav id={styles.header}>
 				<a href="/apiaries">
-					<img src="/assets/logo_v5.svg" />
+					<img src="/assets/logo_v7.svg" />
 				</a>
 			</nav>
 		)
@@ -17,7 +17,7 @@ export default function Header() {
 		return (
 			<nav id={styles.header}>
 				<a href="/account/authenticate">
-					<img src="/assets/logo_v5.svg" />
+					<img src="/assets/logo_v7.svg" />
 				</a>
 			</nav>
 		)

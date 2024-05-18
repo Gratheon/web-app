@@ -11,6 +11,6 @@ export default {
 
 	beeWorker: 'white',
 	beeWorkerPollen: 'rgb(190, 112, 255)', // similar to pollen
-	drone: '#0248FF',  // company blue color
-	queen: 'black',
+	drone: 'black',
+	queen: '#0248FF', // company blue color
 }

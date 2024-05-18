@@ -82,7 +82,7 @@ export default function AccountRegister() {
 		<div style="display:flex;height:100%;">
 			<div style="background: url('https://gratheon.s3-accelerate.amazonaws.com/www/register2.webp'); background-position: center; background-repeat: no-repeat; background-size: cover; flex-grow:2;"></div>
 			<div style="min-width:300px; padding: 200px 50px;">
-				<img src="/assets/logo_v5.svg" style="width:60px;  display: block; margin-left: auto;margin-right: auto;" draggable={false} />
+				<img src="/assets/logo_v7.svg" style="width:60px;  display: block; margin-left: auto;margin-right: auto;" draggable={false} />
 				<div style={{ padding: 15, width: '300px' }}>
 					{errorMsg}
 					<VisualForm onSubmit={onSubmit}>

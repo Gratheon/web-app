@@ -90,7 +90,7 @@ export default function AccountAuth() {
 		<div className={style.loginPage}>
 			<div className={style.loginModal}>
 				<div className={style.loginModalWithLogo}>
-					<img src="/assets/logo_v5.svg" id={style.logo} draggable={false} />
+					<img src="/assets/logo_v7.svg" id={style.logo} draggable={false} />
 
 					<div className={style.loginModalInternal}>
 						{errorMsg}

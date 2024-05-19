@@ -1,6 +1,7 @@
 import React from 'react'
+import colors from '@/components/colors'
 
-export default function QueenIcon({ size = 20, className = '', color="black", onClick = () => { } }) {
+export default function QueenIcon({ size = 20, className = '', color=colors.queen, onClick = () => { } }) {
 	return <svg className={className} width={size} height={size} viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'>
 		<rect width={size} height={size} stroke='none' fill={color} opacity='0' />
 		<g transform="matrix(1 0 0 1 12 12)" >

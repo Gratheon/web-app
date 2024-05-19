@@ -33,6 +33,7 @@ export default function HiveEditForm() {
 
 	let { apiaryId, hiveId, boxId, frameId, frameSideId } = useParams()
 	let [error, onError] = useState(null)
+	const navigate = useNavigate()
 
 	const apiary = useLiveQuery(() => getApiary(+apiaryId), [apiaryId], null)
 	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId], null)
@@ -108,7 +109,7 @@ export default function HiveEditForm() {
 		})
 	}
 
-	const navigate = useNavigate()
+	
 	function onBoxClose(event) {
 		event.stopPropagation()
 		navigate(`/apiaries/${apiaryId}/hives/${hiveId}`, {

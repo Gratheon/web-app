@@ -13,6 +13,7 @@ import styles from './styles.less'
 
 async function onLogoutClick() {
 	await logout()
+
 	window.location.href = getAppUri() + '/account/authenticate/'
 }
 

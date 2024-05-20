@@ -1,5 +1,5 @@
 import React, { Children } from 'react'
-import { Routes, Route } from 'react-router'
+import { Routes, Route, useNavigate } from 'react-router'
 
 import Menu from '../menu'
 import Footer from '../footer'
@@ -19,6 +19,21 @@ import InspectionList from './inspectionList'
 import HiveShare from './hiveShare'
 
 function LoggedInPage({ children }) {
+	const navigate = useNavigate()
+
+	if(!isLoggedIn()){
+		React.useEffect(
+			() => {
+				// store the current location so we can redirect back after login
+				localStorage.setItem('redirect-after-login', window.location.pathname)
+
+				navigate('/account/authenticate', { replace: true })
+			},
+			[navigate]
+		)
+		return null
+	}
+
 	return <div style={{ display: 'flex', flexDirection: 'column', height: "100%" }}>
 		<Menu isLoggedIn={isLoggedIn()} />
 		<div style={{ flex: 1 }}>
@@ -28,12 +43,39 @@ function LoggedInPage({ children }) {
 	</div>
 }
 
+
+function LoggedOutPage({ children }) {
+	const navigate = useNavigate()
+
+	if(isLoggedIn()){
+		React.useEffect(
+			() => {
+				// redirect to last attempt as anonymous user
+				let path = ""
+				Object.assign(path, localStorage.getItem('redirect-after-login'))
+
+				if(path){
+					// clear the redirect path
+					navigate(path, { replace: true })
+					localStorage.removeItem('redirect-after-login')
+				} else {
+					navigate('/apiaries', { replace: true })
+				}
+			},
+			[navigate]
+		)
+		return null
+	}
+
+	return children
+}
+
 export default function Page() {
 	return (
 		<Routes>
-			<Route path="/account/authenticate" element={<AccountAuth />} />
+			<Route path="/account/authenticate" element={<LoggedOutPage><AccountAuth /></LoggedOutPage>} />
+			<Route path="/account/register" element={<LoggedOutPage><AccountRegister /></LoggedOutPage>} />
 
-			<Route path="/account/register" element={<AccountRegister />} />
 			<Route path="/apiaries/create" element={<LoggedInPage><ApiaryCreate /></LoggedInPage>} />
 			<Route path="/apiaries/edit/:id" element={<LoggedInPage><ApiaryEditForm /></LoggedInPage>} />
 			<Route path="/" element={<LoggedInPage><ApiaryList /></LoggedInPage>} />

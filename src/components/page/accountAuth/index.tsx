@@ -1,18 +1,19 @@
 import React, { useState } from 'react'
 import { gql, useMutation } from '@/components/api'
 import metrics from '@/components/metrics'
+import { useNavigate } from 'react-router'
 
 import Loader from '@/components/shared/loader'
 import ErrorMsg from '@/components/shared/messageError'
 import Button from '@/components/shared/button'
 import { saveToken } from '@/components/user'
-import { getAppUri } from '@/components/uri'
 import T from '@/components/shared/translate'
 import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
 import { logout } from '@/components/user'
 import { Link } from 'react-router-dom'
 
 import style from './styles.less'
+import { getAppUri } from '@/components/uri'
 
 type Account = {
 	email?: string
@@ -25,6 +26,7 @@ export default function AccountAuth() {
 		password: ''
 	})
 
+	const navigate = useNavigate()
 	let [loading, setLoading] = useState(false)
 
 	function onInput(e: any) {
@@ -49,24 +51,28 @@ export default function AccountAuth() {
 		}
 	`)
 
+
+	let errorMsg
+	let pathAfterLogin = ''
+
 	async function onSubmit(e: React.ChangeEvent<HTMLFormElement>) {
 		e.preventDefault()
 		setLoading(true)
 
-		await logout()
+		pathAfterLogin = localStorage.getItem('redirect-after-login')
+		// await logout()
 
 		await accountAuth({
 			email: account.email,
 			password: account.password,
 		})
+
 		setLoading(false)
 	}
 
 	if (!account) {
 		return <Loader />
 	}
-
-	let errorMsg
 
 	if (data?.login?.key) {
 		// clear DB on login and on logout to have consistent structure in case of alters
@@ -75,8 +81,21 @@ export default function AccountAuth() {
 		if (data.login.user.id) metrics.setUserId(data.login.user.id);
 		metrics.trackLogin()
 
-		//@ts-ignore
-		window.location = getAppUri() + '/'
+		React.useEffect(
+			() => {
+				//@ts-ignore
+				// window.location = getAppUri() + pathAfterLogin
+				pathAfterLogin = localStorage.getItem('redirect-after-login')
+				if(pathAfterLogin){
+					navigate(pathAfterLogin, { replace: true })
+					localStorage.removeItem('redirect-after-login')
+				} else {
+					navigate('/apiaries', { replace: true })
+				}
+			},
+			[navigate]
+		)
+
 		return <Loader />
 	} else if (data?.login?.code === 'INVALID_USERNAME_PASSWORD') {
 		errorMsg = <ErrorMsg error="Invalid email or password" />
@@ -119,10 +138,10 @@ export default function AccountAuth() {
 							</div>
 
 							<VisualFormSubmit>
-								<Button 
+								<Button
 									loading={loading || loadingMutation}
-									type="submit" 
-									color="green" 
+									type="submit"
+									color="green"
 									onClick={onSubmit}>
 									<T>Log In</T>
 								</Button>

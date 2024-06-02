@@ -28,6 +28,14 @@ export default gql`
 				eggsPercent
 				cappedBroodPercent
 			}
+
+			file {
+				url
+				resizes{
+					max_dimension_px
+					url
+				}
+			}
 		}
 	}
 `

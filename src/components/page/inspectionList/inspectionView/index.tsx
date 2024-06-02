@@ -38,11 +38,9 @@ export default function InspectionView({
 	}
 
 	//@ts-ignore
-	let { inspection, hive, frameSidesInspections }: { inspection: any; hive: any, frameSidesInspections:any } = inspectionGet
+	let { inspection, hive, frameSidesInspections }: { inspection: any; hive: any, frameSidesInspections: any } = inspectionGet
 
 	const inspectionData: InspectionSnapshot = JSON.parse(inspection.data)
-
-	console.log({frameSidesInspections})
 
 	// restore data back to indexdb for component to fetch IDs
 	// to fetch frame stats from backend
@@ -66,6 +64,26 @@ export default function InspectionView({
 
 				editable={false}
 			/>
+
+			<div style="padding: 10px 30px;">
+				<h3>Frame images</h3>
+
+				{frameSidesInspections.map((frameSideInspection) => {
+					for (let thumb of frameSideInspection.file.resizes) {
+						if (thumb.max_dimension_px === 512) {
+							<img key={frameSideInspection.frameSideId}
+								width="256"
+								src={thumb.url} alt="frame" />
+						}
+					}
+
+					return (
+						<img key={frameSideInspection.frameSideId}
+							width="256"
+							src={frameSideInspection.file.url} alt="frame" />
+					)
+				})}
+			</div>
 		</div>
 	)
 }

@@ -3,6 +3,9 @@ import INSPECTION_QUERY from './singleInspectionQuery.graphql'
 import Loading from '@/components/shared/loader'
 import ErrorMsg from '@/components/shared/messageError'
 import HiveBoxes from '@/components/shared/hiveBoxes'
+import { InspectionSnapshot } from '@/components/models/inspections'
+import { upsertFrameSide } from '@/components/models/frameSide'
+import { upsertFrame } from '@/components/models/frames'
 
 type InspectionViewProps = {
 	apiaryId?: string
@@ -35,15 +38,26 @@ export default function InspectionView({
 	}
 
 	//@ts-ignore
-	let { inspection, hive }: { inspection: any; hive: any } = inspectionGet
+	let { inspection, hive, frameSidesInspections }: { inspection: any; hive: any, frameSidesInspections:any } = inspectionGet
 
-	const inspectionData = JSON.parse(inspection.data)
+	const inspectionData: InspectionSnapshot = JSON.parse(inspection.data)
+
+	console.log({frameSidesInspections})
+
+	// restore data back to indexdb for component to fetch IDs
+	// to fetch frame stats from backend
+	inspectionData.frames.forEach((frame) => {
+		upsertFrame(frame)
+		upsertFrameSide(frame.leftSide)
+		upsertFrameSide(frame.rightSide)
+	})
 
 	return (
 		<div>
 			<HiveBoxes
 				boxes={inspectionData.boxes}
 
+				inspectionId={inspectionId}
 				hiveId={hive.id}
 				apiaryId={apiaryId}
 				boxId={null}

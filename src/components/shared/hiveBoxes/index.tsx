@@ -14,6 +14,7 @@ export default function HiveBoxes(
 	{
 		boxes,
 
+		inspectionId = null,
 		apiaryId = null,
 		hiveId = null,
 		boxId = null,
@@ -48,6 +49,7 @@ export default function HiveBoxes(
 				<div className={styles.box + ` boxOuterClick`} style="flex-grow:1;">
 					{(box.type == boxTypes.DEEP || box.type == boxTypes.SUPER) &&
 						<Box
+							inspectionId={inspectionId}
 							box={box}
 							boxId={boxId}
 							frameId={frameId}

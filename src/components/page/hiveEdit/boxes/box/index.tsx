@@ -12,10 +12,13 @@ import Loader from '@/components/shared/loader'
 import styles from './index.less'
 import Frame from './boxFrame'
 import FRAMES_QUERY from './framesQuery.graphql'
+import INSPECTION_FRAMES_QUERY from './inspectionFramesQuery.graphql'
 import { getFrameSideCells } from '@/components/models/frameSideCells';
+import { getFrameSideIDsFrames } from '@/components/models/frameSide';
 
 export default function Box({
 	box,
+	inspectionId,
 	boxId,
 	frameId,
 	frameSideId,
@@ -42,6 +45,7 @@ export default function Box({
 				tmp[r].rightSide.cells = await getFrameSideCells(+tmp[r].rightId)
 			}
 		}
+	
 
 		return tmp
 	}, [boxId, box], false);
@@ -50,7 +54,25 @@ export default function Box({
 		return <Loader />
 	}
 
-	let { loading } = useQuery(FRAMES_QUERY, { variables: { id: +hiveId, apiaryId: +apiaryId } })
+	let loading = false
+	if (inspectionId) {
+		let frameSideIds = getFrameSideIDsFrames(frames);
+
+		// TODO - query for file url
+		({ loading } = useQuery(INSPECTION_FRAMES_QUERY, {
+			variables: {
+				frameSideIds,
+				inspectionId: inspectionId
+			}
+		}))
+	} else {
+		({ loading } = useQuery(FRAMES_QUERY, {
+			variables: {
+				id: +hiveId,
+				apiaryId: +apiaryId,
+			}
+		}))
+	}
 
 	if (loading) {
 		return <Loader />

@@ -1,21 +1,24 @@
 import { FrameSideFile } from '@/components/models/frameSideFile'
 import { FrameSideCells } from '@/components/models/frameSideCells'
-import { Hive } from '@/components/models/hive'
-import { upsertEntity } from './index'
-import { FrameSide } from '../frames'
+
+import { upsertEntity, upsertEntityWithNumericID } from './index'
+
+import { FrameSide } from '../frameSide'
+import { upsertFrameSide } from '../frameSide'
+import { Frame, upsertFrame } from '../frames'
 
 export const writeHooks = {
-	Apiary: async (_, entity) => await upsertEntity('apiary', entity),
-	Hive: async (_, entity) => await upsertEntity('hive', entity),
+	Apiary: async (_, entity) => await upsertEntityWithNumericID('apiary', entity),
+	Hive: async (_, entity) => await upsertEntityWithNumericID('hive', entity),
 	Box: async (parent, entity) => {
 		entity.hiveId = +parent.id
-		await upsertEntity('box', entity)
+		await upsertEntityWithNumericID('box', entity)
 	},
 	Family: async ({ id }, entity) => {
 		entity.hiveId = +id
-		await upsertEntity('family', entity)
+		await upsertEntityWithNumericID('family', entity)
 	},
-	Frame: async (parent, value, { originalValue: frame }) => {
+	Frame: async (parent, value: Frame, { originalValue: frame }) => {
 		value.boxId = +parent.id
 
 		if (frame.leftSide) {
@@ -26,12 +29,20 @@ export const writeHooks = {
 			value.rightId = +frame.rightSide?.id
 		}
 		
-		await upsertEntity('frame', value)
+		await upsertFrame(value)
 	},
-	FrameSide: async ({ id }, frameside:FrameSide) => {
+	FrameSide: async ({ id }, frameside: FrameSide) => {
 		frameside.frameId = +id
 
-		await upsertEntity('frameside', frameside)
+		await upsertFrameSide(frameside)
+	},
+
+	FrameSideInspection: async (_, entity) => {
+		entity.id = `${entity.inspectionId}_${entity.frameSideId}`
+		entity.frameSideId = +entity.frameSideId
+		entity.inspectionId = +entity.inspectionId
+		console.log('FrameSideInspection', entity)
+		await upsertEntity('frame_side_inspection', entity)
 	},
 	FrameSideFile: async (_, fsf: FrameSideFile, { originalValue }) => {
 		if (Object.keys(fsf).length === 0) return
@@ -49,7 +60,7 @@ export const writeHooks = {
 		fsf.id = +fsf.frameSideId
 
 		if(fsf.fileId){
-			await upsertEntity('framesidefile', fsf)
+			await upsertEntityWithNumericID('framesidefile', fsf)
 		}
 	},
 	FrameSideCells: async (_, cells: FrameSideCells, { originalValue }) => {
@@ -63,18 +74,17 @@ export const writeHooks = {
 
 		cells.frameSideId = +cells.id
 		cells.id = +cells.id
-		await upsertEntity('framesidecells', cells)
+		await upsertEntityWithNumericID('framesidecells', cells)
 	},
 	File: async (_, entity) => {
-		await upsertEntity('file', entity)
+		await upsertEntityWithNumericID('file', entity)
 	},
 	Inspection: async (_, entity) => {
-		console.log('writing inspection', entity)
 		entity.hiveId = +entity.hiveId
-		await upsertEntity('inspection', entity)
+		await upsertEntityWithNumericID('inspection', entity)
 	},
-	User: async (_, entity) => await upsertEntity('user', entity),
+	User: async (_, entity) => await upsertEntityWithNumericID('user', entity),
 	Locale: async (_, entity) => {
-		await upsertEntity('locale', entity)
+		await upsertEntityWithNumericID('locale', entity)
 	},
 }

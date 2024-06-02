@@ -1,9 +1,19 @@
-import { db } from './db'
-import { Frame, getFramesByHive } from './frames'
+import { db, upsertEntityWithNumericID } from './db'
+import { FrameSideCells } from './frameSideCells'
+import { FrameSideFile } from './frameSideFile'
+import { Frame } from './frames'
 
-type FrameSide = {
+export type FrameSide = {
 	id: number
+	frameId?: number
+	cells?: FrameSideCells
+	frameSideFile?: FrameSideFile
 }
+
+export async function upsertFrameSide(frameside: FrameSide): Promise<void> {
+	await upsertEntityWithNumericID('frameside', frameside)
+}
+
 export async function getFrameSide(frameSideId: number): Promise<FrameSide> {
 	try {
 		return await db['frameside'].get(+frameSideId)

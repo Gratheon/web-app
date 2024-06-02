@@ -49,8 +49,6 @@ export default function InspectionList() {
 		} = useQuery(INSPECTION_QUERY, { variables: { hiveId: +hiveId } }))
 	}
 
-	console.log({ inspections })
-
 	if (loading) {
 		return <Loader />
 	}

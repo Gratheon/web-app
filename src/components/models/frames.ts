@@ -1,15 +1,8 @@
-import { db } from './db'
+import { db, upsertEntityWithNumericID } from './db'
 import { getBoxes } from './boxes';
-import { FrameSideCells } from './frameSideCells';
-import { FrameSideFile } from './frameSideFile';
+import { FrameSide } from './frameSide';
 
 export type FrameType = 'VOID' | 'FOUNDATION' | 'EMPTY_COMB' | 'PARTITION' | 'FEEDER'
-
-export type FrameSide = {
-	frameId?: number
-	cells?: FrameSideCells
-	frameSideFile?: FrameSideFile
-}
 
 export type Frame = {
 	id: number
@@ -18,6 +11,7 @@ export type Frame = {
 	leftSide?: FrameSide
 	rightSide?: FrameSide
 
+	boxId?: number
 	leftId: number
 	rightId: number
 }
@@ -111,6 +105,10 @@ export async function addFrame(frameData) {
 		console.error(e)
 		throw e
 	}
+}
+
+export async function upsertFrame(frame: Frame): Promise<void> {
+	await upsertEntityWithNumericID('frame', frame)
 }
 
 export async function moveFrame({

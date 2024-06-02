@@ -1,5 +1,7 @@
 import { getFrames } from '@/components/models/frames';
 
+// these are the resolvers for the graphql schema
+// used by urql to fetch data from the indexdb in offline mode
 export default {
 	user: async (_, { db }) => {
 		return await db.user.limit(1).first()
@@ -45,4 +47,7 @@ export default {
 	hiveFrameSideFile: async (_, { db }) => {
 		return await db.framesidefile.limit(100).toArray()[0]
 	},
+	frameSidesInspections: async (_, { db }, { variableValues: { inspectionId } }) => {
+		return await db.frame_side_inspection.where({ inspectionId }).toArray()
+	}
 }

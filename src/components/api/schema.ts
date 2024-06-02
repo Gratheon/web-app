@@ -271,6 +271,7 @@ type Apiary {
     weather(lat: String!, lng: String!): JSON
     inspection(inspectionId: ID!): Inspection
     inspections(hiveId: ID!, limit: Int): [Inspection]
+    frameSidesInspections(inspectionId: ID!, frameSideIds:[ID]): [FrameSideInspection]
   }
   
   union UpdateUserResult = User | Error
@@ -298,6 +299,15 @@ type Apiary {
   input UserUpdateInput {
     first_name: String
     last_name: String
+  }
+
+  type FrameSideInspection {
+    frameSideId: ID!
+    inspectionId: ID!
+    
+    file: File
+    cells: FrameSideCells
+    frameSideFile: FrameSideFile
   }
   
 `

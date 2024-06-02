@@ -7,7 +7,6 @@ import Loader from '@/components/shared/loader'
 import HiveBoxes from '@/components/shared/hiveBoxes'
 
 import BOXES_QUERY from './boxesQuery.graphql'
-import HiveButtons from './hiveButtons'
 
 
 type BoxesProps = {

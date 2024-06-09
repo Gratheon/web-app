@@ -9,11 +9,9 @@ import Button from '@/components/shared/button'
 import { saveToken } from '@/components/user'
 import T from '@/components/shared/translate'
 import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
-import { logout } from '@/components/user'
 import { Link } from 'react-router-dom'
 
 import style from './styles.less'
-import { getAppUri } from '@/components/uri'
 
 type Account = {
 	email?: string

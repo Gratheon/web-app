@@ -16,7 +16,7 @@ type ButtonProps = {
 	loading?: boolean
 	type?: 'button' | 'submit' | 'reset' | undefined
 	children?: any
-	href?: string|null
+	href?: string | null
 }
 
 export default function Button({
@@ -27,9 +27,9 @@ export default function Button({
 	size = null,
 	color = 'black',
 	type = 'button',
-	onClick = () => {},
-	onMouseOver = () => {},
-	onMouseOut = () => {},
+	onClick = () => { },
+	onMouseOver = () => { },
+	onMouseOut = () => { },
 	children = null,
 	href = null
 }: ButtonProps) {
@@ -46,9 +46,14 @@ export default function Button({
 		classNames.push(className)
 	}
 
-	if(href !== null){
-		onClick=()=>{
-			navigate(href, { replace: true })
+	if (href !== null) {
+		onClick = () => {
+
+			if (href.startsWith('http')) {
+				window.location.href = href
+			} else {
+				navigate(href, { replace: true })
+			}
 		}
 	}
 

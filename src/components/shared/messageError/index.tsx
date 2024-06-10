@@ -1,39 +1,46 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import styles from './index.less'
 import BearIcon from '@/components/icons/bear'
 import T from '../translate'
 import DeleteIcon from '@/components/icons/deleteIcon'
 
 export default function ErrorMsg({ error }) {
-	let [err, setError] = useState(error)
+    const [visible, setVisible] = useState(true);
 
-	if (!err) return
+    useEffect(() => {
+        if (error) {
+            setVisible(true);
+        }
+    }, [error]);
 
-	// log for console
-	console.error({ err })
+    if (!error || !visible) return null;
 
-	if (err && err?.response?.status >= 500) {
+	console.log({
+		error
+	})
+
+	if (error && error?.response?.status >= 500) {
 		return (
-			<div className={err?.graphQLErrors ? styles.errorMsgBig : styles.errorMsgSmall}>
+			<div className={error?.graphQLErrors ? styles.errorMsgBig : styles.errorMsgSmall}>
 				<BearIcon size={24} />
 				<div>
 					<h3><T>Server error</T></h3>
 					<p><T>Looks like our servers are unavailable</T></p>
 				</div>
-				<DeleteIcon size={24} onClick={() => { setError(null) }} />
+				<DeleteIcon size={24} onClick={() => { setVisible(false) }} />
 			</div>
 		)
 	}
 
 	// Backend / graphql errors
-	if (err?.graphQLErrors) {
+	if (error?.graphQLErrors) {
 		return (
-			<div className={err?.graphQLErrors ? styles.errorMsgBig : styles.errorMsgSmall}>
+			<div className={error?.graphQLErrors ? styles.errorMsgBig : styles.errorMsgSmall}>
 				<BearIcon size={24} />
 				<div>
 					<h3><T>Server error</T></h3>
-					{err?.graphQLErrors &&
-						err.graphQLErrors.map((e, i) => {
+					{error?.graphQLErrors &&
+						error.graphQLErrors.map((e, i) => {
 							return (
 								<pre key={i}>
 									<strong>{e.path?.join(' > ')}</strong> {e.message}
@@ -41,7 +48,7 @@ export default function ErrorMsg({ error }) {
 							)
 						})}
 				</div>
-				<DeleteIcon size={24} onClick={() => { setError(null) }} />
+				<DeleteIcon size={24} onClick={() => { setVisible(false) }} />
 			</div>
 		)
 	}
@@ -49,7 +56,7 @@ export default function ErrorMsg({ error }) {
 	// error can be a translation component
 	return <div className={styles.errorMsgSmall}>
 		<BearIcon size={24} />
-		<div><h3>{err}</h3></div>
-		<DeleteIcon size={24} onClick={() => { setError(null) }} />
+		<div><h3>{error}</h3></div>
+		<DeleteIcon size={24} onClick={() => { setVisible(false) }} />
 	</div>
 }

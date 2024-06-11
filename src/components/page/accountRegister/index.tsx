@@ -144,19 +144,17 @@ export default function AccountRegister() {
 	}
 
 	return (
-		<div style="display:flex;height:100%;">
-			<div style="background: url('https://gratheon.s3-accelerate.amazonaws.com/www/register2.webp'); background-position: center; background-repeat: no-repeat; background-size: cover; flex-grow:5;"></div>
+		<div id={styles.container}>
+			<div id={styles.bg}></div>
 
-			<div>
-				<div style="margin-left: -40px;position:absolute; top: 35%;background:white;border-radius:40px;
-				height:80px;width:80px;text-align:center;border:1px solid gray;">
+			<div id={styles.logo}>
+				<div id={styles.logo_inner}>
 					<img src="/assets/logo_v7.svg"
-						style="width:40px; display: block; margin: 20px;"
 						draggable={false} />
 				</div>
 			</div>
-			<div style="min-width:300px;flex-grow:1; padding: 200px 50px;">
-				<div style={{ padding: 15, maxWidth: '400px', margin: '0 auto' }}>
+			<div id={styles.reg_page}>
+				<div id={styles.reg_page_inner}>
 
 					<h1 style="text-align:center;margin-bottom:20px;"><T key="signup_heading" ctx="this is a heading of the new account registration">Sign Up</T></h1>
 					{errorOnClient && <ErrorMsg key={errorOnClient} error={<T>{errorOnClient}</T>} />}
@@ -226,7 +224,8 @@ export default function AccountRegister() {
 
 
 
-						<Button type="submit" color="green" onClick={onSubmit} style="width:100%; text-align:center;">
+						<Button type="submit" color="green" onClick={onSubmit}
+							style="width:100%; text-align:center;background-color: #ffd900; color: black; text-shadow:none;">
 							<T key="signup_button" ctx="this a button to register for a new account">Sign Up</T>
 						</Button>
 

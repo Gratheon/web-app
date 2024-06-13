@@ -20,7 +20,7 @@ See all features [in Notion](https://gratheon.notion.site/App-platform-2937ed264
 
 | env   | url                       |
 | ----- | ------------------------- |
-| local | http://0.0.0.0:8080/      |
+| local | http://localhost:8080/    |
 | live  | https://app.gratheon.com/ |
 
 ![detection](https://github.com/Gratheon/web-app/assets/445122/ae038ae3-e7db-40f1-8a33-047a9312993d)
@@ -102,9 +102,16 @@ nvm use
 npm run install
 npm run dev
 ```
+By default, web-app will attempt to contact production backend
+1. you will not be able to change graphql schema as flexibly
+2. you will need to use production data and user credetials
 
-Next, the hardest part is to spin up the backend. 
-You will need to change configuration (in `config` folder) in all of the microservices (see the architecture)
+### Developing with local backend
+- Change src/components/uri.ts and set `USE_PROD_BACKEND_FOR_DEV` to false
+
+- Spin up the backend. locally, you can use `make dev` in the root of the projects. Follow https://gratheon.notion.site/Onboarding-91481a8152cf4d1685770ec2a7cc7c94 for more details
+
+- You will need to change configuration (in `config` folder) in all of the microservices (see the architecture)
 
 ### Testing
 

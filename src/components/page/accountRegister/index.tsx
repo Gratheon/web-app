@@ -156,7 +156,7 @@ export default function AccountRegister() {
 			<div id={styles.reg_page}>
 				<div id={styles.reg_page_inner}>
 
-					<h1 style="text-align:center;margin-bottom:20px;"><T key="signup_heading" ctx="this is a heading of the new account registration">Sign Up</T></h1>
+					<h1 style="text-align:center;margin-bottom:20px;"><T key="signup_heading" ctx="this is a heading of the new account registration">New Account</T></h1>
 					{errorOnClient && <ErrorMsg key={errorOnClient} error={<T>{errorOnClient}</T>} />}
 					{error && <ErrorMsg error={error} />}
 

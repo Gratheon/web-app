@@ -55,15 +55,15 @@ export default function HiveBoxes(
 				<div className={styles.box + ` boxOuterClick`} style="flex-grow:1;">
 					{(box.type == boxTypes.DEEP || box.type == boxTypes.SUPER) &&
 						<Box
-							inspectionId={inspectionId}
 							box={box}
-							boxId={boxId}
+							boxId={+boxId}
 							frameId={frameId}
 							frameSideId={frameSideId}
 							hiveId={hiveId}
 							apiaryId={apiaryId}
 
 							editable={editable}
+							selected={+boxId === box.id}
 						/>
 					}
 

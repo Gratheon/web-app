@@ -6,30 +6,18 @@ import { useMutation } from '@/components/api'
 import Button from '@/components/shared/button'
 import {
 	boxTypes,
-	getBoxes,
 	addBox,
 	maxBoxPosition
 } from '@/components/models/boxes'
 import T from '@/components/shared/translate'
-import { useQuery } from '@/components/api'
 
 import AddBoxIcon from '@/components/icons/addBox'
 import AddSuperIcon from '@/components/icons/addSuper'
 import GateIcon from '@/components/icons/gate'
 import ErrorMessage from '@/components/shared/messageError'
-import Loader from '@/components/shared/loader'
 
-import Gate from './gate'
-import Box from './box'
-import FrameButtons from './box/frameButtons'
-import styles from './styles.less'
-
-import BOXES_QUERY from './boxesQuery.graphql'
 import { useState } from 'react'
 import metrics from '@/components/metrics'
-import Ventilation from './ventilation'
-import QueenExcluder from './queenExcluder'
-import FeederHorizontal from './feederHorizontal'
 
 export default function HiveButtons({
 	apiaryId,

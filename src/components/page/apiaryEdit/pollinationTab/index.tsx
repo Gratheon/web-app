@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import style from './style.less'
 import Button from '@/components/shared/button';
 import T from '@/components/shared/translate';
 import isDev from '@/components/isDev';

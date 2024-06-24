@@ -24,7 +24,7 @@ import { InspectionSnapshot } from '@/components/models/inspections'
 import { getFramesByHive } from '@/components/models/frames'
 import { getHiveInspectionStats, deleteCellsByFrameSideIDs } from '@/components/models/frameSideCells'
 import BeeCounter from '@/components/shared/beeCounter'
-import { getFrameSideIDsFrames } from '@/components/models/frameSide'
+import { collectFrameSideIDsFromFrames } from '@/components/models/frameSide'
 import { deleteFilesByFrameSideIDs } from '@/components/models/frameSideFile'
 import MessageSuccess from '@/components/shared/messageSuccess'
 import InspectionIcon from '@/components/icons/inspection'
@@ -69,7 +69,7 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 				let boxes = await getBoxes({ hiveId: +hiveId })
 				let family = await getFamilyByHive(+hiveId)
 				let frames = await getFramesByHive(+hiveId)
-				let frameSideIDs = getFrameSideIDsFrames(frames)
+				let frameSideIDs = collectFrameSideIDsFromFrames(frames)
 				let cellStats = await getHiveInspectionStats(frames)
 
 				let inspectionSnapshot: InspectionSnapshot = {

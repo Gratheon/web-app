@@ -6,53 +6,39 @@ import { useLiveQuery } from "dexie-react-hooks";
 
 import { gql, useMutation, useQuery } from '@/components/api'
 import { getFrames, moveFrame } from '@/components/models/frames'
+import { enrichFramesWithSides } from '@/components/models/frameSide'
 import ErrorMessage from '@/components/shared/messageError'
 import Loader from '@/components/shared/loader'
 
 import styles from './index.less'
 import Frame from './boxFrame'
 import FRAMES_QUERY from './framesQuery.graphql'
-import { getFrameSideCells } from '@/components/models/frameSideCells';
-import { getFrameSideIDsFrames } from '@/components/models/frameSide';
+import { enrichFramesWithSideCells } from '@/components/models/frameSideCells';
 
 export default function Box({
 	box,
-	inspectionId,
 	boxId,
 	frameId,
 	frameSideId,
 	apiaryId,
 	hiveId,
-	editable = true
+	editable = true,
+	selected = false
 }) {
 	const navigate = useNavigate();
 	let framesDiv = []
 
-	const [updateFramesRemote, { error }] = useMutation(gql`mutation updateFrames($frames: [FrameInput]!) { updateFrames(frames: $frames) { id } }`)
-
 	const frames = useLiveQuery(async () => {
-		let tmp = await getFrames({
-			boxId: +box.id
-		})
-
-		for (const r in tmp) {
-			if (tmp[r].leftSide) {
-				tmp[r].leftSide.cells = await getFrameSideCells(+tmp[r].leftId)
-			}
-
-			if (tmp[r].rightSide) {
-				tmp[r].rightSide.cells = await getFrameSideCells(+tmp[r].rightId)
-			}
-		}
-	
-
-		return tmp
-	}, [boxId, box], false);
+		const framesWithoutSides = await getFrames({ boxId: box.id })
+		const framesWithoutCells = await enrichFramesWithSides(framesWithoutSides);
+		return await enrichFramesWithSideCells(framesWithoutCells)
+	}, [box.id], false);
 
 	if (frames === false) {
 		return <Loader />
 	}
 
+	const [updateFramesRemote, { error }] = useMutation(gql`mutation updateFrames($frames: [FrameInput]!) { updateFrames(frames: $frames) { id } }`)
 	let { loading } = useQuery(FRAMES_QUERY, {
 		variables: {
 			id: +hiveId,
@@ -133,7 +119,7 @@ export default function Box({
 			<ErrorMessage error={error} />
 
 			<div
-				className={`${styles['boxType_' + box.type]} ${styles.boxOuter} ${+boxId === box.id && styles.selected
+				className={`${styles['boxType_' + box.type]} ${styles.boxOuter} ${selected && styles.selected
 					}`}
 			>
 				<div className={styles.boxInner}>

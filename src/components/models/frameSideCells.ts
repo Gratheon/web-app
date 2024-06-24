@@ -123,3 +123,29 @@ export async function deleteCellsByFrameSideIDs(frameSideIds: number[]) {
         throw e
     }
 }
+
+export async function enrichFramesWithSideCells(frames: Frame[]): Promise<Frame[] | null> {
+	try {
+		const frameSideIds = frames.map((frame) => frame.leftId).concat(frames.map((frame) => frame.rightId))
+		const frameSideCells = await db['framesidecells'].where('frameSideId').anyOf(frameSideIds).toArray()
+
+		const frameSideCellsMap = new Map<number, FrameSideCells>()
+		frameSideCells.forEach((frameSideCell) => {
+			frameSideCellsMap.set(frameSideCell.frameSideId, frameSideCell)
+		})
+
+		frames.forEach((frame) => {
+			if (frame.leftSide) {
+				frame.leftSide.cells = frameSideCellsMap.get(frame.leftId)
+			}
+			if (frame.rightSide) {
+				frame.rightSide.cells = frameSideCellsMap.get(frame.rightId)
+			}
+		})
+
+		return frames
+	} catch (e) {
+		console.error(e)
+		return null
+	}
+}

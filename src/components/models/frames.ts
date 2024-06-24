@@ -1,6 +1,6 @@
 import { db, upsertEntityWithNumericID } from './db'
 import { getBoxes } from './boxes';
-import { FrameSide } from './frameSide';
+import { FrameSide, getFrameSidesMap, collectFrameSideIDsFromFrames } from './frameSide';
 
 export type FrameType = 'VOID' | 'FOUNDATION' | 'EMPTY_COMB' | 'PARTITION' | 'FEEDER'
 
@@ -52,17 +52,7 @@ export async function getFramesByHive(hiveId: number): Promise<Frame[]> {
 export async function getFrames(where = {}): Promise<Frame[] | null> {
 	if (!where) return []
 	try {
-		const frames = await db['frame'].where(where).sortBy('position')
-
-		for await (let frame of frames) {
-			if (frame.leftId) {
-				frame.leftSide = await db['frameside'].get(frame.leftId)
-			}
-			if (frame.rightId) {
-				frame.rightSide = await db['frameside'].get(frame.rightId)
-			}
-		}
-		return frames
+		return await db['frame'].where(where).sortBy('position')
 	} catch (e) {
 		console.error(e)
 		return null

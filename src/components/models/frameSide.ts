@@ -23,7 +23,7 @@ export async function getFrameSide(frameSideId: number): Promise<FrameSide> {
 	}
 }
 
-export function getFrameSideIDsFrames(frames: Frame[]): number[] {
+export function collectFrameSideIDsFromFrames(frames: Frame[]): number[] {
 	let frameSideIds = []
 	for (let frame of frames) {
 		if (frame.leftId) {
@@ -35,4 +35,38 @@ export function getFrameSideIDsFrames(frames: Frame[]): number[] {
 	}
 
 	return frameSideIds
+}
+
+export async function getFrameSidesMap(frameSideIds: number[]): Promise<Map<number, FrameSide>> {
+	const frameSides = await db['frameside'].where('id').anyOf(frameSideIds).toArray()
+
+	// map frame sides to frames
+	const frameSidesMap = new Map<number, FrameSide>()
+	frameSides.forEach((frameSide) => {
+		frameSidesMap.set(frameSide.id, frameSide)
+	})
+
+	return frameSidesMap
+}
+
+export async function enrichFramesWithSides(frames: Frame[]): Promise<Frame[] | null> {
+	try {
+		const frameSideIds = collectFrameSideIDsFromFrames(frames)
+		const frameSidesMap = await getFrameSidesMap(frameSideIds)
+
+		// assign frame sides to frames
+		frames.forEach((frame) => {
+			if (frame.leftId) {
+				frame.leftSide = frameSidesMap.get(frame.leftId)
+			}
+			if (frame.rightId) {
+				frame.rightSide = frameSidesMap.get(frame.rightId)
+			}
+		})
+
+		return frames
+	} catch (e) {
+		console.error(e)
+		return null
+	}
 }

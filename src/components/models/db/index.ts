@@ -1,8 +1,11 @@
 //@ts-nocheck
 import Dexie from 'dexie'
 import { addCustomIndexes } from './addCustomIndexes'
+import { FRAME_SIDE_CELL_TN } from '../frameSideCells'
 
 const DB_NAME = 'gratheon'
+const DB_VERSION = 3
+
 export const db = new Dexie(DB_NAME, {
 	autoOpen: true
 })
@@ -10,6 +13,10 @@ Dexie.debug = 'dexie'
 
 export async function dropDatabase(){
 	return await db.delete()
+}
+
+const graphqlToTableMap = {
+	'framesidecells': FRAME_SIDE_CELL_TN,
 }
 
 export function syncGraphqlSchemaToIndexDB(schemaObject) {
@@ -33,12 +40,17 @@ export function syncGraphqlSchemaToIndexDB(schemaObject) {
 				fieldStrings.push(field.name == 'id' ? '&id' : field.name)
 			}
 
-			dbSchema[objName] = fieldStrings.join(', ')
+			let table_name = objName
+			if (graphqlToTableMap[objName]) {
+				table_name = graphqlToTableMap[objName]
+			}
+
+			dbSchema[table_name] = fieldStrings.join(', ')
 		}
 	}
 	try {
 		addCustomIndexes(dbSchema)
-		db.version(2).stores(dbSchema)
+		db.version(DB_VERSION).stores(dbSchema)
 	} catch (e) {
 		console.error(e)
 		throw e

@@ -23,13 +23,24 @@ export type HiveInspectionCellStats = {
 	cappedBroodPercent?: number
 }
 
-// workerBeeCount: number
-// queenCount: number
-// varroaCount: number
+export const FRAME_SIDE_CELL_TN = 'files_frame_side_cells'
+
+export function newFrameSideCells(id, hiveId): FrameSideCells{
+	return {
+		id,
+		frameSideId: id,
+		hiveId,
+		broodPercent: 0,
+		honeyPercent: 0,
+		pollenPercent: 0,
+		eggsPercent: 0,
+		cappedBroodPercent: 0
+	}
+}
 
 export async function getFrameSideCells(frameSideId: number): Promise<FrameSideCells | null> {
 	try {
-		return await db['framesidecells'].get(+frameSideId)
+		return await db[FRAME_SIDE_CELL_TN].get(+frameSideId)
 	} catch (e) {
 		console.error(e)
 		return null
@@ -59,13 +70,22 @@ export async function updateFrameStat(
 	}
 
 	try {
-		await db['framesidecells'].put(cells)
+		await db[FRAME_SIDE_CELL_TN].put(cells)
 	} catch (e) {
 		console.error(e)
 		throw e
 	}
 
 	return cells;
+}
+
+export async function updateFrameSideCells(cells: FrameSideCells) {
+	try {
+		await db[FRAME_SIDE_CELL_TN].put(cells)
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
 }
 
 export async function getHiveInspectionStats(frames: Frame[]): Promise<HiveInspectionCellStats> {
@@ -116,18 +136,18 @@ export async function getHiveInspectionStats(frames: Frame[]): Promise<HiveInspe
 
 
 export async function deleteCellsByFrameSideIDs(frameSideIds: number[]) {
-    try {
-        await db['framesidecells'].where('frameSideId').anyOf(frameSideIds).delete()
-    } catch (e) {
-        console.error(e)
-        throw e
-    }
+	try {
+		await db[FRAME_SIDE_CELL_TN].where('frameSideId').anyOf(frameSideIds).delete()
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
 }
 
 export async function enrichFramesWithSideCells(frames: Frame[]): Promise<Frame[] | null> {
 	try {
 		const frameSideIds = frames.map((frame) => frame.leftId).concat(frames.map((frame) => frame.rightId))
-		const frameSideCells = await db['framesidecells'].where('frameSideId').anyOf(frameSideIds).toArray()
+		const frameSideCells = await db[FRAME_SIDE_CELL_TN].where('frameSideId').anyOf(frameSideIds).toArray()
 
 		const frameSideCellsMap = new Map<number, FrameSideCells>()
 		frameSideCells.forEach((frameSideCell) => {

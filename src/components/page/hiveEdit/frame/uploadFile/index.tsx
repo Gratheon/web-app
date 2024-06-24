@@ -130,7 +130,7 @@ export default function UploadFile({ onUpload }) {
 
 						<div style={{
 							flexGrow: 1,
-							fontSize: 10,
+							fontSize: 14,
 							paddingTop: 5,
 							color: 'gray'
 						}}>

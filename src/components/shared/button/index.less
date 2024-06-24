@@ -7,13 +7,14 @@ button {
 	background: #424242;
 	border: 0;
 	color: #f1f1f1;
-	text-shadow: 1px 1px black;
-	height: 32px;
+	height: 40px;
 	line-height: 20px;
 	margin: 0 2px;
 	text-align: left;
 
 	white-space: nowrap;
+	font-size: 16px;
+	padding: 0 10px;
 
 	svg {
 		position: relative;
@@ -28,11 +29,16 @@ button {
 
 	&:hover {
 		background: #000000;
-		text-shadow: none;
 	}
 
 	&[type='submit'] {
 		padding: 0 20px;
+	}
+
+	&.white{
+		background: white;
+		color: #333333;
+		border: 2px solid black;
 	}
 
 	&.red {
@@ -57,7 +63,6 @@ button {
 		border-left: 1px solid #383838;
 		height: 100%;
 		border-radius: 0 3px 3px 0;
-		text-shadow: none;
 	}
 
 	&.small {

@@ -1,7 +1,6 @@
 import React from 'react'
 import { format } from 'date-fns'
 
-import Link from '@/components/shared/link'
 import { gql, useQuery } from '@/components/api'
 import Loading from '@/components/shared/loader'
 import MessageError from '@/components/shared/messageError'

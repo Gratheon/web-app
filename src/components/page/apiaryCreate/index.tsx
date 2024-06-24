@@ -8,10 +8,11 @@ import VisualForm from '@/components/shared/visualForm'
 import ErrorMsg from '@/components/shared/messageError'
 import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
 import Button from '@/components/shared/button'
-import T from '@/components/shared/translate'
+import T, { useTranslation } from '@/components/shared/translate'
 import metrics from '@/components/metrics'
 
 import style from './style.less'
+import LocationMarker from '@/components/icons/locationMarker'
 
 export default function ApiaryEditForm() {
 	let navigate = useNavigate()
@@ -19,6 +20,7 @@ export default function ApiaryEditForm() {
 	let [lat, setLat] = useState(0)
 	let [lng, setLng] = useState(0)
 	let [autoLocate, setAutoLocate] = useState(false)
+	let tName = useTranslation('Name')
 
 	let [addApiary, { error, data }] = useMutation(gql`
 		mutation addApiary($apiary: ApiaryInput!) {
@@ -60,7 +62,38 @@ export default function ApiaryEditForm() {
 		<div>
 			{errorMsg}
 
-			<h2><T ctx="this is a headline to create new apiary form">New apiary</T></h2>
+			<div className={style.apiary}>
+				<form onSubmit={onSubmit} style="display:flex">
+					<h2 style="width:30%;"><T ctx="this is a headline to create new apiary form">New apiary</T></h2>
+
+
+					<input
+						name="name"
+						id="name"
+						placeholder={tName}
+						style="margin: 0 10px;flex-grow:1;height: 40px;padding: 0 10px;"
+						autoFocus
+						value={name}
+						onInput={(e: any) => {
+							setName(e.target.value)
+						}}
+					/>
+
+					<Button type="submit" color="green">
+						<T>Create</T>
+					</Button>
+					<Button
+						onClick={() => {
+							setAutoLocate(!autoLocate)
+						}}
+					>
+						<LocationMarker />
+
+						<T>Locate me</T>
+					</Button>
+				</form>
+			</div>
+
 			<Map
 				lat={lat}
 				lng={lng}
@@ -70,37 +103,6 @@ export default function ApiaryEditForm() {
 					setLng(coords.lng)
 				}}
 			/>
-
-			<div className={style.apiary}>
-				<VisualForm onSubmit={onSubmit}>
-					<div>
-						<label htmlFor="name" style="width:120px;"><T>Name</T></label>
-						<input
-							name="name"
-							id="name"
-							style={{ width: '100%' }}
-							autoFocus
-							value={name}
-							onInput={(e: any) => {
-								setName(e.target.value)
-							}}
-						/>
-					</div>
-
-					<VisualFormSubmit>
-						<Button
-							onClick={() => {
-								setAutoLocate(!autoLocate)
-							}}
-						>
-							<T>Locate me</T>
-						</Button>
-						<Button type="submit" color="green">
-							<T>Create</T>
-						</Button>
-					</VisualFormSubmit>
-				</VisualForm>
-			</div>
 		</div>
 	)
 }

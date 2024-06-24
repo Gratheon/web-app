@@ -1,3 +1,5 @@
+@import "@/components/colors.less";
+
 .inputfile {
 	width: 0.1px;
 	height: 0.1px;
@@ -9,13 +11,16 @@
 
 .fileUploadLabel {
 	margin: 0 auto;
-	padding: 5px 10px;
-	font-size: 15px;
+	padding: 10px 10px;
+	font-size: 16px;
+	height: 40px;
 	font-weight: 300;
 	color: white;
-	background-color: #888888;
+	background-color: @color-ui-btn-green;
 	display: block;
 	border-radius: 3px;
+	height: 40px;
+	box-sizing: border-box;
 
 	svg {
 		vertical-align: middle;
@@ -43,7 +48,7 @@
 
 .inputfile:focus+label,
 .inputfile+label:hover {
-	background-color: #0dbb00;
+	background-color: @color-ui-btn-green-hover;
 }
 
 .inputfile+label {

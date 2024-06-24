@@ -3,7 +3,6 @@ import { useLiveQuery } from 'dexie-react-hooks'
 
 import DeleteIcon from '@/components/icons/deleteIcon'
 
-import Button from '@/components/shared/button'
 import DownIcon from '@/components/icons/downIcon'
 import UpIcon from '@/components/icons/upIcon'
 import { useMutation } from '@/components/api'
@@ -97,35 +96,41 @@ export default function BoxButtons({ box, onError }) {
 	return (
 		<div>
 			{showUpButton && (
-				<ButtonWithHover
-					loading={movingBox}
-					onClick={() => {
-						onMoveUp(+box.id)
-					}}
-					title={<T>Move up</T>}
-				><UpIcon /></ButtonWithHover>
+				<div>
+					<ButtonWithHover
+						loading={movingBox}
+						onClick={() => {
+							onMoveUp(+box.id)
+						}}
+						title={<T>Move up</T>}
+					><UpIcon /></ButtonWithHover>
+				</div>
 			)}
 
 			{showDownButton && (
-				<ButtonWithHover
-					loading={movingBox}
-					onClick={() => {
-						onMoveDown(+box.id)
-					}}
-					title={<T>Move down</T>}
-				><DownIcon /></ButtonWithHover>
+				<div>
+					<ButtonWithHover
+						loading={movingBox}
+						onClick={() => {
+							onMoveDown(+box.id)
+						}}
+						title={<T>Move down</T>}
+					><DownIcon /></ButtonWithHover>
+				</div>
 			)}
 
-			<ButtonWithHover
-				color="red"
-				loading={removingBox}
-				onClick={() => {
-					onBoxRemove(+box.id)
-				}}
-				title={<T>Remove box</T>}
-			>
-				<DeleteIcon />
-			</ButtonWithHover>
+			<div>
+				<ButtonWithHover
+					color="red"
+					loading={removingBox}
+					onClick={() => {
+						onBoxRemove(+box.id)
+					}}
+					title={<T>Remove box</T>}
+				>
+					<DeleteIcon />
+				</ButtonWithHover>
+			</div>
 		</div>
 	)
 }

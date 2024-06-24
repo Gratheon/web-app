@@ -2,7 +2,6 @@ import React from 'react'
 
 import { gql, useQuery, useSubscription } from '@/components/api/index'
 
-import Link from '@/components/shared/link'
 import Loader from '@/components/shared/loader'
 import ErrorMsg from '@/components/shared/messageError'
 import T from '@/components/shared/translate'
@@ -62,7 +61,7 @@ export default function ApiaryList(props) {
 
 				<div style={{ textAlign: 'center', marginTop: 20 }}>
 					<Button 
-						color='green'
+						color={apiaries.length === 0 ? 'green' : 'white'}
 						href="/apiaries/create"><T ctx="its a button">Setup new apiary</T></Button>
 				</div>
 			</div>

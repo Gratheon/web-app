@@ -33,17 +33,23 @@ export default function HiveBoxes(
 
 		boxesDivs.push(
 			<div
-				style="margin-right:30px; display: flex;"
+				style="margin-right:35px; display: flex;"
 				onClick={(event) => {
 					onBoxClick({ event, boxId: box.id })
 				}}
 			>
 
-				<div style={{ width: 35, display: 'flex', flexDirection: 'column', zIndex: 2, position:'relative' }}>
-					<div style="position:absolute;">
-					{currentBoxSelected && (<BoxButtons onError={onError} box={box} />)}
-					</div>
+
+				<div style={{ display: 'flex', flexDirection: 'column', zIndex: box.position+1, position: 'relative' }}>
+					<div style="width:40px;"></div>
+
+					{currentBoxSelected &&
+						<div style="position: absolute;">
+							<BoxButtons onError={onError} box={box} />
+						</div>
+					}
 				</div>
+
 
 
 				<div className={styles.box + ` boxOuterClick`} style="flex-grow:1;">
@@ -68,7 +74,7 @@ export default function HiveBoxes(
 				</div>
 
 
-				<div style={{ width: 35, display: 'flex', flexDirection: 'column', zIndex: 2, position:'relative' }}>
+				<div style={{ display: 'flex', flexDirection: 'column', zIndex: 2, position: 'relative' }}>
 					{currentBoxSelected && ((box.type == boxTypes.DEEP || box.type == boxTypes.SUPER) &&
 						<FrameButtons box={box} onError={onError} />
 					)}

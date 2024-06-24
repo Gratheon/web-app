@@ -1,5 +1,6 @@
 import React from 'react'
 import styles from './index.less'
+import { useNavigate } from 'react-router-dom'
 
 type URL = string
 
@@ -12,12 +13,16 @@ type LinkProps = {
 export default function Link({
 	href,
 	children,
-	// className = styles.small,
 }: LinkProps) {
+	let navigate = useNavigate()
 	return (
-		<a href={href} 
-		// className={className}
-		>
+		<a style="cursor:pointer; text-decoration: underline;" onClick = {() => {
+			if (href.startsWith('http')) {
+				window.location.href = href
+			} else {
+				navigate(href, { replace: true })
+			}
+		}}>
 			{children}
 		</a>
 	)

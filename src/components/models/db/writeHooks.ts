@@ -74,7 +74,7 @@ export const writeHooks = {
 
 		cells.frameSideId = +cells.id
 		cells.id = +cells.id
-		await upsertEntityWithNumericID('framesidecells', cells)
+		await upsertEntityWithNumericID('files_frame_side_cells', cells)
 	},
 	File: async (_, entity) => {
 		await upsertEntityWithNumericID('file', entity)

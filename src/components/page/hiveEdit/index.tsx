@@ -27,9 +27,12 @@ import MessageSuccess from '@/components/shared/messageSuccess'
 import HiveIcon from '@/components/icons/hive'
 import HiveButtons from './boxes/hiveButtons'
 import Button from '@/components/shared/button'
+import ListIcon from '@/components/icons/listIcon'
+import TableIcon from '@/components/icons/tableIcon'
 
 export default function HiveEditForm() {
 	const { state } = useLocation();
+	const [displayMode, setDisplayMode] = useState('list')
 
 	let { apiaryId, hiveId, boxId, frameId, frameSideId } = useParams()
 	let [error, onError] = useState(null)
@@ -109,7 +112,7 @@ export default function HiveEditForm() {
 		})
 	}
 
-	
+
 	function onBoxClose(event) {
 		event.stopPropagation()
 		navigate(`/apiaries/${apiaryId}/hives/${hiveId}`, {
@@ -134,7 +137,10 @@ export default function HiveEditForm() {
 			<HiveEditDetails apiaryId={apiaryId} hiveId={hiveId} />
 
 			<div className={styles.boxesFrameWrap}>
-				<div className={styles.boxesWrap} id="boxesWrap">
+				<div className={styles.boxesWrap} id="boxesWrap" style={{
+					flexGrow: 1, maxWidth: '50%'
+				}}>
+
 					<Boxes
 						onError={onError}
 						apiaryId={apiaryId}
@@ -142,7 +148,13 @@ export default function HiveEditForm() {
 						boxId={boxId}
 						frameId={frameId}
 						frameSideId={frameSideId}
+						displayMode={displayMode}
 					/>
+
+					<div className={styles.boxesMode} style="text-align:center;">
+						<Button onClick={() => setDisplayMode('visual')}><ListIcon /></Button>
+						<Button onClick={() => setDisplayMode('list')}><TableIcon /></Button>
+					</div>
 				</div>
 
 				<div className={styles.frameWrap}>

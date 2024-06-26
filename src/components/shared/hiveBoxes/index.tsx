@@ -24,6 +24,7 @@ export default function HiveBoxes(
 		onBoxClick = (e: any) => { },
 		onError = (e: any) => { },
 		editable = true,
+		displayMode = 'visual'
 	}
 ): any {
 	const boxesDivs = []
@@ -32,15 +33,12 @@ export default function HiveBoxes(
 		const currentBoxSelected = box.id === parseInt(boxId, 10)
 
 		boxesDivs.push(
-			<div
-				style="margin-right:35px; display: flex;"
+			<div style="margin-right:35px; display: flex;"
 				onClick={(event) => {
 					onBoxClick({ event, boxId: box.id })
-				}}
-			>
+				}}>
 
-
-				<div style={{ display: 'flex', flexDirection: 'column', zIndex: box.position+1, position: 'relative' }}>
+				<div style={{ display: 'flex', flexDirection: 'column', zIndex: box.position + 1, position: 'relative' }}>
 					<div style="width:40px;"></div>
 
 					{currentBoxSelected &&
@@ -50,9 +48,7 @@ export default function HiveBoxes(
 					}
 				</div>
 
-
-
-				<div className={styles.box + ` boxOuterClick`} style="flex-grow:1;">
+				<div className={styles.box + ` boxOuterClick ` + (displayMode == 'list' ? styles.listMode : '')}>
 					{(box.type == boxTypes.DEEP || box.type == boxTypes.SUPER) &&
 						<Box
 							box={box}
@@ -64,6 +60,7 @@ export default function HiveBoxes(
 
 							editable={editable}
 							selected={+boxId === box.id}
+							displayMode={displayMode}
 						/>
 					}
 

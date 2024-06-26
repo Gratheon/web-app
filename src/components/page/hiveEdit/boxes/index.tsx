@@ -30,6 +30,7 @@ type BoxesProps = {
 	onFrameSideStatChange?: any
 
 	onError: any
+	displayMode: string
 }
 
 export default function Boxes({
@@ -40,6 +41,7 @@ export default function Boxes({
 	frameSideId,
 	onError,
 	editable = true,
+	displayMode = 'visual',
 }: BoxesProps) {
 	let navigate = useNavigate()
 
@@ -84,6 +86,7 @@ export default function Boxes({
 				onBoxClick={onBoxClick}
 				onError={onError}
 				editable={editable}
+				displayMode={displayMode}
 			 />
 		</div>
 	)

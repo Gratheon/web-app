@@ -30,7 +30,7 @@ const Bee = ({ position, intervalMs = 3000 }) => {
 	);
 };
 
-export default function Gate({box, boxId }) {
+export default function Gate({ box, boxId }) {
 	return (
 		<div className={`${style.gate} ${boxId === box.id && style.selected}`}>
 			{[...Array(11)].map((_, index) => (

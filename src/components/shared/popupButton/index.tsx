@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import style from './index.less'
 import Button from '../button'
+import Dots3Icon from '@/components/icons/dots3'
 
 const useOutsideClickHandler = (ref: any, callback: any) => {
 	useEffect(() => {
@@ -10,7 +11,7 @@ const useOutsideClickHandler = (ref: any, callback: any) => {
 			}
 		}
 		if (typeof window === 'undefined') {
-			return () => {}
+			return () => { }
 		}
 		document.addEventListener('mousedown', handleClickOutside)
 		return () => {
@@ -56,7 +57,8 @@ export function PopupButton({ children, className = '' }: PopupButtonProps) {
 					e.preventDefault()
 				}}
 			>
-				...
+				<Dots3Icon />
+
 			</Button>
 			{extraButtonsVisible && <div className={style.popup}>{children}</div>}
 		</div>

@@ -1,5 +1,5 @@
-export default function ListIcon() {
-	return <svg height="16" width="16" fill="white" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+export default function ListIcon({size=16}) {
+	return <svg height={size} width={size} fill="white" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
 		<path d="M8 28h8v-8H8v8zm0 10h8v-8H8v8zm0-20h8v-8H8v8zm10 10h24v-8H18v8zm0 10h24v-8H18v8zm0-28v8h24v-8H18z" /><path d="M0 0h48v48H0z" fill="none" />
 	</svg>
 }

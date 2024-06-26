@@ -289,9 +289,9 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 
 						{family && family.race}
 						
-						{family && family.race && family.added && <span> / </span>}
+						{family && family.race && family.added && <QueenColor year={family?.added} />}
 						{family && family.added}
-						<QueenColor year={family?.added} />
+						
 
 						{hive.notes && <p>{hive.notes}</p>}
 					</div>
@@ -347,7 +347,7 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 										onInput={onQueenYearChange}
 									/>
 
-									<QueenColor year={family?.added} />
+									<QueenColor year={family?.added} useRelative={false} />
 								</div>
 							</div>
 						</div>

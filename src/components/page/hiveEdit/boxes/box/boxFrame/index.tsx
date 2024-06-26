@@ -69,7 +69,7 @@ export default function BoxFrame({
 		}, [frame], null);
 
 
-		return  <div style="border:2px solid black; margin:2px; border-radius:3px;width:200px;">
+		return  <div style="border:2px solid black; margin:2px; border-radius:3px;width:200px;height: 67px;">
 					{leftFile && <img src={leftFile.resizes ? leftFile.resizes[0].url : leftFile.url} width={100} />}
 					{rightFile && <img src={rightFile.resizes  ? rightFile.resizes[0].url : rightFile.url} width={100} />}
 				</div>

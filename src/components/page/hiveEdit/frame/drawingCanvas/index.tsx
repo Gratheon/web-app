@@ -370,7 +370,17 @@ export default function DrawingCanvas({
 	const [showQueenCups, setQueenCups] = useState(true)
 	const [showVarroa, setShowVarroa] = useState(false)
 	const [version, setVersion] = useState(0)
-	const [canvasUrl, setCanvasUrl] = useState(resizes && resizes.length > 0 ? resizes[0].url : imageUrl)
+
+	let thumbnailUrl = imageUrl
+	if (resizes && resizes.length > 0) {
+		// iterate through resizes and pick most suitable thumbnail that matches device width
+		for (let i = 0; i < resizes.length; i++) {
+			if (resizes[i].width > 128) {
+				thumbnailUrl = resizes[i].url
+			}
+		}
+	}
+	const [canvasUrl, setCanvasUrl] = useState(thumbnailUrl)
 
 	const showQueens = frameSideFile.queenDetected
 
@@ -408,7 +418,7 @@ export default function DrawingCanvas({
 	function initCanvas() {
 		canvas = ref.current
 
-		if(!canvas) return
+		if (!canvas) return
 
 		ctx = canvas.getContext('2d')
 
@@ -691,8 +701,8 @@ export default function DrawingCanvas({
 						</span>
 					</Button>
 
-					<QueenButton 
-						frameSide={frameSide} 
+					<QueenButton
+						frameSide={frameSide}
 						frameSideFile={frameSideFile} />
 
 					{detectedQueenCups && <Button onClick={() => { setQueenCups(!showQueenCups) }}>

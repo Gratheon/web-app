@@ -5,6 +5,10 @@ import styles from './index.less'
 import FrameSide from './boxFrameHalf'
 import { Box } from '@/components/models/boxes'
 import { Frame } from '@/components/models/frames'
+import { useLiveQuery } from 'dexie-react-hooks'
+
+import { getFrameSideFile } from '@/components/models/frameSideFile'
+import { File, getFile } from '@/components/models/files'
 
 type BoxFrameProps = {
 	box: Box
@@ -15,6 +19,7 @@ type BoxFrameProps = {
 	frame: Frame
 
 	editable: Boolean
+	displayMode: string
 }
 
 export default function BoxFrame({
@@ -24,13 +29,51 @@ export default function BoxFrame({
 	frameId,
 	frameSideId,
 	frame,
-	editable
+	editable,
+	displayMode = 'visual',
 }: BoxFrameProps) {
 	const selectedFrame = frame.id === +frameId
 	let navigate = useNavigate()
 
 	let frameInternal = null
 	const frameURL = `/apiaries/${apiaryId}/hives/${hiveId}/box/${box.id}/frame/${frame.id}`
+
+
+	if (displayMode == 'list') {
+		let leftFile: File = useLiveQuery(async function () {
+			if(!frame.leftSide) {
+				return null
+			}
+			let frameSideFile = await getFrameSideFile({
+				frameSideId: frame.leftSide.id,
+			})
+			if (!frameSideFile) {
+				return null
+			}
+
+			return getFile(frameSideFile.fileId)
+		}, [frame], null);
+
+		let rightFile: File = useLiveQuery(async function () {
+			if(!frame.rightSide) {
+				return null
+			}
+			let frameSideFile = await getFrameSideFile({
+				frameSideId: frame.rightSide.id,
+			})
+			if (!frameSideFile) {
+				return null
+			}
+
+			return getFile(frameSideFile.fileId)
+		}, [frame], null);
+
+
+		return  <div style="border:2px solid black; margin:2px; border-radius:3px;width:200px;">
+					{leftFile && <img src={leftFile.resizes ? leftFile.resizes[0].url : leftFile.url} width={100} />}
+					{rightFile && <img src={rightFile.resizes  ? rightFile.resizes[0].url : rightFile.url} width={100} />}
+				</div>
+	}
 
 	if (frame.type === 'VOID') {
 		frameInternal = <div onClick={() => {
@@ -83,10 +126,8 @@ export default function BoxFrame({
 	}
 
 	return (
-		<>
 			<div className={`${styles.frame} ${selectedFrame && styles.frameSelected}`}>
 				{frameInternal}
 			</div>
-		</>
 	)
 }

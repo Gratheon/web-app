@@ -16,10 +16,8 @@ export default function BoxFrameHalf({ frameSide, className, onFrameSideClick })
 	}, [frameSide.id]);
 
 	return (
-		<div
-			className={`${styles.frameSide} ${className}`}
-			onClick={onFrameSideClick}
-		>
+		<div className={`${styles.frameSide} ${className}`}
+			onClick={onFrameSideClick}>
 
 			{frameSideFile?.queenDetected &&
 				<QueenIcon className={styles.crown} size={16}/>

@@ -14,8 +14,18 @@ import styles from './index.less'
 import Frame from './boxFrame'
 import FRAMES_QUERY from './framesQuery.graphql'
 import { enrichFramesWithSideCells, getFrameSideCells, newFrameSideCells, updateFrameSideCells, updateFrameStat } from '@/components/models/frameSideCells';
-import { get } from 'lodash';
-import { getFrameSideFile, updateFrameSideFile } from '@/components/models/frameSideFile';
+
+type BoxType = {
+	box: any
+	boxId: number
+	frameId: number
+	frameSideId: number
+	apiaryId: number
+	hiveId: number
+	editable?: boolean
+	selected?: boolean
+	displayMode: string
+}
 
 export default function Box({
 	box,
@@ -25,8 +35,9 @@ export default function Box({
 	apiaryId,
 	hiveId,
 	editable = true,
-	selected = false
-}) {
+	selected = false,
+	displayMode
+}: BoxType) : any {
 	const navigate = useNavigate();
 	let framesDiv = []
 
@@ -91,9 +102,10 @@ export default function Box({
 				apiaryId={apiaryId}
 				frame={frame}
 				editable={editable}
+				displayMode={displayMode}
 			/>
 
-			if (editable) {
+			if (editable && displayMode == 'visual') {
 				framesDiv.push(</* @ts-ignore */ Draggable key={i}>{frameDiv}</Draggable>)
 			} else {
 				framesDiv.push(frameDiv)
@@ -143,14 +155,15 @@ export default function Box({
 		</>)
 	}
 
+	if (displayMode == 'list') {
+		return framesDiv
+	}
+
 	return (
 		<div>
 			<ErrorMessage error={error} />
 
-			<div
-				className={`${styles['boxType_' + box.type]} ${styles.boxOuter} ${selected && styles.selected
-					}`}
-			>
+			<div className={`${styles['boxType_' + box.type]} ${styles.boxOuter} ${selected && styles.selected}`} >
 				<div className={styles.boxInner}>
 					{!frames && <Loader size={1} />}
 

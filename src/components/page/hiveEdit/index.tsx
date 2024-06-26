@@ -152,8 +152,8 @@ export default function HiveEditForm() {
 					/>
 
 					<div className={styles.boxesMode} style="text-align:center;">
-						<Button onClick={() => setDisplayMode('visual')}><ListIcon /></Button>
-						<Button onClick={() => setDisplayMode('list')}><TableIcon /></Button>
+						{displayMode == 'list' && <Button onClick={() => setDisplayMode('visual')}><ListIcon /></Button>}
+						{displayMode == 'visual' && <Button onClick={() => setDisplayMode('list')}><TableIcon /></Button>}
 					</div>
 				</div>
 

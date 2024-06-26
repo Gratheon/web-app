@@ -73,21 +73,19 @@ export default function Boxes({
 	}
 
 	return (
-		<div>
-			<HiveBoxes
-				boxes={boxes}
+		<HiveBoxes
+			boxes={boxes}
 
-				apiaryId={apiaryId}
-				hiveId={hiveId}
-				boxId={boxId}
-				frameId={frameId}
-				frameSideId={frameSideId}
+			apiaryId={apiaryId}
+			hiveId={hiveId}
+			boxId={boxId}
+			frameId={frameId}
+			frameSideId={frameSideId}
 
-				onBoxClick={onBoxClick}
-				onError={onError}
-				editable={editable}
-				displayMode={displayMode}
-			 />
-		</div>
+			onBoxClick={onBoxClick}
+			onError={onError}
+			editable={editable}
+			displayMode={displayMode}
+			/>
 	)
 }

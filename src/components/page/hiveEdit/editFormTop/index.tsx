@@ -19,7 +19,6 @@ import ErrorMessage from '@/components/shared/messageError'
 import { Family } from '@/components/api/schema'
 import Button from '@/components/shared/button'
 import { PopupButton, PopupButtonGroup } from '@/components/shared/popupButton'
-import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
 import { InspectionSnapshot } from '@/components/models/inspections'
 import { getFramesByHive } from '@/components/models/frames'
 import { getHiveInspectionStats, deleteCellsByFrameSideIDs } from '@/components/models/frameSideCells'
@@ -29,8 +28,10 @@ import { deleteFilesByFrameSideIDs } from '@/components/models/frameSideFile'
 import MessageSuccess from '@/components/shared/messageSuccess'
 import InspectionIcon from '@/components/icons/inspection'
 import ShareIcon from '@/components/icons/share'
+import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
 
 export default function HiveEditDetails({ apiaryId, hiveId }) {
+	let [editable, setEditable] = useState(false)
 	let [creatingInspection, setCreatingInspection] = useState(false)
 	let [okMsg, setOkMsg] = useState(null)
 
@@ -242,6 +243,63 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 		return <Loader />
 	}
 
+
+	let buttons = (
+		<VisualFormSubmit>
+
+			<Button loading={creatingInspection} onClick={onCreateInspection} color="green">
+				<InspectionIcon />
+				<T ctx="This is a button that adds new beehive inspection as a snapshot of current beehive state">Create Inspection</T>
+			</Button>
+
+			<PopupButtonGroup>
+				{/* <Button href={`/apiaries/${apiaryId}/hive/${hiveId}/share`} className="button">
+			<ShareIcon />
+			Share
+		</Button> */}
+
+
+
+				{!editable && <Button onClick={() => setEditable(!editable)}>Edit</Button>}
+				{editable && <Button onClick={() => setEditable(!editable)}>Complete</Button>}
+
+				<PopupButton>
+					<DeactivateButton hiveId={hive.id} />
+				</PopupButton>
+			</PopupButtonGroup>
+		</VisualFormSubmit>)
+
+	if (!editable) {
+		return (
+			<div>
+				<ErrorMessage error={errorColor || errorHive} />
+				{okMsg}
+				<div style="display: flex;width:100%;padding:40px;box-sizing: border-box;">
+					<div style="padding-right:10px;">
+						<HiveIcon boxes={boxes} />
+						<BeeCounter count={hive.beeCount} />
+					</div>
+					<div style="width:100%">
+						<div style="display:flex;width:100%;">
+							<h1 style="flex-grow:1">{hive.name}</h1>
+
+							{buttons}
+						</div>
+
+
+						{family && family.race}
+						
+						{family && family.race && family.added && <span> / </span>}
+						{family && family.added}
+						<QueenColor year={family?.added} />
+
+						{hive.notes && <p>{hive.notes}</p>}
+					</div>
+				</div>
+			</div>
+		)
+	}
+
 	return (
 		<div>
 			<ErrorMessage error={errorColor || errorHive} />
@@ -317,22 +375,7 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 						</div>
 					</VisualForm>
 
-					<VisualFormSubmit>
-						<PopupButtonGroup>
-							{/* <Button href={`/apiaries/${apiaryId}/hive/${hiveId}/share`} className="button">
-								<ShareIcon />
-								Share
-							</Button> */}
-
-							<Button loading={creatingInspection} onClick={onCreateInspection}>
-								<InspectionIcon />
-								<T ctx="This is a button that adds new beehive inspection as a snapshot of current beehive state">Create Inspection</T>
-							</Button>
-							<PopupButton>
-								<DeactivateButton hiveId={hive.id} />
-							</PopupButton>
-						</PopupButtonGroup>
-					</VisualFormSubmit>
+					{buttons}
 
 				</div>
 			</div>

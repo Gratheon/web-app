@@ -32,7 +32,7 @@ import TableIcon from '@/components/icons/tableIcon'
 
 export default function HiveEditForm() {
 	const { state } = useLocation();
-	const [displayMode, setDisplayMode] = useState('list')
+	const [displayMode, setDisplayMode] = useState('visual')
 
 	let { apiaryId, hiveId, boxId, frameId, frameSideId } = useParams()
 	let [error, onError] = useState(null)
@@ -134,12 +134,18 @@ export default function HiveEditForm() {
 					inspectionCount={hive.inspectionCount}
 				/>
 			</BreadCrumbs>
+
 			<HiveEditDetails apiaryId={apiaryId} hiveId={hiveId} />
 
 			<div className={styles.boxesFrameWrap}>
-				<div className={styles.boxesWrap} id="boxesWrap" style={{
-					flexGrow: 1, maxWidth: '50%'
-				}}>
+				<div className={styles.boxesWrap} id="boxesWrap" style="flex-grow:1; max-width:50%; ">
+
+					<div className={styles.boxesMode} style="display:flex; width:100%; padding:0 40px;">
+						<h3 style="margin-right: 20px;">Hive sections</h3>
+
+						{displayMode == 'list' && <Button onClick={() => setDisplayMode('visual')} size='small'><ListIcon size={18} /></Button>}
+						{displayMode == 'visual' && <Button onClick={() => setDisplayMode('list')} size='small'><TableIcon size={18} /></Button>}
+					</div>
 
 					<Boxes
 						onError={onError}
@@ -150,11 +156,6 @@ export default function HiveEditForm() {
 						frameSideId={frameSideId}
 						displayMode={displayMode}
 					/>
-
-					<div className={styles.boxesMode} style="text-align:center;">
-						{displayMode == 'list' && <Button onClick={() => setDisplayMode('visual')}><ListIcon /></Button>}
-						{displayMode == 'visual' && <Button onClick={() => setDisplayMode('list')}><TableIcon /></Button>}
-					</div>
 				</div>
 
 				<div className={styles.frameWrap}>

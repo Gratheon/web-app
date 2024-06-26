@@ -1,7 +1,7 @@
 import React from 'react'
 import style from './index.less'
 
-export default function Index({ year }) {
+export default function QueenColor({ year }) {
 	if (!year) {
 		return null
 	}
@@ -29,5 +29,5 @@ export default function Index({ year }) {
 	// margin-left: -11px;
 	// border-radius: 5px;
 	// z-index: -1;
-	return <div style={{ background: color }} className={style.queenColor}></div>
+	return <div style={{ background: color }} className={style.queenColor}>...</div>
 }

@@ -1,7 +1,5 @@
 import { useNavigate } from 'react-router'
-import { useLiveQuery } from 'dexie-react-hooks'
 
-// import { isFrameWithSides } from '@/components/models/frames'
 import { useMutation } from '@/components/api'
 import Button from '@/components/shared/button'
 import {
@@ -18,6 +16,7 @@ import ErrorMessage from '@/components/shared/messageError'
 
 import { useState } from 'react'
 import metrics from '@/components/metrics'
+import styles from './styles.less'
 
 export default function HiveButtons({
 	apiaryId,
@@ -66,7 +65,7 @@ export default function HiveButtons({
 	return (
 		<>
 			<ErrorMessage error={error} />
-			<div style="display: grid; gap: 1px; grid-template-columns: repeat(3, 1fr);">
+			<div className={styles.hiveButtons}>
 				<Button
 					title="Add box on top"
 					loading={adding}

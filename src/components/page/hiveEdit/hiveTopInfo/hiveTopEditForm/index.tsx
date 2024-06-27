@@ -5,8 +5,9 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import T from '@/components/shared/translate'
 import VisualForm from '@/components/shared/visualForm'
 import HiveIcon from '@/components/shared/hive'
-import DeactivateButton from '../deleteButton'
-import QueenColor from './queenColor'
+import DeactivateButton from '@/components/page/hiveEdit/deleteButton'
+import QueenColor from '@/components/page/hiveEdit/hiveTopInfo/queenColor'
+
 import styles from './styles.less'
 
 import { useMutation } from '@/components/api'
@@ -30,7 +31,7 @@ import InspectionIcon from '@/components/icons/inspection'
 import ShareIcon from '@/components/icons/share'
 import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
 
-export default function HiveEditDetails({ apiaryId, hiveId }) {
+export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 	let [editable, setEditable] = useState(false)
 	let [creatingInspection, setCreatingInspection] = useState(false)
 	let [okMsg, setOkMsg] = useState(null)
@@ -241,63 +242,6 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 
 	if (!hive) {
 		return <Loader />
-	}
-
-
-	let buttons = (
-		<VisualFormSubmit>
-
-			<Button loading={creatingInspection} onClick={onCreateInspection} color="green">
-				<InspectionIcon />
-				<T ctx="This is a button that adds new beehive inspection as a snapshot of current beehive state">Create Inspection</T>
-			</Button>
-
-			<PopupButtonGroup>
-				{/* <Button href={`/apiaries/${apiaryId}/hive/${hiveId}/share`} className="button">
-			<ShareIcon />
-			Share
-		</Button> */}
-
-
-
-				{!editable && <Button onClick={() => setEditable(!editable)}>Edit</Button>}
-				{editable && <Button onClick={() => setEditable(!editable)}>Complete</Button>}
-
-				<PopupButton>
-					<DeactivateButton hiveId={hive.id} />
-				</PopupButton>
-			</PopupButtonGroup>
-		</VisualFormSubmit>)
-
-	if (!editable) {
-		return (
-			<div>
-				<ErrorMessage error={errorColor || errorHive} />
-				{okMsg}
-				<div style="display: flex;width:100%;padding:40px;box-sizing: border-box;">
-					<div style="padding-right:10px;">
-						<HiveIcon boxes={boxes} />
-						<BeeCounter count={hive.beeCount} />
-					</div>
-					<div style="width:100%">
-						<div style="display:flex;width:100%;">
-							<h1 style="flex-grow:1">{hive.name}</h1>
-
-							{buttons}
-						</div>
-
-
-						{family && family.race}
-						
-						{family && family.race && family.added && <QueenColor year={family?.added} />}
-						{family && family.added}
-						
-
-						{hive.notes && <p>{hive.notes}</p>}
-					</div>
-				</div>
-			</div>
-		)
 	}
 
 	return (

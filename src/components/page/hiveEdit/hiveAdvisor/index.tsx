@@ -30,7 +30,7 @@ mutation generateHiveAdvice($hiveID: ID, $adviceContext: JSON, $langCode: String
 	let showLoader = (loading || saving)
 	return <div>
 		<ErrorMsg error={errorGet || mutateError} />
-		<div style="display:flex;margin:20px auto;">
+		<div className={style.wrap}>
 			<div style="flex-grow:1; text-align:center;">
 				{showLoader && <Loader />}
 

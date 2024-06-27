@@ -1,9 +1,26 @@
+@import '@/components/layout.less';
+
+
 .box {
 	//padding-top: 10px;
 	display: flex;
-	flex-direction:column;
+	flex-direction: column;
 }
 
 .flex {
 	display: flex;
+}
+
+.hiveButtons {
+	display: grid;
+	gap: 1px;
+	grid-template-columns: repeat(2, 1fr);
+
+	padding: @mobilePadPx;
+
+	@media @tablet {
+		display: grid;
+		gap: 1px;
+		grid-template-columns: repeat(3, 1fr);
+	}
 }

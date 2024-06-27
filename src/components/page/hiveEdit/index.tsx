@@ -6,7 +6,7 @@ import { gql, useQuery } from '@/components/api'
 import Boxes from './boxes'
 
 import HIVE_QUERY from './_api/hiveQuery.graphql'
-import HiveEditDetails from './editFormTop'
+import HiveEditDetails from './hiveTopInfo'
 
 import ErrorMsg from '@/components/shared/messageError'
 import ErrorGeneral from '@/components/shared/messageErrorGlobal'

@@ -1,3 +1,10 @@
-@maxMobileWidthPx: 414px;
+@maxMobileWidthPx: 576px;
+@maxTabletWidthPx: 768px;
+
+@mobile: ~"all and (max-width: @{maxMobileWidthPx})";
+@tablet: ~"all and (min-width: @{maxMobileWidthPx})";
+@desktop: ~"all and (min-width: @{maxTabletWidthPx})";
+
 @mobilePadPx: 8px;
-@desktopPadPx: 20px;
+@tabletPadPx: 15px;
+@desktopPadPx: 30px;

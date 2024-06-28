@@ -162,6 +162,8 @@ export default function HiveEditForm() {
 					{!frameId && !boxId && <HiveButtons apiaryId={apiaryId} hiveId={hiveId} />}
 
 					<Frame
+						box={box}
+
 						apiaryId={apiaryId}
 						boxId={boxId}
 						frameId={frameId}

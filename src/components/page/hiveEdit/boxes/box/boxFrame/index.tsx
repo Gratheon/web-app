@@ -1,14 +1,15 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useLiveQuery } from 'dexie-react-hooks'
+
+import { Box } from '@/components/models/boxes'
+import { Frame } from '@/components/models/frames'
+import { getFrameSideFile } from '@/components/models/frameSideFile'
+import { File, getFile } from '@/components/models/files'
 
 import styles from './index.less'
 import FrameSide from './boxFrameHalf'
-import { Box } from '@/components/models/boxes'
-import { Frame } from '@/components/models/frames'
-import { useLiveQuery } from 'dexie-react-hooks'
-
-import { getFrameSideFile } from '@/components/models/frameSideFile'
-import { File, getFile } from '@/components/models/files'
+import { enrichFramesWithSides } from '@/components/models/frameSide'
 
 type BoxFrameProps = {
 	box: Box
@@ -29,9 +30,17 @@ export default function BoxFrame({
 	frameId,
 	frameSideId,
 	frame,
-	editable,
+	editable = true,
 	displayMode = 'visual',
 }: BoxFrameProps) {
+	const frameWithSides = useLiveQuery(async () => {
+		let tmp = await enrichFramesWithSides([frame]);
+		return tmp[0]
+	}, [frameId]);
+
+	if(!frameWithSides) return null
+
+
 	const selectedFrame = frame.id === +frameId
 	let navigate = useNavigate()
 
@@ -39,40 +48,55 @@ export default function BoxFrame({
 	const frameURL = `/apiaries/${apiaryId}/hives/${hiveId}/box/${box.id}/frame/${frame.id}`
 
 
+	// const framesWithoutCells = await enrichFramesWithSides(framesWithoutSides);
+	let leftFile: File = useLiveQuery(async function () {
+		if (!frameWithSides.leftSide) {
+			return null
+		}
+		let frameSideFile = await getFrameSideFile({
+			frameSideId: frameWithSides.leftSide.id,
+		})
+		if (!frameSideFile) {
+			return null
+		}
+
+		return getFile(frameSideFile.fileId)
+	}, [frame], null);
+
+	let rightFile: File = useLiveQuery(async function () {
+		if (!frameWithSides.rightSide) {
+			return null
+		}
+		let frameSideFile = await getFrameSideFile({
+			frameSideId: frameWithSides.rightSide.id,
+		})
+		if (!frameSideFile) {
+			return null
+		}
+
+		return getFile(frameSideFile.fileId)
+	}, [frame], null);
+
 	if (displayMode == 'list') {
-		let leftFile: File = useLiveQuery(async function () {
-			if(!frame.leftSide) {
-				return null
-			}
-			let frameSideFile = await getFrameSideFile({
-				frameSideId: frame.leftSide.id,
-			})
-			if (!frameSideFile) {
-				return null
-			}
-
-			return getFile(frameSideFile.fileId)
-		}, [frame], null);
-
-		let rightFile: File = useLiveQuery(async function () {
-			if(!frame.rightSide) {
-				return null
-			}
-			let frameSideFile = await getFrameSideFile({
-				frameSideId: frame.rightSide.id,
-			})
-			if (!frameSideFile) {
-				return null
-			}
-
-			return getFile(frameSideFile.fileId)
-		}, [frame], null);
-
-
-		return  <div style="border:2px solid black; margin:2px; border-radius:3px;width:200px;height: 67px;">
-					{leftFile && <img src={leftFile.resizes ? leftFile.resizes[0].url : leftFile.url} width={100} />}
-					{rightFile && <img src={rightFile.resizes  ? rightFile.resizes[0].url : rightFile.url} width={100} />}
-				</div>
+		return <div className={styles.listFrameIcon}>
+			<div className={+frameSideId == +frame.leftId ? `${styles.listFrameIconSelected}` : ''}
+				onClick={() => {
+					if (editable) {
+						navigate(`${frameURL}/${frame.leftId}`, { replace: true })
+					}
+				}}>
+				{leftFile && <img src={leftFile.resizes.length > 0 ? leftFile.resizes[0].url : leftFile.url} />}
+			</div>
+			<div
+				className={+frameSideId == +frame.rightId ? `${styles.listFrameIconSelected}` : ''}
+				onClick={() => {
+					if (editable) {
+						navigate(`${frameURL}/${frame.rightId}`, { replace: true })
+					}
+				}}>
+				{rightFile && <img src={rightFile.resizes.length > 0 ? rightFile.resizes[0].url : rightFile.url} />}
+			</div>
+		</div>
 	}
 
 	if (frame.type === 'VOID') {
@@ -106,14 +130,14 @@ export default function BoxFrame({
 							navigate(`${frameURL}/${frame.leftId}`, { replace: true })
 						}
 					}}
-					className={frameSideId == frame.leftId ? `${styles.left} ${styles.sideSelected}` : styles.left}
+					className={styles.left}
 					frameSide={frame.leftSide}
 				/>
 
 				<div className={styles.foundation} />
 
 				<FrameSide
-					className={frameSideId == frame.rightId ? `${styles.right} ${styles.sideSelected}` : styles.right}
+					className={styles.right}
 					onFrameSideClick={() => {
 						if (editable) {
 							navigate(`${frameURL}/${frame.rightId}`, { replace: true })
@@ -126,8 +150,8 @@ export default function BoxFrame({
 	}
 
 	return (
-			<div className={`${styles.frame} ${selectedFrame && styles.frameSelected}`}>
-				{frameInternal}
-			</div>
+		<div className={`${styles.frame} ${selectedFrame && styles.frameSelected}`}>
+			{frameInternal}
+		</div>
 	)
 }

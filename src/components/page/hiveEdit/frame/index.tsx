@@ -13,6 +13,7 @@ import DeleteIcon from '@/components/icons/deleteIcon'
 
 import styles from './styles.less'
 import FrameSide from './frameSide'
+import BoxFrame from '../boxes/box/boxFrame'
 
 export default function Frame({
 	apiaryId,
@@ -20,6 +21,8 @@ export default function Frame({
 	boxId,
 	frameId,
 	frameSideId,
+
+	box,
 	extraButtons
 }) {
 
@@ -29,7 +32,7 @@ export default function Frame({
 
 	let [frameRemoving, setFrameRemoving] = useState<boolean>(false)
 
-	let frame = useLiveQuery(()=>getFrame(+frameId), [frameId])
+	let frame = useLiveQuery(() => getFrame(+frameId), [frameId])
 
 	if (frameRemoving) {
 		return <Loading />
@@ -56,7 +59,7 @@ export default function Frame({
 			await removeFrameMutation({
 				id: frameId
 			})
-			
+
 			setFrameRemoving(false)
 			navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`, {
 				replace: true,
@@ -85,10 +88,22 @@ export default function Frame({
 			<div className={styles.body}>
 				{error}
 				{!frameSideId && <div style={{ display: 'flex', flexDirection: 'row-reverse', flexGrow: 1 }}>{extraButtons}</div>}
-				<FrameSide 
+
+				{frame && <BoxFrame
+					box={box}
+					frame={frame}
+					apiaryId={apiaryId}
+					hiveId={hiveId}
+					frameId={frameId}
+					frameSideId={frameSideId}
+					editable={true}
+					displayMode="list" /> }
+
+
+				<FrameSide
 					extraButtons={extraButtons}
 					hiveId={hiveId}
-					frameId={frameId} 
+					frameId={frameId}
 					frameSideId={frameSideId} />
 			</div>
 		</div>

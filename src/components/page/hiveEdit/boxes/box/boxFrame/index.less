@@ -46,8 +46,8 @@
 
 	.foundationFrame {
 		border: 6px solid @frameColor;
-		border-left:none;
-		border-right:none;
+		border-left: none;
+		border-right: none;
 		background-color: #323232;
 		display: flex;
 		flex-grow: 1;
@@ -95,4 +95,30 @@
 
 .right {
 	background: #f9f8e9;
+}
+
+.listFrameIcon {
+	border: 1px dotted gray;
+	border-radius: 3px;
+	width: 200px;
+	display: flex;
+	padding: 2px;
+
+	>div {
+		border: 1px solid black;
+		width: 100px;
+		height: 67px;
+		flex-grow: 1;
+		margin: 2px;
+		border-radius: 2px;
+		cursor: pointer;
+
+		img{
+			width: 100%;
+		}
+
+		&.listFrameIconSelected {
+			border: 2px solid blue;
+		}
+	}
 }

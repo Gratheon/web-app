@@ -28,8 +28,8 @@
 
 
 .frame {
-	margin: 5px 2px 0;
-	width: 34px;
+	margin: 10px 1px 0;
+	width: 30px;
 	border-radius: 5px;
 	display: flex;
 	flex-direction: column;
@@ -40,7 +40,8 @@
 	box-sizing: border-box;
 
 	&.frameSelected {
-		margin-top: 15px;
+		margin-top: -5px;
+		border: 3px solid @selectedColor;
 	}
 
 	.foundationFrame {
@@ -90,20 +91,8 @@
 
 .left {
 	background: white;
-
-	&.sideSelected {
-		background-color: @selectedColor;
-		border-radius: 0 0 0 5px;
-		box-sizing: border-box;
-	}
 }
 
 .right {
 	background: #f9f8e9;
-
-	&.sideSelected {
-		background-color: @selectedColor;
-		border-radius: 0 0 5px 0;
-		box-sizing: border-box;
-	}
 }

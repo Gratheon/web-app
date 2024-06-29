@@ -1,3 +1,5 @@
+@import "@/components/layout.less";
+
 @frameColor: #524034;
 @foundationColor: rgb(255, 225, 0);
 @selectedColor: rgb(25, 121, 255);
@@ -100,20 +102,21 @@
 .listFrameIcon {
 	border: 1px dotted gray;
 	border-radius: 3px;
-	width: 200px;
+	width: 100px;
 	display: flex;
 	padding: 2px;
 
 	>div {
 		border: 1px solid black;
-		width: 100px;
-		height: 67px;
+		width: 50px;
+		height: 32px;
 		flex-grow: 1;
 		margin: 2px;
 		border-radius: 2px;
 		cursor: pointer;
+		overflow: hidden;
 
-		img{
+		img {
 			width: 100%;
 		}
 

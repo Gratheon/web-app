@@ -38,7 +38,7 @@ export default function BoxFrame({
 		return tmp[0]
 	}, [frameId]);
 
-	if(!frameWithSides) return null
+	if (!frameWithSides) return null
 
 
 	const selectedFrame = frame.id === +frameId
@@ -85,7 +85,7 @@ export default function BoxFrame({
 						navigate(`${frameURL}/${frame.leftId}`, { replace: true })
 					}
 				}}>
-				{leftFile && <img src={leftFile.resizes.length > 0 ? leftFile.resizes[0].url : leftFile.url} />}
+				{leftFile && <img src={leftFile.resizes && leftFile.resizes.length > 0 ? leftFile.resizes[0].url : leftFile.url} />}
 			</div>
 			<div
 				className={+frameSideId == +frame.rightId ? `${styles.listFrameIconSelected}` : ''}
@@ -94,7 +94,7 @@ export default function BoxFrame({
 						navigate(`${frameURL}/${frame.rightId}`, { replace: true })
 					}
 				}}>
-				{rightFile && <img src={rightFile.resizes.length > 0 ? rightFile.resizes[0].url : rightFile.url} />}
+				{rightFile && <img src={rightFile.resizes && rightFile.resizes.length > 0 ? rightFile.resizes[0].url : rightFile.url} />}
 			</div>
 		</div>
 	}

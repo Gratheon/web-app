@@ -1,3 +1,5 @@
+@import "@/components/layout.less";
+
 @borderColor: #825500;
 
 .body {
@@ -19,6 +21,21 @@
 	border-radius: 3px;
 }
 
-.frameSideSelected{
+.frameSideSelected {
 	border: 2px solid blue;
+}
+
+
+.frameHeader {
+	display: flex;
+	padding: 3px;
+
+	h3 {
+		margin-top: 10px;
+		margin-right: 10px;
+	}
+
+	@media @mobile {
+		margin-top: 40px;
+	}
 }

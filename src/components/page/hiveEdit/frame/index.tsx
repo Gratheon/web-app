@@ -89,16 +89,20 @@ export default function Frame({
 				{error}
 				{!frameSideId && <div style={{ display: 'flex', flexDirection: 'row-reverse', flexGrow: 1 }}>{extraButtons}</div>}
 
-				{frame && <BoxFrame
-					box={box}
-					frame={frame}
-					apiaryId={apiaryId}
-					hiveId={hiveId}
-					frameId={frameId}
-					frameSideId={frameSideId}
-					editable={true}
-					displayMode="list" /> }
 
+				<div className={styles.frameHeader}>
+					<h3>Selected frame</h3>
+
+					{frame && <BoxFrame
+						box={box}
+						frame={frame}
+						apiaryId={apiaryId}
+						hiveId={hiveId}
+						frameId={frameId}
+						frameSideId={frameSideId}
+						editable={true}
+						displayMode="list" />}
+				</div>
 
 				<FrameSide
 					extraButtons={extraButtons}

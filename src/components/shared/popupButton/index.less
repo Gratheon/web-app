@@ -1,4 +1,4 @@
-@import '../../colors';
+@import '@/components/colors.less';
 
 :global {
 	.popupButtonGroup {
@@ -21,23 +21,15 @@
 	}
 }
 
-// .black {
-// 	:global {
-// 		.popupTrigger {
-// 			border: 1px solid black;
-// 		}
-// 	}
-// }
-
 .green {
 	button[type='submit'] {
-		background: @color-ui-btn-green;
+		background: @color-green;
 	}
 
 	:global {
 		.popupTrigger {
-			border: 1px solid @color-ui-btn-green;
-			color: @color-ui-btn-green;
+			border: 1px solid @color-green;
+			color: @color-green;
 		}
 	}
 }

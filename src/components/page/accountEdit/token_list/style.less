@@ -1,11 +1,13 @@
-@import '../../../layout.less';
+@import '@/components/layout.less';
+@import '@/components/colors.less';
 
 .apiToken {
 	display: block;
 	margin-bottom: 10px;
 
 	.token {
-		background-color: lightgray;
+		background-color: @color-gray-bg;
+		border: 1px solid @color-gray-border;
 		padding: 3px 5px;
 		border-radius: 3px;
 		font-family: Consolas, Monospace;

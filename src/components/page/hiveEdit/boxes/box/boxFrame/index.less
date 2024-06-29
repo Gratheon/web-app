@@ -1,8 +1,6 @@
 @import "@/components/layout.less";
+@import '@/components/colors.less';
 
-@frameColor: #524034;
-@foundationColor: rgb(255, 225, 0);
-@selectedColor: rgb(25, 121, 255);
 
 .position {
 	line-height: 15px;
@@ -22,7 +20,6 @@
 		opacity: 1;
 		border: 2px solid #000000;
 		text-shadow: 1px 1px #ffffff;
-		// margin-top: -2px;
 		font-weight: bold;
 		border: 2px solid @selectedColor;
 	}
@@ -121,7 +118,7 @@
 		}
 
 		&.listFrameIconSelected {
-			border: 2px solid blue;
+			border: 2px solid @color-blue-selected;
 		}
 	}
 }

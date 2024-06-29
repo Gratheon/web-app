@@ -16,7 +16,6 @@ import { getApiary } from '@/components/models/apiary'
 import Loader from '@/components/shared/loader'
 
 import Frame from './frame'
-import styles from './styles.less'
 import GateBox from './gateBox/GateBox'
 import MessageNotFound from '@/components/shared/messageNotFound'
 import HiveAdvisor from './hiveAdvisor'
@@ -29,6 +28,8 @@ import HiveButtons from './boxes/hiveButtons'
 import Button from '@/components/shared/button'
 import ListIcon from '@/components/icons/listIcon'
 import TableIcon from '@/components/icons/tableIcon'
+
+import styles from './styles.less'
 
 export default function HiveEditForm() {
 	const { state } = useLocation();
@@ -138,7 +139,7 @@ export default function HiveEditForm() {
 			<HiveEditDetails apiaryId={apiaryId} hiveId={hiveId} />
 
 			<div className={styles.boxesFrameWrap}>
-				<div className={styles.boxesWrap} id="boxesWrap" style="flex-grow:1; max-width:50%; ">
+				<div className={styles.boxesWrap}>
 
 					<div className={styles.boxesMode} style="display:flex; width:100%; padding:0 40px;">
 						<h3 style="margin-right: 20px;margin-bottom: 5px;">

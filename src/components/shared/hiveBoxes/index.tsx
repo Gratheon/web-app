@@ -68,14 +68,18 @@ export default function HiveBoxes(
 					{box.type === boxTypes.VENTILATION && <Ventilation selected={+boxId === box.id} />}
 					{box.type === boxTypes.QUEEN_EXCLUDER && <QueenExcluder selected={+boxId === box.id} />}
 					{box.type === boxTypes.HORIZONTAL_FEEDER && <FeederHorizontal selected={+boxId === box.id} />}
-				</div>
 
-
-				<div style={{ display: 'flex', flexDirection: 'column', zIndex: 2, position: 'relative' }}>
 					{currentBoxSelected && ((box.type == boxTypes.DEEP || box.type == boxTypes.SUPER) &&
 						<FrameButtons box={box} onError={onError} />
 					)}
 				</div>
+
+
+				{/* <div style={{ display: 'flex', flexDirection: 'column', zIndex: 2, position: 'relative' }}>
+					{currentBoxSelected && ((box.type == boxTypes.DEEP || box.type == boxTypes.SUPER) &&
+						<FrameButtons box={box} onError={onError} />
+					)}
+				</div> */}
 			</div>
 		)
 	}

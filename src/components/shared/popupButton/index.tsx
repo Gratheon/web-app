@@ -32,7 +32,7 @@ export function PopupButtonGroup({
 	className = 'black',
 }: PopupButtonGroupProps) {
 	return (
-		<div className={`${style[className]} popupButtonGroup`} style={inlineStyle}>
+		<div className={`popupButtonGroup`} style={inlineStyle}>
 			{children}
 		</div>
 	)
@@ -41,10 +41,16 @@ export function PopupButtonGroup({
 type PopupButtonProps = {
 	children: any
 	className?: string
+	align?: string
 }
-export function PopupButton({ children, className = '' }: PopupButtonProps) {
+export function PopupButton({ children, className = '', align = 'left' }: PopupButtonProps) {
 	const [extraButtonsVisible, setExtraButtonsVisible] = useState(false)
 	const modalRef = useRef(null)
+
+	let popupStyle = '';
+	if (align === 'right') {
+		popupStyle = 'left: auto;right: 8px;'
+	}
 
 	useOutsideClickHandler(modalRef, () => setExtraButtonsVisible(false))
 
@@ -60,7 +66,9 @@ export function PopupButton({ children, className = '' }: PopupButtonProps) {
 				<Dots3Icon />
 
 			</Button>
-			{extraButtonsVisible && <div className={style.popup}>{children}</div>}
+			{extraButtonsVisible && <div
+				style={popupStyle}
+				className={style.popup}>{children}</div>}
 		</div>
 	)
 }

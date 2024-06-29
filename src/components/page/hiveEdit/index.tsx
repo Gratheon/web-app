@@ -141,7 +141,9 @@ export default function HiveEditForm() {
 				<div className={styles.boxesWrap} id="boxesWrap" style="flex-grow:1; max-width:50%; ">
 
 					<div className={styles.boxesMode} style="display:flex; width:100%; padding:0 40px;">
-						<h3 style="margin-right: 20px;">Hive sections</h3>
+						<h3 style="margin-right: 20px;margin-bottom: 5px;">
+							<T ctx="This is a heading for a block that shows multiple physical parts (boxes,sections) of the vertical beehive">Hive sections</T>
+						</h3>
 
 						{displayMode == 'list' && <Button onClick={() => setDisplayMode('visual')} size='small'><ListIcon size={18} /></Button>}
 						{displayMode == 'visual' && <Button onClick={() => setDisplayMode('list')} size='small'><TableIcon size={18} /></Button>}

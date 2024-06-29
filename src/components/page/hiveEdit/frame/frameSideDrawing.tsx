@@ -18,7 +18,6 @@ export default function FrameSideDrawing({
 	frameSideFile,
 	frameId,
 	frameSideId,
-	extraButtons,
 }) {
 
 	if (!frameId || !frameSideId) {
@@ -153,7 +152,6 @@ export default function FrameSideDrawing({
 				<DrawingCanvas
 					imageUrl={file.url}
 					resizes={file.resizes}
-					extraButtons={extraButtons}
 					frameMetrics={
 						<MetricList
 							onFrameSideStatChange={onFrameSideStatChange}

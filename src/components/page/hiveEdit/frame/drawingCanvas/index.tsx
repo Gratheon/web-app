@@ -357,8 +357,7 @@ export default function DrawingCanvas({
 	onStrokeHistoryUpdate,
 	frameSideFile,
 	frameMetrics,
-	frameSide,
-	extraButtons
+	frameSide
 }) {
 	if (!imageUrl) {
 		return
@@ -718,8 +717,6 @@ export default function DrawingCanvas({
 			</canvas>
 
 			<div class={styles.buttonGrp}>
-				{extraButtons}
-
 				<div style="flex-grow:1"></div>
 				<Button onClick={clearHistory}><T ctx="this is a button that cleans drawing made on an image with ipad pencil or mouse">Clear drawing</T></Button>
 				<Button onClick={undoDraw}><T>Undo</T></Button>

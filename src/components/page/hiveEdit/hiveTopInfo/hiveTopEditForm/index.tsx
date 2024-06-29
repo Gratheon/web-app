@@ -18,8 +18,6 @@ import { getFamilyByHive, updateFamily } from '@/components/models/family'
 import Loader from '@/components/shared/loader'
 import ErrorMessage from '@/components/shared/messageError'
 import { Family } from '@/components/api/schema'
-import Button from '@/components/shared/button'
-import { PopupButton, PopupButtonGroup } from '@/components/shared/popupButton'
 import { InspectionSnapshot } from '@/components/models/inspections'
 import { getFramesByHive } from '@/components/models/frames'
 import { getHiveInspectionStats, deleteCellsByFrameSideIDs } from '@/components/models/frameSideCells'
@@ -27,9 +25,6 @@ import BeeCounter from '@/components/shared/beeCounter'
 import { collectFrameSideIDsFromFrames } from '@/components/models/frameSide'
 import { deleteFilesByFrameSideIDs } from '@/components/models/frameSideFile'
 import MessageSuccess from '@/components/shared/messageSuccess'
-import InspectionIcon from '@/components/icons/inspection'
-import ShareIcon from '@/components/icons/share'
-import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
 
 export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 	let [editable, setEditable] = useState(false)

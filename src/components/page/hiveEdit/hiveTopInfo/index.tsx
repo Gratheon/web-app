@@ -14,7 +14,6 @@ import { getBoxes } from '@/components/models/boxes'
 import { getFamilyByHive } from '@/components/models/family'
 
 import Loader from '@/components/shared/loader'
-import ErrorMessage from '@/components/shared/messageError'
 import Button from '@/components/shared/button'
 import { PopupButton, PopupButtonGroup } from '@/components/shared/popupButton'
 import { InspectionSnapshot } from '@/components/models/inspections'
@@ -119,7 +118,7 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 				{!editable && <Button onClick={() => setEditable(!editable)}>Edit</Button>}
 				{editable && <Button onClick={() => setEditable(!editable)}>Complete</Button>}
 
-				<PopupButton>
+				<PopupButton align="right">
 					<DeactivateButton hiveId={hive.id} />
 				</PopupButton>
 			</PopupButtonGroup>
@@ -128,7 +127,7 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 	if (!editable) {
 		return (
 			<div>
-				
+
 				{okMsg}
 
 				<div className={styles.wrap2}>
@@ -136,7 +135,7 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 						<HiveIcon boxes={boxes} />
 						<BeeCounter count={hive.beeCount} />
 					</div>
-					<div style="width:100%">
+					<div className={styles.wrap5}>
 						<div className={styles.wrap4}>
 							<h1 style="flex-grow:1">{hive.name}</h1>
 
@@ -144,11 +143,13 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 						</div>
 
 
-						{family && family.race}
-						
-						{family && family.race && family.added && <QueenColor year={family?.added} />}
-						{family && family.added}
-						
+						<div id={styles.raceYear}>
+							{family && family.race}
+
+							{family && family.race && family.added && <QueenColor year={family?.added} />}
+							{family && family.added}
+						</div>
+
 
 						{hive.notes && <p>{hive.notes}</p>}
 					</div>

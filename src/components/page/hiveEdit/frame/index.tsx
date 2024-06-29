@@ -14,6 +14,7 @@ import DeleteIcon from '@/components/icons/deleteIcon'
 import styles from './styles.less'
 import FrameSide from './frameSide'
 import BoxFrame from '../boxes/box/boxFrame'
+import { PopupButton, PopupButtonGroup } from '@/components/shared/popupButton'
 
 export default function Frame({
 	apiaryId,
@@ -70,14 +71,19 @@ export default function Frame({
 	extraButtons = (
 		<>
 			{extraButtons}
-			<Button
-				color="red"
-				title="Remove frame"
-				onClick={onFrameRemove}
-			>
-				<DeleteIcon />
-				<span><T>Remove frame</T></span>
-			</Button>
+
+			<PopupButtonGroup>
+				<PopupButton align="right">
+					<Button
+						color="red"
+						title="Remove frame"
+						onClick={onFrameRemove}
+					>
+						<DeleteIcon />
+						<span><T>Remove frame</T></span>
+					</Button>
+				</PopupButton>
+			</PopupButtonGroup>
 		</>
 	)
 
@@ -87,11 +93,11 @@ export default function Frame({
 		<div className={styles.frame}>
 			<div className={styles.body}>
 				{error}
-				{!frameSideId && <div style={{ display: 'flex', flexDirection: 'row-reverse', flexGrow: 1 }}>{extraButtons}</div>}
-
 
 				<div className={styles.frameHeader}>
-					<h3>Selected frame</h3>
+					<h3>
+						<T ctx="This is a heading for a beehive frame that shows image of bees, beecomb, cells">Selected frame</T>
+					</h3>
 
 					{frame && <BoxFrame
 						box={box}
@@ -102,10 +108,12 @@ export default function Frame({
 						frameSideId={frameSideId}
 						editable={true}
 						displayMode="list" />}
+
+					<div style="flex-grow:1"></div>
+					{extraButtons}
 				</div>
 
 				<FrameSide
-					extraButtons={extraButtons}
 					hiveId={hiveId}
 					frameId={frameId}
 					frameSideId={frameSideId} />

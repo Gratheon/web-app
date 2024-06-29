@@ -1,13 +1,16 @@
+@import '@/components/layout.less';
+
 .buttonGrp{
 	display: flex;
 }
 
-@media all and (min-width:800px) {
+@media @desktop {
 	.buttons {
 		display: flex;
 	}
 }
-@media all and (max-width:800px) {
+
+@media @mobileAndTablet {
 	.buttonGrp {
 		padding: 5px;
 	}

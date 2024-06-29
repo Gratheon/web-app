@@ -1,9 +1,11 @@
-import DateFormat from '../../../shared/dateFormat'
-import colors from '../../../colors'
-import styles from './styles.less'
+import { useNavigate } from 'react-router-dom'
+
+import colors from '@/components/colors';
+import DateFormat from '@/components/shared/dateFormat'
 import { InspectionSnapshot } from '@/components/models/inspections'
 import BeeCounter from '@/components/shared/beeCounter'
-import { useNavigate } from 'react-router-dom'
+
+import styles from './styles.less'
 
 type InspectionBarProps = {
 	selected: boolean

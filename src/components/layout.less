@@ -1,8 +1,9 @@
 @maxMobileWidthPx: 576px;
-@maxTabletWidthPx: 768px;
+@maxTabletWidthPx: 1200px;
 
 @mobile: ~"all and (max-width: @{maxMobileWidthPx})";
-@tablet: ~"all and (min-width: @{maxMobileWidthPx})";
+@tabletAndUp: ~"all and (min-width: @{maxMobileWidthPx})";
+@mobileAndTablet: ~"all and (max-width: @{maxTabletWidthPx})";
 @desktop: ~"all and (min-width: @{maxTabletWidthPx})";
 
 @mobilePadPx: 8px;

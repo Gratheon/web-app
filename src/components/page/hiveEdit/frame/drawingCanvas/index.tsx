@@ -7,6 +7,8 @@ import T from '@/components/shared/translate'
 import Loader from '@/components/shared/loader'
 import styles from './styles.less'
 import QueenButton from '../queenButton'
+import LeftChevron from '@/components/icons/leftChevron'
+import RightChevron from '@/components/icons/rightChevron'
 
 let lineWidth = 0
 let isMousedown = false
@@ -364,6 +366,7 @@ export default function DrawingCanvas({
 	}
 	const ref = useRef(null)
 	const [showBees, setBeeVisibility] = useState(true)
+	const [panelVisible, setPanelVisible] = useState(false)
 	const [showDrones, setDroneVisibility] = useState(true)
 	const [showCells, setCellVisibility] = useState(true)
 	const [showQueenCups, setQueenCups] = useState(true)
@@ -653,9 +656,52 @@ export default function DrawingCanvas({
 
 
 	return (
-		<div>
-			<div className={styles.buttons}>
+		<div style="position:relative;overflow:hidden;">
+			<div className={styles.buttonPanel} style={`left: ${panelVisible ? 0 : -200}px`}>
 				<div class={styles.buttonGrp}>
+					<Button onClick={() => { setPanelVisible(!panelVisible) }}
+						style={`position: absolute;right: -43px;top: 100px;border-radius:0 20px 20px 0; border: 2px solid white;border-left:none;`}>
+						{panelVisible ? <LeftChevron /> : <RightChevron />}
+					</Button>
+
+					<Button onClick={() => { setBeeVisibility(!showBees) }}>
+						{frameSideFile.isBeeDetectionComplete && <Checkbox on={showBees} />}
+						{!frameSideFile.isBeeDetectionComplete && <Loader size={0} />}
+						<span>
+							<T ctx="this is a button that toggles visibility of worker bees on an image">Worker bees</T>
+							{frameSideFile.detectedWorkerBeeCount > 0 && <>({frameSideFile.detectedWorkerBeeCount})</>}
+						</span>
+					</Button>
+
+					<QueenButton
+						frameSide={frameSide}
+						frameSideFile={frameSideFile} />
+
+					<Button onClick={() => { setDroneVisibility(!showDrones) }}>
+						{frameSideFile.isBeeDetectionComplete && <Checkbox on={showDrones} />}
+						{!frameSideFile.isBeeDetectionComplete && <Loader size={0} />}
+						<span>
+							<T ctx="this is a button that toggles visibility of drone bees on an image">Drones</T>
+							{frameSideFile.detectedDroneCount > 0 && <>({frameSideFile.detectedDroneCount})</>}
+						</span>
+					</Button>
+
+					{detectedQueenCups && <Button onClick={() => { setQueenCups(!showQueenCups) }}>
+						{frameSideFile.isQueenCupsDetectionComplete && <Checkbox on={showQueenCups} />}
+						{!frameSideFile.isQueenCupsDetectionComplete && <Loader size={0} />}
+						<span><T ctx="this is a button that toggles visibility (on an image) of beewax construction where queen bee is being nursed">Queen cups</T></span>
+					</Button>}
+
+
+					<Button onClick={() => { setShowVarroa(!showVarroa) }}>
+						{frameSideFile.isBeeDetectionComplete && <Checkbox on={showVarroa} />}
+						{!frameSideFile.isBeeDetectionComplete && <Loader size={0} />}
+						<span>
+							<T ctx="this is a button that toggles visibility of varroa destructor mites on an image">Varroa mites</T>
+							{frameSideFile.varroaCount > 0 && <>({frameSideFile.varroaCount})</>}
+						</span>
+					</Button>
+
 					{detectedCells &&
 						<Button onClick={() => { setCellVisibility(!showCells) }}>
 							{frameSideFile.isCellsDetectionComplete && <Checkbox on={showCells} />}
@@ -668,47 +714,6 @@ export default function DrawingCanvas({
 						</Button>}
 
 					{showCells && frameMetrics}
-				</div>
-
-				<div style="flex-grow:1"></div>
-
-				<div class={styles.buttonGrp}>
-					<Button onClick={() => { setShowVarroa(!showVarroa) }}>
-						{frameSideFile.isBeeDetectionComplete && <Checkbox on={showVarroa} />}
-						{!frameSideFile.isBeeDetectionComplete && <Loader size={0} />}
-						<span>
-							<T ctx="this is a button that toggles visibility of varroa destructor mites on an image">Varroa mites</T>
-							{frameSideFile.varroaCount > 0 && <>({frameSideFile.varroaCount})</>}
-						</span>
-					</Button>
-
-					<Button onClick={() => { setBeeVisibility(!showBees) }}>
-						{frameSideFile.isBeeDetectionComplete && <Checkbox on={showBees} />}
-						{!frameSideFile.isBeeDetectionComplete && <Loader size={0} />}
-						<span>
-							<T ctx="this is a button that toggles visibility of worker bees on an image">Worker bees</T>
-							{frameSideFile.detectedWorkerBeeCount > 0 && <>({frameSideFile.detectedWorkerBeeCount})</>}
-						</span>
-					</Button>
-
-					<Button onClick={() => { setDroneVisibility(!showDrones) }}>
-						{frameSideFile.isBeeDetectionComplete && <Checkbox on={showDrones} />}
-						{!frameSideFile.isBeeDetectionComplete && <Loader size={0} />}
-						<span>
-							<T ctx="this is a button that toggles visibility of drone bees on an image">Drones</T>
-							{frameSideFile.detectedDroneCount > 0 && <>({frameSideFile.detectedDroneCount})</>}
-						</span>
-					</Button>
-
-					<QueenButton
-						frameSide={frameSide}
-						frameSideFile={frameSideFile} />
-
-					{detectedQueenCups && <Button onClick={() => { setQueenCups(!showQueenCups) }}>
-						{frameSideFile.isQueenCupsDetectionComplete && <Checkbox on={showQueenCups} />}
-						{!frameSideFile.isQueenCupsDetectionComplete && <Loader size={0} />}
-						<span><T ctx="this is a button that toggles visibility (on an image) of beewax construction where queen bee is being nursed">Queen cups</T></span>
-					</Button>}
 				</div>
 			</div>
 

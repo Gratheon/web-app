@@ -1,7 +1,13 @@
-import { Family } from '@/components/api/schema'
-
 import { db } from './db'
 
+export type Family = {
+	hiveId?: number //reference
+	id: number
+	race: string
+	added: string
+	age?: number // in years
+  }
+  
 export async function getFamilyByHive(hiveId: number): Promise<Family> {
 	try {
 		return await db['family'].get({ hiveId })

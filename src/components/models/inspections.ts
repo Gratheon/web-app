@@ -1,4 +1,4 @@
-import { Family } from '../api/schema'
+import { Family } from './family'
 import { Box } from './boxes'
 import { db } from './db'
 import { HiveInspectionCellStats } from './frameSideCells'

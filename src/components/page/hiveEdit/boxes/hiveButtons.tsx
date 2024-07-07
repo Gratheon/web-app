@@ -17,6 +17,7 @@ import ErrorMessage from '@/components/shared/messageError'
 import { useState } from 'react'
 import metrics from '@/components/metrics'
 import styles from './styles.less'
+import { PopupButton, PopupButtonGroup } from '@/components/shared/popupButton'
 
 export default function HiveButtons({
 	apiaryId,
@@ -24,6 +25,7 @@ export default function HiveButtons({
 }) {
 	let navigate = useNavigate()
 	const [adding, setAdding] = useState(false)
+
 	let [addBoxMutation, { error }] =
 		useMutation(`mutation addBox($hiveId: ID!, $position: Int!, $type: BoxType!) {
 	addBox(hiveId: $hiveId, position: $position, type: $type) {
@@ -66,6 +68,7 @@ export default function HiveButtons({
 		<>
 			<ErrorMessage error={error} />
 			<div className={styles.hiveButtons}>
+
 				<Button
 					title="Add box on top"
 					loading={adding}
@@ -74,38 +77,43 @@ export default function HiveButtons({
 				>
 					<AddBoxIcon /><span><T ctx="this is a button to add new section of beehive, a deep box that is intended for brood frames">Add deep</T></span>
 				</Button>
-				<Button
-					loading={adding}
-					title="Add super on top"
-					onClick={() => onBoxAdd(boxTypes.SUPER)}
-				>
-					<AddSuperIcon /><span><T ctx="this is a button to add new section of beehive, a super box that is intended for honey frames">Add super</T></span>
-				</Button>
-				<Button
-					loading={adding}
-					title="Add gate"
-					onClick={() => onBoxAdd(boxTypes.GATE)}
-				>
-					<GateIcon /><span><T ctx="this is a button to add new section of beehive, specifically holes, an entrance">Add base</T></span>
-				</Button>
-				<Button
-					loading={adding}
-					title="Add ventilation"
-					onClick={() => onBoxAdd(boxTypes.VENTILATION)}
-				><span><T ctx="this is a button to add tiny part of beehive, specifically holes on top for ventilation">Add inner lid</T></span>
-				</Button>
-				<Button
-					loading={adding}
-					title="Add queen excluder"
-					onClick={() => onBoxAdd(boxTypes.QUEEN_EXCLUDER)}
-				><span><T ctx="this is a button to add tiny part of beehive, a horizontal layer that prevents queen bee from moving through this">Add queen excluder</T></span>
-				</Button>
-				<Button
-					loading={adding}
-					title="Add feeder"
-					onClick={() => onBoxAdd(boxTypes.HORIZONTAL_FEEDER)}
-				><span><T ctx="this is a button to add tiny part of beehive, a horizontal box where sugar syrup can be poured to feed bees">Add feeder</T></span>
-				</Button>
+				<PopupButtonGroup>
+					<Button
+						loading={adding}
+						title="Add super on top"
+						onClick={() => onBoxAdd(boxTypes.SUPER)}
+					>
+						<AddSuperIcon /><span><T ctx="this is a button to add new section of beehive, a super box that is intended for honey frames">Add super</T></span>
+					</Button>
+
+					<PopupButton>
+						<Button
+							loading={adding}
+							title="Add gate"
+							onClick={() => onBoxAdd(boxTypes.GATE)}
+						>
+							<GateIcon /><span><T ctx="this is a button to add new section of beehive, specifically holes, an entrance">Add base</T></span>
+						</Button>
+						<Button
+							loading={adding}
+							title="Add ventilation"
+							onClick={() => onBoxAdd(boxTypes.VENTILATION)}
+						><span><T ctx="this is a button to add tiny part of beehive, specifically holes on top for ventilation">Add inner lid</T></span>
+						</Button>
+						<Button
+							loading={adding}
+							title="Add queen excluder"
+							onClick={() => onBoxAdd(boxTypes.QUEEN_EXCLUDER)}
+						><span><T ctx="this is a button to add tiny part of beehive, a horizontal layer that prevents queen bee from moving through this">Add queen excluder</T></span>
+						</Button>
+						<Button
+							loading={adding}
+							title="Add feeder"
+							onClick={() => onBoxAdd(boxTypes.HORIZONTAL_FEEDER)}
+						><span><T ctx="this is a button to add tiny part of beehive, a horizontal box where sugar syrup can be poured to feed bees">Add feeder</T></span>
+						</Button>
+					</PopupButton>
+				</PopupButtonGroup>
 			</div>
 		</>
 	)

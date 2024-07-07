@@ -30,8 +30,9 @@ mutation generateHiveAdvice($hiveID: ID, $adviceContext: JSON, $langCode: String
 	let showLoader = (loading || saving)
 	return <div>
 		<ErrorMsg error={errorGet || mutateError} />
+
 		<div className={style.wrap}>
-			<div style="flex-grow:1; text-align:center;">
+			<div style={`flex-grow:1; text-align:center;${data?.getExistingHiveAdvice ? '' : 'margin-top:50px;'}`}>
 				{showLoader && <Loader />}
 
 				{!showLoader && <div className={style.message}>
@@ -67,26 +68,26 @@ mutation generateHiveAdvice($hiveID: ID, $adviceContext: JSON, $langCode: String
 						delete boxes[i].color
 
 						for (let j in frames) {
-							if(!frames[j].leftSide || !frames[j].rightSide) continue
+							if (!frames[j].leftSide || !frames[j].rightSide) continue
 
 							frames[j].leftSide.cells = await getFrameSideCells(+frames[j].leftId)
 							frames[j].rightSide.cells = await getFrameSideCells(+frames[j].rightId)
 
-							let leftFile = await getFrameSideFile({frameSideId: +frames[j].leftId})
+							let leftFile = await getFrameSideFile({ frameSideId: +frames[j].leftId })
 
 							//@ts-ignore
 							frames[j].leftSide.detectedQueenCupsCount = leftFile?.detectedQueenCups.length;
 							//@ts-ignore
 							frames[j].leftSide.isQueenDetected = leftFile?.queenDetected;
 
-							let rightFile = await getFrameSideFile({frameSideId: +frames[j].rightId})
+							let rightFile = await getFrameSideFile({ frameSideId: +frames[j].rightId })
 
 							//@ts-ignore
 							frames[j].leftSide.detectedQueenCupsCount = rightFile?.detectedQueenCups.length;
 							//@ts-ignore
 							frames[j].leftSide.isQueenDetected = rightFile?.queenDetected;
 						}
-						
+
 						adviceContext['frames'][boxes[i].id] = frames
 					}
 

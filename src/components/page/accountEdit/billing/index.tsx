@@ -10,6 +10,8 @@ import T from '@/components/shared/translate'
 import metrics from '@/components/metrics'
 
 import { de, et, fr, pl, ru, tr } from 'date-fns/locale'
+import DateTimeAgo from '@/components/shared/dateTimeAgo'
+import DateFormat from '@/components/shared/dateFormat'
 const loadedDateLocales = { de, et, fr, pl, ru, tr }
 
 export default function Billing({ user }) {
@@ -52,7 +54,7 @@ export default function Billing({ user }) {
 	}
 
 	let expirationError = user.isSubscriptionExpired ? (
-		<MessageError error={<T>Subscription has expired, please extend</T>} />
+		<MessageSuccess isWarning={true} title={<T>Subscription has expired, please extend</T>} />
 	) : null
 
 	if (!user.lang) {
@@ -68,21 +70,21 @@ export default function Billing({ user }) {
 			)}
 			{stripeStatus === 'cancel' && <MessageError error={<T>Payment was cancelled</T>} />}
 
+			{expirationError}
+
 			<div style="margin-bottom:5px; border: 1px dotted gray; padding: 10px; border-radius: 5px;">
 				<h3><T ctx="this is a headline for billing form">Billing</T></h3>
-
-				{expirationError}
 				{error && <MessageError error={error} />}
 				{errorCancel && <MessageError error={errorCancel} />}
 
 				<div style=" display: flex">
 					<div style={{ flexGrow: 1, marginTop: 5 }}>
 						<div>
-							<T>Account created</T>: {format(new Date(user.date_added), 'dd MMMM yyyy, hh:mm', dateLangOptions)}
+							<T>Billing plan</T>: {user.billingPlan}
 						</div>
 
 						<div>
-							<a href="https://gratheon.com/prices.html"><T>Billing plan</T></a>: {user.billingPlan}
+							<T>Account created</T>: {format(new Date(user.date_added), 'dd MMMM yyyy, hh:mm', dateLangOptions)}
 						</div>
 
 						{user.isSubscriptionExpired &&
@@ -93,16 +95,18 @@ export default function Billing({ user }) {
 
 						{!user.isSubscriptionExpired &&
 							<div>
-								<T>Expires in</T> {formatDistance(new Date(user.date_expiration), new Date(), dateLangOptions)} &mdash; {format(new Date(user.date_expiration), 'dd MMMM yyyy, hh:mm', dateLangOptions)}
+								<T>Expires in</T> 
+								<DateTimeAgo dateString={user.date_expiration} lang={user.lang} /> &mdash; 
+								<DateFormat datetime={user.date_expiration} lang={user.lang} />
 							</div>
 						}
 					</div>
 
 					<div>
-						{!user.hasSubscription && (
+						{(!user.hasSubscription || user.isSubscriptionExpired) && (
 							<Button onClick={onSubscribeClick}><T ctx="this is a button that redirects to billing page to pay">Subscribe</T></Button>
 						)}
-						{user.hasSubscription && (
+						{user.hasSubscription && !user.isSubscriptionExpired && (
 							<Button onClick={onCancelSubscription}><T ctx="this is a button that cancels billing subscription">Cancel subscription</T></Button>
 						)}
 					</div>

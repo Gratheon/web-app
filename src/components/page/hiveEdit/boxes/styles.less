@@ -12,15 +12,8 @@
 }
 
 .hiveButtons {
-	display: grid;
-	gap: 1px;
-	grid-template-columns: repeat(2, 1fr);
-
+	display: flex;
 	padding: @mobilePadPx;
 
-	@media @tabletAndUp {
-		display: grid;
-		gap: 1px;
-		grid-template-columns: repeat(3, 1fr);
-	}
+	flex-direction: row-reverse;
 }

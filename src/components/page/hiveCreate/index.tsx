@@ -11,7 +11,6 @@ import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
 import Button from '@/components/shared/button'
 import { Box, boxTypes } from '@/components/models/boxes'
 import T from '@/components/shared/translate'
-import MessageSuccess from '@/components/shared/messageSuccess'
 const defaultBoxColor = '#ffc848'
 
 export default function HiveCreateForm() {

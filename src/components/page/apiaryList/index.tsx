@@ -1,20 +1,21 @@
 import React from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
 
 import { gql, useQuery } from '@/components/api/index'
 
+import Button from '@/components/shared/button'
+import { getUser } from '@/components/models/user'
 import Loader from '@/components/shared/loader'
 import ErrorMsg from '@/components/shared/messageError'
 import T from '@/components/shared/translate'
 
 import ApiaryListRow from './apiaryListRow'
 import ApiariesPlaceholder from './apiariesPlaceholder'
-import Button from '@/components/shared/button'
-import { getUser } from '@/components/models/user'
-import { useLiveQuery } from 'dexie-react-hooks'
+
 
 export default function ApiaryList(props) {
 	let user = useLiveQuery(() => getUser(), [], null)
-	const { loading, error, data } = useQuery(gql`
+	const { loading, error, data, errorNetwork } = useQuery(gql`
 		{
 			apiaries {
 				id
@@ -25,6 +26,9 @@ export default function ApiaryList(props) {
 					name
 					beeCount
 					status
+
+					lastInspection
+					isNew
 
 					family{
 						id
@@ -51,7 +55,7 @@ export default function ApiaryList(props) {
 
 	return (
 		<div>
-			<ErrorMsg error={error} borderRadius={0} />
+			<ErrorMsg error={error || errorNetwork} borderRadius={0} />
 			<div style={{ maxWidth: 800, paddingLeft: 20 }}>
 				{apiaries !== null && apiaries?.length === 0 && <ApiariesPlaceholder />}
 

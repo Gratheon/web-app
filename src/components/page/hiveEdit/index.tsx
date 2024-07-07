@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 
-import { gql, useQuery } from '@/components/api'
+import { useQuery } from '@/components/api'
 import Boxes from './boxes'
 
 import HIVE_QUERY from './_api/hiveQuery.graphql'
@@ -30,6 +30,7 @@ import ListIcon from '@/components/icons/listIcon'
 import TableIcon from '@/components/icons/tableIcon'
 
 import styles from './styles.less'
+import Treatments from './treatments'
 
 export default function HiveEditForm() {
 	const { state } = useLocation();
@@ -163,6 +164,9 @@ export default function HiveEditForm() {
 
 				<div className={styles.frameWrap}>
 					{!frameId && !boxId && <HiveButtons apiaryId={apiaryId} hiveId={hiveId} />}
+
+
+					{!frameId && <Treatments hiveId={hiveId} boxId={boxId} />}
 
 					<Frame
 						box={box}

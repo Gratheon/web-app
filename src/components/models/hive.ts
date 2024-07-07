@@ -7,6 +7,7 @@ export type Hive = {
 	familyId?: number
 	beeCount?: number
 	inspectionCount?: number
+	status?: string
 }
 
 export async function getHive(id: number): Promise<Hive> {

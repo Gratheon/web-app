@@ -4,7 +4,7 @@ import BearIcon from '@/components/icons/bear'
 import T from '../translate'
 import DeleteIcon from '@/components/icons/deleteIcon'
 
-export default function ErrorMsg({ error }) {
+export default function ErrorMsg({ error, borderRadius=5 }) {
     const [visible, setVisible] = useState(true);
 
     useEffect(() => {
@@ -15,7 +15,7 @@ export default function ErrorMsg({ error }) {
 
     if (!error || !visible) return null;
 
-	console.log({
+	console.error({
 		error
 	})
 
@@ -39,11 +39,15 @@ export default function ErrorMsg({ error }) {
 				<BearIcon size={24} />
 				<div>
 					<h3><T>Server error</T></h3>
+					<pre>Error name: {error?.name}</pre>
 					{error?.graphQLErrors &&
 						error.graphQLErrors.map((e, i) => {
 							return (
 								<pre key={i}>
-									<strong>{e.path?.join(' > ')}</strong> {e.message}
+									GraphQL error: {e.message}<br/>
+									Path: {e.originalError.extensions.exception.path?.join('.')}
+									{/* <br/><br/>
+									Stacktrace: {e.originalError.extensions.exception.stacktrace.join('\n')} */}
 								</pre>
 							)
 						})}
@@ -54,7 +58,7 @@ export default function ErrorMsg({ error }) {
 	}
 
 	// error can be a translation component
-	return <div className={styles.errorMsgSmall}>
+	return <div className={styles.errorMsgSmall} style={{borderRadius}}>
 		<BearIcon size={24} />
 		<div><h3>{error}</h3></div>
 		<DeleteIcon size={24} onClick={() => { setVisible(false) }} />

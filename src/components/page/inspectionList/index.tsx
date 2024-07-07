@@ -22,6 +22,7 @@ import InspectionView from './inspectionView'
 import DateFormat from '@/components/shared/dateFormat'
 import HiveIcon from '@/components/icons/hive'
 import InspectionIcon from '@/components/icons/inspection'
+import { getUser } from '@/components/models/user'
 
 export default function InspectionList() {
 	let { apiaryId, hiveId, boxId, frameId, frameSideId, inspectionId } = useParams()
@@ -39,6 +40,7 @@ export default function InspectionList() {
 		errorGet,
 		errorNetwork
 
+	let user = useLiveQuery(() => getUser(), [], null)
 	const inspections = useLiveQuery(() => listInspections(+hiveId), [hiveId], null)
 	// if local cache is empty - query
 	if (inspections == null || inspections.length === 0) {
@@ -70,7 +72,7 @@ export default function InspectionList() {
 
 	if (hive) {
 		breadcrumbs[1] = {
-			icon: <HiveIcon size={12}/>,
+			icon: <HiveIcon size={12} />,
 			name: <>«{hive.name}» <T>hive</T></>,
 			uri: `/apiaries/${apiaryId}/hives/${hiveId}`,
 		}
@@ -80,13 +82,9 @@ export default function InspectionList() {
 		let selectedInspection = inspections.find((i: Inspection) => i.id == +inspectionId)
 		if (selectedInspection) {
 			breadcrumbs[2] = {
-				icon: <InspectionIcon size={12}/>,
+				icon: <InspectionIcon size={12} />,
 				name: (<><DateFormat
-					options={{
-						month: 'long',
-						day: '2-digit',
-						year: 'numeric',
-					}}
+					lang={user.lang}
 					datetime={selectedInspection?.added}
 				/> <T>inspection</T>
 				</>),

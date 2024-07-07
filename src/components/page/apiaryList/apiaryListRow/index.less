@@ -1,5 +1,25 @@
 @import "@/components/colors.less";
 
+table {
+	th {
+		text-align: left;
+		padding: 2px 10px;
+		border-bottom: 1px solid #eeeeee;
+	}
+
+	td {
+		text-align: left;
+		border-bottom: 1px solid #eeeeee;
+		border-right: 1px solid #eeeeee;
+		padding: 2px 10px;
+
+		&:last-child {
+			border-right: none;
+		}
+	}
+
+}
+
 .apiary {
 	padding: 10px 0;
 	border-bottom: 1px solid #eeeeee;
@@ -13,11 +33,12 @@
 			flex-grow: 2;
 		}
 
-		.buttons{
-			text-align:right;
+		.buttons {
+			text-align: right;
 			flex-grow: 1;
-			a{
-				margin-bottom:2px;
+
+			a {
+				margin-bottom: 2px;
 			}
 		}
 	}

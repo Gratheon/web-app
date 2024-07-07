@@ -17,7 +17,7 @@ import { getFamilyByHive, updateFamily } from '@/components/models/family'
 
 import Loader from '@/components/shared/loader'
 import ErrorMessage from '@/components/shared/messageError'
-import { Family } from '@/components/api/schema'
+import { Family } from '@/components/models/family'
 import { InspectionSnapshot } from '@/components/models/inspections'
 import { getFramesByHive } from '@/components/models/frames'
 import { getHiveInspectionStats, deleteCellsByFrameSideIDs } from '@/components/models/frameSideCells'
@@ -149,7 +149,8 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 					family = {
 						id: null,
 						race: '',
-						added: ''
+						added: '',
+						age: null
 					}
 				}
 

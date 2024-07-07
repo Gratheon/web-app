@@ -1,13 +1,5 @@
 import { buildSchema } from 'graphql'
 
-export type Family = {
-  hiveId?: number //reference
-  id: number
-  race: string
-  added: string
-}
-
-
 export const schemaSDL = `
 type Apiary {
     id: ID!

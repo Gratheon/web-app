@@ -1,5 +1,11 @@
 @import '@/components/colors.less';
 
+button:not(:disabled) {
+	&:hover {
+		background: @color-btn-hover-black;
+	}
+}
+
 button {
 	position: relative;
 	border-radius: 3px;
@@ -27,15 +33,16 @@ button {
 		margin-left: 4px;
 	}
 
-	&:hover {
-		background: @color-btn-hover-black;
+	&:disabled {
+		background: gray;
+		cursor: not-allowed;
 	}
 
 	&[type='submit'] {
 		padding: 0 20px;
 	}
 
-	&.white{
+	&.white {
 		background: @color-btn-white-bg;
 		color: @color-btn-white-text;
 		border: 2px solid @color-btn-white-border;

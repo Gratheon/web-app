@@ -14,6 +14,7 @@ type ButtonProps = {
 	style?: any
 	title?: string
 	loading?: boolean
+	disabled?: boolean
 	type?: 'button' | 'submit' | 'reset' | undefined
 	children?: any
 	href?: string | null
@@ -27,6 +28,7 @@ export default function Button({
 	size = null,
 	color = 'black',
 	type = 'button',
+	disabled = false,
 	onClick = () => { },
 	onMouseOver = () => { },
 	onMouseOut = () => { },
@@ -60,7 +62,7 @@ export default function Button({
 	return (
 		<button
 			style={style}
-			disabled={loading}
+			disabled={disabled || loading}
 			type={type}
 			title={title}
 			className={classNames.join(' ')}

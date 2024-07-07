@@ -24,7 +24,6 @@ import { collectFrameSideIDsFromFrames } from '@/components/models/frameSide'
 import { deleteFilesByFrameSideIDs } from '@/components/models/frameSideFile'
 import MessageSuccess from '@/components/shared/messageSuccess'
 import InspectionIcon from '@/components/icons/inspection'
-import ShareIcon from '@/components/icons/share'
 import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
 import HiveTopEditForm from './hiveTopEditForm'
 
@@ -115,8 +114,8 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 
 
 
-				{!editable && <Button onClick={() => setEditable(!editable)}>Edit</Button>}
-				{editable && <Button onClick={() => setEditable(!editable)}>Complete</Button>}
+				{!editable && <Button onClick={() => setEditable(!editable)}><T ctx="this is a button to allow editing by displaying a form">Edit</T></Button>}
+				{editable && <Button onClick={() => setEditable(!editable)}><T ctx="this is a button to compete editing of a form, but it is not doing any saving because saving is done automatically, this just switches form to view mode">Complete</T></Button>}
 
 				<PopupButton align="right">
 					<DeactivateButton hiveId={hive.id} />

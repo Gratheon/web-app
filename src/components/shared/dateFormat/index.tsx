@@ -1,21 +1,20 @@
 import React from 'react'
 
+import { format, formatDistance } from 'date-fns'
+import { de, et, fr, pl, ru, tr } from 'date-fns/locale'
+const loadedDateLocales = { de, et, fr, pl, ru, tr }
+
 type DateFormatProps = {
 	datetime: string
-	options?: any
+	lang?: string
 }
 
-export default function dateFormat({
-	datetime,
-	options = {
-		month: 'long',
-		day: '2-digit',
-		// year: 'numeric',
-	},
-}: DateFormatProps) {
+export default function DateFormat({ datetime, lang = 'en' }: DateFormatProps) {
+	const dateLangOptions = { locale: loadedDateLocales[lang] }
+
 	return (
 		<span className="date timeago" title={datetime}>
-			{new Intl.DateTimeFormat('en-GB', options).format(new Date(datetime))}
+			{format(new Date(datetime), 'dd MMMM yyyy, hh:mm', dateLangOptions)}
 		</span>
 	)
 }

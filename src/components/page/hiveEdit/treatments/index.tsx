@@ -1,11 +1,10 @@
 import { useState } from "react";
 
-import { gql, useMutation, useQuery } from "@/components/api";
+import { useMutation } from "@/components/api";
 import Button from "@/components/shared/button";
 import ErrorMessage from '@/components/shared/messageError'
 import T from "@/components/shared/translate";
 import Loader from "@/components/shared/loader";
-import DateFormat from "@/components/shared/dateFormat";
 import MessageSuccess from "@/components/shared/messageSuccess";
 import TreatmentList from "./treatmentList";
 

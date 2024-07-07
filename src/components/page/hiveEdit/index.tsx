@@ -31,6 +31,7 @@ import TableIcon from '@/components/icons/tableIcon'
 
 import styles from './styles.less'
 import Treatments from './treatments'
+import { getFamilyByHive } from '@/components/models/family'
 
 export default function HiveEditForm() {
 	const { state } = useLocation();
@@ -43,6 +44,7 @@ export default function HiveEditForm() {
 	const apiary = useLiveQuery(() => getApiary(+apiaryId), [apiaryId], null)
 	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId], null)
 	const box = useLiveQuery(() => getBox(+boxId), [boxId], null)
+	const family = useLiveQuery(() => getFamilyByHive(+hiveId), [hiveId])
 
 	if (apiary === null || hive === null) {
 		return <Loader />
@@ -166,7 +168,7 @@ export default function HiveEditForm() {
 					{!frameId && !boxId && <HiveButtons apiaryId={apiaryId} hiveId={hiveId} />}
 
 
-					{!frameId && <Treatments hiveId={hiveId} boxId={boxId} />}
+					{!frameId && family && <Treatments hiveId={hiveId} boxId={boxId} />}
 
 					<Frame
 						box={box}

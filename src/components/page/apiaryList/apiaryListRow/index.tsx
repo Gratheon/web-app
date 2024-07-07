@@ -68,8 +68,8 @@ export default function apiaryListRow({ apiary, user }) {
 								<th><T ctx="table header of beekeeping app, this is a column for beehive name, start with uppercase latter">Name</T></th>
 								<th><T ctx="table header of beekeeping app, start with uppercase latter">Bee count</T></th>
 								<th><T ctx="table header of beekeeping app, this is a bee colony information, start with uppercase latter">Colony status</T></th>
-								<th><T ctx="table header of beekeeping app, this is a bee queen info, start with uppercase latter">Queen age</T></th>
 								<th><T ctx="table header of beekeeping app, this column is about anti-varroa mite treatment, in amount of days, start with uppercase latter">Last treatment</T></th>
+								<th><T ctx="table header of beekeeping app, this column is about time when hive was checked, in amount of days, start with uppercase latter">Last inspection</T></th>
 							</tr>
 						</thead>
 						<tbody>
@@ -82,6 +82,8 @@ export default function apiaryListRow({ apiary, user }) {
 											</NavLink>
 										</td>
 										<td>
+											{hive.isNew && <span className={styles.newHive}><T ctx="new beehive">New</T></span>}
+
 											<NavLink className={styles.title} to={`/apiaries/${apiary.id}/hives/${hive.id}`}>
 												{hive.name}
 											</NavLink>
@@ -91,9 +93,11 @@ export default function apiaryListRow({ apiary, user }) {
 											<BeeCounter count={hive.beeCount} />
 										</td>
 										<td>{hive.status}</td>
-										<td>{hive?.family?.age}</td>
 										<td>
 											{hive?.family?.lastTreatment && <DateTimeAgo dateString={hive?.family?.lastTreatment} lang={user.lang} />}
+										</td>
+										<td>
+											{hive?.lastInspection && <DateTimeAgo dateString={hive?.lastInspection} lang={user.lang} />}
 										</td>
 									</tr>
 								))}

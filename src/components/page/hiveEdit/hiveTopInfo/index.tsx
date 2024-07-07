@@ -149,6 +149,7 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 							{family && family.added}
 						</div>
 
+						{!family && <MessageSuccess title={<T>This hive has no family set yet</T>} isWarning={true} />}
 
 						{hive.notes && <p>{hive.notes}</p>}
 					</div>

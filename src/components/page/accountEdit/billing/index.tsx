@@ -12,6 +12,7 @@ import metrics from '@/components/metrics'
 import { de, et, fr, pl, ru, tr } from 'date-fns/locale'
 import DateTimeAgo from '@/components/shared/dateTimeAgo'
 import DateFormat from '@/components/shared/dateFormat'
+import CreditCard from '@/components/icons/creditCard'
 const loadedDateLocales = { de, et, fr, pl, ru, tr }
 
 export default function Billing({ user }) {
@@ -95,8 +96,8 @@ export default function Billing({ user }) {
 
 						{!user.isSubscriptionExpired &&
 							<div>
-								<T>Expires in</T> 
-								<DateTimeAgo dateString={user.date_expiration} lang={user.lang} /> &mdash; 
+								<T>Expires in</T>
+								<DateTimeAgo dateString={user.date_expiration} lang={user.lang} /> &mdash;
 								<DateFormat datetime={user.date_expiration} lang={user.lang} />
 							</div>
 						}
@@ -104,10 +105,16 @@ export default function Billing({ user }) {
 
 					<div>
 						{(!user.hasSubscription || user.isSubscriptionExpired) && (
-							<Button onClick={onSubscribeClick}><T ctx="this is a button that redirects to billing page to pay">Subscribe</T></Button>
+							<Button onClick={onSubscribeClick}>
+								<CreditCard />
+								<T ctx="this is a button that redirects to billing page to pay">Subscribe</T>
+							</Button>
 						)}
 						{user.hasSubscription && !user.isSubscriptionExpired && (
-							<Button onClick={onCancelSubscription}><T ctx="this is a button that cancels billing subscription">Cancel subscription</T></Button>
+							<Button onClick={onCancelSubscription}>
+								<CreditCard />
+								<T ctx="this is a button that cancels billing subscription">Cancel subscription</T>
+							</Button>
 						)}
 					</div>
 				</div>

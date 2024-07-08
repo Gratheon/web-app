@@ -4,6 +4,10 @@ button:not(:disabled) {
 	&:hover {
 		background: @color-btn-hover-black;
 	}
+
+	&.white:hover{
+		color: white;
+	}
 }
 
 button {
@@ -24,8 +28,10 @@ button {
 
 	svg {
 		position: relative;
-		top: 3px;
 		margin-right: 3px;
+		vertical-align: middle;
+		width: 16px;
+		height: 16px;
 	}
 
 	span {
@@ -80,8 +86,9 @@ button {
 
 		display: inline-flex;
 		align-items: flex-end;
-		height: 22px;
-		padding: 0 5px;
+		height: 28px;
+		padding: 5px 8px;
+		box-sizing: border-box;
 	}
 
 	&.green.popupTrigger {

@@ -6,6 +6,8 @@ import Button from '@/components/shared/button';
 import { gql, useQuery, useMutation } from '@/components/api/index'
 import Loader from '@/components/shared/loader'
 import T from '@/components/shared/translate';
+import KeyIcon from '@/components/icons/key';
+
 import style from './style.less'
 
 interface Token {
@@ -66,15 +68,25 @@ const TokenList: React.FC = () => {
 	return (
 		<div style="padding:10px;border: 1px solid gray;border-radius:5px;margin-bottom: 5px;">
 			<h3><T>API tokens</T></h3>
-			<p>
-				<T>API tokens are used to authenticate your requests to our API. You can create multiple tokens to use in different applications.</T>
-				See <a href="https://github.com/Gratheon/graphql-router?tab=readme-ov-file#authentication">documentation</a> on how to access API
-			</p>
+
+			<div style="display:flex;">
+				<p>
+					<T>API tokens are used to authenticate your requests to our API. You can create multiple tokens to use in different applications.</T>
+					See <a href="https://github.com/Gratheon/graphql-router?tab=readme-ov-file#authentication">documentation</a> on how to access API
+				</p>
+
+				<Button color='green' loading={generatingToken} onClick={onGenerateToken}>
+					<KeyIcon size={16} />
+					<T>Generate</T>
+				</Button>
+			</div>
+
+
 			<ErrorMsg error={error || generationError} />
 
 			{tokens.map((token) => (
 				<div key={token.id} className={style.apiToken}>
-					<div style="min-width:200px">
+					<div style="min-width:200px;">
 						<div className={style.token}>
 							{hiddenTokens.includes(token.id) ? '*'.repeat(token.token.length) : token.token}
 						</div>
@@ -85,8 +97,7 @@ const TokenList: React.FC = () => {
 					</div>
 				</div>
 			))}
-			<Button color='green' loading={generatingToken} onClick={onGenerateToken}><T>Generate</T></Button>			
-			
+
 		</div>
 	);
 };

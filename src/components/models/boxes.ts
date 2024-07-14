@@ -69,7 +69,10 @@ export async function getBoxAtPositionBelow(hiveId, position): Promise<Box> {
 
 export async function getBoxes(where = {}): Promise<Box[]> {
 	try {
-		return await db['box'].where(where).reverse().sortBy('position')
+		return await db['box']
+		.where(where)
+		.reverse()
+		.sortBy('position')
 	} catch (e) {
 		console.error(e)
 		throw e

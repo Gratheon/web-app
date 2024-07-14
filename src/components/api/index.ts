@@ -22,13 +22,6 @@ import resolvers from './resolvers'
 
 let uri = gatewayUri()
 
-if (!isLoggedIn()) {
-	if (typeof window !== 'undefined') {
-		if (!window.location.pathname.match('/account')) {
-			window.location.href = getAppUri() + '/account/authenticate/'
-		}
-	}
-}
 
 let lastNetworkError = null
 let lastGraphQLErrors = []
@@ -102,12 +95,11 @@ function useUploadMutation(query: string | TypedDocumentNode, url = imageUploadU
 }
 
 function useQueryAdapted(query: string | TypedDocumentNode, options?: any) {
-	const queryResult = useQuery({
+	const [result, reexecuteQuery] = useQuery({
 		query,
 		variables: options?.variables,
 	})
 
-	const result = queryResult[0]
 
 	return {
 		data: result.data,
@@ -115,6 +107,7 @@ function useQueryAdapted(query: string | TypedDocumentNode, options?: any) {
 		error: result.error,
 		//@ts-ignore
 		errorNetwork: result?.originalError,
+		reexecuteQuery
 	}
 }
 

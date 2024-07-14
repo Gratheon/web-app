@@ -14,7 +14,6 @@ import DeleteIcon from '@/components/icons/deleteIcon'
 import styles from './styles.less'
 import FrameSide from './frameSide'
 import BoxFrame from '../boxes/box/boxFrame'
-import { PopupButton, PopupButtonGroup } from '@/components/shared/popupButton'
 
 export default function Frame({
 	apiaryId,
@@ -41,12 +40,6 @@ export default function Frame({
 
 
 	const navigate = useNavigate()
-	// function onFrameClose(event) {
-	// 	event.stopPropagation()
-	// 	navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`, {
-	// 		replace: true,
-	// 	})
-	// }
 
 	let [removeFrameMutation, { error: errorFrameRemove }] = useMutation(`mutation deactivateFrame($id: ID!) {
 		deactivateFrame(id: $id)
@@ -72,9 +65,7 @@ export default function Frame({
 		<>
 			{extraButtons}
 
-			<PopupButtonGroup>
-				<PopupButton align="right">
-					<Button
+			<Button
 						color="red"
 						title="Remove frame"
 						onClick={onFrameRemove}
@@ -82,8 +73,6 @@ export default function Frame({
 						<DeleteIcon />
 						<span><T>Remove frame</T></span>
 					</Button>
-				</PopupButton>
-			</PopupButtonGroup>
 		</>
 	)
 

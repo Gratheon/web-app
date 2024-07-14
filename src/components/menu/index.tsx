@@ -47,8 +47,8 @@ const Menu = ({ isLoggedIn = false }) => {
 	let analytics = null
 	if (isDev()) {
 		analytics = (<li>
-			<NavLink activeClassName={styles.active} to="/analytics">
-				<T>Analytics</T>
+			<NavLink activeClassName={styles.active} to="/insights">
+				<T ctx="this is a menu link to beehive data analytics">Insights</T>
 			</NavLink>
 		</li>)
 	}

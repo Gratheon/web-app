@@ -22,8 +22,8 @@ export default function ErrorMsg({ error, borderRadius=5 }) {
 	if (error && error?.response?.status >= 500) {
 		return (
 			<div className={error?.graphQLErrors ? styles.errorMsgBig : styles.errorMsgSmall}>
-				<BearIcon size={24} />
-				<div>
+				<div style="width:24px"><BearIcon size={24} /></div>
+				<div className={styles.message}>
 					<h3><T>Server error</T></h3>
 					<p><T>Looks like our servers are unavailable</T></p>
 				</div>
@@ -36,18 +36,15 @@ export default function ErrorMsg({ error, borderRadius=5 }) {
 	if (error?.graphQLErrors) {
 		return (
 			<div className={error?.graphQLErrors ? styles.errorMsgBig : styles.errorMsgSmall}>
-				<BearIcon size={24} />
-				<div>
+				<div style="width:24px"><BearIcon size={24} /></div>
+				<div className={styles.message}>
 					<h3><T>Server error</T></h3>
-					<pre>Error name: {error?.name}</pre>
 					{error?.graphQLErrors &&
 						error.graphQLErrors.map((e, i) => {
 							return (
 								<pre key={i}>
 									GraphQL error: {e.message}<br/>
-									Path: {e.originalError.extensions.exception.path?.join('.')}
-									{/* <br/><br/>
-									Stacktrace: {e.originalError.extensions.exception.stacktrace.join('\n')} */}
+									{e.originalError.extensions.exception.path && <>Path: {e.originalError.extensions.exception.path?.join('.')}</>}
 								</pre>
 							)
 						})}
@@ -59,8 +56,8 @@ export default function ErrorMsg({ error, borderRadius=5 }) {
 
 	// error can be a translation component
 	return <div className={styles.errorMsgSmall} style={{borderRadius}}>
-		<BearIcon size={24} />
-		<div><h3>{error}</h3></div>
+		<div style="width:24px"><BearIcon size={24} /></div>
+		<div className={styles.message}><h3>{error}</h3></div>
 		<DeleteIcon size={24} onClick={() => { setVisible(false) }} />
 	</div>
 }

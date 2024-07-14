@@ -20,6 +20,7 @@ export default gql`
 			__typename
 			frameSideId
 			inspectionId
+
 			cells {
 				id
 				broodPercent
@@ -30,8 +31,13 @@ export default gql`
 			}
 
 			file {
+				__typename
+				id				
 				url
+				
 				resizes{
+					__typename
+					id
 					max_dimension_px
 					url
 				}

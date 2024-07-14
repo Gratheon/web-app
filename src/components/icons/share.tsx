@@ -4,19 +4,9 @@ export default function ShareIcon({ size = 16, onClick = () => { } }) {
 			onClick={onClick}
 			height={size}
 			width={size}
-			xmlns="http://www.w3.org/2000/svg"
-			className="h-6 w-6"
-			fill="currentColor"
-			stroke="currentColor"
-			viewBox="0 0 500 500">
-
-			<circle cx="109.715" cy="233.068" r="50.404" transform="matrix(1, 0, 0, 1, 0, 2.842170943040401e-14)" />
-			<circle cx="380.232" cy="381.592" r="50.404" transform="matrix(1, 0, 0, 1, 0, 2.842170943040401e-14)" />
-			<circle cx="385.296" cy="103.99" r="50.404" transform="matrix(1, 0, 0, 1, 0, 2.842170943040401e-14)" />
-			<path style="fill: none; stroke-miterlimit: 5.7; stroke-linecap: round; stroke-width: 29px;" 
-			d="M 373.246 115.721 L 111.185 234.119 L 381.986 385.095" 
-			transform="matrix(1, 0, 0, 1, 0, 2.842170943040401e-14)" />
-
+			viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+			<path d="M9.61109 12.4L10.8183 18.5355C11.0462 19.6939 12.6026 19.9244 13.1565 18.8818L19.0211 7.84263C19.248 7.41555 19.2006 6.94354 18.9737 6.58417M9.61109 12.4L5.22642 8.15534C4.41653 7.37131 4.97155 6 6.09877 6H17.9135C18.3758 6 18.7568 6.24061 18.9737 6.58417M9.61109 12.4L18.9737 6.58417M19.0555 6.53333L18.9737 6.58417"
+				stroke="currentColor" stroke-width="2" />
 		</svg>
 	)
 }

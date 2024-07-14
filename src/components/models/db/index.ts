@@ -59,7 +59,7 @@ export function syncGraphqlSchemaToIndexDB(schemaObject) {
 
 // Generic function to updated IndexedDB table with graphql response
 export async function upsertEntityWithNumericID(entityName, entity) {
-	if(!entity.id){
+	if(!entity || !entity.id){
 		console.error("Cannot store entity without ID for type " + entityName + '. Did you forget including id in query?', entity)
 		return 
 	}

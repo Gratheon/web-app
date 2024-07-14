@@ -6,6 +6,7 @@ import HiveBoxes from '@/components/shared/hiveBoxes'
 import { InspectionSnapshot } from '@/components/models/inspections'
 import { upsertFrameSide } from '@/components/models/frameSide'
 import { upsertFrame } from '@/components/models/frames'
+import InspectionShare from '../../hiveShare'
 
 type InspectionViewProps = {
 	apiaryId?: string
@@ -52,6 +53,7 @@ export default function InspectionView({
 
 	return (
 		<div>
+			<InspectionShare apiaryId={apiaryId} hiveId={hiveId} inspectionId={inspectionId} />
 			<HiveBoxes
 				boxes={inspectionData.boxes}
 
@@ -66,7 +68,7 @@ export default function InspectionView({
 			/>
 
 			<div style="padding: 10px 30px;">
-				<h3>Frame images</h3>
+				{frameSidesInspections && frameSidesInspections.length > 0 && <h3>Frame images</h3>}
 
 				{frameSidesInspections.map((frameSideInspection) => {
 					for (let thumb of frameSideInspection.file.resizes) {

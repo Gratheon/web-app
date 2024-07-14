@@ -25,7 +25,7 @@ import InspectionIcon from '@/components/icons/inspection'
 import { getUser } from '@/components/models/user'
 
 export default function InspectionList() {
-	let { apiaryId, hiveId, boxId, frameId, frameSideId, inspectionId } = useParams()
+	let { apiaryId, hiveId, boxId, inspectionId } = useParams()
 	let [error, onError] = useState(null)
 
 	const apiary = useLiveQuery(() => getApiary(+apiaryId), [apiaryId], null)
@@ -84,7 +84,7 @@ export default function InspectionList() {
 			breadcrumbs[2] = {
 				icon: <InspectionIcon size={12} />,
 				name: (<><DateFormat
-					lang={user.lang}
+					lang={user ? user.lang : 'en'}
 					datetime={selectedInspection?.added}
 				/> <T>inspection</T>
 				</>),
@@ -119,7 +119,7 @@ export default function InspectionList() {
 			{errorMsg}
 
 			{inspections.length > 0 && <>
-				<div style={{ flexGrow: 1, display: 'flex', padding: 20 }}>
+				<div style={{ padding: 20 }}>
 					{inspections.map((inspection: Inspection) => (
 						<InspectionBar
 							selected={+inspectionId == inspection.id}

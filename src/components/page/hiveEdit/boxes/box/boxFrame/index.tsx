@@ -101,7 +101,8 @@ export default function BoxFrame({
 
 	if (frame.type === 'VOID') {
 		frameInternal = <div onClick={() => {
-			if (editable) { navigate(frameURL, { replace: true }) }
+			console.log('click', frameURL)
+			if (editable) { navigate(frameURL, { replace: false }) }
 		}} className={styles.voidFrame} />
 	} else if (frame.type === 'PARTITION') {
 		frameInternal = <div onClick={() => {

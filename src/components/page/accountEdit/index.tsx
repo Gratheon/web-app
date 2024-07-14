@@ -30,7 +30,7 @@ export default function AccountEdit() {
 		}));
 	}
 
-	let { loading: loadingGet, data: accountData } = useQuery(gql`
+	let { loading } = useQuery(gql`
 		query user {
 			user {
 				id
@@ -47,7 +47,8 @@ export default function AccountEdit() {
 		}
 	`)
 
-	if(loadingGet){
+
+	if(loading){
 		return <Loader />
 	}
 
@@ -90,7 +91,7 @@ export default function AccountEdit() {
 		setUser(userStored)
 	}
 
-	if (!user || !userStored || loadingGet) {
+	if (!user || !userStored || loading) {
 		return <Loader />
 	}
 

@@ -66,7 +66,7 @@ export function offlineIndexDbExchange({
 		else {
 			if (!bubble.data && bubble.error) {
 				useCacheOnly = true;
-				console.error('Error detected, using index-db cache', bubble.error);
+				console.warn('Error detected, using index-db cache', bubble.error);
 				bubble.data = (
 					await execute({
 						schema: schemaObject,
@@ -214,7 +214,10 @@ async function traverseResponse(
 								{ objType }
 							)
 						} catch (e) {
-							console.error('Error while updating IndexedDB with graphql response for entity ' + tableName, e)
+							console.error('Error while updating IndexedDB with graphql response for entity ' + tableName,{
+								error: e,
+								cleanedValue
+							})
 						}
 					}
 				}

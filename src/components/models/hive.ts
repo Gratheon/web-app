@@ -10,6 +10,8 @@ export type Hive = {
 	status?: string
 }
 
+const TABLE_NAME = 'hive'
+
 export async function getHive(id: number): Promise<Hive> {
 	if(!id) {
 		console.error('attempt to get hive with invalid id', {id})
@@ -17,7 +19,7 @@ export async function getHive(id: number): Promise<Hive> {
 	}
 
 	try {
-		return await db['hive'].get(id)
+		return await db[TABLE_NAME].get(id)
 	} catch (e) {
 		console.error(e)
 		throw e
@@ -26,7 +28,7 @@ export async function getHive(id: number): Promise<Hive> {
 
 export async function updateHive(data: Hive) {
 	try {
-		return await db['hive'].put(data)
+		return await db[TABLE_NAME].put(data)
 	} catch (e) {
 		console.error(e)
 		throw e

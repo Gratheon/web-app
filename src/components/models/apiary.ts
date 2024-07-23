@@ -7,6 +7,8 @@ type Apiary = {
 	lng?: string
 }
 
+const TABLE_NAME = 'apiary'
+
 export async function getApiary(id: number): Promise<Apiary> {
 	if(!id) {
 		console.error('attempt to get apiary with invalid id', {id})
@@ -14,7 +16,7 @@ export async function getApiary(id: number): Promise<Apiary> {
 	}
 
 	try {
-		return await db['apiary'].get(id)
+		return await db[TABLE_NAME].get(id)
 	} catch (e) {
 		console.error("failed to read apiary", e)
 		throw e
@@ -28,7 +30,7 @@ export async function updateApiary({
 	lng
 }: Apiary) {
 	try {
-		await db['apiary'].put({
+		await db[TABLE_NAME].put({
 			id,
 			name,
 			lat,

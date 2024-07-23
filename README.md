@@ -125,3 +125,17 @@ To create new test use:
 ```
 test-ui-create
 ```
+
+### Frontend storage
+We use dexie to store data on the client side. This is useful for offline mode, caching and fine-grained control over data.
+
+```mermaid
+flowchart TD
+
+react-component --query--> urql-client --cache results--> offlineIndexDbExchange --> writeHooks --> upsertEntity --> dexie --> indexed-db
+
+react-component --"fetch cached data"--> liveQuery --> dexie --> indexed-db
+
+urql-client -."fetch data".-> graphql-router
+
+```

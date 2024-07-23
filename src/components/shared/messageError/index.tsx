@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import styles from './index.less'
 import BearIcon from '@/components/icons/bear'
-import T from '../translate'
 import DeleteIcon from '@/components/icons/deleteIcon'
 
 export default function ErrorMsg({ error, borderRadius=5 }) {
     const [visible, setVisible] = useState(true);
+    const [stacktraceVisible, setStacktraceVisible] = useState(false);
 
     useEffect(() => {
         if (error) {
@@ -24,8 +24,8 @@ export default function ErrorMsg({ error, borderRadius=5 }) {
 			<div className={error?.graphQLErrors ? styles.errorMsgBig : styles.errorMsgSmall}>
 				<div style="width:24px"><BearIcon size={24} /></div>
 				<div className={styles.message}>
-					<h3><T>Server error</T></h3>
-					<p><T>Looks like our servers are unavailable</T></p>
+					<h3>Server error</h3>
+					<p>Looks like our servers are unavailable</p>
 				</div>
 				<DeleteIcon size={24} onClick={() => { setVisible(false) }} />
 			</div>
@@ -38,7 +38,7 @@ export default function ErrorMsg({ error, borderRadius=5 }) {
 			<div className={error?.graphQLErrors ? styles.errorMsgBig : styles.errorMsgSmall}>
 				<div style="width:24px"><BearIcon size={24} /></div>
 				<div className={styles.message}>
-					<h3><T>Server error</T></h3>
+					<h3>Server error</h3>
 					{error?.graphQLErrors &&
 						error.graphQLErrors.map((e, i) => {
 							return (
@@ -52,6 +52,24 @@ export default function ErrorMsg({ error, borderRadius=5 }) {
 				<DeleteIcon size={24} onClick={() => { setVisible(false) }} />
 			</div>
 		)
+	}
+
+	if(error?.message) {
+		return <div className={styles.errorMsgSmall} style={{borderRadius}}>
+			<div style="width:24px" onClick={()=>{
+				setStacktraceVisible(!stacktraceVisible)
+			}}><BearIcon size={24} /></div>
+			<div className={styles.message}>
+				<h3>{Object.getPrototypeOf(error)?.constructor?.name} {error.name}</h3>
+				<pre>
+					{error.message}
+				</pre>
+				{stacktraceVisible && <pre>
+					{error.inner.stack}
+				</pre>}
+			</div>
+			<DeleteIcon size={24} onClick={() => { setVisible(false) }} />
+		</div>
 	}
 
 	// error can be a translation component

@@ -65,27 +65,28 @@ export default function InspectionView({
 				frameSideId={null}
 
 				editable={false}
+				displayMode={'list'}
 			/>
 
-			<div style="padding: 10px 30px;">
-				{frameSidesInspections && frameSidesInspections.length > 0 && <h3>Frame images</h3>}
+			{/*<div style="padding: 10px 30px;">*/}
+			{/*	{frameSidesInspections && frameSidesInspections.length > 0 && <h3>Frame images</h3>}*/}
 
-				{frameSidesInspections.map((frameSideInspection) => {
-					for (let thumb of frameSideInspection.file.resizes) {
-						if (thumb.max_dimension_px === 512) {
-							<img key={frameSideInspection.frameSideId}
-								width="256"
-								src={thumb.url} alt="frame" />
-						}
-					}
+			{/*	{frameSidesInspections.map((frameSideInspection) => {*/}
+			{/*		for (let thumb of frameSideInspection.file.resizes) {*/}
+			{/*			if (thumb.max_dimension_px === 512) {*/}
+			{/*				<img key={frameSideInspection.frameSideId}*/}
+			{/*					width="256"*/}
+			{/*					src={thumb.url} alt="frame" />*/}
+			{/*			}*/}
+			{/*		}*/}
 
-					return (
-						<img key={frameSideInspection.frameSideId}
-							width="256"
-							src={frameSideInspection.file.url} alt="frame" />
-					)
-				})}
-			</div>
+			{/*		return (*/}
+			{/*			<img key={frameSideInspection.frameSideId}*/}
+			{/*				width="256"*/}
+			{/*				src={frameSideInspection.file.url} alt="frame" />*/}
+			{/*		)*/}
+			{/*	})}*/}
+			{/*</div>*/}
 		</div>
 	)
 }

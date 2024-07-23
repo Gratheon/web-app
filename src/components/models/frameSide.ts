@@ -10,13 +10,15 @@ export type FrameSide = {
 	frameSideFile?: FrameSideFile
 }
 
+const TABLE_NAME = 'frameside'
+
 export async function upsertFrameSide(frameside: FrameSide): Promise<void> {
-	await upsertEntityWithNumericID('frameside', frameside)
+	await upsertEntityWithNumericID(TABLE_NAME, frameside)
 }
 
 export async function getFrameSide(frameSideId: number): Promise<FrameSide> {
 	try {
-		return await db['frameside'].get(+frameSideId)
+		return await db[TABLE_NAME].get(+frameSideId)
 	} catch (e) {
 		console.error(e)
 		throw e
@@ -38,7 +40,7 @@ export function collectFrameSideIDsFromFrames(frames: Frame[]): number[] {
 }
 
 export async function getFrameSidesMap(frameSideIds: number[]): Promise<Map<number, FrameSide>> {
-	const frameSides = await db['frameside'].where('id').anyOf(frameSideIds).toArray()
+	const frameSides = await db[TABLE_NAME].where('id').anyOf(frameSideIds).toArray()
 
 	// map frame sides to frames
 	const frameSidesMap = new Map<number, FrameSide>()

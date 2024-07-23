@@ -11,8 +11,8 @@ import {
 } from 'urql'
 import { multipartFetchExchange } from '@urql/exchange-multipart-fetch'
 
-import { getToken, isLoggedIn } from '@/components/user'
-import { gatewayUri, getAppUri, imageUploadUrl, subscriptionUri } from '@/components/uri'
+import { getToken } from '@/components/user'
+import { gatewayUri, imageUploadUrl, subscriptionUri } from '@/components/uri'
 import { syncGraphqlSchemaToIndexDB } from '@/components/models/db'
 import { writeHooks } from '@/components/models/db/writeHooks'
 
@@ -24,7 +24,6 @@ let uri = gatewayUri()
 
 
 let lastNetworkError = null
-let lastGraphQLErrors = []
 
 const graphqlWsClient = createClient({
 	url: subscriptionUri(),
@@ -37,8 +36,6 @@ const graphqlWsClient = createClient({
 	},
 })
 
-// create index db schema out of graphql schema
-syncGraphqlSchemaToIndexDB(schemaObject)
 
 const apiClient = createUrqlClient({
 	url: uri,
@@ -69,11 +66,6 @@ const apiClient = createUrqlClient({
 	}
 })
 
-function omitTypeName(obj) {
-	return JSON.parse(JSON.stringify(obj), (key, v) =>
-		key === '__typename' ? undefined : v
-	)
-}
 function useMutationAdapted(
 	query: string | TypedDocumentNode,
 	variables?: any
@@ -120,10 +112,9 @@ function useSubscriptionAdapted(
 
 	return result
 }
+
 export {
 	lastNetworkError,
-	lastGraphQLErrors,
-	omitTypeName,
 	graphqlWsClient,
 	apiClient,
 	useUploadMutation,

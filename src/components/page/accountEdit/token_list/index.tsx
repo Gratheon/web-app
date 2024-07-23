@@ -87,7 +87,7 @@ export default function TokenList() {
 	let tokens = data?.apiTokens
 	const shareTokens = data?.shareTokens
 
-	const initialHiddenTokens: number[] = tokens.map((token) => token.id);
+	const initialHiddenTokens: number[] = tokens && tokens.map((token) => token?.id);
 	const [hiddenTokens, setHiddenTokens] = useState<number[]>(initialHiddenTokens);
 
 	const toggleToken = (id: number) => {

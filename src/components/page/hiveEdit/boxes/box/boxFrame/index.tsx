@@ -4,24 +4,12 @@ import { useLiveQuery } from 'dexie-react-hooks'
 
 import { Box } from '@/components/models/boxes'
 import { Frame } from '@/components/models/frames'
-import { getFrameSideFile } from '@/components/models/frameSideFile'
-import { File, getFile } from '@/components/models/files'
 
 import styles from './index.less'
 import FrameSide from './boxFrameHalf'
 import { enrichFramesWithSides } from '@/components/models/frameSide'
+import FrameSideImage from './frameSideImage'
 
-type BoxFrameProps = {
-	box: Box
-	apiaryId: number
-	hiveId: number
-	frameId: number
-	frameSideId: number
-	frame: Frame
-
-	editable: Boolean
-	displayMode: string
-}
 
 export default function BoxFrame({
 	box,
@@ -32,11 +20,21 @@ export default function BoxFrame({
 	frame,
 	editable = true,
 	displayMode = 'visual',
-}: BoxFrameProps) {
+}: {
+	box: Box
+	apiaryId: number
+	hiveId: number
+	frameId: number
+	frameSideId: number
+	frame: Frame
+
+	editable: Boolean
+	displayMode: string
+}) {
 	const frameWithSides = useLiveQuery(async () => {
 		let tmp = await enrichFramesWithSides([frame]);
 		return tmp[0]
-	}, [frameId]);
+	}, [frame, frameId, frameSideId]);
 
 	if (!frameWithSides) return null
 
@@ -48,60 +46,24 @@ export default function BoxFrame({
 	const frameURL = `/apiaries/${apiaryId}/hives/${hiveId}/box/${box.id}/frame/${frame.id}`
 
 
-	// const framesWithoutCells = await enrichFramesWithSides(framesWithoutSides);
-	let leftFile: File = useLiveQuery(async function () {
-		if (!frameWithSides.leftSide) {
-			return null
-		}
-		let frameSideFile = await getFrameSideFile({
-			frameSideId: frameWithSides.leftSide.id,
-		})
-		if (!frameSideFile) {
-			return null
-		}
-
-		return getFile(frameSideFile.fileId)
-	}, [frame], null);
-
-	let rightFile: File = useLiveQuery(async function () {
-		if (!frameWithSides.rightSide) {
-			return null
-		}
-		let frameSideFile = await getFrameSideFile({
-			frameSideId: frameWithSides.rightSide.id,
-		})
-		if (!frameSideFile) {
-			return null
-		}
-
-		return getFile(frameSideFile.fileId)
-	}, [frame], null);
-
 	if (displayMode == 'list') {
 		return <div className={styles.listFrameIcon}>
-			<div className={+frameSideId == +frame.leftId ? `${styles.listFrameIconSelected}` : ''}
-				onClick={() => {
-					if (editable) {
-						navigate(`${frameURL}/${frame.leftId}`, { replace: true })
-					}
-				}}>
-				{leftFile && <img src={leftFile.resizes && leftFile.resizes.length > 0 ? leftFile.resizes[0].url : leftFile.url} />}
-			</div>
-			<div
-				className={+frameSideId == +frame.rightId ? `${styles.listFrameIconSelected}` : ''}
-				onClick={() => {
-					if (editable) {
-						navigate(`${frameURL}/${frame.rightId}`, { replace: true })
-					}
-				}}>
-				{rightFile && <img src={rightFile.resizes && rightFile.resizes.length > 0 ? rightFile.resizes[0].url : rightFile.url} />}
-			</div>
+			<FrameSideImage
+				frameSideId={frameWithSides.leftSide.id}
+				frameURL={`${frameURL}/${frame.leftId}`}
+				selected={+frameSideId == +frame.leftId}
+				editable={editable} />
+
+			<FrameSideImage
+				frameSideId={frameWithSides.rightSide.id}
+				frameURL={`${frameURL}/${frame.rightId}`}
+				selected={+frameSideId == +frame.rightId}
+				editable={editable} />
 		</div>
 	}
 
 	if (frame.type === 'VOID') {
 		frameInternal = <div onClick={() => {
-			console.log('click', frameURL)
 			if (editable) { navigate(frameURL, { replace: false }) }
 		}} className={styles.voidFrame} />
 	} else if (frame.type === 'PARTITION') {

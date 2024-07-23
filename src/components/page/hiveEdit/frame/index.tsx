@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate } from 'react-router-dom'
 
-import { useMutation } from '@/components/api'
+import { gql, useMutation, useQuery } from '@/components/api'
 
 import { getFrame, removeFrame } from '@/components/models/frames'
 import T from '@/components/shared/translate'
@@ -31,13 +31,61 @@ export default function Frame({
 	}
 
 	let [frameRemoving, setFrameRemoving] = useState<boolean>(false)
-
 	let frame = useLiveQuery(() => getFrame(+frameId), [frameId])
 
 	if (frameRemoving) {
 		return <Loading />
 	}
 
+
+	let { data, loading } = useQuery(gql`
+		query Frame($frameId: ID!) {
+			hiveFrame(id: $frameId) {
+				__typename
+				id
+
+				rightSide{
+					__typename
+					id
+
+					file{
+						__typename
+						id
+						url
+						
+						resizes {
+							__typename
+							id
+							file_id
+							url
+							max_dimension_px
+						}
+					}
+				}
+
+				leftSide{
+					__typename
+					id
+
+					file{
+						__typename
+						id
+						url
+
+						resizes {
+							__typename
+							id
+							file_id
+							url
+							max_dimension_px
+						}
+					}
+				}
+			}
+		}
+	`, { variables: { frameId: frameId } })
+
+	if (loading) return <Loading />
 
 	const navigate = useNavigate()
 
@@ -66,13 +114,13 @@ export default function Frame({
 			{extraButtons}
 
 			<Button
-						color="red"
-						title="Remove frame"
-						onClick={onFrameRemove}
-					>
-						<DeleteIcon />
-						<span><T>Remove frame</T></span>
-					</Button>
+				color="red"
+				title="Remove frame"
+				onClick={onFrameRemove}
+			>
+				<DeleteIcon />
+				<span><T>Remove frame</T></span>
+			</Button>
 		</>
 	)
 

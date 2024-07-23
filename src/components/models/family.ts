@@ -7,10 +7,12 @@ export type Family = {
 	added: string
 	age?: number // in years
   }
-  
+
+const TABLE_NAME = 'family'
+
 export async function getFamilyByHive(hiveId: number): Promise<Family> {
 	try {
-		return await db['family'].get({ hiveId })
+		return await db[TABLE_NAME].get({ hiveId })
 	} catch (e) {
 		console.error(e)
 		throw e
@@ -19,7 +21,7 @@ export async function getFamilyByHive(hiveId: number): Promise<Family> {
 
 export async function updateFamily(data: Family) {
 	try {
-		return await db['family'].put(data)
+		return await db[TABLE_NAME].put(data)
 	} catch (e) {
 		console.error(e)
 		throw e

@@ -11,9 +11,11 @@ export type Locale = {
 	fr?: string
 }
 
+const TABLE_NAME = 'locale'
+
 export async function getLocale(where = {}): Promise<Locale> {
 	try {
-		const user = (await db['locale'].where(where).first())
+		const user = (await db[TABLE_NAME].where(where).first())
 		if (user) return user
 		else return null
 	} catch (e) {
@@ -26,7 +28,7 @@ export async function getLocale(where = {}): Promise<Locale> {
 export async function updateLocale(data: Locale) {
 	try {
 		data.id = +data.id
-		return await db['locale'].put(data)
+		return await db[TABLE_NAME].put(data)
 	} catch (e) {
 		console.error(e)
 		throw e

@@ -5,4 +5,5 @@ export function addCustomIndexes(dbSchema) {
 	dbSchema.frame += ',boxId,hiveId,leftId,rightId'
 	dbSchema.frameside += ',frameId'
 	dbSchema.frame_side_inspection += ',[frameSideId+inspectionId]'
+	dbSchema.files_frame_side_cells += ',frameSideId'
 }

@@ -63,7 +63,7 @@ export default function InspectionShare({
 			{!resultUrl && <p>
 				You can share access to this beehive inspection with others.
 				They will be able to view the data but not make any changes.
-				You can revoke this token at any time.
+				You can revoke this URL from account settings at any time.
 			</p>}
 
 

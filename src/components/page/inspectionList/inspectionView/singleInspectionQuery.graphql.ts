@@ -35,7 +35,7 @@ export default gql`
 				id				
 				url
 				
-				resizes{
+				resizes {
 					__typename
 					id
 					max_dimension_px

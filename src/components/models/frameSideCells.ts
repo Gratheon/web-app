@@ -23,7 +23,7 @@ export type HiveInspectionCellStats = {
 	cappedBroodPercent?: number
 }
 
-export const FRAME_SIDE_CELL_TN = 'files_frame_side_cells'
+export const FRAME_SIDE_CELL_TABLE = 'files_frame_side_cells'
 
 export function newFrameSideCells(id, hiveId): FrameSideCells{
 	return {
@@ -40,7 +40,7 @@ export function newFrameSideCells(id, hiveId): FrameSideCells{
 
 export async function getFrameSideCells(frameSideId: number): Promise<FrameSideCells | null> {
 	try {
-		return await db[FRAME_SIDE_CELL_TN].get(+frameSideId)
+		return await db[FRAME_SIDE_CELL_TABLE].get(+frameSideId)
 	} catch (e) {
 		console.error(e)
 		return null
@@ -70,7 +70,7 @@ export async function updateFrameStat(
 	}
 
 	try {
-		await db[FRAME_SIDE_CELL_TN].put(cells)
+		await db[FRAME_SIDE_CELL_TABLE].put(cells)
 	} catch (e) {
 		console.error(e)
 		throw e
@@ -81,7 +81,7 @@ export async function updateFrameStat(
 
 export async function updateFrameSideCells(cells: FrameSideCells) {
 	try {
-		await db[FRAME_SIDE_CELL_TN].put(cells)
+		await db[FRAME_SIDE_CELL_TABLE].put(cells)
 	} catch (e) {
 		console.error(e)
 		throw e
@@ -137,7 +137,7 @@ export async function getHiveInspectionStats(frames: Frame[]): Promise<HiveInspe
 
 export async function deleteCellsByFrameSideIDs(frameSideIds: number[]) {
 	try {
-		await db[FRAME_SIDE_CELL_TN].where('frameSideId').anyOf(frameSideIds).delete()
+		await db[FRAME_SIDE_CELL_TABLE].where('frameSideId').anyOf(frameSideIds).delete()
 	} catch (e) {
 		console.error(e)
 		throw e
@@ -147,7 +147,7 @@ export async function deleteCellsByFrameSideIDs(frameSideIds: number[]) {
 export async function enrichFramesWithSideCells(frames: Frame[]): Promise<Frame[] | null> {
 	try {
 		const frameSideIds = frames.map((frame) => frame.leftId).concat(frames.map((frame) => frame.rightId))
-		const frameSideCells = await db[FRAME_SIDE_CELL_TN].where('frameSideId').anyOf(frameSideIds).toArray()
+		const frameSideCells = await db[FRAME_SIDE_CELL_TABLE].where('frameSideId').anyOf(frameSideIds).toArray()
 
 		const frameSideCellsMap = new Map<number, FrameSideCells>()
 		frameSideCells.forEach((frameSideCell) => {

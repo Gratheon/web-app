@@ -21,6 +21,8 @@ export type InspectionSnapshot = {
 	cellStats: HiveInspectionCellStats
 }
 
+const TABLE_NAME = 'inspection'
+
 export async function getInspection(id: number): Promise<Inspection> {
 	if(!id) {
 		console.error('attempt to get hive with invalid id', {id})
@@ -28,7 +30,7 @@ export async function getInspection(id: number): Promise<Inspection> {
 	}
 
 	try {
-		return await db['inspection'].get(id)
+		return await db[TABLE_NAME].get(id)
 	} catch (e) {
 		console.error(e)
 		throw e
@@ -41,7 +43,7 @@ export async function listInspections(hiveId: number): Promise<Inspection> {
 	}
 
 	try {
-		return await db['inspection']
+		return await db[TABLE_NAME]
 			.where({ hiveId })
 			.reverse()
 			.limit(100)
@@ -54,7 +56,7 @@ export async function listInspections(hiveId: number): Promise<Inspection> {
 
 export async function updateInspection(data: Inspection) {
 	try {
-		return await db['inspection'].put(data)
+		return await db[TABLE_NAME].put(data)
 	} catch (e) {
 		console.error(e)
 		throw e

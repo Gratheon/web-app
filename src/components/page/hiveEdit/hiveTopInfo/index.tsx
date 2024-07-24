@@ -107,12 +107,6 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 			</Button>
 
 			<PopupButtonGroup>
-				{/* <Button href={`/apiaries/${apiaryId}/hive/${hiveId}/share`} className="button">
-			<ShareIcon />
-			Share
-		</Button> */}
-
-
 
 				{!editable && <Button onClick={() => setEditable(!editable)}><T ctx="this is a button to allow editing by displaying a form">Edit</T></Button>}
 				{editable && <Button onClick={() => setEditable(!editable)}><T ctx="this is a button to compete editing of a form, but it is not doing any saving because saving is done automatically, this just switches form to view mode">Complete</T></Button>}

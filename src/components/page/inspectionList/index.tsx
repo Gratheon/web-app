@@ -4,33 +4,34 @@ import { useLiveQuery } from 'dexie-react-hooks'
 
 import { useQuery } from '@/components/api'
 
-import INSPECTION_QUERY from './inspectionQuery.graphql'
-
 import ErrorMsg from '@/components/shared/messageError'
 import ErrorGeneral from '@/components/shared/messageErrorGlobal'
-import { getBox } from '@/components/models/boxes'
-import { getHive } from '@/components/models/hive'
-import { getApiary } from '@/components/models/apiary'
 import Loader from '@/components/shared/loader'
 import MessageNotFound from '@/components/shared/messageNotFound'
 import BreadCrumbs from '@/components/shared/breadcrumbs'
 import SubMenu from '@/components/shared/submenu'
-import InspectionBar from './inspectionBar'
-import { listInspections, Inspection } from '@/components/models/inspections'
 import T from '@/components/shared/translate'
-import InspectionView from './inspectionView'
 import DateFormat from '@/components/shared/dateFormat'
-import HiveIcon from '@/components/icons/hive'
-import InspectionIcon from '@/components/icons/inspection'
+
+import { getHive } from '@/components/models/hive'
+import { getApiary } from '@/components/models/apiary'
+import { listInspections, Inspection } from '@/components/models/inspections'
 import { getUser } from '@/components/models/user'
 
+import HiveIcon from '@/components/icons/hive'
+import InspectionIcon from '@/components/icons/inspection'
+
+import INSPECTION_QUERY from './inspectionQuery.graphql'
+import InspectionBar from './inspectionBar'
+import InspectionView from './inspectionView'
+import styles from './styles.less'
+
 export default function InspectionList() {
-	let { apiaryId, hiveId, boxId, frameId, frameSideId, inspectionId } = useParams()
+	let { apiaryId, hiveId, boxId, inspectionId } = useParams()
 	let [error, onError] = useState(null)
 
 	const apiary = useLiveQuery(() => getApiary(+apiaryId), [apiaryId], null)
 	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId], null)
-	const box = useLiveQuery(() => getBox(+boxId), [boxId], null)
 
 	if (apiary === null || hive === null) {
 		return <Loader />
@@ -84,7 +85,7 @@ export default function InspectionList() {
 			breadcrumbs[2] = {
 				icon: <InspectionIcon size={12} />,
 				name: (<><DateFormat
-					lang={user.lang}
+					lang={user ? user.lang : 'en'}
 					datetime={selectedInspection?.added}
 				/> <T>inspection</T>
 				</>),
@@ -118,29 +119,30 @@ export default function InspectionList() {
 			{okMsg}
 			{errorMsg}
 
-			{inspections.length > 0 && <>
-				<div style={{ flexGrow: 1, display: 'flex', padding: 20 }}>
-					{inspections.map((inspection: Inspection) => (
-						<InspectionBar
-							selected={+inspectionId == inspection.id}
+			{inspections.length > 0 &&
+				<div className={styles.flex}>
+					<div className={styles.inspectionList}>
+						{inspections.map((inspection: Inspection) => (
+							<InspectionBar
+								selected={+inspectionId == inspection.id}
+								apiaryId={apiaryId}
+								hiveId={hive.id}
+								id={inspection.id}
+								key={inspection.id}
+								data={inspection.data}
+								added={inspection.added}
+							/>
+						))}
+					</div>
+
+					<div>
+						{inspectionId && <InspectionView
 							apiaryId={apiaryId}
 							hiveId={hive.id}
-							id={inspection.id}
-							key={inspection.id}
-							data={inspection.data}
-							added={inspection.added}
-						/>
-					))}
-				</div>
-
-				<div>
-					{inspectionId && <InspectionView
-						apiaryId={apiaryId}
-						hiveId={hive.id}
-						inspectionId={inspectionId}
-					/>}
-				</div>
-			</>}
+							inspectionId={inspectionId}
+						/>}
+					</div>
+				</div>}
 		</div>
 	)
 }

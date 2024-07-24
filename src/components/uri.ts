@@ -1,7 +1,5 @@
 import isDev from './isDev'
-
-// set to false if you want to develop with locally running backend
-const USE_PROD_BACKEND_FOR_DEV = true;
+import { USE_PROD_BACKEND_FOR_DEV } from '../config/index'
 
 export function grafanaUri() {
 	let uri = 'https://grafana.gratheon.com/'

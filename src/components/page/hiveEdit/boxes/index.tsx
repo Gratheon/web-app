@@ -63,7 +63,8 @@ export default function Boxes({
 		// match only background div to consider it as a selection to avoid overriding redirect to frame click
 		if (
 			typeof event.target.className === 'string' &&
-			event.target.className.length > 0
+			event.target.className.length > 0 &&
+			event.target.className.indexOf('box') >=0
 		) {
 			event.stopPropagation()
 			navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`, {

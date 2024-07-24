@@ -11,8 +11,8 @@ import {
 } from 'urql'
 import { multipartFetchExchange } from '@urql/exchange-multipart-fetch'
 
-import { getToken, isLoggedIn } from '@/components/user'
-import { gatewayUri, getAppUri, imageUploadUrl, subscriptionUri } from '@/components/uri'
+import { getToken } from '@/components/user'
+import { gatewayUri, imageUploadUrl, subscriptionUri } from '@/components/uri'
 import { syncGraphqlSchemaToIndexDB } from '@/components/models/db'
 import { writeHooks } from '@/components/models/db/writeHooks'
 
@@ -22,16 +22,8 @@ import resolvers from './resolvers'
 
 let uri = gatewayUri()
 
-if (!isLoggedIn()) {
-	if (typeof window !== 'undefined') {
-		if (!window.location.pathname.match('/account')) {
-			window.location.href = getAppUri() + '/account/authenticate/'
-		}
-	}
-}
 
 let lastNetworkError = null
-let lastGraphQLErrors = []
 
 const graphqlWsClient = createClient({
 	url: subscriptionUri(),
@@ -44,8 +36,6 @@ const graphqlWsClient = createClient({
 	},
 })
 
-// create index db schema out of graphql schema
-syncGraphqlSchemaToIndexDB(schemaObject)
 
 const apiClient = createUrqlClient({
 	url: uri,
@@ -76,11 +66,6 @@ const apiClient = createUrqlClient({
 	}
 })
 
-function omitTypeName(obj) {
-	return JSON.parse(JSON.stringify(obj), (key, v) =>
-		key === '__typename' ? undefined : v
-	)
-}
 function useMutationAdapted(
 	query: string | TypedDocumentNode,
 	variables?: any
@@ -102,12 +87,11 @@ function useUploadMutation(query: string | TypedDocumentNode, url = imageUploadU
 }
 
 function useQueryAdapted(query: string | TypedDocumentNode, options?: any) {
-	const queryResult = useQuery({
+	const [result, reexecuteQuery] = useQuery({
 		query,
 		variables: options?.variables,
 	})
 
-	const result = queryResult[0]
 
 	return {
 		data: result.data,
@@ -115,6 +99,7 @@ function useQueryAdapted(query: string | TypedDocumentNode, options?: any) {
 		error: result.error,
 		//@ts-ignore
 		errorNetwork: result?.originalError,
+		reexecuteQuery
 	}
 }
 
@@ -127,10 +112,9 @@ function useSubscriptionAdapted(
 
 	return result
 }
+
 export {
 	lastNetworkError,
-	lastGraphQLErrors,
-	omitTypeName,
 	graphqlWsClient,
 	apiClient,
 	useUploadMutation,

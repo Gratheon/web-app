@@ -105,7 +105,7 @@ export default function Box({
 				displayMode={displayMode}
 			/>
 
-			if (editable && displayMode == 'visual') {
+			if (editable && displayMode == 'list') {
 				framesDiv.push(</* @ts-ignore */ Draggable key={i}>{frameDiv}</Draggable>)
 			} else {
 				framesDiv.push(frameDiv)
@@ -155,21 +155,31 @@ export default function Box({
 		</>)
 	}
 
-	if (displayMode == 'list') {
-		return framesDiv
+	if (displayMode == 'visual') {
+		return (
+			<>
+				<ErrorMessage error={error}/>
+				<div
+					className={`${styles.boxOuter} ${selected && styles.selected}`}>
+					<div className={styles.boxInnerVisual}>
+						{!frames && <Loader size={1}/>}
+						{framesDiv}
+					</div>
+				</div>
+			</>
+		)
 	}
 
 	return (
-		<div>
-			<ErrorMessage error={error} />
-
-			<div className={`${styles['boxType_' + box.type]} ${styles.boxOuter} ${selected && styles.selected}`} >
+		<>
+			<ErrorMessage error={error}/>
+			<div
+				className={`${styles['boxType_' + box.type]} ${styles.boxOuter} ${selected && styles.selected}`}>
 				<div className={styles.boxInner}>
-					{!frames && <Loader size={1} />}
-
+					{!frames && <Loader size={1}/>}
 					{framesWrapped}
 				</div>
 			</div>
-		</div>
+		</>
 	)
 }

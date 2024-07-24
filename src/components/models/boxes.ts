@@ -22,13 +22,15 @@ export const boxTypes = {
 	HORIZONTAL_FEEDER: 'HORIZONTAL_FEEDER',
 }
 
+const TABLE_NAME = 'box'
+
 export async function getBox(id: number): Promise<Box> {
 	if (!id) {
 		return null
 	}
 
 	try {
-		return await db['box'].get({ id })
+		return await db[TABLE_NAME].get({ id })
 	} catch (e) {
 		console.error(e, { id })
 	}
@@ -36,7 +38,7 @@ export async function getBox(id: number): Promise<Box> {
 
 export async function getBoxAtPositionAbove(hiveId, position): Promise<Box> {
 	try {
-		const boxes = await db['box']
+		const boxes = await db[TABLE_NAME]
 			.where('hiveId')
 			.equals(hiveId)
 			.filter((row) => row.position > position)
@@ -52,7 +54,7 @@ export async function getBoxAtPositionAbove(hiveId, position): Promise<Box> {
 
 export async function getBoxAtPositionBelow(hiveId, position): Promise<Box> {
 	try {
-		const boxes = await db['box']
+		const boxes = await db[TABLE_NAME]
 			.where('hiveId')
 			.equals(hiveId)
 			.filter((row) => row.position < position)
@@ -69,7 +71,10 @@ export async function getBoxAtPositionBelow(hiveId, position): Promise<Box> {
 
 export async function getBoxes(where = {}): Promise<Box[]> {
 	try {
-		return await db['box'].where(where).reverse().sortBy('position')
+		return await db[TABLE_NAME]
+		.where(where)
+		.reverse()
+		.sortBy('position')
 	} catch (e) {
 		console.error(e)
 		throw e
@@ -78,7 +83,7 @@ export async function getBoxes(where = {}): Promise<Box[]> {
 
 export async function maxBoxPosition(hiveId: number) {
 	try {
-		const box = await db['box'].orderBy('position').last()
+		const box = await db[TABLE_NAME].orderBy('position').last()
 		if (box) return box.position
 		else return 0
 	} catch (e) {
@@ -89,7 +94,7 @@ export async function maxBoxPosition(hiveId: number) {
 
 export async function removeBox(id: number) {
 	try {
-		return await db['box'].delete(id)
+		return await db[TABLE_NAME].delete(id)
 	} catch (e) {
 		console.error(e)
 		throw e
@@ -103,7 +108,7 @@ export async function addBox({
 	type,
 }: Box) {
 	try {
-		await db['box'].put({
+		await db[TABLE_NAME].put({
 			id,
 			hiveId,
 			position,
@@ -123,7 +128,7 @@ export async function updateBox({
 	type,
 }: Box) {
 	try {
-		await db['box'].put({
+		await db[TABLE_NAME].put({
 			id,
 			hiveId,
 			color,
@@ -143,8 +148,8 @@ export async function swapBoxPositions(box1: Box, box2: Box) {
 	box2.position = tmp
 
 	try {
-		await db['box'].put(box1)
-		await db['box'].put(box2)
+		await db[TABLE_NAME].put(box1)
+		await db[TABLE_NAME].put(box2)
 	} catch (e) {
 		console.error(e)
 		throw e

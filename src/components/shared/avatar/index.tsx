@@ -13,7 +13,7 @@ function calculateMD5(email) {
 export default function Avatar({ style = "" }) {
 	let [user, setUser] = useState<User>({})
 
-	let { loading: loadingGet, data: accountData } = useQuery(gql`
+	let { loading: loadingGet, data: accountData, error } = useQuery(gql`
 		query user {
 			user {
 				id
@@ -26,7 +26,11 @@ export default function Avatar({ style = "" }) {
 		setUser(accountData.user)
 	}
 
-	if(loadingGet){
+	if (error) {
+		console.log(error)
+	}
+
+	if (loadingGet || error) {
 		return null;
 	}
 

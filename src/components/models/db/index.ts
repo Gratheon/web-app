@@ -1,27 +1,32 @@
 //@ts-nocheck
 import Dexie from 'dexie'
 import { addCustomIndexes } from './addCustomIndexes'
-import { FRAME_SIDE_CELL_TN } from '../frameSideCells'
+import { FRAME_SIDE_CELL_TABLE } from '../frameSideCells'
+import { FRAME_SIDE_FILE_TABLE } from '../frameSideFile'
+import { has } from 'lodash'
 
 const DB_NAME = 'gratheon'
-const DB_VERSION = 3
+const DB_VERSION = 8
 
 export const db = new Dexie(DB_NAME, {
 	autoOpen: true
 })
 Dexie.debug = 'dexie'
 
-export async function dropDatabase(){
-	return await db.delete()
+export async function dropDatabase() {
+	await db.delete()
+	await db.close();
 }
 
 const graphqlToTableMap = {
-	'framesidecells': FRAME_SIDE_CELL_TN,
+	'framesidecells': FRAME_SIDE_CELL_TABLE,
+	'framesidefile': FRAME_SIDE_FILE_TABLE,
 }
 
 export function syncGraphqlSchemaToIndexDB(schemaObject) {
 	const typeMap = schemaObject.getTypeMap()
 	const dbSchema = {}
+
 	for (const type of Object.values(typeMap)) {
 		if (type.astNode && type.astNode.kind === 'ObjectTypeDefinition') {
 			const objName = type.astNode.name.value.toLowerCase()
@@ -48,9 +53,13 @@ export function syncGraphqlSchemaToIndexDB(schemaObject) {
 			dbSchema[table_name] = fieldStrings.join(', ')
 		}
 	}
+
+
 	try {
 		addCustomIndexes(dbSchema)
-		db.version(DB_VERSION).stores(dbSchema)
+
+		console.log('Setting up db schema', dbSchema)
+		db.version(DB_VERSION).stores(dbSchema) // createObjectStore
 	} catch (e) {
 		console.error(e)
 		throw e
@@ -59,9 +68,14 @@ export function syncGraphqlSchemaToIndexDB(schemaObject) {
 
 // Generic function to updated IndexedDB table with graphql response
 export async function upsertEntityWithNumericID(entityName, entity) {
-	if(!entity.id){
-		console.error("Cannot store entity without ID for type " + entityName + '. Did you forget including id in query?', entity)
-		return 
+	if (!entity){
+		console.trace('No entity name provided for type ' + entityName + ', this may be a bug and degrade performance')
+		return
+	}
+
+	if (!entity.id) {
+		console.warn("Cannot store entity without ID for type " + entityName + '. Did you forget including id in query?', entity)
+		return
 	}
 
 	entity.id = +entity.id
@@ -71,15 +85,21 @@ export async function upsertEntityWithNumericID(entityName, entity) {
 
 export async function upsertEntity(entityName, entity) {
 	try {
+		entityName = entityName.toLowerCase()
+		
 		const ex = await db[entityName].get(entity.id)
+		let updatedValue = { ...entity }
 
-		const updatedValue = {
-			...ex,
-			...entity,
+		if (ex) {
+			updatedValue = {
+				...ex,
+				...updatedValue,
+			}
 		}
+
 		await db[entityName].put(updatedValue)
 	} catch (e) {
-		console.error(e)
+		console.error(e, entity)
 		throw e
 	}
 }

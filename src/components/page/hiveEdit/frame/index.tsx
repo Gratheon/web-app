@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate } from 'react-router-dom'
 
-import { useMutation } from '@/components/api'
+import { gql, useMutation, useQuery } from '@/components/api'
 
 import { getFrame, removeFrame } from '@/components/models/frames'
 import T from '@/components/shared/translate'
@@ -14,7 +14,6 @@ import DeleteIcon from '@/components/icons/deleteIcon'
 import styles from './styles.less'
 import FrameSide from './frameSide'
 import BoxFrame from '../boxes/box/boxFrame'
-import { PopupButton, PopupButtonGroup } from '@/components/shared/popupButton'
 
 export default function Frame({
 	apiaryId,
@@ -32,7 +31,6 @@ export default function Frame({
 	}
 
 	let [frameRemoving, setFrameRemoving] = useState<boolean>(false)
-
 	let frame = useLiveQuery(() => getFrame(+frameId), [frameId])
 
 	if (frameRemoving) {
@@ -40,13 +38,56 @@ export default function Frame({
 	}
 
 
+	let { data, loading } = useQuery(gql`
+		query Frame($frameId: ID!) {
+			hiveFrame(id: $frameId) {
+				__typename
+				id
+
+				rightSide{
+					__typename
+					id
+
+					file{
+						__typename
+						id
+						url
+						
+						resizes {
+							__typename
+							id
+							file_id
+							url
+							max_dimension_px
+						}
+					}
+				}
+
+				leftSide{
+					__typename
+					id
+
+					file{
+						__typename
+						id
+						url
+
+						resizes {
+							__typename
+							id
+							file_id
+							url
+							max_dimension_px
+						}
+					}
+				}
+			}
+		}
+	`, { variables: { frameId: frameId } })
+
+	if (loading) return <Loading />
+
 	const navigate = useNavigate()
-	// function onFrameClose(event) {
-	// 	event.stopPropagation()
-	// 	navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`, {
-	// 		replace: true,
-	// 	})
-	// }
 
 	let [removeFrameMutation, { error: errorFrameRemove }] = useMutation(`mutation deactivateFrame($id: ID!) {
 		deactivateFrame(id: $id)
@@ -72,18 +113,14 @@ export default function Frame({
 		<>
 			{extraButtons}
 
-			<PopupButtonGroup>
-				<PopupButton align="right">
-					<Button
-						color="red"
-						title="Remove frame"
-						onClick={onFrameRemove}
-					>
-						<DeleteIcon />
-						<span><T>Remove frame</T></span>
-					</Button>
-				</PopupButton>
-			</PopupButtonGroup>
+			<Button
+				color="red"
+				title="Remove frame"
+				onClick={onFrameRemove}
+			>
+				<DeleteIcon />
+				<span><T>Remove frame</T></span>
+			</Button>
 		</>
 	)
 
@@ -107,7 +144,7 @@ export default function Frame({
 						frameId={frameId}
 						frameSideId={frameSideId}
 						editable={true}
-						displayMode="list" />}
+						displayMode="visual" />}
 
 					<div style="flex-grow:1"></div>
 					{extraButtons}

@@ -6,6 +6,8 @@ import ErrorMessage from '@/components/shared/messageError'
 import T from "@/components/shared/translate";
 import Loader from "@/components/shared/loader";
 import MessageSuccess from "@/components/shared/messageSuccess";
+
+import styles from "./styles.less";
 import TreatmentList from "./treatmentList";
 
 export default function Treatments({ hiveId, boxId = null }) {
@@ -50,7 +52,7 @@ export default function Treatments({ hiveId, boxId = null }) {
 	}
 
 	return (
-		<div style="padding: 20px 10px;">
+		<div className={styles.treatmentList}>
 			{addedMsg && <MessageSuccess title={<T>Treatment added</T>} />}
 			<ErrorMessage error={error || error2} />
 

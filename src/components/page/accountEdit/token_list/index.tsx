@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import copy from 'clipboard-copy';
+import React, { useEffect, useState } from 'react';
 
 import ErrorMsg from '@/components/shared/messageError'
 import Button from '@/components/shared/button';
@@ -9,47 +8,86 @@ import T from '@/components/shared/translate';
 import KeyIcon from '@/components/icons/key';
 
 import style from './style.less'
+import CopyButton from '@/components/shared/copyButton';
 
-interface Token {
-	id: number;
-	value: string;
-}
-
-const TokenList: React.FC = () => {
-	const { loading, error, data } = useQuery(gql`
-		{
-			api_tokens {
-				id
-				token
-			}
-		}
-	`)
-
-	let [generateToken, { error: generationError }] = useMutation(gql`
-	mutation generateApiToken {
-		generateApiToken {
-			id
-			token
-		}
+const TOKEN_QUERY = gql`
+{
+	apiTokens {
+		__typename
+		id
+		token
 	}
-`)
+
+	shareTokens {
+		__typename
+		id
+		name
+		token
+		scopes
+		targetUrl
+	}
+}
+`
+
+const GENERATE_TOKEN_MUTATION = gql`
+mutation generateApiToken {
+	generateApiToken {
+		id
+		token
+	}
+}`
+
+
+export default function TokenList() {
+	let [generateToken, { error: generationError }] = useMutation(GENERATE_TOKEN_MUTATION)
+
+	const [revokingApiToken, setRevokingApiToken] = useState([])
+	let [revokeApiToken, { error: revokeApiTokenError }] = useMutation(gql`mutation revokeApiToken($token: String!){ 
+		revokeApiToken(token: $token) {
+			code
+		}
+	 }`)
+
+	const [revokingShareToken, setRevokingToken] = useState([])
+	let [revokeShareToken, { error: revokeShareTokenError }] = useMutation(gql`mutation revokeShareToken($token: String!){
+		revokeShareToken(token: $token) {
+			code
+		}
+	 }`)
+
+
+	let { loading, error, data, reexecuteQuery } = useQuery(TOKEN_QUERY)
+
+	async function onRevokeShareToken(token: string) {
+		setRevokingToken([...revokingShareToken, token])
+		await revokeShareToken({ token })
+		setRevokingToken(revokingShareToken.filter((t) => t !== token))
+		reexecuteQuery();
+	}
 
 	const [generatingToken, setGenerating] = useState(false)
+
 	async function onGenerateToken() {
 		setGenerating(true);
 		const result = await generateToken()
 		hiddenTokens.push(result.data.generateApiToken.id)
-		tokens.push(result.data.generateApiToken)
 		setGenerating(false);
+		reexecuteQuery();
+	}
+
+	async function onRevokeApiToken(token: string) {
+		await revokeApiToken({ token })
+		reexecuteQuery();
 	}
 
 	if (loading) {
 		return <Loader />
 	}
 
-	const tokens = data.api_tokens
+	let tokens = data?.apiTokens
+	const shareTokens = data?.shareTokens
 
-	const initialHiddenTokens: number[] = tokens.map((token) => token.id);
+	const initialHiddenTokens: number[] = tokens && tokens.map((token) => token?.id);
 	const [hiddenTokens, setHiddenTokens] = useState<number[]>(initialHiddenTokens);
 
 	const toggleToken = (id: number) => {
@@ -60,46 +98,93 @@ const TokenList: React.FC = () => {
 		}
 	};
 
-	const copyToken = (token: string) => {
-		copy(token);
-		// You can provide some feedback to the user that the token was copied, e.g., a toast or a message.
-	};
 
 	return (
-		<div style="padding:10px;border: 1px solid gray;border-radius:5px;margin-bottom: 5px;">
-			<h3><T>API tokens</T></h3>
+		<>
+			<div style="padding:10px;border: 1px solid gray;border-radius:5px;margin-bottom: 5px;">
+				<h3><T>API tokens</T></h3>
 
-			<div style="display:flex;">
-				<p>
-					<T>API tokens are used to authenticate your requests to our API. You can create multiple tokens to use in different applications.</T>
-					See <a href="https://github.com/Gratheon/graphql-router?tab=readme-ov-file#authentication">documentation</a> on how to access API
-				</p>
+				<div style="display:flex;">
+					<p>
+						<T>API tokens are used to authenticate your requests to our API. You can create multiple tokens to use in different applications.</T>
+						See <a href="https://github.com/Gratheon/graphql-router?tab=readme-ov-file#authentication">documentation</a> on how to access API
+					</p>
 
-				<Button color='green' loading={generatingToken} onClick={onGenerateToken}>
-					<KeyIcon size={16} />
-					<T>Generate</T>
-				</Button>
+					<Button color='green' loading={generatingToken} onClick={onGenerateToken}>
+						<KeyIcon size={16} />
+						<T>Generate</T>
+					</Button>
+				</div>
+
+				<ErrorMsg error={error || generationError || revokeShareTokenError || revokeApiTokenError} />
+
+				{tokens && tokens.length > 0 &&
+					<table>
+						<thead>
+							<tr>
+								<th><T>Token</T></th>
+								<th style="width:300px;"><T>Actions</T></th>
+							</tr>
+						</thead>
+						<tbody>
+							{tokens.map((token) => (
+								<tr key={token.id} className={style.apiToken}>
+									<td style="min-width:200px;">
+										<div className={style.token}>
+											{hiddenTokens.includes(token.id) ? '*'.repeat(token.token.length) : token.token}
+										</div>
+									</td>
+									<td className={style.buttons}>
+										<Button size='small' onClick={() => toggleToken(token.id)}><T>Toggle</T></Button>
+										<CopyButton size='small' data={token.token} />
+										<Button
+											size='small'
+											color='red'
+											loading={revokingApiToken.includes(token.token)}
+											onClick={() => onRevokeApiToken(token.token)}><T>Revoke</T></Button>
+									</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+				}
 			</div>
 
+			{shareTokens && shareTokens.length > 0 && <div style="padding:10px;border: 1px solid gray;border-radius:5px;margin-bottom: 5px;">
+				<h3><T>Shared links</T></h3>
+				<p><T>You can share access to hive inspections with other people. This list shows list of such shared tokens</T></p>
 
-			<ErrorMsg error={error || generationError} />
+				<table>
+					<thead>
+						<tr>
+							<th><T>Name</T></th>
+							<th><T>Scopes</T></th>
+							<th style="width:300px;"><T>Actions</T></th>
+						</tr>
+					</thead>
+					<tbody>
+						{shareTokens.map((token) => (
+							<tr key={token.id} className={style.apiToken}>
+								<td>
+									{token.name}
+								</td>
+								<td>{token.scopes}</td>
+								<td className={style.buttons}>
+									<CopyButton size='small' data={token.targetUrl} />
+									<Button
+										size='small'
+										color='red'
+										loading={revokingShareToken.includes(token.token)}
+										onClick={() => onRevokeShareToken(token.token)}><T>Revoke</T></Button>
+								</td>
+							</tr>
+						))}
 
-			{tokens.map((token) => (
-				<div key={token.id} className={style.apiToken}>
-					<div style="min-width:200px;">
-						<div className={style.token}>
-							{hiddenTokens.includes(token.id) ? '*'.repeat(token.token.length) : token.token}
-						</div>
-					</div>
-					<div className={style.buttons}>
-						<Button size='small' onClick={() => toggleToken(token.id)}><T>Toggle</T></Button>
-						<Button size='small' onClick={() => copyToken(token.token)}><T>Copy</T></Button>
-					</div>
-				</div>
-			))}
+					</tbody>
 
-		</div>
+				</table>
+			</div>
+			}
+		</>
 	);
-};
-
-export default TokenList;
+}

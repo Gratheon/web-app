@@ -1,9 +1,5 @@
 import { db } from "./db";
-
-export type FileResize = {
-	id: number
-	url: string
-}
+import { FileResize } from "./fileResize";
 
 export type File = {
 	id: number
@@ -11,9 +7,11 @@ export type File = {
 	resizes: [FileResize]
 }
 
+const TABLE_NAME = 'file'
+
 export async function getFile(id: number): Promise<File> {
 	try {
-		return await db['file'].get(+id);
+		return await db[TABLE_NAME].get(+id);
 	} catch (e) {
 		console.error(e)
 		throw e
@@ -23,7 +21,7 @@ export async function getFile(id: number): Promise<File> {
 
 export async function updateFile(data: File) {
 	try {
-		return await db['file'].put(data)
+		return await db[TABLE_NAME].put(data)
 	} catch (e) {
 		console.error(e)
 		throw e

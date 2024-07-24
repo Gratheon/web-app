@@ -10,13 +10,11 @@ import ApiaryEditForm from './apiaryEdit'
 import ApiaryList from './apiaryList'
 import HiveCreateForm from './hiveCreate'
 import HiveEditView from './hiveEdit'
-import InspectionView from './inspectionList/inspectionView'
 import AccountEdit from './accountEdit'
 import AccountAuth from './accountAuth'
 import AccountRegister from './accountRegister'
 import Grafana from './grafana'
 import InspectionList from './inspectionList'
-import HiveShare from './hiveShare'
 
 function LoggedInPage({ children }) {
 	const navigate = useNavigate()
@@ -76,13 +74,13 @@ export default function Page() {
 			<Route path="/account/authenticate" element={<LoggedOutPage><AccountAuth /></LoggedOutPage>} />
 			<Route path="/account/register" element={<LoggedOutPage><AccountRegister /></LoggedOutPage>} />
 
+
 			<Route path="/apiaries/create" element={<LoggedInPage><ApiaryCreate /></LoggedInPage>} />
 			<Route path="/apiaries/edit/:id" element={<LoggedInPage><ApiaryEditForm /></LoggedInPage>} />
 			<Route path="/" element={<LoggedInPage><ApiaryList /></LoggedInPage>} />
 			<Route path="/apiaries/" element={<LoggedInPage><ApiaryList /></LoggedInPage>} />
 
 			<Route path="/apiaries/:id/hives/add" element={<LoggedInPage><HiveCreateForm /></LoggedInPage>} />
-			<Route path="/analytics" element={<LoggedInPage><Grafana /></LoggedInPage>} />
 
 			<Route
 				path="/apiaries/:apiaryId/hives/:hiveId"
@@ -103,11 +101,6 @@ export default function Page() {
 			/>
 
 			<Route
-				path="/apiaries/:apiaryId/hives/:hiveId/share"
-				element={<LoggedInPage><HiveShare /></LoggedInPage>}
-			/>
-
-			<Route
 				path="/apiaries/:apiaryId/hives/:hiveId/inspections/"
 				element={<LoggedInPage><InspectionList /></LoggedInPage>}
 			/>
@@ -116,8 +109,14 @@ export default function Page() {
 				path="/apiaries/:apiaryId/hives/:hiveId/inspections/:inspectionId"
 				element={<LoggedInPage><InspectionList /></LoggedInPage>}
 			/>
+
+			<Route path="/apiaries/:apiaryId/hives/:hiveId/inspections/:inspectionId/share/:shareId" 
+				element={<LoggedOutPage>SHARED INSPECTION VIEW</LoggedOutPage>} />
+
 			<Route path="/account" element={<LoggedInPage><AccountEdit /></LoggedInPage>} />
 			<Route path="/account/:stripeStatus" element={<LoggedInPage><AccountEdit /></LoggedInPage>} />
+
+			<Route path="/insights" element={<LoggedInPage><Grafana /></LoggedInPage>} />
 		</Routes>
 	)
 }

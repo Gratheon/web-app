@@ -1,5 +1,6 @@
 import { gql, useQuery } from '@/components/api'
 import metrics from '@/components/metrics'
+import ErrorMsg from '@/components/shared/messageError'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 const USER_QUERY = gql`
@@ -14,13 +15,20 @@ const USER_QUERY = gql`
 `
 
 export default function Paywall({ isLoggedIn = false }) {
-	let { data: accountData } = useQuery(USER_QUERY)
+	if(!isLoggedIn){
+		return null
+	}
+
+	let { data: accountData, error } = useQuery(USER_QUERY)
 	const location = useLocation()
 	const navigate = useNavigate()
 	const isInAccountView = location.pathname.match('/account(.*)') !== null
 
+	if (error) {
+		return <ErrorMsg error={error} />
+	}
+
 	if (
-		isLoggedIn &&
 		!isInAccountView &&
 		accountData?.user?.isSubscriptionExpired === true &&
 		accountData?.user?.billingPlan !== 'free'
@@ -28,7 +36,7 @@ export default function Paywall({ isLoggedIn = false }) {
 		navigate(`/account`, { replace: true })
 	}
 
-	if(isLoggedIn && accountData?.user.id){
+	if (accountData?.user.id) {
 		metrics.setUserId(accountData?.user.id);
 	}
 

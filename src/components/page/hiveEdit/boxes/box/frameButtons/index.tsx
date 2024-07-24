@@ -60,7 +60,7 @@ export default function FrameButtons({ box, onError }) {
 	return (
 		<>
 
-			<PopupButtonGroup>
+			<PopupButtonGroup style="justify-content:flex-end;">
 				<Button
 					loading={addingFrame}
 					onClick={() => {
@@ -70,7 +70,7 @@ export default function FrameButtons({ box, onError }) {
 					<FramesIcon />
 					<T ctx="this is a button that adds new frame into a beehive which has wax added by bees on it">Add comb</T>
 				</Button>
-				<PopupButton>
+				<PopupButton align='right'>
 					<Button
 						loading={addingFrame}
 						onClick={() => {

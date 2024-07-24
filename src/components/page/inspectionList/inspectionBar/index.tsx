@@ -40,45 +40,55 @@ export default function InspectionBar({
 				onClick={() => {
 					navigate(`/apiaries/${apiaryId}/hives/${hiveId}/inspections/${id}`, { replace: true })
 				}}>
-				<DateFormat datetime={added} />
+
+				<div style="display:flex;">
+					<DateFormat datetime={added} style="flex-grow:1" />
+
+					<BeeCounter count={tmpdata?.hive?.beeCount} />
+				</div>
+
 				<div className={styles.journalItemStats}>
 					<div
+						title={`Brood: ${stats.broodPercent}%`}
 						style={{
 							backgroundColor: colors.broodColor,
-							height: `${stats.broodPercent}%`,
+							width: `${stats.broodPercent}%`,
 						}}
 					></div>
 					<div
+						title={`Honey: ${stats.honeyPercent}%`}
 						style={{
 							backgroundColor: colors.honeyColor,
-							height: `${stats.honeyPercent}%`,
+							width: `${stats.honeyPercent}%`,
 							borderTop: '1px solid #ffAA00;',
 						}}
 					></div>
 					<div
+						title={`Pollen: ${stats.pollenPercent}%`}
 						style={{
 							backgroundColor: colors.pollenColor,
-							height: `${stats.pollenPercent}%`,
+							width: `${stats.pollenPercent}%`,
 							borderTop: '1px solid #ffAA00;',
 						}}
 					></div>
 					<div
+						title={`Eggs: ${stats.eggsPercent}%`}
 						style={{
 							backgroundColor: colors.eggsColor,
-							height: `${stats.eggsPercent}%`,
+							width: `${stats.eggsPercent}%`,
 							borderTop: '1px solid #ffAA00;',
 						}}
 					></div>
 					<div
+						title={`Capped brood: ${stats.cappedBroodPercent}%`}
 						style={{
 							backgroundColor: colors.cappedBroodColor,
-							height: `${stats.cappedBroodPercent}%`,
+							width: `${stats.cappedBroodPercent}%`,
 							borderTop: '1px solid #ffAA00;',
 						}}
 					></div>
 				</div>
 
-				<BeeCounter count={tmpdata?.hive?.beeCount} />
 			</div>
 		</div>
 	)

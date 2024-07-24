@@ -1,4 +1,4 @@
-import { FrameSideFile } from '@/components/models/frameSideFile'
+import frameSideFileModel, { FrameSideFile } from '@/components/models/frameSideFile'
 import { FrameSideCells } from '@/components/models/frameSideCells'
 
 import { upsertEntity, upsertEntityWithNumericID } from './index'
@@ -6,6 +6,7 @@ import { upsertEntity, upsertEntityWithNumericID } from './index'
 import { FrameSide } from '../frameSide'
 import { upsertFrameSide } from '../frameSide'
 import { Frame, upsertFrame } from '../frames'
+import { FileResize, upsertFileResize } from '../fileResize'
 
 export const writeHooks = {
 	Apiary: async (_, entity) => await upsertEntityWithNumericID('apiary', entity),
@@ -19,7 +20,9 @@ export const writeHooks = {
 		await upsertEntityWithNumericID('family', entity)
 	},
 	Frame: async (parent, value: Frame, { originalValue: frame }) => {
-		value.boxId = +parent.id
+		if (parent) {
+			value.boxId = +parent.id
+		}
 
 		if (frame.leftSide) {
 			value.leftId = +frame.leftSide?.id
@@ -28,13 +31,18 @@ export const writeHooks = {
 		if (frame.rightSide) {
 			value.rightId = +frame.rightSide?.id
 		}
-		
+
 		await upsertFrame(value)
 	},
+
 	FrameSide: async ({ id }, frameside: FrameSide) => {
 		frameside.frameId = +id
-
 		await upsertFrameSide(frameside)
+	},
+
+	FileResize: async ({ id }, entity: FileResize) => {
+		entity.file_id = +id
+		await upsertFileResize(entity)
 	},
 
 	FrameSideInspection: async (_, entity) => {
@@ -44,33 +52,18 @@ export const writeHooks = {
 		console.log('FrameSideInspection', entity)
 		await upsertEntity('frame_side_inspection', entity)
 	},
-	FrameSideFile: async (_, fsf: FrameSideFile, { originalValue }) => {
-		if (Object.keys(fsf).length === 0) return
 
-		fsf.queenDetected= fsf?.queenDetected ? true : false;
-
-		delete fsf.hiveId
-
-		if(originalValue?.detectedCells){
-			fsf.detectedCells = originalValue?.detectedCells;
-		}
-		
-		fsf.fileId = +originalValue?.file?.id;
-		fsf.frameSideId = +fsf.frameSideId
-		fsf.id = +fsf.frameSideId
-
-		if(fsf.fileId){
-			await upsertEntityWithNumericID('framesidefile', fsf)
-		}
+	FrameSideFile: async (parent, entity: FrameSideFile, { originalValue }) => {
+		await frameSideFileModel.upsertEntity(entity, originalValue)
 	},
 	FrameSideCells: async (_, cells: FrameSideCells, { originalValue }) => {
 		if (Object.keys(cells).length === 0) return
 
 		cells.broodPercent = cells?.broodPercent ? +cells.broodPercent : 0;
-		cells.cappedBroodPercent= cells?.cappedBroodPercent ? +cells.cappedBroodPercent : 0;
-		cells.eggsPercent= cells?.eggsPercent ? +cells.eggsPercent : 0;
-		cells.pollenPercent= cells?.pollenPercent ? +cells.pollenPercent : 0;
-		cells.honeyPercent= cells?.honeyPercent ? +cells.honeyPercent : 0;
+		cells.cappedBroodPercent = cells?.cappedBroodPercent ? +cells.cappedBroodPercent : 0;
+		cells.eggsPercent = cells?.eggsPercent ? +cells.eggsPercent : 0;
+		cells.pollenPercent = cells?.pollenPercent ? +cells.pollenPercent : 0;
+		cells.honeyPercent = cells?.honeyPercent ? +cells.honeyPercent : 0;
 
 		cells.frameSideId = +cells.id
 		cells.id = +cells.id

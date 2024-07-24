@@ -14,8 +14,13 @@ export default function TreatmentList({ hiveId, boxId = null }) {
 		errorNetwork
 	} = useQuery(gql`	query hive($id: ID!) {
 		hive(id: $id) {
+			__typename
+			id
 			family{
+				__typename
+				id
 				treatments{
+					__typename
 					id
 					type
 					added

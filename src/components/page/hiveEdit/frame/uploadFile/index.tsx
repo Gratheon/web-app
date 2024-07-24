@@ -20,8 +20,16 @@ export default function UploadFile({ onUpload }) {
 	const [uploadFile, {data}] = useUploadMutation(gql`
 		mutation uploadFrameSide($file: Upload!) {
 			uploadFrameSide(file: $file) {
+				__typename
 				id
 				url
+
+				resizes {
+					__typename
+					id
+					url
+					max_dimension_px
+				}
 			}
 		}
 	`)

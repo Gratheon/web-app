@@ -52,7 +52,9 @@ export async function getFramesByHive(hiveId: number): Promise<Frame[]> {
 export async function getFrames(where = {}): Promise<Frame[] | null> {
 	if (!where) return []
 	try {
-		return await db['frame'].where(where).sortBy('position')
+		return await db['frame']
+		.where(where)
+		.sortBy('position')
 	} catch (e) {
 		console.error(e)
 		return null

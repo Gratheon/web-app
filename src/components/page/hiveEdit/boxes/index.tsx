@@ -64,7 +64,8 @@ export default function Boxes({
 		if (
 			typeof event.target.className === 'string' &&
 			event.target.className.length > 0 &&
-			event.target.className.indexOf('box') >=0
+			(event.target.className.indexOf('box') >=0 ||
+			event.target.className.indexOf('gate') >=0)
 		) {
 			event.stopPropagation()
 			navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`, {

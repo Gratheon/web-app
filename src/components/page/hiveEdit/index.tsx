@@ -149,8 +149,8 @@ export default function HiveEditForm() {
 							<T ctx="This is a heading for a block that shows multiple physical parts (boxes,sections) of the vertical beehive">Hive sections</T>
 						</h3>
 
-						{displayMode == 'list' && <Button size={'small'} onClick={() => setDisplayMode('visual')} size='small'><ListIcon size={16} style="margin-right:0" /></Button>}
-						{displayMode == 'visual' && <Button size={'small'} onClick={() => setDisplayMode('list')} size='small'><TableIcon size={16} style="margin-right:0" /></Button>}
+						{displayMode == 'list' && <Button size={'small'} onClick={() => setDisplayMode('visual')}><ListIcon size={16} style="margin-right:0" /></Button>}
+						{displayMode == 'visual' && <Button size={'small'} onClick={() => setDisplayMode('list')}><TableIcon size={16} style="margin-right:0" /></Button>}
 					</div>
 
 					<Boxes

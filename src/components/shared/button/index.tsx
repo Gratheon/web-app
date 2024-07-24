@@ -10,7 +10,7 @@ type ButtonProps = {
 	onMouseOut?: any
 	className?: string | string[] // small, green
 	color?: string
-	size?: string
+	size?: 'small' | string
 	style?: any
 	title?: string
 	loading?: boolean

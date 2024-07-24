@@ -35,7 +35,7 @@ import { getFamilyByHive } from '@/components/models/family'
 
 export default function HiveEditForm() {
 	const { state } = useLocation();
-	const [displayMode, setDisplayMode] = useState('visual')
+	const [displayMode, setDisplayMode] = useState('list')
 
 	let { apiaryId, hiveId, boxId, frameId, frameSideId } = useParams()
 	let [error, onError] = useState(null)
@@ -149,8 +149,8 @@ export default function HiveEditForm() {
 							<T ctx="This is a heading for a block that shows multiple physical parts (boxes,sections) of the vertical beehive">Hive sections</T>
 						</h3>
 
-						{displayMode == 'list' && <Button onClick={() => setDisplayMode('visual')} size='small'><ListIcon size={18} /></Button>}
-						{displayMode == 'visual' && <Button onClick={() => setDisplayMode('list')} size='small'><TableIcon size={18} /></Button>}
+						{displayMode == 'list' && <Button size={'small'} onClick={() => setDisplayMode('visual')} size='small'><ListIcon size={16} style="margin-right:0" /></Button>}
+						{displayMode == 'visual' && <Button size={'small'} onClick={() => setDisplayMode('list')} size='small'><TableIcon size={16} style="margin-right:0" /></Button>}
 					</div>
 
 					<Boxes

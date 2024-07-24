@@ -1,8 +1,8 @@
 //@ts-nocheck
-import { pipe, fromValue, mergeMap, fromPromise } from 'wonka'
-import { execute, visit, TypeInfo, visitWithTypeInfo } from 'graphql'
+import {fromPromise, fromValue, mergeMap, pipe} from 'wonka'
+import {execute, TypeInfo, visit, visitWithTypeInfo} from 'graphql'
 
-import { db } from '@/components/models/db'
+import {db} from '@/components/models/db'
 
 // An alternative offline-first URQL exchange with custom resolvers
 // some compromises:
@@ -13,220 +13,224 @@ import { db } from '@/components/models/db'
 // so either backend must return parentIds that you will use in read resolvers
 // or cache writing must add relation IDs
 export function offlineIndexDbExchange({
-	cacheFirst,
-	schemaObject,
-	resolvers,
-	writeHooks,
-}) {
-	const typeInfo = new TypeInfo(schemaObject)
-	async function onOperation(op) {
-		// use this if you want to use cache-first strategy
-		// but I'm not sure how to prevent network requests (forward function calls within a pipe)
+                                           cacheFirst,
+                                           schemaObject,
+                                           resolvers,
+                                           writeHooks,
+                                       }) {
+    const typeInfo = new TypeInfo(schemaObject)
 
-		if (cacheFirst) {
-			if (op.kind === 'query') {
-				op.cacheResult = await execute({
-					schema: schemaObject,
-					document: op.query,
-					rootValue: resolvers,
-					contextValue: {
-						db,
-					},
-					variableValues: op.variables,
-				})
-			}
-		}
-		return op
-	}
+    async function onOperation(op) {
+        // use this if you want to use cache-first strategy
+        // but I'm not sure how to prevent network requests (forward function calls within a pipe)
 
-	function onError() {}
+        if (cacheFirst) {
+            if (op.kind === 'query') {
+                op.cacheResult = await execute({
+                    schema: schemaObject,
+                    document: op.query,
+                    rootValue: resolvers,
+                    contextValue: {
+                        db,
+                    },
+                    variableValues: op.variables,
+                })
+            }
+        }
+        return op
+    }
 
-	async function onResult(bubble) {
-		const op = bubble.operation
-		const data = bubble.data
-		let useCacheOnly = false;
+    function onError() {
+    }
 
-		// mutations/subscriptions/teardowns are pass-through
-		if (op.kind !== 'query') {
-			return bubble
-		}
+    async function onResult(bubble) {
+        const op = bubble.operation
+        const data = bubble.data
+        let useCacheOnly = false;
 
-		// if we want to rely on cache-first, make sure to use data from previous step
-		if (cacheFirst) {
-			if (bubble.operation?.cacheResult) {
-				bubble.error = bubble.operation.cacheResult.errors
-					? bubble.operation.cacheResult.errors[0]
-					: null
-				bubble.data = bubble.operation.cacheResult.data
+        // mutations/subscriptions/teardowns are pass-through
+        if (op.kind !== 'query') {
+            return bubble
+        }
 
-				useCacheOnly = true;
-			}
-		}
-		// if its network-first and we get a network error, use fetch offline cache
-		else {
-			if (!bubble.data && bubble.error) {
-				useCacheOnly = true;
-				console.warn('Error detected, using index-db cache', bubble.error);
-				bubble.data = (
-					await execute({
-						schema: schemaObject,
-						document: op.query,
-						rootValue: resolvers,
-						contextValue: {
-							db,
-						},
-						variableValues: op.variables,
-					})
-				).data
-			}
-		}
+        // if we want to rely on cache-first, make sure to use data from previous step
+        if (cacheFirst) {
+            if (bubble.operation?.cacheResult) {
+                bubble.error = bubble.operation.cacheResult.errors
+                    ? bubble.operation.cacheResult.errors[0]
+                    : null
+                bubble.data = bubble.operation.cacheResult.data
 
-		// if there is a network error and we have offline cache, use that
-		if (useCacheOnly) {
-			bubble.originalError = bubble.error
-			bubble.error = null
+                useCacheOnly = true;
+            }
+        }
+        // if its network-first and we get a network error, use fetch offline cache
+        else {
+            if (!bubble.data && bubble.error) {
+                useCacheOnly = true;
+                console.warn('Error detected, using index-db cache', bubble.error);
+                bubble.data = (
+                    await execute({
+                        schema: schemaObject,
+                        document: op.query,
+                        rootValue: resolvers,
+                        contextValue: {
+                            db,
+                        },
+                        variableValues: op.variables,
+                    })
+                ).data
+            }
+        }
 
-			return bubble
-		}
+        // if there is a network error and we have offline cache, use that
+        if (useCacheOnly) {
+            bubble.originalError = bubble.error
+            bubble.error = null
 
-		// so now its network-first and we had no error
-		// fill cache, go through response and call writeHooks
+            return bubble
+        }
 
-		// first get typemap to know which write hooks to call
-		// with what data from response that matches the schema
-		const typeMap = {}
-		visit(
-			op.query,
-			visitWithTypeInfo(typeInfo, {
-				Field: {
-					enter(node, key, parent, path, ancestors) {
-						typeInfo.enter(node.name.value)
-						const propertyName = node.name.value
+        // so now its network-first and we had no error
+        // fill cache, go through response and call writeHooks
 
-						// collect path for typemap key to have a hierarchy 
-						const ancestorsArr = []
-						for (let ancestor of ancestors) {
-							if (ancestor.kind == 'Field') {
-								ancestorsArr.push(ancestor.name.value)
-							}
-						}
-						ancestorsArr.push(propertyName)
+        // first get typemap to know which write hooks to call
+        // with what data from response that matches the schema
+        const typeMap = {}
+        visit(
+            op.query,
+            visitWithTypeInfo(typeInfo, {
+                Field: {
+                    enter(node, key, parent, path, ancestors) {
+                        typeInfo.enter(node.name.value)
+                        const propertyName = node.name.value
 
-						typeMap[ancestorsArr.join('.')] = typeInfo.getType()
-					},
-				},
-			})
-		)
+                        // collect path for typemap key to have a hierarchy
+                        const ancestorsArr = []
+                        for (let ancestor of ancestors) {
+                            if (ancestor.kind == 'Field') {
+                                ancestorsArr.push(ancestor.name.value)
+                            }
+                        }
+                        ancestorsArr.push(propertyName)
 
-		// now traverse response data
-		// and call correct write hooks
-		await traverseResponse(null, data, typeMap, writeHooks)
-		return bubble
-	}
+                        typeMap[ancestorsArr.join('.')] = typeInfo.getType()
+                    },
+                },
+            })
+        )
 
-	return function exchange({ forward }) {
-		return (operations) => {
-			return pipe(
-				pipe(
-					operations,
-					mergeMap((operation) => {
-						const newOperation =
-							(onOperation && onOperation(operation)) || operation
-						return 'then' in newOperation
-							? fromPromise(newOperation)
-							: fromValue(newOperation)
-					})
-				),
-				forward,
-				mergeMap((result) => {
-					if (onError && result.error) onError(result.error, result.operation)
-					const newResult = (onResult && onResult(result)) || result
-					return 'then' in newResult
-						? fromPromise(newResult)
-						: fromValue(newResult)
-				})
-			)
-		}
-	}
+        // now traverse response data
+        // and call correct write hooks
+        await traverseResponse(null, data, typeMap, writeHooks)
+        return bubble
+    }
+
+    return function exchange({forward}) {
+        return (operations) => {
+            return pipe(
+                pipe(
+                    operations,
+                    mergeMap((operation) => {
+                        const newOperation =
+                            (onOperation && onOperation(operation)) || operation
+                        return 'then' in newOperation
+                            ? fromPromise(newOperation)
+                            : fromValue(newOperation)
+                    })
+                ),
+                forward,
+                mergeMap((result) => {
+                    if (onError && result.error) onError(result.error, result.operation)
+                    const newResult = (onResult && onResult(result)) || result
+                    return 'then' in newResult
+                        ? fromPromise(newResult)
+                        : fromValue(newResult)
+                })
+            )
+        }
+    }
 }
 
 async function traverseResponse(
-	parent,
-	response,
-	typeMap,
-	writeHooks,
-	path = []
+    parent,
+    response,
+    typeMap,
+    writeHooks,
+    path = []
 ) {
-	for (const key in response) {
-		// console.log(response)
-		if (response.hasOwnProperty(key)) {
-			const value = response[key]
+    for (const key in response) {
+        // console.log(response)
+        if (response.hasOwnProperty(key)) {
+            const value = response[key]
 
-			// care only about high-level objects and arrays
-			// scalars and properties are ignored as they are not supported as write hooks yet
-			if (typeof value === 'object' && value !== null) {
-				const newPath = isNaN(key) ? [...path, key] : path
-				const pathString = newPath.join('.')
-				// console.log({pathString})
-				const objType = typeMap[pathString]
+            // care only about high-level objects and arrays
+            // scalars and properties are ignored as they are not supported as write hooks yet
+            if (typeof value === 'object' && value !== null) {
+                const newPath = isNaN(key) ? [...path, key] : path
+                const pathString = newPath.join('.')
+                // console.log({pathString})
+                const objType = typeMap[pathString]
 
-				if (objType && !Array.isArray(value)) {
-					const tableName = objType?.ofType ? objType.ofType.name : objType.name
-					
-					// console.log(`using table name ${tableName}`)
+                if (objType && !Array.isArray(value)) {
+                    const tableName = objType?.ofType ? objType.ofType.name : objType.name
 
-					// we reached some object that is no longer mapped onto a schema
-					// must be some JSON, no point to continue
-					if (tableName === 'JSON') {
-						// console.log(`Skipping JSON column`)
-						continue
-					}
+                    // console.log(`using table name ${tableName}`)
 
-					if (!tableName) {
-						console.error(pathString, value, tableName, objType)
-						return
-					}
+                    // we reached some object that is no longer mapped onto a schema
+                    // must be some JSON, no point to continue
+                    if (tableName === 'JSON') {
+                        // console.log(`Skipping JSON column`)
+                        continue
+                    }
 
-					if (writeHooks?.[tableName]) {
-						// normalize objects, clean them up from nested things
-						const cleanedValue = Object.fromEntries(
-							Object.entries(value).filter(([key, v]) => {
-								const propType = typeMap[`${pathString}.${key}`]
-								return (
-									!propType ||
-									(typeof v !== 'object' && !Array.isArray(v)) ||
-									propType.name === 'JSON'
-								)
-							})
-						)
+                    if (!tableName) {
+                        console.error(pathString, value, tableName, objType)
+                        return
+                    }
 
-						if (cleanedValue?.id) {
-							// use strings
-							cleanedValue.id = `${cleanedValue.id}`
-						}
+                    if (writeHooks?.[tableName]) {
+                        // normalize objects, clean them up from nested things
+                        const cleanedValue = Object.fromEntries(
+                            Object.entries(value).filter(([key, v]) => {
+                                const propType = typeMap[`${pathString}.${key}`]
+                                return (
+                                    !propType ||
+                                    (typeof v !== 'object' && !Array.isArray(v)) ||
+                                    propType.name === 'JSON'
+                                )
+                            })
+                        )
 
-						try {
-							// console.log(`Calling writeHook for table ${tableName}`)
-							await writeHooks[tableName](
-								parent,
-								cleanedValue,
-								{ db, originalValue: value },
-								{ objType }
-							)
-						} catch (e) {
-							console.error('Error while updating IndexedDB with graphql response for entity ' + tableName,{
-								error: e,
-								cleanedValue
-							})
-						}
-					}
-				}
+                        if (cleanedValue?.id) {
+                            // use strings
+                            cleanedValue.id = `${cleanedValue.id}`
+                        }
 
-				// Recursively call the function if the value is an object or array
+                        if (cleanedValue) {
+                            try {
+                                // console.log(`Calling writeHook for table ${tableName}`)
+                                await writeHooks[tableName](
+                                    parent,
+                                    cleanedValue,
+                                    {db, originalValue: value},
+                                    {objType}
+                                )
+                            } catch (e) {
+                                console.error('Error while updating IndexedDB with graphql response for entity ' + tableName, {
+                                    error: e,
+                                    cleanedValue
+                                })
+                            }
+                        }
+                    }
+                }
 
-				const parentToPass = Array.isArray(value) ? parent : value
-				traverseResponse(parentToPass, value, typeMap, writeHooks, newPath)
-			}
-		}
-	}
+                // Recursively call the function if the value is an object or array
+
+                const parentToPass = Array.isArray(value) ? parent : value
+                traverseResponse(parentToPass, value, typeMap, writeHooks, newPath)
+            }
+        }
+    }
 }

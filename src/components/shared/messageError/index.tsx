@@ -3,7 +3,7 @@ import styles from './index.less'
 import BearIcon from '@/components/icons/bear'
 import DeleteIcon from '@/components/icons/deleteIcon'
 
-export default function ErrorMsg({ error, borderRadius=5 }) {
+export default function ErrorMsg({ key=null, error, borderRadius=5 }) {
     const [visible, setVisible] = useState(true);
     const [stacktraceVisible, setStacktraceVisible] = useState(false);
 
@@ -55,7 +55,7 @@ export default function ErrorMsg({ error, borderRadius=5 }) {
 	}
 
 	if(error?.message) {
-		return <div className={styles.errorMsgSmall} style={{borderRadius}}>
+		return <div key={key} className={styles.errorMsgSmall} style={{borderRadius}}>
 			<div style="width:24px" onClick={()=>{
 				setStacktraceVisible(!stacktraceVisible)
 			}}><BearIcon size={24} /></div>

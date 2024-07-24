@@ -14,7 +14,8 @@ export const db = new Dexie(DB_NAME, {
 Dexie.debug = 'dexie'
 
 export async function dropDatabase() {
-	return await db.delete()
+	await db.delete()
+	await db.close();
 }
 
 const graphqlToTableMap = {
@@ -67,7 +68,12 @@ export function syncGraphqlSchemaToIndexDB(schemaObject) {
 
 // Generic function to updated IndexedDB table with graphql response
 export async function upsertEntityWithNumericID(entityName, entity) {
-	if (!entity || !entity.id) {
+	if (!entity){
+		console.trace('No entity name provided for type ' + entityName + ', this may be a bug and degrade performance')
+		return
+	}
+
+	if (!entity.id) {
 		console.warn("Cannot store entity without ID for type " + entityName + '. Did you forget including id in query?', entity)
 		return
 	}

@@ -144,7 +144,7 @@ export default function Frame({
 						frameId={frameId}
 						frameSideId={frameSideId}
 						editable={true}
-						displayMode="list" />}
+						displayMode="visual" />}
 
 					<div style="flex-grow:1"></div>
 					{extraButtons}

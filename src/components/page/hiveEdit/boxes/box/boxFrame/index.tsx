@@ -46,8 +46,8 @@ export default function BoxFrame({
 	const frameURL = `/apiaries/${apiaryId}/hives/${hiveId}/box/${box.id}/frame/${frame.id}`
 
 
-	if (displayMode == 'list') {
-		return <div className={styles.listFrameIcon}>
+	if (displayMode == 'visual') {
+		return <div className={styles.listFrameIcon} style="margin:3px;">
 			<FrameSideImage
 				frameSideId={frameWithSides.leftSide.id}
 				frameURL={`${frameURL}/${frame.leftId}`}
@@ -64,7 +64,7 @@ export default function BoxFrame({
 
 	if (frame.type === 'VOID') {
 		frameInternal = <div onClick={() => {
-			if (editable) { navigate(frameURL, { replace: false }) }
+			if (editable) { navigate(frameURL, { replace: true }) }
 		}} className={styles.voidFrame} />
 	} else if (frame.type === 'PARTITION') {
 		frameInternal = <div onClick={() => {

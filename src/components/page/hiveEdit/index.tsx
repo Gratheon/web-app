@@ -143,16 +143,6 @@ export default function HiveEditForm() {
 
 			<div className={styles.boxesFrameWrap}>
 				<div className={styles.boxesWrap}>
-
-					<div className={styles.boxesMode} style="display:flex; width:100%; padding:0 40px;">
-						<h3 style="margin-right: 20px;margin-bottom: 5px;">
-							<T ctx="This is a heading for a block that shows multiple physical parts (boxes,sections) of the vertical beehive">Hive sections</T>
-						</h3>
-
-						{displayMode == 'list' && <Button size={'small'} onClick={() => setDisplayMode('visual')}><ListIcon size={16} style="margin-right:0" /></Button>}
-						{displayMode == 'visual' && <Button size={'small'} onClick={() => setDisplayMode('list')}><TableIcon size={16} style="margin-right:0" /></Button>}
-					</div>
-
 					<Boxes
 						onError={onError}
 						apiaryId={apiaryId}
@@ -161,6 +151,7 @@ export default function HiveEditForm() {
 						frameId={frameId}
 						frameSideId={frameSideId}
 						displayMode={displayMode}
+						setDisplayMode={setDisplayMode}
 					/>
 				</div>
 

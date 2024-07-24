@@ -58,9 +58,7 @@ export default function FrameButtons({ box, onError }) {
 	}
 
 	return (
-		<>
-
-			<PopupButtonGroup style="justify-content:flex-end;">
+			<PopupButtonGroup>
 				<Button
 					loading={addingFrame}
 					onClick={() => {
@@ -97,8 +95,5 @@ export default function FrameButtons({ box, onError }) {
 					><PartitionIcon /><T ctx="this is a button that adds new frame-like separator made of wood into a beehive to reduce available space for bees">Add partition</T></Button>
 				</PopupButton>
 			</PopupButtonGroup>
-
-
-		</>
 	)
 }

@@ -15,7 +15,15 @@ export function getToken() {
 }
 
 export function saveToken(token) {
-	setCookie('token', token, 1)
+	setCookie('token', token, 30) // keep user logged in for a month
+}
+
+export function getShareToken(): string{
+	return localStorage.getItem('shareToken')
+}
+
+export function saveShareToken(token: string){
+	localStorage.setItem('shareToken', token)
 }
 
 export async function logout() {

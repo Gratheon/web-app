@@ -1,10 +1,10 @@
-import { gql, useMutation } from "@/components/api"
-import Button from "@/components/shared/button"
-import Checkbox from "@/components/icons/checkbox"
-import QueenIcon from "@/components/icons/queenIcon"
-import { setQueenPresense } from '@/components/models/frameSideFile'
-import T from "@/components/shared/translate"
-import ErrorMessage from '@/components/shared/messageError'
+import { gql, useMutation } from "../../../../api"
+import Button from "../../../../shared/button"
+import Checkbox from "../../../../icons/checkbox.js"
+import QueenIcon from "../../../../icons/queenIcon.tsx"
+import { setQueenPresense } from '../../../../models/frameSideFile.ts'
+import T from "../../../../shared/translate"
+import ErrorMessage from '../../../../shared/messageError'
 
 export default function QueenButton({
 	frameSideFile,

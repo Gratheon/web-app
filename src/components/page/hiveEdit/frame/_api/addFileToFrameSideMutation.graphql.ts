@@ -1,4 +1,4 @@
-import { gql } from '@/components/api'
+import { gql } from '../../../../api'
 
 export default gql`
 	mutation ($fileId: ID!, $frameSideId: ID!, $hiveId: ID!) {

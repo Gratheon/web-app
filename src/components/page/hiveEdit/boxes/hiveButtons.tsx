@@ -1,23 +1,23 @@
 import { useNavigate } from 'react-router'
 
-import { useMutation } from '@/components/api'
-import Button from '@/components/shared/button'
+import { useMutation } from '../../../api'
+import Button from '../../../shared/button'
 import {
 	boxTypes,
 	addBox,
 	maxBoxPosition
-} from '@/components/models/boxes'
-import T from '@/components/shared/translate'
+} from '../../../models/boxes.ts'
+import T from '../../../shared/translate'
 
-import AddBoxIcon from '@/components/icons/addBox'
-import AddSuperIcon from '@/components/icons/addSuper'
-import GateIcon from '@/components/icons/gate'
-import ErrorMessage from '@/components/shared/messageError'
+import AddBoxIcon from '../../../icons/addBox.js'
+import AddSuperIcon from '../../../icons/addSuper.js'
+import GateIcon from '../../../icons/gate.js'
+import ErrorMessage from '../../../shared/messageError'
 
 import { useState } from 'react'
-import metrics from '@/components/metrics'
-import styles from './styles.less'
-import { PopupButton, PopupButtonGroup } from '@/components/shared/popupButton'
+import metrics from '../../../metrics.tsx'
+import styles from './styles.module.less'
+import { PopupButton, PopupButtonGroup } from '../../../shared/popupButton'
 
 export default function HiveButtons({
 	apiaryId,

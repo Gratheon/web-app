@@ -1,5 +1,5 @@
 import React from 'react'
-import styles from './styles.less'
+import styles from './styles.module.less'
 
 export default function Loading({ size = 2 }) {
 	if (size == 0) {

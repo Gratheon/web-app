@@ -1,11 +1,11 @@
 import {useNavigate} from 'react-router-dom'
 import {useLiveQuery} from 'dexie-react-hooks';
 
-import {File, getFile} from '@/components/models/files'
-import {getFrameSideFile} from '@/components/models/frameSideFile';
-import {getFileResizes} from '@/components/models/fileResize';
+import {File, getFile} from '../../../../../../models/files.ts'
+import {getFrameSideFile} from '../../../../../../models/frameSideFile.ts';
+import {getFileResizes} from '../../../../../../models/fileResize.ts';
 
-import styles from './index.less'
+import styles from './index.module.less'
 
 export default function FrameSideImage({
                                            editable,

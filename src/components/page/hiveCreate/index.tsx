@@ -2,15 +2,15 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useParams } from 'react-router-dom'
 
-import { gql, useMutation } from '@/components/api'
+import { gql, useMutation } from '../../api'
 
-import VisualForm from '@/components/shared/visualForm'
-import HiveIcon from '@/components/shared/hive'
-import ErrorMsg from '@/components/shared/messageError'
-import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
-import Button from '@/components/shared/button'
-import { Box, boxTypes } from '@/components/models/boxes'
-import T from '@/components/shared/translate'
+import VisualForm from '../../shared/visualForm'
+import HiveIcon from '../../shared/hive'
+import ErrorMsg from '../../shared/messageError'
+import VisualFormSubmit from '../../shared/visualForm/VisualFormSubmit'
+import Button from '../../shared/button'
+import { Box, boxTypes } from '../../models/boxes.ts'
+import T from '../../shared/translate'
 const defaultBoxColor = '#ffc848'
 
 export default function HiveCreateForm() {

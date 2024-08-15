@@ -1,0 +1,40 @@
+@import "@/components/layout.module.less";
+@import '@/components/colors.module.less';
+
+.body {
+	min-height: 300px;
+	border-radius: 3px;
+	flex-grow: 1;
+}
+
+.frame {
+	background-color: white;
+	display: flex;
+}
+
+.frameSideSelector {
+	height: 40px;
+	padding: 10px;
+	border: 1px dotted black;
+	border-radius: 3px;
+}
+
+.frameSideSelected {
+	border: 2px solid @color-blue-selected;
+}
+
+
+.frameHeader {
+	display: flex;
+	padding: 3px;
+
+	h3 {
+		margin-top: 10px;
+		margin-right: 10px;
+	}
+
+	@media @mobileAndTablet {
+		margin-top: 40px;
+		margin-left: 20px;
+	}
+}

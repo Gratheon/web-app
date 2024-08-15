@@ -1,0 +1,100 @@
+@import '@/components/colors.module.less';
+
+button:not(:disabled) {
+	&:hover {
+		background: @color-btn-hover-black;
+	}
+
+	&.white:hover{
+		color: white;
+	}
+}
+
+button {
+	position: relative;
+	border-radius: 3px;
+	cursor: pointer;
+	background: @color-btn-bg-gray;
+	border: 0;
+	color: @color-btn-white;
+	height: 40px;
+	// line-height: 20px;
+	margin: 0 2px;
+	text-align: left;
+
+	white-space: nowrap;
+	font-size: 16px;
+	padding: 0 10px;
+
+	svg {
+		position: relative;
+		margin-right: 3px;
+		vertical-align: middle;
+		width: 16px;
+		height: 16px;
+	}
+
+	span {
+		display: inline;
+		margin-left: 4px;
+	}
+
+	&:disabled {
+		background: gray;
+		cursor: not-allowed;
+	}
+
+	&[type='submit'] {
+		padding: 0 20px;
+	}
+
+	&.white {
+		background: @color-btn-white-bg;
+		color: @color-btn-white-text;
+		border: 2px solid @color-btn-white-border;
+	}
+
+	&.red {
+		background: @color-ui-btn-red;
+		color: #f1f1f1;
+
+		&:hover {
+			background: @color-ui-btn-red-hover;
+		}
+	}
+
+	&.green {
+		background: @color-green;
+		color: #f1f1f1;
+
+		&:hover {
+			background: @color-btn-green-hover;
+		}
+	}
+
+	&.popupTrigger {
+		border-left: 1px solid #383838;
+		height: 100%;
+		border-radius: 0 3px 3px 0;
+	}
+
+	&.small {
+		svg {
+			top: 0;
+			margin-right: 3px;
+		}
+
+		align-items: flex-end;
+		height: 28px;
+		padding: 5px 8px;
+		box-sizing: border-box;
+	}
+
+	&.green.popupTrigger {
+		border-left: 1px solid @color-btn-green-hover;
+	}
+
+	&[type=submit] {
+		margin: 0;
+	}
+}

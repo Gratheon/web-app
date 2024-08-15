@@ -1,18 +1,19 @@
 import React, { useState } from 'react'
-import { gql, useMutation } from '@/components/api'
-import metrics from '@/components/metrics'
+import { gql, useMutation } from '../../api'
+import metrics from '../../metrics.tsx'
 import { useNavigate } from 'react-router'
+import logoURL from '@/assets/logo_v7.svg'
 
-import Loader from '@/components/shared/loader'
-import ErrorMsg from '@/components/shared/messageError'
-import Button from '@/components/shared/button'
-import { saveToken } from '@/components/user'
-import T from '@/components/shared/translate'
-import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
+import Loader from '../../shared/loader'
+import ErrorMsg from '../../shared/messageError'
+import Button from '../../shared/button'
+import { saveToken } from '../../user.ts'
+import T from '../../shared/translate'
+import VisualFormSubmit from '../../shared/visualForm/VisualFormSubmit'
 import { Link } from 'react-router-dom'
 
-import style from './styles.less'
-import isDev from '@/components/isDev'
+import style from './styles.module.less'
+import isDev from '../../isDev.ts'
 
 type Account = {
 	email?: string
@@ -114,7 +115,7 @@ export default function AccountAuth() {
 		<div className={style.loginPage}>
 			<div className={style.loginModal}>
 				<div className={style.loginModalWithLogo}>
-					<img src="/assets/logo_v7.svg" id={style.logo} draggable={false} />
+					<img src={logoURL} id={style.logo} draggable={false} />
 
 					<div className={style.loginModalInternal}>
 						{errorMsg}

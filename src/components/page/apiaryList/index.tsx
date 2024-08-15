@@ -1,13 +1,13 @@
 import React from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 
-import { gql, useQuery } from '@/components/api/index'
+import { gql, useQuery } from '../../api'
 
-import Button from '@/components/shared/button'
-import { getUser } from '@/components/models/user'
-import Loader from '@/components/shared/loader'
-import ErrorMsg from '@/components/shared/messageError'
-import T from '@/components/shared/translate'
+import Button from '../../shared/button'
+import { getUser } from '../../models/user.ts'
+import Loader from '../../shared/loader'
+import ErrorMsg from '../../shared/messageError'
+import T from '../../shared/translate'
 
 import ApiaryListRow from './apiaryListRow'
 import ApiariesPlaceholder from './apiariesPlaceholder'

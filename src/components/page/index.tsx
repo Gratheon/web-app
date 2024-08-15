@@ -3,7 +3,7 @@ import { Routes, Route, useNavigate } from 'react-router'
 
 import Menu from '../menu'
 import Footer from '../footer'
-import { isLoggedIn } from '../user'
+import { isLoggedIn } from '../user.ts'
 
 import ApiaryCreate from './apiaryCreate'
 import ApiaryEditForm from './apiaryEdit'
@@ -15,7 +15,7 @@ import AccountAuth from './accountAuth'
 import AccountRegister from './accountRegister'
 import Grafana from './grafana'
 import InspectionList from './inspectionList'
-import InspectionShare from "@/components/page/inspectionShare";
+import InspectionShare from "./inspectionShare";
 
 function LoggedInPage({ children }) {
 	const navigate = useNavigate()

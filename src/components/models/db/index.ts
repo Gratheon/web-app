@@ -1,8 +1,8 @@
 //@ts-nocheck
 import Dexie from 'dexie'
-import { addCustomIndexes } from './addCustomIndexes'
-import { FRAME_SIDE_CELL_TABLE } from '../frameSideCells'
-import { FRAME_SIDE_FILE_TABLE } from '../frameSideFile'
+import { addCustomIndexes } from './addCustomIndexes.ts'
+import { FRAME_SIDE_CELL_TABLE } from '../frameSideCells.ts'
+import { FRAME_SIDE_FILE_TABLE } from '../frameSideFile.ts'
 import { has } from 'lodash'
 
 const DB_NAME = 'gratheon'

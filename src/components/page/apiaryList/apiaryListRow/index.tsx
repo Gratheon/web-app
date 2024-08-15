@@ -1,19 +1,19 @@
 import React from 'react'
 
-import Hive from '@/components/shared/hive'
-import Button from '@/components/shared/button'
-import HivesPlaceholder from '@/components/shared/hivesPlaceholder'
-import T from '@/components/shared/translate'
+import Hive from '../../../shared/hive'
+import Button from '../../../shared/button'
+import HivesPlaceholder from '../../../shared/hivesPlaceholder'
+import T from '../../../shared/translate'
 
-import HiveIcon from '@/components/icons/hive'
+import HiveIcon from '../../../icons/hive.js'
 
-import styles from './index.less'
-import BeeCounter from '@/components/shared/beeCounter'
+import styles from './index.module.less'
+import BeeCounter from '../../../shared/beeCounter'
 import { NavLink } from 'react-router-dom'
-import Link from '@/components/shared/link'
-import ListIcon from '@/components/icons/listIcon'
-import TableIcon from '@/components/icons/tableIcon'
-import DateTimeAgo from '@/components/shared/dateTimeAgo'
+import Link from '../../../shared/link'
+import ListIcon from '../../../icons/listIcon.tsx'
+import TableIcon from '../../../icons/tableIcon.tsx'
+import DateTimeAgo from '../../../shared/dateTimeAgo'
 
 export default function apiaryListRow({ apiary, user }) {
 

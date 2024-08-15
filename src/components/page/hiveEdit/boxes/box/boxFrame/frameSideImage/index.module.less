@@ -1,0 +1,45 @@
+@import "@/components/layout.module.less";
+@import '@/components/colors.module.less';
+
+
+.frameSideImage {
+	border: 1px solid @frameColor;
+	width: 50px;
+	height: 28px;
+	flex-grow: 1;
+	margin: 2px;
+	border-radius: 2px;
+	cursor: pointer;
+	overflow: hidden;
+	box-sizing: border-box;
+
+	.frameSideImageInternalTop{
+        width: 100%;
+        height: 2px;
+        border-bottom: 1px solid @frameColor;
+    }
+	.frameSideImageInternalSides{
+        width: 40px;
+        height: 95%;
+        margin: 0 auto;
+        border-left: 1px solid @frameColor;
+        border-right: 1px solid @frameColor;
+    }
+
+	img {
+		width: 100%;
+	}
+}
+
+.selected {
+    border: 2px solid @color-blue-selected;
+
+    .frameSideImageInternalTop{
+        border-bottom: 1px solid @color-blue-selected;
+    }
+    .frameSideImageInternalSides{
+        width: 38px;
+        border-left: 1px solid @color-blue-selected;
+        border-right: 1px solid @color-blue-selected;
+    }
+}

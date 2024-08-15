@@ -1,9 +1,9 @@
-import Button from "@/components/shared/button";
-import { logout } from "@/components/user";
-import styles from "./style.less"
-import T from "@/components/shared/translate";
-import { gql, useMutation } from "@/components/api";
-import ErrorMsg from "@/components/shared/messageError";
+import Button from "../../../shared/button";
+import { logout } from "../../../user.ts";
+import styles from "./style.module.less"
+import T from "../../../shared/translate";
+import { gql, useMutation } from "../../../api";
+import ErrorMsg from "../../../shared/messageError";
 
 export default function DangerZone() {
 

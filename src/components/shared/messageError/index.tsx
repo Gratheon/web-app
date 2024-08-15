@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import styles from './index.less'
-import BearIcon from '@/components/icons/bear'
-import DeleteIcon from '@/components/icons/deleteIcon'
+import styles from './index.module.less'
+import BearIcon from '../../icons/bear.tsx'
+import DeleteIcon from '../../icons/deleteIcon.js'
 
 export default function ErrorMsg({ key=null, error, borderRadius=5 }) {
     const [visible, setVisible] = useState(true);

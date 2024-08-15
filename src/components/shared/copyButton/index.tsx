@@ -1,7 +1,7 @@
-import CopyIcon from "@/components/icons/copy";
+import CopyIcon from "../../icons/copy.tsx";
 import Button from "../button";
 import T from "../translate";
-import CopySuccess from "@/components/icons/copySuccess";
+import CopySuccess from "../../icons/copySuccess.tsx";
 import { useState } from "react";
 
 export default function CopyButton({ size = '', data = '' }) {

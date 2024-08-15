@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { videoUploadUri } from '@/components/uri'
-import { useUploadMutation, gql } from '@/components/api'
-import T from '@/components/shared/translate';
-import VisualForm from '@/components/shared/visualForm';
-import Button from '@/components/shared/button';
+import { videoUploadUri } from '../../../../uri.ts'
+import { useUploadMutation, gql } from '../../../../api'
+import T from '../../../../shared/translate';
+import VisualForm from '../../../../shared/visualForm';
+import Button from '../../../../shared/button';
+import imageURL from '@/assets/gatehouse-vectorized.jpg'
+
 
 const VideoCapture = ({ boxId }) => {
   const videoRef = useRef(null);
@@ -179,7 +181,7 @@ const VideoCapture = ({ boxId }) => {
 
           <div><img
             style="border-radius: 5px;margin-left:10px;max-width:200px;"
-            src="/assets/gatehouse-vectorized.jpg" />
+            src={imageURL} />
           </div>
         </div>
       }

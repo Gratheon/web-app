@@ -2,17 +2,17 @@ import React, { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate } from 'react-router-dom'
 
-import { gql, useMutation, useQuery } from '@/components/api'
+import { gql, useMutation, useQuery } from '../../../api'
 
-import { getFrame, removeFrame } from '@/components/models/frames'
-import T from '@/components/shared/translate'
-import Button from '@/components/shared/button'
-import Loading from '@/components/shared/loader'
-import ErrorMessage from '@/components/shared/messageError'
-import DeleteIcon from '@/components/icons/deleteIcon'
+import { getFrame, removeFrame } from '../../../models/frames.ts'
+import T from '../../../shared/translate'
+import Button from '../../../shared/button'
+import Loading from '../../../shared/loader'
+import ErrorMessage from '../../../shared/messageError'
+import DeleteIcon from '../../../icons/deleteIcon.js'
 
-import styles from './styles.less'
-import FrameSide from './frameSide'
+import styles from './styles.module.less'
+import FrameSide from './frameSide.tsx'
 import BoxFrame from '../boxes/box/boxFrame'
 
 export default function Frame({

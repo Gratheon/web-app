@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react'
 import ResourceEditRow from './resourceEditRow'
-import colors from '@/components/colors'
-import T from '@/components/shared/translate'
-import { getFrameSideCells } from '@/components/models/frameSideCells'
+import colors from '../../../../colors.ts'
+import T from '../../../../shared/translate'
+import { getFrameSideCells } from '../../../../models/frameSideCells.ts'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 export default function MetricList({

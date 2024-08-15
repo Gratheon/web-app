@@ -12,7 +12,7 @@ import {
 	Legend,
 } from 'recharts'
 
-import style from './index.less'
+import style from './index.module.less'
 
 type Humidity = {
 	name: string

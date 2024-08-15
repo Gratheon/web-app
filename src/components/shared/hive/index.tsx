@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import styles from './index.less'
+import styles from './index.module.less'
 
 //@ts-ignore
 import GithubPicker from 'react-color/es/Github'

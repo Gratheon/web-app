@@ -1,9 +1,9 @@
-import { Family } from './family'
-import { Box } from './boxes'
+import { Family } from './family.ts'
+import { Box } from './boxes.ts'
 import { db } from './db'
-import { HiveInspectionCellStats } from './frameSideCells'
-import { Frame } from './frames'
-import { Hive } from './hive'
+import { HiveInspectionCellStats } from './frameSideCells.ts'
+import { Frame } from './frames.ts'
+import { Hive } from './hive.ts'
 
 export type Inspection = {
 	id: number

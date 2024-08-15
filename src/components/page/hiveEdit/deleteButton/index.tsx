@@ -1,13 +1,13 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import Button from '@/components/shared/button'
-import HIVE_DELETE_MUTATION from './hiveDeleteMutation.graphql'
-import { useMutation } from '@/components/api'
-import Loading from '@/components/shared/loader'
+import Button from '../../../shared/button'
+import HIVE_DELETE_MUTATION from './hiveDeleteMutation.graphql.ts'
+import { useMutation } from '../../../api'
+import Loading from '../../../shared/loader'
 
-import DeleteIcon from '@/components/icons/deleteIcon'
-import T from '@/components/shared/translate'
+import DeleteIcon from '../../../icons/deleteIcon.js'
+import T from '../../../shared/translate'
 
 export default function deactivateButton({ hiveId }) {
 	let [updateHive] = useMutation(HIVE_DELETE_MUTATION)

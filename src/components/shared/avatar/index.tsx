@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import md5 from 'md5';
 
-import { gql, useQuery } from '@/components/api';
-import type { User } from '@/components/models/user'
+import { gql, useQuery } from '../../api';
+import type { User } from '../../models/user.ts'
 
-import styles from './style.less';
+import styles from './style.module.less';
 
 function calculateMD5(email) {
 	return md5(email.trim().toLowerCase());

@@ -1,6 +1,6 @@
 import React from 'react'
-import HiveIcon from '../hive'
 import T from '../translate'
+import imageURL from '@/assets/symbiosis.png'
 
 export default function () {
 	return (
@@ -14,7 +14,7 @@ export default function () {
 		>
 			<p><T>No hives here yet</T></p>
 			
-			<img height="64" src="/assets/symbiosis.png" />
+			<img height="64" src={imageURL} />
 		</div>
 	)
 }

@@ -1,5 +1,5 @@
 import {db} from './db'
-import {Frame} from './frames'
+import {Frame} from './frames.ts'
 
 export type FrameSideCells = {
     id: number // same as frameSideId, just for indexing

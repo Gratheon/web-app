@@ -1,5 +1,5 @@
 import React from 'react';
-import style from './style.less';
+import style from './style.module.less';
 
 export default function QueenExcluder({selected=false }) {
 	return (

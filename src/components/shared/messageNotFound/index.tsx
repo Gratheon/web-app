@@ -1,4 +1,4 @@
-import ForestIcon from "@/components/icons/forest";
+import ForestIcon from "../../icons/forest.js";
 import T from "../translate";
 
 export default function MessageNotFound({

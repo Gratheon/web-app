@@ -1,11 +1,11 @@
 import React from 'react'
 
-import { graphqlWsClient } from '@/components/api'
-import isDev from '@/components/isDev'
-import T from '@/components/shared/translate'
+import { graphqlWsClient } from '../api'
+import isDev from '../isDev.ts'
+import T from '../shared/translate'
 
 import ConnectionStatus from './connectionStatus'
-import styles from './styles.less'
+import styles from './styles.module.less'
 
 
 export default function Footer() {

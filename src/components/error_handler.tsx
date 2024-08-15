@@ -1,6 +1,6 @@
 // https://preactjs.com/tutorial/09-error-handling/
 import {Component} from 'preact'
-import ErrorMsg from "@/components/shared/messageError";
+import ErrorMsg from "./shared/messageError";
 import {useEffect, useState} from "react";
 
 export default class GlobalErrorHandler extends Component {

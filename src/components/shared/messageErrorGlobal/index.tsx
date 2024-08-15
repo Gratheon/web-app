@@ -1,6 +1,6 @@
 import React from 'react'
-import styles from './index.less'
-import { lastNetworkError } from '@/components/api'
+import styles from './index.module.less'
+import { lastNetworkError } from '../../api'
 
 export default () => {
 	if (lastNetworkError) {

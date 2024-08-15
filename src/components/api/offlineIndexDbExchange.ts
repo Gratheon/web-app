@@ -2,7 +2,7 @@
 import {fromPromise, fromValue, mergeMap, pipe} from 'wonka'
 import {execute, TypeInfo, visit, visitWithTypeInfo} from 'graphql'
 
-import {db} from '@/components/models/db'
+import {db} from '../models/db'
 
 // An alternative offline-first URQL exchange with custom resolvers
 // some compromises:

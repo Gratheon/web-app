@@ -6,13 +6,13 @@ import {Provider} from 'urql'
 import {apiClient} from './api'
 import Page from './page'
 import Paywall from './page/paywall'
-import {isLoggedIn} from './user'
-import isDev from './isDev'
+import {isLoggedIn} from './user.ts'
+import isDev from './isDev.ts'
 
-import initErrorReporting from './error_reporter'
-import GlobalErrorHandler from "./error_handler";
-import {syncGraphqlSchemaToIndexDB} from "@/components/models/db";
-import {schemaObject} from "@/components/api/schema";
+import initErrorReporting from './error_reporter.ts'
+import GlobalErrorHandler from "./error_handler.tsx";
+import {syncGraphqlSchemaToIndexDB} from "./models/db";
+import {schemaObject} from "./api/schema.ts";
 
 initErrorReporting();
 

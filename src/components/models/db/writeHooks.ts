@@ -1,12 +1,12 @@
-import frameSideFileModel, { FrameSideFile } from '@/components/models/frameSideFile'
-import { FrameSideCells } from '@/components/models/frameSideCells'
+import frameSideFileModel, { FrameSideFile } from '../frameSideFile.ts'
+import { FrameSideCells } from '../frameSideCells.ts'
 
-import { upsertEntity, upsertEntityWithNumericID } from './index'
+import { upsertEntity, upsertEntityWithNumericID } from './index.ts'
 
-import { FrameSide } from '../frameSide'
-import { upsertFrameSide } from '../frameSide'
-import { Frame, upsertFrame } from '../frames'
-import { FileResize, upsertFileResize } from '../fileResize'
+import { FrameSide } from '../frameSide.ts'
+import { upsertFrameSide } from '../frameSide.ts'
+import { Frame, upsertFrame } from '../frames.ts'
+import { FileResize, upsertFileResize } from '../fileResize.ts'
 
 export const writeHooks = {
 	Apiary: async (_, entity) => await upsertEntityWithNumericID('apiary', entity),

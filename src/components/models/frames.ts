@@ -1,6 +1,6 @@
 import { db, upsertEntityWithNumericID } from './db'
-import { getBoxes } from './boxes';
-import { FrameSide, getFrameSidesMap, collectFrameSideIDsFromFrames } from './frameSide';
+import { getBoxes } from './boxes.ts';
+import { FrameSide, getFrameSidesMap, collectFrameSideIDsFromFrames } from './frameSide.ts';
 
 export type FrameType = 'VOID' | 'FOUNDATION' | 'EMPTY_COMB' | 'PARTITION' | 'FEEDER'
 

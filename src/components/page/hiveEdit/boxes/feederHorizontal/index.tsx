@@ -1,4 +1,4 @@
-import style from './style.less'
+import style from './style.module.less'
 
 export default function FeederHorizontal({selected = false}) {
     return <div className={`${style.feeder} ${selected && style.selected}`}>

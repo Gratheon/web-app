@@ -1,14 +1,14 @@
 import React, { useState, useRef, useLayoutEffect } from 'react'
-import Button from '@/components/shared/button'
-import colors from '@/components/colors'
-import Checkbox from '@/components/icons/checkbox'
-import FrameCells from '@/components/icons/frameCells'
-import T from '@/components/shared/translate'
-import Loader from '@/components/shared/loader'
-import styles from './styles.less'
+import Button from '../../../../shared/button'
+import colors from '../../../../colors.ts'
+import Checkbox from '../../../../icons/checkbox.js'
+import FrameCells from '../../../../icons/frameCells.js'
+import T from '../../../../shared/translate'
+import Loader from '../../../../shared/loader'
+import styles from './styles.module.less'
 import QueenButton from '../queenButton'
-import LeftChevron from '@/components/icons/leftChevron'
-import RightChevron from '@/components/icons/rightChevron'
+import LeftChevron from '../../../../icons/leftChevron.tsx'
+import RightChevron from '../../../../icons/rightChevron.tsx'
 
 let lineWidth = 0
 let isMousedown = false

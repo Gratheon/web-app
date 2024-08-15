@@ -1,0 +1,26 @@
+@import '@/components/layout.module.less';
+
+.buttonPanel {
+	width: 200px;
+	background: rgba(1, 1, 1, 0.5);
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	border-right: 2px solid white;
+
+	-webkit-transition: left 0.5s ease-in-out;
+    -moz-transition: left 0.5s ease-in-out;
+    -o-transition: left 0.5s ease-in-out;
+    transition: left 0.5s ease-in-out;
+}
+
+.buttonGrp {
+	position: relative;
+}
+
+@media @mobileAndTablet {
+	.buttonGrp {
+		padding: 5px;
+	}
+}

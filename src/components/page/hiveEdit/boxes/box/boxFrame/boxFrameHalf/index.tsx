@@ -1,10 +1,10 @@
 import React from 'react'
 
-import styles from './index.less'
+import styles from './index.module.less'
 
-import colors from '@/components/colors'
-import QueenIcon from '@/components/icons/queenIcon'
-import { getFrameSideFile } from '@/components/models/frameSideFile'
+import colors from '../../../../../../colors.ts'
+import QueenIcon from '../../../../../../icons/queenIcon.tsx'
+import { getFrameSideFile } from '../../../../../../models/frameSideFile.ts'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 export default function BoxFrameHalf({ frameSide, className, onFrameSideClick }) {

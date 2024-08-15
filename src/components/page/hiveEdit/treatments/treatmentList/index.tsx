@@ -1,10 +1,10 @@
 import { useState } from "react";
 
-import { gql, useQuery } from "@/components/api";
-import ErrorMessage from '@/components/shared/messageError'
-import T from "@/components/shared/translate";
-import Loader from "@/components/shared/loader";
-import DateFormat from "@/components/shared/dateFormat";
+import { gql, useQuery } from "../../../../api";
+import ErrorMessage from '../../../../shared/messageError'
+import T from "../../../../shared/translate";
+import Loader from "../../../../shared/loader";
+import DateFormat from "../../../../shared/dateFormat";
 
 export default function TreatmentList({ hiveId, boxId = null }) {
 	let {

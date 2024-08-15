@@ -1,6 +1,6 @@
-import { gql, useQuery } from '@/components/api'
-import metrics from '@/components/metrics'
-import ErrorMsg from '@/components/shared/messageError'
+import { gql, useQuery } from '../../api'
+import metrics from '../../metrics.tsx'
+import ErrorMsg from '../../shared/messageError'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 const USER_QUERY = gql`

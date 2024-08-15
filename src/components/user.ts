@@ -1,5 +1,5 @@
-import isDev from "./isDev"
-import { dropDatabase } from '@/components/models/db/index'
+import isDev from "./isDev.ts"
+import { dropDatabase } from './models/db'
 export function isLoggedIn() {
 	return getCookie('token') !== undefined
 }

@@ -1,18 +1,19 @@
 import React, { useState } from 'react'
 
-import { gql, useMutation } from '@/components/api'
+import { gql, useMutation } from '../../api'
 
-import Loader from '@/components/shared/loader'
-import ErrorMsg from '@/components/shared/messageError'
-import Button from '@/components/shared/button'
-import { saveToken } from '@/components/user'
-import { getAppUri } from '@/components/uri'
-import T, { useTranslation } from '@/components/shared/translate'
-import metrics from '@/components/metrics'
-import styles from './styles.less'
+import Loader from '../../shared/loader'
+import ErrorMsg from '../../shared/messageError'
+import Button from '../../shared/button'
+import { saveToken } from '../../user.ts'
+import { getAppUri } from '../../uri.ts'
+import T, { useTranslation } from '../../shared/translate'
+import metrics from '../../metrics.tsx'
+import styles from './styles.module.less'
+import logoURL from '@/assets/logo_v7.svg'
 
 import { useNavigate } from 'react-router-dom'
-import isDev from '@/components/isDev'
+import isDev from '../../isDev.ts'
 
 type Account = {
 	first_name: string
@@ -149,7 +150,7 @@ export default function AccountRegister() {
 
 			<div id={styles.logo}>
 				<div id={styles.logo_inner}>
-					<img src="/assets/logo_v7.svg"
+					<img src={logoURL}
 						draggable={false} />
 				</div>
 			</div>

@@ -1,18 +1,17 @@
-import React from 'react'
 import { format, formatDistance } from 'date-fns'
 import { useParams } from 'react-router-dom'
 
-import Button from '@/components/shared/button'
-import { gql, useMutation } from '@/components/api'
-import MessageSuccess from '@/components/shared/messageSuccess'
-import MessageError from '@/components/shared/messageError'
-import T from '@/components/shared/translate'
-import metrics from '@/components/metrics'
+import Button from '../../../shared/button'
+import { gql, useMutation } from '../../../api'
+import MessageSuccess from '../../../shared/messageSuccess'
+import MessageError from '../../../shared/messageError'
+import T from '../../../shared/translate'
+import metrics from '../../../metrics.tsx'
 
 import { de, et, fr, pl, ru, tr } from 'date-fns/locale'
-import DateTimeAgo from '@/components/shared/dateTimeAgo'
-import DateFormat from '@/components/shared/dateFormat'
-import CreditCard from '@/components/icons/creditCard'
+import DateTimeAgo from '../../../shared/dateTimeAgo'
+import DateFormat from '../../../shared/dateFormat'
+import CreditCard from '../../../icons/creditCard.tsx'
 const loadedDateLocales = { de, et, fr, pl, ru, tr }
 
 export default function Billing({ user }) {

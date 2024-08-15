@@ -1,16 +1,16 @@
 import React, { useMemo, useState } from 'react'
-import debounce from 'lodash.debounce'
+import debounce from 'lodash/debounce'
 
-import { gql, useMutation, useSubscription } from '@/components/api'
-import { updateFrameSideFile } from '@/components/models/frameSideFile'
+import { gql, useMutation, useSubscription } from '../../../api'
+import { updateFrameSideFile } from '../../../models/frameSideFile.ts'
 
-import Loading from '@/components/shared/loader'
-import ErrorMessage from '@/components/shared/messageError'
+import Loading from '../../../shared/loader'
+import ErrorMessage from '../../../shared/messageError'
 
-import styles from './styles.less'
+import styles from './styles.module.less'
 import DrawingCanvas from './drawingCanvas'
 import MetricList from './metricList'
-import { getFrameSideCells, updateFrameStat } from '@/components/models/frameSideCells'
+import { getFrameSideCells, updateFrameStat } from '../../../models/frameSideCells.ts'
 
 export default function FrameSideDrawing({
 	file,

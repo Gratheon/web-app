@@ -1,12 +1,12 @@
-import {useQuery} from '@/components/api'
-import INSPECTION_QUERY from './singleInspectionQuery.graphql'
-import Loading from '@/components/shared/loader'
-import ErrorMsg from '@/components/shared/messageError'
-import HiveBoxes from '@/components/shared/hiveBoxes'
-import {Inspection, InspectionSnapshot} from '@/components/models/inspections'
-import {upsertFrameSide} from '@/components/models/frameSide'
-import {upsertFrame} from '@/components/models/frames'
-import {Hive} from "@/components/models/hive";
+import {useQuery} from '../../../api'
+import INSPECTION_QUERY from './singleInspectionQuery.graphql.ts'
+import Loading from '../../../shared/loader'
+import ErrorMsg from '../../../shared/messageError'
+import HiveBoxes from '../../../shared/hiveBoxes'
+import {Inspection, InspectionSnapshot} from '../../../models/inspections.ts'
+import {upsertFrameSide} from '../../../models/frameSide.ts'
+import {upsertFrame} from '../../../models/frames.ts'
+import {Hive} from "../../../models/hive.ts";
 
 type InspectionViewProps = {
     apiaryId?: string

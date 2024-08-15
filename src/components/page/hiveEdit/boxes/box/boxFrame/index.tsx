@@ -1,12 +1,12 @@
 import {useNavigate} from 'react-router-dom'
 import {useLiveQuery} from 'dexie-react-hooks'
 
-import {Box} from '@/components/models/boxes'
-import {Frame} from '@/components/models/frames'
+import {Box} from '../../../../../models/boxes.ts'
+import {Frame} from '../../../../../models/frames.ts'
 
-import styles from './index.less'
+import styles from './index.module.less'
 import FrameSide from './boxFrameHalf'
-import {enrichFramesWithSides} from '@/components/models/frameSide'
+import {enrichFramesWithSides} from '../../../../../models/frameSide.ts'
 import FrameSideImage from './frameSideImage'
 
 

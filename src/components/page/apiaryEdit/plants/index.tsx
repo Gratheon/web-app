@@ -1,8 +1,8 @@
 import React from 'react'
 
-import { gql, useQuery } from '@/components/api'
-import Loading from '@/components/shared/loader'
-import ErrorMsg from '@/components/shared/messageError'
+import { gql, useQuery } from '../../../api'
+import Loading from '../../../shared/loader'
+import ErrorMsg from '../../../shared/messageError'
 
 type PlantsProps = {
 	lat: number

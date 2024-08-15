@@ -1,13 +1,13 @@
 import { useState } from "react";
 
-import { useMutation } from "@/components/api";
-import Button from "@/components/shared/button";
-import ErrorMessage from '@/components/shared/messageError'
-import T from "@/components/shared/translate";
-import Loader from "@/components/shared/loader";
-import MessageSuccess from "@/components/shared/messageSuccess";
+import { useMutation } from "../../../api";
+import Button from "../../../shared/button";
+import ErrorMessage from '../../../shared/messageError'
+import T from "../../../shared/translate";
+import Loader from "../../../shared/loader";
+import MessageSuccess from "../../../shared/messageSuccess";
 
-import styles from "./styles.less";
+import styles from "./styles.module.less";
 import TreatmentList from "./treatmentList";
 
 export default function Treatments({ hiveId, boxId = null }) {

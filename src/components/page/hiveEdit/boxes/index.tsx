@@ -1,12 +1,12 @@
 import {useNavigate} from 'react-router'
 import {useLiveQuery} from 'dexie-react-hooks'
 
-import {getBoxes} from '@/components/models/boxes'
-import {useQuery} from '@/components/api'
-import Loader from '@/components/shared/loader'
-import HiveBoxes from '@/components/shared/hiveBoxes'
+import {getBoxes} from '../../../models/boxes.ts'
+import {useQuery} from '../../../api'
+import Loader from '../../../shared/loader'
+import HiveBoxes from '../../../shared/hiveBoxes'
 
-import BOXES_QUERY from './boxesQuery.graphql'
+import BOXES_QUERY from './boxesQuery.graphql.ts'
 
 
 type BoxesProps = {

@@ -11,13 +11,13 @@ import {
 } from 'urql'
 import { multipartFetchExchange } from '@urql/exchange-multipart-fetch'
 
-import {getShareToken, getToken} from '@/components/user'
-import { gatewayUri, imageUploadUrl, subscriptionUri } from '@/components/uri'
-import { writeHooks } from '@/components/models/db/writeHooks'
+import {getShareToken, getToken} from '../user.ts'
+import { gatewayUri, imageUploadUrl, subscriptionUri } from '../uri.ts'
+import { writeHooks } from '../models/db/writeHooks.ts'
 
-import { schemaObject } from './schema'
-import { offlineIndexDbExchange } from './offlineIndexDbExchange'
-import resolvers from './resolvers'
+import { schemaObject } from './schema.ts'
+import { offlineIndexDbExchange } from './offlineIndexDbExchange.ts'
+import resolvers from './resolvers.ts'
 
 let uri = gatewayUri()
 
@@ -57,6 +57,8 @@ const apiClient = createUrqlClient({
 				}),
 			}),
 		}),
+
+		//@ts-ignore
 		multipartFetchExchange,
 	],
 	fetchOptions: () => {

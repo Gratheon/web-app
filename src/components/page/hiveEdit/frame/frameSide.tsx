@@ -1,19 +1,19 @@
 import React from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { gql, useMutation, useQuery } from '@/components/api'
-import { getFrameSide } from '@/components/models/frameSide'
-import { getFrameSideFile, updateFrameSideFile } from '@/components/models/frameSideFile'
-import { getFile } from '@/components/models/files'
+import { gql, useMutation, useQuery } from '../../../api'
+import { getFrameSide } from '../../../models/frameSide.ts'
+import { getFrameSideFile, updateFrameSideFile } from '../../../models/frameSideFile.ts'
+import { getFile } from '../../../models/files.ts'
 
-import Loading from '@/components/shared/loader'
-import ErrorMessage from '@/components/shared/messageError'
+import Loading from '../../../shared/loader'
+import ErrorMessage from '../../../shared/messageError'
 
 import UploadFile from './uploadFile'
-import FRAME_SIDE_QUERY from './_api/getFrameFileObjectsQuery.graphql'
-import MessageNotFound from '@/components/shared/messageNotFound'
-import FrameSideDrawing from './frameSideDrawing'
-import metrics from '@/components/metrics'
-import T from '@/components/shared/translate'
+import FRAME_SIDE_QUERY from './_api/getFrameFileObjectsQuery.graphql.ts'
+import MessageNotFound from '../../../shared/messageNotFound'
+import FrameSideDrawing from './frameSideDrawing.tsx'
+import metrics from '../../../metrics.tsx'
+import T from '../../../shared/translate'
 
 export default function FrameSide({
 	hiveId,

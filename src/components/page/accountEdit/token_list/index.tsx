@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 
-import ErrorMsg from '@/components/shared/messageError'
-import Button from '@/components/shared/button';
-import { gql, useQuery, useMutation } from '@/components/api/index'
-import Loader from '@/components/shared/loader'
-import T from '@/components/shared/translate';
-import KeyIcon from '@/components/icons/key';
+import ErrorMsg from '../../../shared/messageError'
+import Button from '../../../shared/button';
+import { gql, useQuery, useMutation } from '../../../api'
+import Loader from '../../../shared/loader'
+import T from '../../../shared/translate';
+import KeyIcon from '../../../icons/key.tsx';
 
-import style from './style.less'
-import CopyButton from '@/components/shared/copyButton';
+import style from './style.module.less'
+import CopyButton from '../../../shared/copyButton';
 
 const TOKEN_QUERY = gql`
 {

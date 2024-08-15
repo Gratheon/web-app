@@ -1,7 +1,7 @@
 import { db, upsertEntityWithNumericID } from './db'
-import { FrameSideCells } from './frameSideCells'
-import { FrameSideFile } from './frameSideFile'
-import { Frame } from './frames'
+import { FrameSideCells } from './frameSideCells.ts'
+import { FrameSideFile } from './frameSideFile.ts'
+import { Frame } from './frames.ts'
 
 export type FrameSide = {
 	id: number

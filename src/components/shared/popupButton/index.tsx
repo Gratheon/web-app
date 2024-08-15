@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
-import style from './index.less'
+import style from './index.module.less'
 import Button from '../button'
-import Dots3Icon from '@/components/icons/dots3'
+import Dots3Icon from '../../icons/dots3.tsx'
 
 const useOutsideClickHandler = (ref: any, callback: any) => {
 	useEffect(() => {

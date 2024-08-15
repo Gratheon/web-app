@@ -1,8 +1,8 @@
 import React from 'react'
 
-import WarnIcon from '@/components/icons/warn'
+import WarnIcon from '../../icons/warn.tsx'
 
-import styles from './index.less'
+import styles from './index.module.less'
 
 export default function MessageSuccess({ title = 'Saved!', message = '', isWarning=false }:{title?:any, message?:any, isWarning?:boolean}) {
 	return (

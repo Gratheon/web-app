@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { FileResize } from "./fileResize";
+import { FileResize } from "./fileResize.ts";
 
 export type File = {
 	id: number

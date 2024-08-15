@@ -1,22 +1,22 @@
 import React, { useState } from 'react'
 
-import FramesIcon from '@/components/icons/framesIcon'
+import FramesIcon from '../../../../../icons/framesIcon.js'
 
-import { useMutation } from '@/components/api'
+import { useMutation } from '../../../../../api'
 
 import {
 	countBoxFrames,
 	frameTypes,
 	addFrame,
-} from '@/components/models/frames'
-import FoundationIcon from '@/components/icons/foundationIcon'
-import T from '@/components/shared/translate'
-import metrics from '@/components/metrics'
-import EmptyFrameIcon from '@/components/icons/emptyFrameIcon'
-import FeederIcon from '@/components/icons/feederIcon'
-import PartitionIcon from '@/components/icons/partitionIcon'
-import Button from '@/components/shared/button'
-import { PopupButton, PopupButtonGroup } from '@/components/shared/popupButton'
+} from '../../../../../models/frames.ts'
+import FoundationIcon from '../../../../../icons/foundationIcon.js'
+import T from '../../../../../shared/translate'
+import metrics from '../../../../../metrics.tsx'
+import EmptyFrameIcon from '../../../../../icons/emptyFrameIcon.tsx'
+import FeederIcon from '../../../../../icons/feederIcon.tsx'
+import PartitionIcon from '../../../../../icons/partitionIcon.tsx'
+import Button from '../../../../../shared/button'
+import { PopupButton, PopupButtonGroup } from '../../../../../shared/popupButton'
 
 export default function FrameButtons({ box, onError }) {
 	let [addFrameMutation] =

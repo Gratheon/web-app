@@ -1,8 +1,7 @@
-import React from 'react'
 import PropTypes from 'prop-types'
 import Helmet from 'react-helmet'
 
-function SEO({ description, lang, meta, title, author }) {
+function SEO({ description, lang, meta, title, author }: any) {
 	const metaDescription = description
 
 	return (

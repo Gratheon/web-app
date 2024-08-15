@@ -1,10 +1,10 @@
 import Hls from 'hls.js';
 import React, { useEffect, RefObject } from 'react';
-import styles from './style.less'
+import styles from './style.module.less'
 import { format } from 'date-fns';
 import {de, et, fr, pl, ru, tr} from 'date-fns/locale'
 import { useLiveQuery } from 'dexie-react-hooks';
-import { getUser } from '@/components/models/user';
+import { getUser } from '../../../../models/user.ts';
 const loadedDateLocales = { de, et, fr, pl, ru, tr }
 
 function ReactHlsPlayer({

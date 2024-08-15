@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import style from './style.less';
+import style from './style.module.less';
+import beeURL from "@/assets/bee-side.png"
 
 const Bee = ({ position, intervalMs = 3000 }) => {
 	const [left, setLeft] = useState(position);
@@ -23,7 +24,7 @@ const Bee = ({ position, intervalMs = 3000 }) => {
 
 	return (
 		<img
-			src="/assets/bee-side.png"
+			src={beeURL}
 			style={`left: ${left}%;animation-duration:${intervalMs}ms`}
 			className={classes}
 		/>

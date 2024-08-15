@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/react";
 import { Dedupe } from "@sentry/integrations";
 
-import isDev from './isDev'
+import isDev from './isDev.ts'
 
 export default function initErrorReporting() {
 	if (isDev()) {

@@ -1,18 +1,18 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { gql, useMutation } from '@/components/api'
+import { gql, useMutation } from '../../api'
 
-import Map from '@/components/shared/map'
-import VisualForm from '@/components/shared/visualForm'
-import ErrorMsg from '@/components/shared/messageError'
-import VisualFormSubmit from '@/components/shared/visualForm/VisualFormSubmit'
-import Button from '@/components/shared/button'
-import T, { useTranslation } from '@/components/shared/translate'
-import metrics from '@/components/metrics'
+import Map from '../../shared/map'
+import VisualForm from '../../shared/visualForm'
+import ErrorMsg from '../../shared/messageError'
+import VisualFormSubmit from '../../shared/visualForm/VisualFormSubmit'
+import Button from '../../shared/button'
+import T, { useTranslation } from '../../shared/translate'
+import metrics from '../../metrics.tsx'
 
-import style from './style.less'
-import LocationMarker from '@/components/icons/locationMarker'
+import style from './style.module.less'
+import LocationMarker from '../../icons/locationMarker.tsx'
 
 export default function ApiaryEditForm() {
 	let navigate = useNavigate()

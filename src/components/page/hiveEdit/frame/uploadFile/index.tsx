@@ -3,16 +3,16 @@ import React from 'react'
 
 import { useState } from 'react'
 
-import { useUploadMutation, gql } from '@/components/api'
-import ErrorMessage from '@/components/shared/messageError'
-import Loader from '@/components/shared/loader'
+import { useUploadMutation, gql } from '../../../../api'
+import ErrorMessage from '../../../../shared/messageError'
+import Loader from '../../../../shared/loader'
 
-import UploadIcon from '@/components/icons/uploadIcon'
-import { updateFile } from '@/components/models/files'
+import UploadIcon from '../../../../icons/uploadIcon.js'
+import { updateFile } from '../../../../models/files.ts'
 
-import DragAndDrop from './dragDrop'
-import styles from './index.less'
-import T from '@/components/shared/translate'
+import DragAndDrop from './dragDrop.tsx'
+import styles from './index.module.less'
+import T from '../../../../shared/translate'
 
 export default function UploadFile({ onUpload }) {
 	//todo

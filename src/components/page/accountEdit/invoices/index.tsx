@@ -1,10 +1,9 @@
-import React from 'react'
 import { format } from 'date-fns'
 
-import { gql, useQuery } from '@/components/api'
-import Loading from '@/components/shared/loader'
-import MessageError from '@/components/shared/messageError'
-import Button from '@/components/shared/button'
+import { gql, useQuery } from '../../../api'
+import Loading from '../../../shared/loader'
+import MessageError from '../../../shared/messageError'
+import Button from '../../../shared/button'
 
 export default function Invoices() {
 	let {

@@ -1,4 +1,4 @@
-import isDev from './isDev';
+import isDev from './isDev.ts';
 import * as amplitude from '@amplitude/analytics-browser'
 
 

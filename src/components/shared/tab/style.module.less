@@ -1,0 +1,28 @@
+@import '@/components/layout.module.less';
+@import '@/components/colors.module.less';
+
+.tab {
+	border-radius: 5px;
+	display: inline;
+	padding: 8px 15px;
+	cursor: pointer;
+}
+
+.selected {
+	background: @color-green;
+	color: white;
+}
+.tabBar {
+	display: flex;
+	flex-wrap: wrap;
+	padding-left: 5px;
+}
+
+@media @tabletAndUp {
+	.tab {
+		border-radius: 5px 5px 0 0;
+	}
+	.tabBar {
+		padding-left: 20px;
+	}
+}

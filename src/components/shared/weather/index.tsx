@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { gql, useQuery } from '@/components/api'
+import { gql, useQuery } from '../../api'
 import Loading from '../loader'
 import Forecast from './forecast'
 import ErrorMsg from '../messageError'

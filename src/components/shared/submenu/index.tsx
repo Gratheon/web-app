@@ -1,6 +1,6 @@
-import InspectionIcon from '@/components/icons/inspection'
+import InspectionIcon from '../../icons/inspection.tsx'
 import T from '../translate'
-import styles from './index.less'
+import styles from './index.module.less'
 import { NavLink } from 'react-router-dom'
 
 export default function SubMenu({ inspectionCount, currentUrl, inspectionsUrl }) {

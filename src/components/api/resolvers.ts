@@ -1,4 +1,4 @@
-import { getFrames } from '@/components/models/frames';
+import { getFrames } from '../models/frames.ts';
 
 // these are the resolvers for the graphql schema
 // used by urql to fetch data from the indexdb in offline mode

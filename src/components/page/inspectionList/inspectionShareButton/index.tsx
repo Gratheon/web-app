@@ -1,12 +1,12 @@
 import { useState } from "react"
 
-import { gql, useMutation } from "@/components/api"
-import CopySuccess from "@/components/icons/copySuccess"
-import ShareIcon from "@/components/icons/share"
-import Button from "@/components/shared/button"
-import MessageSuccess from "@/components/shared/messageSuccess"
-import T from "@/components/shared/translate"
-import ErrorMsg from "@/components/shared/messageError"
+import { gql, useMutation } from "../../../api"
+import CopySuccess from "../../../icons/copySuccess.tsx"
+import ShareIcon from "../../../icons/share.tsx"
+import Button from "../../../shared/button"
+import MessageSuccess from "../../../shared/messageSuccess"
+import T from "../../../shared/translate"
+import ErrorMsg from "../../../shared/messageError"
 
 
 export default function InspectionShareButton({

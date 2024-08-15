@@ -1,4 +1,4 @@
-import { grafanaUri } from '@/components/uri'
+import { grafanaUri } from '../../uri.ts'
 import React from 'react'
 
 

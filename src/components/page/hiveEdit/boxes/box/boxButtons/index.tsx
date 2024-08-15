@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 
-import DeleteIcon from '@/components/icons/deleteIcon'
+import DeleteIcon from '../../../../../icons/deleteIcon.js'
 
-import DownIcon from '@/components/icons/downIcon'
-import UpIcon from '@/components/icons/upIcon'
-import { useMutation } from '@/components/api'
+import DownIcon from '../../../../../icons/downIcon.js'
+import UpIcon from '../../../../../icons/upIcon.js'
+import { useMutation } from '../../../../../api'
 
 import {
 	removeBox,
@@ -13,9 +13,9 @@ import {
 	getBoxAtPositionAbove,
 	getBoxAtPositionBelow,
 	getBox,
-} from '@/components/models/boxes'
-import ButtonWithHover from '@/components/shared/buttonWithHover'
-import T from '@/components/shared/translate'
+} from '../../../../../models/boxes.ts'
+import ButtonWithHover from '../../../../../shared/buttonWithHover'
+import T from '../../../../../shared/translate'
 
 export default function BoxButtons({ box, onError }) {
 	let buttonDirections = useLiveQuery(async () => {

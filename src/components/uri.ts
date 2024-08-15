@@ -1,5 +1,5 @@
-import isDev from './isDev'
-import { USE_PROD_BACKEND_FOR_DEV } from '../config/index'
+import isDev from './isDev.ts'
+import { USE_PROD_BACKEND_FOR_DEV } from '../config'
 
 export function grafanaUri() {
 	let uri = 'https://grafana.gratheon.com/'

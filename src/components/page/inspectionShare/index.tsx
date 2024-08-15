@@ -1,6 +1,6 @@
-import InspectionView from "@/components/page/inspectionList/inspectionView";
+import InspectionView from "../inspectionList/inspectionView";
 import {useParams} from "react-router-dom";
-import {saveShareToken} from "@/components/user";
+import {saveShareToken} from "../../user.ts";
 
 export default function InspectionShare() {
     let {apiaryId, hiveId, boxId, inspectionId, shareToken} = useParams()

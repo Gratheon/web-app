@@ -4,16 +4,16 @@ import { Container, Draggable } from '@edorivai/react-smooth-dnd'
 import { useNavigate } from 'react-router-dom'
 import { useLiveQuery } from "dexie-react-hooks";
 
-import { gql, useMutation, useQuery, useSubscription } from '@/components/api'
-import { getFrames, moveFrame } from '@/components/models/frames'
-import { enrichFramesWithSides } from '@/components/models/frameSide'
-import ErrorMessage from '@/components/shared/messageError'
-import Loader from '@/components/shared/loader'
+import { gql, useMutation, useQuery, useSubscription } from '../../../../api'
+import { getFrames, moveFrame } from '../../../../models/frames.ts'
+import { enrichFramesWithSides } from '../../../../models/frameSide.ts'
+import ErrorMessage from '../../../../shared/messageError'
+import Loader from '../../../../shared/loader'
 
-import styles from './index.less'
+import styles from './index.module.less'
 import Frame from './boxFrame'
-import FRAMES_QUERY from './framesQuery.graphql'
-import { enrichFramesWithSideCells, getFrameSideCells, newFrameSideCells, updateFrameSideCells, updateFrameStat } from '@/components/models/frameSideCells';
+import FRAMES_QUERY from './framesQuery.graphql.ts'
+import { enrichFramesWithSideCells, getFrameSideCells, newFrameSideCells, updateFrameSideCells, updateFrameStat } from '../../../../models/frameSideCells.ts';
 
 type BoxType = {
 	box: any

@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import Button from '@/components/shared/button';
-import T from '@/components/shared/translate';
-import isDev from '@/components/isDev';
+import Button from '../../../shared/button';
+import T from '../../../shared/translate';
+import isDev from '../../../isDev.ts';
 
 async function analyzeCrops({ lat, lng }) {
 	// Define the URL of your backend API

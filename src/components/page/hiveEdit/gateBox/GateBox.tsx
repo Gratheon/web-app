@@ -1,6 +1,6 @@
-import CameraCapture from '@/components/page/hiveEdit/gateBox/cameraCapture';
-import { gql, useQuery } from '@/components/api';
-import styles from './styles.less';
+import CameraCapture from './cameraCapture';
+import { gql, useQuery } from '../../../api';
+import styles from './styles.module.less';
 import StreamPlayer from './streamPlayer';
 
 export default function GateBox({ boxId }) {

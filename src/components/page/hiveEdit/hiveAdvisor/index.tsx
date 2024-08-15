@@ -1,18 +1,20 @@
-import { gql, useMutation, useQuery } from "@/components/api";
-import Button from "@/components/shared/button";
-import Loader from "@/components/shared/loader";
-import ErrorMsg from "@/components/shared/messageError";
+import { gql, useMutation, useQuery } from "../../../api";
+import Button from "../../../shared/button";
+import Loader from "../../../shared/loader";
+import ErrorMsg from "../../../shared/messageError";
 
-import style from "./style.less"
+import style from "./style.module.less"
+import beekeeperURL from "@/assets/beekeeper.png"
+
 import { useState } from "react";
-import { getUser } from "@/components/models/user";
-import { getHive } from "@/components/models/hive";
-import { getBoxes } from "@/components/models/boxes";
-import { getFamilyByHive } from "@/components/models/family";
-import { getFrames } from "@/components/models/frames";
-import { getFrameSideCells } from "@/components/models/frameSideCells";
-import { getFrameSideFile } from "@/components/models/frameSideFile";
-import T from "@/components/shared/translate";
+import { getUser } from "../../../models/user.ts";
+import { getHive } from "../../../models/hive.ts";
+import { getBoxes } from "../../../models/boxes.ts";
+import { getFamilyByHive } from "../../../models/family.ts";
+import { getFrames } from "../../../models/frames.ts";
+import { getFrameSideCells } from "../../../models/frameSideCells.ts";
+import { getFrameSideFile } from "../../../models/frameSideFile.ts";
+import T from "../../../shared/translate";
 
 export default function HiveAdvisor({ hiveId, apiary, hive }) {
 	let [saving, setSaving] = useState(false);
@@ -46,7 +48,7 @@ mutation generateHiveAdvice($hiveID: ID, $adviceContext: JSON, $langCode: String
 			</div>
 
 			<div style="padding: 16px;text-align:center;min-width:100px;">
-				<img src="/assets/beekeeper.png" style="width:60px; height: 60px;" />
+				<img src={beekeeperURL} style="width:60px; height: 60px;" />
 				<br />
 
 				<Button onClick={async () => {

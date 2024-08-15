@@ -1,5 +1,5 @@
 import React from 'react'
-import styles from './index.less'
+import styles from './index.module.less'
 import { NavLink } from 'react-router-dom'
 
 export default function BreadCrumbs({ items, children }) {

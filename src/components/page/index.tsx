@@ -15,6 +15,7 @@ import AccountAuth from './accountAuth'
 import AccountRegister from './accountRegister'
 import Grafana from './grafana'
 import InspectionList from './inspectionList'
+import InspectionShare from "@/components/page/inspectionShare";
 
 function LoggedInPage({ children }) {
 	const navigate = useNavigate()
@@ -32,20 +33,24 @@ function LoggedInPage({ children }) {
 		return null
 	}
 
-	return <div style={{ display: 'flex', flexDirection: 'column', height: "100%" }}>
-		<Menu isLoggedIn={isLoggedIn()} />
-		<div style={{ flex: 1 }}>
+	return PageWithMenu({children})
+}
+
+function PageWithMenu({children}) {
+	return <div style={{display: 'flex', flexDirection: 'column', height: "100%"}}>
+		<Menu isLoggedIn={isLoggedIn()}/>
+		<div style={{flex: 1}}>
 			{children}
 		</div>
-		<Footer />
+		<Footer/>
 	</div>
 }
 
 
-function LoggedOutPage({ children }) {
+function LoggedOutPage({children}) {
 	const navigate = useNavigate()
 
-	if(isLoggedIn()){
+	if (isLoggedIn()) {
 		React.useEffect(
 			() => {
 				// redirect to last attempt as anonymous user
@@ -110,8 +115,8 @@ export default function Page() {
 				element={<LoggedInPage><InspectionList /></LoggedInPage>}
 			/>
 
-			<Route path="/apiaries/:apiaryId/hives/:hiveId/inspections/:inspectionId/share/:shareId" 
-				element={<LoggedOutPage>SHARED INSPECTION VIEW</LoggedOutPage>} />
+			<Route path="/apiaries/:apiaryId/hives/:hiveId/inspections/:inspectionId/share/:shareToken"
+				element={<PageWithMenu><InspectionShare /></PageWithMenu>} />
 
 			<Route path="/account" element={<LoggedInPage><AccountEdit /></LoggedInPage>} />
 			<Route path="/account/:stripeStatus" element={<LoggedInPage><AccountEdit /></LoggedInPage>} />

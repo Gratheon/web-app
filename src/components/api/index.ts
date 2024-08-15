@@ -11,9 +11,8 @@ import {
 } from 'urql'
 import { multipartFetchExchange } from '@urql/exchange-multipart-fetch'
 
-import { getToken } from '@/components/user'
+import {getShareToken, getToken} from '@/components/user'
 import { gatewayUri, imageUploadUrl, subscriptionUri } from '@/components/uri'
-import { syncGraphqlSchemaToIndexDB } from '@/components/models/db'
 import { writeHooks } from '@/components/models/db/writeHooks'
 
 import { schemaObject } from './schema'
@@ -33,6 +32,7 @@ const graphqlWsClient = createClient({
 
 	connectionParams: {
 		token: getToken(),
+		// shareToken: getShareToken(),
 	},
 })
 
@@ -61,7 +61,10 @@ const apiClient = createUrqlClient({
 	],
 	fetchOptions: () => {
 		return {
-			headers: { token: getToken() },
+			headers: {
+				token: getToken(),
+				// shareToken: getShareToken(),
+			},
 		}
 	}
 })

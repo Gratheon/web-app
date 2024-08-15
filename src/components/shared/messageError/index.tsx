@@ -19,9 +19,22 @@ export default function ErrorMsg({ key=null, error, borderRadius=5 }) {
 		error
 	})
 
+	if (error && error?.networkError) {
+		return (
+			<div className={styles.errorMsgSmall}>
+				<div style="width:24px"><BearIcon size={24} /></div>
+				<div className={styles.message}>
+					<h3>{error.name}</h3>
+					<pre>{error?.stack}</pre>
+				</div>
+				<DeleteIcon size={24} onClick={() => { setVisible(false) }} />
+			</div>
+		)
+	}
+
 	if (error && error?.response?.status >= 500) {
 		return (
-			<div className={error?.graphQLErrors ? styles.errorMsgBig : styles.errorMsgSmall}>
+			<div className={styles.errorMsgSmall}>
 				<div style="width:24px"><BearIcon size={24} /></div>
 				<div className={styles.message}>
 					<h3>Server error</h3>

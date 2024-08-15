@@ -6,7 +6,6 @@ import HiveBoxes from '@/components/shared/hiveBoxes'
 import {Inspection, InspectionSnapshot} from '@/components/models/inspections'
 import {upsertFrameSide} from '@/components/models/frameSide'
 import {upsertFrame} from '@/components/models/frames'
-import InspectionShare from '../../hiveShare'
 import {Hive} from "@/components/models/hive";
 
 type InspectionViewProps = {
@@ -24,6 +23,7 @@ export default function InspectionView({
         loading: loadingGet,
         error: errorGet,
         data: inspectionGet,
+        errorNetwork
     } = useQuery(INSPECTION_QUERY, {
         variables: {
             inspectionId: inspectionId,
@@ -35,8 +35,10 @@ export default function InspectionView({
         return <Loading/>
     }
 
-    if (errorGet) {
-        return <ErrorMsg error={errorGet}/>
+    console.log({errorNetwork})
+
+    if (errorGet || errorNetwork) {
+        return <ErrorMsg error={errorGet || errorNetwork}/>
     }
 
     //@ts-ignore
@@ -61,12 +63,11 @@ export default function InspectionView({
 
     return (
         <div>
-            <InspectionShare apiaryId={apiaryId} hiveId={hiveId} inspectionId={inspectionId}/>
             <HiveBoxes
                 boxes={inspectionData?.boxes}
 
                 inspectionId={inspectionId}
-                hiveId={hive.id}
+                hiveId={hive?.id}
                 apiaryId={apiaryId}
                 boxId={null}
                 frameId={null}

@@ -25,6 +25,7 @@ import INSPECTION_QUERY from './inspectionQuery.graphql'
 import InspectionBar from './inspectionBar'
 import InspectionView from './inspectionView'
 import styles from './styles.less'
+import InspectionShareButton from './inspectionShareButton'
 
 export default function InspectionList() {
 	let { apiaryId, hiveId, boxId, inspectionId } = useParams()
@@ -136,6 +137,7 @@ export default function InspectionList() {
 					</div>
 
 					<div>
+						<InspectionShareButton apiaryId={apiaryId} hiveId={hiveId} inspectionId={inspectionId}/>
 						{inspectionId && <InspectionView
 							apiaryId={apiaryId}
 							hiveId={hive.id}

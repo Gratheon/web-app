@@ -139,12 +139,12 @@ export default function ApiaryEditForm() {
 		setName(e.target.value)
 	}
 
-	let estonia_plane_map;
+	let estonia_plane_map=null;
 
 	// conditionally show Estonia
 	if (lng > 21 && lng < 28 && lat > 57 && lat < 60) {
 		let [y, x] = wgs84ToLest97(lat, lng)
-		estonia_plane_map = <iframe style="width:100%;height:400px; border:0;" src={`https://kls.pria.ee/kaart/#map=12/${x}/${y}`}></iframe>
+		estonia_plane_map = <Button href={`https://kls.pria.ee/kaart/#map=12/${x}/${y}`}>Estonia PRIA map</Button>
 	}
 
 	let satellite_map = <iframe style="width:100%;height:400px; border:0;" src={`https://apps.sentinel-hub.com/eo-browser/?zoom=15&lat=${lat}&lng=${lng}&themeId=DEFAULT-THEME&visualizationUrl=https%3A%2F%2Fservices.sentinel-hub.com%2Fogc%2Fwms%2Fbd86bcc0-f318-402b-a145-015f85b9427e&datasetId=S2L2A&fromTime=2023-09-14T00%3A00%3A00.000Z&toTime=2023-09-14T23%3A59%3A59.999Z&layerId=2_TONEMAPPED_NATURAL_COLOR&demSource3D=%22MAPZEN%22`}></iframe>
@@ -183,12 +183,13 @@ export default function ApiaryEditForm() {
 							}}
 						><LocationMarker/><span><T>Locate me</T></span></Button>
 
+						{estonia_plane_map}
+
 					</VisualFormSubmit>
 				</VisualForm>
 			</div>
 			<TabBar>
 				<Tab isSelected={mapTab == 0} onClick={() => { setMapTab(0) }}><T>Position</T></Tab>
-				<Tab isSelected={mapTab == 2} onClick={() => { setMapTab(2) }}><T>Orthophoto</T></Tab>
 				<Tab isSelected={mapTab == 1} onClick={() => { setMapTab(1) }}><T>Satellite</T></Tab>
 				<Tab isSelected={mapTab == 3} onClick={() => { setMapTab(3) }}><T>Moisture</T></Tab>
 				<Tab isSelected={mapTab == 4} onClick={() => { setMapTab(4) }}><T>Pollination</T></Tab>
@@ -205,7 +206,6 @@ export default function ApiaryEditForm() {
 				/>}
 
 				{mapTab == 1 && satellite_map}
-				{mapTab == 2 && estonia_plane_map}
 				{mapTab == 3 && moisture_map}
 				{mapTab == 4 && <PollinationTab lat={lat} lng={lng} />}
 			</div>

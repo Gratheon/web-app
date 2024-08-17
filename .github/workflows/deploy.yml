@@ -1,8 +1,9 @@
 name: deploy
 on:
-  push:
-    branches: main
-  workflow_dispatch:
+  workflow_run:
+    workflows: ["Unit tests"]
+    types:
+      - completed
 
 jobs:
   deploy:

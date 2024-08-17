@@ -62,12 +62,18 @@ export default function Boxes({
     }
 
     function onBoxClick({event, boxId}) {
-        // match only background div to consider it as a selection to avoid overriding redirect to frame click
+        // whitelist boxes that can be clicked on
+        // so that we don't redirect when clicking on the background div
         if (
             typeof event.target.className === 'string' &&
             event.target.className.length > 0 &&
-            (event.target.className.indexOf('box') >= 0 ||
-                event.target.className.indexOf('gate') >= 0)
+            (
+                event.target.className.indexOf('ventilation') >= 0 ||
+                event.target.className.indexOf('excluder') >= 0 ||
+                event.target.className.indexOf('feeder') >= 0 ||
+                event.target.className.indexOf('box') >= 0 ||
+                event.target.className.indexOf('gate') >= 0
+            )
         ) {
             event.stopPropagation()
             navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`, {

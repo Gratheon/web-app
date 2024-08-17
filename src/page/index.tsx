@@ -1,8 +1,8 @@
 import React from 'react'
 import { Routes, Route, useNavigate } from 'react-router'
 
-import Menu from '../menu'
-import Footer from '../footer'
+import Menu from '../shared/menu'
+import Footer from '../shared/footer'
 import { isLoggedIn } from '../user'
 
 import ApiaryCreate from './apiaryCreate'

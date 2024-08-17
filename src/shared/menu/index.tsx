@@ -3,12 +3,12 @@ import React from 'react'
 import { NavLink } from 'react-router-dom'
 
 import Header from '../header'
-import { logout } from '../user.ts'
-import { getAppUri } from '../uri.ts'
-import T from '../shared/translate'
-import Avatar from '../shared/avatar'
+import { logout } from '../../user.ts'
+import { getAppUri } from '../../uri.ts'
+import T from '../translate'
+import Avatar from '../avatar'
 
-import isDev from '../isDev.ts'
+import isDev from '../../isDev.ts'
 import styles from './styles.module.less'
 
 async function onLogoutClick() {

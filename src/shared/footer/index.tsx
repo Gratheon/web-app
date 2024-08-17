@@ -1,8 +1,8 @@
 import React from 'react'
 
-import { graphqlWsClient } from '../api'
-import isDev from '../isDev.ts'
-import T from '../shared/translate'
+import { graphqlWsClient } from '../../api'
+import isDev from '../../isDev.ts'
+import T from '../translate'
 
 import ConnectionStatus from './connectionStatus'
 import styles from './styles.module.less'

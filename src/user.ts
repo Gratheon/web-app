@@ -42,6 +42,17 @@ export async function logout() {
 	} catch (e) {
 		console.error(e)
 	}
+
+	// logout from support chat
+	try{
+		window?.Tawk_API?.logout(
+			function(error){
+				console.error(error)
+			}
+		);
+	} catch (e) {
+		console.error(e)
+	}
 }
 
 function getCookie(name) {

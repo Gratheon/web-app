@@ -35,6 +35,7 @@ export default function Footer() {
             </li>
             <li>
                 <a style="text-decoration: underline; cursor:pointer;" onClick={() => {
+                    //@ts-ignore
                     window?.Tawk_API.start();
                 }}>Support</a>
             </li>

@@ -45,6 +45,7 @@ export async function logout() {
 
 	// logout from support chat
 	try{
+		//@ts-ignore
 		window?.Tawk_API?.logout(
 			function(error){
 				console.error(error)

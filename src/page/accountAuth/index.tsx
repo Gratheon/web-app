@@ -1,20 +1,23 @@
 import React, {useState} from 'react'
-import {gql, useMutation} from '../../api'
-import metrics from '../../metrics.tsx'
-import {useNavigate} from 'react-router'
-import logoURL from '@/assets/logo_v7.svg'
-
-import Loader from '../../shared/loader'
-import ErrorMsg from '../../shared/messageError'
-import Button from '../../shared/button'
-import {saveToken} from '../../user.ts'
-import T from '../../shared/translate'
-import VisualFormSubmit from '../../shared/visualForm/VisualFormSubmit'
 import {Link} from 'react-router-dom'
+import {useNavigate} from 'react-router'
+
+import isDev from '@/isDev'
+import {TAWKTO_TOKEN} from "@/config";
+import {gql, useMutation} from '@/api'
+
+import metrics from '@/metrics'
+
+import logoURL from '@/assets/logo_v7.svg'
+import Loader from '@/shared/loader'
+import ErrorMsg from '@/shared/messageError'
+import Button from '@/shared/button'
+import T from '@/shared/translate'
+
+import VisualFormSubmit from '@/shared/visualForm/VisualFormSubmit'
+import {saveToken} from '@/user'
 
 import style from './styles.module.less'
-import isDev from '../../isDev.ts'
-import {TAWKTO_TOKEN} from "@/config";
 
 type Account = {
     email?: string
@@ -97,10 +100,12 @@ export default function AccountAuth() {
         saveToken(data.login.key)
 
         if (data.login.user.id) metrics.setUserId(data.login.user.id);
-        metrics.trackLogin()
+
+        metrics.trackLogin();
 
 
         (async () => {
+            //@ts-ignore
             window?.Tawk_API?.login({
                 hash: await sha1(data.login.user.id + TAWKTO_TOKEN),            // required
                 userId: data.login.user.id,            // required

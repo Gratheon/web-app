@@ -12,7 +12,8 @@
     "build-move": "mv dist/* public",
     "serve": "sirv build --cors --single",
     "prettier": "prettier --write --ignore-unknown .",
-    "test": "jest --config test/jest.config.ts --runInBand --color",
+    "test": "npm run test:unit",
+    "test:unit": "jest --config test/jest.config.ts --runInBand --color",
     "test:e2e:write": "./node_modules/.bin/cypress open"
   },
   "dependencies": {

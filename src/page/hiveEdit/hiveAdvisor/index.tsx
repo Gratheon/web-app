@@ -1,107 +1,108 @@
-import { gql, useMutation, useQuery } from "../../../api";
-import Button from "../../../shared/button";
-import Loader from "../../../shared/loader";
-import ErrorMsg from "../../../shared/messageError";
+import {useState} from "react";
+
+import {gql, useMutation, useQuery} from "@/api";
+import Button from "@/shared/button";
+import Loader from "@/shared/loader";
+import ErrorMsg from "@/shared/messageError";
+import T from "@/shared/translate";
+
+import {getUser} from "@/models/user";
+import {getHive} from "@/models/hive";
+import {getBoxes} from "@/models/boxes";
+import {getFamilyByHive} from "@/models/family";
+import {getFrames} from "@/models/frames";
+import {getFrameSideCells} from "@/models/frameSideCells";
+import {getFrameSideFile} from "@/models/frameSideFile";
 
 import style from "./style.module.less"
 import beekeeperURL from "@/assets/beekeeper.png"
 
-import { useState } from "react";
-import { getUser } from "../../../models/user.ts";
-import { getHive } from "../../../models/hive.ts";
-import { getBoxes } from "../../../models/boxes.ts";
-import { getFamilyByHive } from "../../../models/family.ts";
-import { getFrames } from "../../../models/frames.ts";
-import { getFrameSideCells } from "../../../models/frameSideCells.ts";
-import { getFrameSideFile } from "../../../models/frameSideFile.ts";
-import T from "../../../shared/translate";
-
-export default function HiveAdvisor({ hiveId, apiary, hive }) {
-	let [saving, setSaving] = useState(false);
-	let { loading, error: errorGet, data } = useQuery(gql`
+export default function HiveAdvisor({hiveId, apiary, hive}) {
+    let [saving, setSaving] = useState(false);
+    let {loading, error: errorGet, data: existingAdvice} = useQuery(gql`
 		query apiary($hiveID: ID!) {
 			getExistingHiveAdvice(hiveID: $hiveID)
-		}`, { variables: { hiveID: +hiveId } })
+		}`, {variables: {hiveID: +hiveId}})
 
-	let [generateAdvice, { error: mutateError, data: data2 }] = useMutation(gql`
+    let [generateAdvice, {error: mutateError, data: generatedAdvice}] = useMutation(gql`
 mutation generateHiveAdvice($hiveID: ID, $adviceContext: JSON, $langCode: String){
 	generateHiveAdvice(hiveID: $hiveID, adviceContext: $adviceContext, langCode: $langCode)
 }
 `)
 
-	let showLoader = (loading || saving)
-	return <div>
-		<ErrorMsg error={errorGet || mutateError} />
+    let showLoader = (loading || saving)
+    return <>
+        <ErrorMsg error={errorGet || mutateError}/>
 
-		<div className={style.wrap}>
-			<div style={`flex-grow:1; text-align:center;${data?.getExistingHiveAdvice ? '' : 'margin-top:50px;'}`}>
-				{showLoader && <Loader />}
+        <div className={style.wrap}>
+            {showLoader && <Loader/>}
 
-				{!showLoader && <div className={style.message}>
-					{!data?.getExistingHiveAdvice && <div><T>Need advice from AI?</T></div>}
 
-					{!data2 && data && data?.getExistingHiveAdvice &&
-						<div dangerouslySetInnerHTML={{ __html: data.getExistingHiveAdvice }} />}
-					{data2 && data2?.generateHiveAdvice &&
-						<div dangerouslySetInnerHTML={{ __html: data2.generateHiveAdvice }} />}
-				</div>}
-			</div>
+                <div style={`flex-grow:1; text-align:center;${existingAdvice?.getExistingHiveAdvice ? '' : 'margin-top:50px;'}`}>
+                    {!showLoader && (generatedAdvice?.generateHiveAdvice || existingAdvice?.getExistingHiveAdvice) &&
+                        <div className={style.message}>
+                        {!generatedAdvice && existingAdvice && existingAdvice?.getExistingHiveAdvice &&
+                            <div dangerouslySetInnerHTML={{__html: existingAdvice.getExistingHiveAdvice}}/>}
+                        {generatedAdvice && generatedAdvice?.generateHiveAdvice &&
+                            <div dangerouslySetInnerHTML={{__html: generatedAdvice.generateHiveAdvice}}/>}
+                        </div>
+                    }
+                </div>
 
-			<div style="padding: 16px;text-align:center;min-width:100px;">
-				<img src={beekeeperURL} style="width:60px; height: 60px;" />
-				<br />
+            <div style="padding: 16px;text-align:center;min-width:100px;">
+                <Button onClick={async () => {
+                    setSaving(true)
 
-				<Button onClick={async () => {
-					setSaving(true)
+                    const user = await getUser();
+                    const family = await getFamilyByHive(+hiveId);
+                    const hive = await getHive(+hiveId);
+                    const boxes = await getBoxes({hiveId: +hiveId})
+                    let adviceContext = {
+                        apiary,
+                        hive,
+                        family,
+                        boxes,
+                        frames: {}
+                    }
+                    for (let i in boxes) {
+                        let frames = Object.assign({}, await getFrames({boxId: +boxes[i].id}))
+                        delete boxes[i].color
 
-					const user = await getUser();
-					const family = await getFamilyByHive(+hiveId);
-					const hive = await getHive(+hiveId);
-					const boxes = await getBoxes({ hiveId: +hiveId })
-					let adviceContext = {
-						apiary,
-						hive,
-						family,
-						boxes,
-						frames: {}
-					}
-					for (let i in boxes) {
-						let frames = Object.assign({}, await getFrames({ boxId: +boxes[i].id }))
-						delete boxes[i].color
+                        for (let j in frames) {
+                            if (!frames[j].leftSide || !frames[j].rightSide) continue
 
-						for (let j in frames) {
-							if (!frames[j].leftSide || !frames[j].rightSide) continue
+                            frames[j].leftSide.cells = await getFrameSideCells(+frames[j].leftId)
+                            frames[j].rightSide.cells = await getFrameSideCells(+frames[j].rightId)
 
-							frames[j].leftSide.cells = await getFrameSideCells(+frames[j].leftId)
-							frames[j].rightSide.cells = await getFrameSideCells(+frames[j].rightId)
+                            let leftFile = await getFrameSideFile({frameSideId: +frames[j].leftId})
 
-							let leftFile = await getFrameSideFile({ frameSideId: +frames[j].leftId })
+                            //@ts-ignore
+                            frames[j].leftSide.detectedQueenCupsCount = leftFile?.detectedQueenCups.length;
+                            //@ts-ignore
+                            frames[j].leftSide.isQueenDetected = leftFile?.queenDetected;
 
-							//@ts-ignore
-							frames[j].leftSide.detectedQueenCupsCount = leftFile?.detectedQueenCups.length;
-							//@ts-ignore
-							frames[j].leftSide.isQueenDetected = leftFile?.queenDetected;
+                            let rightFile = await getFrameSideFile({frameSideId: +frames[j].rightId})
 
-							let rightFile = await getFrameSideFile({ frameSideId: +frames[j].rightId })
+                            //@ts-ignore
+                            frames[j].leftSide.detectedQueenCupsCount = rightFile?.detectedQueenCups.length;
+                            //@ts-ignore
+                            frames[j].leftSide.isQueenDetected = rightFile?.queenDetected;
+                        }
 
-							//@ts-ignore
-							frames[j].leftSide.detectedQueenCupsCount = rightFile?.detectedQueenCups.length;
-							//@ts-ignore
-							frames[j].leftSide.isQueenDetected = rightFile?.queenDetected;
-						}
+                        adviceContext['frames'][boxes[i].id] = frames
+                    }
 
-						adviceContext['frames'][boxes[i].id] = frames
-					}
+                    await generateAdvice({
+                        hiveID: hiveId,
+                        langCode: user.lang,
+                        adviceContext
+                    })
+                    setSaving(false)
 
-					await generateAdvice({
-						hiveID: hiveId,
-						langCode: user.lang,
-						adviceContext
-					})
-					setSaving(false)
-
-				}}><T>Review</T></Button>
-			</div>
-		</div>
-	</div>
+                }}>
+                    <img src={beekeeperURL} style="width:20px; height: 20px;margin-right: 2px;"/>
+                    <T>Review</T></Button>
+            </div>
+        </div>
+    </>
 }

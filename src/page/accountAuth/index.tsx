@@ -3,7 +3,6 @@ import {Link} from 'react-router-dom'
 import {useNavigate} from 'react-router'
 
 import isDev from '@/isDev'
-import {TAWKTO_TOKEN} from "@/config";
 import {gql, useMutation} from '@/api'
 
 import metrics from '@/metrics'
@@ -23,16 +22,6 @@ type Account = {
     email?: string
     password?: string
 }
-
-async function sha1(message) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(message);
-    const hashBuffer = await crypto.subtle.digest('SHA-1', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
-    return hashHex;
-}
-
 
 export default function AccountAuth() {
     let [account, setAccount] = useState<Account>({
@@ -102,18 +91,6 @@ export default function AccountAuth() {
         if (data.login.user.id) metrics.setUserId(data.login.user.id);
 
         metrics.trackLogin();
-
-
-        (async () => {
-            //@ts-ignore
-            window?.Tawk_API?.login({
-                hash: await sha1(data.login.user.id + TAWKTO_TOKEN),            // required
-                userId: data.login.user.id,            // required
-                email: account.email
-            }, function (error) {
-                console.log(error)
-            });
-        });
 
         React.useEffect(
             () => {

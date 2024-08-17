@@ -25,6 +25,7 @@
     "@urql/exchange-multipart-fetch": "1.0.1",
     "babel-polyfill": "6.26.0",
     "clipboard-copy": "4.0.1",
+    "crypto-js": "4.2.0",
     "date-fns": "2.30.0",
     "dexie": "3.2.7",
     "dexie-react-hooks": "1.1.7",

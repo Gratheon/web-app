@@ -85,14 +85,15 @@ flowchart LR
 ```
 
 ### Tech stack
-|dependency|why|
-|--|--|
-|typescript| for reliability via strict types|
-|preact (builder)| for performance|
-|react| for modularity and compatibility with other UI components|
-|react-router|for navigation|
-|urql| for performant graphql data loading|
-|dexie| for storing data to index-db on the client for offline mode|
+| dependency       | why                                                         |
+|------------------|-------------------------------------------------------------|
+| typescript       | for reliability via strict types                            |
+| preact (builder) | for performance                                             |
+| vite             | CLI builder and hot reload                                  |
+| react            | for modularity and compatibility with other UI components   |
+| react-router     | for navigation                                              |
+| urql             | for performant graphql data loading                         |
+| dexie            | for storing data to index-db on the client for offline mode |
 
 ## Development
 Running web-app as a frontend in development mode is easy.

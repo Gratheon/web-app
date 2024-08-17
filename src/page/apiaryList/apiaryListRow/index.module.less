@@ -1,0 +1,101 @@
+@import '../../../colors.module.less';
+
+table {
+	th {
+		text-align: left;
+		padding: 2px 10px;
+		border-bottom: 1px solid #eeeeee;
+	}
+
+	td {
+		text-align: left;
+		border-bottom: 1px solid #eeeeee;
+		border-right: 1px solid #eeeeee;
+		padding: 2px 10px;
+
+		&:last-child {
+			border-right: none;
+		}
+	}
+
+}
+
+.newHive{
+	background-color: green;
+	color: white;
+	padding:2px 5px;
+	margin-right: 5px;
+	margin-bottom: 5px;
+	text-transform: lowercase;
+	font-size:8px;
+	user-select: none;
+}
+
+.apiary {
+	padding: 10px 0;
+	border-bottom: 1px solid #eeeeee;
+
+	.apiaryHead {
+		display: flex;
+		width: 100%;
+
+		h2 {
+			margin-bottom: 3px;
+			flex-grow: 2;
+		}
+
+		.buttons {
+			text-align: right;
+			flex-grow: 1;
+
+			a {
+				margin-bottom: 2px;
+			}
+		}
+	}
+
+	.hives {
+		display: flex;
+		flex-flow: row wrap;
+	}
+}
+
+.hive {
+	display: flex;
+
+	// this is needed so that beehives look as if they stand on the ground
+	flex-direction: column-reverse;
+
+	padding: 10px;
+	float: left;
+	width: 80px;
+	overflow: hidden;
+	text-align: center;
+	font-size: 13px;
+	cursor: pointer;
+	border-radius: 5px;
+
+	&:hover {
+		background-color: @color-hover-bg;
+	}
+
+	a {
+		color: @color-links-blue;
+	}
+
+	.title {
+		// this is needed also so that hives look as if they stand on the ground
+		// and are matching this level
+		height: 40px;
+		line-height: 13px;
+		overflow: hidden;
+	}
+}
+
+@media only screen and (max-width: 700px) {
+	.apiary {
+		h1 {
+			font-size: 19px;
+		}
+	}
+}

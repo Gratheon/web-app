@@ -1,0 +1,47 @@
+@import '../colors.module.less';
+@import '../layout.module.less';
+
+
+#menu {
+	background-color: @color-gray-bg;
+	border-bottom: 1px solid @color-gray-border;
+	padding: 0;
+	display: flex;
+
+	ul {
+		padding: 5px;
+		display: flex;
+		list-style: none;
+		margin: auto 0;
+		flex-wrap: wrap;
+
+		li {
+			width: auto;
+			text-align:left;
+			padding: 5px 8px;
+			flex-grow:1;
+
+			text-align: center;
+
+			a {
+				color: black;
+			}
+		}
+	}
+}
+
+.active {
+	font-weight: bold;
+}
+
+// ipad and desktop
+@media all and (min-width: @maxMobileWidthPx) { 
+	#menu{
+		ul{
+			padding: 5px 10px;
+			li{
+				padding: 10px 20px;
+			}
+		}
+	}
+}

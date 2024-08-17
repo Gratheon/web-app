@@ -1,0 +1,106 @@
+@import "../../../../../layout.module.less";
+@import '@/colors.module.less';
+
+
+.position {
+	line-height: 15px;
+	border-radius: 20px;
+	background: white;
+	opacity: 0.8;
+	border: 2px solid #444;
+	height: 15px;
+	padding: 5px;
+	text-align: center;
+	display: block;
+	margin: 3px auto;
+	font-size: 13px;
+	color: black;
+
+	&.positionSelected {
+		opacity: 1;
+		border: 2px solid #000000;
+		text-shadow: 1px 1px #ffffff;
+		font-weight: bold;
+		border: 2px solid @selectedColor;
+	}
+}
+
+
+.frame {
+	margin: 10px 1px 0;
+	width: 30px;
+	border-radius: 5px;
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	height: calc(100% - 10px);
+	overflow: hidden;
+
+	box-sizing: border-box;
+
+	&.frameSelected {
+		margin-top: -5px;
+		border: 3px solid @selectedColor;
+	}
+
+	.foundationFrame {
+		border: 6px solid @frameColor;
+		border-left: none;
+		border-right: none;
+		background-color: #323232;
+		display: flex;
+		flex-grow: 1;
+	}
+
+	.foundation {
+		background-color: @foundationColor;
+		width: 2px;
+		cursor: col-resize;
+	}
+
+	.voidFrame {
+		border: 6px solid @frameColor;
+		display: flex;
+		flex-grow: 1;
+	}
+
+	.emptyComb {
+		border-top: 6px solid @frameColor;
+		display: flex;
+		flex-grow: 1;
+	}
+
+	.feeder {
+		display: flex;
+		flex-grow: 1;
+		border-left: 5px solid @frameColor;
+		border-right: 5px solid @frameColor;
+		border-bottom: 5px solid @frameColor;
+		background: white;
+		border-top: 5px transparent;
+	}
+
+	.partition {
+		display: flex;
+		flex-grow: 1;
+		background: @frameColor;
+	}
+}
+
+
+.left {
+	background: white;
+}
+
+.right {
+	background: #f9f8e9;
+}
+
+.listFrameIcon {
+	border-radius: 3px;
+	width: 100px;
+	display: flex;
+	padding: 2px;
+	height: 32px;
+	background: #EEE;
+}

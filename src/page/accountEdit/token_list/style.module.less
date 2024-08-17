@@ -1,0 +1,23 @@
+@import '../../../layout.module.less';
+@import '../../../colors.module.less';
+
+.apiToken {
+
+	.token {
+		background-color: @color-gray-bg;
+		padding: 2px 10px;
+		border-radius: 3px;
+		font-family: Consolas, Monospace;
+		margin: 0;
+		word-wrap: break-word;
+		height: 28px;
+		box-sizing: border-box;
+	}
+}
+
+// ipad and desktop
+@media @desktop {
+	.apiToken {
+		padding: 5px;
+	}
+}

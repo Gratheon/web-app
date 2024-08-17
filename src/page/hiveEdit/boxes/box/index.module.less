@@ -1,0 +1,76 @@
+@import "../../../../layout.module.less";
+
+.boxOuter {
+	background: #606060;
+	border: 3px solid;
+	border-color: #6d6d6d;
+	border-radius: 2px;
+	padding: 0;
+	display: flex;
+	opacity: 0.8;
+	flex-grow: 1;
+}
+
+.boxType_SUPER {
+	height: 80px;
+}
+
+.boxType_DEEP {
+	height: 100px;
+}
+
+@media @desktop{
+	.boxType_SUPER {
+		height: 120px;
+	}
+
+	.boxType_DEEP {
+		height: 220px;
+	}
+}
+
+.selected {
+	background: #323232;
+	opacity: 1;
+
+	.boxInner{
+		border-top: 1px solid #000;
+	}
+}
+
+
+.boxInner {
+	border-bottom: 1px solid #b3b3b3;
+	padding: 0 5px;
+	display: flex;
+	// min-width: 304px;
+	width: 100%;
+	cursor: pointer;
+	overflow: auto;
+}
+
+.boxInnerVisual {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0 5px;
+}
+
+.frameOuter {
+	height: 100%;
+	display: table-cell;
+	vertical-align: top;
+}
+
+.newFrame {
+	position: relative;
+	height: 100%;
+	width: 25px;
+
+	button {
+		position: absolute;
+		cursor: pointer;
+		height: 25px;
+		top: calc(50% - 10px);
+		border-radius: 20px;
+	}
+}

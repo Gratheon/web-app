@@ -95,9 +95,8 @@ export default function Billing({ user }) {
 
 						{!user.isSubscriptionExpired &&
 							<div>
-								<T>Expires in</T>
-								<DateTimeAgo dateString={user.date_expiration} lang={user.lang} /> &mdash;
-								<DateFormat datetime={user.date_expiration} lang={user.lang} />
+								<T>Expires in</T>&nbsp;
+								<DateTimeAgo dateString={user.date_expiration} lang={user.lang} /> ( <DateFormat datetime={user.date_expiration} lang={user.lang} /> )
 							</div>
 						}
 					</div>

@@ -11,6 +11,8 @@ type DateFormatProps = {
 }
 
 export default function DateFormat({ datetime, lang = 'en', style='' }: DateFormatProps) {
+	if(!datetime) return null
+
 	const dateLangOptions = { locale: loadedDateLocales[lang] }
 
 	return (

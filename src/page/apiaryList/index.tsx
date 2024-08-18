@@ -64,7 +64,7 @@ export default function ApiaryList(props) {
 						<ApiaryListRow key={i} apiary={apiary} user={user} />
 					))}
 
-				<div style={{ textAlign: 'center', marginTop: 20 }}>
+				<div style="text-align:center; margin: 15px 0;">
 					<Button 
 						color={apiaries && apiaries.length === 0 ? 'green' : 'white'}
 						href="/apiaries/create"><T ctx="its a button">Setup new apiary</T></Button>

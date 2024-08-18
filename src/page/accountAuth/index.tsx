@@ -109,7 +109,7 @@ export default function AccountAuth() {
 
         return <Loader/>
     } else if (data?.login?.code === 'INVALID_USERNAME_PASSWORD') {
-        errorMsg = <ErrorMsg error="Invalid email or password"/>
+        errorMsg = <ErrorMsg error={<T>Invalid email or password</T>} borderRadius={0}/>
     }
 
     if (error) {

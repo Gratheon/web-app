@@ -33,16 +33,23 @@ export default function AccountEdit() {
 	let { loading } = useQuery(gql`
 		query user {
 			user {
-				id
-				email
-				first_name
-				last_name
-				lang
-				date_expiration
-				date_added
-				hasSubscription
-				isSubscriptionExpired
-				billingPlan
+				... on User {
+					id
+					email
+					first_name
+					last_name
+					lang
+					date_expiration
+					date_added
+					hasSubscription
+					isSubscriptionExpired
+					billingPlan
+				}
+				
+							
+				... on Error {
+					code
+				}
 			}
 		}
 	`)

@@ -6,10 +6,12 @@ import { useLocation, useNavigate } from 'react-router-dom'
 const USER_QUERY = gql`
 	query user {
 		user {
-			id
-			lang
-			isSubscriptionExpired
-			billingPlan
+			... on User {
+				id
+				lang
+				isSubscriptionExpired
+				billingPlan
+			}
 		}
 	}
 `

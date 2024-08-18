@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react'
+
+import BearIcon from '@/icons/bear'
+import DeleteIcon from '@/icons/deleteIcon'
+
 import styles from './index.module.less'
-import BearIcon from '../../icons/bear.tsx'
-import DeleteIcon from '../../icons/deleteIcon.tsx'
 
 export default function ErrorMsg({ key=null, error, borderRadius=5 }) {
     const [visible, setVisible] = useState(true);
@@ -57,7 +59,7 @@ export default function ErrorMsg({ key=null, error, borderRadius=5 }) {
 							return (
 								<pre key={i}>
 									GraphQL error: {e.message}<br/>
-									{e.originalError.extensions.exception.path && <>Path: {e.originalError.extensions.exception.path?.join('.')}</>}
+									{e.originalError?.extensions.exception.path && <>Path: {e.originalError.extensions.exception.path?.join('.')}</>}
 								</pre>
 							)
 						})}
@@ -78,7 +80,7 @@ export default function ErrorMsg({ key=null, error, borderRadius=5 }) {
 					{error.message}
 				</pre>
 				{stacktraceVisible && <pre>
-					{error.inner.stack}
+					{error.inner?.stack}
 				</pre>}
 			</div>
 			<DeleteIcon size={24} onClick={() => { setVisible(false) }} />

@@ -16,8 +16,14 @@ export default function Avatar({ style = "" }) {
 	let { loading: loadingGet, data: accountData, error } = useQuery(gql`
 		query user {
 			user {
-				id
-				email
+				... on User {
+					id
+					email
+				}
+				
+				... on Error {
+					code
+				}
 			}
 		}
 	`)

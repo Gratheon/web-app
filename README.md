@@ -1,6 +1,7 @@
 # gratheon / web-app
 Web app for beehive management and analytics
 
+
 ## Features
 - manage beehives
 - manage of apiaries (groups of beehives)
@@ -16,7 +17,14 @@ Web app for beehive management and analytics
 
 See all features [in Notion](https://gratheon.notion.site/App-platform-2937ed264e1d434a8664caa4bc40978e)
 
-## URLs
+## Development
+```
+npm run dev
+open http://localhost:8080/
+# login with your credentials from https://app.gratheon.com/, assuming you have registered
+```
+
+### URLs
 
 | env   | url                       |
 | ----- | ------------------------- |

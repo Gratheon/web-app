@@ -18,11 +18,26 @@ Web app for beehive management and analytics
 See all features [in Notion](https://gratheon.notion.site/App-platform-2937ed264e1d434a8664caa4bc40978e)
 
 ## Development
+Running web-app as a frontend in development mode is easy.
+You will need [nvm](https://github.com/nvm-sh/nvm) for this, then run:
 ```
+nvm use
+npm run install
 npm run dev
 open http://localhost:8080/
-# login with your credentials from https://app.gratheon.com/, assuming you have registered
 ```
+By default, web-app will attempt to contact production backend. 
+So login with your credentials from https://app.gratheon.com/, assuming you have registered.
+In this mode you will not be able to change graphql schema as flexibly.
+
+### Developing with local backend
+- Change src/components/uri.ts and set `USE_PROD_BACKEND_FOR_DEV` to false
+
+- Spin up the backend. locally, you can use `make dev` in the root of the projects. Follow https://gratheon.notion.site/Onboarding-91481a8152cf4d1685770ec2a7cc7c94 for more details
+
+- You will need to change configuration (in `config` folder) in all of the microservices (see the architecture)
+
+
 
 ### URLs
 
@@ -103,24 +118,6 @@ flowchart LR
 | urql             | for performant graphql data loading                         |
 | dexie            | for storing data to index-db on the client for offline mode |
 
-## Development
-Running web-app as a frontend in development mode is easy.
-You will need [nvm](https://github.com/nvm-sh/nvm) for this, then run:
-```
-nvm use
-npm run install
-npm run dev
-```
-By default, web-app will attempt to contact production backend
-1. you will not be able to change graphql schema as flexibly
-2. you will need to use production data and user credetials
-
-### Developing with local backend
-- Change src/components/uri.ts and set `USE_PROD_BACKEND_FOR_DEV` to false
-
-- Spin up the backend. locally, you can use `make dev` in the root of the projects. Follow https://gratheon.notion.site/Onboarding-91481a8152cf4d1685770ec2a7cc7c94 for more details
-
-- You will need to change configuration (in `config` folder) in all of the microservices (see the architecture)
 
 ### Testing
 

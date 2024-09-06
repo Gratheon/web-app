@@ -85,7 +85,7 @@ export default function HiveBoxes(
 
     return <>
 
-        <div className={styles.boxesMode} style="display:flex; width:100%; padding:0 40px;">
+        <div className={styles.boxesMode} style="display:flex; width:100%; padding:0 40px;box-sizing: border-box;">
             <h3 style="display: flex;align-items: center;margin-right: 20px;margin-bottom: 5px;">
                 <T ctx="This is a heading for a block that shows multiple physical parts (boxes,sections) of the vertical beehive">Hive
                     sections</T>

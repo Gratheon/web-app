@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { gql, useMutation, useQuery, useSubscription } from '../../../../api'
-import { getFrames, moveFrame } from '@/models/frames.ts'
+import { Frame as FrameType, getFrames, moveFrame } from '@/models/frames.ts'
 import { enrichFramesWithSides } from '../../../../models/frameSide.ts'
 import ErrorMessage from '../../../../shared/messageError'
 import Loader from '../../../../shared/loader'
@@ -161,7 +161,7 @@ export default function Box({
 
 			const frames = await getFrames({ boxId: +boxId })
 			await updateFramesRemote({
-				frames: frames.map((v: Frame) => {
+				frames: frames.map((v: FrameType) => {
 					let r = {
 						...v,
 					}

@@ -1,5 +1,5 @@
 start:
-  nvm use && npm install && npm run dev
+  source $HOME/.nvm/nvm.sh && nvm use && npm i && npm run dev
 
 stop:
 	COMPOSE_PROJECT_NAME=gratheon docker compose -f docker-compose.dev.yml down

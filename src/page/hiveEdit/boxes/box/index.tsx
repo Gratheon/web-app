@@ -2,10 +2,10 @@ import React from 'react'
 import isNil from 'lodash/isNil'
 import { Container, Draggable } from '@edorivai/react-smooth-dnd'
 import { useNavigate } from 'react-router-dom'
-import { useLiveQuery } from "dexie-react-hooks";
+import { useLiveQuery } from 'dexie-react-hooks'
 
 import { gql, useMutation, useQuery, useSubscription } from '../../../../api'
-import { getFrames, moveFrame } from '../../../../models/frames.ts'
+import { getFrames, moveFrame } from '@/models/frames.ts'
 import { enrichFramesWithSides } from '../../../../models/frameSide.ts'
 import ErrorMessage from '../../../../shared/messageError'
 import Loader from '../../../../shared/loader'
@@ -13,7 +13,13 @@ import Loader from '../../../../shared/loader'
 import styles from './index.module.less'
 import Frame from './boxFrame'
 import FRAMES_QUERY from './framesQuery.graphql.ts'
-import { enrichFramesWithSideCells, getFrameSideCells, newFrameSideCells, updateFrameSideCells, updateFrameStat } from '../../../../models/frameSideCells.ts';
+import {
+	enrichFramesWithSideCells,
+	getFrameSideCells,
+	newFrameSideCells,
+	updateFrameSideCells,
+	updateFrameStat,
+} from '../../../../models/frameSideCells.ts'
 
 type BoxType = {
 	box: any
@@ -36,54 +42,80 @@ export default function Box({
 	hiveId,
 	editable = true,
 	selected = false,
-	displayMode
-}: BoxType) : any {
-	const navigate = useNavigate();
+	displayMode,
+}: BoxType): any {
+	const navigate = useNavigate()
 	let framesDiv = []
 
-	useSubscription(gql`subscription onHiveFrameSideCellsDetected($hiveId: String){
-		onHiveFrameSideCellsDetected(hiveId:$hiveId){
-			delta
-			isCellsDetectionComplete
+	useSubscription(
+		gql`
+			subscription onHiveFrameSideCellsDetected($hiveId: String) {
+				onHiveFrameSideCellsDetected(hiveId: $hiveId) {
+					delta
+					isCellsDetectionComplete
 
-			frameSideId
-			broodPercent
-			cappedBroodPercent
-			eggsPercent
-			pollenPercent
-			honeyPercent
+					frameSideId
+					broodPercent
+					cappedBroodPercent
+					eggsPercent
+					pollenPercent
+					honeyPercent
+				}
+			}
+		`,
+		{ hiveId },
+		async (_, response) => {
+			if (response) {
+				let updatedFrameSideId =
+					+response.onHiveFrameSideCellsDetected.frameSideId
+				let frameSideFile =
+					(await getFrameSideCells(updatedFrameSideId)) ||
+					newFrameSideCells(updatedFrameSideId, hiveId)
+
+				frameSideFile.broodPercent =
+					response.onHiveFrameSideCellsDetected.broodPercent
+				frameSideFile.cappedBroodPercent =
+					response.onHiveFrameSideCellsDetected.cappedBroodPercent
+				frameSideFile.eggsPercent =
+					response.onHiveFrameSideCellsDetected.eggsPercent
+				frameSideFile.pollenPercent =
+					response.onHiveFrameSideCellsDetected.pollenPercent
+				frameSideFile.honeyPercent =
+					response.onHiveFrameSideCellsDetected.honeyPercent
+
+				await updateFrameSideCells(frameSideFile)
+			}
 		}
-	}`, { hiveId }, async (_, response) => {
-		if (response) {
-			let updatedFrameSideId = +response.onHiveFrameSideCellsDetected.frameSideId
-			let frameSideFile = await getFrameSideCells(updatedFrameSideId) || newFrameSideCells(updatedFrameSideId, hiveId)
+	)
 
-			frameSideFile.broodPercent = response.onHiveFrameSideCellsDetected.broodPercent
-			frameSideFile.cappedBroodPercent = response.onHiveFrameSideCellsDetected.cappedBroodPercent
-			frameSideFile.eggsPercent = response.onHiveFrameSideCellsDetected.eggsPercent
-			frameSideFile.pollenPercent = response.onHiveFrameSideCellsDetected.pollenPercent
-			frameSideFile.honeyPercent = response.onHiveFrameSideCellsDetected.honeyPercent
-
-			await updateFrameSideCells(frameSideFile)
-		}
-	})
-
-	const frames = useLiveQuery(async () => {
-		const framesWithoutSides = await getFrames({ boxId: box.id })
-		const framesWithoutCells = await enrichFramesWithSides(framesWithoutSides);
-		return await enrichFramesWithSideCells(framesWithoutCells)
-	}, [box.id], false);
+	const frames = useLiveQuery(
+		async () => {
+			const framesWithoutSides = await getFrames({ boxId: box.id })
+			const framesWithoutCells = await enrichFramesWithSides(framesWithoutSides)
+			return await enrichFramesWithSideCells(framesWithoutCells)
+		},
+		[box.id],
+		false
+	)
 
 	if (frames === false) {
 		return <Loader />
 	}
 
-	const [updateFramesRemote, { error }] = useMutation(gql`mutation updateFrames($frames: [FrameInput]!) { updateFrames(frames: $frames) { id } }`)
+	const [updateFramesRemote, { error }] = useMutation(
+		gql`
+			mutation updateFrames($frames: [FrameInput]!) {
+				updateFrames(frames: $frames) {
+					id
+				}
+			}
+		`
+	)
 	let { loading } = useQuery(FRAMES_QUERY, {
 		variables: {
 			id: +hiveId,
 			apiaryId: +apiaryId,
-		}
+		},
 	})
 
 	if (loading) {
@@ -94,19 +126,23 @@ export default function Box({
 		for (let i = 0; i < frames.length; i++) {
 			const frame = frames[i]
 
-			let frameDiv = <Frame
-				box={box}
-				frameId={frameId}
-				frameSideId={frameSideId}
-				hiveId={hiveId}
-				apiaryId={apiaryId}
-				frame={frame}
-				editable={editable}
-				displayMode={displayMode}
-			/>
+			let frameDiv = (
+				<Frame
+					box={box}
+					frameId={frameId}
+					frameSideId={frameSideId}
+					hiveId={hiveId}
+					apiaryId={apiaryId}
+					frame={frame}
+					editable={editable}
+					displayMode={displayMode}
+				/>
+			)
 
 			if (editable && displayMode == 'list') {
-				framesDiv.push(</* @ts-ignore */ Draggable key={i}>{frameDiv}</Draggable>)
+				framesDiv.push(
+					</* @ts-ignore */ Draggable key={i}>{frameDiv}</Draggable>
+				)
 			} else {
 				framesDiv.push(frameDiv)
 			}
@@ -120,21 +156,22 @@ export default function Box({
 			await moveFrame({
 				boxId,
 				addedIndex,
-				removedIndex
+				removedIndex,
 			})
 
 			const frames = await getFrames({ boxId: +boxId })
 			await updateFramesRemote({
-				frames: frames.map((v) => {
+				frames: frames.map((v: Frame) => {
 					let r = {
-						...v
+						...v,
 					}
 					delete r.rightId
 					delete r.leftId
 					delete r.leftSide
 					delete r.rightSide
+					delete r.__typename
 					return r
-				})
+				}),
 			})
 
 			if (!isNil(frameSideId)) {
@@ -145,24 +182,27 @@ export default function Box({
 			}
 		}
 
-		framesWrapped = (<>
-			{/* @ts-ignore */}
-			<Container
-				style={{ height: `calc(100% - 10px)` }}
-				onDrop={swapFrames}
-				orientation="horizontal"
-			>{framesDiv}</Container>
-		</>)
+		framesWrapped = (
+			<>
+				{/* @ts-ignore */}
+				<Container
+					style={{ height: `calc(100% - 10px)` }}
+					onDrop={swapFrames}
+					orientation="horizontal"
+				>
+					{framesDiv}
+				</Container>
+			</>
+		)
 	}
 
 	if (displayMode == 'visual') {
 		return (
 			<>
-				<ErrorMessage error={error}/>
-				<div
-					className={`${styles.boxOuter} ${selected && styles.selected}`}>
+				<ErrorMessage error={error} />
+				<div className={`${styles.boxOuter} ${selected && styles.selected}`}>
 					<div className={styles.boxInnerVisual}>
-						{!frames && <Loader size={1}/>}
+						{!frames && <Loader size={1} />}
 						{framesDiv}
 					</div>
 				</div>
@@ -172,11 +212,14 @@ export default function Box({
 
 	return (
 		<>
-			<ErrorMessage error={error}/>
+			<ErrorMessage error={error} />
 			<div
-				className={`${styles['boxType_' + box.type]} ${styles.boxOuter} ${selected && styles.selected}`}>
+				className={`${styles['boxType_' + box.type]} ${styles.boxOuter} ${
+					selected && styles.selected
+				}`}
+			>
 				<div className={styles.boxInner}>
-					{!frames && <Loader size={1}/>}
+					{!frames && <Loader size={1} />}
 					{framesWrapped}
 				</div>
 			</div>

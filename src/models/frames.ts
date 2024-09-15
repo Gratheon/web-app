@@ -1,10 +1,20 @@
 import { db, upsertEntityWithNumericID } from './db'
-import { getBoxes } from './boxes.ts';
-import { FrameSide, getFrameSidesMap, collectFrameSideIDsFromFrames } from './frameSide.ts';
+import { getBoxes } from './boxes.ts'
+import {
+	FrameSide,
+	getFrameSidesMap,
+	collectFrameSideIDsFromFrames,
+} from './frameSide.ts'
 
-export type FrameType = 'VOID' | 'FOUNDATION' | 'EMPTY_COMB' | 'PARTITION' | 'FEEDER'
+export type FrameType =
+	| 'VOID'
+	| 'FOUNDATION'
+	| 'EMPTY_COMB'
+	| 'PARTITION'
+	| 'FEEDER'
 
 export type Frame = {
+	__typename?: 'Frame'
 	id: number
 	position: number
 	type: FrameType
@@ -26,13 +36,13 @@ export const frameTypes = {
 
 export async function getFrame(id: number): Promise<Frame> {
 	if (!id) {
-		return null;
+		return null
 	}
 
 	try {
 		return await db['frame'].get({ id })
 	} catch (e) {
-		console.error(e, { id });
+		console.error(e, { id })
 	}
 }
 
@@ -42,7 +52,7 @@ export async function getFramesByHive(hiveId: number): Promise<Frame[]> {
 	let frames: Frame[] = []
 
 	for await (const box of boxes) {
-		let tmpResult = await getFrames({ boxId: +box.id });
+		let tmpResult = await getFrames({ boxId: +box.id })
 		frames.push(...tmpResult)
 	}
 
@@ -52,9 +62,7 @@ export async function getFramesByHive(hiveId: number): Promise<Frame[]> {
 export async function getFrames(where = {}): Promise<Frame[] | null> {
 	if (!where) return []
 	try {
-		return await db['frame']
-		.where(where)
-		.sortBy('position')
+		return await db['frame'].where(where).sortBy('position')
 	} catch (e) {
 		console.error(e)
 		return null
@@ -72,7 +80,7 @@ export async function countBoxFrames(boxId): Promise<number> {
 
 export async function addFrame(frameData) {
 	try {
-		const { id, position, boxId, type, leftId, rightId } = frameData;
+		const { id, position, boxId, type, leftId, rightId } = frameData
 
 		if (leftId) {
 			await db['frameside'].put({
@@ -108,9 +116,9 @@ export async function moveFrame({
 	removedIndex,
 	addedIndex,
 }: {
-	removedIndex: number;
-	addedIndex?: number;
-	boxId: number;
+	removedIndex: number
+	addedIndex?: number
+	boxId: number
 }) {
 	removedIndex++
 
@@ -118,39 +126,39 @@ export async function moveFrame({
 		addedIndex++
 	}
 
-	let tmpFrames = await getFrames({ boxId: +boxId });
+	let tmpFrames = await getFrames({ boxId: +boxId })
 
 	// remove frame
 	tmpFrames.forEach((v) => {
 		if (v.position === removedIndex) {
-			v.position = -1;
+			v.position = -1
 		}
-	});
+	})
 
 	// update other frame positions
-	let i = 1;
+	let i = 1
 	tmpFrames.forEach((v) => {
 		if (i == addedIndex) {
 			i++
 		}
 		if (v.position !== -1) {
-			v.position = i;
+			v.position = i
 			i++
 		}
-	});
+	})
 
 	// add frame back
 	if (addedIndex !== null) {
 		tmpFrames.forEach((v) => {
 			if (v.position === -1) {
-				v.position = addedIndex;
+				v.position = addedIndex
 			}
-		});
+		})
 	}
 
 	// Update all frames in parallel
-	const updatePromises = tmpFrames.map((v) => updateFrame(v));
-	await Promise.all(updatePromises);
+	const updatePromises = tmpFrames.map((v) => updateFrame(v))
+	await Promise.all(updatePromises)
 }
 
 export async function updateFrame(data: Frame) {
@@ -174,7 +182,6 @@ export async function removeFrame(frameId, boxId) {
 		console.error(e)
 		throw e
 	}
-
 }
 
 export function isFrameWithSides(frameType) {

@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate } from 'react-router-dom'
 
-import { gql, useMutation, useQuery } from '../../../api'
+import { gql, useMutation, useQuery } from '@/api'
 
 import { getFrame, removeFrame } from '../../../models/frames.ts'
 import T from '../../../shared/translate'
@@ -10,6 +10,7 @@ import Button from '../../../shared/button'
 import Loading from '../../../shared/loader'
 import ErrorMessage from '../../../shared/messageError'
 import DeleteIcon from '../../../icons/deleteIcon.tsx'
+import MetricList from './metricList'
 
 import styles from './styles.module.less'
 import FrameSide from './frameSide.tsx'
@@ -23,9 +24,8 @@ export default function Frame({
 	frameSideId,
 
 	box,
-	extraButtons
+	extraButtons,
 }) {
-
 	if (!frameId) {
 		return
 	}
@@ -37,59 +37,62 @@ export default function Frame({
 		return <Loading />
 	}
 
-
-	let { data, loading } = useQuery(gql`
-		query Frame($frameId: ID!) {
-			hiveFrame(id: $frameId) {
-				__typename
-				id
-
-				rightSide{
+	let { data, loading } = useQuery(
+		gql`
+			query Frame($frameId: ID!) {
+				hiveFrame(id: $frameId) {
 					__typename
 					id
 
-					file{
+					rightSide {
 						__typename
 						id
-						url
-						
-						resizes {
+
+						file {
 							__typename
 							id
-							file_id
 							url
-							max_dimension_px
+
+							resizes {
+								__typename
+								id
+								file_id
+								url
+								max_dimension_px
+							}
 						}
 					}
-				}
 
-				leftSide{
-					__typename
-					id
-
-					file{
+					leftSide {
 						__typename
 						id
-						url
 
-						resizes {
+						file {
 							__typename
 							id
-							file_id
 							url
-							max_dimension_px
+
+							resizes {
+								__typename
+								id
+								file_id
+								url
+								max_dimension_px
+							}
 						}
 					}
 				}
 			}
-		}
-	`, { variables: { frameId: frameId } })
+		`,
+		{ variables: { frameId: frameId } }
+	)
 
 	if (loading) return <Loading />
 
 	const navigate = useNavigate()
 
-	let [removeFrameMutation, { error: errorFrameRemove }] = useMutation(`mutation deactivateFrame($id: ID!) {
+	let [removeFrameMutation, { error: errorFrameRemove }] =
+		useMutation(`mutation deactivateFrame($id: ID!) {
 		deactivateFrame(id: $id)
 	}
 	`)
@@ -99,7 +102,7 @@ export default function Frame({
 			setFrameRemoving(true)
 			await removeFrame(frameId, boxId)
 			await removeFrameMutation({
-				id: frameId
+				id: frameId,
 			})
 
 			setFrameRemoving(false)
@@ -113,19 +116,18 @@ export default function Frame({
 		<>
 			{extraButtons}
 
-			<Button
-				color="red"
-				title="Remove frame"
-				onClick={onFrameRemove}
-			>
+			<Button color="red" title="Remove frame" onClick={onFrameRemove}>
 				<DeleteIcon />
-				<span><T>Remove frame</T></span>
+				<span>
+					<T>Remove frame</T>
+				</span>
 			</Button>
 		</>
 	)
 
 	const error = <ErrorMessage error={errorFrameRemove} />
 
+	console.log(frame)
 	return (
 		<div className={styles.frame}>
 			<div className={styles.body}>
@@ -133,19 +135,46 @@ export default function Frame({
 
 				<div className={styles.frameHeader}>
 					<h3>
-						<T ctx="This is a heading for a beehive frame that shows image of bees, beecomb, cells">Selected frame</T>
+						{frame.type === 'EMPTY_COMB' && (
+							<T ctx="This is beehive frame with beecomb">Beecomb frame</T>
+						)}
+						{frame.type === 'FOUNDATION' && (
+							<T ctx="This is empty beehive frame with a wax foundation">
+								Foundation frame
+							</T>
+						)}
+						{frame.type === 'FEEDER' && (
+							<T ctx="This is a vertical sugar syrup container that goes into beehive in a size of a regular hive frame">
+								Vertical feeder
+							</T>
+						)}
+						{frame.type === 'PARTITION' && (
+							<T ctx="This is a beehive frame of solid wood made to separate parts of the hive">
+								Partition
+							</T>
+						)}
+						{frame.type === 'VOID' && (
+							<T ctx="This is a beehive frame without any wax">
+								Frame without wax
+							</T>
+						)}
 					</h3>
 
-					{frame && <BoxFrame
-						box={box}
-						frame={frame}
-						apiaryId={apiaryId}
-						hiveId={hiveId}
-						frameId={frameId}
-						frameSideId={frameSideId}
-						editable={true}
-						displayMode="visual" />}
+					{frame && (
+						<BoxFrame
+							box={box}
+							frame={frame}
+							apiaryId={apiaryId}
+							hiveId={hiveId}
+							frameId={frameId}
+							frameSideId={frameSideId}
+							editable={true}
+							displayMode="visual"
+						/>
+					)}
 
+					<div style="flex-grow:1"></div>
+					<MetricList frameSideId={frameSideId} />
 					<div style="flex-grow:1"></div>
 					{extraButtons}
 				</div>
@@ -153,7 +182,8 @@ export default function Frame({
 				<FrameSide
 					hiveId={hiveId}
 					frameId={frameId}
-					frameSideId={frameSideId} />
+					frameSideId={frameSideId}
+				/>
 			</div>
 		</div>
 	)

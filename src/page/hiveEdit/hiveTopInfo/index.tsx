@@ -3,34 +3,36 @@ import debounce from 'lodash/debounce'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate } from 'react-router-dom'
 
-import T from '../../../shared/translate'
-import HiveIcon from '../../../shared/hive'
+import T from '@/shared/translate'
+import HiveIcon from '@/shared/hive'
+
+import { useMutation } from '@/api'
+
+import InspectionIcon from '@/icons/inspection.tsx'
+import InspectionsLink from '@/shared/inspectionsLink/index.tsx'
+import Loader from '@/shared/loader'
+import Button from '@/shared/button'
+import { PopupButton, PopupButtonGroup } from '@/shared/popupButton'
+import { InspectionSnapshot } from '@/models/inspections.ts'
+import BeeCounter from '@/shared/beeCounter'
+import MessageSuccess from '@/shared/messageSuccess'
+import VisualFormSubmit from '@/shared/visualForm/VisualFormSubmit'
+
+import { updateHive, getHive } from '@/models/hive.ts'
+import { getBoxes } from '@/models/boxes.ts'
+import { getFamilyByHive } from '@/models/family.ts'
+import {
+	getHiveInspectionStats,
+	deleteCellsByFrameSideIDs,
+} from '@/models/frameSideCells.ts'
+import { getFramesByHive } from '@/models/frames.ts'
+import { collectFrameSideIDsFromFrames } from '@/models/frameSide.ts'
+import { deleteFilesByFrameSideIDs } from '@/models/frameSideFile.ts'
+
 import DeactivateButton from '../deleteButton'
 import QueenColor from './queenColor'
 import styles from './styles.module.less'
 
-import { useMutation } from '../../../api'
-import { updateHive, getHive } from '../../../models/hive.ts'
-import { getBoxes } from '../../../models/boxes.ts'
-import { getFamilyByHive } from '../../../models/family.ts'
-
-import InspectionsLink from '../../../shared/inspectionsLink/index.tsx'
-
-import Loader from '../../../shared/loader'
-import Button from '../../../shared/button'
-import { PopupButton, PopupButtonGroup } from '../../../shared/popupButton'
-import { InspectionSnapshot } from '../../../models/inspections.ts'
-import { getFramesByHive } from '../../../models/frames.ts'
-import {
-	getHiveInspectionStats,
-	deleteCellsByFrameSideIDs,
-} from '../../../models/frameSideCells.ts'
-import BeeCounter from '../../../shared/beeCounter'
-import { collectFrameSideIDsFromFrames } from '../../../models/frameSide.ts'
-import { deleteFilesByFrameSideIDs } from '../../../models/frameSideFile.ts'
-import MessageSuccess from '../../../shared/messageSuccess'
-import InspectionIcon from '../../../icons/inspection.tsx'
-import VisualFormSubmit from '../../../shared/visualForm/VisualFormSubmit'
 import HiveTopEditForm from './hiveTopEditForm'
 
 export default function HiveEditDetails({ apiaryId, hiveId }) {
@@ -149,7 +151,6 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 				</PopupButtonGroup>
 			</VisualFormSubmit>
 			<InspectionsLink
-				currentUrl={`/apiaries/${apiaryId}/hives/${hiveId}`}
 				inspectionsUrl={`/apiaries/${apiaryId}/hives/${hiveId}/inspections`}
 				inspectionCount={hive.inspectionCount}
 			/>
@@ -158,15 +159,16 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 
 	if (!editable) {
 		return (
-			<div>
+			<div style="padding: 0 10px;">
 				{okMsg}
 
-				<div className={styles.wrap2}>
-					<div className={styles.wrap3}>
+				<div className={styles.horizontal_wrap}>
+					<div className={styles.icon_wrap}>
 						<HiveIcon boxes={boxes} />
 						<BeeCounter count={hive.beeCount} />
 					</div>
-					<div className={styles.wrap5}>
+
+					<div className={styles.name_race_wrap}>
 						<div className={styles.wrap4}>
 							<h1 style="flex-grow:1; cursor: pointer" onClick={goToHiveView}>
 								{hive.name}
@@ -188,11 +190,14 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 								isWarning={true}
 							/>
 						)}
-
-						{hive.notes && <p>{hive.notes}</p>}
-						{buttons}
 					</div>
+
+					<div className={styles.button_wrap1}>{buttons}</div>
 				</div>
+
+				{hive.notes && <p>{hive.notes}</p>}
+
+				<div className={styles.button_wrap2}>{buttons}</div>
 			</div>
 		)
 	}

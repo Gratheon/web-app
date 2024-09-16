@@ -1,7 +1,6 @@
-import React from 'react'
+import Slider from '@/shared/slider'
 
 import styles from './styles.module.less'
-import Slider from '../../../../../shared/slider'
 
 export default ({
 	children,

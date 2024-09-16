@@ -4,11 +4,7 @@ import InspectionIcon from '@/icons/inspection.tsx'
 import T from '../translate/index.tsx'
 import styles from './index.module.less'
 
-export default function InspectionsLink({
-	inspectionCount,
-	currentUrl,
-	inspectionsUrl,
-}) {
+export default function InspectionsLink({ inspectionCount, inspectionsUrl }) {
 	if (inspectionCount === 0) {
 		return
 	}

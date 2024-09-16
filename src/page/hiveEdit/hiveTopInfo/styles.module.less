@@ -1,6 +1,6 @@
-@import '../../../layout.module.less';
+@import '@/layout.module.less';
 
-.wrap2 {
+.horizontal_wrap {
 	width: 100%;
 	padding: @mobilePadPx;
 	box-sizing: border-box;
@@ -15,7 +15,7 @@
 	}
 }
 
-.wrap3 {
+.icon_wrap {
 	padding: @mobilePadPx;
 }
 
@@ -26,7 +26,7 @@
 	}
 }
 
-.wrap5 {
+.name_race_wrap {
 	width: 100%;
 	padding: @mobilePadPx;
 }
@@ -34,3 +34,17 @@
 #raceYear {
 	margin-top: 5px;
 }
+
+.button_wrap1 {
+	display: none;
+	@media @tabletAndUp {
+		display: block;
+	}
+}
+.button_wrap2 {
+	display: none;
+	@media @mobile {
+		display: block;
+	}
+}
+

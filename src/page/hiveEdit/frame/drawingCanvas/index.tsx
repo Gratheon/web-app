@@ -22,7 +22,7 @@ let MAX_ZOOM = 100
 let MIN_ZOOM = 1
 let MED_ZOOM = 2
 
-let zoomEnabled = false;
+let zoomEnabled = false
 
 let offsetsum = {
 	x: 0,
@@ -77,13 +77,13 @@ function redrawStrokes(canvas, ctx, strokeHistory) {
 	})
 }
 
-let REL_PX;
+let REL_PX
 function drawDetectedCells(detectedFrameCells, ctx, canvas) {
 	REL_PX = canvas.width / 1024
 	if (detectedFrameCells.length > 0) {
 		for (let dt of detectedFrameCells) {
 			let cls, probability, x, y, r
-			[cls, x, y, r, probability] = dt
+			;[cls, x, y, r, probability] = dt
 			ctx.globalAlpha = 0.3 + probability / 100
 
 			ctx.beginPath()
@@ -113,12 +113,12 @@ function drawDetectedCells(detectedFrameCells, ctx, canvas) {
 					ctx.fillStyle = colors.nectarColor
 					break
 
-				case 5://empty:
+				case 5: //empty:
 					ctx.strokeStyle = colors.emptyCellColor
 					ctx.fillStyle = colors.emptyCellColor
 					break
 
-				case 6://'pollen':
+				case 6: //'pollen':
 					ctx.strokeStyle = colors.pollenColor
 					ctx.fillStyle = colors.pollenColor
 					break
@@ -137,7 +137,6 @@ function drawDetectedCells(detectedFrameCells, ctx, canvas) {
 		ctx.globalAlpha = 1
 	}
 }
-
 
 function drawDetectedVarroa(ctx, detectedVarroa, canvas) {
 	REL_PX = canvas.width / 1024
@@ -177,31 +176,36 @@ function drawQueenCups(queenCups, ctx, canvas) {
 			ctx.lineWidth = 6 * REL_PX
 
 			ctx.roundRect(
-
 				x * canvas.width,
 				y * canvas.height,
 
 				(x2 - x) * canvas.width,
 				(y2 - y) * canvas.height,
 
-
 				10 * REL_PX
 			)
 
-			ctx.stroke();
+			ctx.stroke()
 			// ctx.fill()
 		}
 		ctx.globalAlpha = 1
 	}
 }
 
-function drawDetectedBees(detectedBees, ctx, canvas, showBees, showDrones, showQueens) {
+function drawDetectedBees(
+	detectedBees,
+	ctx,
+	canvas,
+	showBees,
+	showDrones,
+	showQueens
+) {
 	REL_PX = canvas.width / 1024
 	if (detectedBees.length > 0) {
 		for (let dt of detectedBees) {
-			if (!showBees && (dt.n == 0 || dt.n == 2)) continue;
-			if (!showDrones && dt.n == 1) continue;
-			if (!showQueens && dt.n == 3) continue;
+			if (!showBees && (dt.n == 0 || dt.n == 2)) continue
+			if (!showDrones && dt.n == 1) continue
+			if (!showQueens && dt.n == 3) continue
 			// if (dt.n == 3) continue;// queen detection is too poor to show it
 
 			ctx.globalAlpha = 0.4 + dt.c
@@ -242,7 +246,8 @@ function drawDetectedBees(detectedBees, ctx, canvas, showBees, showDrones, showQ
 
 			ctx.font = Math.floor(8 * REL_PX) + 'px Arial'
 			ctx.lineWidth = 0.8 * REL_PX
-			ctx.fillText(dt.nText,
+			ctx.fillText(
+				dt.nText,
 				(dt.x - dt.w / 2) * canvas.width + 5,
 				(dt.y + dt.h / 2) * canvas.height - 3
 			)
@@ -256,9 +261,9 @@ function getEventLocation(canvas, e) {
 	if (e.touches && e.touches.length == 1) {
 		return { x: e.touches[0].clientX, y: e.touches[0].clientY }
 	} else if (e.clientX && e.clientY) {
-		var rect = canvas.getBoundingClientRect();
-		var x = e.clientX - rect.left;
-		var y = e.clientY - rect.top;
+		var rect = canvas.getBoundingClientRect()
+		var x = e.clientX - rect.left
+		var y = e.clientY - rect.top
 
 		return { x, y }
 	}
@@ -274,27 +279,27 @@ function debounce(func, timeout = 300) {
 	}
 }
 
-function initCanvasSize(
-	canvas,
-	ctx,
-) {
+function initCanvasSize(canvas, ctx) {
 	// size
 	var width = img ? parseInt(img.width) : 1024
 	var height = img ? parseInt(img.height) : 768
 
 	// see hiveEdit
-	const boxesWrap = document.getElementById('boxesWrap');
-	let canvasParentWidth = 1024;
+	const boxesWrap = document.getElementById('boxesWrap')
+	let canvasParentWidth = 1024
 
 	if (boxesWrap) {
 		// Access the width of the external HTML element using offsetWidth
-		canvasParentWidth = document.documentElement.clientWidth - boxesWrap.offsetWidth - 40;
+		canvasParentWidth =
+			document.documentElement.clientWidth - boxesWrap.offsetWidth - 40
 	}
 
 	//UI BREAKING POINT
 	const isMobileView = document.body.clientWidth < 1200
 	zoomEnabled = !isMobileView
-	const canvasWidth = isMobileView ? document.body.clientWidth : canvasParentWidth
+	const canvasWidth = isMobileView
+		? document.body.clientWidth
+		: canvasParentWidth
 	const tmpw = dpr * Math.floor(canvasWidth)
 	canvas.width = tmpw
 	canvas.height = tmpw * (height / width)
@@ -309,11 +314,17 @@ function drawCanvasLayers(
 	ctx,
 	strokeHistory,
 
-	showBees, showDrones, showQueens, detectedBees,
-	showCells, detectedCells,
-	showQueenCups, queenCups,
+	showBees,
+	showDrones,
+	showQueens,
+	detectedBees,
+	showCells,
+	detectedCells,
+	showQueenCups,
+	queenCups,
 
-	showVarroa, detectedVarroa
+	showVarroa,
+	detectedVarroa
 ) {
 	ctx.clearRect(0, 0, canvas.width, canvas.height)
 
@@ -330,7 +341,14 @@ function drawCanvasLayers(
 	}
 
 	if (showBees || showDrones || showQueens) {
-		drawDetectedBees(detectedBees, ctx, canvas, showBees, showDrones, showQueens)
+		drawDetectedBees(
+			detectedBees,
+			ctx,
+			canvas,
+			showBees,
+			showDrones,
+			showQueens
+		)
 	}
 
 	if (showQueenCups) {
@@ -344,7 +362,7 @@ function drawCanvasLayers(
 
 let scrollIndex = 0
 let zoomTransforms = []
-let img;
+let img
 
 export default function DrawingCanvas({
 	imageUrl,
@@ -358,8 +376,7 @@ export default function DrawingCanvas({
 
 	onStrokeHistoryUpdate,
 	frameSideFile,
-	frameMetrics,
-	frameSide
+	frameSide,
 }) {
 	if (!imageUrl) {
 		return
@@ -425,20 +442,23 @@ export default function DrawingCanvas({
 		ctx = canvas.getContext('2d')
 
 		function initAndRedraw() {
-			initCanvasSize(
-				canvas,
-				ctx
-			)
+			initCanvasSize(canvas, ctx)
 			drawCanvasLayers(
 				canvas,
 				ctx,
 				strokeHistory,
 
-				showBees, showDrones, showQueens, detectedBees,
+				showBees,
+				showDrones,
+				showQueens,
+				detectedBees,
 
-				showCells, detectedCells,
-				showQueenCups, detectedQueenCups,
-				showVarroa, detectedVarroa
+				showCells,
+				detectedCells,
+				showQueenCups,
+				detectedQueenCups,
+				showVarroa,
+				detectedVarroa
 			)
 		}
 
@@ -557,10 +577,10 @@ export default function DrawingCanvas({
 	}
 
 	useLayoutEffect(() => {
-		(async () => {
+		;(async () => {
 			img = await initImage(canvasUrl)
 			initCanvas()
-		})();
+		})()
 	}, [imageUrl])
 
 	useLayoutEffect(() => {
@@ -590,12 +610,11 @@ export default function DrawingCanvas({
 			let zoomAmount //event.deltaY * SCROLL_SENSITIVITY
 			zoomAmount = event.deltaY > 0 ? -0.1 : 0.1 //event.deltaY * SCROLL_SENSITIVITY;
 
-
 			// use high-res image if user starts to zoom
 			if (globalCameraZoom > MED_ZOOM && canvasUrl != imageUrl) {
 				setCanvasUrl(imageUrl)
 				initImage(imageUrl).then((r) => {
-					img = r;
+					img = r
 				})
 			}
 
@@ -624,8 +643,10 @@ export default function DrawingCanvas({
 				}
 
 				// zoom
-				cameraOffset.x = -(dpr * getEventLocation(canvas, event).x) * (cameraZoom - 1)
-				cameraOffset.y = -(dpr * getEventLocation(canvas, event).y) * (cameraZoom - 1)
+				cameraOffset.x =
+					-(dpr * getEventLocation(canvas, event).x) * (cameraZoom - 1)
+				cameraOffset.y =
+					-(dpr * getEventLocation(canvas, event).y) * (cameraZoom - 1)
 
 				// if (offsetsum.x < canvas.width && offsetsum.x > -canvas.width && offsetsum.y < canvas.height && offsetsum.y > -canvas.height) {
 				offsetsum.x += cameraOffset.x * cameraZoom
@@ -652,68 +673,131 @@ export default function DrawingCanvas({
 		canvas.removeEventListener('wheel', handleScroll)
 		canvas.addEventListener('wheel', handleScroll)
 		return () => canvas.removeEventListener('wheel', handleScroll)
-	}, [imageUrl, version, showBees, showVarroa, showDrones, showCells, showQueenCups, detectedBees, detectedCells, detectedVarroa])
-
+	}, [
+		imageUrl,
+		version,
+		showBees,
+		showVarroa,
+		showDrones,
+		showCells,
+		showQueenCups,
+		detectedBees,
+		detectedCells,
+		detectedVarroa,
+	])
 
 	return (
 		<div style="position:relative;overflow:hidden;">
-			<div className={styles.buttonPanel} style={`left: ${panelVisible ? 0 : -200}px`}>
+			<div
+				className={styles.buttonPanel}
+				style={`left: ${panelVisible ? 0 : -200}px`}
+			>
 				<div class={styles.buttonGrp}>
-					<Button onClick={() => { setPanelVisible(!panelVisible) }}
-						style={`position: absolute;right: -43px;top: 100px;border-radius:0 20px 20px 0; border: 2px solid white;border-left:none;`}>
+					<Button
+						onClick={() => {
+							setPanelVisible(!panelVisible)
+						}}
+						style={`position: absolute;right: -43px;top: 100px;border-radius:0 20px 20px 0; border: 2px solid white;border-left:none;`}
+					>
 						{panelVisible ? <LeftChevron /> : <RightChevron />}
 					</Button>
 
-					<Button onClick={() => { setBeeVisibility(!showBees) }}>
+					<Button
+						onClick={() => {
+							setBeeVisibility(!showBees)
+						}}
+					>
 						{frameSideFile.isBeeDetectionComplete && <Checkbox on={showBees} />}
 						{!frameSideFile.isBeeDetectionComplete && <Loader size={0} />}
 						<span>
-							<T ctx="this is a button that toggles visibility of worker bees on an image">Worker bees</T>
-							{frameSideFile.detectedWorkerBeeCount > 0 && <>({frameSideFile.detectedWorkerBeeCount})</>}
+							<T ctx="this is a button that toggles visibility of worker bees on an image">
+								Worker bees
+							</T>
+							{frameSideFile.detectedWorkerBeeCount > 0 && (
+								<>({frameSideFile.detectedWorkerBeeCount})</>
+							)}
 						</span>
 					</Button>
 
-					<QueenButton
-						frameSide={frameSide}
-						frameSideFile={frameSideFile} />
+					<QueenButton frameSide={frameSide} frameSideFile={frameSideFile} />
 
-					<Button onClick={() => { setDroneVisibility(!showDrones) }}>
-						{frameSideFile.isBeeDetectionComplete && <Checkbox on={showDrones} />}
+					<Button
+						onClick={() => {
+							setDroneVisibility(!showDrones)
+						}}
+					>
+						{frameSideFile.isBeeDetectionComplete && (
+							<Checkbox on={showDrones} />
+						)}
 						{!frameSideFile.isBeeDetectionComplete && <Loader size={0} />}
 						<span>
-							<T ctx="this is a button that toggles visibility of drone bees on an image">Drones</T>
-							{frameSideFile.detectedDroneCount > 0 && <>({frameSideFile.detectedDroneCount})</>}
+							<T ctx="this is a button that toggles visibility of drone bees on an image">
+								Drones
+							</T>
+							{frameSideFile.detectedDroneCount > 0 && (
+								<>({frameSideFile.detectedDroneCount})</>
+							)}
 						</span>
 					</Button>
 
-					{detectedQueenCups && <Button onClick={() => { setQueenCups(!showQueenCups) }}>
-						{frameSideFile.isQueenCupsDetectionComplete && <Checkbox on={showQueenCups} />}
-						{!frameSideFile.isQueenCupsDetectionComplete && <Loader size={0} />}
-						<span><T ctx="this is a button that toggles visibility (on an image) of beewax construction where queen bee is being nursed">Queen cups</T></span>
-					</Button>}
+					{detectedQueenCups && (
+						<Button
+							onClick={() => {
+								setQueenCups(!showQueenCups)
+							}}
+						>
+							{frameSideFile.isQueenCupsDetectionComplete && (
+								<Checkbox on={showQueenCups} />
+							)}
+							{!frameSideFile.isQueenCupsDetectionComplete && (
+								<Loader size={0} />
+							)}
+							<span>
+								<T ctx="this is a button that toggles visibility (on an image) of beewax construction where queen bee is being nursed">
+									Queen cups
+								</T>
+							</span>
+						</Button>
+					)}
 
-
-					<Button onClick={() => { setShowVarroa(!showVarroa) }}>
-						{frameSideFile.isBeeDetectionComplete && <Checkbox on={showVarroa} />}
+					<Button
+						onClick={() => {
+							setShowVarroa(!showVarroa)
+						}}
+					>
+						{frameSideFile.isBeeDetectionComplete && (
+							<Checkbox on={showVarroa} />
+						)}
 						{!frameSideFile.isBeeDetectionComplete && <Loader size={0} />}
 						<span>
-							<T ctx="this is a button that toggles visibility of varroa destructor mites on an image">Varroa mites</T>
-							{frameSideFile.varroaCount > 0 && <>({frameSideFile.varroaCount})</>}
+							<T ctx="this is a button that toggles visibility of varroa destructor mites on an image">
+								Varroa mites
+							</T>
+							{frameSideFile.varroaCount > 0 && (
+								<>({frameSideFile.varroaCount})</>
+							)}
 						</span>
 					</Button>
 
-					{detectedCells &&
-						<Button onClick={() => { setCellVisibility(!showCells) }}>
-							{frameSideFile.isCellsDetectionComplete && <Checkbox on={showCells} />}
+					{detectedCells && (
+						<Button
+							onClick={() => {
+								setCellVisibility(!showCells)
+							}}
+						>
+							{frameSideFile.isCellsDetectionComplete && (
+								<Checkbox on={showCells} />
+							)}
 							{!frameSideFile.isCellsDetectionComplete && <Loader size={0} />}
 
 							<span>
-								<T ctx="this is a button that toggles visibility of different types of cells in a beehive frame - brood, pollen, honey etc">Frame cells</T>
+								<T ctx="this is a button that toggles visibility of different types of cells in a beehive frame - brood, pollen, honey etc">
+									Frame cells
+								</T>
 								{frameSideFile.isCellsDetectionComplete && <FrameCells />}
 							</span>
-						</Button>}
-
-					{showCells && frameMetrics}
+						</Button>
+					)}
 				</div>
 			</div>
 
@@ -723,8 +807,14 @@ export default function DrawingCanvas({
 
 			<div class={styles.buttonGrp}>
 				<div style="flex-grow:1"></div>
-				<Button onClick={clearHistory}><T ctx="this is a button that cleans drawing made on an image with ipad pencil or mouse">Clear drawing</T></Button>
-				<Button onClick={undoDraw}><T>Undo</T></Button>
+				<Button onClick={clearHistory}>
+					<T ctx="this is a button that cleans drawing made on an image with ipad pencil or mouse">
+						Clear drawing
+					</T>
+				</Button>
+				<Button onClick={undoDraw}>
+					<T>Undo</T>
+				</Button>
 			</div>
 		</div>
 	)

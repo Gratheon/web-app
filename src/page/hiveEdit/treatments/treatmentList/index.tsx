@@ -1,51 +1,62 @@
-import { useState } from "react";
+import { useState } from 'react'
 
-import { gql, useQuery } from "../../../../api";
+import { gql, useQuery } from '../../../../api'
 import ErrorMessage from '../../../../shared/messageError'
-import T from "../../../../shared/translate";
-import Loader from "../../../../shared/loader";
-import DateFormat from "../../../../shared/dateFormat";
+import T from '../../../../shared/translate'
+import Loader from '../../../../shared/loader'
+import DateFormat from '../../../../shared/dateFormat'
 
 export default function TreatmentList({ hiveId, boxId = null }) {
 	let {
 		loading,
 		data,
 		error: errorGet,
-		errorNetwork
-	} = useQuery(gql`	query hive($id: ID!) {
-		hive(id: $id) {
-			__typename
-			id
-			family{
-				__typename
-				id
-				treatments{
+		errorNetwork,
+	} = useQuery(
+		gql`
+			query hive($id: ID!) {
+				hive(id: $id) {
 					__typename
 					id
-					type
-					added
+					family {
+						__typename
+						id
+						treatments {
+							__typename
+							id
+							type
+							added
+						}
+					}
 				}
 			}
-		}
-		}`,
-		{ variables: { id: +hiveId } })
+		`,
+		{ variables: { id: +hiveId } }
+	)
 
 	if (loading) {
 		return <Loader />
 	}
 
-
 	return (
 		<>
 			<ErrorMessage error={errorGet || errorNetwork} />
 
-			{data.hive.family && data.hive.family.treatments.length == 0 && <p><T>No treatments added yet</T></p>}
-			{data.hive.family && data.hive.family.treatments.length > 0 &&
+			{data.hive.family && data.hive.family.treatments.length == 0 && (
+				<div>
+					🧪 <T>Not treated</T>
+				</div>
+			)}
+			{data.hive.family && data.hive.family.treatments.length > 0 && (
 				<table width="100%">
 					<thead>
 						<tr>
-							<th><T>Treatment type</T></th>
-							<th width="200"><T>Time</T></th>
+							<th>
+								<T>Treatment type</T>
+							</th>
+							<th width="200">
+								<T>Time</T>
+							</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -59,7 +70,7 @@ export default function TreatmentList({ hiveId, boxId = null }) {
 						))}
 					</tbody>
 				</table>
-			}
+			)}
 		</>
 	)
 }

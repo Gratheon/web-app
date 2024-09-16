@@ -14,7 +14,7 @@ import { updateHive, getHive } from '../../../models/hive.ts'
 import { getBoxes } from '../../../models/boxes.ts'
 import { getFamilyByHive } from '../../../models/family.ts'
 
-import InspectionsLink from '../../../shared/inspectionLink/index.tsx'
+import InspectionsLink from '../../../shared/inspectionsLink/index.tsx'
 
 import Loader from '../../../shared/loader'
 import Button from '../../../shared/button'

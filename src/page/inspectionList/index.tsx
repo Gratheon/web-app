@@ -9,7 +9,7 @@ import ErrorGeneral from '../../shared/messageErrorGlobal'
 import Loader from '../../shared/loader'
 import MessageNotFound from '../../shared/messageNotFound'
 import BreadCrumbs from '../../shared/breadcrumbs'
-import InspectionsLink from '../../shared/inspectionLink/index.tsx'
+import InspectionsLink from '../../shared/inspectionsLink/index.tsx'
 import T from '../../shared/translate'
 import DateFormat from '../../shared/dateFormat'
 
@@ -170,4 +170,3 @@ export default function InspectionList() {
 		</div>
 	)
 }
-

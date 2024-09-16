@@ -4,12 +4,14 @@ import { useNavigate } from 'react-router-dom'
 
 import { gql, useMutation, useQuery } from '@/api'
 
-import { getFrame, removeFrame } from '../../../models/frames.ts'
-import T from '../../../shared/translate'
-import Button from '../../../shared/button'
-import Loading from '../../../shared/loader'
-import ErrorMessage from '../../../shared/messageError'
-import DeleteIcon from '../../../icons/deleteIcon.tsx'
+import { getFrame, removeFrame } from '@/models/frames.ts'
+
+import T from '@/shared/translate'
+import Button from '@/shared/button'
+import Loading from '@/shared/loader'
+import ErrorMessage from '@/shared/messageError'
+import DeleteIcon from '@/icons/deleteIcon.tsx'
+
 import MetricList from './metricList'
 
 import styles from './styles.module.less'
@@ -89,6 +91,8 @@ export default function Frame({
 
 	if (loading) return <Loading />
 
+	if (!frame) return null
+
 	const navigate = useNavigate()
 
 	let [removeFrameMutation, { error: errorFrameRemove }] =
@@ -127,7 +131,6 @@ export default function Frame({
 
 	const error = <ErrorMessage error={errorFrameRemove} />
 
-	console.log(frame)
 	return (
 		<div className={styles.frame}>
 			<div className={styles.body}>

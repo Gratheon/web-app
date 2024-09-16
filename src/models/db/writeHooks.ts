@@ -9,7 +9,8 @@ import { Frame, upsertFrame } from '../frames.ts'
 import { FileResize, upsertFileResize } from '../fileResize.ts'
 
 export const writeHooks = {
-	Apiary: async (_, entity) => await upsertEntityWithNumericID('apiary', entity),
+	Apiary: async (_, entity) =>
+		await upsertEntityWithNumericID('apiary', entity),
 	Hive: async (_, entity) => await upsertEntityWithNumericID('hive', entity),
 	Box: async (parent, entity) => {
 		entity.hiveId = +parent.id
@@ -49,7 +50,6 @@ export const writeHooks = {
 		entity.id = `${entity.inspectionId}_${entity.frameSideId}`
 		entity.frameSideId = +entity.frameSideId
 		entity.inspectionId = +entity.inspectionId
-		console.log('FrameSideInspection', entity)
 		await upsertEntity('frame_side_inspection', entity)
 	},
 
@@ -59,11 +59,13 @@ export const writeHooks = {
 	FrameSideCells: async (_, cells: FrameSideCells, { originalValue }) => {
 		if (Object.keys(cells).length === 0) return
 
-		cells.broodPercent = cells?.broodPercent ? +cells.broodPercent : 0;
-		cells.cappedBroodPercent = cells?.cappedBroodPercent ? +cells.cappedBroodPercent : 0;
-		cells.eggsPercent = cells?.eggsPercent ? +cells.eggsPercent : 0;
-		cells.pollenPercent = cells?.pollenPercent ? +cells.pollenPercent : 0;
-		cells.honeyPercent = cells?.honeyPercent ? +cells.honeyPercent : 0;
+		cells.broodPercent = cells?.broodPercent ? +cells.broodPercent : 0
+		cells.cappedBroodPercent = cells?.cappedBroodPercent
+			? +cells.cappedBroodPercent
+			: 0
+		cells.eggsPercent = cells?.eggsPercent ? +cells.eggsPercent : 0
+		cells.pollenPercent = cells?.pollenPercent ? +cells.pollenPercent : 0
+		cells.honeyPercent = cells?.honeyPercent ? +cells.honeyPercent : 0
 
 		cells.frameSideId = +cells.id
 		cells.id = +cells.id

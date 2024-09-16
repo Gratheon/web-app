@@ -1,25 +1,24 @@
-import React from 'react'
 import isNil from 'lodash/isNil'
 import { Container, Draggable } from '@edorivai/react-smooth-dnd'
 import { useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 
-import { gql, useMutation, useQuery, useSubscription } from '../../../../api'
-import { Frame as FrameType, getFrames, moveFrame } from '@/models/frames.ts'
-import { enrichFramesWithSides } from '../../../../models/frameSide.ts'
-import ErrorMessage from '../../../../shared/messageError'
-import Loader from '../../../../shared/loader'
+import { gql, useMutation, useQuery, useSubscription } from '@/api'
+import ErrorMessage from '@/shared/messageError'
+import Loader from '@/shared/loader'
 
-import styles from './index.module.less'
-import Frame from './boxFrame'
-import FRAMES_QUERY from './framesQuery.graphql.ts'
+import { Frame as FrameType, getFrames, moveFrame } from '@/models/frames'
+import { enrichFramesWithSides } from '@/models/frameSide'
 import {
 	enrichFramesWithSideCells,
 	getFrameSideCells,
 	newFrameSideCells,
 	updateFrameSideCells,
-	updateFrameStat,
-} from '../../../../models/frameSideCells.ts'
+} from '@/models/frameSideCells'
+
+import styles from './index.module.less'
+import Frame from './boxFrame'
+import FRAMES_QUERY from './framesQuery.graphql.ts'
 
 type BoxType = {
 	box: any

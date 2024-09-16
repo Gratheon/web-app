@@ -1,5 +1,8 @@
 //@ts-nocheck
 import Dexie from 'dexie'
+
+import isDev from '@/isDev'
+
 import { addCustomIndexes } from './addCustomIndexes.ts'
 import { FRAME_SIDE_CELL_TABLE } from '../frameSideCells.ts'
 import { FRAME_SIDE_FILE_TABLE } from '../frameSideFile.ts'
@@ -9,18 +12,18 @@ const DB_NAME = 'gratheon'
 const DB_VERSION = 8
 
 export const db = new Dexie(DB_NAME, {
-	autoOpen: true
+	autoOpen: true,
 })
 Dexie.debug = 'dexie'
 
 export async function dropDatabase() {
 	await db.delete()
-	await db.close();
+	await db.close()
 }
 
 const graphqlToTableMap = {
-	'framesidecells': FRAME_SIDE_CELL_TABLE,
-	'framesidefile': FRAME_SIDE_FILE_TABLE,
+	framesidecells: FRAME_SIDE_CELL_TABLE,
+	framesidefile: FRAME_SIDE_FILE_TABLE,
 }
 
 export function syncGraphqlSchemaToIndexDB(schemaObject) {
@@ -54,11 +57,12 @@ export function syncGraphqlSchemaToIndexDB(schemaObject) {
 		}
 	}
 
-
 	try {
 		addCustomIndexes(dbSchema)
 
-		console.log('Setting up db schema', dbSchema)
+		if (isDev()) {
+			console.info('Setting up db schema', dbSchema)
+		}
 		db.version(DB_VERSION).stores(dbSchema) // createObjectStore
 	} catch (e) {
 		console.error(e)
@@ -68,13 +72,22 @@ export function syncGraphqlSchemaToIndexDB(schemaObject) {
 
 // Generic function to updated IndexedDB table with graphql response
 export async function upsertEntityWithNumericID(entityName, entity) {
-	if (!entity){
-		console.trace('No entity name provided for type ' + entityName + ', this may be a bug and degrade performance')
+	if (!entity) {
+		console.trace(
+			'No entity name provided for type ' +
+				entityName +
+				', this may be a bug and degrade performance'
+		)
 		return
 	}
 
 	if (!entity.id) {
-		console.warn("Cannot store entity without ID for type " + entityName + '. Did you forget including id in query?', entity)
+		console.warn(
+			'Cannot store entity without ID for type ' +
+				entityName +
+				'. Did you forget including id in query?',
+			entity
+		)
 		return
 	}
 
@@ -86,7 +99,7 @@ export async function upsertEntityWithNumericID(entityName, entity) {
 export async function upsertEntity(entityName, entity) {
 	try {
 		entityName = entityName.toLowerCase()
-		
+
 		const ex = await db[entityName].get(entity.id)
 		let updatedValue = { ...entity }
 
@@ -103,3 +116,4 @@ export async function upsertEntity(entityName, entity) {
 		throw e
 	}
 }
+

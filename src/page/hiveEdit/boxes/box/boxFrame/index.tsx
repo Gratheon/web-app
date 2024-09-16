@@ -1,13 +1,13 @@
 import { useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 
-import { Box } from '../../../../../models/boxes.ts'
-import { Frame } from '../../../../../models/frames.ts'
+import { Box } from '@/models/boxes.ts'
+import { Frame } from '@/models/frames.ts'
+import { enrichFramesWithSides } from '@/models/frameSide.ts'
 
 import styles from './index.module.less'
-import FrameSide from './boxFrameHalf'
-import { enrichFramesWithSides } from '../../../../../models/frameSide.ts'
 import FrameSideImage from './frameSideImage'
+import BoxFrameEmptyComb from './boxFrameEmptyComb'
 
 export default function BoxFrame({
 	box,
@@ -29,17 +29,12 @@ export default function BoxFrame({
 	editable: Boolean
 	displayMode: string
 }) {
-	const frameWithSides = useLiveQuery(async () => {
-		let tmp = await enrichFramesWithSides([frame])
-		return tmp[0]
-	}, [frame, frameId, frameSideId])
-
-	if (!frameWithSides || !frame || !box) return null
+	if (!frame || !box) return null
 
 	const selectedFrame = frame.id === +frameId
-	let navigate = useNavigate()
-
 	let frameInternal = null
+
+	let navigate = useNavigate()
 	const frameURL = `/apiaries/${apiaryId}/hives/${hiveId}/box/${box.id}/frame/${frame.id}`
 
 	if (displayMode == 'visual') {
@@ -47,14 +42,14 @@ export default function BoxFrame({
 			return (
 				<div className={styles.listFrameIcon} style="margin:3px;">
 					<FrameSideImage
-						frameSideId={frameWithSides.leftSide.id}
+						frameSideId={frame.leftId}
 						frameURL={`${frameURL}/${frame.leftId}`}
 						selected={+frameSideId == +frame.leftId}
 						editable={editable}
 					/>
 
 					<FrameSideImage
-						frameSideId={frameWithSides.rightSide.id}
+						frameSideId={frame.rightId}
 						frameURL={`${frameURL}/${frame.rightId}`}
 						selected={+frameSideId == +frame.rightId}
 						editable={editable}
@@ -67,7 +62,30 @@ export default function BoxFrame({
 		}
 	}
 
-	if (frame.type === 'VOID') {
+	if (frame.type === 'EMPTY_COMB') {
+		frameInternal = (
+			<BoxFrameEmptyComb
+				frameURL={frameURL}
+				frame={frame}
+				editable={editable}
+			/>
+		)
+	} else if (frame.type === 'FOUNDATION') {
+		frameInternal = (
+			<div
+				className={styles.foundationFrame}
+				onClick={() => {
+					if (editable) {
+						navigate(frameURL, { replace: true })
+					}
+				}}
+			>
+				<div style={{ flexGrow: 1 }} />
+				<div className={styles.foundation} />
+				<div style={{ flexGrow: 1 }} />
+			</div>
+		)
+	} else if (frame.type === 'VOID') {
 		frameInternal = (
 			<div
 				onClick={() => {
@@ -99,47 +117,6 @@ export default function BoxFrame({
 				}}
 				className={styles.feeder}
 			/>
-		)
-	} else if (frame.type === 'FOUNDATION') {
-		frameInternal = (
-			<div
-				className={styles.foundationFrame}
-				onClick={() => {
-					if (editable) {
-						navigate(frameURL, { replace: true })
-					}
-				}}
-			>
-				<div style={{ flexGrow: 1 }} />
-				<div className={styles.foundation} />
-				<div style={{ flexGrow: 1 }} />
-			</div>
-		)
-	} else if (frame.type === 'EMPTY_COMB') {
-		frameInternal = (
-			<div className={styles.emptyComb}>
-				<FrameSide
-					onFrameSideClick={() => {
-						if (editable) {
-							navigate(`${frameURL}/${frame.leftId}`, { replace: true })
-						}
-					}}
-					className={styles.left}
-					frameSide={frame.leftSide}
-				/>
-
-				<div className={styles.foundation} />
-
-				<FrameSide
-					className={styles.right}
-					onFrameSideClick={() => {
-						if (editable) {
-							navigate(`${frameURL}/${frame.rightId}`, { replace: true })
-						}
-					}}
-					frameSide={frame.rightSide}
-				/>
-			</div>
 		)
 	}
 

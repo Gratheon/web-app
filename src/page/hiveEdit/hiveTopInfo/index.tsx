@@ -14,6 +14,8 @@ import { updateHive, getHive } from '../../../models/hive.ts'
 import { getBoxes } from '../../../models/boxes.ts'
 import { getFamilyByHive } from '../../../models/family.ts'
 
+import InspectionsLink from '../../../shared/inspectionLink/index.tsx'
+
 import Loader from '../../../shared/loader'
 import Button from '../../../shared/button'
 import { PopupButton, PopupButtonGroup } from '../../../shared/popupButton'
@@ -113,39 +115,45 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 	}
 
 	let buttons = (
-		<VisualFormSubmit>
-			<Button
-				loading={creatingInspection}
-				onClick={onCreateInspection}
-				color="green"
-			>
-				<InspectionIcon />
-				<T ctx="This is a button that adds new beehive inspection as a snapshot of current beehive state">
-					Create Inspection
-				</T>
-			</Button>
+		<div>
+			<VisualFormSubmit>
+				<Button
+					loading={creatingInspection}
+					onClick={onCreateInspection}
+					color="green"
+				>
+					<InspectionIcon />
+					<T ctx="This is a button that adds new beehive inspection as a snapshot of current beehive state">
+						Create Inspection
+					</T>
+				</Button>
+				<PopupButtonGroup>
+					{!editable && (
+						<Button onClick={() => setEditable(!editable)}>
+							<T ctx="this is a button to allow editing by displaying a form">
+								Edit
+							</T>
+						</Button>
+					)}
+					{editable && (
+						<Button onClick={() => setEditable(!editable)}>
+							<T ctx="this is a button to compete editing of a form, but it is not doing any saving because saving is done automatically, this just switches form to view mode">
+								Complete
+							</T>
+						</Button>
+					)}
 
-			<PopupButtonGroup>
-				{!editable && (
-					<Button onClick={() => setEditable(!editable)}>
-						<T ctx="this is a button to allow editing by displaying a form">
-							Edit
-						</T>
-					</Button>
-				)}
-				{editable && (
-					<Button onClick={() => setEditable(!editable)}>
-						<T ctx="this is a button to compete editing of a form, but it is not doing any saving because saving is done automatically, this just switches form to view mode">
-							Complete
-						</T>
-					</Button>
-				)}
-
-				<PopupButton align="right">
-					<DeactivateButton hiveId={hive.id} />
-				</PopupButton>
-			</PopupButtonGroup>
-		</VisualFormSubmit>
+					<PopupButton align="right">
+						<DeactivateButton hiveId={hive.id} />
+					</PopupButton>
+				</PopupButtonGroup>
+			</VisualFormSubmit>
+			<InspectionsLink
+				currentUrl={`/apiaries/${apiaryId}/hives/${hiveId}`}
+				inspectionsUrl={`/apiaries/${apiaryId}/hives/${hiveId}/inspections`}
+				inspectionCount={hive.inspectionCount}
+			/>
+		</div>
 	)
 
 	if (!editable) {
@@ -163,8 +171,6 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 							<h1 style="flex-grow:1; cursor: pointer" onClick={goToHiveView}>
 								{hive.name}
 							</h1>
-
-							{buttons}
 						</div>
 
 						<div id={styles.raceYear}>
@@ -184,6 +190,7 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 						)}
 
 						{hive.notes && <p>{hive.notes}</p>}
+						{buttons}
 					</div>
 				</div>
 			</div>

@@ -20,7 +20,7 @@ import GateBox from './gateBox/GateBox.tsx'
 import MessageNotFound from '../../shared/messageNotFound'
 import HiveAdvisor from './hiveAdvisor'
 import BreadCrumbs from '../../shared/breadcrumbs'
-import SubMenu from '../../shared/submenu'
+import InspectionsLink from '../../shared/inspectionsLink/index.tsx'
 import T from '../../shared/translate'
 import MessageSuccess from '../../shared/messageSuccess'
 import HiveIcon from '../../icons/hive.tsx'
@@ -167,13 +167,7 @@ export default function HiveEditForm() {
 				/>
 			)}
 
-			<BreadCrumbs items={breadcrumbs}>
-				<SubMenu
-					currentUrl={`/apiaries/${apiaryId}/hives/${hiveId}`}
-					inspectionsUrl={`/apiaries/${apiaryId}/hives/${hiveId}/inspections`}
-					inspectionCount={hive.inspectionCount}
-				/>
-			</BreadCrumbs>
+			<BreadCrumbs items={breadcrumbs} />
 
 			<HiveEditDetails apiaryId={apiaryId} hiveId={hiveId} />
 

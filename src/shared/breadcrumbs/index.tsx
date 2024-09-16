@@ -2,7 +2,7 @@ import React from 'react'
 import styles from './index.module.less'
 import { NavLink } from 'react-router-dom'
 
-export default function BreadCrumbs({ items, children }) {
+export default function BreadCrumbs({ items, children = null }) {
 	return (
 		<div className={styles.breadcrumbs}>
 			<div>
@@ -10,15 +10,15 @@ export default function BreadCrumbs({ items, children }) {
 					return (
 						<>
 							{breadcrumb.icon}
-							<span><NavLink to={breadcrumb.uri}>{breadcrumb.name}</NavLink></span>
+							<span>
+								<NavLink to={breadcrumb.uri}>{breadcrumb.name}</NavLink>
+							</span>
 							{i + 1 < items.length && <span>&nbsp;&rarr;&nbsp;</span>}
 						</>
 					)
 				})}
 			</div>
-			<div>
-				{children}
-			</div>
+			<div>{children}</div>
 		</div>
 	)
 }

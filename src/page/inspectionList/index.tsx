@@ -9,7 +9,7 @@ import ErrorGeneral from '../../shared/messageErrorGlobal'
 import Loader from '../../shared/loader'
 import MessageNotFound from '../../shared/messageNotFound'
 import BreadCrumbs from '../../shared/breadcrumbs'
-import SubMenu from '../../shared/submenu'
+import InspectionsLink from '../../shared/inspectionLink/index.tsx'
 import T from '../../shared/translate'
 import DateFormat from '../../shared/dateFormat'
 
@@ -38,18 +38,20 @@ export default function InspectionList() {
 		return <Loader />
 	}
 
-	let loading,
-		errorGet,
-		errorNetwork
+	let loading, errorGet, errorNetwork
 
 	let user = useLiveQuery(() => getUser(), [], null)
-	const inspections = useLiveQuery(() => listInspections(+hiveId), [hiveId], null)
+	const inspections = useLiveQuery(
+		() => listInspections(+hiveId),
+		[hiveId],
+		null
+	)
 	// if local cache is empty - query
 	if (inspections == null || inspections.length === 0) {
-		({
+		;({
 			loading,
 			error: errorGet,
-			errorNetwork
+			errorNetwork,
 		} = useQuery(INSPECTION_QUERY, { variables: { hiveId: +hiveId } }))
 	}
 
@@ -62,12 +64,15 @@ export default function InspectionList() {
 	// inline error from deeper components
 	let errorMsg = <ErrorMsg error={error || errorGet || errorNetwork} />
 
-
 	let breadcrumbs = []
 
 	if (apiary) {
 		breadcrumbs[0] = {
-			name: <>«{apiary.name}» <T>apiary</T></>,
+			name: (
+				<>
+					«{apiary.name}» <T>apiary</T>
+				</>
+			),
 			uri: `/apiaries/edit/${apiaryId}`,
 		}
 	}
@@ -75,32 +80,44 @@ export default function InspectionList() {
 	if (hive) {
 		breadcrumbs[1] = {
 			icon: <HiveIcon size={12} />,
-			name: <>«{hive.name}» <T>hive</T></>,
+			name: (
+				<>
+					«{hive.name}» <T>hive</T>
+				</>
+			),
 			uri: `/apiaries/${apiaryId}/hives/${hiveId}`,
 		}
 	}
 
 	if (inspectionId) {
-		let selectedInspection = inspections.find((i: Inspection) => i.id == +inspectionId)
+		let selectedInspection = inspections.find(
+			(i: Inspection) => i.id == +inspectionId
+		)
 		if (selectedInspection) {
 			breadcrumbs[2] = {
 				icon: <InspectionIcon size={12} />,
-				name: (<><DateFormat
-					lang={user ? user.lang : 'en'}
-					datetime={selectedInspection?.added}
-				/> <T>inspection</T>
-				</>),
+				name: (
+					<>
+						<DateFormat
+							lang={user ? user.lang : 'en'}
+							datetime={selectedInspection?.added}
+						/>{' '}
+						<T>inspection</T>
+					</>
+				),
 				uri: `/apiaries/${apiaryId}/hives/${hiveId}/inspections/${inspectionId}`,
 			}
 		}
 	}
 
-
 	if (!inspections || inspections.length === 0) {
 		return (
 			<MessageNotFound msg={<T>No inspections found</T>}>
 				<div>
-					<T ctx="this is an error message that explains why no inspections are viewed">Inspection is a snapshot state of beehive at specific time. Inspection can be created from hive view</T>
+					<T ctx="this is an error message that explains why no inspections are viewed">
+						Inspection is a snapshot state of beehive at specific time.
+						Inspection can be created from hive view
+					</T>
 				</div>
 			</MessageNotFound>
 		)
@@ -108,19 +125,17 @@ export default function InspectionList() {
 
 	return (
 		<div>
-			<BreadCrumbs items={breadcrumbs}>
-				{hive && <SubMenu
-					currentUrl={`/apiaries/${apiaryId}/hives/${hiveId}`}
-					inspectionsUrl={`/apiaries/${apiaryId}/hives/${hiveId}/inspections`}
-					inspectionCount={hive.inspectionCount}
-				/>}
-			</BreadCrumbs>
+			<BreadCrumbs items={breadcrumbs} />
 			<ErrorGeneral />
 
 			{okMsg}
 			{errorMsg}
 
-			{inspections.length > 0 &&
+			<h1 style="padding: 0 10px;">
+				<T ctx="This is a heading for beehive inspections">Inspections</T>
+			</h1>
+
+			{inspections.length > 0 && (
 				<div className={styles.flex}>
 					<div className={styles.inspectionList}>
 						{inspections.map((inspection: Inspection) => (
@@ -137,14 +152,22 @@ export default function InspectionList() {
 					</div>
 
 					<div>
-						<InspectionShareButton apiaryId={apiaryId} hiveId={hiveId} inspectionId={inspectionId}/>
-						{inspectionId && <InspectionView
+						<InspectionShareButton
 							apiaryId={apiaryId}
-							hiveId={hive.id}
+							hiveId={hiveId}
 							inspectionId={inspectionId}
-						/>}
+						/>
+						{inspectionId && (
+							<InspectionView
+								apiaryId={apiaryId}
+								hiveId={hive.id}
+								inspectionId={inspectionId}
+							/>
+						)}
 					</div>
-				</div>}
+				</div>
+			)}
 		</div>
 	)
 }
+

@@ -100,10 +100,6 @@ flowchart LR
 
 	beehive-entrance-video-processor -."send detected bees \n timeseries counts".-> telemetry-api("<a href='https://github.com/Gratheon/telemetry-api'>telemetry-api</a>")
 
-
-	beehive-entrance-video-processor -."run inference on edge".-> models-bee-detector
-
-
 	web-app --"include analytics page"--> grafana("<a href='https://github.com/Gratheon/grafana'>grafana</a>\n:9000") --"read bee traffic over time"--> influxdb("influxdb:5300")
 ```
 

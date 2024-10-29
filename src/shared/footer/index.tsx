@@ -84,12 +84,12 @@ export default function Footer() {
 				</li>
 			)}
 			<li>
-				<a href="https://gratheon.com/terms.html">
+				<a href="https://gratheon.com/terms">
 					<T ctx="link in page footer">Terms of Use</T>
 				</a>
 			</li>
 			<li>
-				<a href="https://gratheon.com/privacy.html">
+				<a href="https://gratheon.com/privacy">
 					<T ctx="link in page footer">Privacy policy</T>
 				</a>
 			</li>

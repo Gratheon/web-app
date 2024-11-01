@@ -16,3 +16,7 @@ jobs:
       - name: restart
         working-directory: /www/web-app/
         run: chmod +x restart.sh && ./restart.sh
+        
+      - name: cleanup
+        working-directory: /www/web-app/
+        run: rm -rf /www/web-app/node_modules

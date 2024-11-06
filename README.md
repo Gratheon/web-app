@@ -1,22 +1,7 @@
 # gratheon / web-app
 
-Web app for beehive management and analytics
-
-## Features
-
-- manage beehives
-- manage of apiaries (groups of beehives)
-  - display weather apiary is at
-  - display local plants apiary is near to
-- manage beehive boxes (for vertical types)
-- manage box frames
-- manage frame sides, including image upload
-  - frame side image processing to detect resource distribution
-  - resource distribution visualization
-- video stream beehive entrance
-- analyze collected metrics in grafana and time-series DB
-
-See all features [in Notion](https://gratheon.notion.site/App-platform-2937ed264e1d434a8664caa4bc40978e)
+Web app for beehive management and analytics.
+See [product feature and ideas](https://gratheon.com/about/products/%F0%9F%93%B1Web-app/), also see technical [architecture docs](https://gratheon.com/docs/web-app/) for the entire system
 
 ## Development
 
@@ -35,9 +20,7 @@ In this mode you will not be able to change graphql schema as flexibly.
 ### Developing with local backend
 
 - Change src/components/uri.ts and set `USE_PROD_BACKEND_FOR_DEV` to false
-
 - Spin up the backend. locally, you can use `make dev` in the root of the projects. Follow https://gratheon.notion.site/Onboarding-91481a8152cf4d1685770ec2a7cc7c94 for more details
-
 - You will need to change configuration (in `config` folder) in all of the microservices (see the architecture)
 
 ### URLs
@@ -51,8 +34,6 @@ In this mode you will not be able to change graphql schema as flexibly.
 
 ## Architecture
 
-### Core services and routing
-
 ```mermaid
 flowchart LR
 	web-app --"read/write data \n on client side via dexie"--> indexed-db[(indexed-db)]
@@ -65,45 +46,7 @@ flowchart LR
 	some-product-service --"update schema"--> graphql-schema-registry
 ```
 
-### Product services & image processing
-
-```mermaid
-flowchart LR
-	graphql-router("<a href='https://github.com/Gratheon/graphql-router'>graphql-router</a>\n :6100") --> swarm-api("<a href='https://github.com/Gratheon/swarm-api'>swarm-api</a>\n:8100") --> mysql[(mysql\n:5100)]
-	graphql-router --> swarm-api --> redis[("<a href='https://github.com/Gratheon/redis'>redis pub-sub</a>\n:6379")]
-
-	graphql-router --> image-splitter("<a href='https://github.com/Gratheon/image-splitter'>image-splitter</a>\n:8800") --> mysql
-
-	web-app --"upload frames"--> image-splitter --> aws-s3
-	image-splitter --"inference"--> models-bee-detector("<a href='https://github.com/Gratheon/models-bee-detector'>models-bee-detector</a>\n:8700")
-	image-splitter --"inference"--> models-frame-resources("<a href='https://github.com/Gratheon/models-frame-resources'>models-frame-resources</a>\n:8540")
-	graphql-router --> user-cycle("<a href='https://github.com/Gratheon/user-cycle'>user-cycle</a>\n:4000") --> mysql
-	graphql-router --> user-cycle --> stripe
-	graphql-router --> plantnet("<a href='https://github.com/Gratheon/plantnet'>plantnet</a>\n:8090") --> mysql
-
-	graphql-router --> weather("<a href='https://github.com/Gratheon/weather'>weather</a>\n:8070")
-
-```
-
-### Video processing, playback and analytics
-
-```mermaid
-flowchart LR
-	web-app("<a href='https://github.com/Gratheon/web-app'>web-app</a>\n:8080") --"fetch video streams"--> graphql-router("<a href='https://github.com/Gratheon/graphql-router'>graphql-router</a>") --"list video stream URLs"--> gate-video-stream -- "get data for playback" --> mysql
-
-	web-app --"record & upload \n 10s webcam video"--> gate-video-stream("<a href='https://github.com/Gratheon/gate-video-stream'>gate-video-stream</a>\n:8900") --"inference video"--> models-gate-tracker("<a href='https://github.com/Gratheon/models-gate-tracker'>models-gate-tracker</a>")
-
-	gate-video-stream --"store video re-training with 1 month TTL"--> aws-s3
-	gate-video-stream --"store results long-term" --> mysql
-
-	beehive-entrance-video-processor("<a href='https://github.com/Gratheon/beehive-entrance-video-processor'>beehive-entrance-video-processor</a>") --"record & upload 10s video chunks\nsend edge-computed telemetry"--> gate-video-stream
-
-	beehive-entrance-video-processor -."send detected bees \n timeseries counts".-> telemetry-api("<a href='https://github.com/Gratheon/telemetry-api'>telemetry-api</a>")
-
-	web-app --"include analytics page"--> grafana("<a href='https://github.com/Gratheon/grafana'>grafana</a>\n:9000") --"read bee traffic over time"--> influxdb("influxdb:5300")
-```
-
-### Tech stack
+### Web-app tech stack
 
 | dependency       | why                                                         |
 | ---------------- | ----------------------------------------------------------- |

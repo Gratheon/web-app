@@ -13,7 +13,7 @@ export default function Grafana() {
 
 	return (
 		<>
-			{userStored.billingPlan !=='pro' && <MessageSuccess title={<T>You need to have a pro plan to access analytics</T>} isWarning={true} />}
+			{/*{userStored.billingPlan !=='pro' && <MessageSuccess title={<T>You need to have a pro plan to access analytics</T>} isWarning={true} />}*/}
 			<iframe width="100%" height="100%" style={{border:0}} src={`${grafanaUri()}dashboards?orgId=1`} />
 		</>
 	)

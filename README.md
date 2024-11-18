@@ -1,7 +1,7 @@
 # gratheon / web-app
 
 Web app for beehive management and analytics.
-See [product feature and ideas](https://gratheon.com/about/products/%F0%9F%93%B1Web-app/), also see technical [architecture docs](https://gratheon.com/docs/web-app/) for the entire system
+See [product feature and ideas](https://gratheon.com/about/products/%F0%9F%93%B1Web-app/), also see technical [architecture docs]([https://gratheon.com/docs/web-app/](https://gratheon.com/docs/%F0%9F%93%B1%20Web-app/)) for the entire system
 
 ## Development
 
@@ -20,7 +20,7 @@ In this mode you will not be able to change graphql schema as flexibly.
 ### Developing with local backend
 
 - Change src/components/uri.ts and set `USE_PROD_BACKEND_FOR_DEV` to false
-- Spin up the backend. locally, you can use `make dev` in the root of the projects. Follow https://gratheon.notion.site/Onboarding-91481a8152cf4d1685770ec2a7cc7c94 for more details
+- Spin up the backend. locally, you can use `make dev` in the root of the projects
 - You will need to change configuration (in `config` folder) in all of the microservices (see the architecture)
 
 ### URLs
@@ -64,7 +64,7 @@ We don't have any tests atm :(
 
 #### UI tests
 
-We use playwright. Tests are not automated, meaning not running in CI, but you can run them locally.
+We want to use playwright. Tests are not running in CI, but you can run them locally.
 
 ```
 just test-ui-headless

@@ -32,6 +32,11 @@ function wgs84ToLest97(lat, lon) {
 	return proj4("EPSG:4326", "EPSG:3301", [lon, lat]);
 }
 
+
+function isEstonia(lng, lat){
+	return (lng > 21 && lng < 28 && lat > 57 && lat < 60)
+}
+
 export default function ApiaryEditForm() {
 	let navigate = useNavigate()
 	let { id } = useParams()
@@ -142,7 +147,7 @@ export default function ApiaryEditForm() {
 	let estonia_plane_map=null;
 
 	// conditionally show Estonia
-	if (lng > 21 && lng < 28 && lat > 57 && lat < 60) {
+	if (isEstonia(lat, lng)) {
 		let [y, x] = wgs84ToLest97(lat, lng)
 		estonia_plane_map = <Button href={`https://kls.pria.ee/kaart/#map=12/${x}/${y}`}>Estonia PRIA map</Button>
 	}

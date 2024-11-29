@@ -19,7 +19,7 @@ import MessageNotFound from '../../shared/messageNotFound'
 import DeleteIcon from '../../icons/deleteIcon.tsx'
 import T from '../../shared/translate'
 
-import PollinationTab from './pollinationTab'
+// import PollinationTab from './pollinationTab'
 import { Tab, TabBar } from '../../shared/tab'
 import LocationMarker from '../../icons/locationMarker.tsx'
 
@@ -163,36 +163,46 @@ export default function ApiaryEditForm() {
 							<input
 								name="name"
 								id="name"
-								style={{ width: '100%' }}
+								style={{width: '100%'}}
 								autoFocus
 								onInput={onNameChange}
 								value={name}
 							/>
 						</div>
 					</div>
-
-					<VisualFormSubmit>
-
-						<Button color="red" loading={saving} onClick={onDeleteApiary}><DeleteIcon /><span><T>Delete</T></span></Button>
-						<Button type="submit" loading={saving} color="green"><T>Save</T></Button>
-
-
-						<Button
-							onClick={() => {
-								setAutoLocate(!autoLocate)
-							}}
-						><LocationMarker/><span><T>Locate me</T></span></Button>
-
-						{estonia_plane_map}
-
-					</VisualFormSubmit>
 				</VisualForm>
+
+
+				<div style={"display:flex; flex-direction: row-reverse;"}>
+
+					<Button color="red" loading={saving}
+							onClick={onDeleteApiary}><DeleteIcon/><span><T>Delete</T></span></Button>
+					<Button type="submit" loading={saving} color="green"><T>Save</T></Button>
+
+
+					<Button
+						onClick={() => {
+							setAutoLocate(!autoLocate)
+						}}
+					><LocationMarker/><span><T>Locate me</T></span></Button>
+
+					{estonia_plane_map}
+
+				</div>
 			</div>
 			<TabBar>
-				<Tab isSelected={mapTab == 0} onClick={() => { setMapTab(0) }}><T>Position</T></Tab>
-				<Tab isSelected={mapTab == 1} onClick={() => { setMapTab(1) }}><T>Satellite</T></Tab>
-				<Tab isSelected={mapTab == 3} onClick={() => { setMapTab(3) }}><T>Moisture</T></Tab>
-				<Tab isSelected={mapTab == 4} onClick={() => { setMapTab(4) }}><T>Pollination</T></Tab>
+				<Tab isSelected={mapTab == 0} onClick={() => {
+					setMapTab(0)
+				}}><T>Position</T></Tab>
+				<Tab isSelected={mapTab == 1} onClick={() => {
+					setMapTab(1)
+				}}><T>Satellite</T></Tab>
+				<Tab isSelected={mapTab == 3} onClick={() => {
+					setMapTab(3)
+				}}><T>Moisture</T></Tab>
+				{/*<Tab isSelected={mapTab == 4} onClick={() => {*/}
+				{/*	setMapTab(4)*/}
+				{/*}}><T>Pollination</T></Tab>*/}
 			</TabBar>
 			<div>
 				{mapTab == 0 && <Map
@@ -207,7 +217,7 @@ export default function ApiaryEditForm() {
 
 				{mapTab == 1 && satellite_map}
 				{mapTab == 3 && moisture_map}
-				{mapTab == 4 && <PollinationTab lat={lat} lng={lng} />}
+				{/*{mapTab == 4 && <PollinationTab lat={lat} lng={lng} />}*/}
 			</div>
 
 			<div>
@@ -223,7 +233,7 @@ export default function ApiaryEditForm() {
 			</div>
 
 			{apiary && <Weather lat={lat} lng={lng} />}
-			{apiary && <Plants lat={lat} lng={lng} />}
+			{/*{apiary && <Plants lat={lat} lng={lng} />}*/}
 		</div>
 	)
 }

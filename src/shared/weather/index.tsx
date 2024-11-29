@@ -33,10 +33,6 @@ export default function Weather({ lat, lng }: { lat: any; lng: any }) {
 
 	return (
 		<div style={{ padding: '0 30px' }}>
-			<div>Temperature: {data.weather?.current_weather.temperature} °C</div>
-			<div>Windspeed: {data.weather?.current_weather.windspeed} km/h</div>
-
-			<Forecast data={data} />
+			<Forecast data={data}/>
 		</div>
-	)
-}
+	)}

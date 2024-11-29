@@ -53,7 +53,7 @@ export default function Forecast({data}: HumidityProps) {
 
 
                     <LineChart
-                        width={600}
+                        width={400}
                         height={200}
                         data={formattedData}
                         margin={{
@@ -85,7 +85,7 @@ export default function Forecast({data}: HumidityProps) {
 
 
                     <LineChart
-                        width={600}
+                        width={400}
                         height={200}
                         data={windData}
                         margin={{
@@ -108,7 +108,7 @@ export default function Forecast({data}: HumidityProps) {
 
             <div className={style.forecast}>
                 <LineChart
-                    width={600}
+                    width={400}
                     height={200}
                     data={humidity}
                     margin={{
@@ -141,7 +141,7 @@ export default function Forecast({data}: HumidityProps) {
                 </LineChart>
 
                 <LineChart
-                    width={600}
+                    width={400}
                     height={200}
                     data={rain}
                     margin={{

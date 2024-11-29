@@ -220,17 +220,17 @@ export default function ApiaryEditForm() {
 				{/*{mapTab == 4 && <PollinationTab lat={lat} lng={lng} />}*/}
 			</div>
 
-			<div>
-				Metadata: lat={lat}, lng={lng}.
-				<a
-					target="_blank"
-					href={`https://www.google.com/maps/@${lat},${lng},16z/data=!3m1!1e3`}
-					rel="noreferrer"
-				>
-					Google maps
-				</a>
+			{/*<div>*/}
+			{/*	Metadata: lat={lat}, lng={lng}.*/}
+			{/*	<a*/}
+			{/*		target="_blank"*/}
+			{/*		href={`https://www.google.com/maps/@${lat},${lng},16z/data=!3m1!1e3`}*/}
+			{/*		rel="noreferrer"*/}
+			{/*	>*/}
+			{/*		Google maps*/}
+			{/*	</a>*/}
 
-			</div>
+			{/*</div>*/}
 
 			{apiary && <Weather lat={lat} lng={lng} />}
 			{/*{apiary && <Plants lat={lat} lng={lng} />}*/}

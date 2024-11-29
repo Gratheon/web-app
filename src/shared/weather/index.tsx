@@ -32,7 +32,7 @@ export default function Weather({ lat, lng }: { lat: any; lng: any }) {
 	}
 
 	return (
-		<div style={{ padding: '0 30px' }}>
+		<div style={{ padding: '0 10px' }}>
 			<Forecast data={data}/>
 		</div>
 	)}

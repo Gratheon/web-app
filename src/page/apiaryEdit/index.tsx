@@ -33,8 +33,21 @@ function wgs84ToLest97(lat, lon) {
 }
 
 
-function isEstonia(lng, lat){
-	return (lng > 21 && lng < 28 && lat > 57 && lat < 60)
+export function isEstonia(lat, lng){
+	lng = parseFloat(lng)
+	lat = parseFloat(lat)
+
+	let matchesLng = lng >= 21.8 && lng <= 28.2
+	let matchesLat = lat >= 57.5 && lat <= 59.5
+
+	console.log({
+		lat,
+		lng,
+		matchesLng,
+		matchesLat
+	})
+
+	return matchesLng && matchesLat
 }
 
 export default function ApiaryEditForm() {

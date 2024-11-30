@@ -40,13 +40,6 @@ export function isEstonia(lat, lng){
 	let matchesLng = lng >= 21.8 && lng <= 28.2
 	let matchesLat = lat >= 57.5 && lat <= 59.5
 
-	console.log({
-		lat,
-		lng,
-		matchesLng,
-		matchesLat
-	})
-
 	return matchesLng && matchesLat
 }
 

@@ -42,17 +42,17 @@ export default function Weather({lat, lng}: { lat: any; lng: any }) {
         let formattedWindData = []
 
         data.weatherEstonia.days.map((day: any, i: number) => {
-            console.log(day)
             formattedTempData.push({
                 name: day,
                 temperature: data.weatherEstonia.temp[i],
             })
+
             formattedWindData.push({
                 name: day,
                 wind: data.weatherEstonia.wind[i],
             })
         })
-        console.log(data.weatherEstonia)
+        // console.log(data.weatherEstonia)
         return (
             <div style={{padding: '10px 20px', display:'flex'}}>
                 <h1>{data.weatherEstonia.closestLocation}</h1>
@@ -102,7 +102,7 @@ export default function Weather({lat, lng}: { lat: any; lng: any }) {
                         <Tooltip/>
                         <Line
                             type="monotone"
-                            dataKey="temperature"
+                            dataKey="wind"
                             stroke="#EEAAAA"
                             activeDot={{r: 2}}
                         />

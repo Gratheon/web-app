@@ -54,60 +54,61 @@ export default function Weather({lat, lng}: { lat: any; lng: any }) {
         })
         // console.log(data.weatherEstonia)
         return (
-            <div style={{padding: '10px 20px', display:'flex'}}>
-                <h1>{data.weatherEstonia.closestLocation}</h1>
+            <div style={{padding: '10px 20px'}}>
+                <div style={{display:'flex'}}>
+                    <div>
+                        <h1>Temperature</h1>
+                        <LineChart
+                            width={400}
+                            height={200}
+                            data={formattedTempData}
+                            margin={{
+                                top: 5,
+                                right: 10,
+                                left: 10,
+                                bottom: 5,
+                            }}
+                        >
+                            <CartesianGrid strokeDasharray="3 3"/>
+                            <XAxis dataKey="name"/>
+                            <YAxis/>
+                            <Tooltip/>
+                            <Line
+                                type="monotone"
+                                dataKey="temperature"
+                                stroke="#EEAAAA"
+                                activeDot={{r: 2}}
+                            />
+                        </LineChart>
+                    </div>
 
-                <div>
-                    <h1>Temperature</h1>
-                    <LineChart
-                        width={400}
-                        height={200}
-                        data={formattedTempData}
-                        margin={{
-                            top: 5,
-                            right: 10,
-                            left: 10,
-                            bottom: 5,
-                        }}
-                    >
-                        <CartesianGrid strokeDasharray="3 3"/>
-                        <XAxis dataKey="name"/>
-                        <YAxis/>
-                        <Tooltip/>
-                        <Line
-                            type="monotone"
-                            dataKey="temperature"
-                            stroke="#EEAAAA"
-                            activeDot={{r: 2}}
-                        />
-                    </LineChart>
+                    <div>
+                        <h1>Wind speed</h1>
+                        <LineChart
+                            width={400}
+                            height={200}
+                            data={formattedWindData}
+                            margin={{
+                                top: 5,
+                                right: 10,
+                                left: 10,
+                                bottom: 5,
+                            }}
+                        >
+                            <CartesianGrid strokeDasharray="3 3"/>
+                            <XAxis dataKey="name"/>
+                            <YAxis/>
+                            <Tooltip/>
+                            <Line
+                                type="monotone"
+                                dataKey="wind"
+                                stroke="#EEAAAA"
+                                activeDot={{r: 2}}
+                            />
+                        </LineChart>
+                    </div>
                 </div>
-
-                <div>
-                    <h1>Wind speed</h1>
-                    <LineChart
-                        width={400}
-                        height={200}
-                        data={formattedWindData}
-                        margin={{
-                            top: 5,
-                            right: 10,
-                            left: 10,
-                            bottom: 5,
-                        }}
-                    >
-                        <CartesianGrid strokeDasharray="3 3"/>
-                        <XAxis dataKey="name"/>
-                        <YAxis/>
-                        <Tooltip/>
-                        <Line
-                            type="monotone"
-                            dataKey="wind"
-                            stroke="#EEAAAA"
-                            activeDot={{r: 2}}
-                        />
-                    </LineChart>
-                </div>
+                <span>Weather data of {data.weatherEstonia.closestLocation} station provided by <a href={'https://www.keskkonnaagentuur.ee/'}>Keskkonnaagentuur</a></span>
             </div>
         )
     }

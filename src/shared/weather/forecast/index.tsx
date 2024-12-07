@@ -1,7 +1,7 @@
 //@ts-nocheck
 import {format} from 'date-fns'
 
-import {CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis,} from 'recharts'
+import {Area, AreaChart, LineChart, Line, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, ReferenceLine} from 'recharts'
 
 import style from './index.module.less'
 
@@ -13,6 +13,27 @@ type Humidity = {
 
 type HumidityProps = {
     data: any
+}
+
+function ChartHeading({title, value, info}) {
+    return <>
+        <div style={{fontSize: '20px', display: 'flex'}}>
+            <span style={"flex-grow:1"}>{title}</span>
+            <strong>{value}</strong>
+        </div>
+
+        <div style={"font-size:10px; color:gray;"}>{info}</div>
+    </>
+}
+
+function calculateMedian(values: number[]): number {
+    if (values.length === 0) return 0;
+    const sortedValues = [...values].sort((a, b) => a - b);
+    const mid = Math.floor(sortedValues.length / 2);
+
+    return sortedValues.length % 2 !== 0
+        ? sortedValues[mid]
+        : (sortedValues[mid - 1] + sortedValues[mid]) / 2;
 }
 
 export default function Forecast({data}: HumidityProps) {
@@ -44,134 +65,122 @@ export default function Forecast({data}: HumidityProps) {
         })
     })
 
+    const chartMargin = {
+        top: 5,
+        right: 0,
+        left: 0,
+        bottom: 5,
+    }
+
+    const averageTemperature = formattedData.reduce((acc, curr) => acc + curr.temperature, 0) / formattedData.length;
+    let temperatureColor = 'blue'; // Default color
+
+    if (averageTemperature >= 13 && averageTemperature <= 27) {
+        temperatureColor = 'green';
+    } else if (averageTemperature > 27) {
+        temperatureColor = 'red';
+    }
+    
+    const medianRainProbability = calculateMedian(data.weather.hourly.rain);
+
     return (
         <>
+            <div style={{padding: '5px 20px'}}>Weather forecast for next week</div>
             <div className={style.forecast}>
-                <div style={"font-size:12px"}>
-                    <strong style={"font-size:20px"}>{data.weather?.current_weather.temperature} °C</strong><br/>
-                    🌡️Temperature
+                <div className={style.graph}>
+                    <ChartHeading
+                        title={'🌡️ Temperature'}
+                        value={`${data.weather?.current_weather.temperature} °C`}
+                        info={'Too high or low temperature is bad for bees'}/>
 
+                    <ResponsiveContainer width="100%" height={300}>
+                        <AreaChart
+                            accessibilityLayer
+                            data={formattedData}
+                            margin={chartMargin}
+                        >
+                            <CartesianGrid strokeDasharray="3 3"/>
+                            <XAxis dataKey="name"/>
+                            <YAxis/>
+                            <Tooltip/>
 
-                    <LineChart
-                        width={400}
-                        height={200}
-                        data={formattedData}
-                        margin={{
-                            top: 5,
-                            right: 10,
-                            left: 10,
-                            bottom: 5,
-                        }}
-                    >
-                        <CartesianGrid strokeDasharray="3 3"/>
-                        <XAxis dataKey="name"/>
-                        <YAxis/>
-                        <Tooltip/>
-                        {/*<Legend/>*/}
-                        <Line
-                            type="monotone"
-                            dataKey="temperature"
-                            stroke="#EEAAAA"
-                            activeDot={{r: 2}}
-                        />
-                    </LineChart>
+                            <Area
+                                isAnimationActive={true}
+                                type="monotone"
+                                dataKey="temperature"
+                                stroke="black"
+                                fill={temperatureColor}/>
+
+                            <ReferenceLine y={13} label="" stroke="blue" strokeDasharray="3 3" />
+                            <ReferenceLine y={28} label="" stroke="red" strokeDasharray="3 3" />
+                        </AreaChart>
+                    </ResponsiveContainer>
 
 
                 </div>
 
-                <div style={"font-size:12px"}>
-                    <strong style={"font-size:20px"}>{data.weather?.current_weather.windspeed} km/h</strong><br/>
-                    💨Wind speed
+                <div className={style.graph}>
+                    <ChartHeading
+                        title={'💨 Wind speed'}
+                        value={`${data.weather?.current_weather.windspeed} km/h`}
+                        info={'High wind speed can collapse hives'}/>
 
 
-                    <LineChart
-                        width={400}
-                        height={200}
-                        data={windData}
-                        margin={{
-                            top: 5,
-                            right: 10,
-                            left: 10,
-                            bottom: 5,
-                        }}
-                    >
-                        <CartesianGrid strokeDasharray="3 3"/>
-                        <XAxis dataKey="name"/>
-                        <YAxis/>
-                        <Tooltip/>
-                        {/*<Legend/>*/}
-
-                        <Line type="monotone" dataKey="wind" stroke="#82ca9d"/>
-                    </LineChart>
+                    <ResponsiveContainer width="100%" height={300}>
+                        <AreaChart
+                            accessibilityLayer
+                            data={windData}
+                            margin={chartMargin}
+                        >
+                            <CartesianGrid strokeDasharray="3 3"/>
+                            <XAxis dataKey="name"/>
+                            <YAxis/>
+                            <Tooltip/>
+                            <Area
+                                type="monotone"
+                                dataKey="wind"
+                                stroke="black"
+                                fill="green"/>
+                            <ReferenceLine y={50} label="" stroke="red" strokeDasharray="3 3" />
+                        </AreaChart>
+                    </ResponsiveContainer>
                 </div>
-            </div>
 
-            <div className={style.forecast}>
-                <LineChart
-                    width={400}
-                    height={200}
-                    data={humidity}
-                    margin={{
-                        top: 5,
-                        right: 10,
-                        left: 10,
-                        bottom: 5,
-                    }}
-                >
-                    <CartesianGrid strokeDasharray="3 3"/>
-                    <XAxis dataKey="name"/>
-                    <YAxis yAxisId="left"/>
-                    <YAxis yAxisId="right" orientation="right"/>
-                    <Tooltip/>
-                    {/*<Legend/>*/}
-                    <Line
-                        yAxisId="left"
-                        type="monotone"
-                        dataKey="humidity"
-                        stroke="#8884d8"
-                        activeDot={{r: 2}}
-                    />
-                    <Line
-                        yAxisId="right"
-                        type="monotone"
-                        dataKey="rain"
-                        stroke="#82ca9d"
-                        activeDot={{r: 2}}
-                    />
-                </LineChart>
+                <div className={style.graph}>
+                    <ChartHeading
+                        title={'🌧️ Rain probability'}
+                        value={`${medianRainProbability} %`}
+                        info={'No flying in the rain'}/>
 
-                <LineChart
-                    width={400}
-                    height={200}
-                    data={rain}
-                    margin={{
-                        top: 5,
-                        right: 10,
-                        left: 10,
-                        bottom: 5,
-                    }}
-                >
-                    <CartesianGrid strokeDasharray="3 3"/>
-                    <XAxis dataKey="name"/>
-                    <YAxis yAxisId="left"/>
-                    <YAxis yAxisId="right" orientation="right"/>
-                    <Tooltip/>
-                    {/*<Legend/>*/}
-                    <Line
-                        yAxisId="left"
-                        type="monotone"
-                        dataKey="humidity"
-                        stroke="#8884d8"
-                        activeDot={{r: 2}}
-                    />
-                    <Line
-                        yAxisId="right"
-                        type="monotone"
-                        dataKey="rain"
-                        stroke="#82ca9d"
-                        activeDot={{r: 2}}
-                    />
-                </LineChart>
+                    <ResponsiveContainer width="100%" height={300}>
+                        <LineChart
+                            data={rain}
+                            margin={chartMargin}
+                        >
+                            <CartesianGrid strokeDasharray="3 3"/>
+                            <XAxis dataKey="name"/>
+                            <YAxis yAxisId="left"/>
+                            <YAxis yAxisId="right" orientation="right"/>
+                            <Tooltip/>
+                            
+                            <Line
+                                yAxisId="left"
+                                type="monotone"
+                                dataKey="humidity"
+                                stroke="#8884d8"
+                                activeDot={{r: 2}}
+                            />
+                            <Line
+                                yAxisId="right"
+                                type="monotone"
+                                dataKey="rain"
+                                stroke="#82ca9d"
+                                activeDot={{r: 2}}
+                            />
+                        </LineChart>
+
+                    </ResponsiveContainer>
+                </div>
             </div>
         </>
     )

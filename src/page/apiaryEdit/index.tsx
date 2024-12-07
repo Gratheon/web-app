@@ -10,7 +10,6 @@ import { gql, useMutation, useQuery } from '../../api'
 import Loader from '../../shared/loader'
 import ErrorMsg from '../../shared/messageError'
 import MessageSuccess from '../../shared/messageSuccess'
-import VisualFormSubmit from '../../shared/visualForm/VisualFormSubmit'
 import Button from '../../shared/button'
 import Map from '../../shared/map'
 import Weather from '../../shared/weather'
@@ -244,7 +243,7 @@ export default function ApiaryEditForm() {
 			{/*</div>*/}
 
 			{apiary && <Weather lat={lat} lng={lng} />}
-			{/*{apiary && <Plants lat={lat} lng={lng} />}*/}
+			{apiary && <Plants lat={lat} lng={lng} />}
 		</div>
 	)
 }

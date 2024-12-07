@@ -1,6 +1,7 @@
 //@ts-nocheck
 import {format} from 'date-fns'
 
+import { useTranslation as t } from '../../translate'
 import {Area, AreaChart, LineChart, Line, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, ReferenceLine} from 'recharts'
 
 import style from './index.module.less'
@@ -85,13 +86,12 @@ export default function Forecast({data}: HumidityProps) {
 
     return (
         <>
-            <div style={{padding: '5px 20px'}}>Weather forecast for next week</div>
             <div className={style.forecast}>
                 <div className={style.graph}>
                     <ChartHeading
-                        title={'🌡️ Temperature'}
+                        title={t('Temperature') + ' 🌡️'}
                         value={`${data.weather?.current_weather.temperature} °C`}
-                        info={'Too high or low temperature is bad for bees'}/>
+                        info={t('Too high or low temperature is bad for bees')}/>
 
                     <ResponsiveContainer width="100%" height={300}>
                         <AreaChart
@@ -121,9 +121,9 @@ export default function Forecast({data}: HumidityProps) {
 
                 <div className={style.graph}>
                     <ChartHeading
-                        title={'💨 Wind speed'}
+                        title={t('Wind speed') + ' 💨'}
                         value={`${data.weather?.current_weather.windspeed} km/h`}
-                        info={'High wind speed can collapse hives'}/>
+                        info={t('High wind speed can collapse hives')}/>
 
 
                     <ResponsiveContainer width="100%" height={300}>
@@ -148,9 +148,9 @@ export default function Forecast({data}: HumidityProps) {
 
                 <div className={style.graph}>
                     <ChartHeading
-                        title={'🌧️ Rain probability'}
+                        title={t('Rain probability') + ' 🌧️'}
                         value={`${medianRainProbability} %`}
-                        info={'No flying in the rain'}/>
+                        info={t('Bees are not flying in the rain')}/>
 
                     <ResponsiveContainer width="100%" height={300}>
                         <LineChart

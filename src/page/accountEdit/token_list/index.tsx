@@ -107,36 +107,36 @@ export default function TokenList() {
 				<div style="display:flex;">
 					<p>
 						<T>API tokens are used to authenticate your requests to our API. You can create multiple tokens to use in different applications.</T>
-						See <a href="https://github.com/Gratheon/graphql-router?tab=readme-ov-file#authentication">documentation</a> on how to access API
 					</p>
 
-					<Button color='green' loading={generatingToken} onClick={onGenerateToken}>
-						<KeyIcon size={16} />
-						<T>Generate</T>
-					</Button>
+					<div>
+						<Button color='green' loading={generatingToken} onClick={onGenerateToken}>
+							<KeyIcon size={16} />
+							<T>Generate</T>
+						</Button>
+						<br />
+
+						<a href="https://gratheon.com/docs/API">API documentation</a>
+					</div>
 				</div>
 
 				<ErrorMsg error={error || generationError || revokeShareTokenError || revokeApiTokenError} />
 
 				{tokens && tokens.length > 0 &&
 					<table>
-						<thead>
-							<tr>
-								<th><T>Token</T></th>
-								<th style="width:300px;"><T>Actions</T></th>
-							</tr>
-						</thead>
 						<tbody>
 							{tokens.map((token) => (
 								<tr key={token.id} className={style.apiToken}>
-									<td style="min-width:200px;">
+									<td style="min-width:200px; display:flex;">
 										<div className={style.token}>
 											{hiddenTokens.includes(token.id) ? '*'.repeat(token.token.length) : token.token}
 										</div>
+
+										<CopyButton size='small' data={token.token} />
 									</td>
 									<td className={style.buttons}>
 										<Button size='small' onClick={() => toggleToken(token.id)}><T>Toggle</T></Button>
-										<CopyButton size='small' data={token.token} />
+										
 										<Button
 											size='small'
 											color='red'

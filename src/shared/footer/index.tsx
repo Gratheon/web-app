@@ -78,7 +78,7 @@ export default function Footer() {
 					<ConnectionStatus graphqlWsClient={graphqlWsClient} />
 				</li>
 			)}
-			{!(isPWA || isMobile) && (
+			{(isDev()) && (
 				<li>
 					<a href={apiUrl}>API</a>
 				</li>

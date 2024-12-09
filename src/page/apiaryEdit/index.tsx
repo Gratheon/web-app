@@ -180,25 +180,27 @@ export default function ApiaryEditForm() {
 							/>
 						</div>
 					</div>
+
+
+					<div>
+						<div></div>
+						<div style={"display:flex; flex-direction: row-reverse;"}>
+							<Button color="red" loading={saving}
+									onClick={onDeleteApiary}><DeleteIcon/><span><T>Delete</T></span></Button>
+							<Button type="submit" loading={saving} color="green"><T>Save</T></Button>
+
+
+							<Button
+								onClick={() => {
+									setAutoLocate(!autoLocate)
+								}}
+							><LocationMarker/><span><T>Locate me</T></span></Button>
+
+							{estonia_plane_map}
+
+						</div>
+					</div>
 				</VisualForm>
-
-
-				<div style={"display:flex; flex-direction: row-reverse;"}>
-
-					<Button color="red" loading={saving}
-							onClick={onDeleteApiary}><DeleteIcon/><span><T>Delete</T></span></Button>
-					<Button type="submit" loading={saving} color="green"><T>Save</T></Button>
-
-
-					<Button
-						onClick={() => {
-							setAutoLocate(!autoLocate)
-						}}
-					><LocationMarker/><span><T>Locate me</T></span></Button>
-
-					{estonia_plane_map}
-
-				</div>
 			</div>
 			<TabBar>
 				<Tab isSelected={mapTab == 0} onClick={() => {

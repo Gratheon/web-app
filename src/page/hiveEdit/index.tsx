@@ -24,6 +24,7 @@ import T from '../../shared/translate'
 import MessageSuccess from '../../shared/messageSuccess'
 import HiveIcon from '../../icons/hive.tsx'
 import HiveButtons from './boxes/hiveButtons.tsx'
+import HiveWeightGraph from './hiveWeightGraph'
 
 import styles from './styles.module.less'
 import Treatments from './treatments'
@@ -50,7 +51,7 @@ export default function HiveEditForm() {
 
 	// if local cache is empty - query
 	if (!apiary || !hive || !hive.inspectionCount) {
-		;({
+		({
 			loading,
 			error: errorGet,
 			errorNetwork,
@@ -189,6 +190,9 @@ export default function HiveEditForm() {
 
 				<div className={styles.frameWrap}>
 					{!frameId && family && <Treatments hiveId={hiveId} boxId={boxId} />}
+
+
+					<HiveWeightGraph hiveId={hiveId} />
 
 					<Frame
 						box={box}

@@ -10,14 +10,18 @@ type DateFormatProps = {
 	style?: string
 }
 
+export function formatTime(datetime, lang='en'){
+	const dateLangOptions = { locale: loadedDateLocales[lang] }
+
+	return format(new Date(datetime), 'dd MMMM yyyy, hh:mm', dateLangOptions)
+}
+
 export default function DateFormat({ datetime, lang = 'en', style='' }: DateFormatProps) {
 	if(!datetime) return null
 
-	const dateLangOptions = { locale: loadedDateLocales[lang] }
-
 	return (
 		<span className="date timeago" title={datetime} style={style}>
-			{format(new Date(datetime), 'dd MMMM yyyy, hh:mm', dateLangOptions)}
+			{formatTime(datetime, lang)}
 		</span>
 	)
 }

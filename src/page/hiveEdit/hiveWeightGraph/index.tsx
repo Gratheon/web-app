@@ -110,6 +110,9 @@ export default function HiveWeightGraph({hiveId}) {
 
     let kgLabel = t('kg', "Shortest label for the unit of weight in kilograms")
 
+    // @ts-ignore
+    // @ts-ignore
+    // @ts-ignore
     return (
         <>
             <div style="padding-bottom: 20px;">
@@ -188,7 +191,8 @@ export default function HiveWeightGraph({hiveId}) {
     )
 }
 
-const ValueOnlyBarTooltip = ({ active, payload, label, unit }) => {
+const ValueOnlyBarTooltip = (params) => {
+    let { active, payload, unit } = params;
     if (active && payload && payload.length) {
         return (
             <div style="background:white;border-radius:5px;padding:0 10px;">

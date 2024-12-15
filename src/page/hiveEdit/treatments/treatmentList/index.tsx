@@ -44,7 +44,7 @@ export default function TreatmentList({ hiveId, boxId = null }) {
 
 			{data.hive.family && data.hive.family.treatments.length == 0 && (
 				<div>
-					🧪 <T>Not treated</T>
+					<T>Not treated</T>
 				</div>
 			)}
 			{data.hive.family && data.hive.family.treatments.length > 0 && (

@@ -5,10 +5,14 @@ import {formatTime} from "@/shared/dateFormat";
 import T from "@/shared/translate";
 
 const WEIGHT_QUERY = gql`
-    query hiveWeight($hiveId: ID!) {
-        weightKg(hiveId: $hiveId){
-            time
-            value
+    query hiveWeight($hiveId: ID!, $timeRangeMin: Int) {
+        weightKg(hiveId: $hiveId, timeRangeMin: $timeRangeMin) {
+            t
+            v
+        }
+        temperatureCelsius(hiveId: $hiveId, timeRangeMin: $timeRangeMin) {
+            t
+            v
         }
     }
 `
@@ -21,7 +25,10 @@ export default function HiveWeightGraph({hiveId}) {
         data: weightData,
         errorNetwork,
     } = useQuery(WEIGHT_QUERY, {
-        variables: { hiveId },
+        variables: {
+            hiveId,
+            timeRangeMin: 7*60*24
+        },
     })
 
     if (loading) {
@@ -30,22 +37,23 @@ export default function HiveWeightGraph({hiveId}) {
 
     console.log({weightData})
     if(weightData.weightKg.length == 0) {
-        return <p style="color:#bbb">Hive weight was not yet reported. See <a style="color:#aaa" href="https://gratheon.com/docs/API/">API docs</a> to learn how.</p>
+        return <p style="color:#bbb"><T>Hive weight was not reported this week.</T>
+            <a style="color:#aaa" href="https://gratheon.com/docs/API/"><T>Start reporting</T></a></p>
     }
 
     let formattedWeightData = []
-    formattedWeightData = weightData.weightKg.map((v)=>{
+    formattedWeightData = weightData.weightKg.map((row)=>{
         return {
-            value: Math.round(v.value*100)/100,
-            time: formatTime(v.time)
+            v: Math.round(row.v*100)/100,
+            t: formatTime(row.t)
         }
     })
 
     return (
         <div>
-            <p style="text-align:center;">
-                <T>Hive Weight</T>
-            </p>
+            <h3>
+                ⚖️ <T>Hive Weight</T>
+            </h3>
 
             <ResponsiveContainer width="100%" height={200}>
                 <AreaChart
@@ -59,13 +67,13 @@ export default function HiveWeightGraph({hiveId}) {
                     }}
                 >
                     <CartesianGrid strokeDasharray="3 3"/>
-                    <XAxis dataKey="time" />
+                    <XAxis dataKey="t" />
                     <YAxis unit="kg" />
                     <Tooltip/>
                     <Area
                         label
                         type="monotone"
-                        dataKey="value"
+                        dataKey="v"
                         stroke="black"
                         fill="green"/>
                     {/*<ReferenceLine y={50} label="" stroke="red" strokeDasharray="3 3" />*/}

@@ -189,6 +189,9 @@ export default function HiveEditForm() {
                 </div>
 
                 <div className={styles.frameWrap}>
+
+                    {!frameId && !box && <HiveWeightGraph hiveId={hiveId}/>}
+
                     {!frameId && family && <Treatments hiveId={hiveId} boxId={boxId}/>}
 
                     <Frame
@@ -201,11 +204,7 @@ export default function HiveEditForm() {
                         extraButtons={null}
                     />
 
-                    {!frameId && !box && (<>
-                            <HiveWeightGraph hiveId={hiveId}/>
-                            <HiveAdvisor apiary={apiary} hive={hive} hiveId={hiveId}/>
-                        </>
-                    )}
+                    {!frameId && !box && <HiveAdvisor apiary={apiary} hive={hive} hiveId={hiveId}/>}
 
                     {box && box.type === boxTypes.GATE && <GateBox boxId={boxId}/>}
                 </div>

@@ -41,8 +41,6 @@ export default function HiveWeightGraph({hiveId}) {
         }
     })
 
-console.log({weightData})
-
     return (
         <div>
             <p style="text-align:center;">
@@ -55,14 +53,14 @@ console.log({weightData})
                     data={formattedWeightData}
                     margin={{
                         top: 5,
-                        right: 0,
+                        right: 20,
                         left: 0,
                         bottom: 5,
                     }}
                 >
                     <CartesianGrid strokeDasharray="3 3"/>
-                    <XAxis dataKey="time"/>
-                    <YAxis />
+                    <XAxis dataKey="time" />
+                    <YAxis unit="kg" />
                     <Tooltip/>
                     <Area
                         label

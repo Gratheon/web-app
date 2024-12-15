@@ -66,7 +66,7 @@ export default function T({ children, key = null, ctx = '' }: { children: any, k
 }
 
 
-export function useTranslation(text) {
+export function useTranslation(text, translationContext = '') {
 	const [translatedText, setTranslatedText] = useState(text);
 	const [lang, setLang] = useState('en');
 	
@@ -89,7 +89,7 @@ export function useTranslation(text) {
 	}, [text, lang], false);
   
 	const { data, loading, error } = useQuery(translateQuery, {
-	  variables: { en: text, tc: '' },
+	  variables: { en: text, tc: translationContext },
 	  skip: cachedTranslation !== false, // Skip the query if we have a cached translation
 	});
   

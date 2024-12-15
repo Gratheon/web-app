@@ -12,6 +12,7 @@ type DateFormatProps = {
 
 export function formatTime(datetime, lang='en'){
 	const dateLangOptions = { locale: loadedDateLocales[lang] }
+	console.log({dateLangOptions})
 
 	return format(new Date(datetime), 'dd MMMM yyyy, hh:mm', dateLangOptions)
 }

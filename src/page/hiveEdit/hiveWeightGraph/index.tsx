@@ -18,6 +18,8 @@ import ChartHeading from '@/shared/chartHeading'
 import Loader from "@/shared/loader";
 import {formatTime} from "@/shared/dateFormat";
 import T, {useTranslation as t} from "@/shared/translate";
+import {useLiveQuery} from "dexie-react-hooks";
+import {getUser} from "@/models/user";
 
 const WEIGHT_QUERY = gql`
     query hiveWeight($hiveId: ID!, $timeRangeMin: Int) {
@@ -50,6 +52,8 @@ const green = 'rgba(126,207,36,0.83)'
 const blue = '#8fddff'
 
 export default function HiveWeightGraph({hiveId}) {
+    let userStored = useLiveQuery(() =>  getUser(), [], null)
+
     let {
         loading,
         error: errorGet,
@@ -62,7 +66,7 @@ export default function HiveWeightGraph({hiveId}) {
         },
     })
 
-    if (loading) {
+    if (loading || !userStored) {
         return <Loader/>
     }
 
@@ -75,7 +79,7 @@ export default function HiveWeightGraph({hiveId}) {
     formattedWeightData = weightData.weightKg.metrics.map((row) => {
         return {
             v: Math.round(row.v * 100) / 100,
-            t: formatTime(row.t)
+            t: formatTime(row.t, userStored.lang)
         }
     })
     let lastWeight = Math.round(100 * weightData.weightKg.metrics[weightData.weightKg.metrics.length - 1].v) / 100
@@ -97,18 +101,21 @@ export default function HiveWeightGraph({hiveId}) {
 
     let formattedTemperatureData = []
     formattedTemperatureData = weightData.temperatureCelsius.metrics.map((row) => {
+        console.log({userStored})
         return {
             v: Math.round(row.v * 100) / 100,
-            t: formatTime(row.t)
+            t: formatTime(row.t, userStored.lang)
         }
     })
+
+    let kgLabel = t('kg', "Shortest label for the unit of weight in kilograms")
 
     return (
         <>
             <div style="padding-bottom: 20px;">
                 <ChartHeading
                     title={t('Hive Weight') + ' ⚖️️'}
-                    value={`${lastWeight} kg`}
+                    value={`${lastWeight} ${kgLabel}`}
                     info={t('Drop in hive weight may correlate with swarming or starvation')}/>
 
                 <ResponsiveContainer width="100%" height={200}>
@@ -124,8 +131,8 @@ export default function HiveWeightGraph({hiveId}) {
                     >
                         <CartesianGrid strokeDasharray="1 1"/>
                         <XAxis dataKey="t"/>
-                        <YAxis unit="kg"/>
-                        <Tooltip/>
+                        <YAxis unit={kgLabel}/>
+                        <Tooltip content={<ValueOnlyBarTooltip unit={kgLabel}  />} />
                         <Bar
                             type="monotone"
                             dataKey="v"
@@ -164,7 +171,7 @@ export default function HiveWeightGraph({hiveId}) {
                         <CartesianGrid strokeDasharray="1 1"/>
                         <XAxis dataKey="t"/>
                         <YAxis unit="℃"/>
-                        <Tooltip/>
+                        <Tooltip content={<ValueOnlyBarTooltip unit={`°C`} />} />
                         <Area
                             type="monotone"
                             dataKey="v"
@@ -180,3 +187,15 @@ export default function HiveWeightGraph({hiveId}) {
         </>
     )
 }
+
+const ValueOnlyBarTooltip = ({ active, payload, label, unit }) => {
+    if (active && payload && payload.length) {
+        return (
+            <div style="background:white;border-radius:5px;padding:0 10px;">
+                {payload[0].value} {unit}
+            </div>
+        );
+    }
+
+    return null;
+};

@@ -1,8 +1,9 @@
 //@ts-nocheck
 import {format} from 'date-fns'
-
-import { useTranslation as t } from '../../translate'
 import {Area, AreaChart, LineChart, Line, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, ReferenceLine} from 'recharts'
+
+import ChartHeading from '@/shared/chartHeading'
+import { useTranslation as t } from '@/shared/translate'
 
 import style from './index.module.less'
 
@@ -14,17 +15,6 @@ type Humidity = {
 
 type HumidityProps = {
     data: any
-}
-
-function ChartHeading({title, value, info}) {
-    return <>
-        <div style={{fontSize: '20px', display: 'flex'}}>
-            <span style={"flex-grow:1"}>{title}</span>
-            <strong>{value}</strong>
-        </div>
-
-        <div style={"font-size:10px; color:gray;"}>{info}</div>
-    </>
 }
 
 function calculateMedian(values: number[]): number {
@@ -111,8 +101,8 @@ export default function Forecast({data}: HumidityProps) {
                                 stroke="black"
                                 fill={temperatureColor}/>
 
-                            <ReferenceLine y={13} label="" stroke="blue" strokeDasharray="3 3" />
-                            <ReferenceLine y={28} label="" stroke="red" strokeDasharray="3 3" />
+                            <ReferenceLine y={13} label="" stroke="blue" strokeDasharray="3 3"/>
+                            <ReferenceLine y={28} label="" stroke="red" strokeDasharray="3 3"/>
                         </AreaChart>
                     </ResponsiveContainer>
 
@@ -141,7 +131,7 @@ export default function Forecast({data}: HumidityProps) {
                                 dataKey="wind"
                                 stroke="black"
                                 fill="green"/>
-                            <ReferenceLine y={50} label="" stroke="red" strokeDasharray="3 3" />
+                            <ReferenceLine y={50} label="" stroke="red" strokeDasharray="3 3"/>
                         </AreaChart>
                     </ResponsiveContainer>
                 </div>
@@ -162,7 +152,7 @@ export default function Forecast({data}: HumidityProps) {
                             <YAxis yAxisId="left"/>
                             <YAxis yAxisId="right" orientation="right"/>
                             <Tooltip/>
-                            
+
                             <Line
                                 yAxisId="left"
                                 type="monotone"
@@ -183,5 +173,5 @@ export default function Forecast({data}: HumidityProps) {
                 </div>
             </div>
         </>
-    )
+    );
 }

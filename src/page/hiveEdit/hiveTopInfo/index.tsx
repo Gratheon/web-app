@@ -190,12 +190,12 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 								isWarning={true}
 							/>
 						)}
+
+						{hive.notes && <p>{hive.notes}</p>}
 					</div>
 
 					<div className={styles.button_wrap1}>{buttons}</div>
 				</div>
-
-				{hive.notes && <p>{hive.notes}</p>}
 
 				<div className={styles.button_wrap2}>{buttons}</div>
 			</div>

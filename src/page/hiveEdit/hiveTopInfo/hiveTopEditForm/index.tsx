@@ -1,33 +1,32 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect, useRef } from 'react'
 import debounce from 'lodash/debounce'
 import { useLiveQuery } from 'dexie-react-hooks'
 
-import T from '../../../../shared/translate'
-import VisualForm from '../../../../shared/visualForm'
-import HiveIcon from '../../../../shared/hive'
-import DeactivateButton from '../../deleteButton'
-import QueenColor from '../queenColor'
+import QueenColor from '@/page/hiveEdit/hiveTopInfo/queenColor'
+
+import { useMutation } from '@/api'
+import { updateHive, getHive } from '@/models/hive.ts'
+import { Box, getBoxes, updateBox } from '@/models/boxes.ts'
+import { getFamilyByHive, updateFamily } from '@/models/family.ts'
+import { Family } from '@/models/family.ts'
+import { InspectionSnapshot } from '@/models/inspections.ts'
+import { getFramesByHive } from '@/models/frames.ts'
+import { getHiveInspectionStats, deleteCellsByFrameSideIDs } from '@/models/frameSideCells.ts'
+import { collectFrameSideIDsFromFrames } from '@/models/frameSide.ts'
+import { deleteFilesByFrameSideIDs } from '@/models/frameSideFile.ts'
+
+
+import T from '@/shared/translate'
+import VisualForm from '@/shared/visualForm'
+import HiveIcon from '@/shared/hive'
+import Loader from '@/shared/loader'
+import ErrorMessage from '@/shared/messageError'
+import BeeCounter from '@/shared/beeCounter'
+import MessageSuccess from '@/shared/messageSuccess'
 
 import styles from './styles.module.less'
 
-import { useMutation } from '../../../../api'
-import { updateHive, getHive } from '../../../../models/hive.ts'
-import { Box, getBoxes, updateBox } from '../../../../models/boxes.ts'
-import { getFamilyByHive, updateFamily } from '../../../../models/family.ts'
-
-import Loader from '../../../../shared/loader'
-import ErrorMessage from '../../../../shared/messageError'
-import { Family } from '../../../../models/family.ts'
-import { InspectionSnapshot } from '../../../../models/inspections.ts'
-import { getFramesByHive } from '../../../../models/frames.ts'
-import { getHiveInspectionStats, deleteCellsByFrameSideIDs } from '../../../../models/frameSideCells.ts'
-import BeeCounter from '../../../../shared/beeCounter'
-import { collectFrameSideIDsFromFrames } from '../../../../models/frameSide.ts'
-import { deleteFilesByFrameSideIDs } from '../../../../models/frameSideFile.ts'
-import MessageSuccess from '../../../../shared/messageSuccess'
-
 export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
-	let [editable, setEditable] = useState(false)
 	let [creatingInspection, setCreatingInspection] = useState(false)
 	let [okMsg, setOkMsg] = useState(null)
 
@@ -56,6 +55,14 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 	let [cloneFramesForInspection, { error: errorInspection2 }] = useMutation(`mutation cloneFramesForInspection($frameSideIDs: [ID], $inspectionId: ID!) {
 		cloneFramesForInspection(frameSideIDs: $frameSideIDs, inspectionId: $inspectionId)
 	}`)
+
+	let [noteInput, setNoteInput] = useState('')
+
+	useEffect(() => {
+		if (hive) {
+			setNoteInput(hive.notes || '')
+		}
+	}, [hive])
 
 	const onCreateInspection = useMemo(
 		() =>
@@ -141,6 +148,8 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 	const onNotesChange = useMemo(
 		() =>
 			debounce(async function (v) {
+				setNoteInput(v.target.value)
+
 				const hive = await getHive(+hiveId)
 				hive.notes = v.target.value
 
@@ -301,14 +310,14 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 									className={styles.notes}
 									style={{
 										marginTop: 3,
-										background: hive.notes ? '#EEE' : 'white',
-										minHeight: hive.notes ? 40 : 20,
+										background: noteInput ? '#EEE' : 'white',
+										minHeight: noteInput ? 40 : 20,
 										width: `calc(100% - 20px)`
 									}}
 									name="notes"
 									placeholder="Notes"
 									id="notes"
-									value={hive.notes}
+									value={noteInput}
 									onChange={onNotesChange}
 								/>
 							</div>

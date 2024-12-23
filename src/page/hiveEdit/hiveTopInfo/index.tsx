@@ -29,11 +29,11 @@ import { getFramesByHive } from '@/models/frames.ts'
 import { collectFrameSideIDsFromFrames } from '@/models/frameSide.ts'
 import { deleteFilesByFrameSideIDs } from '@/models/frameSideFile.ts'
 
-import DeactivateButton from '../deleteButton'
-import QueenColor from './queenColor'
-import styles from './styles.module.less'
+import DeactivateButton from '@/page/hiveEdit/deleteButton'
+import QueenColor from '@/page/hiveEdit/hiveTopInfo/queenColor'
+import styles from '@/page/hiveEdit/hiveTopInfo/styles.module.less'
 
-import HiveTopEditForm from './hiveTopEditForm'
+import HiveTopEditForm from '@/page/hiveEdit/hiveTopInfo/hiveTopEditForm'
 
 export default function HiveEditDetails({ apiaryId, hiveId }) {
 	let [editable, setEditable] = useState(false)

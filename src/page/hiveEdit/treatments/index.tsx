@@ -1,11 +1,11 @@
 import { useState } from "react";
 
-import { useMutation } from "../../../api";
-import Button from "../../../shared/button";
-import ErrorMessage from '../../../shared/messageError'
-import T from "../../../shared/translate";
-import Loader from "../../../shared/loader";
-import MessageSuccess from "../../../shared/messageSuccess";
+import { useMutation } from "@/api";
+import Button from "@/shared/button";
+import ErrorMessage from '@/shared/messageError'
+import T from "@/shared/translate";
+import Loader from "@/shared/loader";
+import MessageSuccess from "@/shared/messageSuccess";
 
 import styles from "./styles.module.less";
 import TreatmentList from "./treatmentList";

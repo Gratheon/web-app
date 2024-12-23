@@ -57,7 +57,7 @@ export default function HiveWeightGraph({hiveId}) {
     let {
         loading,
         error: errorGet,
-        data: weightData,
+        data,
         errorNetwork,
     } = useQuery(WEIGHT_QUERY, {
         variables: {
@@ -70,52 +70,25 @@ export default function HiveWeightGraph({hiveId}) {
         return <Loader/>
     }
 
-    if (weightData.weightKg.metrics.length == 0) {
-        return <p style="color:#bbb"><T>Hive weight was not reported this week.</T>
-            <a style="color:#aaa" href="https://gratheon.com/docs/API/"><T>Start reporting</T></a></p>
-    }
-
-    let formattedWeightData = []
-    formattedWeightData = weightData.weightKg.metrics.map((row) => {
-        return {
-            v: Math.round(row.v * 100) / 100,
-            t: formatTime(row.t, userStored.lang)
-        }
-    })
-    let lastWeight = Math.round(100 * weightData.weightKg.metrics[weightData.weightKg.metrics.length - 1].v) / 100
-
-
-
-
-    let lastTemperature = Math.round(100 * weightData.temperatureCelsius.metrics[weightData.temperatureCelsius.metrics.length - 1].v) / 100
-    let minTemperature = Math.min(...weightData.temperatureCelsius.metrics.map((row) => row.v))
-    let maxTemperature = Math.max(...weightData.temperatureCelsius.metrics.map((row) => row.v))
-
-    let temperatureColor = green
-
-    if (lastTemperature < 13) {
-        temperatureColor = blue
-    } else if (lastTemperature > 38) {
-        temperatureColor = red
-    }
-
-    let formattedTemperatureData = []
-    formattedTemperatureData = weightData.temperatureCelsius.metrics.map((row) => {
-        console.log({userStored})
-        return {
-            v: Math.round(row.v * 100) / 100,
-            t: formatTime(row.t, userStored.lang)
-        }
-    })
-
+    let weightDiv = null
+    let temperatureDiv = null
     let kgLabel = t('kg', "Shortest label for the unit of weight in kilograms")
 
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
-    return (
-        <>
-            <div style="padding-bottom: 20px;">
+    if (data.weightKg.metrics.length == 0) {
+        weightDiv = <p style="color:#bbb"><T>Hive weight was not reported this week.</T></p>
+    }
+    else {
+
+        let formattedWeightData = []
+        formattedWeightData = data.weightKg.metrics.map((row) => {
+            return {
+                v: Math.round(row.v * 100) / 100,
+                t: formatTime(row.t, userStored.lang)
+            }
+        })
+        let lastWeight = Math.round(100 * data.weightKg.metrics[data.weightKg.metrics.length - 1].v) / 100
+
+        weightDiv = <div style="padding-bottom: 20px;">
                 <ChartHeading
                     title={t('Hive Weight') + ' ⚖️️'}
                     value={`${lastWeight} ${kgLabel}`}
@@ -152,41 +125,80 @@ export default function HiveWeightGraph({hiveId}) {
                     </BarChart>
                 </ResponsiveContainer>
             </div>
-
-            <div style="padding-bottom: 20px;">
-                <ChartHeading
-                    title={t('Hive internal temperature') + ' 🌡️'}
-                    value={`${lastTemperature} °C`}
-                    info={t('High or low temperature makes bees inefficient')}/>
+    }
 
 
-                <ResponsiveContainer width="100%" height={200}>
-                    <AreaChart
-                        accessibilityLayer
-                        data={formattedTemperatureData}
-                        margin={{
-                            top: 5,
-                            right: 20,
-                            left: 0,
-                            bottom: 5,
-                        }}
-                    >
-                        <CartesianGrid strokeDasharray="1 1"/>
-                        <XAxis dataKey="t"/>
-                        <YAxis unit="℃"/>
-                        <Tooltip content={<ValueOnlyBarTooltip unit={`°C`} />} />
-                        <Area
-                            type="monotone"
-                            dataKey="v"
-                            stroke="black"
-                            fill={temperatureColor}/>
+    if (data.temperatureCelsius.metrics.length == 0) {
+        temperatureDiv = <p style="color:#bbb"><T>Hive temperature was not reported this week.</T></p>
+    }
+    else {
 
-                        <ReferenceArea x1={0} y1={38} y2={maxTemperature+22} fill="red" fillOpacity={0.1}/>
-                        <ReferenceArea x1={0} y1={minTemperature-3} y2={13} fill="blue" fillOpacity={0.1}/>
-                        {/*<ReferenceLine y={50} label="" stroke="red" strokeDasharray="3 3" />*/}
-                    </AreaChart>
-                </ResponsiveContainer>
-            </div>
+        let lastTemperature = Math.round(100 * data.temperatureCelsius.metrics[data.temperatureCelsius.metrics.length - 1].v) / 100
+        let minTemperature = Math.min(...data.temperatureCelsius.metrics.map((row) => row.v))
+        let maxTemperature = Math.max(...data.temperatureCelsius.metrics.map((row) => row.v))
+
+        let temperatureColor = green
+
+        if (lastTemperature < 13) {
+            temperatureColor = blue
+        } else if (lastTemperature > 38) {
+            temperatureColor = red
+        }
+
+        let formattedTemperatureData = []
+        formattedTemperatureData = data.temperatureCelsius.metrics.map((row) => {
+            console.log({userStored})
+            return {
+                v: Math.round(row.v * 100) / 100,
+                t: formatTime(row.t, userStored.lang)
+            }
+        })
+
+        temperatureDiv = <div style="padding-bottom: 20px;">
+        <ChartHeading
+            title={t('Hive internal temperature') + ' 🌡️'}
+            value={`${lastTemperature} °C`}
+            info={t('High or low temperature makes bees inefficient')}/>
+
+
+        <ResponsiveContainer width="100%" height={200}>
+            <AreaChart
+                accessibilityLayer
+                data={formattedTemperatureData}
+                margin={{
+                    top: 5,
+                    right: 20,
+                    left: 0,
+                    bottom: 5,
+                }}
+            >
+                <CartesianGrid strokeDasharray="1 1"/>
+                <XAxis dataKey="t"/>
+                <YAxis unit="℃"/>
+                <Tooltip content={<ValueOnlyBarTooltip unit={`°C`} />} />
+                <Area
+                    type="monotone"
+                    dataKey="v"
+                    stroke="black"
+                    fill={temperatureColor}/>
+
+                <ReferenceArea x1={0} y1={38} y2={maxTemperature+22} fill="red" fillOpacity={0.1}/>
+                <ReferenceArea x1={0} y1={minTemperature-3} y2={13} fill="blue" fillOpacity={0.1}/>
+                {/*<ReferenceLine y={50} label="" stroke="red" strokeDasharray="3 3" />*/}
+            </AreaChart>
+        </ResponsiveContainer>
+    </div>
+    }
+
+
+    // @ts-ignore
+    // @ts-ignore
+    // @ts-ignore
+    return (
+        <>
+            {weightDiv}
+
+            {temperatureDiv}
         </>
     )
 }

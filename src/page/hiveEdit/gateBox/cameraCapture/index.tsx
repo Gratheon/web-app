@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { videoUploadUri } from '../../../../uri.ts'
-import { useUploadMutation, gql } from '../../../../api'
-import T from '../../../../shared/translate';
-import VisualForm from '../../../../shared/visualForm';
-import Button from '../../../../shared/button';
-import imageURL from '@/assets/gatehouse-vectorized.jpg'
+import { videoUploadUri } from '@/uri.ts'
+import { useUploadMutation, gql } from '@/api'
+
+import T from '@/shared/translate';
+import VisualForm from '@/shared/visualForm';
+import Button from '@/shared/button';
 
 
 const VideoCapture = ({ boxId }) => {
@@ -158,37 +158,20 @@ const VideoCapture = ({ boxId }) => {
   };
 
   return (
-    <div style="padding: 5px 10px;">
-      <h3>👁️‍🗨️ <T>Beehive entrance camera</T></h3>
-      {!isCaptureStarted &&
-        <div style="display:flex;width:100%;">
-          <div>
-            <p>
-              <T>
-                You can stream video of your hive entrance directly from the mobile app to the cloud.
-                Position camera above hive entrance.
-              </T>
-            </p>
-            <p>
-              <T>For best performance we recommend our product, Beehive Gatehouse with built-in AI-assisted video processing.</T>
-            </p>
+    <>
+      <h3>👁️‍🗨️ <T>Entrance Observer</T></h3>
 
-            <p>
-              <T>For third-party API integration, please consult the API reference or our open-source libraries</T> -
-              <a href="https://github.com/Gratheon/beehive-entrance-video-processor">beehive-entrance-video-processor</a>
-            </p>
-          </div>
-
-          <div><img
-            style="border-radius: 5px;margin-left:10px;max-width:200px;"
-            src={imageURL} />
-          </div>
-        </div>
-      }
+      <p>
+        <T>
+          Entrance Observer allows you to monitor your hive entrance by counting bees entering and exiting.
+          It can also stream video to the app for playback. You can even use your phone camera to stream video to the app.
+        </T>
+      </p>
 
       {!hasCameraPermission && (
         <button onClick={requestPermissions}>Allow camera access</button>
       )}
+
       {hasCameraPermission && (
         <div style="display:flex;width:100%;">
           <div style="flex:1;">
@@ -239,7 +222,7 @@ const VideoCapture = ({ boxId }) => {
 
         </div>
       )}
-    </div>
+    </>
   );
 };
 

@@ -8,8 +8,6 @@ import ErrorMsg from '../../shared/messageError'
 import ErrorGeneral from '../../shared/messageErrorGlobal'
 import Loader from '../../shared/loader'
 import MessageNotFound from '../../shared/messageNotFound'
-import BreadCrumbs from '../../shared/breadcrumbs'
-import InspectionsLink from '../../shared/inspectionsLink/index.tsx'
 import T from '../../shared/translate'
 import DateFormat from '../../shared/dateFormat'
 
@@ -18,7 +16,6 @@ import { getApiary } from '../../models/apiary.ts'
 import { listInspections, Inspection } from '../../models/inspections.ts'
 import { getUser } from '../../models/user.ts'
 
-import HiveIcon from '../../icons/hive.tsx'
 import InspectionIcon from '../../icons/inspection.tsx'
 
 import INSPECTION_QUERY from './inspectionQuery.graphql.ts'
@@ -27,7 +24,7 @@ import InspectionView from './inspectionView'
 import styles from './styles.module.less'
 import InspectionShareButton from './inspectionShareButton'
 
-export default function InspectionList() {
+export default function InspectionList({breadcrumbs}) {
 	let { apiaryId, hiveId, boxId, inspectionId } = useParams()
 	let [error, onError] = useState(null)
 
@@ -64,30 +61,6 @@ export default function InspectionList() {
 	// inline error from deeper components
 	let errorMsg = <ErrorMsg error={error || errorGet || errorNetwork} />
 
-	let breadcrumbs = []
-
-	if (apiary) {
-		breadcrumbs[0] = {
-			name: (
-				<>
-					«{apiary.name}» <T>apiary</T>
-				</>
-			),
-			uri: `/apiaries/edit/${apiaryId}`,
-		}
-	}
-
-	if (hive) {
-		breadcrumbs[1] = {
-			icon: <HiveIcon size={12} />,
-			name: (
-				<>
-					«{hive.name}» <T>hive</T>
-				</>
-			),
-			uri: `/apiaries/${apiaryId}/hives/${hiveId}`,
-		}
-	}
 
 	if (inspectionId) {
 		let selectedInspection = inspections.find(
@@ -124,16 +97,11 @@ export default function InspectionList() {
 	}
 
 	return (
-		<div>
-			<BreadCrumbs items={breadcrumbs} />
+		<>
 			<ErrorGeneral />
 
 			{okMsg}
 			{errorMsg}
-
-			<h1 style="padding: 0 10px;">
-				<T ctx="This is a heading for beehive inspections">Inspections</T>
-			</h1>
 
 			{inspections.length > 0 && (
 				<div className={styles.flex}>
@@ -167,6 +135,6 @@ export default function InspectionList() {
 					</div>
 				</div>
 			)}
-		</div>
+		</>
 	)
 }

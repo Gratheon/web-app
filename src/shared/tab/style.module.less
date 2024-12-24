@@ -1,25 +1,47 @@
-@import '../../layout.module.less';
-@import '../../colors.module.less';
+@import '@/layout.module.less';
+@import '@/colors.module.less';
 
 .tab {
-	border-radius: 5px;
 	display: inline;
 	padding: 8px 15px;
 	cursor: pointer;
+
+	&.active {
+		background: @color-green;
+		color: white;
+	}
+
+	&:hover {
+		background: @color-green;
+		color: rgb(251, 255, 0);
+	}
+
+	a {
+		color: inherit;
+		text-decoration: none;
+	}
+}
+
+.tabRounded{
+	border-radius: 5px;
 }
 
 .selected {
 	background: @color-green;
 	color: white;
 }
+
 .tabBar {
 	display: flex;
 	flex-wrap: wrap;
 	padding-left: 5px;
+	background-color: rgb(241, 241, 241);
+	border-bottom: 1px solid rgb(200, 200, 200);
+	border-top: 1px solid rgb(200, 200, 200);
 }
 
 @media @tabletAndUp {
-	.tab {
+	.tabRounded {
 		border-radius: 5px 5px 0 0;
 	}
 	.tabBar {

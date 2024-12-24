@@ -9,7 +9,6 @@ import HiveIcon from '@/shared/hive'
 import { useMutation } from '@/api'
 
 import InspectionIcon from '@/icons/inspection.tsx'
-import InspectionsLink from '@/shared/inspectionsLink/index.tsx'
 import Loader from '@/shared/loader'
 import Button from '@/shared/button'
 import { PopupButton, PopupButtonGroup } from '@/shared/popupButton'
@@ -150,10 +149,6 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 					</PopupButton>
 				</PopupButtonGroup>
 			</VisualFormSubmit>
-			<InspectionsLink
-				inspectionsUrl={`/apiaries/${apiaryId}/hives/${hiveId}/inspections`}
-				inspectionCount={hive.inspectionCount}
-			/>
 		</div>
 	)
 

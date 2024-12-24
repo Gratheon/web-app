@@ -1,5 +1,5 @@
-import {useState} from 'react'
-import {useLocation, useNavigate, useParams} from 'react-router-dom'
+import {useState, useEffect} from 'react'
+import {NavLink, useLocation, useNavigate, useParams} from 'react-router-dom'
 import {useLiveQuery} from 'dexie-react-hooks'
 
 import {useQuery} from '@/api'
@@ -29,15 +29,38 @@ import HiveWeightGraph from '@/page/hiveEdit/hiveWeightGraph'
 import styles from '@/page/hiveEdit/styles.module.less'
 import Treatments from '@/page/hiveEdit/treatments'
 import {getFamilyByHive} from '@/models/family.ts'
+import { Tab } from '@/shared/tab'
+import { TabBar } from '@/shared/tab'
+import InspectionList from '../inspectionList'
 
 export default function HiveEditForm() {
     const {state} = useLocation()
     const [displayMode, setDisplayMode] = useState('list')
+    const location = useLocation()
 
     let {apiaryId, hiveId, boxId, frameId, frameSideId} = useParams()
     let [error, onError] = useState(null)
     const navigate = useNavigate()
 
+    // fetch url segments
+    const isInspectionListView = apiaryId && hiveId && !window.location.pathname.includes('inspections/');
+
+    // Determine the active tab based on the current URL
+    useEffect(() => {
+        if (location.pathname.includes('/treatments')) {
+            setMapTab('treatments')
+        } else if (location.pathname.includes('/inspections')) {
+            setMapTab('inspections')
+        } else if (location.pathname.includes('/metrics')) {
+            setMapTab('metrics')
+        } else if (location.pathname.includes('/advisor')) {
+            setMapTab('advisor')
+        } else {
+            setMapTab('structure')
+        }
+    }, [location.pathname])
+
+    let [mapTab, setMapTab] = useState('structure')
     const apiary = useLiveQuery(() => getApiary(+apiaryId), [apiaryId], null)
     const hive = useLiveQuery(() => getHive(+hiveId), [hiveId], null)
     const box = useLiveQuery(() => getBox(+boxId), [boxId], null)
@@ -80,6 +103,108 @@ export default function HiveEditForm() {
     // inline error from deeper components
     let errorMsg = <ErrorMsg error={error || errorGet || errorNetwork}/>
 
+    let breadcrumbs = composeBreadCrumbs(apiary, apiaryId, hive, hiveId, box, boxId, frameId)
+
+    function onBoxClose(event) {
+        event.stopPropagation()
+        navigate(`/apiaries/${apiaryId}/hives/${hiveId}`, {
+            replace: true,
+        })
+    }
+
+    console.log({mapTab})
+
+    return (
+        <>            
+            <ErrorGeneral/>
+
+            {errorMsg}
+
+            {state && (
+                <MessageSuccess
+                    title={<T>{state.title}</T>}
+                    message={<T>{state.message}</T>}
+                />
+            )}
+
+            <BreadCrumbs items={breadcrumbs}/>
+            
+            {<HiveEditDetails apiaryId={apiaryId} hiveId={hiveId}/>}
+
+            <TabBar>
+				<Tab isSelected={mapTab === 'structure'}>
+                    <NavLink to={`/apiaries/${apiaryId}/hives/${hiveId}`} className={({ isActive }) => (isActive ? styles.active : '')}>
+                        <T>Structure</T>
+                    </NavLink>
+                </Tab>
+				<Tab isSelected={mapTab === 'treatments'}>
+                    <NavLink to={`/apiaries/${apiaryId}/hives/${hiveId}/treatments`} className={({ isActive }) => (isActive ? styles.active : '')}>
+                        <T>Treatments</T>
+                    </NavLink>
+                </Tab>
+
+				<Tab isSelected={mapTab === 'inspections'}>
+                    <NavLink
+                        className={({ isActive }) => (isActive ? styles.active : '')}
+                        to={`/apiaries/${apiaryId}/hives/${hiveId}/inspections`}
+                    >
+                        <T>Inspections</T> ({hive.inspectionCount})
+                    </NavLink>
+                </Tab>
+
+				<Tab isSelected={mapTab === 'metrics'}>
+                    <NavLink to={`/apiaries/${apiaryId}/hives/${hiveId}/metrics`} className={({ isActive }) => (isActive ? styles.active : '')}>
+                        <T>Metrics</T>
+                    </NavLink>
+                </Tab>
+				<Tab isSelected={mapTab === 'advisor'}>
+                    <NavLink to={`/apiaries/${apiaryId}/hives/${hiveId}/advisor`} className={({ isActive }) => (isActive ? styles.active : '')}>
+                        <T>Advisor</T>
+                    </NavLink>
+                </Tab>
+			</TabBar>
+
+            <div className={styles.boxesFrameWrap}>
+                {mapTab === 'structure' && 
+                    <div className={styles.boxesWrap}>
+                        {<HiveButtons apiaryId={apiaryId} hiveId={hiveId}/>}
+
+                        <Boxes
+                            onError={onError}
+                            apiaryId={apiaryId}
+                            hiveId={hiveId}
+                            boxId={boxId}
+                            frameId={frameId}
+                            frameSideId={frameSideId}
+                            displayMode={displayMode}
+                            setDisplayMode={setDisplayMode}
+                        />
+                    </div>}
+
+                <div className={styles.frameWrap}>
+                    {mapTab === 'treatments' && <Treatments hiveId={hiveId} boxId={boxId}/>}
+                    {mapTab === 'inspections' && <InspectionList breadcrumbs={breadcrumbs}/>}
+                    {mapTab === 'metrics' && <HiveWeightGraph hiveId={hiveId}/>}
+                    {mapTab === 'advisor' && <HiveAdvisor apiary={apiary} hive={hive} hiveId={hiveId}/>}
+
+                    {mapTab === 'structure' && <Frame
+                        box={box}
+                        apiaryId={apiaryId}
+                        boxId={boxId}
+                        frameId={frameId}
+                        hiveId={hiveId}
+                        frameSideId={frameSideId}
+                        extraButtons={null}
+                    />}
+
+                    {mapTab === 'structure' && box && box.type === boxTypes.GATE && <GateBox boxId={boxId}/>}
+                </div>
+            </div>
+        </>
+    )
+}
+
+function composeBreadCrumbs(apiary: any, apiaryId: string, hive: any, hiveId: string, box: any, boxId: string, frameId: string) {
     let breadcrumbs = []
 
     if (apiary) {
@@ -95,7 +220,7 @@ export default function HiveEditForm() {
 
     if (hive) {
         breadcrumbs[1] = {
-            icon: <HiveIcon size={12}/>,
+            icon: <HiveIcon size={12} />,
             name: (
                 <>
                     «{hive.name}» <T>hive</T>
@@ -146,69 +271,6 @@ export default function HiveEditForm() {
             uri: `/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}/frame/${frameId}`,
         })
     }
-
-    function onBoxClose(event) {
-        event.stopPropagation()
-        navigate(`/apiaries/${apiaryId}/hives/${hiveId}`, {
-            replace: true,
-        })
-    }
-
-    return (
-        <div>
-            <ErrorGeneral/>
-
-            {errorMsg}
-            {state && (
-                <MessageSuccess
-                    title={<T>{state.title}</T>}
-                    message={<T>{state.message}</T>}
-                />
-            )}
-
-            <BreadCrumbs items={breadcrumbs}/>
-
-            <HiveEditDetails apiaryId={apiaryId} hiveId={hiveId}/>
-
-            <div className={styles.boxesFrameWrap}>
-                <div className={styles.boxesWrap}>
-                    <Boxes
-                        onError={onError}
-                        apiaryId={apiaryId}
-                        hiveId={hiveId}
-                        boxId={boxId}
-                        frameId={frameId}
-                        frameSideId={frameSideId}
-                        displayMode={displayMode}
-                        setDisplayMode={setDisplayMode}
-                    />
-
-                    {!frameId && !boxId && (
-                        <HiveButtons apiaryId={apiaryId} hiveId={hiveId}/>
-                    )}
-                </div>
-
-                <div className={styles.frameWrap}>
-
-                    {!frameId && !box && <HiveWeightGraph hiveId={hiveId}/>}
-
-                    {!frameId && family && <Treatments hiveId={hiveId} boxId={boxId}/>}
-
-                    <Frame
-                        box={box}
-                        apiaryId={apiaryId}
-                        boxId={boxId}
-                        frameId={frameId}
-                        hiveId={hiveId}
-                        frameSideId={frameSideId}
-                        extraButtons={null}
-                    />
-
-                    {!frameId && !box && <HiveAdvisor apiary={apiary} hive={hive} hiveId={hiveId}/>}
-
-                    {box && box.type === boxTypes.GATE && <GateBox boxId={boxId}/>}
-                </div>
-            </div>
-        </div>
-    )
+    return breadcrumbs
 }
+

@@ -14,7 +14,6 @@ import AccountEdit from './accountEdit'
 import AccountAuth from './accountAuth'
 import AccountRegister from './accountRegister'
 import Grafana from './grafana'
-import InspectionList from './inspectionList'
 import InspectionShare from "./inspectionShare";
 
 function LoggedInPage({ children }) {
@@ -87,10 +86,11 @@ export default function Page() {
 
 			<Route path="/apiaries/:id/hives/add" element={<LoggedInPage><HiveCreateForm /></LoggedInPage>} />
 
-			<Route
-				path="/apiaries/:apiaryId/hives/:hiveId"
-				element={<LoggedInPage><HiveEditView /></LoggedInPage>}
-			/>
+			<Route path="/apiaries/:apiaryId/hives/:hiveId" element={<LoggedInPage><HiveEditView /></LoggedInPage>} />
+			<Route path="/apiaries/:apiaryId/hives/:hiveId/treatments/" element={<LoggedInPage><HiveEditView /></LoggedInPage>} />
+			<Route path="/apiaries/:apiaryId/hives/:hiveId/inspections/" element={<LoggedInPage><HiveEditView /></LoggedInPage>} />
+			<Route path="/apiaries/:apiaryId/hives/:hiveId/metrics/" element={<LoggedInPage><HiveEditView /></LoggedInPage>} />
+			<Route path="/apiaries/:apiaryId/hives/:hiveId/advisor/" element={<LoggedInPage><HiveEditView /></LoggedInPage>} />
 
 			<Route
 				path="/apiaries/:apiaryId/hives/:hiveId/box/:boxId"
@@ -106,13 +106,8 @@ export default function Page() {
 			/>
 
 			<Route
-				path="/apiaries/:apiaryId/hives/:hiveId/inspections/"
-				element={<LoggedInPage><InspectionList /></LoggedInPage>}
-			/>
-
-			<Route
 				path="/apiaries/:apiaryId/hives/:hiveId/inspections/:inspectionId"
-				element={<LoggedInPage><InspectionList /></LoggedInPage>}
+				element={<LoggedInPage><HiveEditView /></LoggedInPage>}
 			/>
 
 			<Route path="/apiaries/:apiaryId/hives/:hiveId/inspections/:inspectionId/share/:shareToken"

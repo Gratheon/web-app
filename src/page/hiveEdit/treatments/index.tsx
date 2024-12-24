@@ -53,7 +53,6 @@ export default function Treatments({ hiveId, boxId = null }) {
 
 	return (
 		<div className={styles.treatmentList}>
-			<h3>🩹 <T>Treatments</T></h3>
 			{addedMsg && <MessageSuccess title={<T>Treatment added</T>} />}
 			<ErrorMessage error={error || error2} />
 

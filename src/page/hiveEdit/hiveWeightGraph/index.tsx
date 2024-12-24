@@ -191,9 +191,6 @@ export default function HiveWeightGraph({hiveId}) {
     }
 
 
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
     return (
         <>
             {weightDiv}

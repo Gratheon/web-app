@@ -37,20 +37,11 @@ mutation generateHiveAdvice($hiveID: ID, $adviceContext: JSON, $langCode: String
         <div className={style.wrap}>
             {showLoader && <Loader/>}
 
+            <Button 
+            
+            style="margin: 0 auto;"
 
-                <div style={`flex-grow:1; text-align:center;${existingAdvice?.getExistingHiveAdvice ? '' : 'margin-top:50px;'}`}>
-                    {!showLoader && (generatedAdvice?.generateHiveAdvice || existingAdvice?.getExistingHiveAdvice) &&
-                        <div className={style.message}>
-                        {!generatedAdvice && existingAdvice && existingAdvice?.getExistingHiveAdvice &&
-                            <div dangerouslySetInnerHTML={{__html: existingAdvice.getExistingHiveAdvice}}/>}
-                        {generatedAdvice && generatedAdvice?.generateHiveAdvice &&
-                            <div dangerouslySetInnerHTML={{__html: generatedAdvice.generateHiveAdvice}}/>}
-                        </div>
-                    }
-                </div>
-
-            <div style="padding: 16px;text-align:center;min-width:100px;">
-                <Button onClick={async () => {
+            onClick={async () => {
                     setSaving(true)
 
                     const user = await getUser();
@@ -101,8 +92,21 @@ mutation generateHiveAdvice($hiveID: ID, $adviceContext: JSON, $langCode: String
 
                 }}>
                     <img src={beekeeperURL} style="width:20px; height: 20px;margin-right: 2px;"/>
-                    <T>Review</T></Button>
+                    <T>Analyze with AI</T></Button>
+
+            <div style={`text-align:center;${existingAdvice?.getExistingHiveAdvice ? '' : 'margin-top:50px;'}`}>
+                {!showLoader && (generatedAdvice?.generateHiveAdvice || existingAdvice?.getExistingHiveAdvice) &&
+                    <div className={style.message}>
+
+                    {!generatedAdvice && existingAdvice && existingAdvice?.getExistingHiveAdvice &&
+                        <div dangerouslySetInnerHTML={{__html: existingAdvice.getExistingHiveAdvice}}/>}
+
+                    {generatedAdvice && generatedAdvice?.generateHiveAdvice &&
+                        <div dangerouslySetInnerHTML={{__html: generatedAdvice.generateHiveAdvice}}/>}
+                    </div>
+                }
             </div>
+
         </div>
     </>
 }

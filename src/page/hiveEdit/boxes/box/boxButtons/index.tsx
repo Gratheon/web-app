@@ -1,11 +1,9 @@
 import React, { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 
-import DeleteIcon from '../../../../../icons/deleteIcon.tsx'
-
-import DownIcon from '../../../../../icons/downIcon.tsx'
-import UpIcon from '../../../../../icons/upIcon.tsx'
-import { useMutation } from '../../../../../api'
+import DownIcon from '@/icons/downIcon.tsx'
+import UpIcon from '@/icons/upIcon.tsx'
+import { useMutation } from '@/api'
 
 import {
 	removeBox,
@@ -13,9 +11,9 @@ import {
 	getBoxAtPositionAbove,
 	getBoxAtPositionBelow,
 	getBox,
-} from '../../../../../models/boxes.ts'
-import ButtonWithHover from '../../../../../shared/buttonWithHover'
-import T from '../../../../../shared/translate'
+} from '@/models/boxes.ts'
+import ButtonWithHover from '@/shared/buttonWithHover'
+import T from '@/shared/translate'
 
 export default function BoxButtons({ box, onError }) {
 	let buttonDirections = useLiveQuery(async () => {
@@ -78,20 +76,20 @@ export default function BoxButtons({ box, onError }) {
 		setMovingBox(false);
 	}
 
-	const [removingBox, setRemovingBox] = useState(false);
-	async function onBoxRemove(id: number) {
-		if (confirm('Are you sure you want to remove this box?')) {
-			setRemovingBox(true)
-			const { error } = await removeBoxMutation({ id })
+	// const [removingBox, setRemovingBox] = useState(false);
+	// async function onBoxRemove(id: number) {
+	// 	if (confirm('Are you sure you want to remove this box?')) {
+	// 		setRemovingBox(true)
+	// 		const { error } = await removeBoxMutation({ id })
 
-			if (error) {
-				return onError(error)
-			}
+	// 		if (error) {
+	// 			return onError(error)
+	// 		}
 
-			await removeBox(id)
-			setRemovingBox(false)
-		}
-	}
+	// 		await removeBox(id)
+	// 		setRemovingBox(false)
+	// 	}
+	// }
 
 	return (
 		<div>
@@ -119,7 +117,7 @@ export default function BoxButtons({ box, onError }) {
 				</div>
 			)}
 
-			<div>
+			{/* <div>
 				<ButtonWithHover
 					color="red"
 					loading={removingBox}
@@ -130,7 +128,7 @@ export default function BoxButtons({ box, onError }) {
 				>
 					<DeleteIcon />
 				</ButtonWithHover>
-			</div>
+			</div> */}
 		</div>
 	)
 }

@@ -2,7 +2,7 @@ import {useState, useEffect} from 'react'
 import {NavLink, useLocation, useNavigate, useParams} from 'react-router-dom'
 import {useLiveQuery} from 'dexie-react-hooks'
 
-import {useQuery} from '@/api'
+import {useMutation, useQuery} from '@/api'
 import Boxes from '@/page/hiveEdit/boxes'
 
 import HIVE_QUERY from '@/page/hiveEdit/_api/hiveQuery.graphql.ts'
@@ -10,7 +10,7 @@ import HiveEditDetails from '@/page/hiveEdit/hiveTopInfo'
 
 import ErrorMsg from '@/shared/messageError'
 import ErrorGeneral from '@/shared/messageErrorGlobal'
-import {boxTypes, getBox} from '@/models/boxes.ts'
+import {boxTypes, getBox, removeBox} from '@/models/boxes.ts'
 import {getHive} from '@/models/hive.ts'
 import {getApiary} from '@/models/apiary.ts'
 import Loader from '@/shared/loader'
@@ -32,6 +32,10 @@ import {getFamilyByHive} from '@/models/family.ts'
 import { Tab } from '@/shared/tab'
 import { TabBar } from '@/shared/tab'
 import InspectionList from '../inspectionList'
+import BoxButtons from './boxes/box/boxButtons'
+import ButtonWithHover from '@/shared/buttonWithHover'
+import DeleteIcon from '@/icons/deleteIcon'
+import Button from '@/shared/button'
 
 export default function HiveEditForm() {
     const {state} = useLocation()
@@ -42,6 +46,11 @@ export default function HiveEditForm() {
     let [error, onError] = useState(null)
     const navigate = useNavigate()
 
+	let [removeBoxMutation] = useMutation(`mutation deactivateBox($id: ID!) {
+		deactivateBox(id: $id)
+	}
+	`)
+    
     // fetch url segments
     const isInspectionListView = apiaryId && hiveId && !window.location.pathname.includes('inspections/');
 
@@ -65,6 +74,21 @@ export default function HiveEditForm() {
     const hive = useLiveQuery(() => getHive(+hiveId), [hiveId], null)
     const box = useLiveQuery(() => getBox(+boxId), [boxId], null)
     const family = useLiveQuery(() => getFamilyByHive(+hiveId), [hiveId])
+
+	const [removingBox, setRemovingBox] = useState(false);
+	async function onBoxRemove(id: number) {
+		if (confirm('Are you sure you want to remove this box?')) {
+			setRemovingBox(true)
+			const { error } = await removeBoxMutation({ id })
+
+			if (error) {
+				return onError(error)
+			}
+
+			await removeBox(id)
+			setRemovingBox(false)
+		}
+	}
 
     if (apiary === null || hive === null) {
         return <Loader/>
@@ -112,8 +136,14 @@ export default function HiveEditForm() {
         })
     }
 
-    console.log({mapTab})
-
+    let boxDeleteButton = <Button
+            color="red"
+            loading={removingBox}
+            onClick={() => {
+                onBoxRemove(+box.id)
+            }}
+        ><DeleteIcon /> <T>Remove box</T></Button>
+    
     return (
         <>            
             <ErrorGeneral/>
@@ -129,7 +159,7 @@ export default function HiveEditForm() {
 
             <BreadCrumbs items={breadcrumbs}/>
             
-            {<HiveEditDetails apiaryId={apiaryId} hiveId={hiveId}/>}
+            <HiveEditDetails apiaryId={apiaryId} hiveId={hiveId}/>
 
             <TabBar>
 				<Tab isSelected={mapTab === 'structure'}>
@@ -167,7 +197,7 @@ export default function HiveEditForm() {
             <div className={styles.boxesFrameWrap}>
                 {mapTab === 'structure' && 
                     <div className={styles.boxesWrap}>
-                        {<HiveButtons apiaryId={apiaryId} hiveId={hiveId}/>}
+                        <HiveButtons apiaryId={apiaryId} hiveId={hiveId}/>
 
                         <Boxes
                             onError={onError}
@@ -187,17 +217,28 @@ export default function HiveEditForm() {
                     {mapTab === 'metrics' && <HiveWeightGraph hiveId={hiveId}/>}
                     {mapTab === 'advisor' && <HiveAdvisor apiary={apiary} hive={hive} hiveId={hiveId}/>}
 
-                    {mapTab === 'structure' && <Frame
-                        box={box}
-                        apiaryId={apiaryId}
-                        boxId={boxId}
-                        frameId={frameId}
-                        hiveId={hiveId}
-                        frameSideId={frameSideId}
-                        extraButtons={null}
-                    />}
 
-                    {mapTab === 'structure' && box && box.type === boxTypes.GATE && <GateBox boxId={boxId}/>}
+                    {mapTab === 'structure' && <div>
+                        {box && box.type === boxTypes.GATE && <GateBox boxId={boxId}/>}
+                        <Frame
+                            box={box}
+                            apiaryId={apiaryId}
+                            boxId={boxId}
+                            frameId={frameId}
+                            hiveId={hiveId}
+                            frameSideId={frameSideId}
+                            extraButtons={boxDeleteButton}
+                        />
+
+                        {!frameId && <Button
+                            color="red"
+                            loading={removingBox}
+                            onClick={() => {
+                                onBoxRemove(+box.id)
+                            }}
+                        ><DeleteIcon /> <T>Remove box</T></Button>}
+                    </div>}
+
                 </div>
             </div>
         </>

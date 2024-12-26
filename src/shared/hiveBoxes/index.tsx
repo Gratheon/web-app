@@ -1,18 +1,18 @@
-import { boxTypes } from '../../models/boxes.ts'
+import { boxTypes } from '@/models/boxes.ts'
 
 import styles from './styles.module.less'
 
-import Box from '../../page/hiveEdit/boxes/box'
-import BoxButtons from '../../page/hiveEdit/boxes/box/boxButtons'
-import FrameButtons from '../../page/hiveEdit/boxes/box/frameButtons'
-import Gate from '../../page/hiveEdit/boxes/gate'
-import Ventilation from '../../page/hiveEdit/boxes/ventilation'
-import QueenExcluder from '../../page/hiveEdit/boxes/queenExcluder'
-import FeederHorizontal from '../../page/hiveEdit/boxes/feederHorizontal'
-import T from '../translate'
-import Button from '../button'
-import ListIcon from '../../icons/listIcon.tsx'
-import TableIcon from '../../icons/tableIcon.tsx'
+import Box from '@/page/hiveEdit/boxes/box'
+import BoxButtons from '@/page/hiveEdit/boxes/box/boxButtons'
+import FrameButtons from '@/page/hiveEdit/boxes/box/frameButtons'
+import Gate from '@/page/hiveEdit/boxes/gate'
+import Ventilation from '@/page/hiveEdit/boxes/ventilation'
+import QueenExcluder from '@/page/hiveEdit/boxes/queenExcluder'
+import FeederHorizontal from '@/page/hiveEdit/boxes/feederHorizontal'
+import T from '@/shared/translate'
+import Button from '@/shared/button'
+import ListIcon from '@/icons/listIcon.tsx'
+import TableIcon from '@/icons/tableIcon.tsx'
 
 export default function HiveBoxes({
 	boxes,

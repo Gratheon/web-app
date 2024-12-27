@@ -61,7 +61,7 @@ export default function HiveBoxes({
 						/>
 					)}
 
-					{box.type == boxTypes.GATE && <Gate box={box} boxId={+boxId} />}
+					{box.type == boxTypes.GATE && <Gate hiveId={hiveId} box={box} boxId={+boxId} />}
 					{box.type === boxTypes.VENTILATION && (
 						<Ventilation selected={+boxId === box.id} />
 					)}

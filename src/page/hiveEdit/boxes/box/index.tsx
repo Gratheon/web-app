@@ -195,11 +195,22 @@ export default function Box({
 		)
 	}
 
+	// visually limit the width of the box to 12 frames
+	let maxWidthStyle ={}
+	if(frames.length> 10){
+		maxWidthStyle = {
+			maxWidth: 32 * 12 + 10
+		}
+	}
+
+
 	if (displayMode == 'visual') {
 		return (
 			<>
 				<ErrorMessage error={error} />
-				<div className={`${styles.boxOuter} ${selected && styles.selected}`}>
+				<div 
+					className={`${styles.boxOuter} ${selected && styles.selected}`}
+					style={maxWidthStyle}>
 					<div className={styles.boxInnerVisual}>
 						{!frames && <Loader size={1} />}
 						{framesDiv}
@@ -216,6 +227,7 @@ export default function Box({
 				className={`${styles['boxType_' + box.type]} ${styles.boxOuter} ${
 					selected && styles.selected
 				}`}
+				style={maxWidthStyle}
 			>
 				<div className={styles.boxInner}>
 					{!frames && <Loader size={1} />}

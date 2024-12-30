@@ -17,6 +17,7 @@ import TableIcon from '@/icons/tableIcon.tsx'
 export default function HiveBoxes({
 	boxes,
 
+	inspectionId = null,
 	apiaryId = null,
 	hiveId = null,
 	boxId = null,

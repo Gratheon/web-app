@@ -2,7 +2,7 @@ import {useState, useEffect} from 'react'
 import {NavLink, useLocation, useNavigate, useParams} from 'react-router-dom'
 import {useLiveQuery} from 'dexie-react-hooks'
 
-import {useMutation, useQuery} from '@/api'
+import {useQuery} from '@/api'
 import Boxes from '@/page/hiveEdit/boxes'
 
 import HIVE_QUERY from '@/page/hiveEdit/_api/hiveQuery.graphql.ts'
@@ -10,7 +10,7 @@ import HiveEditDetails from '@/page/hiveEdit/hiveTopInfo'
 
 import ErrorMsg from '@/shared/messageError'
 import ErrorGeneral from '@/shared/messageErrorGlobal'
-import {boxTypes, getBox, removeBox} from '@/models/boxes.ts'
+import {boxTypes, getBox} from '@/models/boxes.ts'
 import {getHive} from '@/models/hive.ts'
 import {getApiary} from '@/models/apiary.ts'
 import Loader from '@/shared/loader'
@@ -32,10 +32,6 @@ import {getFamilyByHive} from '@/models/family.ts'
 import { Tab } from '@/shared/tab'
 import { TabBar } from '@/shared/tab'
 import InspectionList from '../inspectionList'
-import BoxButtons from './boxes/box/boxButtons'
-import ButtonWithHover from '@/shared/buttonWithHover'
-import DeleteIcon from '@/icons/deleteIcon'
-import Button from '@/shared/button'
 
 export default function HiveEditForm() {
     const {state} = useLocation()
@@ -46,10 +42,6 @@ export default function HiveEditForm() {
     let [error, onError] = useState(null)
     const navigate = useNavigate()
 
-	let [removeBoxMutation] = useMutation(`mutation deactivateBox($id: ID!) {
-		deactivateBox(id: $id)
-	}
-	`)
     
     // fetch url segments
     const isInspectionListView = apiaryId && hiveId && !window.location.pathname.includes('inspections/');
@@ -75,20 +67,6 @@ export default function HiveEditForm() {
     const box = useLiveQuery(() => getBox(+boxId), [boxId], null)
     const family = useLiveQuery(() => getFamilyByHive(+hiveId), [hiveId])
 
-	const [removingBox, setRemovingBox] = useState(false);
-	async function onBoxRemove(id: number) {
-		if (confirm('Are you sure you want to remove this box?')) {
-			setRemovingBox(true)
-			const { error } = await removeBoxMutation({ id })
-
-			if (error) {
-				return onError(error)
-			}
-
-			await removeBox(id)
-			setRemovingBox(false)
-		}
-	}
 
     if (apiary === null || hive === null) {
         return <Loader/>
@@ -136,14 +114,6 @@ export default function HiveEditForm() {
         })
     }
 
-    let boxDeleteButton = <Button
-            color="red"
-            loading={removingBox}
-            onClick={() => {
-                onBoxRemove(+box.id)
-            }}
-        ><DeleteIcon /> <T>Remove box</T></Button>
-    
     return (
         <>            
             <ErrorGeneral/>
@@ -197,8 +167,6 @@ export default function HiveEditForm() {
             <div className={styles.boxesFrameWrap}>
                 {mapTab === 'structure' && 
                     <div className={styles.boxesWrap}>
-                        <HiveButtons apiaryId={apiaryId} hiveId={hiveId}/>
-
                         <Boxes
                             onError={onError}
                             apiaryId={apiaryId}
@@ -227,16 +195,18 @@ export default function HiveEditForm() {
                             frameId={frameId}
                             hiveId={hiveId}
                             frameSideId={frameSideId}
-                            extraButtons={boxDeleteButton}
+                            extraButtons={null}
                         />
 
-                        {!frameId && <Button
+                        <HiveButtons apiaryId={apiaryId} hiveId={hiveId} box={box}/>
+
+                        {/* {!frameId && <Button
                             color="red"
                             loading={removingBox}
                             onClick={() => {
                                 onBoxRemove(+box.id)
                             }}
-                        ><DeleteIcon /> <T>Remove box</T></Button>}
+                        ><DeleteIcon /> <T>Remove box</T></Button>} */}
                     </div>}
 
                 </div>

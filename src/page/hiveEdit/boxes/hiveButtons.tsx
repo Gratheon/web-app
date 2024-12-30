@@ -1,32 +1,37 @@
 import { useNavigate } from 'react-router'
 
-import { useMutation } from '../../../api'
-import Button from '../../../shared/button'
+import { useMutation } from '@/api'
+import Button from '@/shared/button'
 import {
 	boxTypes,
 	addBox,
-	maxBoxPosition
-} from '../../../models/boxes.ts'
-import T from '../../../shared/translate'
+	maxBoxPosition,
+	removeBox
+} from '@/models/boxes.ts'
+import T from '@/shared/translate'
 
-import AddBoxIcon from '../../../icons/addBox.tsx'
-import AddSuperIcon from '../../../icons/addSuper.tsx'
-import GateIcon from '../../../icons/gate.tsx'
-import ErrorMessage from '../../../shared/messageError'
+import AddBoxIcon from '@/icons/addBox.tsx'
+import AddSuperIcon from '@/icons/addSuper.tsx'
+import GateIcon from '@/icons/gate.tsx'
+import ErrorMessage from '@/shared/messageError'
 
 import { useState } from 'react'
-import metrics from '../../../metrics.tsx'
+import metrics from '@/metrics.tsx'
 import styles from './styles.module.less'
-import { PopupButton, PopupButtonGroup } from '../../../shared/popupButton'
+import { PopupButton, PopupButtonGroup } from '@/shared/popupButton'
+import DeleteIcon from '@/icons/deleteIcon'
+
 
 export default function HiveButtons({
 	apiaryId,
-	hiveId
+	hiveId,
+	box
 }) {
 	let navigate = useNavigate()
 	const [adding, setAdding] = useState(false)
+	const [errorRemove, setErrorRemove] = useState(false)
 
-	let [addBoxMutation, { error }] =
+	let [addBoxMutation, { error: errorAdd }] =
 		useMutation(`mutation addBox($hiveId: ID!, $position: Int!, $type: BoxType!) {
 	addBox(hiveId: $hiveId, position: $position, type: $type) {
 		id
@@ -34,6 +39,32 @@ export default function HiveButtons({
 	}
 }
 `)
+
+let [removeBoxMutation] = useMutation(`mutation deactivateBox($id: ID!) {
+	deactivateBox(id: $id)
+}
+`)
+
+	const [removingBox, setRemovingBox] = useState(false);
+	async function onBoxRemove(id: number) {
+		if (confirm('Are you sure you want to remove this box?')) {
+			setRemovingBox(true)
+			const { error } = await removeBoxMutation({ id })
+
+			if (error) {
+				setErrorRemove(error)
+				return
+			}
+
+			await removeBox(id)
+			setRemovingBox(false)
+			
+			metrics.trackBoxRemoved()
+			navigate(`/apiaries/${apiaryId}/hives/${hiveId}/`, {
+				replace: true,
+			})
+		}
+	}
 
 	async function onBoxAdd(type) {
 		setAdding(true)
@@ -66,7 +97,7 @@ export default function HiveButtons({
 
 	return (
 		<>
-			<ErrorMessage error={error} />
+			<ErrorMessage error={errorAdd || errorRemove} />
 			<div className={styles.hiveButtons}>
 
 				<Button
@@ -112,6 +143,15 @@ export default function HiveButtons({
 							onClick={() => onBoxAdd(boxTypes.HORIZONTAL_FEEDER)}
 						><span><T ctx="this is a button to add tiny part of beehive, a horizontal box where sugar syrup can be poured to feed bees">Add feeder</T></span>
 						</Button>
+
+
+						<Button
+                            color="red"
+                            loading={removingBox}
+                            onClick={() => {
+                                onBoxRemove(+box.id)
+                            }}
+                        ><DeleteIcon /> <T>Remove box</T></Button>
 					</PopupButton>
 				</PopupButtonGroup>
 			</div>

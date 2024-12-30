@@ -13,6 +13,7 @@ type ButtonProps = {
 	size?: 'small' | string
 	style?: any
 	title?: string
+	iconOnly?: boolean
 	loading?: boolean
 	disabled?: boolean
 	type?: 'button' | 'submit' | 'reset' | undefined
@@ -24,6 +25,7 @@ export default function Button({
 	style = {},
 	title = '',
 	loading = false,
+	iconOnly = false,
 	className = null,
 	size = null,
 	color = 'black',
@@ -46,6 +48,10 @@ export default function Button({
 	}
 	if (typeof className === 'string') {
 		classNames.push(className)
+	}
+	
+	if (iconOnly) {
+		classNames.push(styles.iconOnly)
 	}
 
 	if (href !== null) {

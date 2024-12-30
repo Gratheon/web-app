@@ -55,7 +55,7 @@ export function PopupButton({ children, className = '', align = 'left' }: PopupB
 	useOutsideClickHandler(modalRef, () => setExtraButtonsVisible(false))
 
 	return (
-		<div ref={modalRef}>
+		<div ref={modalRef} style={{ width: 35 }}>
 			<Button
 				className={`${className} popupTrigger`}
 				onClick={(e: any) => {

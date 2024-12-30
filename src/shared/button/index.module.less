@@ -1,4 +1,4 @@
-@import '../../colors.module.less';
+@import '@/colors.module.less';
 
 button:not(:disabled) {
 	&:hover {
@@ -19,7 +19,7 @@ button {
 	color: @color-btn-white;
 	height: 40px;
 	// line-height: 20px;
-	margin: 0 2px;
+	margin: 0 1px;
 	text-align: left;
 
 	white-space: nowrap;
@@ -28,10 +28,16 @@ button {
 
 	svg {
 		position: relative;
-		margin-right: 3px;
 		vertical-align: middle;
 		width: 16px;
 		height: 16px;
+		margin-right: 3px;
+	}
+
+	&.iconOnly{
+		svg {
+			margin-right: 0px;
+		}
 	}
 
 	span {

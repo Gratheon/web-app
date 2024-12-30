@@ -1,5 +1,5 @@
-@import '../../../layout.module.less';
-@import '../../../colors.module.less';
+@import '@/layout.module.less';
+@import '@/colors.module.less';
 
 .body {
 	min-height: 300px;
@@ -24,8 +24,6 @@
 }
 
 .frameHeader {
-	display: flex;
-
 	h3 {
 		margin-top: 10px;
 		margin-right: 10px;
@@ -37,3 +35,8 @@
 	}
 }
 
+@media @desktop	 {
+	.frameHeader {
+		display: flex;
+	}
+}

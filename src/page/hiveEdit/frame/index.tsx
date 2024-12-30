@@ -119,13 +119,6 @@ export default function Frame({
 	extraButtons = (
 		<div style="display:flex; align-items:center; justify-content:space-between;">
 			{extraButtons}
-
-			<Button color="red" title="Remove frame" onClick={onFrameRemove}>
-				<DeleteIcon />
-				<span>
-					<T>Remove frame</T>
-				</span>
-			</Button>
 		</div>
 	)
 
@@ -178,6 +171,14 @@ export default function Frame({
 
 					<div style="flex-grow:1"></div>
 					<MetricList frameSideId={frameSideId} />	
+
+
+					<Button color="red" title="Remove frame" onClick={onFrameRemove}>
+						<DeleteIcon />
+						<span>
+							<T>Remove frame</T>
+						</span>
+					</Button>
 				</div>
 
 				<FrameSide

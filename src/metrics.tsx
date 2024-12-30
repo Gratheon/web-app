@@ -29,10 +29,16 @@ export default {
 		if (isDev()) return
 		amplitude.track('apiary.created', extraInfo)
 	},
+
 	trackBoxCreated: (extraInfo = {}) => {
 		if (isDev()) return
 		amplitude.track('box.created', extraInfo)
 	},
+	trackBoxRemoved: (extraInfo = {}) => {
+		if (isDev()) return
+		amplitude.track('box.removed', extraInfo)
+	},
+
 	trackFrameAdded: (extraInfo = {}) => {
 		if (isDev()) return
 		amplitude.track('frame.created', extraInfo)

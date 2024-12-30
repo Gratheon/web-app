@@ -17,7 +17,6 @@ import TableIcon from '@/icons/tableIcon.tsx'
 export default function HiveBoxes({
 	boxes,
 
-	inspectionId = null,
 	apiaryId = null,
 	hiveId = null,
 	boxId = null,
@@ -41,7 +40,7 @@ export default function HiveBoxes({
 
 		boxesDivs.push(
 			<div
-				style="margin-right:35px; display: flex;"
+				style="display: flex;"
 				onClick={(event) => {
 					onBoxClick({ event, boxId: box.id })
 				}}
@@ -81,7 +80,7 @@ export default function HiveBoxes({
 						position: 'relative',
 					}}
 				>
-					<div style="width:40px;"></div>
+					<div style="width:38px;"></div>
 
 					{isCurrentBoxSelected && (
 						<div style="position: absolute;">
@@ -105,10 +104,7 @@ export default function HiveBoxes({
 
 	return (
 		<>
-			<div
-				className={styles.boxesMode}
-				style="display:flex; width:100%; padding:0 40px;box-sizing: border-box;"
-			>
+			<div className={styles.boxesMode}>
 				<h3 style="display: flex;align-items: center;margin-right: 20px;margin-bottom: 5px;">
 					<T ctx="This is a heading for a block that shows multiple physical parts (boxes,sections) of the vertical beehive">
 						Hive sections
@@ -118,7 +114,7 @@ export default function HiveBoxes({
 				{currentBoxSelected &&
 					(currentBoxSelected?.type == boxTypes.DEEP ||
 						currentBoxSelected?.type == boxTypes.SUPER) && (
-						<>
+						<div style="display:flex; align-items:right;">
 							<FrameButtons box={currentBoxSelected} onError={onError} />
 
 							{displayMode == 'list' && (
@@ -131,7 +127,7 @@ export default function HiveBoxes({
 									<TableIcon size={16} style="margin-right:0" />
 								</Button>
 							)}
-						</>
+						</div>
 					)}
 			</div>
 

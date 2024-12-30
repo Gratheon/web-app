@@ -76,59 +76,27 @@ export default function BoxButtons({ box, onError }) {
 		setMovingBox(false);
 	}
 
-	// const [removingBox, setRemovingBox] = useState(false);
-	// async function onBoxRemove(id: number) {
-	// 	if (confirm('Are you sure you want to remove this box?')) {
-	// 		setRemovingBox(true)
-	// 		const { error } = await removeBoxMutation({ id })
-
-	// 		if (error) {
-	// 			return onError(error)
-	// 		}
-
-	// 		await removeBox(id)
-	// 		setRemovingBox(false)
-	// 	}
-	// }
-
 	return (
 		<div>
 			{showUpButton && (
-				<div>
-					<ButtonWithHover
-						loading={movingBox}
-						onClick={() => {
-							onMoveUp(+box.id)
-						}}
-						title={<T>Move up</T>}
-					><UpIcon /></ButtonWithHover>
-				</div>
+				<ButtonWithHover
+					loading={movingBox}
+					onClick={() => {
+						onMoveUp(+box.id)
+					}}
+					icon={<UpIcon />}
+				><T>Move up</T></ButtonWithHover>
 			)}
 
 			{showDownButton && (
-				<div>
-					<ButtonWithHover
-						loading={movingBox}
-						onClick={() => {
-							onMoveDown(+box.id)
-						}}
-						title={<T>Move down</T>}
-					><DownIcon /></ButtonWithHover>
-				</div>
-			)}
-
-			{/* <div>
 				<ButtonWithHover
-					color="red"
-					loading={removingBox}
+					loading={movingBox}
 					onClick={() => {
-						onBoxRemove(+box.id)
+						onMoveDown(+box.id)
 					}}
-					title={<T>Remove box</T>}
-				>
-					<DeleteIcon />
-				</ButtonWithHover>
-			</div> */}
+					icon={<DownIcon />}
+				><T>Move down</T></ButtonWithHover>
+			)}
 		</div>
 	)
 }

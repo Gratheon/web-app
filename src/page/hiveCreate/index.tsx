@@ -144,7 +144,7 @@ export default function HiveCreateForm() {
                             }
                             }
                             min="0"
-                            max="10"
+                            max="25"
                             step="1"
                         />
                     </div>

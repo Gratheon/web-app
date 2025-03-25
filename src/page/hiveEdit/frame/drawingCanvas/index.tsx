@@ -34,6 +34,7 @@ let isPanning = false
 let startPanPosition = { x: 0, y: 0 }
 let lastPanPosition = { x: 0, y: 0 }
 let isDragging = false
+let initialPanOffset = { x: 0, y: 0 }
 
 function drawOnCanvas(canvas, ctx, stroke) {
 	ctx.strokeStyle = 'white'
@@ -278,9 +279,14 @@ function getEventLocation(canvas, e) {
 // Add function to get canvas-relative coordinates
 function getCanvasRelativePosition(canvas, e) {
 	const rect = canvas.getBoundingClientRect()
+	// Get the position in CSS pixels relative to the canvas
 	const x = e.clientX - rect.left
 	const y = e.clientY - rect.top
-	return { x, y }
+	// Convert to canvas coordinate system (accounting for device pixel ratio)
+	return { 
+		x: x * (canvas.width / rect.width),
+		y: y * (canvas.height / rect.height)
+	}
 }
 
 function debounce(func, timeout = 300) {
@@ -297,23 +303,26 @@ function initCanvasSize(canvas, ctx) {
 	// size
 	var width = img ? parseInt(img.width) : 1024
 	var height = img ? parseInt(img.height) : 768
-
+	
+	// Get the parent container's width for more dynamic sizing
+	const parentContainer = canvas.parentElement
+	let canvasParentWidth = parentContainer ? parentContainer.clientWidth : 1024
+	
 	// see hiveEdit
 	const boxesWrap = document.getElementById('boxesWrap')
-	let canvasParentWidth = 1024
-
-	if (boxesWrap) {
-		// Access the width of the external HTML element using offsetWidth
-		canvasParentWidth =
-			document.documentElement.clientWidth - boxesWrap.offsetWidth - 40
-	}
-
+	
 	//UI BREAKING POINT
 	const isMobileView = document.body.clientWidth < 1200
 	zoomEnabled = !isMobileView
+	
+	// For desktop view, calculate available space considering boxesWrap if it exists
+	// For mobile view, use the full width of the viewport
 	const canvasWidth = isMobileView
 		? document.body.clientWidth
-		: canvasParentWidth
+		: (boxesWrap && !parentContainer.contains(boxesWrap)) 
+			? Math.max(document.documentElement.clientWidth - boxesWrap.offsetWidth - 40, 0.5 * document.documentElement.clientWidth)
+			: canvasParentWidth
+	
 	const tmpw = dpr * Math.floor(canvasWidth)
 	canvas.width = tmpw
 	canvas.height = tmpw * (height / width)
@@ -335,12 +344,20 @@ function drawCanvasLayers(
 	showCells,
 	detectedCells,
 	showQueenCups,
-	queenCups,
-
+	detectedQueenCups,
 	showVarroa,
 	detectedVarroa
 ) {
-	ctx.clearRect(0, 0, canvas.width, canvas.height)
+	// Save the current transformation
+	ctx.save()
+	
+	// Reset transformation to fill the entire canvas with white
+	ctx.setTransform(1, 0, 0, 1, 0, 0)
+	ctx.fillStyle = 'white'
+	ctx.fillRect(0, 0, canvas.width, canvas.height)
+	
+	// Restore the transformation for the image and other elements
+	ctx.restore()
 
 	if (img) {
 		ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
@@ -366,7 +383,7 @@ function drawCanvasLayers(
 	}
 
 	if (showQueenCups) {
-		drawQueenCups(queenCups, ctx, canvas)
+		drawQueenCups(detectedQueenCups, ctx, canvas)
 	}
 
 	if (strokeHistory && strokeHistory.length > 0) {
@@ -640,12 +657,12 @@ export default function DrawingCanvas({
 			// Prevent default scrolling behavior
 			event.preventDefault()
 			
-			// Get mouse position relative to canvas
+			// Get mouse position relative to canvas in canvas coordinates
 			const mousePos = getCanvasRelativePosition(canvas, event)
 			
 			// Calculate zoom factor
 			const zoomFactor = event.deltaY > 0 ? 0.9 : 1.1
-			
+            
 			// Calculate new zoom level
 			const newZoom = globalCameraZoom * zoomFactor
             
@@ -662,16 +679,17 @@ export default function DrawingCanvas({
 				})
 			}
             
-			// Calculate how much the mouse moved in canvas coordinates
-			const mouseXBeforeZoom = (mousePos.x - offsetsum.x) / globalCameraZoom
-			const mouseYBeforeZoom = (mousePos.y - offsetsum.y) / globalCameraZoom
+			// Calculate the point in world space where the mouse is before zooming
+			const mouseXInWorldBeforeZoom = (mousePos.x - offsetsum.x) / globalCameraZoom
+			const mouseYInWorldBeforeZoom = (mousePos.y - offsetsum.y) / globalCameraZoom
             
 			// Update global zoom level
 			globalCameraZoom = newZoom
             
 			// Calculate new offset to keep the point under the cursor in the same position
-			offsetsum.x = mousePos.x - mouseXBeforeZoom * globalCameraZoom
-			offsetsum.y = mousePos.y - mouseYBeforeZoom * globalCameraZoom
+			// This is the key to making zoom happen at the cursor position
+			offsetsum.x = mousePos.x - mouseXInWorldBeforeZoom * globalCameraZoom
+			offsetsum.y = mousePos.y - mouseYInWorldBeforeZoom * globalCameraZoom
             
 			// Apply transform
 			ctx.setTransform(globalCameraZoom, 0, 0, globalCameraZoom, offsetsum.x, offsetsum.y)
@@ -685,7 +703,6 @@ export default function DrawingCanvas({
 			if (e.button === 2) { // Right mouse button
 				e.preventDefault();
 				isPanning = true;
-				const rect = canvas.getBoundingClientRect();
 				startPanPosition = {
 					x: e.clientX,
 					y: e.clientY
@@ -695,31 +712,51 @@ export default function DrawingCanvas({
 				
 				// Ensure we're not in drawing mode while panning
 				isMousedown = false;
+				
+				// Store the initial offset when panning starts
+				initialPanOffset = { ...offsetsum };
 			}
 		}
 		
 		function handleMouseMove(e) {
 			if (isPanning) {
 				e.preventDefault();
+				
+				// Get the current cursor position
 				const currentPosition = {
 					x: e.clientX,
 					y: e.clientY
 				};
 				
-				// Calculate the distance moved
-				const dx = currentPosition.x - lastPanPosition.x;
-				const dy = currentPosition.y - lastPanPosition.y;
-                
-				// Update the offset
-				offsetsum.x += dx;
-				offsetsum.y += dy;
-                
+				// Calculate total distance moved from the start of the pan
+				const totalDx = currentPosition.x - startPanPosition.x;
+				const totalDy = currentPosition.y - startPanPosition.y;
+				
+				// Set the offset directly based on the initial offset plus the total movement
+				// This ensures the image moves exactly with the cursor
+				offsetsum.x = initialPanOffset.x + totalDx;
+				offsetsum.y = initialPanOffset.y + totalDy;
+				
 				// Apply transform
 				ctx.setTransform(globalCameraZoom, 0, 0, globalCameraZoom, offsetsum.x, offsetsum.y);
-                
-				// Update last position
-				lastPanPosition = { ...currentPosition };
-                
+				
+				// Force immediate redraw
+				drawCanvasLayers(
+					canvas,
+					ctx,
+					strokeHistory,
+					showBees,
+					showDrones,
+					showQueens,
+					detectedBees,
+					showCells,
+					detectedCells,
+					showQueenCups,
+					detectedQueenCups,
+					showVarroa,
+					detectedVarroa
+				);
+				
 				// Trigger re-render
 				setVersion(version + 1);
 			}
@@ -737,10 +774,10 @@ export default function DrawingCanvas({
 			if (e.touches && e.touches.length === 2) {
 				e.preventDefault();
 				isPanning = true;
-                
+				
 				// Ensure we're not in drawing mode while panning
 				isMousedown = false;
-                
+				
 				const touch1 = e.touches[0];
 				const touch2 = e.touches[1];
 				startPanPosition = {
@@ -748,34 +785,52 @@ export default function DrawingCanvas({
 					y: (touch1.clientY + touch2.clientY) / 2
 				};
 				lastPanPosition = { ...startPanPosition };
+				
+				// Store the initial offset when panning starts
+				initialPanOffset = { ...offsetsum };
 			}
 		}
 		
 		function handleTouchMove(e) {
 			if (isPanning && e.touches && e.touches.length === 2) {
 				e.preventDefault();
-                
+				
 				const touch1 = e.touches[0];
 				const touch2 = e.touches[1];
 				const currentPosition = {
 					x: (touch1.clientX + touch2.clientX) / 2,
 					y: (touch1.clientY + touch2.clientY) / 2
 				};
-                
-				// Calculate the distance moved
-				const dx = currentPosition.x - lastPanPosition.x;
-				const dy = currentPosition.y - lastPanPosition.y;
-                
-				// Update the offset
-				offsetsum.x += dx;
-				offsetsum.y += dy;
-                
+				
+				// Calculate total distance moved from the start of the pan
+				const totalDx = currentPosition.x - startPanPosition.x;
+				const totalDy = currentPosition.y - startPanPosition.y;
+				
+				// Set the offset directly based on the initial offset plus the total movement
+				// This ensures the image moves exactly with the touch gesture
+				offsetsum.x = initialPanOffset.x + totalDx;
+				offsetsum.y = initialPanOffset.y + totalDy;
+				
 				// Apply transform
 				ctx.setTransform(globalCameraZoom, 0, 0, globalCameraZoom, offsetsum.x, offsetsum.y);
-                
-				// Update last position
-				lastPanPosition = { ...currentPosition };
-                
+				
+				// Force immediate redraw
+				drawCanvasLayers(
+					canvas,
+					ctx,
+					strokeHistory,
+					showBees,
+					showDrones,
+					showQueens,
+					detectedBees,
+					showCells,
+					detectedCells,
+					showQueenCups,
+					detectedQueenCups,
+					showVarroa,
+					detectedVarroa
+				);
+				
 				// Trigger re-render
 				setVersion(version + 1);
 			}
@@ -817,15 +872,18 @@ export default function DrawingCanvas({
 			canvas.removeEventListener('touchcancel', handleTouchEnd);
 		};
 	}, [
-		imageUrl,
 		version,
+		canvasUrl,
+		strokeHistory,
 		showBees,
-		showVarroa,
 		showDrones,
-		showCells,
-		showQueenCups,
+		showQueens,
 		detectedBees,
+		showCells,
 		detectedCells,
+		showQueenCups,
+		detectedQueenCups,
+		showVarroa,
 		detectedVarroa,
 	])
 

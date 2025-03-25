@@ -732,10 +732,15 @@ export default function DrawingCanvas({
 				const totalDx = currentPosition.x - startPanPosition.x;
 				const totalDy = currentPosition.y - startPanPosition.y;
 				
-				// Set the offset directly based on the initial offset plus the total movement
+				// Apply the device pixel ratio and canvas scaling factor to the movement
+				const rect = canvas.getBoundingClientRect();
+				const scaleX = canvas.width / rect.width;
+				const scaleY = canvas.height / rect.height;
+				
+				// Set the offset directly based on the initial offset plus the scaled total movement
 				// This ensures the image moves exactly with the cursor
-				offsetsum.x = initialPanOffset.x + totalDx;
-				offsetsum.y = initialPanOffset.y + totalDy;
+				offsetsum.x = initialPanOffset.x + (totalDx * scaleX);
+				offsetsum.y = initialPanOffset.y + (totalDy * scaleY);
 				
 				// Apply transform
 				ctx.setTransform(globalCameraZoom, 0, 0, globalCameraZoom, offsetsum.x, offsetsum.y);
@@ -806,10 +811,15 @@ export default function DrawingCanvas({
 				const totalDx = currentPosition.x - startPanPosition.x;
 				const totalDy = currentPosition.y - startPanPosition.y;
 				
-				// Set the offset directly based on the initial offset plus the total movement
+				// Apply the device pixel ratio and canvas scaling factor to the movement
+				const rect = canvas.getBoundingClientRect();
+				const scaleX = canvas.width / rect.width;
+				const scaleY = canvas.height / rect.height;
+				
+				// Set the offset directly based on the initial offset plus the scaled total movement
 				// This ensures the image moves exactly with the touch gesture
-				offsetsum.x = initialPanOffset.x + totalDx;
-				offsetsum.y = initialPanOffset.y + totalDy;
+				offsetsum.x = initialPanOffset.x + (totalDx * scaleX);
+				offsetsum.y = initialPanOffset.y + (totalDy * scaleY);
 				
 				// Apply transform
 				ctx.setTransform(globalCameraZoom, 0, 0, globalCameraZoom, offsetsum.x, offsetsum.y);

@@ -1,14 +1,14 @@
 import React, { useState, useRef, useLayoutEffect } from 'react'
-import Button from '../../../../shared/button'
-import colors from '../../../../colors.ts'
-import Checkbox from '../../../../icons/checkbox.tsx'
-import FrameCells from '../../../../icons/frameCells.tsx'
-import T from '../../../../shared/translate'
-import Loader from '../../../../shared/loader'
+import Button from '@/shared/button'
+import colors from '@/colors.ts'
+import Checkbox from '@/icons/checkbox.tsx'
+import FrameCells from '@/icons/frameCells.tsx'
+import T from '@/shared/translate'
+import Loader from '@/shared/loader'
 import styles from './styles.module.less'
 import QueenButton from '../queenButton'
-import LeftChevron from '../../../../icons/leftChevron.tsx'
-import RightChevron from '../../../../icons/rightChevron.tsx'
+import LeftChevron from '@/icons/leftChevron.tsx'
+import RightChevron from '@/icons/rightChevron.tsx'
 
 let lineWidth = 0
 let isMousedown = false
@@ -31,6 +31,7 @@ let offsetsum = {
 let isPanning = false
 let startPanPosition = { x: 0, y: 0 }
 let initialPanOffset = { x: 0, y: 0 }
+let lastPanPosition = { x: 0, y: 0 }
 
 function drawOnCanvas(canvas, ctx, stroke) {
 	ctx.strokeStyle = 'white'

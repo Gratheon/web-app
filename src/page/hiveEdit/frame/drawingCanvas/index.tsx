@@ -15,8 +15,6 @@ let isMousedown = false
 let points = []
 const dpr = typeof window !== 'undefined' ? window.devicePixelRatio : 1
 
-let cameraOffset = { x: 0, y: 0 }
-let cameraZoom = 1
 let globalCameraZoom = 1
 let MAX_ZOOM = 100
 let MIN_ZOOM = 1
@@ -32,8 +30,6 @@ let offsetsum = {
 // Add variables for panning
 let isPanning = false
 let startPanPosition = { x: 0, y: 0 }
-let lastPanPosition = { x: 0, y: 0 }
-let isDragging = false
 let initialPanOffset = { x: 0, y: 0 }
 
 function drawOnCanvas(canvas, ctx, stroke) {

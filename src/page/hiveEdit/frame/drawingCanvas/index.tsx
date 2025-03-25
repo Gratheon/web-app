@@ -10,10 +10,14 @@ import QueenButton from '../queenButton'
 import LeftChevron from '@/icons/leftChevron.tsx'
 import RightChevron from '@/icons/rightChevron.tsx'
 
+let img
+
 let lineWidth = 0
 let isMousedown = false
 let points = []
 const dpr = typeof window !== 'undefined' ? window.devicePixelRatio : 1
+
+let REL_PX
 
 let globalCameraZoom = 1
 let MAX_ZOOM = 100
@@ -81,7 +85,7 @@ function redrawStrokes(canvas, ctx, strokeHistory) {
 	})
 }
 
-let REL_PX
+
 function drawDetectedCells(detectedFrameCells, ctx, canvas) {
 	REL_PX = canvas.width / 1024
 	if (detectedFrameCells.length > 0) {
@@ -375,9 +379,6 @@ function drawCanvasLayers(
 	}
 }
 
-let scrollIndex = 0
-let zoomTransforms = []
-let img
 
 export default function DrawingCanvas({
 	imageUrl,

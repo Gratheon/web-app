@@ -29,6 +29,12 @@ let offsetsum = {
 	y: 0,
 }
 
+// Add variables for panning
+let isPanning = false
+let startPanPosition = { x: 0, y: 0 }
+let lastPanPosition = { x: 0, y: 0 }
+let isDragging = false
+
 function drawOnCanvas(canvas, ctx, stroke) {
 	ctx.strokeStyle = 'white'
 	ctx.lineCap = 'round'
@@ -180,7 +186,7 @@ function drawQueenCups(queenCups, ctx, canvas) {
 				y * canvas.height,
 
 				(x2 - x) * canvas.width,
-				(y2 - y) * canvas.height,
+				(y2 - y) * canvas.width,
 
 				10 * REL_PX
 			)
@@ -267,6 +273,14 @@ function getEventLocation(canvas, e) {
 
 		return { x, y }
 	}
+}
+
+// Add function to get canvas-relative coordinates
+function getCanvasRelativePosition(canvas, e) {
+	const rect = canvas.getBoundingClientRect()
+	const x = e.clientX - rect.left
+	const y = e.clientY - rect.top
+	return { x, y }
 }
 
 function debounce(func, timeout = 300) {
@@ -468,6 +482,12 @@ export default function DrawingCanvas({
 		//drawing
 		for (const ev of ['touchstart', 'mousedown']) {
 			canvas.addEventListener(ev, function (e) {
+				// Don't start drawing if we're panning
+				if (isPanning) return;
+				
+				// Only proceed with left mouse button (button 0) for mouse events
+				if (e.type === 'mousedown' && e.button !== 0) return;
+				
 				let pressure = 0.5
 				let x, y
 				var rect = canvas.getBoundingClientRect()
@@ -497,6 +517,9 @@ export default function DrawingCanvas({
 
 		for (const ev of ['touchmove', 'mousemove']) {
 			canvas.addEventListener(ev, function (e) {
+				// Don't draw if we're panning
+				if (isPanning) return;
+				
 				if (!isMousedown) return
 				e.preventDefault()
 
@@ -531,6 +554,12 @@ export default function DrawingCanvas({
 
 		for (const ev of ['touchend', 'touchleave', 'mouseup']) {
 			canvas.addEventListener(ev, function (e) {
+				// Don't finalize drawing if we're panning
+				if (isPanning) return;
+				
+				// For mouse events, only handle left button (0) releases
+				if (e.type === 'mouseup' && e.button !== 0) return;
+				
 				let pressure = 0.5
 				let x, y
 				var rect = canvas.getBoundingClientRect()
@@ -607,72 +636,186 @@ export default function DrawingCanvas({
 			if (isMousedown || !zoomEnabled) {
 				return
 			}
-			let zoomAmount //event.deltaY * SCROLL_SENSITIVITY
-			zoomAmount = event.deltaY > 0 ? -0.1 : 0.1 //event.deltaY * SCROLL_SENSITIVITY;
-
-			// use high-res image if user starts to zoom
-			if (globalCameraZoom > MED_ZOOM && canvasUrl != imageUrl) {
+			
+			// Prevent default scrolling behavior
+			event.preventDefault()
+			
+			// Get mouse position relative to canvas
+			const mousePos = getCanvasRelativePosition(canvas, event)
+			
+			// Calculate zoom factor
+			const zoomFactor = event.deltaY > 0 ? 0.9 : 1.1
+			
+			// Calculate new zoom level
+			const newZoom = globalCameraZoom * zoomFactor
+            
+			// Check if new zoom level is within bounds
+			if (newZoom < MIN_ZOOM || newZoom > MAX_ZOOM) {
+				return
+			}
+            
+			// Use high-res image if user starts to zoom
+			if (newZoom > MED_ZOOM && canvasUrl != imageUrl) {
 				setCanvasUrl(imageUrl)
 				initImage(imageUrl).then((r) => {
 					img = r
 				})
 			}
-
-			if (zoomAmount < 0) {
-				if (scrollIndex > 0) {
-					delete zoomTransforms[scrollIndex]
-					scrollIndex--
-					ctx.setTransform(...zoomTransforms[scrollIndex])
-				} else {
-					zoomTransforms = []
-					cameraOffset.x = 0
-					cameraOffset.y = 0
-					offsetsum.x = 0
-					offsetsum.y = 0
-					cameraZoom = 1
-					globalCameraZoom = 1
-				}
-				setVersion(version + 1)
-			} else if (scrollIndex < MAX_ZOOM) {
-				if (
-					globalCameraZoom * (1 + zoomAmount) <= MAX_ZOOM &&
-					globalCameraZoom * (1 + zoomAmount) >= MIN_ZOOM
-				) {
-					cameraZoom = 1 + zoomAmount
-					globalCameraZoom += zoomAmount
-				}
-
-				// zoom
-				cameraOffset.x =
-					-(dpr * getEventLocation(canvas, event).x) * (cameraZoom - 1)
-				cameraOffset.y =
-					-(dpr * getEventLocation(canvas, event).y) * (cameraZoom - 1)
-
-				// if (offsetsum.x < canvas.width && offsetsum.x > -canvas.width && offsetsum.y < canvas.height && offsetsum.y > -canvas.height) {
-				offsetsum.x += cameraOffset.x * cameraZoom
-				offsetsum.y += cameraOffset.y * cameraZoom
-
-				zoomTransforms[scrollIndex] = [
-					globalCameraZoom,
-					0,
-					0,
-					globalCameraZoom,
-					offsetsum.x,
-					offsetsum.y,
-				]
-
-				ctx.setTransform(...zoomTransforms[scrollIndex])
-
-				scrollIndex++
-				setVersion(version + 1)
+            
+			// Calculate how much the mouse moved in canvas coordinates
+			const mouseXBeforeZoom = (mousePos.x - offsetsum.x) / globalCameraZoom
+			const mouseYBeforeZoom = (mousePos.y - offsetsum.y) / globalCameraZoom
+            
+			// Update global zoom level
+			globalCameraZoom = newZoom
+            
+			// Calculate new offset to keep the point under the cursor in the same position
+			offsetsum.x = mousePos.x - mouseXBeforeZoom * globalCameraZoom
+			offsetsum.y = mousePos.y - mouseYBeforeZoom * globalCameraZoom
+            
+			// Apply transform
+			ctx.setTransform(globalCameraZoom, 0, 0, globalCameraZoom, offsetsum.x, offsetsum.y)
+            
+			// Trigger re-render
+			setVersion(version + 1)
+		}
+		
+		// Completely revised panning implementation
+		function handleMouseDown(e) {
+			if (e.button === 2) { // Right mouse button
+				e.preventDefault();
+				isPanning = true;
+				const rect = canvas.getBoundingClientRect();
+				startPanPosition = {
+					x: e.clientX,
+					y: e.clientY
+				};
+				lastPanPosition = { ...startPanPosition };
+				canvas.style.cursor = 'grabbing';
+				
+				// Ensure we're not in drawing mode while panning
+				isMousedown = false;
 			}
-
-			event.preventDefault()
+		}
+		
+		function handleMouseMove(e) {
+			if (isPanning) {
+				e.preventDefault();
+				const currentPosition = {
+					x: e.clientX,
+					y: e.clientY
+				};
+				
+				// Calculate the distance moved
+				const dx = currentPosition.x - lastPanPosition.x;
+				const dy = currentPosition.y - lastPanPosition.y;
+                
+				// Update the offset
+				offsetsum.x += dx;
+				offsetsum.y += dy;
+                
+				// Apply transform
+				ctx.setTransform(globalCameraZoom, 0, 0, globalCameraZoom, offsetsum.x, offsetsum.y);
+                
+				// Update last position
+				lastPanPosition = { ...currentPosition };
+                
+				// Trigger re-render
+				setVersion(version + 1);
+			}
+		}
+		
+		function handleMouseUp(e) {
+			if (isPanning) {
+				isPanning = false;
+				canvas.style.cursor = 'default';
+			}
+		}
+		
+		// Handle touch events for two-finger panning
+		function handleTouchStart(e) {
+			if (e.touches && e.touches.length === 2) {
+				e.preventDefault();
+				isPanning = true;
+                
+				// Ensure we're not in drawing mode while panning
+				isMousedown = false;
+                
+				const touch1 = e.touches[0];
+				const touch2 = e.touches[1];
+				startPanPosition = {
+					x: (touch1.clientX + touch2.clientX) / 2,
+					y: (touch1.clientY + touch2.clientY) / 2
+				};
+				lastPanPosition = { ...startPanPosition };
+			}
+		}
+		
+		function handleTouchMove(e) {
+			if (isPanning && e.touches && e.touches.length === 2) {
+				e.preventDefault();
+                
+				const touch1 = e.touches[0];
+				const touch2 = e.touches[1];
+				const currentPosition = {
+					x: (touch1.clientX + touch2.clientX) / 2,
+					y: (touch1.clientY + touch2.clientY) / 2
+				};
+                
+				// Calculate the distance moved
+				const dx = currentPosition.x - lastPanPosition.x;
+				const dy = currentPosition.y - lastPanPosition.y;
+                
+				// Update the offset
+				offsetsum.x += dx;
+				offsetsum.y += dy;
+                
+				// Apply transform
+				ctx.setTransform(globalCameraZoom, 0, 0, globalCameraZoom, offsetsum.x, offsetsum.y);
+                
+				// Update last position
+				lastPanPosition = { ...currentPosition };
+                
+				// Trigger re-render
+				setVersion(version + 1);
+			}
+		}
+		
+		function handleTouchEnd(e) {
+			isPanning = false;
 		}
 
-		canvas.removeEventListener('wheel', handleScroll)
-		canvas.addEventListener('wheel', handleScroll)
-		return () => canvas.removeEventListener('wheel', handleScroll)
+		// Add event listeners
+		canvas.removeEventListener('wheel', handleScroll);
+		canvas.addEventListener('wheel', handleScroll);
+		
+		// Prevent context menu from appearing on right-click
+		canvas.addEventListener('contextmenu', e => e.preventDefault());
+		
+		// Mouse events for panning
+		canvas.addEventListener('mousedown', handleMouseDown);
+		canvas.addEventListener('mousemove', handleMouseMove);
+		canvas.addEventListener('mouseup', handleMouseUp);
+		canvas.addEventListener('mouseleave', handleMouseUp);
+		
+		// Touch events for two-finger panning
+		canvas.addEventListener('touchstart', handleTouchStart);
+		canvas.addEventListener('touchmove', handleTouchMove);
+		canvas.addEventListener('touchend', handleTouchEnd);
+		canvas.addEventListener('touchcancel', handleTouchEnd);
+		
+		return () => {
+			canvas.removeEventListener('wheel', handleScroll);
+			canvas.removeEventListener('contextmenu', e => e.preventDefault());
+			canvas.removeEventListener('mousedown', handleMouseDown);
+			canvas.removeEventListener('mousemove', handleMouseMove);
+			canvas.removeEventListener('mouseup', handleMouseUp);
+			canvas.removeEventListener('mouseleave', handleMouseUp);
+			canvas.removeEventListener('touchstart', handleTouchStart);
+			canvas.removeEventListener('touchmove', handleTouchMove);
+			canvas.removeEventListener('touchend', handleTouchEnd);
+			canvas.removeEventListener('touchcancel', handleTouchEnd);
+		};
 	}, [
 		imageUrl,
 		version,

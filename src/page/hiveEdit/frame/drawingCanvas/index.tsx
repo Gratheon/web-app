@@ -43,14 +43,14 @@ function drawOnCanvas(canvas, ctx, stroke) {
 	const l = stroke.length ? stroke.length - 1 : 0
 
 	if (stroke.length >= 3) {
-		const xc = (dpr * (canvas.width * (stroke[l].x + stroke[l - 1].x))) / 2
-		const yc = (dpr * (canvas.height * (stroke[l].y + stroke[l - 1].y))) / 2
+		const xc = (canvas.width * (stroke[l].x + stroke[l - 1].x)) / 2
+		const yc = (canvas.height * (stroke[l].y + stroke[l - 1].y)) / 2
 
-		ctx.lineWidth = dpr * stroke[l - 1].lineWidth * canvas.width
+		ctx.lineWidth = stroke[l - 1].lineWidth * canvas.width * globalCameraZoom
 
 		ctx.quadraticCurveTo(
-			dpr * canvas.width * stroke[l - 1].x,
-			dpr * canvas.height * stroke[l - 1].y,
+			canvas.width * stroke[l - 1].x,
+			canvas.height * stroke[l - 1].y,
 			xc,
 			yc
 		)
@@ -59,7 +59,7 @@ function drawOnCanvas(canvas, ctx, stroke) {
 		ctx.moveTo(xc, yc)
 	} else {
 		const point = stroke[l]
-		ctx.lineWidth = point.lineWidth * canvas.width
+		ctx.lineWidth = point.lineWidth * canvas.width * globalCameraZoom
 		ctx.strokeStyle = point.color
 
 		ctx.moveTo(point.x * canvas.width, point.y * canvas.height)
@@ -507,31 +507,37 @@ export default function DrawingCanvas({
 				
 				let pressure = 0.5
 				let x, y
-				var rect = canvas.getBoundingClientRect()
-
-				if (
-					e.touches &&
-					e.touches[0] &&
-					typeof e.touches[0]['force'] !== 'undefined'
-				) {
-					if (e.touches[0]['force'] > 0) {
-						pressure = e.touches[0]['force']
-					}
-					x = e.touches[0].pageX / canvas.width
-					y = e.touches[0].pageY / canvas.height
-				} else {
-					x = (e.clientX - rect.left) / canvas.width
-					y = (e.clientY - rect.top) / canvas.height
+				
+				// Get mouse/touch position in canvas coordinates
+				const pos = getCanvasRelativePosition(canvas, e.touches ? e.touches[0] : e)
+				
+				// Convert to world coordinates (accounting for zoom and pan)
+				x = (pos.x - offsetsum.x) / globalCameraZoom / canvas.width
+				y = (pos.y - offsetsum.y) / globalCameraZoom / canvas.height
+				
+				if (e.touches && e.touches[0] && typeof e.touches[0]['force'] !== 'undefined' && e.touches[0]['force'] > 0) {
+					pressure = e.touches[0]['force']
 				}
-
+				
 				isMousedown = true
-
+				
+				// Adjust line width for zoom level
 				lineWidth = (Math.log(pressure + 1) * 10) / canvas.width
 				points.push({ x, y, lineWidth })
+				
+				// Save current transform
+				ctx.save()
+				
+				// Reset transform for drawing
+				ctx.setTransform(1, 0, 0, 1, 0, 0)
+				
 				drawOnCanvas(canvas, ctx, points)
+				
+				// Restore transform
+				ctx.restore()
 			})
 		}
-
+		
 		for (const ev of ['touchmove', 'mousemove']) {
 			canvas.addEventListener(ev, function (e) {
 				// Don't draw if we're panning
@@ -539,36 +545,38 @@ export default function DrawingCanvas({
 				
 				if (!isMousedown) return
 				e.preventDefault()
-
-				var rect = canvas.getBoundingClientRect()
-
+				
 				let pressure = 0.5
 				let x, y
-				if (
-					e.touches &&
-					e.touches[0] &&
-					typeof e.touches[0]['force'] !== 'undefined'
-				) {
-					if (e.touches[0]['force'] > 0) {
-						pressure = e.touches[0]['force']
-					}
-
-					x = (e.touches[0].clientX - rect.left) / canvas.width
-					y = (e.touches[0].clientY - rect.top) / canvas.height
-				} else {
-					x = (e.clientX - rect.left) / canvas.width
-					y = (e.clientY - rect.top) / canvas.height
+				
+				// Get mouse/touch position in canvas coordinates
+				const pos = getCanvasRelativePosition(canvas, e.touches ? e.touches[0] : e)
+				
+				// Convert to world coordinates (accounting for zoom and pan)
+				x = (pos.x - offsetsum.x) / globalCameraZoom / canvas.width
+				y = (pos.y - offsetsum.y) / globalCameraZoom / canvas.height
+				
+				if (e.touches && e.touches[0] && typeof e.touches[0]['force'] !== 'undefined' && e.touches[0]['force'] > 0) {
+					pressure = e.touches[0]['force']
 				}
-
+				
 				// smoothen line width
-				lineWidth =
-					(Math.log(pressure + 1) * 40 * 0.2 + lineWidth * 0.8) / canvas.width
+				lineWidth = (Math.log(pressure + 1) * 40 * 0.2 + lineWidth * 0.8) / canvas.width
 				points.push({ x, y, lineWidth })
-
+				
+				// Save current transform
+				ctx.save()
+				
+				// Reset transform for drawing
+				ctx.setTransform(1, 0, 0, 1, 0, 0)
+				
 				drawOnCanvas(canvas, ctx, points)
+				
+				// Restore transform
+				ctx.restore()
 			})
 		}
-
+		
 		for (const ev of ['touchend', 'touchleave', 'mouseup']) {
 			canvas.addEventListener(ev, function (e) {
 				// Don't finalize drawing if we're panning
@@ -579,31 +587,35 @@ export default function DrawingCanvas({
 				
 				let pressure = 0.5
 				let x, y
-				var rect = canvas.getBoundingClientRect()
-
-				if (
-					e.touches &&
-					e.touches[0] &&
-					typeof e.touches[0]['force'] !== 'undefined'
-				) {
-					if (e.touches[0]['force'] > 0) {
-						pressure = e.touches[0]['force']
-					}
-					x = (e.touches[0].clientX - rect.left) / canvas.width
-					y = (e.touches[0].clientY - rect.top) / canvas.height
-				} else {
-					x = (e.clientX - rect.left) / canvas.width
-					y = (e.clientY - rect.top) / canvas.height
+				
+				// Get mouse/touch position in canvas coordinates
+				const pos = getCanvasRelativePosition(canvas, e.touches && e.touches[0] ? e.touches[0] : e)
+				
+				// Convert to world coordinates (accounting for zoom and pan)
+				x = (pos.x - offsetsum.x) / globalCameraZoom / canvas.width
+				y = (pos.y - offsetsum.y) / globalCameraZoom / canvas.height
+				
+				if (e.touches && e.touches[0] && typeof e.touches[0]['force'] !== 'undefined' && e.touches[0]['force'] > 0) {
+					pressure = e.touches[0]['force']
 				}
-
-				lineWidth =
-					(Math.log(pressure + 1) * 40 * 0.2 + lineWidth * 0.8) / canvas.width
+				
+				// Adjust line width
+				lineWidth = (Math.log(pressure + 1) * 40 * 0.2 + lineWidth * 0.8) / canvas.width
 				points.push({ x, y, lineWidth })
-
+				
+				// Save current transform
+				ctx.save()
+				
+				// Reset transform for drawing
+				ctx.setTransform(1, 0, 0, 1, 0, 0)
+				
 				drawOnCanvas(canvas, ctx, points)
-
+				
+				// Restore transform
+				ctx.restore()
+				
 				isMousedown = false
-
+				
 				requestIdleCallback(function () {
 					if (points && points.length > 0) {
 						if (strokeHistory && strokeHistory.length > 0) {
@@ -612,11 +624,11 @@ export default function DrawingCanvas({
 							strokeHistory = [[...points]]
 						}
 						points.length = 0
-
+						
 						onStrokeHistoryUpdate(strokeHistory)
 					}
 				})
-
+				
 				lineWidth = 0
 			})
 		}

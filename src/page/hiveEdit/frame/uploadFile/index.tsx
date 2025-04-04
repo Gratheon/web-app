@@ -14,6 +14,10 @@ import DragAndDrop from './dragDrop.tsx'
 import styles from './index.module.less'
 import T from '../../../../shared/translate'
 
+// Define supported image types (adjust if needed based on backend capabilities)
+const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+const SUPPORTED_IMAGE_TYPES_STRING = SUPPORTED_IMAGE_TYPES.join(', ');
+
 export default function UploadFile({ onUpload }) {
 	//todo
 	//@ts-ignore
@@ -45,9 +49,19 @@ export default function UploadFile({ onUpload }) {
 			files: [file],
 		},
 	}) {
+		setError(null); // Clear previous errors
+
 		if (!validity.valid) {
 			return
 		}
+
+		// Validate file type
+		if (!file || !SUPPORTED_IMAGE_TYPES.includes(file.type)) {
+			setError(new Error(`Unsupported file type: ${file?.type || 'unknown'}. Please upload one of the following: ${SUPPORTED_IMAGE_TYPES_STRING}`));
+			setLoading(false);
+			return;
+		}
+
 
 		setLoading(true)
 		//@ts-ignore
@@ -126,7 +140,7 @@ export default function UploadFile({ onUpload }) {
 								className={styles.inputfile}
 								id="file"
 								required
-								accept="image/*"
+								accept={SUPPORTED_IMAGE_TYPES_STRING}
 								onChange={onFileSelect}
 							/>
 
@@ -142,7 +156,7 @@ export default function UploadFile({ onUpload }) {
 							paddingTop: 5,
 							color: 'gray'
 						}}>
-							<T>Detection best works with high-resolution photos (17MP)</T>
+							<T>Supported types: JPEG, PNG, GIF, WebP. Detection best works with high-resolution photos (17MP).</T>
 						</div>
 					</div>
 				</DragAndDrop>

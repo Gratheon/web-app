@@ -934,6 +934,12 @@ export default function DrawingCanvas({
 		detectedVarroa,
 	])
 
+	// Determine if any detection process is currently loading
+	const isAnyDetectionLoading =
+		!frameSideFile.isBeeDetectionComplete ||
+		!frameSideFile.isCellsDetectionComplete ||
+		!frameSideFile.isQueenCupsDetectionComplete
+
 	return (
 		<div style="position:relative;overflow:hidden;">
 			<div
@@ -947,7 +953,13 @@ export default function DrawingCanvas({
 						}}
 						style={`position: absolute;right: -43px;top: 100px;border-radius:0 20px 20px 0; border: 2px solid white;border-left:none;`}
 					>
-						{panelVisible ? <LeftChevron /> : <RightChevron />}
+						{isAnyDetectionLoading ? (
+							<Loader size={0} />
+						) : panelVisible ? (
+							<LeftChevron />
+						) : (
+							<RightChevron />
+						)}
 					</Button>
 
 					<Button

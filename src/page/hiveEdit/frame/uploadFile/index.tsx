@@ -17,6 +17,8 @@ import T from '../../../../shared/translate'
 // Define supported image types (adjust if needed based on backend capabilities)
 const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 const SUPPORTED_IMAGE_TYPES_STRING = SUPPORTED_IMAGE_TYPES.join(', ');
+const MAX_FILE_SIZE_MB = 30;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 export default function UploadFile({ onUpload }) {
 	//todo
@@ -62,6 +64,12 @@ export default function UploadFile({ onUpload }) {
 			return;
 		}
 
+		// Validate file size
+		if (file.size > MAX_FILE_SIZE_BYTES) {
+			setError(new Error(`File is too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum allowed size is ${MAX_FILE_SIZE_MB} MB.`));
+			setLoading(false);
+			return;
+		}
 
 		setLoading(true)
 		//@ts-ignore
@@ -156,7 +164,7 @@ export default function UploadFile({ onUpload }) {
 							paddingTop: 5,
 							color: 'gray'
 						}}>
-							<T>Supported types: JPEG, PNG, GIF, WebP. Detection best works with high-resolution photos (17MP).</T>
+							<T>Supported types: JPEG, PNG, GIF, WebP. Max size: {MAX_FILE_SIZE_MB}MB. Detection best works with high-resolution photos (17MP).</T>
 						</div>
 					</div>
 				</DragAndDrop>

@@ -1,8 +1,5 @@
-import { useLiveQuery } from 'dexie-react-hooks'
-
 import colors from '@/colors.ts'
 import QueenIcon from '@/icons/queenIcon.tsx'
-import { getFrameSideFile } from '@/models/frameSideFile'
 import { FrameSide } from '@/models/frameSide'
 
 import styles from './index.module.less'
@@ -18,16 +15,12 @@ export default function BoxFrameSide({
 }) {
 	if (!frameSide) return
 
-	const frameSideFile = useLiveQuery(async () => {
-		let tmp = await getFrameSideFile({ frameSideId: frameSide.id })
-		return tmp
-	}, [frameSide.id])
 	return (
 		<div
 			className={`${styles.frameSide} ${className}`}
 			onClick={onFrameSideClick}
 		>
-			{frameSideFile?.queenDetected && (
+			{frameSide.isQueenConfirmed && (
 				<QueenIcon className={styles.crown} size={16} />
 			)}
 			<div

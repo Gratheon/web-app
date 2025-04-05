@@ -8,6 +8,7 @@ export type FrameSide = {
 	frameId?: number
 	cells?: FrameSideCells
 	frameSideFile?: FrameSideFile
+	isQueenConfirmed?: boolean
 }
 
 const TABLE_NAME = 'frameside'

@@ -221,6 +221,7 @@ export default function HiveEditForm() {
 								frameId={frameId}
 								hiveId={hiveId}
 								frameSideId={frameSideId}
+								key={frameSideId}
 								extraButtons={null}
 							/>
 

@@ -2,6 +2,11 @@ import { gql } from '../../../../api'
 
 export default gql`
 	query ($frameSideId: ID!) {
+		hiveFrameSide(id: $frameSideId) {
+			id
+			isQueenConfirmed
+			frameId
+		}
 		hiveFrameSideCells(frameSideId: $frameSideId) {
 			__typename
 			id
@@ -31,8 +36,6 @@ export default gql`
 			detectedQueenCups
 			isQueenCupsDetectionComplete
 
-			queenDetected
-			
 			file{
 				id
 				url

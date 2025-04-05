@@ -18,7 +18,6 @@ export type FrameSideFile = {
     varroaCount: number
     
     counts: any
-    queenDetected?: boolean
 }
 
 export const FRAME_SIDE_FILE_TABLE = 'frame_side_file'
@@ -61,18 +60,6 @@ export async function updateFrameSideFile(data: FrameSideFile) {
     }
 }
 
-export async function setQueenPresense(frameSide: FrameSideFile, isPresent: boolean): Promise<FrameSideFile> {
-    try {
-        frameSide.queenDetected = isPresent;
-
-        await db[FRAME_SIDE_FILE_TABLE].put(frameSide)
-
-        return frameSide
-    } catch (e) {
-        console.error(e)
-        throw e
-    }
-}
 
 export async function deleteFilesByFrameSideIDs(frameSideIds: number[]) {
     try {
@@ -86,8 +73,6 @@ export async function deleteFilesByFrameSideIDs(frameSideIds: number[]) {
 export default {
     upsertEntity: async function (entity: FrameSideFile, originalValue) {
         if (Object.keys(entity).length === 0) return
-
-		entity.queenDetected = entity?.queenDetected ? true : false;
 
 		delete entity.hiveId
 

@@ -6,7 +6,7 @@ import FrameCells from '@/icons/frameCells.tsx'
 import T from '@/shared/translate'
 import Loader from '@/shared/loader'
 import styles from './styles.module.less'
-import QueenButton from '../queenButton'
+import QueenIcon from '@/icons/queenIcon.tsx'
 import LeftChevron from '@/icons/leftChevron.tsx'
 import RightChevron from '@/icons/rightChevron.tsx'
 
@@ -327,7 +327,7 @@ function drawCanvasLayers(
 
 	showBees,
 	showDrones,
-	showQueens,
+	isAiQueenVisible,
 	detectedBees,
 	showCells,
 	detectedCells,
@@ -359,14 +359,14 @@ function drawCanvasLayers(
 		drawDetectedVarroa(ctx, detectedVarroa, canvas)
 	}
 
-	if (showBees || showDrones || showQueens) {
+	if (showBees || showDrones || isAiQueenVisible) {
 		drawDetectedBees(
 			detectedBees,
 			ctx,
 			canvas,
 			showBees,
 			showDrones,
-			showQueens
+			isAiQueenVisible
 		)
 	}
 
@@ -405,6 +405,8 @@ export default function DrawingCanvas({
 	const [showQueenCups, setQueenCups] = useState(true)
 	const [showVarroa, setShowVarroa] = useState(false)
 	const [version, setVersion] = useState(0)
+	const [isAiQueenVisible, setIsAiQueenVisible] = useState(frameSideFile?.detectedQueenCount > 0);
+
 
 	let thumbnailUrl = imageUrl
 	if (resizes && resizes.length > 0) {
@@ -416,8 +418,6 @@ export default function DrawingCanvas({
 		}
 	}
 	const [canvasUrl, setCanvasUrl] = useState(thumbnailUrl)
-
-	const showQueens = frameSideFile.queenDetected
 
 	// trigger re-draw within useEffect
 	function clearHistory() {
@@ -466,7 +466,7 @@ export default function DrawingCanvas({
 
 				showBees,
 				showDrones,
-				showQueens,
+				isAiQueenVisible,
 				detectedBees,
 
 				showCells,
@@ -676,7 +676,7 @@ export default function DrawingCanvas({
 			strokeHistory,
 			showBees,
 			showDrones,
-			showQueens,
+			isAiQueenVisible,
 			detectedBees,
 			showCells,
 			detectedCells,
@@ -789,7 +789,7 @@ export default function DrawingCanvas({
 					strokeHistory,
 					showBees,
 					showDrones,
-					showQueens,
+					isAiQueenVisible,
 					detectedBees,
 					showCells,
 					detectedCells,
@@ -868,7 +868,7 @@ export default function DrawingCanvas({
 					strokeHistory,
 					showBees,
 					showDrones,
-					showQueens,
+					isAiQueenVisible,
 					detectedBees,
 					showCells,
 					detectedCells,
@@ -924,7 +924,7 @@ export default function DrawingCanvas({
 		strokeHistory,
 		showBees,
 		showDrones,
-		showQueens,
+		isAiQueenVisible,
 		detectedBees,
 		showCells,
 		detectedCells,
@@ -979,7 +979,39 @@ export default function DrawingCanvas({
 						</span>
 					</Button>
 
-					<QueenButton frameSide={frameSide} frameSideFile={frameSideFile} />
+					{detectedCells && (
+						<Button
+							onClick={() => {
+								setCellVisibility(!showCells)
+							}}
+						>
+							{frameSideFile.isCellsDetectionComplete && (
+								<Checkbox on={showCells} />
+							)}
+							{!frameSideFile.isCellsDetectionComplete && <Loader size={0} />}
+
+							<span>
+								<T ctx="this is a button that toggles visibility of different types of cells in a beehive frame - brood, pollen, honey etc">
+									Frame cells
+								</T>
+								{frameSideFile.isCellsDetectionComplete && <FrameCells />}
+							</span>
+						</Button>
+					)}
+
+					<Button
+						onClick={() => {
+							setIsAiQueenVisible(!isAiQueenVisible)
+						}}
+					>
+						<Checkbox on={isAiQueenVisible} />
+						<span>
+							<T ctx="this is a button that toggles visibility of the AI detected queen bounding box">
+								Queen
+							</T>
+						</span>
+						<QueenIcon size={14} color={'white'} />
+					</Button>
 
 					<Button
 						onClick={() => {
@@ -1038,26 +1070,6 @@ export default function DrawingCanvas({
 							)}
 						</span>
 					</Button>
-
-					{detectedCells && (
-						<Button
-							onClick={() => {
-								setCellVisibility(!showCells)
-							}}
-						>
-							{frameSideFile.isCellsDetectionComplete && (
-								<Checkbox on={showCells} />
-							)}
-							{!frameSideFile.isCellsDetectionComplete && <Loader size={0} />}
-
-							<span>
-								<T ctx="this is a button that toggles visibility of different types of cells in a beehive frame - brood, pollen, honey etc">
-									Frame cells
-								</T>
-								{frameSideFile.isCellsDetectionComplete && <FrameCells />}
-							</span>
-						</Button>
-					)}
 				</div>
 			</div>
 

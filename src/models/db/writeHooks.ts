@@ -37,11 +37,14 @@ export const writeHooks = {
 	},
 
 	FrameSide: async (_, frameside: FrameSide) => {
+		// Throw error if frameId is missing or null to allow catching and logging the query higher up
 		if (frameside.frameId == null) {
-			console.error('FrameSide writeHook: frameId is missing or null. Skipping upsert.', 'FrameSide Data:', frameside);
-			return;
+			const errorMsg = 'FAIL: FrameSide frameId missing'; // Use a consistent prefix
+			console.error(errorMsg, 'FrameSide Data:', frameside);
+			throw new Error(errorMsg + ` (ID: ${frameside?.id})`);
 		}
 
+		// Ensure IDs are numeric
 		if (frameside.id != null) {
 			frameside.id = +frameside.id;
 		}

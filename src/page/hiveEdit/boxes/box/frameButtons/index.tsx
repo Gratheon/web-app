@@ -25,9 +25,11 @@ export default function FrameButtons({ box, onError }) {
 			id
 			leftSide{
 				id
+				frameId
 			}
 			rightSide{
 				id
+				frameId
 			}
 		}
 	}

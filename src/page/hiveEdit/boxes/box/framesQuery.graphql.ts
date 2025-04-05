@@ -13,6 +13,7 @@ export default gql`
 
 					leftSide {
 						id
+						frameId
 
 						cells{
 							id
@@ -26,6 +27,8 @@ export default gql`
 
 					rightSide {
 						id
+						frameId
+						
 						cells{
 							id
 							broodPercent

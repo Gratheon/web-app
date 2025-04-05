@@ -121,14 +121,26 @@ export function offlineIndexDbExchange({
             })
         )
 
+        // Log the operation details *before* attempting traversal
+        console.log("Processing Operation:", {
+            kind: op.kind,
+            query: print(op.query),
+            variables: op.variables,
+        });
+
         try {
-            await traverseResponse(null, data, typeMap, writeHooks);
+            // Ensure data exists before traversing
+            if (data) {
+                await traverseResponse(null, data, typeMap, writeHooks);
+            }
         } catch (traversalError) {
-            console.error("FrameSide hook failed. Associated Operation:", {
-                kind: op.kind,
-                query: print(op.query),
-                variables: op.variables,
-            });
+            // Keep the catch block for safety, but the primary log is now above
+            console.error("Error during traversal (Query logged above):", traversalError);
+            // Log the specific FrameSide error again for correlation if needed
+            if (traversalError.message?.startsWith('FAIL: FrameSide frameId missing')) {
+                 console.error("FrameSide hook failed. Associated Operation (details logged above). Error:", traversalError);
+            }
+            // No need to log the full operation again here
         }
         return bubble;
     }
@@ -147,12 +159,12 @@ export function offlineIndexDbExchange({
                     })
                 ),
                 forward,
-                mergeMap((result) => {
-                    if (onError && result.error) onError(result.error, result.operation)
-                    const newResult = (onResult && onResult(result)) || result
-                    return 'then' in newResult
-                        ? fromPromise(newResult)
-                        : fromValue(newResult)
+                mergeMap((result) => { // Reverted: Removed async/await from mergeMap callback
+                    if (onError && result.error) onError(result.error, result.operation);
+                    // onResult is async and handles its own errors internally with try/catch
+                    // Wrap the promise returned by onResult with fromPromise
+                    const newResultPromise = onResult ? onResult(result) : Promise.resolve(result);
+                    return fromPromise(newResultPromise);
                 })
             )
         }
@@ -224,17 +236,23 @@ async function traverseResponse(
                                     {objType}
                                 )
                             } catch (e) {
-
-                                console.error('Caught hook error during traversal.', {
-                                    // Error is already logged by the hook itself, just note it was caught
-                                    path: pathString,
+                                // Check for the specific error thrown by the FrameSide hook
+                                if (e.message?.startsWith('FAIL: FrameSide frameId missing')) {
+                                    // Don't log here again, just re-throw for onResult
+                                    throw e; // Re-throw the specific FrameSide error
+                                } else {
+                                    // Log other generic errors from write hooks
+                                    console.error('Caught other hook error during traversal.', { // Clarified log message
+                                        error: e,
+                                        path: pathString,
                                     tableName: tableName,
                                     parentContext: parent ? { ...parent } : null,
                                     valueProcessed: cleanedValue,
-                                });
-                                // Re-throw the error so it can be caught in onResult to log query details
-                                throw e;
-                            }
+                                    });
+                                    // Optionally re-throw other errors if needed
+                                    // throw e;
+                                }
+                            } // Closing brace for try block
                         }
                     }
                  }
@@ -242,7 +260,7 @@ async function traverseResponse(
                 // Recursively call the function if the value is an object or array
 
                 const parentToPass = Array.isArray(value) ? parent : value
-                traverseResponse(parentToPass, value, typeMap, writeHooks, newPath)
+                await traverseResponse(parentToPass, value, typeMap, writeHooks, newPath) // Added await here
             }
         }
     }

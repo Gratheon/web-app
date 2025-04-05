@@ -21,6 +21,7 @@ export default gql`
 					leftSide {
 						__typename
 						id
+						frameId
 
 						frameSideFile {
 							__typename
@@ -32,6 +33,7 @@ export default gql`
 					rightSide {
 						__typename
 						id
+						frameId
 
 						frameSideFile {
 							__typename

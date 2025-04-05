@@ -36,9 +36,18 @@ export const writeHooks = {
 		await upsertFrame(value)
 	},
 
-	FrameSide: async ({ id }, frameside: FrameSide) => {
-		frameside.frameId = +id
-		await upsertFrameSide(frameside)
+	FrameSide: async (_, frameside: FrameSide) => {
+		if (frameside.frameId == null) {
+			console.error('FrameSide writeHook: frameId is missing or null. Skipping upsert.', 'FrameSide Data:', frameside);
+			return;
+		}
+
+		if (frameside.id != null) {
+			frameside.id = +frameside.id;
+		}
+		frameside.frameId = +frameside.frameId;
+
+		await upsertFrameSide(frameside);
 	},
 
 	FileResize: async ({ id }, entity: FileResize) => {

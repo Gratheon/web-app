@@ -1,6 +1,7 @@
 //@ts-nocheck
 import {fromPromise, fromValue, mergeMap, pipe} from 'wonka'
-import {execute, TypeInfo, visit, visitWithTypeInfo} from 'graphql'
+// Import print function from graphql
+import {execute, TypeInfo, visit, visitWithTypeInfo, print} from 'graphql'
 
 import {db} from '../models/db'
 
@@ -120,10 +121,16 @@ export function offlineIndexDbExchange({
             })
         )
 
-        // now traverse response data
-        // and call correct write hooks
-        await traverseResponse(null, data, typeMap, writeHooks)
-        return bubble
+        try {
+            await traverseResponse(null, data, typeMap, writeHooks);
+        } catch (traversalError) {
+            console.error("FrameSide hook failed. Associated Operation:", {
+                kind: op.kind,
+                query: print(op.query),
+                variables: op.variables,
+            });
+        }
+        return bubble;
     }
 
     return function exchange({forward}) {
@@ -187,12 +194,12 @@ async function traverseResponse(
                     if (!tableName) {
                         console.error(pathString, value, tableName, objType)
                         return
-                    }
+                     }
 
-                    if (writeHooks?.[tableName]) {
-                        // normalize objects, clean them up from nested things
-                        const cleanedValue = Object.fromEntries(
-                            Object.entries(value).filter(([key, v]) => {
+                     if (writeHooks?.[tableName]) {
+                            // normalize objects, clean them up from nested things
+                            const cleanedValue = Object.fromEntries(
+                                Object.entries(value).filter(([key, v]) => {
                                 const propType = typeMap[`${pathString}.${key}`]
                                 return (
                                     !propType ||
@@ -207,24 +214,30 @@ async function traverseResponse(
                             cleanedValue.id = `${cleanedValue.id}`
                         }
 
-                        if (cleanedValue) {
-                            try {
+                         if (cleanedValue) {
+                             try {
                                 // console.log(`Calling writeHook for table ${tableName}`)
-                                await writeHooks[tableName](
-                                    parent,
-                                    cleanedValue,
+                                 await writeHooks[tableName](
+                                     parent,
+                                     cleanedValue,
                                     {db, originalValue: value},
                                     {objType}
                                 )
                             } catch (e) {
-                                console.error('Error while updating IndexedDB with graphql response for entity ' + tableName, {
-                                    error: e,
-                                    cleanedValue
-                                })
+
+                                console.error('Caught hook error during traversal.', {
+                                    // Error is already logged by the hook itself, just note it was caught
+                                    path: pathString,
+                                    tableName: tableName,
+                                    parentContext: parent ? { ...parent } : null,
+                                    valueProcessed: cleanedValue,
+                                });
+                                // Re-throw the error so it can be caught in onResult to log query details
+                                throw e;
                             }
                         }
                     }
-                }
+                 }
 
                 // Recursively call the function if the value is an object or array
 

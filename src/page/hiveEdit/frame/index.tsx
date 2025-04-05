@@ -134,6 +134,7 @@ export default function Frame({
 		confirmFrameSideQueen(frameSideId: $frameSideId, isConfirmed: $isConfirmed) {
 			id
 			isQueenConfirmed
+			frameId
 		}
 	}`)
 
@@ -159,19 +160,20 @@ export default function Frame({
 				isConfirmed: newState,
 			})
 
-			console.log('confirmQueen mutation result:', result); // Log result
-
-			// Update local Dexie DB on success
 			if (result?.data?.confirmFrameSideQueen) {
-				// Prepare data for upsert, handling potentially missing frameSide
-				// Use the imported FrameSideType here
+				const confirmedData = result.data.confirmFrameSideQueen;
 				const dataToUpsert: FrameSideType = {
-					...(frameSide || {}), // Start with existing data or empty object
-					id: +frameSideId, // Use frameSideId from props, ensure it's a number for Dexie
-					isQueenConfirmed: result.data.confirmFrameSideQueen.isQueenConfirmed,
+					...(frameSide && +frameSide.id === +confirmedData.id ? frameSide : {}),
+					id: +confirmedData.id,
+					isQueenConfirmed: confirmedData.isQueenConfirmed,
+					frameId: +confirmedData.frameId,
 				};
-				await upsertFrameSide(dataToUpsert);
-				// useLiveQuery -> useEffect will sync isQueenChecked state
+				if (dataToUpsert.frameId != null) {
+					await upsertFrameSide(dataToUpsert);
+				} else {
+					console.error("Cannot upsert FrameSide after mutation: frameId missing in response.", confirmedData);
+					setIsQueenChecked(originalState);
+				}
 			} else {
 				// Revert optimistic update if mutation response is unexpected
 				setIsQueenChecked(originalState);

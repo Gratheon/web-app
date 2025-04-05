@@ -5,6 +5,7 @@ export default gql`
 		hiveFrameSide(id: $frameSideId) {
 			id
 			isQueenConfirmed
+			frameId
 		}
 		hiveFrameSideCells(frameSideId: $frameSideId) {
 			__typename

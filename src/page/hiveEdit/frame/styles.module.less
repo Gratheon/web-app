@@ -25,18 +25,21 @@
 
 .frameHeader {
 	h3 {
-		margin-top: 10px;
-		margin-right: 10px;
+		margin: 0;
+		font-size: 12px;
+		text-transform: uppercase;
+		text-align: center;
 	}
+
+	@media @desktop {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
 
 	@media @mobileAndTablet {
 		margin-top: 40px;
 		margin-left: 20px;
-	}
-}
-
-@media @desktop	 {
-	.frameHeader {
-		display: flex;
 	}
 }

@@ -164,7 +164,8 @@ export default function UploadFile({ onUpload }) {
 							paddingTop: 5,
 							color: 'gray'
 						}}>
-							<T>Supported types: JPEG, PNG, GIF, WebP. Max size: {MAX_FILE_SIZE_MB}MB. Detection best works with high-resolution photos (17MP).</T>
+							<T>Supported types: JPEG, PNG, GIF, WebP. Max size: {MAX_FILE_SIZE_MB}MB. 
+								<br/>Detection best works with high-resolution photos (17MP).</T>
 						</div>
 					</div>
 				</DragAndDrop>

@@ -35,6 +35,7 @@ export default gql`
 
 			detectedQueenCups
 			isQueenCupsDetectionComplete
+			isQueenDetectionComplete
 
 			file{
 				id

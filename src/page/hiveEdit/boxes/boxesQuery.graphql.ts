@@ -27,6 +27,10 @@ export default gql`
 							__typename
 							frameSideId
 							queenDetected
+							isQueenDetectionComplete
+							isBeeDetectionComplete
+							isCellsDetectionComplete
+							isQueenCupsDetectionComplete
 						}
 					}
 
@@ -39,6 +43,10 @@ export default gql`
 							__typename
 							frameSideId
 							queenDetected
+							isQueenDetectionComplete
+							isBeeDetectionComplete
+							isCellsDetectionComplete
+							isQueenCupsDetectionComplete
 						}
 					}
 				}

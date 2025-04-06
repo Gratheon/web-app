@@ -16,7 +16,12 @@ export type FrameSideFile = {
     detectedWorkerBeeCount: number
     detectedDroneCount: number
     varroaCount: number
-    
+
+    isQueenDetectionComplete?: boolean
+    isBeeDetectionComplete?: boolean
+    isCellsDetectionComplete?: boolean
+    isQueenCupsDetectionComplete?: boolean
+
     counts: any
 }
 

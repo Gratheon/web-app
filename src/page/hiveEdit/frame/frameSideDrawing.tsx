@@ -1,7 +1,7 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo } from 'react' // Removed useState, useEffect
 
 import { gql, useMutation, useSubscription } from '../../../api'
-import { updateFrameSideFile } from '../../../models/frameSideFile.ts'
+import { updateFrameSideFile, FrameSideFile } from '../../../models/frameSideFile.ts'
 
 import Loading from '../../../shared/loader'
 import ErrorMessage from '../../../shared/messageError'
@@ -12,7 +12,7 @@ import DrawingCanvas from './drawingCanvas'
 export default function FrameSideDrawing({
 	file,
 	frameSide,
-	frameSideFile,
+	frameSideFile, // Use the prop directly, renamed back
 	frameId,
 	frameSideId,
 }) {
@@ -20,9 +20,10 @@ export default function FrameSideDrawing({
 		return
 	}
 
-	let [frameRemoving, setFrameRemoving] = useState<boolean>(false)
+	// Removed local state and useEffect
 
-	if (!frameSide || !frameSideFile || frameRemoving) {
+	// Use the prop directly for checks and rendering
+	if (!frameSide || !frameSideFile) {
 		return <Loading />
 	}
 
@@ -39,23 +40,24 @@ export default function FrameSideDrawing({
 			}
 		`,
 		{ frameSideId },
+		// Only update IndexedDB
 		(_, response) => {
-			if (response) {
-				frameSideFile.detectedBees = [
-					...frameSideFile.detectedBees,
-					...response.onFrameSideBeesPartiallyDetected.delta,
-				]
-
-				frameSideFile.detectedQueenCount =
-					response.onFrameSideBeesPartiallyDetected.detectedQueenCount
-				frameSideFile.detectedWorkerBeeCount =
-					response.onFrameSideBeesPartiallyDetected.detectedWorkerBeeCount
-				frameSideFile.detectedDroneCount =
-					response.onFrameSideBeesPartiallyDetected.detectedDroneCount
-				frameSideFile.isBeeDetectionComplete =
-					response.onFrameSideBeesPartiallyDetected.isBeeDetectionComplete
-
-				updateFrameSideFile(frameSideFile)
+			if (response && frameSideFile) { // Check prop directly
+				const update = response.onFrameSideBeesPartiallyDetected;
+				// Create the new state based on the current prop value
+				const newState = {
+					...frameSideFile,
+					detectedBees: [
+						...(frameSideFile.detectedBees || []),
+						...(update.delta || []),
+					],
+					detectedQueenCount: update.detectedQueenCount,
+					detectedWorkerBeeCount: update.detectedWorkerBeeCount,
+					detectedDroneCount: update.detectedDroneCount,
+					isBeeDetectionComplete: update.isBeeDetectionComplete,
+				};
+				// Only update IndexedDB, relying on parent's useLiveQuery to update prop
+				updateFrameSideFile(newState);
 			}
 		}
 	)
@@ -76,28 +78,24 @@ export default function FrameSideDrawing({
 			}
 		`,
 		{ frameSideId },
+		// Only update IndexedDB
 		(_, response) => {
-			if (response) {
-				frameSideFile.detectedCells = [
-					...frameSideFile.detectedCells,
-					...response.onFrameSideResourcesDetected.delta,
-				]
-
-				frameSideFile.isCellsDetectionComplete =
-					response.onFrameSideResourcesDetected.isCellsDetectionComplete
-
-				frameSideFile.broodPercent =
-					response.onFrameSideResourcesDetected.broodPercent
-				frameSideFile.cappedBroodPercent =
-					response.onFrameSideResourcesDetected.cappedBroodPercent
-				frameSideFile.eggsPercent =
-					response.onFrameSideResourcesDetected.eggsPercent
-				frameSideFile.pollenPercent =
-					response.onFrameSideResourcesDetected.pollenPercent
-				frameSideFile.honeyPercent =
-					response.onFrameSideResourcesDetected.honeyPercent
-
-				updateFrameSideFile(frameSideFile)
+			if (response && frameSideFile) { // Check prop directly
+				const update = response.onFrameSideResourcesDetected;
+				const newState = {
+					...frameSideFile,
+					detectedCells: [
+						...(frameSideFile.detectedCells || []),
+						...(update.delta || []),
+					],
+					isCellsDetectionComplete: update.isCellsDetectionComplete,
+					broodPercent: update.broodPercent,
+					cappedBroodPercent: update.cappedBroodPercent,
+					eggsPercent: update.eggsPercent,
+					pollenPercent: update.pollenPercent,
+					honeyPercent: update.honeyPercent,
+				};
+				updateFrameSideFile(newState); // Only update IndexedDB
 			}
 		}
 	)
@@ -112,20 +110,65 @@ export default function FrameSideDrawing({
 			}
 		`,
 		{ frameSideId },
+		// Only update IndexedDB
 		(_, response) => {
-			if (response) {
-				frameSideFile.detectedQueenCups = [
-					...frameSideFile.detectedQueenCups,
-					...response.onFrameQueenCupsDetected.delta,
-				]
-
-				frameSideFile.isQueenCupsDetectionComplete =
-					response.onFrameQueenCupsDetected.isQueenCupsDetectionComplete
-				updateFrameSideFile(frameSideFile)
+			if (response && frameSideFile) { // Check prop directly
+				const update = response.onFrameQueenCupsDetected;
+				const newState = {
+					...frameSideFile,
+					detectedQueenCups: [
+						...(frameSideFile.detectedQueenCups || []),
+						...(update.delta || []),
+					],
+					isQueenCupsDetectionComplete: update.isQueenCupsDetectionComplete,
+				};
+				updateFrameSideFile(newState); // Only update IndexedDB
 			}
 		}
 	)
 
+	// Subscription for Queen Detection (Newly Added)
+	useSubscription(
+		gql`
+			subscription onFrameQueenDetected($frameSideId: String) {
+				onFrameQueenDetected(frameSideId: $frameSideId) {
+					delta # Array of detected queen objects {n: '3', c: confidence, x, y, w, h}
+					isQueenDetectionComplete # Boolean flag indicating if detection process is complete
+				}
+			}
+		`,
+		{ frameSideId },
+		// Only update IndexedDB
+		(_, response) => {
+			console.log('onFrameQueenDetected: Received response:', response);
+			if (response?.onFrameQueenDetected && frameSideFile) { // Check prop directly
+				const queenData = response.onFrameQueenDetected;
+				console.log('onFrameQueenDetected: Processing data:', queenData);
+				let newDetectedBees = frameSideFile.detectedBees || [];
+				let newQueenCount = frameSideFile.detectedQueenCount || 0;
+
+				if (queenData.delta && queenData.delta.length > 0) {
+					newDetectedBees = [...newDetectedBees, ...queenData.delta];
+					newQueenCount += queenData.delta.length;
+				}
+
+				const newState = {
+					...frameSideFile,
+					detectedBees: newDetectedBees,
+					detectedQueenCount: newQueenCount,
+					isQueenDetectionComplete: true
+				};
+				console.log('onFrameQueenDetected: Updating IndexedDB with state:', newState);
+
+				// Only update IndexedDB
+				updateFrameSideFile(newState);
+			} else {
+				console.log('onFrameQueenDetected: Skipping update (no response data or frameSideFile prop is null)');
+			}
+		}
+	);
+
+	// Removed state update for stroke history, assuming parent handles it or it's not needed here
 	let [filesStrokeEditMutate, { error: errorStrokes }] = useMutation(gql`
 		mutation filesStrokeEditMutation($files: [FilesUpdateInput]) {
 			filesStrokeEditMutation(files: $files)
@@ -141,10 +184,18 @@ export default function FrameSideDrawing({
 					strokeHistory,
 				},
 			],
-		})
+		});
 
-		frameSideFile.strokeHistory = strokeHistory
-		updateFrameSideFile(frameSideFile)
+		// Only update IndexedDB for stroke history
+		if (frameSideFile) {
+			const newState = { ...frameSideFile, strokeHistory };
+			updateFrameSideFile(newState); // Update IndexedDB
+		}
+	}
+
+	// Use prop directly for rendering check
+	if (!frameSideFile) {
+		return <Loading />;
 	}
 
 	return (
@@ -168,4 +219,3 @@ export default function FrameSideDrawing({
 		</div>
 	)
 }
-

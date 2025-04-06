@@ -405,7 +405,7 @@ export default function DrawingCanvas({
 	const [showQueenCups, setQueenCups] = useState(true)
 	const [showVarroa, setShowVarroa] = useState(false)
 	const [version, setVersion] = useState(0)
-	const [isAiQueenVisible, setIsAiQueenVisible] = useState(frameSideFile?.detectedQueenCount > 0);
+	const [isAiQueenVisible, setIsAiQueenVisible] = useState(true); // Set default to true
 
 
 	let thumbnailUrl = imageUrl
@@ -1004,7 +1004,12 @@ export default function DrawingCanvas({
 							setIsAiQueenVisible(!isAiQueenVisible)
 						}}
 					>
-						<Checkbox on={isAiQueenVisible} />
+						{/* Show loader if queen detection is not complete, otherwise show checkbox */}
+						{frameSideFile.isQueenDetectionComplete ? (
+							<Checkbox on={isAiQueenVisible} />
+						) : (
+							<Loader size={0} />
+						)}
 						<span>
 							<T ctx="this is a button that toggles visibility of the AI detected queen bounding box">
 								Queen

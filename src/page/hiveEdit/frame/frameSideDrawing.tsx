@@ -1,7 +1,9 @@
-import React, { useMemo } from 'react' // Removed useState, useEffect
+import React, { useMemo } from 'react'
 
 import { gql, useMutation, useSubscription } from '../../../api'
 import { updateFrameSideFile, FrameSideFile } from '../../../models/frameSideFile.ts'
+// Import frameSide model functions
+import { FrameSide as FrameSideType, getFrameSide, upsertFrameSide } from '../../../models/frameSide.ts'
 
 import Loading from '../../../shared/loader'
 import ErrorMessage from '../../../shared/messageError'
@@ -154,14 +156,36 @@ export default function FrameSideDrawing({
 
 				const newState = {
 					...frameSideFile,
+					detectedBees: newDetectedBees, // Add the updated bees array
 					detectedQueenCount: newQueenCount,
 					queenDetected: (queenData.delta && queenData.delta.length > 0) ? true : (frameSideFile.queenDetected ?? false),
-					isQueenDetectionComplete: true,
+					// Use the actual value from the subscription, coercing null to false
+					isQueenDetectionComplete: queenData.isQueenDetectionComplete !== undefined
+						? !!queenData.isQueenDetectionComplete
+						: (frameSideFile.isQueenDetectionComplete ?? false),
 				};
-				console.log('onFrameQueenDetected: Updating IndexedDB with state:', newState);
-
-				// Only update IndexedDB
+				console.log('onFrameQueenDetected: Updating IndexedDB frameSideFile:', newState);
+				// Update frameSideFile in IndexedDB
 				updateFrameSideFile(newState);
+
+				// Additionally, check if AI found a queen and update frameSide.isQueenConfirmed if needed
+				const aiFoundQueen = queenData.delta && queenData.delta.length > 0;
+				if (aiFoundQueen) {
+					// Fetch current frameSide data to check confirmation status
+					getFrameSide(+frameSideId).then(currentFrameSide => {
+						if (currentFrameSide && !currentFrameSide.isQueenConfirmed) {
+							console.log('onFrameQueenDetected: AI found queen and not confirmed, updating frameSide.isQueenConfirmed to true');
+							const updatedFrameSideState: FrameSideType = {
+								...currentFrameSide,
+								isQueenConfirmed: true,
+							};
+							upsertFrameSide(updatedFrameSideState); // Update frameSide in IndexedDB
+						} else {
+							console.log('onFrameQueenDetected: AI found queen but already confirmed or frameSide missing, skipping confirmation update.');
+						}
+					});
+				}
+
 			} else {
 				console.log('onFrameQueenDetected: Skipping update (no response data or frameSideFile prop is null)');
 			}

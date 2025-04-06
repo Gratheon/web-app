@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 
 import { gql, useMutation, useSubscription } from '../../../api'
 import { updateFrameSideFile, FrameSideFile } from '../../../models/frameSideFile.ts'
@@ -18,13 +18,19 @@ export default function FrameSideDrawing({
 	frameId,
 	frameSideId,
 }) {
+	const [localDetectedBees, setLocalDetectedBees] = useState(frameSideFile?.detectedBees || []);
+
+	useEffect(() => {
+		if (frameSideFile) {
+			setLocalDetectedBees(frameSideFile.detectedBees || []);
+		}
+	}, [frameSideFile]);
+
+
 	if (!frameId || !frameSideId) {
-		return
+		return null;
 	}
 
-	// Removed local state and useEffect
-
-	// Use the prop directly for checks and rendering
 	if (!frameSide || !frameSideFile) {
 		return <Loading />
 	}
@@ -58,8 +64,10 @@ export default function FrameSideDrawing({
 					detectedDroneCount: update.detectedDroneCount,
 					isBeeDetectionComplete: update.isBeeDetectionComplete,
 				};
-				// Only update IndexedDB, relying on parent's useLiveQuery to update prop
+				
 				updateFrameSideFile(newState);
+
+				setLocalDetectedBees(newState.detectedBees);
 			}
 		}
 	)
@@ -230,11 +238,11 @@ export default function FrameSideDrawing({
 				<DrawingCanvas
 					imageUrl={file.url}
 					resizes={file.resizes}
-					detectedQueenCups={frameSideFile.detectedQueenCups}
-					detectedBees={frameSideFile.detectedBees}
-					detectedCells={frameSideFile.detectedCells}
-					detectedVarroa={frameSideFile.detectedVarroa}
-					strokeHistory={frameSideFile.strokeHistory}
+					detectedQueenCups={frameSideFile.detectedQueenCups} // Keep using prop for this one unless subscription logic is added
+					detectedBees={localDetectedBees} // Use local state
+					detectedCells={frameSideFile.detectedCells} // Keep using prop for this one unless subscription logic is added
+					detectedVarroa={frameSideFile.detectedVarroa} // Keep using prop for this one unless subscription logic is added
+					strokeHistory={frameSideFile.strokeHistory} // Keep using prop for stroke history
 					onStrokeHistoryUpdate={onStrokeHistoryUpdate}
 					frameSideFile={frameSideFile}
 					frameSide={frameSide}

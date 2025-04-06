@@ -1,4 +1,4 @@
-import React, { useState, useRef, useLayoutEffect } from 'react'
+import React, { useState, useRef, useLayoutEffect, useEffect } from 'react'
 import Button from '@/shared/button'
 import colors from '@/colors.ts'
 import Checkbox from '@/icons/checkbox.tsx'
@@ -395,7 +395,7 @@ export default function DrawingCanvas({
 	frameSide,
 }) {
 	if (!imageUrl) {
-		return
+		return null; // Return null or appropriate placeholder
 	}
 	const ref = useRef(null)
 	const [showBees, setBeeVisibility] = useState(true)
@@ -933,6 +933,29 @@ export default function DrawingCanvas({
 		showVarroa,
 		detectedVarroa,
 	])
+
+	useEffect(() => {
+		if (ref.current) {
+			const canvas = ref.current;
+			const ctx = canvas.getContext('2d');
+			// Explicitly redraw layers when detectedBees changes
+			drawCanvasLayers(
+				canvas,
+				ctx,
+				strokeHistory,
+				showBees,
+				showDrones,
+				isAiQueenVisible,
+				detectedBees, // Use the updated prop
+				showCells,
+				detectedCells,
+				showQueenCups,
+				detectedQueenCups,
+				showVarroa,
+				detectedVarroa
+			);
+		}
+	}, [detectedBees]);
 
 	// Determine if any detection process is currently loading
 	const isAnyDetectionLoading =

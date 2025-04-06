@@ -141,7 +141,7 @@ export default function FrameSideDrawing({
 		// Only update IndexedDB
 		(_, response) => {
 			console.log('onFrameQueenDetected: Received response:', response);
-			if (response?.onFrameQueenDetected && frameSideFile) { // Check prop directly
+			if (response?.onFrameQueenDetected && frameSideFile) {
 				const queenData = response.onFrameQueenDetected;
 				console.log('onFrameQueenDetected: Processing data:', queenData);
 				let newDetectedBees = frameSideFile.detectedBees || [];
@@ -154,9 +154,9 @@ export default function FrameSideDrawing({
 
 				const newState = {
 					...frameSideFile,
-					detectedBees: newDetectedBees,
 					detectedQueenCount: newQueenCount,
-					isQueenDetectionComplete: true
+					queenDetected: (queenData.delta && queenData.delta.length > 0) ? true : (frameSideFile.queenDetected ?? false),
+					isQueenDetectionComplete: true,
 				};
 				console.log('onFrameQueenDetected: Updating IndexedDB with state:', newState);
 

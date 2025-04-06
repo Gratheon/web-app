@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react' // Import useEffect
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate } from 'react-router-dom'
 
-import { gql, useMutation, useQuery } from '@/api'
+import { gql, useMutation, useQuery, useSubscription } from '@/api'
 
 import { getFrame, removeFrame } from '@/models/frames.ts'
 // Import the FrameSide type specifically
@@ -46,6 +46,34 @@ export default function Frame({
 	useEffect(() => {
 		setIsQueenChecked(frameSide?.isQueenConfirmed);
 	}, [frameSide]);
+
+	// Add subscription for queen confirmation updates
+	useSubscription(
+		gql`
+			subscription onQueenConfirmationUpdated($frameSideId: String) {
+				onQueenConfirmationUpdated(frameSideId: $frameSideId) {
+					frameSideId
+					isQueenConfirmed
+				}
+			}
+		`,
+		{ frameSideId }, // Pass frameSideId as variable
+		(_, response) => {
+			if (response?.onQueenConfirmationUpdated && frameSide) {
+				const update = response.onQueenConfirmationUpdated;
+				// Update the frameSide object in IndexedDB
+				// Ensure we have the existing frameSide data to merge with
+				const currentFrameSideData = { ...frameSide };
+				const newState: FrameSideType = {
+					...currentFrameSideData,
+					id: +update.frameSideId, // Ensure ID is number if needed by upsert
+					isQueenConfirmed: update.isQueenConfirmed,
+				};
+				console.log('onQueenConfirmationUpdated: Updating IndexedDB frameSide:', newState);
+				upsertFrameSide(newState); // Update IndexedDB, useLiveQuery will pick it up
+			}
+		}
+	);
 
 
 	if (frameRemoving) {

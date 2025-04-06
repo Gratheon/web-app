@@ -9,6 +9,7 @@ import {
 	dedupExchange,
 	TypedDocumentNode,
 } from 'urql'
+import { devtoolsExchange } from '@urql/devtools'; // Correct import path
 import { multipartFetchExchange } from '@urql/exchange-multipart-fetch'
 
 import {getShareToken, getToken} from '../user.ts'
@@ -40,6 +41,7 @@ const graphqlWsClient = createClient({
 const apiClient = createUrqlClient({
 	url: uri,
 	exchanges: [
+		devtoolsExchange, // Add devtoolsExchange (includes logging)
 		dedupExchange,
 
 		//@ts-ignore

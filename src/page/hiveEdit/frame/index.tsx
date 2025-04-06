@@ -134,12 +134,9 @@ export default function Frame({
 	}
 
 	// Queen confirmation button logic moved from QueenButton component
+	// Updated mutation to expect Boolean! return type
 	let [confirmQueen, { error: errorConfirmQueen }] = useMutation(gql`mutation confirmFrameSideQueen($frameSideId: ID!, $isConfirmed: Boolean!) {
-		confirmFrameSideQueen(frameSideId: $frameSideId, isConfirmed: $isConfirmed) {
-			id
-			isQueenConfirmed
-			frameId
-		}
+		confirmFrameSideQueen(frameSideId: $frameSideId, isConfirmed: $isConfirmed)
 	}`)
 
 	async function onQueenToggle() {
@@ -164,24 +161,22 @@ export default function Frame({
 				isConfirmed: newState,
 			})
 
-			if (result?.data?.confirmFrameSideQueen) {
-				const confirmedData = result.data.confirmFrameSideQueen;
+			// Check if the mutation succeeded (returned true)
+			if (result?.data?.confirmFrameSideQueen === true) {
+				// Update IndexedDB directly since mutation only returns boolean
+				// We already optimistically updated the UI state
 				const dataToUpsert: FrameSideType = {
-					...(frameSide && +frameSide.id === +confirmedData.id ? frameSide : {}),
-					id: +confirmedData.id,
-					isQueenConfirmed: confirmedData.isQueenConfirmed,
-					frameId: +confirmedData.frameId,
+					...(frameSide ?? {}), // Use existing frameSide data if available
+					id: +frameSideId, // Ensure ID is number
+					isQueenConfirmed: newState,
+					// frameId might be missing if frameSide was null, handle appropriately if needed
+					frameId: frameSide?.frameId ?? undefined,
 				};
-				if (dataToUpsert.frameId != null) {
-					await upsertFrameSide(dataToUpsert);
-				} else {
-					console.error("Cannot upsert FrameSide after mutation: frameId missing in response.", confirmedData);
-					setIsQueenChecked(originalState);
-				}
+				await upsertFrameSide(dataToUpsert);
 			} else {
-				// Revert optimistic update if mutation response is unexpected
+				// Revert optimistic update if mutation failed or returned false/unexpected
 				setIsQueenChecked(originalState);
-				console.error('Unexpected response from confirmQueen mutation:', result);
+				console.error('confirmQueen mutation failed or returned unexpected value:', result);
 			}
 		} catch (error) {
 			// Revert optimistic update on error

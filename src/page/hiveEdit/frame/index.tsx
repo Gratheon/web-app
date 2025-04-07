@@ -64,7 +64,6 @@ export default function Frame({
 					rightSide {
 						__typename
 						id
-						frameId
 
 						file {
 							__typename
@@ -84,7 +83,6 @@ export default function Frame({
 					leftSide {
 						__typename
 						id
-						frameId
 
 						file {
 							__typename

@@ -37,18 +37,11 @@ export const writeHooks = {
 	},
 
 	FrameSide: async (_, frameside: FrameSide) => {
-		// Throw error if frameId is missing or null to allow catching and logging the query higher up
-		if (frameside.frameId == null) {
-			const errorMsg = 'FAIL: FrameSide frameId missing'; // Use a consistent prefix
-			console.error(errorMsg, 'FrameSide Data:', frameside);
-			throw new Error(errorMsg + ` (ID: ${frameside?.id})`);
-		}
-
-		// Ensure IDs are numeric
+		// Ensure ID is numeric if present
 		if (frameside.id != null) {
 			frameside.id = +frameside.id;
 		}
-		frameside.frameId = +frameside.frameId;
+		// frameId is associated via the parent Frame object, not needed here.
 
 		await upsertFrameSide(frameside);
 	},

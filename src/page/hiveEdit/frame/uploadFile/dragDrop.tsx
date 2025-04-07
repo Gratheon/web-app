@@ -1,26 +1,38 @@
-// @ts-nocheck
 //todo migrate from component
-import React from 'react'
-import { Component } from 'preact'
+import React from 'react' // Assuming this should be preact based on Component import
+import { Component, ComponentChildren } from 'preact'
 
-export default class DragAndDrop extends Component {
-	state = {
+// Define Props and State interfaces
+interface DragAndDropProps {
+  handleDrop: (files: FileList) => void; // Expects a function taking FileList
+  children: ComponentChildren;
+}
+
+interface DragAndDropState {
+  drag: boolean;
+}
+
+export default class DragAndDrop extends Component<DragAndDropProps, DragAndDropState> {
+	state: DragAndDropState = { // Initialize state with type
 		drag: false,
 	}
-	dropRef = React.createRef()
-	handleDrag = (e) => {
+	dropRef = React.createRef<HTMLDivElement>() // Add type to ref
+	dragCounter = 0; // Initialize counter
+
+	handleDrag = (e: DragEvent) => { // Add event type
 		e.preventDefault()
 		e.stopPropagation()
 	}
-	handleDragIn = (e) => {
+	handleDragIn = (e: DragEvent) => { // Add event type
 		e.preventDefault()
 		e.stopPropagation()
 		this.dragCounter++
-		if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+		// Add null check for dataTransfer
+		if (e.dataTransfer?.items && e.dataTransfer.items.length > 0) {
 			this.setState({ drag: true })
 		}
 	}
-	handleDragOut = (e) => {
+	handleDragOut = (e: DragEvent) => { // Add event type
 		e.preventDefault()
 		e.stopPropagation()
 		this.dragCounter--
@@ -28,12 +40,13 @@ export default class DragAndDrop extends Component {
 			this.setState({ drag: false })
 		}
 	}
-	handleDrop = (e) => {
+	handleDrop = (e: DragEvent) => { // Add event type
 		e.preventDefault()
 		e.stopPropagation()
 		this.setState({ drag: false })
-		if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-			this.props.handleDrop(e.dataTransfer.files)
+		// Add null check for dataTransfer
+		if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+			this.props.handleDrop(e.dataTransfer.files) // Pass the FileList
 			e.dataTransfer.clearData()
 			this.dragCounter = 0
 		}
@@ -41,18 +54,24 @@ export default class DragAndDrop extends Component {
 
 	componentDidMount() {
 		let div = this.dropRef.current
-		div.addEventListener('dragenter', this.handleDragIn)
-		div.addEventListener('dragleave', this.handleDragOut)
-		div.addEventListener('dragover', this.handleDrag)
-		div.addEventListener('drop', this.handleDrop)
+		// Add null check for current
+		if (div) {
+			div.addEventListener('dragenter', this.handleDragIn)
+			div.addEventListener('dragleave', this.handleDragOut)
+			div.addEventListener('dragover', this.handleDrag)
+			div.addEventListener('drop', this.handleDrop)
+		}
 	}
 
 	componentWillUnmount() {
 		let div = this.dropRef.current
-		div.removeEventListener('dragenter', this.handleDragIn)
-		div.removeEventListener('dragleave', this.handleDragOut)
-		div.removeEventListener('dragover', this.handleDrag)
-		div.removeEventListener('drop', this.handleDrop)
+		// Add null check for current
+		if (div) {
+			div.removeEventListener('dragenter', this.handleDragIn)
+			div.removeEventListener('dragleave', this.handleDragOut)
+			div.removeEventListener('dragover', this.handleDrag)
+			div.removeEventListener('drop', this.handleDrop)
+		}
 	}
 
 	render() {

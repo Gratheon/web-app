@@ -32,7 +32,14 @@ function TRemote({ lang, children, tc }: { lang: string, children: any, tc: stri
 	</>
 }
 
-export default function T({ children, key = null, ctx = '' }: { children: any, key?: string, ctx?: string }) {
+// Define a specific props interface for clarity
+interface TProps {
+  children: string; // Changed from 'any' to 'string'
+  key?: string;
+  ctx?: string;
+}
+
+export default function T({ children, key = null, ctx = '' }: TProps) {
 	let user = useLiveQuery(() => getUser(), [], null)
 
 	const [lang, setLanguageCode] = useState('en');

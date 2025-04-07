@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React from 'react'
 
 import { useState } from 'react'
@@ -44,18 +43,9 @@ export default function UploadFile({ onUpload }) {
 	const [error, setError] = useState(null)
 	const [loading, setLoading] = useState(false)
 
-
-	async function onFileSelect({
-		target: {
-			validity,
-			files: [file],
-		},
-	}) {
+	// Helper function to process a single file
+	async function processFile(file: File | null) {
 		setError(null); // Clear previous errors
-
-		if (!validity.valid) {
-			return
-		}
 
 		// Validate file type
 		if (!file || !SUPPORTED_IMAGE_TYPES.includes(file.type)) {
@@ -71,58 +61,84 @@ export default function UploadFile({ onUpload }) {
 			return;
 		}
 
-		setLoading(true)
-		//@ts-ignore
-		const {data, error: uploadError} = await uploadFile({ file })
+		setLoading(true);
+		let uploadResult;
+		try {
+			//@ts-ignore - Assuming useUploadMutation hook handles types internally or needs specific casting
+			uploadResult = await uploadFile({ file });
+		} catch (err) {
+			setError(err instanceof Error ? err : new Error('Upload failed'));
+			setLoading(false);
+			return;
+		} finally {
+			setLoading(false);
+		}
 
-		setLoading(false)
 
-		setFiles([
-			file
-		])
+		const uploadData = uploadResult?.data?.uploadFrameSide;
 
-		if (uploadError) {
-			setError(uploadError)
+		if (uploadResult?.error) {
+			setError(uploadResult.error);
 			return;
 		}
 
-		if (!data.uploadFrameSide) {
+		if (!uploadData) {
+			setError(new Error('Upload completed but no data received.'));
 			return;
 		}
 
-		//trigger higher component joining file with hive info
-		onUpload(data.uploadFrameSide)
+		setFiles([file]); // Update UI state
 
-		await updateFile({
-			id: +data.uploadFrameSide.id,
-			url: data.uploadFrameSide.url
-		});
+		// Trigger higher component joining file with hive info
+		onUpload(uploadData);
+
+		// Ensure resizes is included and types match
+		try {
+			await updateFile({
+				id: +uploadData.id,
+				url: uploadData.url,
+				resizes: uploadData.resizes || [], // Pass resizes, default to empty array if missing
+			});
+		} catch (dbError) {
+			console.error("Failed to update file in DB:", dbError);
+			// Optionally set an error state here as well
+			setError(new Error('Failed to save file details locally.'));
+		}
 	}
 
+	// Handler for file input change
+	async function onFileSelect(event: React.ChangeEvent<HTMLInputElement>) {
+		const target = event.target as HTMLInputElement; // Cast target
+		const file = target.files?.[0]; // Safely access the first file
+
+		if (target.validity?.valid && file) {
+			await processFile(file);
+		} else {
+			// Handle invalid input or no file selected if necessary
+			setError(null); // Clear error if just cancelling selection
+		}
+		// Reset input value to allow selecting the same file again
+        target.value = ''; // Use the cast 'target' variable
+	}
+
+
 	if (data && data.uploadFrameSide !== null) {
-		const { uploadFrameSide } = data
+		const { uploadFrameSide: uploadData } = data // Use consistent naming
 
 		return (
 			<div>
-				<img src={uploadFrameSide.url} style={{ width: '100%' }} />
+				<img src={uploadData.url} style={{ width: '100%' }} /> {/* Use uploadData */}
 			</div>
 		)
 	}
 
-	const handleDrop = async (files) => {
-		for (let i = 0; i < files.length; i++) {
-			if (!files[i].name) return
-			fileList.push(files[i].name)
+	// Handler for drag and drop
+	const handleDrop = async (droppedFiles: FileList) => {
+		if (droppedFiles.length > 0) {
+			// Process only the first dropped file for simplicity, matching input behavior
+			const fileToProcess = droppedFiles[0];
+			await processFile(fileToProcess);
 		}
-
-		await onFileSelect({
-			target: {
-				validity: {
-					valid: true,
-				},
-				files,
-			},
-		})
 	}
 
 
@@ -149,7 +165,7 @@ export default function UploadFile({ onUpload }) {
 								id="file"
 								required
 								accept={SUPPORTED_IMAGE_TYPES_STRING}
-								onChange={onFileSelect}
+								onChange={onFileSelect} // Keep the handler name
 							/>
 
 							<label htmlFor="file" className={styles.fileUploadLabel}>

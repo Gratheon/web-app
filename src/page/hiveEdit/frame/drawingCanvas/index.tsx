@@ -150,8 +150,10 @@ function drawDetectedBees(
 ) {
 	const relPx = calculateRelPx(canvas);
 	REL_PX = relPx; // Update global REL_PX
+	// console.log(`drawDetectedBees: Starting loop for ${detectedBees?.length ?? 0} bees.`); // Removed log
 
-	detectedBees.forEach((dt) => {
+	detectedBees.forEach((dt, index) => { // Add index to loop
+		// console.log(`drawDetectedBees: Processing bee ${index + 1} at x=${dt.x}, y=${dt.y}`); // Optional detailed log per bee
 		const n = parseInt(dt.n, 10);
 		if ((!showBees && (n === 0 || n === 2)) || (!showDrones && n === 1) || (!showQueens && n === 3)) {
 			return;
@@ -637,7 +639,7 @@ export default function DrawingCanvas({
 
 	// Redraw when detection data changes
 	useEffect(() => {
-		console.log("Redrawing canvas due to detection data change. Bees count:", detectedBees?.length); // Added log
+		// console.log(`DrawingCanvas: useEffect triggered by detection data change. detectedBees prop length: ${detectedBees?.length ?? 'N/A'}`); // Removed log
 		redrawCurrentCanvas();
 	}, [detectedBees, detectedCells, detectedQueenCups, detectedVarroa, redrawCurrentCanvas]);
 

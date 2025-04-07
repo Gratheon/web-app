@@ -11,8 +11,8 @@ import ErrorMessage from '@/shared/messageError'
 import DrawingCanvas from '@/page/hiveEdit/frame/drawingCanvas'
 import styles from '@/page/hiveEdit/frame/styles.module.less'
 import { useFrameSideSubscriptions } from '@/hooks/useFrameSideSubscriptions' // Import the new hook
-// Define local type for the file prop (keep this)
-interface FilePropType {
+ // Define local type for the file prop (keep this)
+ interface FilePropType {
 	id: number | string;
 	url: string;
 	resizes?: { width: number; url: string }[];
@@ -36,7 +36,9 @@ export default function FrameSideDrawing({
 	// Use useLiveQuery to get live data from Dexie
 	const liveFrameSideFile = useLiveQuery(
 		() => getFrameSideFile({ frameSideId: +frameSideId }),
-		[frameSideId] // Re-run query if frameSideId changes
+		[frameSideId], // Re-run query if frameSideId changes
+		// Add initial value to avoid undefined during first load if needed, though null check handles it
+		// null
 	)
 
 	// Call the custom hook to handle subscriptions
@@ -83,7 +85,7 @@ export default function FrameSideDrawing({
 	}
 
 	// Log the bee count being passed to DrawingCanvas
-	console.log(`Rendering FrameSideDrawing. liveFrameSideFile.detectedBees length: ${liveFrameSideFile?.detectedBees?.length ?? 'N/A'}`);
+	// console.log(`Rendering FrameSideDrawing. liveFrameSideFile.detectedBees length: ${liveFrameSideFile?.detectedBees?.length ?? 'N/A'}`); // Removed log
 
 	return (
 		<div className={styles.frame}>

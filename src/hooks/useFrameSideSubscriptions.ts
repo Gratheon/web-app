@@ -78,8 +78,8 @@ export function useFrameSideSubscriptions(frameSideId: number | string | null | 
     useEffect(() => {
         // Check if fetching is complete and data exists
         if (!beesRes.fetching && beesRes.data?.onFrameSideBeesPartiallyDetected && numericFrameSideId) {
-            console.log('Received Bee Data:', beesRes.data);
             const updatePayload = beesRes.data.onFrameSideBeesPartiallyDetected;
+            // console.log(`useFrameSideSubscriptions: Received Bee Data delta length: ${updatePayload.delta?.length ?? 'N/A'}`); // Removed log
             appendBeeDetectionData(numericFrameSideId, {
                 delta: updatePayload.delta || [],
                 detectedQueenCount: updatePayload.detectedQueenCount,

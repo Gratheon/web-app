@@ -75,26 +75,42 @@ interface BeeDetectionPayload {
     isBeeDetectionComplete: boolean;
 }
 
-// New function using modify for atomic updates
+// Helper function to create a unique key for a bee detection
+// Assuming x, y, n are sufficient for uniqueness within a frameSide
+const getBeeKey = (bee: { x: number; y: number; n: number | string }) => `${bee.x}-${bee.y}-${bee.n}`;
+
+// New function using modify for atomic updates with deduplication
 export async function appendBeeDetectionData(frameSideId: number, payload: BeeDetectionPayload) {
     try {
-        // Use modify for an atomic read-modify-write operation
         await db[FRAME_SIDE_FILE_TABLE].where({ id: frameSideId }).modify((frameSideFile) => {
-            // Ensure detectedBees is an array before pushing
             if (!frameSideFile.detectedBees || !Array.isArray(frameSideFile.detectedBees)) {
                 frameSideFile.detectedBees = [];
             }
-            // Append delta if it exists and is an array
-            if (payload.delta && Array.isArray(payload.delta)) {
-                frameSideFile.detectedBees.push(...payload.delta);
+            // console.log(`appendBeeDetectionData (${frameSideId}): Before append, existing length: ${frameSideFile.detectedBees.length}`); // Removed log
+
+            // Deduplicate incoming delta against existing bees
+            if (payload.delta && Array.isArray(payload.delta) && payload.delta.length > 0) {
+                const existingKeys = new Set(frameSideFile.detectedBees.map(getBeeKey));
+                const uniqueNewBees = payload.delta.filter(newBee => !existingKeys.has(getBeeKey(newBee)));
+                // console.log(`appendBeeDetectionData (${frameSideId}): Incoming delta length: ${payload.delta.length}, Unique new bees: ${uniqueNewBees.length}`); // Removed log
+
+                if (uniqueNewBees.length > 0) {
+                    frameSideFile.detectedBees.push(...uniqueNewBees);
+                }
             }
+
             // Update counts and completion flag directly
+            // Note: Counts might become slightly inaccurate if backend sends duplicates,
+            // but the visual representation will be correct.
+            // Alternatively, recalculate counts based on the final deduplicated array if needed.
             frameSideFile.detectedQueenCount = payload.detectedQueenCount;
             frameSideFile.detectedWorkerBeeCount = payload.detectedWorkerBeeCount;
             frameSideFile.detectedDroneCount = payload.detectedDroneCount;
             frameSideFile.isBeeDetectionComplete = payload.isBeeDetectionComplete;
+
+            // console.log(`appendBeeDetectionData (${frameSideId}): After append, final length: ${frameSideFile.detectedBees.length}`); // Removed log
         });
-        console.log("Successfully appended bee data for frameSideId:", frameSideId);
+        console.log("Successfully appended bee data for frameSideId:", frameSideId); // Keep outer log
     } catch (e) {
         console.error("Error appending bee detection data:", e, { frameSideId, payload });
         // Optionally re-throw or handle specific Dexie errors (e.g., ModifyError)
@@ -108,23 +124,28 @@ interface QueenDetectionPayload {
     isQueenDetectionComplete: boolean;
 }
 
-// New function using modify for atomic queen updates
+// New function using modify for atomic queen updates with deduplication
 export async function appendQueenDetectionData(frameSideId: number, payload: QueenDetectionPayload) {
     try {
         await db[FRAME_SIDE_FILE_TABLE].where({ id: frameSideId }).modify((frameSideFile) => {
-            // Ensure detectedBees is an array
             if (!frameSideFile.detectedBees || !Array.isArray(frameSideFile.detectedBees)) {
                 frameSideFile.detectedBees = [];
             }
-            // Append queen delta if it exists
+
             let queenFoundInDelta = false;
             if (payload.delta && Array.isArray(payload.delta) && payload.delta.length > 0) {
-                frameSideFile.detectedBees.push(...payload.delta);
-                // Increment queen count based on delta length
-                frameSideFile.detectedQueenCount = (frameSideFile.detectedQueenCount || 0) + payload.delta.length;
-                queenFoundInDelta = true;
+                const existingKeys = new Set(frameSideFile.detectedBees.map(getBeeKey));
+                const uniqueNewQueens = payload.delta.filter(newQueen => !existingKeys.has(getBeeKey(newQueen)));
+
+                if (uniqueNewQueens.length > 0) {
+                    frameSideFile.detectedBees.push(...uniqueNewQueens);
+                    // Increment queen count based on *unique* new queens found
+                    frameSideFile.detectedQueenCount = (frameSideFile.detectedQueenCount || 0) + uniqueNewQueens.length;
+                    queenFoundInDelta = true; // Set flag if at least one unique queen was added
+                }
             }
-            // Update queen flags
+
+            // Update queen flags based on whether a *unique* queen was found in this delta or previously
             frameSideFile.queenDetected = queenFoundInDelta ? true : (frameSideFile.queenDetected ?? false);
             frameSideFile.isQueenDetectionComplete = payload.isQueenDetectionComplete;
         });

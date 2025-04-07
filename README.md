@@ -160,6 +160,7 @@ State management primarily revolves around data fetching and caching, handled by
     5.  Network responses are written back to the Dexie cache using `writeHooks` (`src/models/db/writeHooks.ts`) for data normalization before storage.
 *   **Dynamic Schema Sync:** On application load (`src/app.tsx`), the `syncGraphqlSchemaToIndexDB` function uses the GraphQL schema definition (`src/api/schema.ts`) to dynamically create or update the IndexedDB table structures managed by Dexie. This ensures the client-side database schema stays aligned with the API schema.
 *   **Live Queries:** Components often use Dexie's `useLiveQuery` hook (`dexie-react-hooks`) to subscribe directly to IndexedDB data, ensuring the UI updates reactively when the cache changes (either from network responses or background sync).
+*   **Translation Component (`<T>`/`useTranslation`):** When using the translation component/hook, ensure that the `children` prop (for `<T>`) or the `text` argument (for `useTranslation`) is a single string. Passing dynamic content like `{variable}` or arrays directly (e.g., `<T>Value: {count}</T>`) can lead to type errors in the underlying GraphQL query, especially during offline cache lookups. Use template literals (e.g., `<T>{`Value: ${count}`}</T>`) to construct a single string when needed.
 
 ```mermaid
 graph TD

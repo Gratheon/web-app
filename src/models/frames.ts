@@ -172,7 +172,11 @@ export async function updateFrame(data: Frame) {
 
 export async function removeFrame(frameId, boxId) {
 	try {
-		let frame = await getFrame(+frameId)
+		const frame = await getFrame(+frameId)
+
+		if (!frame) {
+			throw new Error(`Frame with id ${frameId} not found. Cannot remove.`)
+		}
 
 		await db['frame'].delete(+frameId)
 

@@ -1,6 +1,6 @@
 import { db } from './db'
 
-type Apiary = {
+export type Apiary = {
 	id: number
 	name?: string
 	lat?: string

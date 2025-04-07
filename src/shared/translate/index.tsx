@@ -66,7 +66,7 @@ export default function T({ children, key = null, ctx = '' }: TProps) {
 	if (translated && translated[lang]) return <>{translated[lang]}</>
 
 	// loading cache?
-	if( translated == false) return children
+	if( translated == false) return <>{children}</>
 
 	// ask backend
 	return <TRemote lang={lang} key={key} tc={ctx}>{children}</TRemote>

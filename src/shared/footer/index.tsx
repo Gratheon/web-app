@@ -49,6 +49,9 @@ async function triggerSupportChat() {
 	}
 
 	//@ts-ignore
+	window.Tawk_API.language = 'en'; // Explicitly set language to prevent i18next lookup
+
+	//@ts-ignore
 	window.Tawk_API.start({
 		message: 'Hi, how can we help you today?',
 	})

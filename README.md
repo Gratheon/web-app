@@ -148,19 +148,25 @@ This application is a Single Page Application (SPA) built with Preact/React and 
 
 ### State Management & Data Flow (Urql + Dexie)
 
-State management primarily revolves around data fetching and caching, handled by Urql and Dexie for offline capabilities.
+The application employs an **offline-first** state management strategy centered around **Dexie.js** (an IndexedDB wrapper) as the primary data store, integrated with **Urql** for GraphQL communication. This approach minimizes temporary state within components and reduces the need for extensive prop drilling.
 
-*   **Urql (`src/api/index.ts`):** The core GraphQL client. It uses a pipeline of exchanges to manage requests, caching, subscriptions, and offline storage.
-*   **Dexie (`src/models/db/index.ts`):** A wrapper around IndexedDB, providing a more developer-friendly API for client-side database operations.
-*   **`offlineIndexDbExchange` (`src/api/offlineIndexDbExchange.ts`):** This custom Urql exchange is the key to offline support.
-    1.  It intercepts GraphQL requests.
-    2.  Checks the Dexie (IndexedDB) cache for requested data.
-    3.  If valid cached data exists, it's returned immediately.
-    4.  If not cached or stale, the request is forwarded to the network via other exchanges (like `multipartFetchExchange`).
-    5.  Network responses are written back to the Dexie cache using `writeHooks` (`src/models/db/writeHooks.ts`) for data normalization before storage.
-*   **Dynamic Schema Sync:** On application load (`src/app.tsx`), the `syncGraphqlSchemaToIndexDB` function uses the GraphQL schema definition (`src/api/schema.ts`) to dynamically create or update the IndexedDB table structures managed by Dexie. This ensures the client-side database schema stays aligned with the API schema.
-*   **Live Queries:** Components often use Dexie's `useLiveQuery` hook (`dexie-react-hooks`) to subscribe directly to IndexedDB data, ensuring the UI updates reactively when the cache changes (either from network responses or background sync).
-*   **Translation Component (`<T>`/`useTranslation`):** When using the translation component/hook, ensure that the `children` prop (for `<T>`) or the `text` argument (for `useTranslation`) is a single string. Passing dynamic content like `{variable}` or arrays directly (e.g., `<T>Value: {count}</T>`) can lead to type errors in the underlying GraphQL query, especially during offline cache lookups. Use template literals (e.g., `<T>{`Value: ${count}`}</T>`) to construct a single string when needed.
+**Core Principles:**
+
+1.  **Dexie as the Global Offline State:** Dexie manages a client-side IndexedDB database (`gratheon`). This database acts as the central, persistent state container for application data (apiaries, hives, inspections, etc.), making it accessible even when offline.
+2.  **Minimize Component State:** We strive to avoid storing fetched data or complex state directly within component state (`useState`, `useReducer`). Instead, components rely on accessing data from the Dexie cache.
+3.  **Reduce Prop Drilling:** By treating Dexie as the global state, components can fetch the data they need directly, rather than receiving it through multiple layers of props.
+
+**Data Flow:**
+
+1.  **Data Fetching (Urql):** Components use adapted Urql hooks (`useQuery`, `useMutation`, `useSubscription` from `src/api/index.ts`) to request data or perform mutations.
+2.  **Custom Urql Exchange (`offlineIndexDbExchange`):** A custom Urql exchange (`src/api/offlineIndexDbExchange.ts`) intercepts these operations.
+    *   **Network-First Attempt:** It first attempts to fetch data from the network via the GraphQL API.
+    *   **Cache Update:** If the network request succeeds, the response data is processed by `writeHooks` (`src/models/db/writeHooks.ts`). These hooks normalize the data and use Dexie functions (`upsertEntity`, etc. from `src/models/db/index.ts`) to write the fresh data into the appropriate IndexedDB tables.
+    *   **Offline Fallback:** If the network request fails (e.g., user is offline), the exchange executes the GraphQL query against custom `resolvers` (`src/api/resolvers.ts`) which read data directly from the Dexie (IndexedDB) cache.
+3.  **Data Storage (Dexie):** Dexie (`src/models/db/index.ts`) manages the IndexedDB tables. The schema for these tables is dynamically generated on application startup (`syncGraphqlSchemaToIndexDB` in `src/app.tsx`) based on the GraphQL schema (`src/api/schema.ts`), ensuring alignment between the backend and the client-side cache.
+4.  **UI Updates:** Components typically access data via the Urql hooks. Because the `offlineIndexDbExchange` ensures the Dexie cache is updated and serves as a fallback, these hooks effectively provide components with data sourced primarily from Dexie, whether fetched initially from the network or retrieved directly from the cache when offline. Direct Dexie hooks like `useLiveQuery` might also be used in some places for reactive updates directly from the database.
+
+This architecture ensures data persistence, enables offline functionality, and promotes a clean separation between data management and component logic.
 
 ```mermaid
 graph TD

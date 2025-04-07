@@ -25,7 +25,7 @@ const translateQuery = gql`query translate($en: String!, $tc: String){
 function TRemote({ lang, children, tc }: { lang: string, children: any, tc: string }) {
 	const { loading, error, data } = useQuery(translateQuery, { variables: { en: children, tc } })
 
-	if (loading || error) return children
+	if (loading || error) return <>{children}</>
 
 	return <>
 		{data && data.translate && data.translate[lang] ? data.translate[lang] : children}

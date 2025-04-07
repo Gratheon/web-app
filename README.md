@@ -295,34 +295,6 @@ graph TD
     end
 ```
 
-### Backend Interaction
-
-The web application interacts with several backend microservices, primarily through a GraphQL router. The key interactions involve fetching data via GraphQL, receiving real-time updates via WebSockets, and coordinating schema changes through a registry.
-
-```mermaid
-flowchart LR
-    subgraph "Frontend"
-        webapp["web-app"];
-    end
-    subgraph "Backend Services"
-        gqlrouter["graphql-router"]
-        events["event-stream-filter"]
-        registry["graphql-schema-registry"]
-        redis[("Redis")];
-        mysql[("MySQL")];
-        productservice["some-product-service"]
-    end
-
-    webapp -- "GraphQL" --> gqlrouter;
-    webapp -- "WebSockets" --> events;
-    events -- "Listen" --> redis;
-    productservice -- "Publish" --> redis;
-    gqlrouter -- "Schemas" --> registry;
-    gqlrouter -- "Route" --> productservice;
-    productservice -- "DB Access" --> mysql;
-    productservice -- "Update Schema" --> registry;
-```
-
 ### Tech Stack
 
 | Dependency           | Version | Why                                                              |

@@ -1,11 +1,12 @@
 # Gratheon Web Application
 
-<!-- Optional Badges (Add URLs when available) -->
-<!-- [![Build Status](URL_TO_BUILD_STATUS_BADGE)](URL_TO_BUILD_PIPELINE) -->
-<!-- [![Code Coverage](URL_TO_COVERAGE_BADGE)](URL_TO_COVERAGE_REPORT) -->
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
 Frontend application for the Gratheon beehive management and analytics platform. Built with Preact, Vite, Urql, and Dexie for offline support.
+
+See [product feature and ideas](https://gratheon.com/about/products/%F0%9F%93%B1Web-app/), also see technical [architecture docs]([https://gratheon.com/docs/web-app/](https://gratheon.com/docs/%F0%9F%93%B1%20Web-app/)) for the entire system
+
+
 
 **Live Application:** [https://app.gratheon.com/](https://app.gratheon.com/)
 
@@ -37,7 +38,9 @@ Frontend application for the Gratheon beehive management and analytics platform.
 
 ## Overview
 
-This repository contains the source code for the Gratheon web application frontend. It provides a user-friendly interface for beekeepers to manage apiaries, hives, inspections, and view analytics derived from sensor data and image analysis.
+This repository contains the source code for the Gratheon web application frontend. Gratheon aims to provide comprehensive beehive management and analytics solutions for beekeepers. This web application serves as the primary user interface for interacting with the platform's data and features.
+
+Users can manage their apiaries and hives, log detailed inspections, upload and analyze frame photos (leveraging backend AI services like `image-splitter`), track environmental conditions (via `weather` service integration), manage billing (`user-cycle`), and potentially monitor hive entrances (`entrance-observer`). The application interacts with a suite of backend microservices through a federated GraphQL API.
 
 **Key Features:**
 
@@ -191,7 +194,29 @@ graph TD
 
 The web application interacts with several backend microservices, primarily through a GraphQL router. The key interactions involve fetching data via GraphQL, receiving real-time updates via WebSockets, and coordinating schema changes through a registry.
 
-*(Architecture diagrams were removed due to persistent Mermaid parsing issues. They can be revisited later.)*
+```mermaid
+flowchart LR
+    subgraph "Frontend"
+        webapp["web-app"];
+    end
+    subgraph "Backend Services"
+        gqlrouter["graphql-router"]
+        events["event-stream-filter"]
+        registry["graphql-schema-registry"]
+        redis[("Redis")];
+        mysql[("MySQL")];
+        productservice["some-product-service"]
+    end
+
+    webapp -- "GraphQL" --> gqlrouter;
+    webapp -- "WebSockets" --> events;
+    events -- "Listen" --> redis;
+    productservice -- "Publish" --> redis;
+    gqlrouter -- "Schemas" --> registry;
+    gqlrouter -- "Route" --> productservice;
+    productservice -- "DB Access" --> mysql;
+    productservice -- "Update Schema" --> registry;
+```
 
 ### Tech Stack
 
@@ -206,7 +231,7 @@ The web application interacts with several backend microservices, primarily thro
 | **Routing**          |         |                                                                  |
 | React Router         | ^6.6    | Standard library for client-side routing in React applications   |
 | **GraphQL Client**   |         |                                                                  |
-| Urql                 | ^3.0    | Performant and extensible GraphQL client                         |
+| Urql                 | ^3.0    | Performant and extensible GraphQL client (chosen over Apollo for smaller bundle size and Relay for less opinionated API) |
 | graphql-ws           | ^5.11   | Client for GraphQL subscriptions over WebSockets                 |
 | **Offline Storage**  |         |                                                                  |
 | Dexie                | ^3.2    | Wrapper for IndexedDB, simplifying client-side database operations |

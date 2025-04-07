@@ -52,43 +52,36 @@ Users can manage their apiaries and hives, log detailed inspections, upload and 
 *   Real-time Updates (GraphQL Subscriptions via WebSockets)
 *   Image Upload and Annotation Capabilities
 
-**Core Technologies:**
-
-*   **UI Framework:** Preact / React
-*   **Build Tool:** Vite
-*   **Language:** TypeScript
-*   **GraphQL Client:** Urql
-*   **Offline Storage:** Dexie (IndexedDB wrapper)
-*   **Styling:** Less Modules
-*   **Routing:** React Router
-
 ## Getting Started
 
 ### Prerequisites
 
-*   **Node.js:** Version 20 (as specified in `.nvmrc`).
-*   **nvm (Node Version Manager):** Recommended for managing Node.js versions. [Install nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-*   **just:** A command runner used for simplifying common tasks. [Install just](https://github.com/casey/just#installation).
-*   **Docker & Docker Compose:** Required *only* if running the full stack locally (including backend services).
+*   Node.js: Version 20 (as specified in `.nvmrc`).
+*   nvm (Node Version Manager): Recommended for managing Node.js versions. [Install nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+*   just: A command runner used for simplifying common tasks. [Install just](https://github.com/casey/just#installation).
+*   Docker & Docker Compose: Required *only* if running the full stack locally (including backend services).
 
 ### Installation
 
-1.  Clone the repository:
-    ```bash
-    git clone https://github.com/Gratheon/web-app.git
-    ```
-2.  Navigate to the project directory:
-    ```bash
-    cd web-app
-    ```
-3.  Use the correct Node.js version:
-    ```bash
-    nvm use
-    ```
-4.  Install dependencies:
-    ```bash
-    npm install
-    ```
+Clone the repository:
+```bash
+git clone https://github.com/Gratheon/web-app.git
+```
+
+Navigate to the project directory:
+```bash
+cd web-app
+```
+
+Use the correct Node.js version:
+```bash
+nvm use
+```
+
+Install dependencies:
+```bash
+npm install
+```
 
 ### Running the Application
 
@@ -106,13 +99,64 @@ Open [http://localhost:8080/](http://localhost:8080/) in your browser. You can l
 
 This mode connects the frontend to locally running backend services.
 
-1.  **Configure Frontend:** Modify `web-app/src/uri.ts` and set `USE_PROD_BACKEND_FOR_DEV` to `false`.
-2.  **Run Backend Services:** Ensure all required backend microservices (GraphQL Router, Event Stream Filter, etc.) are running locally. Refer to the main project documentation or the root `Makefile`/`docker-compose` files for instructions (e.g., potentially `make dev` in the project root). You might need to adjust configuration in individual backend services.
-3.  **Run Frontend:**
+1.  Configure Frontend: Modify `web-app/src/uri.ts` and set `USE_PROD_BACKEND_FOR_DEV` to `false`.
+2.  Run Backend Services: Ensure all required backend microservices (GraphQL Router, Event Stream Filter, etc.) are running locally. Refer to the main project documentation or the root `Makefile`/`docker-compose` files for instructions (e.g., potentially `make dev` in the project root). You might need to adjust configuration in individual backend services.
+3.  Run Frontend:
     ```bash
     just start
     ```
     The application will now communicate with your local backend services.
+
+
+
+
+## Configuration
+
+*   API Endpoints: Configured primarily in `src/uri.ts`. The `USE_PROD_BACKEND_FOR_DEV` flag controls whether to target production or local backend services during development.
+*   Environment Variables: While not explicitly listed, Vite supports standard `.env` file conventions (`.env`, `.env.local`, `.env.development`, `.env.production`) for build-time environment variables. Check `vite.config.ts` for usage.
+
+## Available Scripts
+
+Common tasks are managed via `npm` scripts (defined in `package.json`) and `just` commands (defined in `justfile`).
+
+*   `just start` or `npm run dev`: Starts the Vite development server (hot-reloading enabled).
+*   `npm run build`: Creates an optimized production build in the `dist/` folder.
+*   `npm run build-clean`: Removes contents of the `public/` directory.
+*   `npm run build-move`: Moves contents from `dist/` to `public/` (likely part of a build pipeline).
+*   `npm run preview`: Serves the production build locally for previewing.
+*   `npm run prettier`: Formats code using Prettier.
+*   `just test-ui-headless`: Runs Playwright E2E tests in headless mode.
+*   `just test-ui-create`: Interactively generates boilerplate for a new Playwright test.
+*   `npm run test` / `npm run test:unit`: Placeholder/intended script for running unit tests (currently limited).
+
+## Testing
+
+### Unit Tests
+
+*   Framework: [Vitest](https://vitest.dev/) is used for unit and component testing, leveraging the Vite build pipeline for speed. Configuration is integrated within `vite.config.ts`.
+*   Libraries: Tests utilize `@testing-library/react` for rendering components and interacting with the DOM, and `@testing-library/jest-dom` for DOM-specific assertions.
+*   Running Tests:
+    *   Run all unit tests: `npm run test:unit` or `npm test`
+    *   Run tests in watch mode with UI: `npm run test:ui`
+*   Location: Unit tests are typically co-located with the source code they test (e.g., `src/models/user.test.ts`).
+*   Current Status: Basic unit tests exist, but more comprehensive coverage is needed. Contributions are welcome.
+
+### End-to-End (E2E) Tests
+
+*   Framework: Playwright (`test/ui/`) is used for browser automation testing.
+*   Running Tests:
+    *   Headless: `just test-ui-headless`
+    *   Interactive (headed): Run Playwright commands directly or use VS Code Playwright extension.
+*   Creating Tests: `just test-ui-create`
+*   CI Status: E2E tests are not currently integrated into a CI pipeline.
+
+## Deployment
+
+*   The application is containerized using Docker (`Dockerfile`).
+*   The `config/nginx.conf` suggests deployment behind an Nginx reverse proxy, likely serving the static build assets and potentially proxying API requests.
+*   Deployment specifics (CI/CD pipeline, hosting environment) are not detailed in this repository.
+
+
 
 #### Production Build
 
@@ -132,19 +176,73 @@ This command serves the production build locally using Vite's preview server.
 npm run preview
 ```
 
+
+
+
 ## Architecture
 
 ### High-Level Frontend Architecture
 
 This application is a Single Page Application (SPA) built with Preact/React and Vite. It utilizes Urql for GraphQL communication and Dexie for robust offline data storage via IndexedDB.
 
-*(Architecture diagrams were removed due to persistent Mermaid parsing issues. They can be revisited later.)*
+
+### Core services
+
+The following services are mandatory, you will need to git-checkout them and start in the following order:
+
+- mysql ← provides storage for other node and go services
+- redis ← provides a pub-sub and caching layer
+- graphql-schema-registry ← stores graphql schema of microservices
+- graphql-router ← routes API requests to other microservices using a [graphql federation](https://www.apollographql.com/docs/federation/), which basically means that requests are split and routed to the microservice that is responsible for particular part of the schema
+
+### Core services and routing
+
+```mermaid
+flowchart LR
+	web-app --"read/write data \n on client side via dexie"--> indexed-db[(indexed-db)]
+	web-app("<a href='https://github.com/Gratheon/web-app'>web-app</a>\n:8080") --> graphql-router
+	web-app --"subscribe to events\n over websockets"--> event-stream-filter("<a href='https://github.com/Gratheon/event-stream-filter'>event-stream-filter</a>\n:8300\n:8350") --"listen to events"--> redis
+
+	some-product-service --"publish events"--> redis
+	graphql-router --"read service schemas"--> graphql-schema-registry("<a href='https://github.com/tot-ra/graphql-schema-registry'>graphql-schema-registry</a>\n<a href='http://localhost:6001/'>:6001</a>\n")
+	graphql-router -.-> some-product-service --"read/write data"--> mysql
+	some-product-service --"update schema"--> graphql-schema-registry
+```
+
+
+
+### Product services
+
+- go-api ← main service that manages domain entities like apiary, hive, hive section, frame, frame side
+- image-splitter ← main service that manages image processing + stores data on the detected objects in the frame photo
+
+Note that some service may still be in development and can be unstable or only in draft phase (video processing for example)
+
+```mermaid
+flowchart LR
+	graphql-router("<a href='https://github.com/Gratheon/graphql-router'>graphql-router</a>\n :6100") --> swarm-api("<a href='https://github.com/Gratheon/swarm-api'>swarm-api</a>\n:8100") --> mysql[(mysql\n:5100)]
+	graphql-router --> swarm-api --> redis[("<a href='https://github.com/Gratheon/redis'>redis pub-sub</a>\n:6379")]
+
+	graphql-router --> image-splitter("<a href='https://github.com/Gratheon/image-splitter'>image-splitter</a>\n:8800") --> mysql
+
+	web-app --"upload frames"--> image-splitter --> aws-s3
+	image-splitter --"inference"--> models-bee-detector("<a href='https://github.com/Gratheon/models-bee-detector'>models-bee-detector</a>\n:8700")
+	image-splitter --"inference"--> models-frame-resources("<a href='https://github.com/Gratheon/models-frame-resources'>models-frame-resources</a>\n:8540")
+	graphql-router --> user-cycle("<a href='https://github.com/Gratheon/user-cycle'>user-cycle</a>\n:4000") --> mysql
+	graphql-router --> user-cycle --> stripe
+	graphql-router --> plantnet("<a href='https://github.com/Gratheon/plantnet'>plantnet</a>\n:8090") --> mysql
+
+	graphql-router --> weather("<a href='https://github.com/Gratheon/weather'>weather</a>\n:8070")
+	user-cycle --"create org and user"--> grafana("<a href='https://github.com/gratheon/grafana'>grafana</a>")
+
+```
+
 
 ### Component Structure
 
-*   **Layouts (`src/page/index.tsx`):** Defines the main page structures based on authentication state (`LoggedInPage`, `PageWithMenu`, `LoggedOutPage`).
-*   **Pages (`src/page/*`):** Represent distinct views or routes within the application (e.g., `ApiaryList`, `HiveEdit`, `InspectionShare`).
-*   **Shared Components (`src/shared/*`):** Reusable UI elements used across multiple pages (e.g., `Button`, `Header`, `Map`, `Loader`, `VisualForm`).
+*   Layouts (`src/page/index.tsx`): Defines the main page structures based on authentication state (`LoggedInPage`, `PageWithMenu`, `LoggedOutPage`).
+*   Pages (`src/page/*`): Represent distinct views or routes within the application (e.g., `ApiaryList`, `HiveEdit`, `InspectionShare`).
+*   Shared Components (`src/shared/*`): Reusable UI elements used across multiple pages (e.g., `Button`, `Header`, `Map`, `Loader`, `VisualForm`).
 
 ### State Management & Data Flow (Urql + Dexie)
 
@@ -152,19 +250,19 @@ The application employs an **offline-first** state management strategy centered 
 
 **Core Principles:**
 
-1.  **Dexie as the Global Offline State:** Dexie manages a client-side IndexedDB database (`gratheon`). This database acts as the central, persistent state container for application data (apiaries, hives, inspections, etc.), making it accessible even when offline.
-2.  **Minimize Component State:** We strive to avoid storing fetched data or complex state directly within component state (`useState`, `useReducer`). Instead, components rely on accessing data from the Dexie cache.
-3.  **Reduce Prop Drilling:** By treating Dexie as the global state, components can fetch the data they need directly, rather than receiving it through multiple layers of props.
+1.  Dexie as the Global Offline State: Dexie manages a client-side IndexedDB database (`gratheon`). This database acts as the central, persistent state container for application data (apiaries, hives, inspections, etc.), making it accessible even when offline.
+2.  Minimize Component State: We strive to avoid storing fetched data or complex state directly within component state (`useState`, `useReducer`). Instead, components rely on accessing data from the Dexie cache.
+3.  Reduce Prop Drilling: By treating Dexie as the global state, components can fetch the data they need directly, rather than receiving it through multiple layers of props.
 
 **Data Flow:**
 
-1.  **Data Fetching (Urql):** Components use adapted Urql hooks (`useQuery`, `useMutation`, `useSubscription` from `src/api/index.ts`) to request data or perform mutations.
-2.  **Custom Urql Exchange (`offlineIndexDbExchange`):** A custom Urql exchange (`src/api/offlineIndexDbExchange.ts`) intercepts these operations.
-    *   **Network-First Attempt:** It first attempts to fetch data from the network via the GraphQL API.
-    *   **Cache Update:** If the network request succeeds, the response data is processed by `writeHooks` (`src/models/db/writeHooks.ts`). These hooks normalize the data and use Dexie functions (`upsertEntity`, etc. from `src/models/db/index.ts`) to write the fresh data into the appropriate IndexedDB tables.
-    *   **Offline Fallback:** If the network request fails (e.g., user is offline), the exchange executes the GraphQL query against custom `resolvers` (`src/api/resolvers.ts`) which read data directly from the Dexie (IndexedDB) cache.
-3.  **Data Storage (Dexie):** Dexie (`src/models/db/index.ts`) manages the IndexedDB tables. The schema for these tables is dynamically generated on application startup (`syncGraphqlSchemaToIndexDB` in `src/app.tsx`) based on the GraphQL schema (`src/api/schema.ts`), ensuring alignment between the backend and the client-side cache.
-4.  **UI Updates:** Components typically access data via the Urql hooks. Because the `offlineIndexDbExchange` ensures the Dexie cache is updated and serves as a fallback, these hooks effectively provide components with data sourced primarily from Dexie, whether fetched initially from the network or retrieved directly from the cache when offline. Direct Dexie hooks like `useLiveQuery` might also be used in some places for reactive updates directly from the database.
+1.  Data Fetching (Urql): Components use adapted Urql hooks (`useQuery`, `useMutation`, `useSubscription` from `src/api/index.ts`) to request data or perform mutations.
+2.  Custom Urql Exchange (`offlineIndexDbExchange`): A custom Urql exchange (`src/api/offlineIndexDbExchange.ts`) intercepts these operations.
+    *   Network-First Attempt: It first attempts to fetch data from the network via the GraphQL API.
+    *   Cache Update: If the network request succeeds, the response data is processed by `writeHooks` (`src/models/db/writeHooks.ts`). These hooks normalize the data and use Dexie functions (`upsertEntity`, etc. from `src/models/db/index.ts`) to write the fresh data into the appropriate IndexedDB tables.
+    *   Offline Fallback: If the network request fails (e.g., user is offline), the exchange executes the GraphQL query against custom `resolvers` (`src/api/resolvers.ts`) which read data directly from the Dexie (IndexedDB) cache.
+3.  Data Storage (Dexie): Dexie (`src/models/db/index.ts`) manages the IndexedDB tables. The schema for these tables is dynamically generated on application startup (`syncGraphqlSchemaToIndexDB` in `src/app.tsx`) based on the GraphQL schema (`src/api/schema.ts`), ensuring alignment between the backend and the client-side cache.
+4.  UI Updates: Components typically access data via the Urql hooks. Because the `offlineIndexDbExchange` ensures the Dexie cache is updated and serves as a fallback, these hooks effectively provide components with data sourced primarily from Dexie, whether fetched initially from the network or retrieved directly from the cache when offline. Direct Dexie hooks like `useLiveQuery` might also be used in some places for reactive updates directly from the database.
 
 This architecture ensures data persistence, enables offline functionality, and promotes a clean separation between data management and component logic.
 
@@ -260,7 +358,10 @@ flowchart LR
 | MS Clarity           | -       | User behavior analytics (heatmaps, session recordings)           |
 | **Testing**          |         |                                                                  |
 | Playwright           | ^1.46   | End-to-end testing framework                                     |
-| Jest                 | ^29.3   | JavaScript testing framework (configuration present, usage low)  |
+| Vitest               | ^3.1    | Fast unit testing framework, integrated with Vite                |
+| @testing-library/react | ^16.0   | Utilities for testing React components                           |
+| @testing-library/jest-dom | ^6.4 | Custom matchers for asserting on DOM nodes                     |
+| Playwright           | ^1.46   | End-to-end testing framework                                     |
 
 ## Project Structure
 
@@ -297,47 +398,6 @@ web-app/
 ├── tsconfig.json           # TypeScript compiler configuration
 └── vite.config.ts          # Vite build tool configuration
 ```
-
-## Configuration
-
-*   **API Endpoints:** Configured primarily in `src/uri.ts`. The `USE_PROD_BACKEND_FOR_DEV` flag controls whether to target production or local backend services during development.
-*   **Environment Variables:** While not explicitly listed, Vite supports standard `.env` file conventions (`.env`, `.env.local`, `.env.development`, `.env.production`) for build-time environment variables. Check `vite.config.ts` for usage.
-
-## Available Scripts
-
-Common tasks are managed via `npm` scripts (defined in `package.json`) and `just` commands (defined in `justfile`).
-
-*   `just start` or `npm run dev`: Starts the Vite development server (hot-reloading enabled).
-*   `npm run build`: Creates an optimized production build in the `dist/` folder.
-*   `npm run build-clean`: Removes contents of the `public/` directory.
-*   `npm run build-move`: Moves contents from `dist/` to `public/` (likely part of a build pipeline).
-*   `npm run preview`: Serves the production build locally for previewing.
-*   `npm run prettier`: Formats code using Prettier.
-*   `just test-ui-headless`: Runs Playwright E2E tests in headless mode.
-*   `just test-ui-create`: Interactively generates boilerplate for a new Playwright test.
-*   `npm run test` / `npm run test:unit`: Placeholder/intended script for running unit tests (currently limited).
-
-## Testing
-
-### Unit Tests
-
-*   **Framework:** Jest is configured (`test/jest.config.ts`), intended for use with Preact.
-*   **Current Status:** The previous README indicated a lack of comprehensive unit tests. Contributions are welcome.
-
-### End-to-End (E2E) Tests
-
-*   **Framework:** Playwright (`test/ui/`) is used for browser automation testing.
-*   **Running Tests:**
-    *   Headless: `just test-ui-headless`
-    *   Interactive (headed): Run Playwright commands directly or use VS Code Playwright extension.
-*   **Creating Tests:** `just test-ui-create`
-*   **CI Status:** E2E tests are not currently integrated into a CI pipeline.
-
-## Deployment
-
-*   The application is containerized using Docker (`Dockerfile`).
-*   The `config/nginx.conf` suggests deployment behind an Nginx reverse proxy, likely serving the static build assets and potentially proxying API requests.
-*   Deployment specifics (CI/CD pipeline, hosting environment) are not detailed in this repository.
 
 ## Contributing
 

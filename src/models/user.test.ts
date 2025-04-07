@@ -1,0 +1,96 @@
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest'; // Import Mock type
+import { getUser, updateUser, User } from './user';
+import { db } from './db'; // Import original db for type info if needed, but we mock it
+
+// Mock the entire db module
+// Define mocks *inside* the factory function to avoid hoisting issues
+vi.mock('./db', () => {
+  const mockToArray = vi.fn();
+  const mockPut = vi.fn();
+  return {
+    db: {
+      user: {
+        toArray: mockToArray,
+        put: mockPut,
+      },
+      // Expose mocks for test access if needed, though direct import is usually better
+      __mocks: { mockToArray, mockPut }
+    },
+  };
+});
+
+// Import the mocked db *after* vi.mock call
+// We need a way to access the mock functions for setup/assertions
+// Cast db to 'any' to access the mocked 'user' property without TS error
+const mockedDbUser = (db as any).user as { toArray: Mock, put: Mock };
+
+
+describe('User Model', () => {
+  beforeEach(() => {
+    // Reset mocks before each test using the reference from the mocked module
+    mockedDbUser.toArray.mockReset();
+    mockedDbUser.put.mockReset();
+  });
+
+  // Use mockedDbUser directly
+
+  describe('getUser', () => {
+    it('should return the user if found in the database', async () => {
+      const mockUser: User = { id: 1, email: 'test@example.com', first_name: 'Test' };
+      mockedDbUser.toArray.mockResolvedValue([mockUser]); // Use the mock function reference
+
+      const user = await getUser();
+      expect(user).toEqual(mockUser);
+      expect(mockedDbUser.toArray).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return null if no user is found', async () => {
+      mockedDbUser.toArray.mockResolvedValue([]); // Use the mock function reference
+
+      const user = await getUser();
+      expect(user).toBeNull();
+      expect(mockedDbUser.toArray).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw an error if the database operation fails', async () => {
+      const mockError = new Error('Database error');
+      mockedDbUser.toArray.mockRejectedValue(mockError); // Use the mock function reference
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {}); // Suppress console.error
+
+      // Check that the function throws an error with the expected message
+      await expect(getUser()).rejects.toThrowError(mockError.message);
+      expect(mockedDbUser.toArray).toHaveBeenCalledTimes(1);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(mockError); // Verify console.error was called
+
+      consoleErrorSpy.mockRestore(); // Restore original console.error
+    });
+  });
+
+  describe('updateUser', () => {
+    it('should call db.put with the user data and numeric ID', async () => {
+      const userData: User = { id: '2' as any, email: 'update@example.com', last_name: 'User' };
+      const expectedData = { ...userData, id: 2 }; // ID should be converted to number
+      mockedDbUser.put.mockResolvedValue(2); // Use the mock function reference
+
+      await updateUser(userData);
+
+      expect(mockedDbUser.put).toHaveBeenCalledTimes(1);
+      expect(mockedDbUser.put).toHaveBeenCalledWith(expectedData);
+    });
+
+    it('should throw an error if db.put fails', async () => {
+      const userData: User = { id: 3, email: 'fail@example.com' };
+      const mockError = new Error('Failed to put');
+      mockedDbUser.put.mockRejectedValue(mockError); // Use the mock function reference
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {}); // Suppress console.error
+
+      // Check that the function throws an error with the expected message
+      await expect(updateUser(userData)).rejects.toThrowError(mockError.message);
+      expect(mockedDbUser.put).toHaveBeenCalledTimes(1);
+      expect(mockedDbUser.put).toHaveBeenCalledWith(userData);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(mockError); // Verify console.error was called
+
+      consoleErrorSpy.mockRestore(); // Restore original console.error
+    });
+  });
+});

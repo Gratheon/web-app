@@ -21,6 +21,7 @@ export type FrameSideFile = {
     isBeeDetectionComplete?: boolean
     isCellsDetectionComplete?: boolean
     isQueenCupsDetectionComplete?: boolean
+    queenDetected?: boolean // Added this line
 
     counts: any
 }

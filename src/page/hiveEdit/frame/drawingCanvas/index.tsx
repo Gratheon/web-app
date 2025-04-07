@@ -315,7 +315,7 @@ interface DrawingCanvasProps {
 	detectedVarroa?: any[];
 	onStrokeHistoryUpdate: (history: typeof points[]) => void;
 	frameSideFile: any; // Define more specific type if possible
-	frameSide: string; // Define more specific type if possible
+	// frameSide: string; // Removed unused prop
 }
 
 export default function DrawingCanvas({
@@ -328,6 +328,7 @@ export default function DrawingCanvas({
 	detectedVarroa = [],
 	onStrokeHistoryUpdate,
 	frameSideFile,
+	// frameSide, // Removed from destructuring
 }: DrawingCanvasProps) {
 
 	const ref = useRef<HTMLCanvasElement>(null);

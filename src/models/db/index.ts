@@ -9,7 +9,7 @@ import { FRAME_SIDE_FILE_TABLE } from '../frameSideFile.ts'
 import { has } from 'lodash'
 
 const DB_NAME = 'gratheon'
-const DB_VERSION = 8
+const DB_VERSION = 9 // Incremented version number
 
 export const db = new Dexie(DB_NAME, {
 	autoOpen: true,
@@ -116,4 +116,3 @@ export async function upsertEntity(entityName, entity) {
 		throw e
 	}
 }
-

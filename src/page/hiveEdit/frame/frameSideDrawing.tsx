@@ -1,14 +1,17 @@
-import React, { useCallback } from 'react' // Removed useState, useEffect
-import { useLiveQuery } from 'dexie-react-hooks' // Added useLiveQuery
-import { gql, useMutation, useSubscription } from '@/api'
-import { updateFrameSideFile, FrameSideFile, getFrameSideFile } from '@/models/frameSideFile' // Added getFrameSideFile
-import { FrameSide as FrameSideType, getFrameSide, upsertFrameSide } from '@/models/frameSide'
+import React, { useCallback } from 'react' // Removed useSubscription
+import { useLiveQuery } from 'dexie-react-hooks'
+import { gql, useMutation } from '@/api' // Removed useSubscription
+// Import only needed model functions and types
+import {
+	FrameSideFile, getFrameSideFile, updateStrokeHistoryData
+} from '@/models/frameSideFile' // Removed append...Data functions
+import { FrameSide as FrameSideType } from '@/models/frameSide' // Removed getFrameSide, upsertFrameSide
 import Loading from '@/shared/loader'
 import ErrorMessage from '@/shared/messageError'
 import DrawingCanvas from '@/page/hiveEdit/frame/drawingCanvas'
 import styles from '@/page/hiveEdit/frame/styles.module.less'
-
-// Define local type for the file prop
+import { useFrameSideSubscriptions } from '@/hooks/useFrameSideSubscriptions' // Import the new hook
+// Define local type for the file prop (keep this)
 interface FilePropType {
 	id: number | string;
 	url: string;
@@ -36,168 +39,10 @@ export default function FrameSideDrawing({
 		[frameSideId] // Re-run query if frameSideId changes
 	)
 
-	const handleBeesUpdate = useCallback((_, response) => {
-		if (response?.onFrameSideBeesPartiallyDetected && liveFrameSideFile) { // Use liveFrameSideFile
-			const update = response.onFrameSideBeesPartiallyDetected
-			const newState = {
-				...liveFrameSideFile, // Use liveFrameSideFile
-				detectedBees: [
-					...(liveFrameSideFile.detectedBees || []), // Corrected reference
-					...(update.delta || []),
-				],
-				detectedQueenCount: update.detectedQueenCount,
-				detectedWorkerBeeCount: update.detectedWorkerBeeCount,
-				detectedDroneCount: update.detectedDroneCount,
-				isBeeDetectionComplete: update.isBeeDetectionComplete,
-			}
-			updateFrameSideFile(newState) // Only update Dexie
-			// setFrameSideFileData(newState) // Removed state update
-		}
-	}, [liveFrameSideFile]) // Dependency is now liveFrameSideFile
+	// Call the custom hook to handle subscriptions
+	useFrameSideSubscriptions(frameSideId);
 
-	const handleResourcesUpdate = useCallback((_, response) => {
-		if (response?.onFrameSideResourcesDetected && liveFrameSideFile) { // Use liveFrameSideFile
-			const update = response.onFrameSideResourcesDetected
-			const newState = {
-				...liveFrameSideFile, // Use liveFrameSideFile
-				detectedCells: [
-					...(liveFrameSideFile.detectedCells || []), // Corrected reference
-					...(update.delta || []),
-				],
-				isCellsDetectionComplete: update.isCellsDetectionComplete,
-				broodPercent: update.broodPercent,
-				cappedBroodPercent: update.cappedBroodPercent,
-				eggsPercent: update.eggsPercent,
-				pollenPercent: update.pollenPercent,
-				honeyPercent: update.honeyPercent,
-			}
-			updateFrameSideFile(newState) // Only update Dexie
-			// setFrameSideFileData(newState) // Removed state update
-		}
-	}, [liveFrameSideFile]) // Dependency is now liveFrameSideFile
-
-	const handleQueenCupsUpdate = useCallback((_, response) => {
-		if (response?.onFrameQueenCupsDetected && liveFrameSideFile) { // Use liveFrameSideFile
-			const update = response.onFrameQueenCupsDetected
-			const newState = {
-				...liveFrameSideFile, // Use liveFrameSideFile
-				detectedQueenCups: [
-					...(liveFrameSideFile.detectedQueenCups || []), // Corrected reference
-					...(update.delta || []),
-				],
-				isQueenCupsDetectionComplete: update.isQueenCupsDetectionComplete,
-			}
-			updateFrameSideFile(newState) // Only update Dexie
-			// setFrameSideFileData(newState) // Removed state update
-		}
-	}, [liveFrameSideFile]) // Dependency is now liveFrameSideFile
-
-	const handleQueenUpdate = useCallback((_, response) => {
-		console.log('onFrameQueenDetected: Received response:', response)
-		if (response?.onFrameQueenDetected && liveFrameSideFile) { // Use liveFrameSideFile
-			const queenData = response.onFrameQueenDetected
-			console.log('onFrameQueenDetected: Processing data:', queenData)
-
-			let newDetectedBees = liveFrameSideFile.detectedBees || [] // Use liveFrameSideFile
-			let newQueenCount = liveFrameSideFile.detectedQueenCount || 0 // Use liveFrameSideFile
-
-			if (queenData.delta && queenData.delta.length > 0) {
-				newDetectedBees = [...newDetectedBees, ...queenData.delta]
-				newQueenCount += queenData.delta.length
-			}
-
-			const newState = {
-				...liveFrameSideFile, // Use liveFrameSideFile
-				detectedBees: newDetectedBees,
-				detectedQueenCount: newQueenCount,
-				queenDetected: (queenData.delta && queenData.delta.length > 0) ? true : (liveFrameSideFile.queenDetected ?? false), // Use liveFrameSideFile
-				isQueenDetectionComplete: queenData.isQueenDetectionComplete !== undefined
-					? !!queenData.isQueenDetectionComplete
-					: (liveFrameSideFile.isQueenDetectionComplete ?? false), // Use liveFrameSideFile
-			}
-			console.log('onFrameQueenDetected: Updating IndexedDB frameSideFile:', newState)
-			updateFrameSideFile(newState) // Only update Dexie
-			// setFrameSideFileData(newState) // Removed state update
-
-			const aiFoundQueen = queenData.delta && queenData.delta.length > 0
-			if (aiFoundQueen) {
-				getFrameSide(+frameSideId).then(currentFrameSide => {
-					if (currentFrameSide && !currentFrameSide.isQueenConfirmed) {
-						console.log('onFrameQueenDetected: AI found queen and not confirmed, updating frameSide.isQueenConfirmed to true')
-						const updatedFrameSideState: FrameSideType = {
-							...currentFrameSide,
-							isQueenConfirmed: true,
-						}
-						upsertFrameSide(updatedFrameSideState)
-					} else {
-						console.log('onFrameQueenDetected: AI found queen but already confirmed or frameSide missing, skipping confirmation update.')
-					}
-				})
-			}
-		} else {
-			console.log('onFrameQueenDetected: Skipping update (no response data or liveFrameSideFile is null)') // Updated log message
-		}
-	}, [liveFrameSideFile, frameSideId]) // Dependency is now liveFrameSideFile
-
-	useSubscription(
-		gql`
-			subscription onFrameSideBeesPartiallyDetected($frameSideId: String) {
-				onFrameSideBeesPartiallyDetected(frameSideId: $frameSideId) {
-					delta
-					detectedQueenCount
-					detectedWorkerBeeCount
-					detectedDroneCount
-					isBeeDetectionComplete
-				}
-			}
-		`,
-		{ frameSideId },
-		handleBeesUpdate
-	)
-
-	useSubscription(
-		gql`
-			subscription onFrameSideResourcesDetected($frameSideId: String) {
-				onFrameSideResourcesDetected(frameSideId: $frameSideId) {
-					delta
-					isCellsDetectionComplete
-					broodPercent
-					cappedBroodPercent
-					eggsPercent
-					pollenPercent
-					honeyPercent
-				}
-			}
-		`,
-		{ frameSideId },
-		handleResourcesUpdate
-	)
-
-	useSubscription(
-		gql`
-			subscription onFrameQueenCupsDetected($frameSideId: String) {
-				onFrameQueenCupsDetected(frameSideId: $frameSideId) {
-					delta
-					isQueenCupsDetectionComplete
-				}
-			}
-		`,
-		{ frameSideId },
-		handleQueenCupsUpdate
-	)
-
-	useSubscription(
-		gql`
-			subscription onFrameQueenDetected($frameSideId: String) {
-				onFrameQueenDetected(frameSideId: $frameSideId) {
-					delta
-					isQueenDetectionComplete
-				}
-			}
-		`,
-		{ frameSideId },
-		handleQueenUpdate
-	)
+	// Keep only the mutation and the stroke history update logic
 
 	const [filesStrokeEditMutate, { error: errorStrokes }] = useMutation(gql`
 		mutation filesStrokeEditMutation($files: [FilesUpdateInput]) {
@@ -205,25 +50,26 @@ export default function FrameSideDrawing({
 		}
 	`)
 
+	// Updated onStrokeHistoryUpdate to use atomic modify function
 	const onStrokeHistoryUpdate = useCallback(async (strokeHistory) => {
 		// Optimistically update via mutation first
 		filesStrokeEditMutate({
 			files: [
 				{
-					frameSideId: frameSide.id,
+					frameSideId: frameSide.id, // Assuming frameSide.id is correct
 					fileId: file.id,
 					strokeHistory,
 				},
 			],
-		})
+		});
 
-		// Then update Dexie
-		if (liveFrameSideFile) { // Use liveFrameSideFile
-			const newState = { ...liveFrameSideFile, strokeHistory } // Use liveFrameSideFile
-			updateFrameSideFile(newState) // Only update Dexie
-			// setFrameSideFileData(newState) // Removed state update
-		}
-	}, [filesStrokeEditMutate, frameSide.id, file.id, liveFrameSideFile]) // Dependency is now liveFrameSideFile
+		// Then update Dexie atomically
+		updateStrokeHistoryData(+frameSideId, strokeHistory)
+			.catch(error => {
+				console.error("Failed to update stroke history:", error);
+			});
+
+	}, [filesStrokeEditMutate, frameSide.id, file.id, frameSideId]); // Added frameSideId dependency
 
 	// Check if liveFrameSideFile is still loading (undefined means initial load)
 	if (liveFrameSideFile === undefined || !frameId || !frameSideId || !frameSide) {
@@ -235,6 +81,9 @@ export default function FrameSideDrawing({
 		// Optionally render a message or specific UI
 		return <div>No frame side data found.</div>;
 	}
+
+	// Log the bee count being passed to DrawingCanvas
+	console.log(`Rendering FrameSideDrawing. liveFrameSideFile.detectedBees length: ${liveFrameSideFile?.detectedBees?.length ?? 'N/A'}`);
 
 	return (
 		<div className={styles.frame}>

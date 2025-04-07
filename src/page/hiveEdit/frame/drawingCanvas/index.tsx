@@ -637,6 +637,7 @@ export default function DrawingCanvas({
 
 	// Redraw when detection data changes
 	useEffect(() => {
+		console.log("Redrawing canvas due to detection data change. Bees count:", detectedBees?.length); // Added log
 		redrawCurrentCanvas();
 	}, [detectedBees, detectedCells, detectedQueenCups, detectedVarroa, redrawCurrentCanvas]);
 

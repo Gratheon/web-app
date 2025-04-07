@@ -5,6 +5,7 @@
     "module": "ESNext",
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
+    "types": ["jest", "@testing-library/jest-dom"], // Add Jest and Jest-DOM types
     "paths": {
       "@/*": ["./src/*"],
       "react": ["./node_modules/preact/compat/"],
@@ -25,7 +26,8 @@
 //    "noUnusedLocals": true,
 //    "noUnusedParameters": true,
 //    "noFallthroughCasesInSwitch": true
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true // Added to address ts-jest warning
   },
   "include": ["src"]
 }

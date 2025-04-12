@@ -141,14 +141,14 @@ describe('Inspections Model', () => {
         expect(dbMocks.mockToArray).toHaveBeenCalledTimes(1);
     });
 
-     it('should return null and log error if hiveId is invalid', async () => {
+     it('should return empty array and log warning if hiveId is invalid', async () => {
         // ARRANGE
-        const consoleErrorSpy = vi.spyOn(console, 'error');
+        const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {}); // Spy on console.warn
         // ACT
         const result = await listInspections(0);
         // ASSERT
-        expect(result).toBeNull();
-        expect(consoleErrorSpy).toHaveBeenCalledWith('attempt to get inspections with invalid hiveId', { hiveId: 0 });
+        expect(result).toEqual([]); // Expect empty array for invalid ID
+        expect(consoleWarnSpy).toHaveBeenCalledWith('Attempted to list inspections with invalid hiveId: 0');
         expect(dbMocks.mockWhere).not.toHaveBeenCalled();
     });
 

@@ -36,15 +36,17 @@ export async function getInspection(id: number): Promise<Inspection> {
 		throw e
 	}
 }
-export async function listInspections(hiveId: number): Promise<Inspection> {
-	if(!hiveId) {
-		console.error('attempt to get inspections with invalid hiveId', {hiveId})
-		return null;
+export async function listInspections(hiveId: number): Promise<Inspection[]> {
+	// Validate hiveId before querying
+	if (!hiveId || !Number.isFinite(hiveId) || hiveId <= 0) {
+		console.warn(`Attempted to list inspections with invalid hiveId: ${hiveId}`);
+		return []; // Return empty array for invalid hiveId
 	}
 
 	try {
+		// Ensure hiveId passed to Dexie is a number
 		return await db[TABLE_NAME]
-			.where({ hiveId })
+			.where({ hiveId: +hiveId })
 			.reverse()
 			.limit(100)
 			.toArray()

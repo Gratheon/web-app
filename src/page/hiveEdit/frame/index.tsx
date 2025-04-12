@@ -39,8 +39,9 @@ export default function Frame({
 	let [frameRemoving, setFrameRemoving] = useState<boolean>(false)
 	// Local state for the queen checkbox
 	const [isQueenChecked, setIsQueenChecked] = useState<boolean | undefined>(undefined);
-	let frame = useLiveQuery(() => getFrame(+frameId), [frameId])
-	let frameSide = useLiveQuery(() => getFrameSide(+frameSideId), [frameSideId])
+	// Model functions now handle invalid IDs
+	let frame = useLiveQuery(() => getFrame(+frameId), [frameId]);
+	let frameSide = useLiveQuery(() => getFrameSide(+frameSideId), [frameSideId]);
 
 	// Effect to sync local state with fetched data
 	useEffect(() => {

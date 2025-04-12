@@ -33,13 +33,11 @@ export default function FrameSideDrawing({
 	frameId,
 	frameSideId,
 }: FrameSideDrawingProps) {
-	// Use useLiveQuery to get live data from Dexie
+	// Model function getFrameSideFile now handles invalid IDs
 	const liveFrameSideFile = useLiveQuery(
 		() => getFrameSideFile({ frameSideId: +frameSideId }),
-		[frameSideId], // Re-run query if frameSideId changes
-		// Add initial value to avoid undefined during first load if needed, though null check handles it
-		// null
-	)
+		[frameSideId]
+	);
 
 	// Call the custom hook to handle subscriptions
 	useFrameSideSubscriptions(frameSideId);

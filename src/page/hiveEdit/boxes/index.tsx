@@ -46,11 +46,8 @@ export default function Boxes({
 }: BoxesProps) {
 	let navigate = useNavigate()
 
-	const boxes = useLiveQuery(
-		() => getBoxes({ hiveId: +hiveId }),
-		[hiveId],
-		false
-	)
+	// Model function getBoxes now handles invalid IDs
+	const boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId], false);
 
 	if (boxes === false) {
 		return <Loader />

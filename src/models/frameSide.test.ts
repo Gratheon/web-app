@@ -122,16 +122,17 @@ describe('FrameSide Model', () => {
             expect(dbMocks.mockGet).toHaveBeenCalledWith(101); // ID converted to number
         });
 
-         it('should convert string id to number', async () => {
+         it('should return undefined and warn if id is not a finite number (e.g., string)', async () => {
             // ARRANGE
-            dbMocks.mockGet.mockResolvedValue(frameSide1);
+            const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {}); // Spy on console.warn
 
             // ACT
-            await getFrameSide('101' as any);
+            const result = await getFrameSide('101' as any); // Pass string ID
 
             // ASSERT
-            expect(dbMocks.mockGet).toHaveBeenCalledTimes(1);
-            expect(dbMocks.mockGet).toHaveBeenCalledWith(101);
+            expect(result).toBeUndefined(); // Expect undefined due to validation failure
+            expect(consoleWarnSpy).toHaveBeenCalledWith('Attempted to get frameSide with invalid ID: 101');
+            expect(dbMocks.mockGet).not.toHaveBeenCalled(); // db.get should not be called
         });
 
         it('should return undefined if not found', async () => {

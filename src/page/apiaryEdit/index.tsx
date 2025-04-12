@@ -52,7 +52,8 @@ export default function ApiaryEditForm() {
 
 	let [mapTab, setMapTab] = useState(0)
 
-	let apiary = useLiveQuery(() => getApiary(+id), [id])
+	// Model function getApiary now handles invalid IDs
+	let apiary = useLiveQuery(() => getApiary(+id), [id]);
 
 	let {
 		loading: loadingGet,

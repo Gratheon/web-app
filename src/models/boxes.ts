@@ -24,13 +24,16 @@ export const boxTypes = {
 
 const TABLE_NAME = 'box'
 
-export async function getBox(id: number): Promise<Box> {
-	if (!id) {
-		return null
+export async function getBox(id: number): Promise<Box | undefined> {
+	// Validate ID before querying
+	if (!id || !Number.isFinite(id) || id <= 0) {
+		console.warn(`Attempted to get box with invalid ID: ${id}`);
+		return undefined; // Return undefined for invalid IDs
 	}
 
 	try {
-		return await db[TABLE_NAME].get({ id })
+		// Ensure ID passed to Dexie is a number. Assuming get expects the primary key directly.
+		return await db[TABLE_NAME].get(+id);
 	} catch (e) {
 		console.error(e, { id })
 	}
@@ -69,7 +72,18 @@ export async function getBoxAtPositionBelow(hiveId, position): Promise<Box> {
 	}
 }
 
-export async function getBoxes(where = {}): Promise<Box[]> {
+export async function getBoxes(where: { hiveId?: number } = {}): Promise<Box[]> {
+	// Validate hiveId if provided
+	if (where.hasOwnProperty('hiveId')) {
+		const hiveId = where.hiveId;
+		if (!hiveId || !Number.isFinite(hiveId) || hiveId <= 0) {
+			console.warn(`Attempted to get boxes with invalid hiveId: ${hiveId}`);
+			return []; // Return empty array for invalid hiveId
+		}
+		// Ensure the hiveId used in the query is a number
+		where.hiveId = +hiveId;
+	}
+
 	try {
 		return await db[TABLE_NAME]
 		.where(where)

@@ -12,14 +12,16 @@ export type Hive = {
 
 const TABLE_NAME = 'hive'
 
-export async function getHive(id: number): Promise<Hive> {
-	if(!id) {
-		console.error('attempt to get hive with invalid id', {id})
-		return null;
+export async function getHive(id: number): Promise<Hive | undefined> {
+	// Validate ID before querying
+	if (!id || !Number.isFinite(id) || id <= 0) {
+		console.warn(`Attempted to get hive with invalid ID: ${id}`);
+		return undefined; // Return undefined for invalid IDs
 	}
 
 	try {
-		return await db[TABLE_NAME].get(id)
+		// Ensure ID passed to Dexie is a number
+		return await db[TABLE_NAME].get(+id);
 	} catch (e) {
 		console.error(e)
 		throw e

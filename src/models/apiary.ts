@@ -9,14 +9,16 @@ export type Apiary = {
 
 const TABLE_NAME = 'apiary'
 
-export async function getApiary(id: number): Promise<Apiary> {
-	if(!id) {
-		console.error('attempt to get apiary with invalid id', {id})
-		return null;
+export async function getApiary(id: number): Promise<Apiary | undefined> {
+	// Validate ID before querying
+	if (!id || !Number.isFinite(id) || id <= 0) {
+		console.warn(`Attempted to get apiary with invalid ID: ${id}`);
+		return undefined; // Return undefined for invalid IDs
 	}
 
 	try {
-		return await db[TABLE_NAME].get(id)
+		// Ensure ID passed to Dexie is a number
+		return await db[TABLE_NAME].get(+id);
 	} catch (e) {
 		console.error("failed to read apiary", e)
 		throw e

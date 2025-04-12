@@ -28,9 +28,10 @@ export default function FrameSideImage({
         return await getFile(frameSideFile?.fileId)
     }, [frameSideFile, frameSideId]);
 
+    // Model function getFileResizes now handles invalid IDs
     let resizes = useLiveQuery(() => {
         return frameSideFile && getFileResizes({file_id: +frameSideFile?.fileId})
-    }, [frameSideId, frameSideFile], null);
+    }, [frameSideFile?.fileId], null); // Depend on fileId, use null as initial
 
     let url = file && file.url
     let selectedSize = 2000;

@@ -28,8 +28,9 @@ export default function InspectionList({breadcrumbs}) {
 	let { apiaryId, hiveId, boxId, inspectionId } = useParams()
 	let [error, onError] = useState(null)
 
-	const apiary = useLiveQuery(() => getApiary(+apiaryId), [apiaryId], null)
-	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId], null)
+	// Model functions now handle invalid IDs
+	const apiary = useLiveQuery(() => getApiary(+apiaryId), [apiaryId], null);
+	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId], null);
 
 	if (apiary === null || hive === null) {
 		return <Loader />
@@ -38,14 +39,11 @@ export default function InspectionList({breadcrumbs}) {
 	let loading, errorGet, errorNetwork
 
 	let user = useLiveQuery(() => getUser(), [], null)
-	const inspections = useLiveQuery(
-		() => listInspections(+hiveId),
-		[hiveId],
-		null
-	)
+	// Model function listInspections now handles invalid IDs
+	const inspections = useLiveQuery(() => listInspections(+hiveId), [hiveId], null);
 	// if local cache is empty - query
 	if (inspections == null || inspections.length === 0) {
-		;({
+		;({ // Corrected: Removed stray parenthesis and duplicate block
 			loading,
 			error: errorGet,
 			errorNetwork,

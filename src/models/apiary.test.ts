@@ -66,24 +66,24 @@ describe('Apiary Model', () => {
       expect(mockedDbApiary.get).toHaveBeenCalledWith(99);
     });
 
-    it('should return null and log error if id is invalid (0, null, undefined)', async () => {
+    it('should return undefined and log warning if id is invalid (0, null, undefined)', async () => {
       // ARRANGE
-      const consoleErrorSpy = vi.spyOn(console, 'error');
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {}); // Spy on console.warn
 
       // ACT & ASSERT for 0
       const result1 = await getApiary(0);
-      expect(result1).toBeNull();
-      expect(consoleErrorSpy).toHaveBeenCalledWith('attempt to get apiary with invalid id', { id: 0 });
+      expect(result1).toBeUndefined();
+      expect(consoleWarnSpy).toHaveBeenCalledWith('Attempted to get apiary with invalid ID: 0');
 
       // ACT & ASSERT for null
       const result2 = await getApiary(null as any);
-      expect(result2).toBeNull();
-      expect(consoleErrorSpy).toHaveBeenCalledWith('attempt to get apiary with invalid id', { id: null });
+      expect(result2).toBeUndefined();
+      expect(consoleWarnSpy).toHaveBeenCalledWith('Attempted to get apiary with invalid ID: null');
 
       // ACT & ASSERT for undefined
       const result3 = await getApiary(undefined as any);
-      expect(result3).toBeNull();
-      expect(consoleErrorSpy).toHaveBeenCalledWith('attempt to get apiary with invalid id', { id: undefined });
+      expect(result3).toBeUndefined();
+      expect(consoleWarnSpy).toHaveBeenCalledWith('Attempted to get apiary with invalid ID: undefined');
 
       // ASSERT
       expect(mockedDbApiary.get).not.toHaveBeenCalled();

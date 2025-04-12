@@ -28,10 +28,18 @@ export type FrameSideFile = {
 
 export const FRAME_SIDE_FILE_TABLE = 'frame_side_file'
 
-export async function getFrameSideFile({ frameSideId }): Promise<FrameSideFile|null> {
+export async function getFrameSideFile({ frameSideId }: { frameSideId: number }): Promise<FrameSideFile | undefined> {
+    // Validate frameSideId before querying
+    if (!frameSideId || !Number.isFinite(frameSideId) || frameSideId <= 0) {
+        console.warn(`Attempted to get frameSideFile with invalid ID: ${frameSideId}`);
+        return undefined; // Return undefined for invalid IDs
+    }
+
     try {
-        const row = await db[FRAME_SIDE_FILE_TABLE].get(+frameSideId)
+        // Ensure ID passed to Dexie is a number
+        const row = await db[FRAME_SIDE_FILE_TABLE].get(+frameSideId);
         if (row) {
+            // Ensure arrays exist
             if (!row.detectedBees) {
                 row.detectedBees = []
             }

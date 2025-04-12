@@ -25,9 +25,8 @@ export default function FrameSide({
 		return
 	}
 
-	let frameSide = useLiveQuery(function () {
-		return getFrameSide(+frameSideId)
-	}, [frameSideId], null);
+	// Model function getFrameSide now handles invalid IDs
+	let frameSide = useLiveQuery(() => getFrameSide(+frameSideId), [frameSideId], null);
 
 	let frameSideFile = useLiveQuery(function () {
 		if (!frameSide) return null

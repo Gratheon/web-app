@@ -30,9 +30,10 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 	let [creatingInspection, setCreatingInspection] = useState(false)
 	let [okMsg, setOkMsg] = useState(null)
 
-	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId])
-	let boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId])
-	let family = useLiveQuery(() => getFamilyByHive(+hiveId), [hiveId])
+	// Model functions now handle invalid IDs
+	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId]);
+	let boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId]);
+	let family = useLiveQuery(() => getFamilyByHive(+hiveId), [hiveId]);
 
 	let [mutateBoxColor, { error: errorColor }] = useMutation(
 		`mutation updateBoxColor($boxID: ID!, $color: String!) { updateBoxColor(id: $boxID, color: $color) }`

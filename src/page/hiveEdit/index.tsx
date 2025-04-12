@@ -62,10 +62,11 @@ export default function HiveEditForm() {
 	}, [location.pathname])
 
 	let [mapTab, setMapTab] = useState('structure')
-	const apiary = useLiveQuery(() => getApiary(+apiaryId), [apiaryId], null)
-	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId], null)
-	const box = useLiveQuery(() => getBox(+boxId), [boxId], null)
-	const family = useLiveQuery(() => getFamilyByHive(+hiveId), [hiveId])
+	// Model functions now handle invalid IDs
+	const apiary = useLiveQuery(() => getApiary(+apiaryId), [apiaryId], null);
+	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId], null);
+	const box = useLiveQuery(() => getBox(+boxId), [boxId], null);
+	const family = useLiveQuery(() => getFamilyByHive(+hiveId), [hiveId]);
 
 	if (apiary === null || hive === null) {
 		return <Loader />

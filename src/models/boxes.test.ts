@@ -110,14 +110,17 @@ describe('Boxes Model', () => {
       // ASSERT
       expect(result).toEqual(box1);
       expect(dbMocks.mockGet).toHaveBeenCalledTimes(1);
-      expect(dbMocks.mockGet).toHaveBeenCalledWith({ id: 1 });
+      expect(dbMocks.mockGet).toHaveBeenCalledWith(1); // Expect number, not object
     });
 
-    it('should return null if id is invalid', async () => {
+    it('should return undefined and log warning if id is invalid', async () => {
+      // ARRANGE
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {}); // Spy on console.warn
       // ACT
       const result = await getBox(0);
       // ASSERT
-      expect(result).toBeNull();
+      expect(result).toBeUndefined();
+      expect(consoleWarnSpy).toHaveBeenCalledWith('Attempted to get box with invalid ID: 0');
       expect(dbMocks.mockGet).not.toHaveBeenCalled();
     });
 
@@ -129,7 +132,7 @@ describe('Boxes Model', () => {
         // ASSERT
         expect(result).toBeUndefined(); // Dexie get returns undefined
         expect(dbMocks.mockGet).toHaveBeenCalledTimes(1);
-        expect(dbMocks.mockGet).toHaveBeenCalledWith({ id: 99 });
+        expect(dbMocks.mockGet).toHaveBeenCalledWith(99); // Expect number, not object
     });
 
 

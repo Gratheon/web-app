@@ -16,23 +16,19 @@ export default function InspectionShareButton({
 }) {
 	let [resultUrl, setResultUrl] = useState('')
 
-	// Update mutation definition to include new arguments
+	// Update mutation definition to use scopeParams
 	let [generateToken, { error: generationError }] = useMutation(gql`
 		mutation generateShareToken(
 			$name: String!,
 			$scopes: JSON!,
 			$sourceUrl: URL!,
-			$apiaryId: ID!,
-			$hiveId: ID!,
-			$inspectId: ID!  # Renamed variable
+			$scopeParams: JSON! # Use scopeParams
 		) {
 			generateShareToken(
 				name: $name,
 				scopes: $scopes,
 				sourceUrl: $sourceUrl,
-				apiaryId: $apiaryId,
-				hiveId: $hiveId,
-				inspectionId: $inspectId # Use renamed variable here
+				scopeParams: $scopeParams # Pass scopeParams
 			) {
 				id
 				token
@@ -46,16 +42,18 @@ export default function InspectionShareButton({
 	async function onGenerateToken() {
 		setGenerating(true);
 
-		const variablesToSend = {
-			// Add the required IDs
+		// Construct scopeParams object
+		const scopeParamsData = {
 			apiaryId: apiaryId,
 			hiveId: hiveId,
-			inspectId: inspectionId, // Use the renamed variable name here
-			// Existing args
+			inspectionId: inspectionId
+		};
+
+		const variablesToSend = {
 			name: `Inspection ${inspectionId} share`,
 			sourceUrl: window.location.href,
-			// Construct the scopes object according to the defined structure
-			scopes: {
+			scopeParams: scopeParamsData, // Pass the IDs within scopeParams
+			scopes: { // Construct scopes (can potentially be generated on backend too)
 				version: 1,
 				allowedQueries: [
 					{

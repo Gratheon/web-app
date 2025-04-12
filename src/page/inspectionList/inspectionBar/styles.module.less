@@ -32,3 +32,26 @@
 	border-radius: 5px;
 	color:white;
 }
+
+// Legend Styles
+.legendContainer {
+	display: flex;
+	flex-wrap: wrap; // Allow items to wrap
+	justify-content: center; // Center items horizontally
+	gap: 10px; // Space between items
+	margin-top: 8px; // Space above the legend
+	padding: 5px 0; // Padding top/bottom
+	font-size: 10px; // Smaller font size for legend
+}
+
+.legendItem {
+	display: flex;
+	align-items: center;
+	gap: 4px; // Space between color box and text
+}
+
+.legendColorBox {
+	width: 10px; // Small square for color
+	height: 10px;
+	border: 1px solid rgba(0, 0, 0, 0.2); // Subtle border
+}

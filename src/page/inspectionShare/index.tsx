@@ -7,12 +7,15 @@ import { saveShareToken } from '../../user.ts';
 import Loader from '../../shared/loader'; // Corrected path
 import MessageError from '../../shared/messageError'; // Corrected path and potential component name
 import MessageNotFound from '../../shared/messageNotFound'; // Corrected path and potential component name
+import InspectionBar from '../inspectionList/inspectionBar'; // Import InspectionBar
 
-// Simple query to validate the token by fetching the inspection ID
+// Update query to fetch data needed for InspectionBar as well
 const ValidateInspectionShareQuery = gql`
   query ValidateInspectionShare($inspectionId: ID!) {
     inspection(inspectionId: $inspectionId) {
-      id # Fetch minimal data just for validation
+      id
+      added # Needed for InspectionBar DateFormat
+      data # Needed for InspectionBar stats (contains snapshot JSON string)
     }
   }
 `;
@@ -76,15 +79,31 @@ export default function InspectionShare() {
 
 	// If data exists and there's no error, the token is considered valid for this inspection
 	if (data?.inspection?.id && inspectionId) {
-		console.log("InspectionShare: Validation successful. Rendering InspectionView for inspectionId:", inspectionId);
-		// Render the actual InspectionView
+		console.log("InspectionShare: Validation successful. Rendering InspectionBar and InspectionView for inspectionId:", inspectionId);
+		// Render InspectionBar and InspectionView
+		const inspectionData = data.inspection; // Get the inspection data object
 		return (
-			<InspectionView
-				apiaryId={apiaryId}
-				hiveId={hiveId}
-				inspectionId={inspectionId}
+			<div style={{ maxWidth: '1000px', margin: '20px auto', padding: '0 15px' }}> {/* Add container and basic styling */}
+				<InspectionBar
+					selected={false} // Mark as selected since it's the only one shown
+					apiaryId={apiaryId}
+					hiveId={hiveId}
+					id={inspectionData.id} // Use ID from fetched data
+					added={inspectionData.added}
+					data={inspectionData.data}
+					// Pass customization props
+					hideDate={true}
+					fullWidth={true}
+					showPercentages={true}
+					showLegend={true} // Add showLegend prop
+				/>
+				<InspectionView
+					apiaryId={apiaryId}
+					hiveId={hiveId}
+					inspectionId={inspectionId} // Use ID from params for view
 				// isSharedView={true} // Optional prop if InspectionView needs different behavior
-			/>
+				/>
+			</div> // Add closing div tag
 		);
 	}
 

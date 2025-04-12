@@ -110,8 +110,9 @@ export default function Page() {
 				element={<LoggedInPage><HiveEditView /></LoggedInPage>}
 			/>
 
+			{/* Render InspectionShare directly without the standard Menu/Footer */}
 			<Route path="/apiaries/:apiaryId/hives/:hiveId/inspections/:inspectionId/share/:shareToken"
-				element={<PageWithMenu><InspectionShare /></PageWithMenu>} />
+				element={<InspectionShare />} />
 
 			<Route path="/account" element={<LoggedInPage><AccountEdit /></LoggedInPage>} />
 			<Route path="/account/:stripeStatus" element={<LoggedInPage><AccountEdit /></LoggedInPage>} />

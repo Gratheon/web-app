@@ -133,6 +133,13 @@ export default function InspectionShare() {
 					hiveId={hiveId}
 					inspectionId={inspectionId}
 				/>
+				{/* Footer Banner with CTA */}
+				<div style={{ textAlign: 'center', padding: '20px', marginTop: '30px', fontSize: '12px', color: '#888', borderTop: '1px solid #eee' }}>
+					Provided by <a href="https://gratheon.com" target="_blank" rel="noopener noreferrer" style={{ color: '#666', textDecoration: 'underline' }}>Gratheon</a>
+					<a href="/account/register" style={{ marginLeft: '20px', padding: '5px 10px', background: '#3498db', color: 'white', textDecoration: 'none', borderRadius: '3px', fontSize: '11px' }}>
+						Sign Up Free
+					</a>
+				</div>
 			</div>
 		);
 	}

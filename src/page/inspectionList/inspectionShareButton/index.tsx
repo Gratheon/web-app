@@ -57,23 +57,19 @@ export default function InspectionShareButton({
 				version: 1,
 				allowedQueries: [
 					{
-						queryName: "inspection", // Corresponds to Query.inspection in GraphQL schema
-						requiredArgs: { inspectionId: inspectionId } // Use inspectionId (lowercase d) consistent with query
+						queryName: "inspection",
+						requiredArgs: { inspectionId: inspectionId }
 					},
 					{
-						queryName: "hive", // Corresponds to Query.hive
-						requiredArgs: { id: hiveId } // Use id as defined in schema
-					},
-					{
-						queryName: "apiary", // Corresponds to Query.apiary
-						requiredArgs: { id: apiaryId } // Use id as defined in schema
+						queryName: "hive", // Allow fetching the specific hive
+						requiredArgs: { id: hiveId }
 					}
-					// Note: We are not including frame/frameSide scopes for now,
-					// as InspectionView seems to rely on data embedded in the inspection snapshot.
-					// Add them here if direct frame/side queries become necessary for the share view.
+					// Note: We don't need to explicitly allow sub-fields like hive.boxes or hive.family.
+					// The scope check in graphql-router currently only validates the top-level queryName and its direct arguments.
+					// Downstream services (like swarm-api) implicitly handle fetching allowed sub-fields based on the allowed top-level query.
+					// We also don't need 'apiary' scope anymore as it's not directly queried by InspectionShare.
 				]
 			}
-			// The 'scopes' object will be automatically stringified by the GraphQL client/api layer
 			// based on the mutation definition expecting JSON.
 		};
 		console.log('InspectionShareButton: Calling generateToken with variables:', variablesToSend); // Log variables

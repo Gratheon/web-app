@@ -118,12 +118,16 @@ export default function InspectionList({breadcrumbs}) {
 					</div>
 
 					<div>
-						<InspectionShareButton
-							apiaryId={apiaryId}
-							hiveId={hiveId}
-							inspectionId={inspectionId}
-						/>
-						{inspectionId && (
+
+				{inspectionId && <div className={styles.shareButtonContainer}>
+					<InspectionShareButton
+						apiaryId={apiaryId}
+						hiveId={hiveId}
+						inspectionId={inspectionId}
+					/>
+				</div>}
+				
+				{inspectionId && (
 							<InspectionView
 								apiaryId={apiaryId}
 								hiveId={hive.id}

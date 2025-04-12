@@ -105,7 +105,12 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 				setOkMsg(
 					<MessageSuccess
 						title={<T>Inspection created</T>}
-						message={<T>All frame statistics is reset for the new state</T>}
+						message={
+							<>
+							<T>All frame statistics is reset for the new state</T>.
+							<T>Try sharing the inspection with others</T>!
+							</>
+					}
 					/>
 				)
 			}, 1000),

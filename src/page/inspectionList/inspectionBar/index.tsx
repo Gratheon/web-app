@@ -88,7 +88,6 @@ export default function InspectionBar({
 						}}
 					></div>
 				</div>
-
 			</div>
 		</div>
 	)

@@ -16,9 +16,24 @@ export default function InspectionShareButton({
 }) {
 	let [resultUrl, setResultUrl] = useState('')
 
+	// Update mutation definition to include new arguments
 	let [generateToken, { error: generationError }] = useMutation(gql`
-		mutation generateShareToken($name: String!, $scopes: JSON!, $sourceUrl: URL!) {
-			generateShareToken(name: $name, scopes: $scopes, sourceUrl: $sourceUrl) {
+		mutation generateShareToken(
+			$name: String!,
+			$scopes: JSON!,
+			$sourceUrl: URL!,
+			$apiaryId: ID!,
+			$hiveId: ID!,
+			$inspectId: ID!  # Renamed variable
+		) {
+			generateShareToken(
+				name: $name,
+				scopes: $scopes,
+				sourceUrl: $sourceUrl,
+				apiaryId: $apiaryId,
+				hiveId: $hiveId,
+				inspectionId: $inspectId # Use renamed variable here
+			) {
 				id
 				token
 				targetUrl
@@ -31,20 +46,42 @@ export default function InspectionShareButton({
 	async function onGenerateToken() {
 		setGenerating(true);
 
-		const result = await generateToken({
+		const variablesToSend = {
+			// Add the required IDs
+			apiaryId: apiaryId,
+			hiveId: hiveId,
+			inspectId: inspectionId, // Use the renamed variable name here
+			// Existing args
 			name: `Inspection ${inspectionId} share`,
 			sourceUrl: window.location.href,
-			scopes: JSON.stringify({
-				'Query.inspection': {
-					'args': {
-						apiaryId,
-						hiveId,
-						inspectionId,
+			// Construct the scopes object according to the defined structure
+			scopes: {
+				version: 1,
+				allowedQueries: [
+					{
+						queryName: "inspection", // Corresponds to Query.inspection in GraphQL schema
+						requiredArgs: { inspectionId: inspectionId } // Use inspectionId (lowercase d) consistent with query
+					},
+					{
+						queryName: "hive", // Corresponds to Query.hive
+						requiredArgs: { id: hiveId } // Use id as defined in schema
+					},
+					{
+						queryName: "apiary", // Corresponds to Query.apiary
+						requiredArgs: { id: apiaryId } // Use id as defined in schema
 					}
-				}
-			})
-		})
-		
+					// Note: We are not including frame/frameSide scopes for now,
+					// as InspectionView seems to rely on data embedded in the inspection snapshot.
+					// Add them here if direct frame/side queries become necessary for the share view.
+				]
+			}
+			// The 'scopes' object will be automatically stringified by the GraphQL client/api layer
+			// based on the mutation definition expecting JSON.
+		};
+		console.log('InspectionShareButton: Calling generateToken with variables:', variablesToSend); // Log variables
+
+		const result = await generateToken(variablesToSend);
+
 		let url = result.data.generateShareToken.targetUrl
 		setResultUrl(url)
 		navigator.clipboard.writeText(url);
@@ -53,7 +90,9 @@ export default function InspectionShareButton({
 	}
 
 	if (resultUrl)
-		return <MessageSuccess title={<T>Inspection share URL generated and copied to clipboard</T>} message={resultUrl} />
+		return <MessageSuccess 
+			title={<><ShareIcon/> <T>Inspection share URL generated and copied to clipboard</T></>} 
+			message={resultUrl} />
 
 	
 	return <>

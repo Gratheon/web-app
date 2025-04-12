@@ -31,9 +31,20 @@ const graphqlWsClient = createClient({
 	lazy: false,
 	shouldRetry: () => true,
 
-	connectionParams: {
-		token: getToken(),
-		// shareToken: getShareToken(),
+	// Dynamically set connection params based on available token
+	connectionParams: () => {
+		const shareToken = getShareToken();
+		if (shareToken) {
+			console.debug("Using shareToken for WebSocket connection");
+			return { shareToken: shareToken };
+		}
+		const regularToken = getToken();
+		if (regularToken) {
+			console.debug("Using regular token for WebSocket connection");
+			return { token: regularToken };
+		}
+		console.debug("No token available for WebSocket connection");
+		return {}; // No token
 	},
 })
 
@@ -64,12 +75,21 @@ const apiClient = createUrqlClient({
 		multipartFetchExchange,
 	],
 	fetchOptions: () => {
-		return {
-			headers: {
-				token: getToken(),
-				// shareToken: getShareToken(),
-			},
+		const shareToken = getShareToken();
+		const regularToken = getToken();
+		let headers = {};
+
+		if (shareToken) {
+			console.debug("Using X-Share-Token header for HTTP request");
+			headers = { 'X-Share-Token': shareToken };
+		} else if (regularToken) {
+			console.debug("Using token header for HTTP request");
+			headers = { 'token': regularToken };
+		} else {
+			console.debug("No token available for HTTP request headers");
 		}
+
+		return { headers };
 	}
 })
 

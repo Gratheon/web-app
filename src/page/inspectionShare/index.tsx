@@ -117,7 +117,7 @@ export default function InspectionShare() {
 				)}
 
 				<InspectionBar
-					selected={true}
+					selected={false}
 					apiaryId={apiaryId}
 					hiveId={hiveId}
 					id={inspectionData.id}

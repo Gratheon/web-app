@@ -5,19 +5,27 @@ import {File, getFile} from '../../../../../../models/files.ts'
 import {getFrameSideFile} from '../../../../../../models/frameSideFile.ts';
 import {getFileResizes} from '../../../../../../models/fileResize.ts';
 
-import styles from './index.module.less'
+import styles from './index.module.less';
+
+// Define props type
+type FrameSideImageProps = {
+	editable: boolean;
+	selected?: boolean;
+	frameSideId: number;
+	frameURL: string;
+	dominantColor?: string | null; // Add optional dominantColor prop
+}
 
 export default function FrameSideImage({
-                                           editable,
-                                           selected = true,
+	editable,
+	selected = true,
+	frameSideId,
+	frameURL,
+	dominantColor = null, // Destructure prop with default
+}: FrameSideImageProps) {
+	const navigate = useNavigate();
 
-                                           frameSideId,
-                                           frameURL,
-
-                                       }) {
-    let navigate = useNavigate()
-
-    let frameSideFile = useLiveQuery(() => getFrameSideFile({
+	const frameSideFile = useLiveQuery(() => getFrameSideFile({
         frameSideId
     }), [frameSideId])
 
@@ -52,10 +60,14 @@ export default function FrameSideImage({
                      navigate(frameURL, {replace: true})
                  }
              }}>
-            {!file && <div className={styles.frameSideImageInternalTop}></div>}
+            {/* Apply dominantColor to the top div's background */}
+            {!file && <div
+				className={styles.frameSideImageInternalTop}
+				style={{ backgroundColor: dominantColor ?? 'transparent' }} // Use color or default
+			></div>}
             {!file && <div className={styles.frameSideImageInternalSides}></div>}
 
-            {file && <img src={url}/>}
+            {file && <img src={url} alt={`Frame side ${frameSideId}`} />} {/* Add alt text */}
         </div>
     )
 }

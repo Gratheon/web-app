@@ -1,5 +1,6 @@
-import { db } from './db'
-import { Frame } from './frames.ts'
+import { db } from './db';
+import { Frame } from './frames.ts';
+import colors from '@/colors'; // Import colors
 
 export type FrameSideCells = {
 	id: number // same as frameSideId, just for indexing
@@ -151,6 +152,45 @@ export async function deleteCellsByFrameSideIDs(frameSideIds: number[]) {
 	}
 }
 
+// New function to get dominant color
+export async function getDominantResourceColorForFrameSide(
+	frameSideId: number
+): Promise<string | null> {
+	const cells = await getFrameSideCells(frameSideId);
+	if (!cells) {
+		return null; // No cell data found
+	}
+
+	let dominantResource = '';
+	let maxPercent = -1; // Start below 0
+
+	// Define resource types and their corresponding colors
+	const resourceTypes = {
+		broodPercent: colors.broodColor,
+		honeyPercent: colors.honeyColor,
+		pollenPercent: colors.pollenColor,
+		eggsPercent: colors.eggsColor,
+		cappedBroodPercent: colors.cappedBroodColor,
+	};
+
+	// Iterate through resource types to find the dominant one
+	for (const resourceKey in resourceTypes) {
+		const percent = cells[resourceKey] ?? 0; // Default to 0 if undefined
+		if (percent > maxPercent) {
+			maxPercent = percent;
+			dominantResource = resourceKey;
+		}
+	}
+
+	// Return the color if a dominant resource was found (maxPercent > 0)
+	if (dominantResource && maxPercent > 0) {
+		return resourceTypes[dominantResource];
+	}
+
+	return null; // Return null if no resource has > 0%
+}
+
+
 export async function enrichFramesWithSideCells(
 	frames: Frame[]
 ): Promise<Frame[] | null> {
@@ -199,4 +239,3 @@ export async function enrichFramesWithSideCells(
 		return null
 	}
 }
-

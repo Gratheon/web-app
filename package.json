@@ -5,6 +5,7 @@
   "version": "1.0.0",
   "license": "AGPL",
   "scripts": {
+    "prepare": "husky",
     "build-clean": "rm -rf public/*",
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -69,6 +70,7 @@
     "@vitest/coverage-v8": "3.1.1",
     "@vitest/ui": "3.1.1",
     "expect": "27.5.1",
+    "husky": "9.1.7",
     "jsdom": "26.0.0",
     "less": "4.2.0",
     "less-loader": "7.3.0",

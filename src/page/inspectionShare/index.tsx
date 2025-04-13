@@ -11,6 +11,7 @@ import InspectionBar from '@/page/inspectionList/inspectionBar';
 import HiveIcon from '@/shared/hive';
 import QueenColor from '@/page/hiveEdit/hiveTopInfo/queenColor';
 import BeeCounter from '@/shared/beeCounter';
+import DateFormat from '@/shared/dateFormat'; // Import DateFormat
 import T from '@/shared/translate';
 import styles from '@/page/hiveEdit/hiveTopInfo/styles.module.less';
 
@@ -102,8 +103,14 @@ export default function InspectionShare() {
 							<BeeCounter count={hiveData.beeCount} />
 						</div>
 						<div className={styles.name_race_wrap}>
-							<div className={styles.wrap4}>
-								<h1 style={{ flexGrow: 1 }}>{hiveData.name}</h1>
+							<div className={styles.wrap4} style={{ alignItems: 'center' }}> {/* Align items vertically */}
+								<h1 style={{ flexGrow: 1, marginRight: '10px' }}>{hiveData.name}</h1> {/* Add margin */}
+								{/* Inspection Time added here */}
+								{inspectionData?.added && (
+									<div style={{ marginLeft: 'auto', fontSize: '0.9em', color: '#555', whiteSpace: 'nowrap' }}> {/* Push right */}
+										<DateFormat datetime={inspectionData.added} />
+									</div>
+								)}
 							</div>
 							<div id={styles.raceYear}>
 								{familyData?.race}

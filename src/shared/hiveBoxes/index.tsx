@@ -111,32 +111,35 @@ export default function HiveBoxes({
 
 	return (
 		<>
-			<div className={styles.boxesMode}>
-				<h3 style="display: flex;align-items: center;margin-right: 20px;margin-bottom: 5px;">
-					<T ctx="This is a heading for a block that shows multiple physical parts (boxes,sections) of the vertical beehive">
-						Hive sections
-					</T>
-				</h3>
+			{/* Only show the header/buttons section when editable */}
+			{editable && (
+				<div className={styles.boxesMode}>
+					<h3 style="display: flex;align-items: center;margin-right: 20px;margin-bottom: 5px;">
+						<T ctx="This is a heading for a block that shows multiple physical parts (boxes,sections) of the vertical beehive">
+							Hive sections
+						</T>
+					</h3>
 
-				{currentBoxSelected &&
-					(currentBoxSelected?.type == boxTypes.DEEP ||
-						currentBoxSelected?.type == boxTypes.SUPER) && (
-						<div style="display:flex; align-items:right;">
-							<FrameButtons box={currentBoxSelected} onError={onError} />
+					{currentBoxSelected &&
+						(currentBoxSelected?.type == boxTypes.DEEP ||
+							currentBoxSelected?.type == boxTypes.SUPER) && (
+							<div style="display:flex; align-items:right;">
+								<FrameButtons box={currentBoxSelected} onError={onError} />
 
-							{displayMode == 'list' && (
-								<Button onClick={() => setDisplayMode('visual')}>
-									<ListIcon size={16} style="margin-right:0" />
-								</Button>
-							)}
-							{displayMode == 'visual' && (
-								<Button onClick={() => setDisplayMode('list')}>
-									<TableIcon size={16} style="margin-right:0" />
-								</Button>
-							)}
-						</div>
-					)}
-			</div>
+								{displayMode == 'list' && (
+									<Button onClick={() => setDisplayMode('visual')}>
+										<ListIcon size={16} style="margin-right:0" />
+									</Button>
+								)}
+								{displayMode == 'visual' && (
+									<Button onClick={() => setDisplayMode('list')}>
+										<TableIcon size={16} style="margin-right:0" />
+									</Button>
+								)}
+							</div>
+						)}
+				</div>
+			)}
 
 			{boxesDivs}
 		</>

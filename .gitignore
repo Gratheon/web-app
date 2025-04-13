@@ -10,3 +10,4 @@ build
 /blob-report/
 /playwright/.cache/
 dist
+src-tauri

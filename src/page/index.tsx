@@ -1,9 +1,9 @@
-import React from 'react'
-import { Routes, Route, useNavigate } from 'react-router'
+import React, { useEffect } from 'react';
+import { Routes, Route, useNavigate } from 'react-router';
 
-import Menu from '../shared/menu'
-import Footer from '../shared/footer'
-import { isLoggedIn } from '../user'
+import Menu from '../shared/menu';
+import Footer from '../shared/footer';
+import { isLoggedIn } from '../user';
 
 import ApiaryCreate from './apiaryCreate'
 import ApiaryEditForm from './apiaryEdit'
@@ -50,7 +50,7 @@ function LoggedOutPage({children}) {
 	const navigate = useNavigate()
 
 	if (isLoggedIn()) {
-		React.useEffect(
+		useEffect(
 			() => {
 				// redirect to last attempt as anonymous user
 				let path = ""

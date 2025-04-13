@@ -1,10 +1,13 @@
 /// <reference types="vitest" />
+/// <reference types="vitest" />
 import { defineConfig } from "vite";
 import path from "path";
 import svgr from "vite-plugin-svgr";
 import preact from "@preact/preset-vite";
-import { configDefaults } from 'vitest/config'
+import { configDefaults } from 'vitest/config';
 
+// https://vitejs.dev/config/
+const host = process.env.TAURI_DEV_HOST;
 
 export default defineConfig({
   plugins: [
@@ -13,9 +16,28 @@ export default defineConfig({
       devtoolsInProd: true,
     }),
   ],
+  // prevent vite from obscuring rust errors
+  clearScreen: false,
   server: {
     port: 8080,
+    // Tauri expects a fixed port, fail if that port is not available
+    strictPort: true,
+    // if the host Tauri is expecting is set, use it
+    host: host || false,
+    hmr: host
+      ? {
+          protocol: 'ws',
+          host,
+          port: 1421, // HMR port, distinct from dev server port
+        }
+      : undefined,
+    watch: {
+      // tell vite to ignore watching `src-tauri`
+      ignored: ['**/src-tauri/**'],
+    },
   },
+  // Env variables starting with the item of `envPrefix` will be exposed in tauri's source code through `import.meta.env`.
+  envPrefix: ['VITE_', 'TAURI_ENV_*'],
   resolve: {
     alias: [
       { find: '@', replacement: path.resolve(__dirname, 'src') },
@@ -61,5 +83,16 @@ export default defineConfig({
     // Specify the pattern for unit test files, including both .test and .spec conventions
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
     // Aliases are inherited from Vite's resolve.alias
+  },
+  build: {
+    // Tauri uses Chromium on Windows and WebKit on macOS and Linux
+    target:
+      process.env.TAURI_ENV_PLATFORM == 'windows'
+        ? 'chrome105'
+        : 'safari13',
+    // don't minify for debug builds
+    minify: !process.env.TAURI_ENV_DEBUG ? 'esbuild' : false,
+    // produce sourcemaps for debug builds
+    sourcemap: !!process.env.TAURI_ENV_DEBUG,
   },
 });

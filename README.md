@@ -107,7 +107,18 @@ This mode connects the frontend to locally running backend services.
     ```
     The application will now communicate with your local backend services.
 
+#### Development (Desktop App via Tauri)
 
+This mode runs the web application within a native desktop window using [Tauri](https://tauri.app/v1/guides/getting-started/prerequisites). It allows testing desktop-specific integrations.
+
+```bash
+just dev-desktop-app
+```
+
+to build the app:
+```bash
+just build-desktop-app
+```
 
 
 ## Configuration
@@ -127,7 +138,8 @@ Common tasks are managed via `npm` scripts (defined in `package.json`) and `just
 *   `npm run prettier`: Formats code using Prettier.
 *   `just test-ui-headless`: Runs Playwright E2E tests in headless mode.
 *   `just test-ui-create`: Interactively generates boilerplate for a new Playwright test.
-*   `npm run test` / `npm run test:unit`: Placeholder/intended script for running unit tests (currently limited).
+*   `npm run test` / `npm run test:unit`: Runs unit tests using Vitest.
+*   `just build-desktop-app`: Builds the Tauri desktop application for production.
 
 ## Testing
 

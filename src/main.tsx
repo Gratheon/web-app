@@ -2,9 +2,14 @@ import './index.css'
 import App from './app'
 
 import { hydrate, prerender as ssr } from 'preact-iso';
+import { initializeEnvironment } from './env';
 
 if (typeof window !== "undefined") {
-    hydrate(<App />, document.getElementById("app"));
+    // Initialize environment check before hydrating the app
+    (async () => {
+        await initializeEnvironment();
+        hydrate(<App />, document.getElementById("app"));
+    })();
 }
 
 export async function prerender(data: any) {

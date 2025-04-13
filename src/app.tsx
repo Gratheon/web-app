@@ -2,11 +2,11 @@ import Helmet from 'react-helmet'
 import {BrowserRouter} from 'react-router-dom'
 import {Provider} from 'urql'
 
-import {apiClient} from './api'
-import Page from './page'
-import Paywall from './page/paywall'
-import {isLoggedIn} from './user'
-import isDev from './isDev'
+import {apiClient} from './api';
+import Page from './page';
+import Paywall from './page/paywall';
+import {isLoggedIn} from './user';
+import isDev from './isDev';
 
 import initErrorReporting from './error_reporter'
 import GlobalErrorHandler from "./error_handler";

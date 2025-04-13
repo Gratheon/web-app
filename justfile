@@ -21,3 +21,10 @@ test-ui-report:
 
 update-db-version:
 	./scripts/check-and-update-db-version.sh
+
+# Build the Tauri desktop application
+dev-desktop-app:
+	npm run tauri dev
+
+build-desktop-app:
+	npm run tauri build

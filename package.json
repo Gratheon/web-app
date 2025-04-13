@@ -16,13 +16,15 @@
     "test": "npm run test:unit",
     "test:unit": "vitest run",
     "test:ui": "vitest --ui",
-    "test:e2e:write": "./node_modules/.bin/cypress open"
+    "test:e2e:write": "./node_modules/.bin/cypress open",
+    "tauri": "tauri"
   },
   "dependencies": {
     "@amplitude/analytics-browser": "2.3.8",
     "@edorivai/react-smooth-dnd": "0.11.2",
     "@sentry/integrations": "7.114.0",
     "@sentry/react": "8.26.0",
+    "@tauri-apps/api": "2.4.1",
     "@urql/devtools": "2.0.3",
     "@urql/exchange-multipart-fetch": "1.0.1",
     "babel-polyfill": "6.26.0",
@@ -58,6 +60,7 @@
   "devDependencies": {
     "@playwright/test": "1.46.0",
     "@preact/preset-vite": "^2.9.0",
+    "@tauri-apps/cli": "2.4.1",
     "@testing-library/jest-dom": "^6.4.8",
     "@testing-library/react": "^16.0.0",
     "@types/leaflet": "1.9.12",

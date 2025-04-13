@@ -27,7 +27,8 @@ export function gatewayUri() {
 
 	if (isDev() && !USE_PROD_BACKEND_FOR_DEV) {
 		// graphql-router
-		uri = 'http://0.0.0.0:6100/graphql'
+		// Use localhost instead of 0.0.0.0 for Tauri compatibility
+		uri = 'http://localhost:6100/graphql'
 	}
 	return uri
 }

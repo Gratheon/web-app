@@ -1,4 +1,11 @@
-import { getFrames } from '../models/frames.ts';
+import { getFrames } from '../models/frames.ts'
+import {
+	listFrameSideInspectionsByInspectionId,
+	FrameSideInspectionRecord,
+} from '../models/frameSideInspection.ts' // Import the new model function and record type
+import { getFile } from '../models/files.ts' // Import file getter
+import { getFileResizes } from '../models/fileResize.ts' // Import file resize getter
+import { getFrameSideCells } from '../models/frameSideCells.ts' // Import cells getter
 
 // these are the resolvers for the graphql schema
 // used by urql to fetch data from the indexdb in offline mode
@@ -45,9 +52,57 @@ export default {
 		return hive
 	},
 	hiveFrameSideFile: async (_, { db }) => {
-		return await db.framesidefile.limit(100).toArray()[0]
+		return await db.framesidefile.limit(100).toArray()[0] // Assuming this table name is correct
 	},
-	frameSidesInspections: async (_, { db }, { variableValues: { inspectionId } }) => {
-		return await db.frame_side_inspection.where({ inspectionId }).toArray()
-	}
+	frameSidesInspections: async (
+		_,
+		_args, // db is no longer needed directly here
+		{ variableValues: { inspectionId } }
+	) => {
+		const inspectionIdNum = +inspectionId
+		if (isNaN(inspectionIdNum)) {
+			console.warn(
+				`frameSidesInspections resolver: Invalid inspectionId: ${inspectionId}`
+			)
+			return []
+		}
+
+		// 1. Fetch the base inspection records
+		const inspectionRecords =
+			await listFrameSideInspectionsByInspectionId(inspectionIdNum)
+
+		// 2. Fetch related data for each record
+		const enrichedInspections = await Promise.all(
+			inspectionRecords.map(async (record: FrameSideInspectionRecord) => {
+				let fileData = null
+				let cellsData = null
+
+				// Fetch file and its resizes if fileId exists
+				if (record.fileId) {
+					fileData = await getFile(record.fileId)
+					if (fileData) {
+						// Ensure resizes is an array, even if null/undefined from DB
+						fileData.resizes = (await getFileResizes({ file_id: record.fileId })) || []
+					}
+				}
+
+				// Fetch cells data if cellsId exists
+				if (record.cellsId) {
+					cellsData = await getFrameSideCells(record.cellsId)
+				}
+
+				// Return the structure matching the GraphQL FrameSideInspection type
+				return {
+					__typename: 'FrameSideInspection', // Important for GraphQL client
+					frameSideId: record.frameSideId,
+					inspectionId: record.inspectionId,
+					file: fileData,
+					cells: cellsData,
+					// frameSideFile: null, // Add if needed and fetched
+				}
+			})
+		)
+
+		return enrichedInspections
+	},
 }

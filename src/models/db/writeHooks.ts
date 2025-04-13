@@ -1,12 +1,13 @@
 import frameSideFileModel, { FrameSideFile } from '../frameSideFile.ts'
 import { FrameSideCells } from '../frameSideCells.ts'
 
-import { upsertEntity, upsertEntityWithNumericID } from './index.ts'
+import { upsertEntity, upsertEntityWithNumericID } from './index.ts' // Keep upsertEntity for other hooks if needed
 
 import { FrameSide } from '../frameSide.ts'
 import { upsertFrameSide } from '../frameSide.ts'
 import { Frame, upsertFrame } from '../frames.ts'
 import { FileResize, upsertFileResize } from '../fileResize.ts'
+import { upsertFrameSideInspection, FrameSideInspection } from '../frameSideInspection.ts' // Import new model function and type
 
 export const writeHooks = {
 	Apiary: async (_, entity) =>
@@ -51,11 +52,10 @@ export const writeHooks = {
 		await upsertFileResize(entity)
 	},
 
-	FrameSideInspection: async (_, entity) => {
-		entity.id = `${entity.inspectionId}_${entity.frameSideId}`
-		entity.frameSideId = +entity.frameSideId
-		entity.inspectionId = +entity.inspectionId
-		await upsertEntity('frame_side_inspection', entity)
+	// Use the dedicated model function for upserting
+	FrameSideInspection: async (_, entity: FrameSideInspection) => {
+		// The model function now handles ID conversion and synthetic key generation
+		await upsertFrameSideInspection(entity)
 	},
 
 	FrameSideFile: async (parent, entity: FrameSideFile, { originalValue }) => {

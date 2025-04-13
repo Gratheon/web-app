@@ -4,9 +4,8 @@ import Loading from '../../../shared/loader'
 import ErrorMsg from '../../../shared/messageError'
 import HiveBoxes from '../../../shared/hiveBoxes'
 import { Inspection, InspectionSnapshot } from '../../../models/inspections.ts'
-import { upsertFrameSide } from '../../../models/frameSide.ts'
-import { upsertFrame } from '../../../models/frames.ts'
 import { Hive } from '../../../models/hive.ts'
+// Removed unused upsertFrameSide and upsertFrame imports
 
 type InspectionViewProps = {
 	apiaryId?: string
@@ -52,16 +51,22 @@ export default function InspectionView({
 
 	let inspectionData: InspectionSnapshot
 	if (inspection) {
+		// Keep parsing for HiveBoxes component, but remove redundant upserts
 		inspectionData = JSON.parse(inspection.data)
-
-		// restore data back to indexdb for component to fetch IDs
-		// to fetch frame stats from backend
-		inspectionData.frames.forEach(async (frame) => {
-			if (frame) await upsertFrame(frame)
-			if (frame.leftSide) await upsertFrameSide(frame.leftSide)
-			if (frame.rightSide) await upsertFrameSide(frame.rightSide)
-		})
 	}
+
+	// Type assertion for frameSidesInspections if needed, assuming it matches the expected structure
+	const typedFrameSidesInspections = frameSidesInspections as Array<{
+		frameSideId: number | string
+		inspectionId: number | string
+		file?: {
+			id: number | string
+			url: string
+			resizes: Array<{ id: number | string; max_dimension_px: number; url: string }>
+		}
+		cells?: any // Add specific type if available
+	}> || []
+
 
 	return (
 		<div>
@@ -77,25 +82,32 @@ export default function InspectionView({
 				displayMode={'visual'}
 			/>
 
-			{/*<div style="padding: 10px 30px;">*/}
-			{/*	{frameSidesInspections && frameSidesInspections.length > 0 && <h3>Frame images</h3>}*/}
+			{/* Uncomment and adapt the image rendering section */}
+			<div style={{ padding: '10px 30px', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+				{typedFrameSidesInspections && typedFrameSidesInspections.length > 0 && <h3>Frame images</h3>}
 
-			{/*	{frameSidesInspections.map((frameSideInspection) => {*/}
-			{/*		for (let thumb of frameSideInspection.file.resizes) {*/}
-			{/*			if (thumb.max_dimension_px === 512) {*/}
-			{/*				<img key={frameSideInspection.frameSideId}*/}
-			{/*					width="256"*/}
-			{/*					src={thumb.url} alt="frame" />*/}
-			{/*			}*/}
-			{/*		}*/}
+				{typedFrameSidesInspections.map((frameSideInspection) => {
+					// Find the 512px thumbnail, or fallback to the main URL
+					const thumb = frameSideInspection.file?.resizes?.find(
+						(r) => r.max_dimension_px === 512
+					);
+					const imageUrl = thumb?.url || frameSideInspection.file?.url;
 
-			{/*		return (*/}
-			{/*			<img key={frameSideInspection.frameSideId}*/}
-			{/*				width="256"*/}
-			{/*				src={frameSideInspection.file.url} alt="frame" />*/}
-			{/*		)*/}
-			{/*	})}*/}
-			{/*</div>*/}
+					// Render image only if URL exists
+					if (imageUrl) {
+						return (
+							<img
+								key={frameSideInspection.frameSideId}
+								width="256" // Consider making this responsive or configurable
+								src={imageUrl}
+								alt={`Frame side ${frameSideInspection.frameSideId}`}
+								style={{ border: '1px solid #ccc' }} // Add some basic styling
+							/>
+						);
+					}
+					return null; // Return null if no image URL is available
+				})}
+			</div>
 		</div>
 	)
 }

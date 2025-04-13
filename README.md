@@ -266,6 +266,20 @@ The application employs an **offline-first** state management strategy centered 
 
 This architecture ensures data persistence, enables offline functionality, and promotes a clean separation between data management and component logic.
 
+**Specific Data Models:**
+
+While the schema is dynamically generated, specific models (`src/models/*.ts`) often provide:
+*   TypeScript interfaces for data structures.
+*   Helper functions for common data operations or transformations.
+*   Dedicated functions for interacting with specific Dexie tables, encapsulating logic beyond simple upserts handled by write hooks.
+
+**Example: `FrameSideInspection` Model**
+
+*   **Purpose:** Manages historical data for individual frame sides captured during a specific inspection.
+*   **Storage:** Data is stored in the `frame_side_inspection` Dexie table.
+*   **Population:** The table is automatically populated via the `FrameSideInspection` write hook (`src/models/db/writeHooks.ts`) when inspection data is fetched from the backend. This hook uses the `upsertFrameSideInspection` function from the model.
+*   **Access:** Components should retrieve this data using the local `frameSidesInspections` GraphQL query (`src/api/resolvers.ts`), which in turn uses the `listFrameSideInspectionsByInspectionId` function from the model to read from Dexie. This provides a structured way to access inspection-specific frame side details (like associated files and cell data) for offline use.
+
 ```mermaid
 graph TD
     subgraph "Component Layer"

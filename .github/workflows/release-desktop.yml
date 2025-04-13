@@ -45,11 +45,9 @@ jobs:
       # Windows dependencies (MSVC Build Tools, WebView2) are usually pre-installed
 
       - name: Install frontend dependencies
-        working-directory: ./web-app
         run: npm install
 
       - name: Build Tauri app
-        working-directory: ./web-app
         run: npm run tauri build
 
       - name: Upload Artifact (Linux)

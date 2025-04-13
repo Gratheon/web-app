@@ -1,55 +1,6 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
-# --- DB Version Increment Logic ---
-echo "Checking for DB schema changes..."
-
-# Define schema files relative to git root
-SCHEMA_FILES=(
-  "web-app/src/models/db/index.ts"
-  "web-app/src/models/db/addCustomIndexes.ts"
-  "web-app/src/api/schema.ts"
-)
-DB_INDEX_FILE="web-app/src/models/db/index.ts"
-SCHEMA_CHANGED=false
-
-# Get staged files
-STAGED_FILES=$(git diff --cached --name-only)
-
-# Check if any schema file is staged
-for schema_file in "${SCHEMA_FILES[@]}"; do
-  if echo "$STAGED_FILES" | grep -q "^${schema_file}$"; then
-    echo "Detected staged change in schema file: $schema_file"
-    SCHEMA_CHANGED=true
-    break
-  fi
-done
-
-# If schema changed, increment DB_VERSION and stage the change
-if [ "$SCHEMA_CHANGED" = true ]; then
-  echo "Incrementing DB_VERSION in $DB_INDEX_FILE..."
-  # Use awk to find the line, increment the version number (last field), and overwrite the file
-  awk '
-  /^export const DB_VERSION =/ {
-    print $1, $2, $3, $4, $5 + 1, $6; # Print line with incremented version
-    next; # Skip default printing for this line
-  }
-  { print } # Print all other lines unchanged
-  ' "$DB_INDEX_FILE" > temp_db_index.ts && mv temp_db_index.ts "$DB_INDEX_FILE"
-
-  if [ $? -eq 0 ]; then
-    echo "Successfully updated $DB_INDEX_FILE."
-    echo "Staging updated $DB_INDEX_FILE..."
-    git add "$DB_INDEX_FILE"
-  else
-    echo "Error updating $DB_INDEX_FILE. Aborting commit." >&2
-    rm -f temp_db_index.ts # Clean up temp file on error
-    exit 1
-  fi
-else
-  echo "No relevant schema changes detected."
-fi
-# --- End DB Version Increment Logic ---
+# Run the DB version check/update script via just
+# Ensure we run it from the web-app directory
+just update-db-version || exit 1 # Exit if the script fails
 
 # Optional: Add other pre-commit checks here (e.g., linting, tests)
 # Example: npm run lint || exit 1

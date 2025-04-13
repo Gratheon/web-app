@@ -18,3 +18,6 @@ test-ui-create:
 
 test-ui-report:
 	npx playwright show-report
+
+update-db-version:
+	./scripts/check-and-update-db-version.sh

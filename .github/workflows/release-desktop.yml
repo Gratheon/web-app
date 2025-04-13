@@ -2,11 +2,11 @@ name: Build Desktop App
 
 on:
   workflow_run:
-    workflows: ["Unit tests"] # Name of the workflow to wait for
+    workflows: [Unit tests]
     types:
-      - completed # Trigger only when the workflow finishes
+      - completed
     branches:
-      - master # Only trigger for runs on the master branch
+      - master
 
 jobs:
   build:

@@ -48,7 +48,7 @@ jobs:
         run: npm install
 
       - name: Build Tauri app
-        run: npm run tauri build
+        run: npx tauri build # Use npx to run directly
 
       - name: Upload Artifact (Linux)
         if: matrix.os == 'ubuntu-latest'

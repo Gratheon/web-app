@@ -1,3 +1,4 @@
+import { useState } from 'react'; // Added useState
 import { useQuery } from '../../../api'
 import INSPECTION_QUERY from './singleInspectionQuery.graphql.ts'
 import Loading from '../../../shared/loader'
@@ -18,6 +19,14 @@ export default function InspectionView({
 	hiveId,
 	inspectionId,
 }: InspectionViewProps) {
+	// State for the selected full-size image URL
+	const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
+
+	// Handler to update the selected image URL
+	const handleFrameImageClick = (imageUrl: string) => {
+		setSelectedImageUrl(imageUrl);
+	};
+
 	let {
 		loading: loadingGet,
 		error: errorGet,
@@ -80,34 +89,26 @@ export default function InspectionView({
 				frameSideId={null}
 				editable={false}
 				displayMode={'visual'}
+				// Pass down frame side data and click handler
+				frameSidesData={typedFrameSidesInspections}
+				onFrameImageClick={handleFrameImageClick}
 			/>
 
-			{/* Uncomment and adapt the image rendering section */}
-			<div style={{ padding: '10px 30px', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-				{typedFrameSidesInspections && typedFrameSidesInspections.length > 0 && <h3>Frame images</h3>}
-
-				{typedFrameSidesInspections.map((frameSideInspection) => {
-					// Find the 512px thumbnail, or fallback to the main URL
-					const thumb = frameSideInspection.file?.resizes?.find(
-						(r) => r.max_dimension_px === 512
-					);
-					const imageUrl = thumb?.url || frameSideInspection.file?.url;
-
-					// Render image only if URL exists
-					if (imageUrl) {
-						return (
-							<img
-								key={frameSideInspection.frameSideId}
-								width="256" // Consider making this responsive or configurable
-								src={imageUrl}
-								alt={`Frame side ${frameSideInspection.frameSideId}`}
-								style={{ border: '1px solid #ccc' }} // Add some basic styling
-							/>
-						);
-					}
-					return null; // Return null if no image URL is available
-				})}
-			</div>
+			{/* Section to display the selected full-size image */}
+			{selectedImageUrl && (
+				<div style={{ marginTop: '20px', padding: '10px 30px', textAlign: 'center' }}>
+					<button onClick={() => setSelectedImageUrl(null)} style={{ marginBottom: '10px' }}>
+						Close Image
+					</button>
+					<div>
+						<img
+							src={selectedImageUrl}
+							alt="Selected frame side"
+							style={{ maxWidth: '100%', maxHeight: '80vh', border: '1px solid #ccc' }}
+						/>
+					</div>
+				</div>
+			)}
 		</div>
 	)
 }

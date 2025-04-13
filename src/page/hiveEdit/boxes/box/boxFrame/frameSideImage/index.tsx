@@ -13,7 +13,16 @@ type FrameSideImageProps = {
 	selected?: boolean;
 	frameSideId: number;
 	frameURL: string;
-	dominantColor?: string | null; // Add optional dominantColor prop
+	dominantColor?: string | null;
+	// Add new optional props for inspection view
+	frameSideData?: {
+		file?: {
+			id: number | string;
+			url: string; // Original URL
+			resizes?: Array<{ id: number | string; max_dimension_px: number; url: string }>;
+		}
+	};
+	onImageClick?: (imageUrl: string) => void;
 }
 
 export default function FrameSideImage({
@@ -21,53 +30,80 @@ export default function FrameSideImage({
 	selected = true,
 	frameSideId,
 	frameURL,
-	dominantColor = null, // Destructure prop with default
+	dominantColor = null,
+	// Destructure new props
+	frameSideData,
+	onImageClick,
 }: FrameSideImageProps) {
 	const navigate = useNavigate();
 
-	const frameSideFile = useLiveQuery(() => getFrameSideFile({
-        frameSideId
-    }), [frameSideId])
+	// --- Data Fetching Logic ---
+	// Use Dexie only if frameSideData is not provided (i.e., in editable mode)
+	const frameSideFile = useLiveQuery(() => {
+		if (frameSideData) return null; // Don't fetch if data is passed via prop
+		return getFrameSideFile({ frameSideId });
+	}, [frameSideId, !!frameSideData]); // Re-run if frameSideData presence changes
 
-    let file: File = useLiveQuery(async (): Promise<File> => {
-        if (!frameSideFile) {
-            return null
-        }
-        return await getFile(frameSideFile?.fileId)
-    }, [frameSideFile, frameSideId]);
+	const fileFromDexie: File | null = useLiveQuery(async (): Promise<File | null> => {
+		if (frameSideData || !frameSideFile) return null;
+		return await getFile(frameSideFile?.fileId);
+	}, [frameSideFile, !!frameSideData]); // Re-run if frameSideData presence changes
 
-    // Model function getFileResizes now handles invalid IDs
-    let resizes = useLiveQuery(() => {
-        return frameSideFile && getFileResizes({file_id: +frameSideFile?.fileId})
-    }, [frameSideFile?.fileId], null); // Depend on fileId, use null as initial
+	const resizesFromDexie = useLiveQuery(() => {
+		if (frameSideData || !frameSideFile) return null;
+		return getFileResizes({ file_id: +frameSideFile?.fileId });
+	}, [frameSideFile?.fileId, !!frameSideData], null); // Re-run if frameSideData presence changes
 
-    let url = file && file.url
-    let selectedSize = 2000;
+	// --- Determine Image URLs ---
+	let displayUrl: string | undefined = undefined;
+	let originalUrl: string | undefined = undefined;
 
-    if (resizes != null && resizes.length > 0) {
-        for (let i = 0; i < resizes.length; i++) {
-            if (resizes[i].max_dimension_px < selectedSize) {
-                selectedSize = resizes[i].max_dimension_px
-                url = resizes[i].url
-            }
-        }
-    }
+	if (frameSideData?.file) {
+		// Use data passed via props (inspection view)
+		originalUrl = frameSideData.file.url;
+		const thumb = frameSideData.file.resizes?.find(r => r.max_dimension_px === 512);
+		displayUrl = thumb?.url || originalUrl;
+	} else if (fileFromDexie) {
+		// Use data fetched from Dexie (editable view)
+		originalUrl = fileFromDexie.url;
+		let selectedSize = 2000;
+		displayUrl = originalUrl; // Default to original
+		if (resizesFromDexie != null && resizesFromDexie.length > 0) {
+			for (let i = 0; i < resizesFromDexie.length; i++) {
+				// Prefer smaller resize for display
+				if (resizesFromDexie[i].max_dimension_px < selectedSize) {
+					selectedSize = resizesFromDexie[i].max_dimension_px;
+					displayUrl = resizesFromDexie[i].url;
+				}
+			}
+		}
+	}
 
-    return (
-        <div className={selected ? `${styles.frameSideImage} ${styles.selected}` : styles.frameSideImage}
-             onClick={() => {
-                 if (editable) {
-                     navigate(frameURL, {replace: true})
-                 }
-             }}>
-            {/* Apply dominantColor to the top div's background */}
-            {!file && <div
+	// --- Click Handler ---
+	const handleClick = () => {
+		if (!editable && onImageClick && originalUrl) {
+			// Inspection view: call the callback with the original URL
+			onImageClick(originalUrl);
+		} else if (editable) {
+			// Editable view: navigate
+			navigate(frameURL, { replace: true });
+		}
+	};
+
+	return (
+		<div
+			className={selected ? `${styles.frameSideImage} ${styles.selected}` : styles.frameSideImage}
+			onClick={handleClick} // Use the combined handler
+		>
+			{/* Apply dominantColor to the top div's background if no image */}
+			{!displayUrl && <div
 				className={styles.frameSideImageInternalTop}
-				style={{ backgroundColor: dominantColor ?? 'transparent' }} // Use color or default
+				style={{ backgroundColor: dominantColor ?? 'transparent' }}
 			></div>}
-            {!file && <div className={styles.frameSideImageInternalSides}></div>}
+			{!displayUrl && <div className={styles.frameSideImageInternalSides}></div>}
 
-            {file && <img src={url} alt={`Frame side ${frameSideId}`} />} {/* Add alt text */}
-        </div>
-    )
+			{/* Render image if URL exists */}
+			{displayUrl && <img src={displayUrl} alt={`Frame side ${frameSideId}`} />}
+		</div>
+	)
 }

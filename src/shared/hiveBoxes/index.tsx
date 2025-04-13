@@ -29,6 +29,9 @@ export default function HiveBoxes({
 	onError = (e: any) => {},
 	editable = true,
 	displayMode = 'visual',
+	// Add the new props
+	frameSidesData = [], // Default to empty array
+	onFrameImageClick = (imageUrl: string) => {}, // Default to no-op function
 }): any {
 	const boxesDivs = []
 	let currentBoxSelected
@@ -58,6 +61,9 @@ export default function HiveBoxes({
 							editable={editable}
 							selected={+boxId === box.id}
 							displayMode={displayMode}
+							// Pass the props down to Box
+							frameSidesData={frameSidesData}
+							onFrameImageClick={onFrameImageClick}
 						/>
 					)}
 

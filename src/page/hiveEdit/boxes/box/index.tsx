@@ -30,6 +30,9 @@ type BoxType = {
 	editable?: boolean
 	selected?: boolean
 	displayMode: string
+	// Add new props
+	frameSidesData?: any[] // Make optional for cases where it's not passed
+	onFrameImageClick?: (imageUrl: string) => void // Make optional
 }
 
 export default function Box({
@@ -42,6 +45,9 @@ export default function Box({
 	editable = true,
 	selected = false,
 	displayMode,
+	// Destructure new props with defaults
+	frameSidesData = [],
+	onFrameImageClick = (imageUrl: string) => {},
 }: BoxType): any {
 	const navigate = useNavigate()
 	let framesDiv = []
@@ -135,6 +141,9 @@ export default function Box({
 					frame={frame}
 					editable={editable}
 					displayMode={displayMode}
+					// Pass props down to Frame
+					frameSidesData={frameSidesData}
+					onFrameImageClick={onFrameImageClick}
 				/>
 			)
 

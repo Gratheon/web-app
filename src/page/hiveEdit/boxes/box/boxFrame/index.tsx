@@ -19,6 +19,9 @@ export default function BoxFrame({
 	frame,
 	editable = true,
 	displayMode = 'visual',
+	// Destructure new props here
+	frameSidesData,
+	onFrameImageClick,
 }: {
 	box: Box
 	apiaryId: number
@@ -29,6 +32,9 @@ export default function BoxFrame({
 
 	editable: boolean // Use primitive boolean type
 	displayMode: string
+	// Add new props
+	frameSidesData?: any[]
+	onFrameImageClick?: (imageUrl: string) => void
 }) {
 	if (!frame || !box) return null
 
@@ -48,6 +54,10 @@ export default function BoxFrame({
 		[frame.rightId] // Re-run query if rightId changes
 	);
 
+	// Find the specific data for left and right sides from the passed array
+	const leftSideData = frameSidesData?.find(fs => +fs.frameSideId === +frame.leftId);
+	const rightSideData = frameSidesData?.find(fs => +fs.frameSideId === +frame.rightId);
+
 
 	if (displayMode == 'visual') {
 		if (frame.type === 'FOUNDATION' || frame.type === 'EMPTY_COMB') {
@@ -56,6 +66,9 @@ export default function BoxFrame({
 					<FrameSideImage
 						frameSideId={frame.leftId}
 						dominantColor={leftDominantColor} // Pass color prop
+						// Pass down specific side data and click handler
+						frameSideData={leftSideData}
+						onImageClick={onFrameImageClick}
 						frameURL={`${frameURL}/${frame.leftId}`}
 						selected={+frameSideId == +frame.leftId}
 						editable={editable}
@@ -64,6 +77,9 @@ export default function BoxFrame({
 					<FrameSideImage
 						frameSideId={frame.rightId}
 						dominantColor={rightDominantColor} // Pass color prop
+						// Pass down specific side data and click handler
+						frameSideData={rightSideData}
+						onImageClick={onFrameImageClick}
 						frameURL={`${frameURL}/${frame.rightId}`}
 						selected={+frameSideId == +frame.rightId}
 						editable={editable}

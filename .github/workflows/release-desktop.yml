@@ -45,11 +45,11 @@ jobs:
       # Windows dependencies (MSVC Build Tools, WebView2) are usually pre-installed
 
       - name: Install frontend dependencies
-        working-directory: web-app # Run npm install inside the web-app directory
+        working-directory: ./web-app # Correct path relative to workspace root
         run: npm install
 
       - name: Build Tauri app
-        working-directory: web-app # Run tauri build inside the web-app directory
+        working-directory: ./web-app # Correct path relative to workspace root
         run: npm run tauri build
 
       - name: Upload Artifact (Linux)

@@ -4,14 +4,14 @@ import isDev from './isDev';
 import { isTauriEnv } from './env'; // Import the flag
 
 // Helper to detect if running inside Tauri
-function isTauri(): boolean {
+function isDesktopApp(): boolean {
 	// Use the flag set by the asynchronous check in env.ts
 	return isTauriEnv;
 }
 
 export function isLoggedIn() {
 	let loggedIn = false;
-	if (isTauri()) {
+	if (isDesktopApp()) {
 		const token = localStorage.getItem('authToken');
 		loggedIn = token !== null;
 		console.debug(`[Auth Debug] isLoggedIn (Tauri): Checking localStorage 'authToken'. Found: ${!!token}. LoggedIn: ${loggedIn}`);
@@ -24,7 +24,7 @@ export function isLoggedIn() {
 }
 export function getToken() {
 	let token: string | undefined = undefined;
-	if (isTauri()) {
+	if (isDesktopApp()) {
 		token = localStorage.getItem('authToken') ?? undefined; // Use nullish coalescing
 		console.debug(`[Auth Debug] getToken (Tauri): Reading localStorage 'authToken'. Value: ${token ? '***' : 'null'}`);
 		// No need to fallback here if specifically in Tauri, as saveToken uses localStorage
@@ -43,7 +43,7 @@ export function saveToken(token) {
 		console.warn("[Auth Debug] saveToken called with null/undefined token. Aborting save.");
 		return;
 	}
-	if (isTauri()) {
+	if (isDesktopApp()) {
 		localStorage.setItem('authToken', token);
 		console.debug("[Auth Debug] saveToken (Tauri): Saved token to localStorage 'authToken'.");
 	} else {
@@ -68,21 +68,36 @@ export function saveShareToken(token: string){
 }
 
 export async function logout() {
-	console.debug("[Auth Debug] logout: Initiating logout process.");
+	const isTauriAtLogout = isDesktopApp(); // Check the value at the start of logout
+	console.debug(`[Auth Debug] logout: Initiating logout process. isTauri() evaluated to: ${isTauriAtLogout}`);
 	if (typeof document === 'undefined') {
 		console.debug("[Auth Debug] logout: Not in browser env, exiting.");
 		return
 	}
 
 	// Clear token based on environment
-	if (isTauri()) {
+	if (isTauriAtLogout) { // Use the value checked at the start
 		localStorage.removeItem('authToken'); // Remove from localStorage for Tauri
 		console.debug("[Auth Debug] logout (Tauri): Removed 'authToken' from localStorage.");
 	} else {
 		setCookie('token', '', -1); // Expire cookie for Web
 		console.debug("[Auth Debug] logout (Web): Expired 'token' cookie.");
-	}
+		// Also clear localStorage in case user switched environments? Optional.
+		// localStorage.removeItem('authToken');
 
+
+		// logout from support chat
+		try{
+			//@ts-ignore
+			window?.Tawk_API?.logout(
+				function(error){
+					console.error(error)
+				}
+			);
+		} catch (e) {
+			console.error(e)
+		}
+	}
 
 	// Clear share token and potentially other items (keep this if intended)
 	localStorage.clear(); // Be cautious if other localStorage items are needed
@@ -91,18 +106,6 @@ export async function logout() {
 
 	try {
 		await dropDatabase()
-	} catch (e) {
-		console.error(e)
-	}
-
-	// logout from support chat
-	try{
-		//@ts-ignore
-		window?.Tawk_API?.logout(
-			function(error){
-				console.error(error)
-			}
-		);
 	} catch (e) {
 		console.error(e)
 	}
@@ -125,6 +128,11 @@ function getCookie(name) {
 }
 
 function setCookie(cname, cvalue, exdays) {
+	if (isDesktopApp()) {
+		console.debug(`[Auth Debug] setCookie (Tauri): Not setting cookie '${cname}' in desktop app environment.`);
+		return
+	}
+
 	if (typeof document === 'undefined') {
 		console.debug(`[Auth Debug] setCookie: Not in browser env, cannot set cookie '${cname}'.`);
 		return
@@ -136,7 +144,7 @@ function setCookie(cname, cvalue, exdays) {
 	let cookieString = cname + '=' + cvalue + ';' + expires + ';path=/';
 
 	// Only set domain attribute for production web builds (not dev, not Tauri)
-	if (!isDev() && !isTauri()) {
+	if (!isDev()) {
 		cookieString += ';domain=.gratheon.com';
 	}
 

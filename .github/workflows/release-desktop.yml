@@ -1,36 +1,18 @@
 name: Build Desktop App
 
 on:
-  push:
+  workflow_run:
+    workflows: ["Unit tests"] # Name of the workflow to wait for
+    types:
+      - completed # Trigger only when the workflow finishes
     branches:
-      - master # Trigger on pushes to the master branch
-  workflow_dispatch: # Allow manual triggering
+      - master # Only trigger for runs on the master branch
 
 jobs:
-  test:
-    name: Run Unit Tests
-    runs-on: ubuntu-latest # Use Ubuntu for tests as it's common and usually faster
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install frontend dependencies
-        working-directory: web-app # Correct path
-        run: npm install
-
-      - name: Run tests
-        working-directory: web-app # Correct path
-        run: npm test # Assuming 'npm test' is your test command
-
   build:
+    # Only run this job if the triggering workflow run was successful
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     name: Build for ${{ matrix.os }}
-    needs: test # Make build dependent on test passing
     strategy:
       fail-fast: false
       matrix:
@@ -63,12 +45,9 @@ jobs:
       # Windows dependencies (MSVC Build Tools, WebView2) are usually pre-installed
 
       - name: Install frontend dependencies
-        working-directory: web-app # Correct path
-        run: npm install
+        run: cd web-app && npm install
 
       - name: Build Tauri app
-        working-directory: web-app # Correct path
-        # Use --verbose for more build logs if needed
         run: npm run tauri build
 
       - name: Upload Artifact (Linux)
@@ -76,18 +55,18 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: gratheon-linux-${{ github.sha }}
-          path: web-app/src-tauri/target/release/bundle/appimage/*.AppImage # Correct path
+          path: src-tauri/target/release/bundle/appimage/*.AppImage # Correct path relative to root
 
       - name: Upload Artifact (macOS)
         if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v4
         with:
           name: gratheon-macos-${{ github.sha }}
-          path: web-app/src-tauri/target/release/bundle/macos/*.app # Or .dmg if configured, Correct path
+          path: src-tauri/target/release/bundle/macos/*.app # Or .dmg if configured, Correct path relative to root
 
       - name: Upload Artifact (Windows)
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
           name: gratheon-windows-${{ github.sha }}
-          path: web-app/src-tauri/target/release/bundle/msi/*.msi # Correct path
+          path: src-tauri/target/release/bundle/msi/*.msi # Correct path relative to root

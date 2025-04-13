@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 
-import ErrorMsg from '../../../shared/messageError'
-import Button from '../../../shared/button';
-import { gql, useQuery, useMutation } from '../../../api'
-import Loader from '../../../shared/loader'
-import T from '../../../shared/translate';
-import KeyIcon from '../../../icons/key.tsx';
+import ErrorMsg from '@/shared/messageError'
+import Button from '@/shared/button';
+import { gql, useQuery, useMutation } from '@/api'
+import Loader from '@/shared/loader'
+import T from '@/shared/translate';
+import KeyIcon from '@/icons/key.tsx';
 
 import style from './style.module.less'
-import CopyButton from '../../../shared/copyButton';
+import CopyButton from '@/shared/copyButton';
 
 const TOKEN_QUERY = gql`
 {
@@ -168,7 +168,7 @@ export default function TokenList() {
 								<td>
 									{token.name}
 								</td>
-								<td>{token.scopes}</td>
+								<td>{Array.isArray(token.scopes) ? token.scopes.join(', ') : String(token.scopes)}</td>
 								<td className={style.buttons}>
 									<CopyButton size='small' data={token.targetUrl} />
 									<Button

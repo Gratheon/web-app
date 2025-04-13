@@ -45,9 +45,11 @@ jobs:
       # Windows dependencies (MSVC Build Tools, WebView2) are usually pre-installed
 
       - name: Install frontend dependencies
+        working-directory: web-app # Run npm install inside the web-app directory
         run: npm install
 
       - name: Build Tauri app
+        working-directory: web-app # Run tauri build inside the web-app directory
         run: npm run tauri build
 
       - name: Upload Artifact (Linux)
@@ -55,18 +57,18 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: gratheon-linux-${{ github.sha }}
-          path: src-tauri/target/release/bundle/appimage/*.AppImage # Correct path relative to root
+          path: web-app/src-tauri/target/release/bundle/appimage/*.AppImage # Path relative to repo root
 
       - name: Upload Artifact (macOS)
         if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v4
         with:
           name: gratheon-macos-${{ github.sha }}
-          path: src-tauri/target/release/bundle/macos/*.app # Or .dmg if configured, Correct path relative to root
+          path: web-app/src-tauri/target/release/bundle/macos/*.app # Or .dmg if configured, Path relative to repo root
 
       - name: Upload Artifact (Windows)
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
           name: gratheon-windows-${{ github.sha }}
-          path: src-tauri/target/release/bundle/msi/*.msi # Correct path relative to root
+          path: web-app/src-tauri/target/release/bundle/msi/*.msi # Path relative to repo root

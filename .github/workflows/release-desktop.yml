@@ -1,4 +1,4 @@
-name: Build Desktop App
+name: Build Desktop App and Create Release
 
 on:
   workflow_run:
@@ -31,6 +31,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        # Checkout the specific commit that triggered the workflow run
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -64,26 +67,67 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: gratheon-linux-${{ github.sha }}
+          # Use a consistent artifact name prefix for easy download later
+          name: build-artifact-linux
           path: src-tauri/target/release/bundle/appimage/*.AppImage # Corrected path
 
-      - name: Upload Artifact (macOS - Universal/Specific Arch)
-        # This step needs adjustment based on whether tauri build --target creates arch-specific folders
-        # Assuming it does for now, or creates arch-specific .app names
+      - name: Upload Artifact (macOS - Specific Arch)
         if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v4
         with:
-          # Include architecture in the artifact name
-          name: gratheon-macos-${{ matrix.args == '--target aarch64-apple-darwin' && 'arm64' || 'x64' }}-${{ github.sha }}
-          # Adjust path based on target - needs verification after a successful build run
-          # Common patterns: src-tauri/target/{target_triple}/release/bundle/macos/*.app
-          # Or: src-tauri/target/release/bundle/macos/*{arch_suffix}.app
-          # Using a generic path for now, might need refinement:
+          # Use a consistent artifact name prefix and include architecture
+          name: build-artifact-macos-${{ matrix.args == '--target aarch64-apple-darwin' && 'arm64' || 'x64' }}
           path: src-tauri/target/**/release/bundle/macos/*.app
 
       - name: Upload Artifact (Windows)
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: gratheon-windows-${{ github.sha }}
+          # Use a consistent artifact name prefix
+          name: build-artifact-windows
           path: src-tauri/target/release/bundle/msi/*.msi # Corrected path
+
+  create-release:
+    name: Create GitHub Release
+    # Run after all build jobs are successful
+    needs: build
+    runs-on: ubuntu-latest
+    # Grant permission to create releases
+    permissions:
+      contents: write
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          # Download all artifacts produced by this workflow run
+          path: ./release-assets
+          # Optional: Define pattern if needed, but downloading all is simpler here
+          # pattern: build-artifact-*
+          # merge-multiple: true # If using pattern, merge into one directory
+
+      - name: Display structure of downloaded files
+        run: ls -R ./release-assets
+
+      - name: Create Release and Upload Assets
+        uses: ncipollo/release-action@v1
+        with:
+          # Use the commit SHA from the triggering workflow for the tag
+          tag: build-${{ github.event.workflow_run.head_sha }}
+          # Name the release based on the commit
+          name: Build ${{ github.event.workflow_run.head_sha }}
+          # Point the release to the specific commit
+          commit: ${{ github.event.workflow_run.head_sha }}
+          # Add a description to the release body
+          body: |
+            Automated build artifacts for commit ${{ github.event.workflow_run.head_sha }}.
+            These builds are unsigned. macOS users may need to right-click and select "Open" to bypass Gatekeeper.
+          # Upload all files from the download directory and its subdirectories
+          artifacts: "./release-assets/**/*.*"
+          # Allow updating an existing release with the same tag (useful for reruns)
+          allowUpdates: true
+          # Mark as a pre-release
+          prerelease: true
+          # Set draft to false to publish immediately
+          draft: false
+          # Use the default GITHUB_TOKEN
+          token: ${{ secrets.GITHUB_TOKEN }}

@@ -55,18 +55,18 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: gratheon-linux-${{ github.sha }}
-          path: web-app/src-tauri/target/release/bundle/appimage/*.AppImage # Path relative to repo root
+          path: src-tauri/target/release/bundle/appimage/*.AppImage # Corrected path
 
       - name: Upload Artifact (macOS)
         if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v4
         with:
           name: gratheon-macos-${{ github.sha }}
-          path: web-app/src-tauri/target/release/bundle/macos/*.app # Or .dmg if configured, Path relative to repo root
+          path: src-tauri/target/release/bundle/macos/*.app # Or .dmg if configured, Corrected path
 
       - name: Upload Artifact (Windows)
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
           name: gratheon-windows-${{ github.sha }}
-          path: web-app/src-tauri/target/release/bundle/msi/*.msi # Path relative to repo root
+          path: src-tauri/target/release/bundle/msi/*.msi # Corrected path

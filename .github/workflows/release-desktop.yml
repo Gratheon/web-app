@@ -71,13 +71,19 @@ jobs:
           name: build-artifact-linux
           path: src-tauri/target/release/bundle/appimage/*.AppImage # Corrected path
 
-      - name: Upload Artifact (macOS - Specific Arch)
+      # Removed macOS compression step
+
+      - name: Upload Artifact (macOS - Specific Arch DMG)
         if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v4
         with:
           # Use a consistent artifact name prefix and include architecture
           name: build-artifact-macos-${{ matrix.args == '--target aarch64-apple-darwin' && 'arm64' || 'x64' }}
-          path: src-tauri/target/**/release/bundle/macos/*.app
+          # Upload the generated DMG file
+          # Path might be src-tauri/target/{target_triple}/release/bundle/dmg/*.dmg
+          # Or src-tauri/target/release/bundle/dmg/*.dmg
+          # Using wildcard to cover both possibilities
+          path: src-tauri/target/**/release/bundle/dmg/*.dmg
 
       - name: Upload Artifact (Windows)
         if: matrix.os == 'windows-latest'

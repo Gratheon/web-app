@@ -1,4 +1,5 @@
 import { db, upsertEntityWithNumericID } from './db'
+import { Frame } from './frames.ts'; // Added import
 
 export type FrameSideFile = {
     id?: number // same as frameSideId, just for indexing
@@ -244,12 +245,67 @@ export async function deleteFilesByFrameSideIDs(frameSideIds: number[]) {
     } catch (e) {
         console.error(e)
         throw e
-    }
+	}
 }
 
+
+export async function enrichFramesWithSideFiles(
+	frames: Frame[]
+): Promise<Frame[] | null> {
+	try {
+		const frameSideIds: number[] = []
+		for (let frame of frames) {
+			if (frame.leftId) {
+				frameSideIds.push(frame.leftId)
+			}
+			if (frame.rightId) {
+				frameSideIds.push(frame.rightId)
+			}
+		}
+		if (frameSideIds.length === 0) {
+			return frames // No sides to enrich
+		}
+
+		const frameSideFiles = await db[FRAME_SIDE_FILE_TABLE].where('id') // Use 'id' as the key in frame_side_file table
+			.anyOf(frameSideIds)
+			.toArray()
+
+		const frameSideFilesMap = new Map<number, FrameSideFile>()
+		frameSideFiles.forEach((frameSideFile) => {
+			// Ensure arrays exist on fetched data
+			if (!frameSideFile.detectedBees) frameSideFile.detectedBees = [];
+			if (!frameSideFile.detectedCells) frameSideFile.detectedCells = [];
+			if (!frameSideFile.detectedQueenCups) frameSideFile.detectedQueenCups = [];
+			if (!frameSideFile.detectedVarroa) frameSideFile.detectedVarroa = [];
+			frameSideFilesMap.set(frameSideFile.id, frameSideFile) // Use 'id' which matches frameSideId
+		})
+
+		frames.forEach((frame) => {
+			// Ensure leftSide and rightSide objects exist before trying to attach file data
+			if (frame.leftSide) {
+				frame.leftSide.frameSideFile = frameSideFilesMap.get(+frame.leftId)
+			} else {
+				// console.warn('enrichFramesWithSideFiles: frame.leftSide is missing for frame', frame.id, 'leftId', frame.leftId);
+			}
+
+			if (frame.rightSide) {
+				frame.rightSide.frameSideFile = frameSideFilesMap.get(+frame.rightId)
+			} else {
+				// console.warn('enrichFramesWithSideFiles: frame.rightSide is missing for frame', frame.id, 'rightId', frame.rightId);
+			}
+		})
+
+		return frames
+	} catch (e) {
+		console.error('Error in enrichFramesWithSideFiles:', e)
+		return null
+	}
+}
+
+
 export default {
-    upsertEntity: async function (entity: FrameSideFile, originalValue) {
-        if (Object.keys(entity).length === 0) return
+	upsertEntity: async function (entity: FrameSideFile, originalValue) {
+		if (Object.keys(entity).length === 0) return
 
 		delete entity.hiveId
 

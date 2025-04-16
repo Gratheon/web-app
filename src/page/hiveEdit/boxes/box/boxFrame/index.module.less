@@ -25,6 +25,17 @@
 	}
 }
 
+// Wrapper for non-visual frame modes to allow relative positioning
+.frameWrapper {
+	position: relative;
+	display: inline-block; // Keep it inline with other frames
+	height: 100%; // Take full height of parent
+	vertical-align: top; // Align with top of other frames if needed
+
+	&.frameSelected {
+		// Apply selected styles to the wrapper if needed, or keep on .frame
+	}
+}
 
 .frame {
 	margin: 10px 1px 0;
@@ -103,4 +114,73 @@
 	padding: 2px;
 	height: 32px;
 	background: #EEE;
+	position: relative; // Needed for absolute positioning of children
+}
+
+// Wrapper for positioning overlay and indicator relative to the frame icon
+.listFrameIconWrapper {
+	position: relative; // Allows absolute positioning of children
+	display: inline-block; // Or 'flex' if needed, keeps elements together
+	margin: 3px; // Keep the original margin if desired
+}
+
+// Style for the bee count number overlay
+.beeCountOverlay {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%); // Center the text
+	color: white; // White text
+	font-size: 12px;
+	font-weight: bold;
+	text-shadow: 1px 1px 2px black; // Add shadow for readability
+	pointer-events: none; // Prevent text from interfering with clicks
+	z-index: 10; // Ensure it's above the frame images
+}
+
+// Container for the indicator line, positioned in the middle of the frame
+.beeIndicatorContainer {
+	position: absolute;
+	left: 50%; // Center horizontally
+	transform: translateX(-50%); // Adjust for element width
+	width: 4px; // Width of the indicator area
+	// Default top/bottom, overridden below based on context
+	top: 0;
+	bottom: 0;
+	// Remove flex properties, use absolute positioning for the line instead
+	// display: flex;
+	// flex-direction: column;
+	// justify-content: center;
+	z-index: 5; // Position it behind the bee count overlay (z-index: 10) but above frame content
+	pointer-events: none; // Prevent container from interfering with clicks
+}
+
+// Adjust container position within the non-visual frame wrapper
+.frameWrapper {
+	.beeIndicatorContainer {
+		top: 10px; // Account for .frame's margin-top
+		bottom: 0; // Bottom edge aligns
+	}
+}
+
+// Adjust container position within the visual frame wrapper
+.listFrameIconWrapper {
+	.beeIndicatorContainer {
+		top: 2px; // Account for .listFrameIcon's padding
+		bottom: 2px; // Account for .listFrameIcon's padding
+	}
+}
+
+
+// The indicator line itself
+.beeIndicatorLine {
+	position: absolute; // Position relative to the container
+	left: 0; // Align to the left of the container
+	top: 50%; // Position the top edge at the vertical center
+	transform: translateY(-50%); // Shift the line up by half its own height to truly center it
+	width: 100%; // Full width of the container
+	background-color: black; // Black color as requested
+	border-radius: 1px; // Slightly rounded edges
+	transition: height 0.3s ease; // Smooth height transition
+	// Height is set via inline style in the component
 }

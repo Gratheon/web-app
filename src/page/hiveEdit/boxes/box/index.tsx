@@ -9,6 +9,7 @@ import Loader from '@/shared/loader'
 
 import { Frame as FrameType, getFrames, moveFrame } from '@/models/frames'
 import { enrichFramesWithSides } from '@/models/frameSide'
+import { enrichFramesWithSideFiles } from '@/models/frameSideFile'
 import {
 	enrichFramesWithSideCells,
 	getFrameSideCells,
@@ -96,8 +97,12 @@ export default function Box({
 	const frames = useLiveQuery(
 		async () => {
 			const framesWithoutSides = await getFrames({ boxId: box.id })
+			if (!framesWithoutSides) return null;
 			const framesWithoutCells = await enrichFramesWithSides(framesWithoutSides)
-			return await enrichFramesWithSideCells(framesWithoutCells)
+			if (!framesWithoutCells) return null;
+			const framesWithoutFiles = await enrichFramesWithSideCells(framesWithoutCells)
+			if (!framesWithoutFiles) return null;
+			return await enrichFramesWithSideFiles(framesWithoutFiles)
 		},
 		[box.id],
 		false
@@ -127,6 +132,19 @@ export default function Box({
 		return <Loader />
 	}
 
+	let maxBeeCountInBox = 0;
+	if (frames && frames.length > 0) {
+		frames.forEach(frame => {
+			const leftCount = (frame.leftSide?.frameSideFile?.detectedWorkerBeeCount || 0) + (frame.leftSide?.frameSideFile?.detectedDroneCount || 0);
+			const rightCount = (frame.rightSide?.frameSideFile?.detectedWorkerBeeCount || 0) + (frame.rightSide?.frameSideFile?.detectedDroneCount || 0);
+			const totalFrameBees = leftCount + rightCount;
+			if (totalFrameBees > maxBeeCountInBox) {
+				maxBeeCountInBox = totalFrameBees;
+			}
+		});
+	}
+
+
 	if (frames && frames.length > 0) {
 		for (let i = 0; i < frames.length; i++) {
 			const frame = frames[i]
@@ -141,6 +159,7 @@ export default function Box({
 					frame={frame}
 					editable={editable}
 					displayMode={displayMode}
+					maxBeeCountInBox={maxBeeCountInBox}
 					// Pass props down to Frame
 					frameSidesData={frameSidesData}
 					onFrameImageClick={onFrameImageClick}

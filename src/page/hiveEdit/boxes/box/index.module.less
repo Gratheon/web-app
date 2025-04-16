@@ -9,6 +9,7 @@
 	display: flex;
 	opacity: 0.8;
 	flex-grow: 1;
+	position: relative; // Needed for absolute positioning of indicatorLayer
 }
 
 .boxType_SUPER {
@@ -47,12 +48,16 @@
 	width: 100%;
 	cursor: pointer;
 	overflow: auto;
+	position: relative; // Ensure this is positioned for z-index stacking
+	z-index: 1; // Ensure frames are above the indicator layer
 }
 
 .boxInnerVisual {
     display: flex;
     flex-wrap: wrap;
     padding: 0 5px;
+	position: relative; // Ensure this is positioned for z-index stacking
+	z-index: 1; // Ensure frames are above the indicator layer
 }
 
 .frameOuter {
@@ -73,4 +78,52 @@
 		top: calc(50% - 10px);
 		border-radius: 20px;
 	}
+}
+
+// New styles for the indicator layer and elements
+.indicatorLayer {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none; // Allow clicks to pass through to frames
+	z-index: 0; // Position behind the frame containers
+	overflow: hidden; // Prevent indicators spilling out
+}
+
+.betweenFrameIndicator {
+	position: absolute;
+	bottom: 5px; // Position near the bottom of the box
+	width: 4px; // Width of the indicator area
+	height: calc(100% - 10px); // Match frame height minus margins/padding
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center; // Center the line vertically
+}
+
+.indicatorLine {
+	width: 100%; // Full width of the container
+	background-color: white; // Changed to white
+	border-radius: 1px; // Slightly rounded edges
+	transition: height 0.3s ease; // Smooth height transition
+	// Height is set via inline style
+	// Centering is now handled by the parent's justify-content: center
+}
+
+.indicatorCount {
+	color: black; // Or white if contrast is better
+	font-size: 10px;
+	font-weight: bold;
+	// text-shadow: 1px 1px 1px black; // Removed shadow
+	position: absolute;
+	top: calc(50% - 7px); // Adjust based on font-size + padding ~14px height / 2
+	left: 50%; // Set base horizontal position to center (will be overridden by inline style)
+	transform: translateX(-50%); // Center horizontally based on element width
+	background: rgba(255, 255, 255, 0.8); // Slightly less transparent background
+	padding: 1px 3px;
+	border-radius: 3px;
+	z-index: 2; // Ensure it's above frames (z-index: 1) and indicator line
+	pointer-events: none; // Prevent interference with clicks
 }

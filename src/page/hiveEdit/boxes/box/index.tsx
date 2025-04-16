@@ -132,18 +132,20 @@ export default function Box({
 		return <Loader />
 	}
 
-	let maxBeeCountInBox = 0;
-	if (frames && frames.length > 0) {
-		frames.forEach(frame => {
-			const leftCount = (frame.leftSide?.frameSideFile?.detectedWorkerBeeCount || 0) + (frame.leftSide?.frameSideFile?.detectedDroneCount || 0);
-			const rightCount = (frame.rightSide?.frameSideFile?.detectedWorkerBeeCount || 0) + (frame.rightSide?.frameSideFile?.detectedDroneCount || 0);
-			const totalFrameBees = leftCount + rightCount;
-			if (totalFrameBees > maxBeeCountInBox) {
-				maxBeeCountInBox = totalFrameBees;
+	// Calculate adjacent bee counts and max count
+	const adjacentBeeCounts: number[] = [];
+	let maxAdjacentBeeCount = 0;
+	if (frames && frames.length > 1) {
+		for (let i = 0; i < frames.length - 1; i++) {
+			const rightSideBees = (frames[i].rightSide?.frameSideFile?.detectedWorkerBeeCount || 0) + (frames[i].rightSide?.frameSideFile?.detectedDroneCount || 0);
+			const leftSideBees = (frames[i + 1].leftSide?.frameSideFile?.detectedWorkerBeeCount || 0) + (frames[i + 1].leftSide?.frameSideFile?.detectedDroneCount || 0);
+			const totalAdjacentBees = rightSideBees + leftSideBees;
+			adjacentBeeCounts.push(totalAdjacentBees);
+			if (totalAdjacentBees > maxAdjacentBeeCount) {
+				maxAdjacentBeeCount = totalAdjacentBees;
 			}
-		});
+		}
 	}
-
 
 	if (frames && frames.length > 0) {
 		for (let i = 0; i < frames.length; i++) {
@@ -159,7 +161,6 @@ export default function Box({
 					frame={frame}
 					editable={editable}
 					displayMode={displayMode}
-					maxBeeCountInBox={maxBeeCountInBox}
 					// Pass props down to Frame
 					frameSidesData={frameSidesData}
 					onFrameImageClick={onFrameImageClick}
@@ -243,6 +244,46 @@ export default function Box({
 						{!frames && <Loader size={1} />}
 						{framesDiv}
 					</div>
+					{/* New Indicator Layer */}
+					<div className={styles.indicatorLayer}>
+						{/* Render Indicator Lines */}
+						{adjacentBeeCounts.map((count, index) => {
+							if (count <= 0) return null;
+							const indicatorHeightPercent = maxAdjacentBeeCount > 0 ? Math.min(100, (count / maxAdjacentBeeCount) * 100) : 0;
+							const visualFrameTotalWidth = 116; // 100 width + 4 padding + 12 margin
+							const leftPosition = (index + 1) * visualFrameTotalWidth + 1; // Center + 3px shift
+
+							return (
+								<div
+									key={`indicator-line-${index}`}
+									className={styles.betweenFrameIndicator}
+									style={{ left: `${leftPosition}px` }}
+								>
+									<div
+										className={styles.indicatorLine}
+										style={{ height: `${indicatorHeightPercent}%` }}
+									/>
+								</div>
+							);
+						})}
+					</div>
+					{/* Render Indicator Counts (Moved outside indicatorLayer AND boxInnerVisual for z-index) */}
+					{adjacentBeeCounts.map((count, index) => {
+						if (count <= 0) return null;
+						const visualFrameTotalWidth = 116;
+						const leftPosition = (index + 1) * visualFrameTotalWidth + 1; // Center + 3px shift
+
+						// Position count directly within the boxOuter
+							return (
+								<div
+									key={`indicator-count-${index}`}
+									className={styles.indicatorCount}
+									style={{ left: `${leftPosition}px` }} // Use calculated center; transform handles centering
+								>
+									{count}
+								</div>
+						);
+					})}
 				</div>
 			</>
 		)
@@ -260,6 +301,30 @@ export default function Box({
 				<div className={styles.boxInner}>
 					{!frames && <Loader size={1} />}
 					{framesWrapped}
+				</div>
+				{/* New Indicator Layer for non-visual modes */}
+				<div className={styles.indicatorLayer}>
+					{/* Render Indicator Lines */}
+					{adjacentBeeCounts.map((count, index) => {
+						if (count <= 0) return null;
+						const indicatorHeightPercent = maxAdjacentBeeCount > 0 ? Math.min(100, (count / maxAdjacentBeeCount) * 100) : 0;
+						const listFrameTotalWidth = 38;
+						const leftPosition = (index + 1) * listFrameTotalWidth + 3;
+
+						return (
+							<div
+								key={`indicator-line-${index}`}
+								className={styles.betweenFrameIndicator}
+								style={{ left: `${leftPosition}px` }}
+							>
+								<div
+									className={styles.indicatorLine}
+									style={{ height: `${indicatorHeightPercent}%` }}
+								/>
+							</div>
+						);
+					})}
+
 				</div>
 			</div>
 		</>

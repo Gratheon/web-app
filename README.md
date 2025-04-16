@@ -51,6 +51,7 @@ Users can manage their apiaries and hives, log detailed inspections, upload and 
 *   Offline Data Access and Synchronization (Urql + Dexie)
 *   Real-time Updates (GraphQL Subscriptions via WebSockets)
 *   Image Upload and Annotation Capabilities
+*   **Hive Edit View:** Visual representation of hive boxes and frames, including indicators for bee population density calculated between adjacent frames.
 
 ## Getting Started
 

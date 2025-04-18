@@ -132,20 +132,38 @@ export default function Box({
 		return <Loader />
 	}
 
-	// Calculate adjacent bee counts and max count
+	// Calculate edge and adjacent bee counts and overall max count
+	let firstFrameLeftBees = 0;
+	let lastFrameRightBees = 0;
 	const adjacentBeeCounts: number[] = [];
-	let maxAdjacentBeeCount = 0;
-	if (frames && frames.length > 1) {
-		for (let i = 0; i < frames.length - 1; i++) {
-			const rightSideBees = (frames[i].rightSide?.frameSideFile?.detectedWorkerBeeCount || 0) + (frames[i].rightSide?.frameSideFile?.detectedDroneCount || 0);
-			const leftSideBees = (frames[i + 1].leftSide?.frameSideFile?.detectedWorkerBeeCount || 0) + (frames[i + 1].leftSide?.frameSideFile?.detectedDroneCount || 0);
-			const totalAdjacentBees = rightSideBees + leftSideBees;
-			adjacentBeeCounts.push(totalAdjacentBees);
-			if (totalAdjacentBees > maxAdjacentBeeCount) {
-				maxAdjacentBeeCount = totalAdjacentBees;
+	let maxBeeCount = 0; // Renamed from maxAdjacentBeeCount and includes edges
+
+	if (frames && frames.length > 0) {
+		// Calculate left edge count
+		firstFrameLeftBees = (frames[0].leftSide?.frameSideFile?.detectedWorkerBeeCount || 0) + (frames[0].leftSide?.frameSideFile?.detectedDroneCount || 0);
+		maxBeeCount = Math.max(maxBeeCount, firstFrameLeftBees);
+
+		// Calculate adjacent counts
+		if (frames.length > 1) {
+			for (let i = 0; i < frames.length - 1; i++) {
+				const rightSideBees = (frames[i].rightSide?.frameSideFile?.detectedWorkerBeeCount || 0) + (frames[i].rightSide?.frameSideFile?.detectedDroneCount || 0);
+				const leftSideBees = (frames[i + 1].leftSide?.frameSideFile?.detectedWorkerBeeCount || 0) + (frames[i + 1].leftSide?.frameSideFile?.detectedDroneCount || 0);
+				const totalAdjacentBees = rightSideBees + leftSideBees;
+				adjacentBeeCounts.push(totalAdjacentBees);
+				maxBeeCount = Math.max(maxBeeCount, totalAdjacentBees);
 			}
+
+			// Calculate right edge count (only if more than one frame)
+			const lastFrameIndex = frames.length - 1;
+			lastFrameRightBees = (frames[lastFrameIndex].rightSide?.frameSideFile?.detectedWorkerBeeCount || 0) + (frames[lastFrameIndex].rightSide?.frameSideFile?.detectedDroneCount || 0);
+			maxBeeCount = Math.max(maxBeeCount, lastFrameRightBees);
+		} else {
+			// If only one frame, the right edge is the same as the left edge calculation's frame
+			lastFrameRightBees = (frames[0].rightSide?.frameSideFile?.detectedWorkerBeeCount || 0) + (frames[0].rightSide?.frameSideFile?.detectedDroneCount || 0);
+			maxBeeCount = Math.max(maxBeeCount, lastFrameRightBees);
 		}
 	}
+
 
 	if (frames && frames.length > 0) {
 		for (let i = 0; i < frames.length; i++) {
@@ -246,10 +264,24 @@ export default function Box({
 					</div>
 					{/* New Indicator Layer */}
 					<div className={styles.indicatorLayer}>
-						{/* Render Indicator Lines */}
+						{/* Render First Frame Left Indicator */}
+						{firstFrameLeftBees > 0 && (
+							<div
+								key="indicator-line-left-edge"
+								className={styles.betweenFrameIndicator}
+								style={{ left: '1px' }} // Position before the first frame
+							>
+								<div
+									className={styles.indicatorLine}
+									style={{ height: `${maxBeeCount > 0 ? Math.min(100, (firstFrameLeftBees / maxBeeCount) * 100) : 0}%` }}
+								/>
+							</div>
+						)}
+						{/* Render Between-Frame Indicator Lines */}
 						{adjacentBeeCounts.map((count, index) => {
 							if (count <= 0) return null;
-							const indicatorHeightPercent = maxAdjacentBeeCount > 0 ? Math.min(100, (count / maxAdjacentBeeCount) * 100) : 0;
+							// Use maxBeeCount for scaling
+							const indicatorHeightPercent = maxBeeCount > 0 ? Math.min(100, (count / maxBeeCount) * 100) : 0;
 							const visualFrameTotalWidth = 116; // 100 width + 4 padding + 12 margin
 							const leftPosition = (index + 1) * visualFrameTotalWidth + 1; // Center + 3px shift
 
@@ -266,8 +298,33 @@ export default function Box({
 								</div>
 							);
 						})}
+						{/* Render Last Frame Right Indicator */}
+						{lastFrameRightBees > 0 && frames && frames.length > 0 && (
+							<div
+								key="indicator-line-right-edge"
+								className={styles.betweenFrameIndicator}
+								// Position after the last frame
+								style={{ left: `${frames.length * 116 + 1}px` }}
+							>
+								<div
+									className={styles.indicatorLine}
+									style={{ height: `${maxBeeCount > 0 ? Math.min(100, (lastFrameRightBees / maxBeeCount) * 100) : 0}%` }}
+								/>
+							</div>
+						)}
 					</div>
 					{/* Render Indicator Counts (Moved outside indicatorLayer AND boxInnerVisual for z-index) */}
+					{/* Render First Frame Left Count */}
+					{firstFrameLeftBees > 0 && (
+						<div
+							key="indicator-count-left-edge"
+							className={styles.indicatorCount}
+							style={{ left: '1px' }} // Use calculated center; transform handles centering
+						>
+							{firstFrameLeftBees}
+						</div>
+					)}
+					{/* Render Between-Frame Counts */}
 					{adjacentBeeCounts.map((count, index) => {
 						if (count <= 0) return null;
 						const visualFrameTotalWidth = 116;
@@ -284,10 +341,49 @@ export default function Box({
 								</div>
 						);
 					})}
+					{/* Render Last Frame Right Count */}
+					{lastFrameRightBees > 0 && frames && frames.length > 0 && (
+						<div
+							key="indicator-count-right-edge"
+							className={styles.indicatorCount}
+							style={{ left: `${frames.length * 116 + 1}px` }} // Use calculated center; transform handles centering
+						>
+							{lastFrameRightBees}
+						</div>
+					)}
 				</div>
 			</>
 		)
 	}
+
+	// --- Non-Visual Mode ---
+	// Calculate edge counts and max count for non-visual mode
+	let firstFrameLeftBeesList = 0;
+	let lastFrameRightBeesList = 0;
+	const adjacentBeeCountsList: number[] = [];
+	let maxBeeCountList = 0;
+
+	if (frames && frames.length > 0) {
+		firstFrameLeftBeesList = (frames[0].leftSide?.frameSideFile?.detectedWorkerBeeCount || 0) + (frames[0].leftSide?.frameSideFile?.detectedDroneCount || 0);
+		maxBeeCountList = Math.max(maxBeeCountList, firstFrameLeftBeesList);
+
+		if (frames.length > 1) {
+			for (let i = 0; i < frames.length - 1; i++) {
+				const rightSideBees = (frames[i].rightSide?.frameSideFile?.detectedWorkerBeeCount || 0) + (frames[i].rightSide?.frameSideFile?.detectedDroneCount || 0);
+				const leftSideBees = (frames[i + 1].leftSide?.frameSideFile?.detectedWorkerBeeCount || 0) + (frames[i + 1].leftSide?.frameSideFile?.detectedDroneCount || 0);
+				const totalAdjacentBees = rightSideBees + leftSideBees;
+				adjacentBeeCountsList.push(totalAdjacentBees);
+				maxBeeCountList = Math.max(maxBeeCountList, totalAdjacentBees);
+			}
+			const lastFrameIndex = frames.length - 1;
+			lastFrameRightBeesList = (frames[lastFrameIndex].rightSide?.frameSideFile?.detectedWorkerBeeCount || 0) + (frames[lastFrameIndex].rightSide?.frameSideFile?.detectedDroneCount || 0);
+			maxBeeCountList = Math.max(maxBeeCountList, lastFrameRightBeesList);
+		} else {
+			lastFrameRightBeesList = (frames[0].rightSide?.frameSideFile?.detectedWorkerBeeCount || 0) + (frames[0].rightSide?.frameSideFile?.detectedDroneCount || 0);
+			maxBeeCountList = Math.max(maxBeeCountList, lastFrameRightBeesList);
+		}
+	}
+
 
 	return (
 		<>
@@ -304,10 +400,24 @@ export default function Box({
 				</div>
 				{/* New Indicator Layer for non-visual modes */}
 				<div className={styles.indicatorLayer}>
-					{/* Render Indicator Lines */}
-					{adjacentBeeCounts.map((count, index) => {
+					{/* Render First Frame Left Indicator (List Mode) */}
+					{firstFrameLeftBeesList > 0 && (
+						<div
+							key="indicator-line-left-edge-list"
+							className={styles.betweenFrameIndicator}
+							style={{ left: '3px' }} // Adjust position for list mode
+						>
+							<div
+								className={styles.indicatorLine}
+								style={{ height: `${maxBeeCountList > 0 ? Math.min(100, (firstFrameLeftBeesList / maxBeeCountList) * 100) : 0}%` }}
+							/>
+						</div>
+					)}
+					{/* Render Between-Frame Indicator Lines (List Mode) */}
+					{adjacentBeeCountsList.map((count, index) => {
 						if (count <= 0) return null;
-						const indicatorHeightPercent = maxAdjacentBeeCount > 0 ? Math.min(100, (count / maxAdjacentBeeCount) * 100) : 0;
+						// Use maxBeeCountList for scaling
+						const indicatorHeightPercent = maxBeeCountList > 0 ? Math.min(100, (count / maxBeeCountList) * 100) : 0;
 						const listFrameTotalWidth = 38;
 						const leftPosition = (index + 1) * listFrameTotalWidth + 3;
 
@@ -324,7 +434,20 @@ export default function Box({
 							</div>
 						);
 					})}
-
+					{/* Render Last Frame Right Indicator (List Mode) */}
+					{lastFrameRightBeesList > 0 && frames && frames.length > 0 && (
+						<div
+							key="indicator-line-right-edge-list"
+							className={styles.betweenFrameIndicator}
+							// Position after the last frame in list mode
+							style={{ left: `${frames.length * 38 + 3}px` }}
+						>
+							<div
+								className={styles.indicatorLine}
+								style={{ height: `${maxBeeCountList > 0 ? Math.min(100, (lastFrameRightBeesList / maxBeeCountList) * 100) : 0}%` }}
+							/>
+						</div>
+					)}
 				</div>
 			</div>
 		</>

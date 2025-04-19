@@ -232,7 +232,7 @@ export default function Box({
 			<>
 				{/* @ts-ignore */}
 				<Container
-					style={{ height: `calc(100% - 10px)` }}
+					style={{ height: `100%` }}
 					onDrop={swapFrames}
 					orientation="horizontal"
 				>

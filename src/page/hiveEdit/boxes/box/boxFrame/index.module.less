@@ -31,9 +31,19 @@
 	display: inline-block; // Keep it inline with other frames
 	height: 100%; // Take full height of parent
 	vertical-align: top; // Align with top of other frames if needed
+	transition: transform 0.2s ease-out; // Add transition for smooth movement
 
 	&.frameSelected {
 		// Apply selected styles to the wrapper if needed, or keep on .frame
+	}
+}
+
+// New style for the selected frame highlight and upward shift
+.frameSelected {
+	background: @color-selected-frame;
+	
+	.frame{
+		margin-top: 2px;
 	}
 }
 
@@ -44,7 +54,7 @@
 	display: flex;
 	flex-direction: column;
 	position: relative;
-	height: calc(100% - 10px);
+	height: calc(100% - 20px);
 	overflow: hidden;
 
 	box-sizing: border-box;

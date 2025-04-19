@@ -5,8 +5,8 @@ import { useNavigate } from 'react-router-dom'
 import { gql, useMutation, useQuery, useSubscription } from '@/api'
 
 import { getFrame, removeFrame } from '@/models/frames.ts'
-// Import the FrameSide type specifically
 import { FrameSide as FrameSideType, getFrameSide, upsertFrameSide } from '@/models/frameSide.ts'
+import { getFrameSideFile } from '@/models/frameSideFile.ts' // Import function to get frameSideFile
 
 import T from '@/shared/translate'
 import Button from '@/shared/button'
@@ -21,6 +21,7 @@ import MetricList from './metricList'
 import styles from './styles.module.less'
 import FrameSide from './frameSide.tsx'
 import BoxFrame from '../boxes/box/boxFrame'
+import BeeCounter from '@/shared/beeCounter/index.tsx'
 
 export default function Frame({
 	apiaryId,
@@ -42,6 +43,12 @@ export default function Frame({
 	// Model functions now handle invalid IDs
 	let frame = useLiveQuery(() => getFrame(+frameId), [frameId]);
 	let frameSide = useLiveQuery(() => getFrameSide(+frameSideId), [frameSideId]);
+
+	let frameSideFile = useLiveQuery(() => {
+		if (!frameSideId) return undefined;
+		return getFrameSideFile({ frameSideId: +frameSideId });
+	}, [frameSideId]);
+
 
 	// Effect to sync local state with fetched data
 	useEffect(() => {
@@ -242,7 +249,16 @@ export default function Frame({
 								</T>
 							)}
 						</h3>
-						<MetricList frameSideId={frameSideId} />
+
+						<div style={{ display: 'flex', alignItems: 'center' }}>
+							{frameSideFile && typeof frameSideFile.detectedWorkerBeeCount === 'number' && frameSideFile.detectedWorkerBeeCount >= 0 && (
+								<div title="Detected worker bees on this side" style={{marginRight: '5px'}}>
+									<BeeCounter count={frameSideFile.detectedWorkerBeeCount} />
+								</div>
+							)}
+							<MetricList frameSideId={frameSideId} />
+						</div>
+
 					</div>
 					<div>
 						{/* Render button if frameSideId exists */}

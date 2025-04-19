@@ -670,7 +670,7 @@ export default function DrawingCanvas({
 				<div className={styles.buttonGrp}>
 					<Button onClick={() => setBeeVisibility(!showBees)}>
 						{frameSideFile?.isBeeDetectionComplete ? <Checkbox on={showBees} /> : <Loader size={0} />}
-						<span><T ctx="toggle worker bees visibility">Worker bees</T>{frameSideFile?.detectedWorkerBeeCount > 0 && ` (${frameSideFile.detectedWorkerBeeCount})`}</span>
+						<span><T ctx="toggle worker bees visibility">Worker bees</T></span>
 					</Button>
 
 					{detectedCells && (

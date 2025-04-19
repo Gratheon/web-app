@@ -22,6 +22,7 @@ export type FrameSideFile = {
     isBeeDetectionComplete?: boolean
     isCellsDetectionComplete?: boolean
     isQueenCupsDetectionComplete?: boolean
+    isVarroaDetectionComplete?: boolean // Added this line
     queenDetected?: boolean // Added this line
 
     counts: any
@@ -199,6 +200,52 @@ export async function appendResourceDetectionData(frameSideId: number, payload: 
         throw e;
     }
 }
+
+// Helper function to create a unique key for a varroa detection
+// Round coordinates to mitigate floating point differences
+const getVarroaKey = (varroa: { x: number; y: number; w: number }) => {
+    const x = varroa.x.toFixed(4);
+    const y = varroa.y.toFixed(4);
+    const w = varroa.w.toFixed(4);
+    return `${x}-${y}-${w}`;
+};
+
+// Define payload structure for appendVarroaDetectionData
+interface VarroaDetectionPayload {
+    delta: any[];
+    isVarroaDetectionComplete: boolean;
+    varroaCount: number;
+}
+
+// New function using modify for atomic varroa updates
+export async function appendVarroaDetectionData(frameSideId: number, payload: VarroaDetectionPayload) {
+    console.debug(`appendVarroaDetectionData (${frameSideId}): Received payload`, JSON.stringify(payload));
+    try {
+        // Only process the final event payload from the backend
+        if (payload.isVarroaDetectionComplete) {
+            await db[FRAME_SIDE_FILE_TABLE].where({ id: frameSideId }).modify((frameSideFile) => {
+                console.debug(`appendVarroaDetectionData (${frameSideId}): Processing final update. Overwriting detectedVarroa.`);
+
+                // Explicitly create a new array from the payload's delta
+                frameSideFile.detectedVarroa = Array.isArray(payload.delta) ? [...payload.delta] : [];
+
+                // Update count and completion flag based on the final event payload
+                frameSideFile.varroaCount = payload.varroaCount;
+                frameSideFile.isVarroaDetectionComplete = true; // Set completion flag
+
+                console.debug(`appendVarroaDetectionData (${frameSideId}): Finished modify. New length: ${frameSideFile.detectedVarroa.length}. isComplete: ${frameSideFile.isVarroaDetectionComplete}`);
+            });
+            console.debug("appendVarroaDetectionData: Dexie modify operation completed for frameSideId:", frameSideId);
+        } else {
+             console.warn(`appendVarroaDetectionData (${frameSideId}): Received payload without completion flag. Ignoring.`);
+             // If backend logic changes to send partial updates, this section would need adjustment.
+        }
+    } catch (e) {
+        console.error("Error appending varroa detection data:", e, { frameSideId, payload });
+        throw e;
+    }
+}
+
 
 // Define payload structure for appendQueenCupDetectionData
 interface QueenCupDetectionPayload {

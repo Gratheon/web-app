@@ -4,7 +4,8 @@ import {
     appendBeeDetectionData,
     appendQueenDetectionData,
     appendResourceDetectionData,
-    appendQueenCupDetectionData
+    appendQueenCupDetectionData,
+    appendVarroaDetectionData // Import the new function
 } from '@/models/frameSideFile';
 import { getFrameSide, upsertFrameSide, FrameSide as FrameSideType } from '@/models/frameSide';
 
@@ -17,6 +18,14 @@ interface BeeDetectionData {
         detectedWorkerBeeCount: number;
         detectedDroneCount: number;
         isBeeDetectionComplete: boolean;
+    };
+}
+
+interface VarroaDetectionData {
+    onFrameVarroaDetected: {
+        delta: any[];
+        isVarroaDetectionComplete: boolean;
+        varroaCount: number;
     };
 }
 
@@ -208,5 +217,41 @@ export function useFrameSideSubscriptions(frameSideId: number | string | null | 
         if (queenRes.error) {
             console.error("Queen Subscription Error:", queenRes.error);
         }
+        // Log errors if they occur
+        if (queenRes.error) {
+            console.error("Queen Subscription Error:", queenRes.error);
+        }
     }, [queenRes.data, queenRes.error, queenRes.fetching, numericFrameSideId]); // Depend on data, error, fetching
+
+    // --- Varroa Detection Subscription ---
+    const varroaQuery = gql`
+        subscription onFrameVarroaDetected($frameSideId: String) {
+            onFrameVarroaDetected(frameSideId: $frameSideId) {
+                delta
+                isVarroaDetectionComplete
+                varroaCount
+            }
+        }
+    `;
+    const varroaRes = useSubscription( // Call adapted hook correctly
+        shouldSubscribe ? varroaQuery : null, // Pass query conditionally
+        variables // Pass variables as second arg
+    );
+
+    useEffect(() => {
+        // Check if fetching is complete and data exists
+        if (!varroaRes.fetching && varroaRes.data?.onFrameVarroaDetected && numericFrameSideId) {
+            console.log('Received Varroa Data:', varroaRes.data);
+            const updatePayload = varroaRes.data.onFrameVarroaDetected;
+            appendVarroaDetectionData(numericFrameSideId, {
+                delta: updatePayload.delta || [],
+                isVarroaDetectionComplete: updatePayload.isVarroaDetectionComplete,
+                varroaCount: updatePayload.varroaCount,
+            }).catch(error => console.error("Failed to append varroa data:", error));
+        }
+        // Log errors if they occur
+        if (varroaRes.error) {
+            console.error("Varroa Subscription Error:", varroaRes.error);
+        }
+    }, [varroaRes.data, varroaRes.error, varroaRes.fetching, numericFrameSideId]); // Depend on data, error, fetching
 }

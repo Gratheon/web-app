@@ -104,7 +104,12 @@ function drawDetectedVarroa(detectedVarroa: any[], ctx: CanvasRenderingContext2D
 		ctx.beginPath();
 		ctx.strokeStyle = 'red';
 		ctx.lineWidth = 8 * relPx;
-		ctx.arc(x * canvas.width, y * canvas.height, w * canvas.width * 1.5, 0, 2 * Math.PI);
+		// ctx.arc(x * canvas.width, y * canvas.height, w * canvas.width * 1.5, 0, 2 * Math.PI);
+
+		const radius = (w / 2) * canvas.width;
+		ctx.lineWidth = 4 * relPx; // Optional: adjust line width
+		ctx.arc(x * canvas.width, y * canvas.height, radius, 0, 2 * Math.PI);
+
 		ctx.stroke();
 	});
 	ctx.globalAlpha = 1;

@@ -22,6 +22,7 @@ import styles from './styles.module.less'
 import FrameSide from './frameSide.tsx'
 import BoxFrame from '../boxes/box/boxFrame'
 import BeeCounter from '@/shared/beeCounter/index.tsx'
+import VarroaIcon from '@/icons/varroa.tsx'
 
 export default function Frame({
 	apiaryId,
@@ -256,7 +257,16 @@ export default function Frame({
 									<BeeCounter count={frameSideFile.detectedWorkerBeeCount} />
 								</div>
 							)}
+
 							<MetricList frameSideId={frameSideId} />
+
+							{frameSideFile?.varroaCount > 0 &&
+								<div style="padding: 0 10px;display:flex;">
+									<VarroaIcon />
+
+									{frameSideFile.varroaCount}
+								</div>
+							}
 						</div>
 
 					</div>

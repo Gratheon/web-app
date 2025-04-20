@@ -342,9 +342,9 @@ export default function DrawingCanvas({
 	const [showBees, setBeeVisibility] = useState(true);
 	const [panelVisible, setPanelVisible] = useState(false);
 	const [showDrones, setDroneVisibility] = useState(true);
-	const [showCells, setCellVisibility] = useState(true);
+	const [showCells, setCellVisibility] = useState(false);
 	const [showQueenCups, setQueenCupsVisibility] = useState(true);
-	const [showVarroa, setShowVarroaVisibility] = useState(false);
+	const [showVarroa, setShowVarroaVisibility] = useState(true);
 	const [version, setVersion] = useState(0);
 	const [isAiQueenVisible, setIsAiQueenVisible] = useState(true);
 	const [currentLineWidth, setCurrentLineWidth] = useState(0); // Track line width for drawing updates
@@ -705,7 +705,7 @@ export default function DrawingCanvas({
 
 					<Button onClick={() => setShowVarroaVisibility(!showVarroa)}>
 						{frameSideFile?.isVarroaDetectionComplete ? <Checkbox on={showVarroa} /> : <Loader size={0} />}
-						<span><T ctx="toggle varroa mites visibility">Varroa mites</T>{frameSideFile?.varroaCount > 0 && ` (${frameSideFile.varroaCount})`}</span>
+						<span><T ctx="toggle varroa mites visibility">Varroa mites</T></span>
 					</Button>
 				</div>
 			</div>

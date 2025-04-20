@@ -117,6 +117,7 @@ describe('FrameSideCells Model', () => {
                 pollenPercent: 0,
                 eggsPercent: 0,
                 cappedBroodPercent: 0,
+                droneBroodPercent: 0, // Added drone brood expectation
             };
             // ACT & ASSERT
             expect(newFrameSideCells(id, hiveId)).toEqual(expected);
@@ -188,23 +189,27 @@ describe('FrameSideCells Model', () => {
 
         it('should normalize percentages if total exceeds 100', async () => {
             // ARRANGE
-            const initialCells: FrameSideCells = { id: 101, frameSideId: 101, hiveId: 10, broodPercent: 50, honeyPercent: 40, pollenPercent: 10, eggsPercent: 0, cappedBroodPercent: 0 };
+            // Added droneBroodPercent: 0 to initial state for clarity
+            const initialCells: FrameSideCells = { id: 101, frameSideId: 101, hiveId: 10, broodPercent: 50, honeyPercent: 40, pollenPercent: 10, eggsPercent: 0, cappedBroodPercent: 0, droneBroodPercent: 0 };
             const key = 'broodPercent';
-            const percent = 60; // Makes total 110
+            const percent = 60; // Makes total 110 (60+40+10+0+0+0)
             dbMocks.innerMockPut.mockResolvedValue(101);
 
             // ACT
-            const result = await updateFrameStat({ ...initialCells }, key, percent);
+            // Pass a copy to avoid modifying the original test object
+            const result = await updateFrameStat({ ...initialCells }, key, percent); 
 
             // ASSERT
-            const total = 60 + 40 + 10 + 0 + 0; // 110
-            expect(result.broodPercent).toBe(Math.floor(100 * 60 / total));
-            expect(result.honeyPercent).toBe(Math.floor(100 * 40 / total));
-            expect(result.pollenPercent).toBe(Math.floor(100 * 10 / total));
+            const total = 60 + 40 + 10 + 0 + 0 + 0; // 110 (including droneBroodPercent)
+            expect(result.broodPercent).toBe(54); // Math.floor(100 * 60 / 110)
+            expect(result.honeyPercent).toBe(36); // Math.floor(100 * 40 / 110)
+            expect(result.pollenPercent).toBe(9); // Math.floor(100 * 10 / 110)
             expect(result.eggsPercent).toBe(0);
             expect(result.cappedBroodPercent).toBe(0);
+            expect(result.droneBroodPercent).toBe(0); // Math.floor(100 * 0 / 110)
             expect(dbMocks.innerMockPut).toHaveBeenCalledTimes(1);
-            expect(dbMocks.innerMockPut).toHaveBeenCalledWith(result);
+            // Check the object passed to put includes the new field
+            expect(dbMocks.innerMockPut).toHaveBeenCalledWith(expect.objectContaining({ droneBroodPercent: 0 })); 
         });
 
          it('should not normalize if total is <= 100', async () => {

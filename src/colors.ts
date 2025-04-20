@@ -2,6 +2,7 @@ export default {
 	nectarColor: 'rgb(255 219 127)',
 	honeyColor: '#FFD900', // company yellow
 	pollenColor: 'rgb(140, 0, 255)',
+	droneBroodColor: 'rgb(0, 0, 0)',
 
 	eggsColor: 'rgb(109 239 0)',
 	broodColor: 'rgb(51 188 0)',

@@ -2,18 +2,19 @@ import Slider from '@/shared/slider'
 
 import styles from './styles.module.less'
 
-export default ({
+export default function ResourceEditRow({
 	children,
 	color,
 	percent,
 	onChange,
 	onClick,
+	textColor='white',
 	expanded = false,
-}) => (
-	<div className={expanded ? styles.sliderExpanded : styles.slider}>
+}) { 
+	return <div className={expanded ? styles.sliderExpanded : styles.slider}>
 		<div
 			className={styles.picker}
-			style={{ backgroundColor: color }}
+			style={{ backgroundColor: color, color: textColor }}
 			onClick={onClick}
 		>
 			{Math.round(percent)} %{expanded && children}
@@ -29,4 +30,4 @@ export default ({
 			/>
 		)}
 	</div>
-)
+}

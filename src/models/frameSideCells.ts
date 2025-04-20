@@ -13,6 +13,7 @@ export type FrameSideCells = {
 
 	eggsPercent?: number
 	cappedBroodPercent?: number
+	droneBroodPercent?: number // Added drone brood
 }
 
 export type HiveInspectionCellStats = {
@@ -22,6 +23,7 @@ export type HiveInspectionCellStats = {
 
 	eggsPercent?: number
 	cappedBroodPercent?: number
+	droneBroodPercent?: number // Added drone brood
 }
 
 export const FRAME_SIDE_CELL_TABLE = 'files_frame_side_cells'
@@ -36,6 +38,7 @@ export function newFrameSideCells(id, hiveId): FrameSideCells {
 		pollenPercent: 0,
 		eggsPercent: 0,
 		cappedBroodPercent: 0,
+		droneBroodPercent: 0, // Added drone brood
 	}
 }
 
@@ -43,7 +46,11 @@ export async function getFrameSideCells(
 	frameSideId: number
 ): Promise<FrameSideCells | null> {
 	try {
-		return await db[FRAME_SIDE_CELL_TABLE].get(+frameSideId)
+		let res = await db[FRAME_SIDE_CELL_TABLE].get(+frameSideId)
+		if (!res.droneBroodPercent){
+			res.droneBroodPercent = 0
+		}
+		return res
 	} catch (e) {
 		console.error(e)
 		return null
@@ -62,7 +69,8 @@ export async function updateFrameStat(
 		cells.cappedBroodPercent +
 		cells.eggsPercent +
 		cells.honeyPercent +
-		cells.pollenPercent
+		cells.pollenPercent +
+		cells.droneBroodPercent // Added drone brood
 
 	if (total > 100) {
 		cells.broodPercent = Math.floor((100 * cells.broodPercent) / total)
@@ -72,6 +80,7 @@ export async function updateFrameStat(
 		cells.eggsPercent = Math.floor((100 * cells.eggsPercent) / total)
 		cells.honeyPercent = Math.floor((100 * cells.honeyPercent) / total)
 		cells.pollenPercent = Math.floor((100 * cells.pollenPercent) / total)
+		cells.droneBroodPercent = Math.floor((100 * cells.droneBroodPercent) / total) // Added drone brood
 	}
 
 	try {
@@ -102,6 +111,7 @@ export async function getHiveInspectionStats(
 		pollenPercent: 0,
 		eggsPercent: 0,
 		cappedBroodPercent: 0,
+		droneBroodPercent: 0, // Added drone brood
 	}
 	let frameCount = 0
 
@@ -117,6 +127,7 @@ export async function getHiveInspectionStats(
 			stats.pollenPercent += left.pollenPercent
 			stats.eggsPercent += left.eggsPercent
 			stats.cappedBroodPercent += left.cappedBroodPercent
+			stats.droneBroodPercent += left.droneBroodPercent // Added drone brood
 
 			frameCount++
 		}
@@ -127,6 +138,7 @@ export async function getHiveInspectionStats(
 			stats.pollenPercent += right.pollenPercent
 			stats.eggsPercent += right.eggsPercent
 			stats.cappedBroodPercent += right.cappedBroodPercent
+			stats.droneBroodPercent += right.droneBroodPercent // Added drone brood
 			frameCount++
 		}
 	}
@@ -137,6 +149,7 @@ export async function getHiveInspectionStats(
 	stats.pollenPercent /= frameCount
 	stats.eggsPercent /= frameCount
 	stats.cappedBroodPercent /= frameCount
+	stats.droneBroodPercent /= frameCount // Added drone brood
 
 	return stats
 }
@@ -171,6 +184,7 @@ export async function getDominantResourceColorForFrameSide(
 		pollenPercent: colors.pollenColor,
 		eggsPercent: colors.eggsColor,
 		cappedBroodPercent: colors.cappedBroodColor,
+		droneBroodPercent: colors.drone, // Added drone brood (using existing drone color)
 	};
 
 	// Iterate through resource types to find the dominant one

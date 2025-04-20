@@ -31,6 +31,8 @@ export default function MetricList({ frameSideId }) {
 						eggsPercent: frameSide2.eggsPercent,
 						cappedBroodPercent: frameSide2.cappedBroodPercent,
 						broodPercent: frameSide2.broodPercent,
+						// NOTE: Backend schema needs update for droneBroodPercent
+						droneBroodPercent: frameSide2.droneBroodPercent, 
 					},
 				})
 			}, 300),
@@ -56,7 +58,7 @@ export default function MetricList({ frameSideId }) {
 	}
 
 	return (
-		<div style="overflow: hidden; width:250px; align-content: flex-end;">
+		<div style="overflow: hidden; width:300px; align-content: flex-end;">
 			<div
 				style={{
 					display: expanded ? 'block' : 'flex',
@@ -64,6 +66,20 @@ export default function MetricList({ frameSideId }) {
 					overflow: 'hidden',
 				}}
 			>
+
+
+				<ResourceEditRow
+					expanded={expanded}
+					onClick={() => expand(!expanded)}
+					color={colors.eggsColor}
+					textColor='#030'
+					percent={frameSideCells.eggsPercent}
+					onChange={(e) => onResize('eggsPercent', e.target.value)}
+				>
+					<T>Eggs</T>
+				</ResourceEditRow>
+
+
 				<ResourceEditRow
 					expanded={expanded}
 					onClick={() => expand(!expanded)}
@@ -84,25 +100,17 @@ export default function MetricList({ frameSideId }) {
 					<T>Capped Brood</T>
 				</ResourceEditRow>
 
-				<ResourceEditRow
-					expanded={expanded}
-					onClick={() => expand(!expanded)}
-					color={colors.eggsColor}
-					percent={frameSideCells.eggsPercent}
-					onChange={(e) => onResize('eggsPercent', e.target.value)}
-				>
-					<T>Eggs</T>
-				</ResourceEditRow>
 
 				<ResourceEditRow
 					expanded={expanded}
 					onClick={() => expand(!expanded)}
-					color={colors.honeyColor}
-					percent={frameSideCells.honeyPercent}
-					onChange={(e) => onResize('honeyPercent', e.target.value)}
+					color={colors.drone} // Use black color for drone
+					percent={frameSideCells.droneBroodPercent}
+					onChange={(e) => onResize('droneBroodPercent', e.target.value)}
 				>
-					<T>Honey</T>
+					<T>Drone Brood</T>
 				</ResourceEditRow>
+
 
 				<ResourceEditRow
 					expanded={expanded}
@@ -112,6 +120,18 @@ export default function MetricList({ frameSideId }) {
 					onChange={(e) => onResize('pollenPercent', e.target.value)}
 				>
 					<T>Pollen</T>
+				</ResourceEditRow>
+
+
+				<ResourceEditRow
+					expanded={expanded}
+					onClick={() => expand(!expanded)}
+					color={colors.honeyColor}
+					textColor="black"
+					percent={frameSideCells.honeyPercent}
+					onChange={(e) => onResize('honeyPercent', e.target.value)}
+				>
+					<T>Honey</T>
 				</ResourceEditRow>
 			</div>
 		</div>

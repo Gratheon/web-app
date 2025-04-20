@@ -23,6 +23,17 @@ export default function BoxFrameSide({
 			{frameSide.isQueenConfirmed && (
 				<QueenIcon className={styles.crown} size={16} />
 			)}
+
+			<div
+				style={{
+					height: `${
+						frameSide.cells?.eggsPercent ? frameSide.cells.eggsPercent : 0
+					}%`,
+					backgroundColor: colors.eggsColor,
+				}}
+				title="Eggs"
+			></div>
+
 			<div
 				style={{
 					height: `${
@@ -34,6 +45,7 @@ export default function BoxFrameSide({
 				}}
 				title="Capped brood"
 			></div>
+
 			<div
 				style={{
 					height: `${
@@ -43,15 +55,17 @@ export default function BoxFrameSide({
 				}}
 				title="Brood"
 			></div>
+
 			<div
 				style={{
 					height: `${
-						frameSide.cells?.eggsPercent ? frameSide.cells.eggsPercent : 0
+						frameSide.cells?.droneBroodPercent ? frameSide.cells.droneBroodPercent : 0
 					}%`,
-					backgroundColor: colors.eggsColor,
+					backgroundColor: colors.droneBroodColor,
 				}}
-				title="Eggs"
+				title="Drone brood"
 			></div>
+
 			<div
 				style={{
 					height: `${
@@ -61,6 +75,7 @@ export default function BoxFrameSide({
 				}}
 				title="Pollen"
 			></div>
+
 			<div
 				style={{
 					height: `${
@@ -69,8 +84,9 @@ export default function BoxFrameSide({
 					backgroundColor: colors.honeyColor,
 					backgroundSize: '3px 4px',
 				}}
-				title="Capped honey"
+				title="Honey"
 			></div>
+
 			<div style={{ flexGrow: 1 }} />
 		</div>
 	)

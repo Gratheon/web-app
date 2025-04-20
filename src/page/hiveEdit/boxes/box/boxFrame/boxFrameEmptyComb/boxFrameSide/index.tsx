@@ -27,11 +27,34 @@ export default function BoxFrameSide({
 			<div
 				style={{
 					height: `${
+						frameSide.cells?.honeyPercent ? frameSide.cells.honeyPercent : 0
+					}%`,
+					backgroundColor: colors.honeyColor,
+					backgroundSize: '3px 4px',
+				}}
+				title="Honey"
+			></div>
+
+
+			<div
+				style={{
+					height: `${
 						frameSide.cells?.eggsPercent ? frameSide.cells.eggsPercent : 0
 					}%`,
 					backgroundColor: colors.eggsColor,
 				}}
 				title="Eggs"
+			></div>
+
+
+			<div
+				style={{
+					height: `${
+						frameSide.cells?.broodPercent ? frameSide.cells.broodPercent : 0
+					}%`,
+					backgroundColor: colors.broodColor,
+				}}
+				title="Brood"
 			></div>
 
 			<div
@@ -49,26 +72,6 @@ export default function BoxFrameSide({
 			<div
 				style={{
 					height: `${
-						frameSide.cells?.broodPercent ? frameSide.cells.broodPercent : 0
-					}%`,
-					backgroundColor: colors.broodColor,
-				}}
-				title="Brood"
-			></div>
-
-			<div
-				style={{
-					height: `${
-						frameSide.cells?.droneBroodPercent ? frameSide.cells.droneBroodPercent : 0
-					}%`,
-					backgroundColor: colors.droneBroodColor,
-				}}
-				title="Drone brood"
-			></div>
-
-			<div
-				style={{
-					height: `${
 						frameSide.cells?.pollenPercent ? frameSide.cells.pollenPercent : 0
 					}%`,
 					backgroundColor: colors.pollenColor,
@@ -79,12 +82,11 @@ export default function BoxFrameSide({
 			<div
 				style={{
 					height: `${
-						frameSide.cells?.honeyPercent ? frameSide.cells.honeyPercent : 0
+						frameSide.cells?.droneBroodPercent ? frameSide.cells.droneBroodPercent : 0
 					}%`,
-					backgroundColor: colors.honeyColor,
-					backgroundSize: '3px 4px',
+					backgroundColor: colors.droneBroodColor,
 				}}
-				title="Honey"
+				title="Drone brood"
 			></div>
 
 			<div style={{ flexGrow: 1 }} />

@@ -6,11 +6,13 @@ import { useNavigate } from 'react-router-dom'
 import T from '@/shared/translate'
 import HiveIcon from '@/shared/hive'
 
+import QRCode from 'qrcode'
 import { useMutation } from '@/api'
 
 import InspectionIcon from '@/icons/inspection.tsx'
 import Loader from '@/shared/loader'
 import Button from '@/shared/button'
+import QrCodeIcon from '@/icons/qrCodeIcon'// Import the new QR code icon
 import { PopupButton, PopupButtonGroup } from '@/shared/popupButton'
 import { InspectionSnapshot } from '@/models/inspections.ts'
 import BeeCounter from '@/shared/beeCounter'
@@ -31,6 +33,7 @@ import { deleteFilesByFrameSideIDs } from '@/models/frameSideFile.ts'
 import DeactivateButton from '@/page/hiveEdit/deleteButton'
 import QueenColor from '@/page/hiveEdit/hiveTopInfo/queenColor'
 import styles from '@/page/hiveEdit/hiveTopInfo/styles.module.less'
+import logoUrl from '@/assets/logo-v7.png'
 
 import HiveTopEditForm from '@/page/hiveEdit/hiveTopInfo/hiveTopEditForm'
 
@@ -151,6 +154,12 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 					)}
 
 					<PopupButton align="right">
+						<Button
+							title="Generate QR sticker for this hive"
+							onClick={onGenerateQR}
+						>
+							<QrCodeIcon size={16} /> <T>Generate QR sticker</T>
+						</Button>
 						<DeactivateButton hiveId={hive.id} />
 					</PopupButton>
 				</PopupButtonGroup>
@@ -206,4 +215,60 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 	return (
 		<HiveTopEditForm apiaryId={apiaryId} hiveId={hiveId} buttons={buttons} />
 	)
+
+	async function onGenerateQR() {
+		try {
+			const url = window.location.href
+			const canvas = document.createElement('canvas')
+			const qrSize = 1000 // Increased size
+
+			// Draw QR code to canvas
+			await QRCode.toCanvas(canvas, url, {
+				width: qrSize,
+				errorCorrectionLevel: 'H', // High error correction is important for logos
+				margin: 1, // Add a small margin
+			})
+
+			// Load logo image
+			const logo = new Image()
+			logo.src = logoUrl
+			logo.onload = () => {
+				const ctx = canvas.getContext('2d')
+				if (!ctx) {
+					console.error('Could not get canvas context')
+					return
+				}
+
+				// Calculate logo size and position (e.g., 20% of QR size)
+				const logoSize = qrSize * 0.20
+				const logoX = (qrSize - logoSize) / 2
+				const logoY = (qrSize - logoSize) / 2
+
+				// Optional: Draw a white background behind the logo for better contrast/scannability
+				ctx.fillStyle = '#FFFFFF'
+				ctx.fillRect(logoX - 5, logoY - 5, logoSize + 10, logoSize + 10) // Slightly larger white square
+
+				// Draw logo
+				ctx.drawImage(logo, logoX, logoY, logoSize, logoSize)
+
+				// Convert canvas to data URL
+				const qrDataURL = canvas.toDataURL('image/png')
+
+				// Trigger download
+				const link = document.createElement('a')
+				link.href = qrDataURL
+				link.download = `hive-${hiveId}-qr-sticker.png`
+				document.body.appendChild(link)
+				link.click()
+				document.body.removeChild(link)
+				console.debug(`Generated QR sticker with logo for hive ${hiveId} with URL: ${url}`)
+			}
+			logo.onerror = (err) => {
+				console.error('Failed to load logo image', err)
+			}
+
+		} catch (err) {
+			console.error('Failed to generate QR code', err)
+		}
+	}
 }

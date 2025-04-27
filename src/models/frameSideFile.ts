@@ -274,13 +274,14 @@ export async function appendQueenCupDetectionData(frameSideId: number, payload: 
 
 // New function using modify for atomic stroke history updates
 export async function updateStrokeHistoryData(frameSideId: number, strokeHistory: any) {
+    console.log('[frameSideFile] updateStrokeHistoryData called with', { frameSideId, strokeHistory });
     try {
         await db[FRAME_SIDE_FILE_TABLE].where({ id: frameSideId }).modify((frameSideFile) => {
             frameSideFile.strokeHistory = strokeHistory;
         });
-        console.log("Successfully updated stroke history for frameSideId:", frameSideId);
+        console.log('[frameSideFile] Successfully updated stroke history for frameSideId:', frameSideId);
     } catch (e) {
-        console.error("Error updating stroke history:", e, { frameSideId });
+        console.error('[frameSideFile] Error updating stroke history:', e, { frameSideId });
         throw e;
     }
 }

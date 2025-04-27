@@ -12,7 +12,10 @@ import RightChevron from '@/icons/rightChevron.tsx';
 
 let img: HTMLImageElement | null = null;
 let isMousedown = false;
-let points: { x: number; y: number; lineWidth: number; color?: string }[] = [];
+type DrawingPoint = { x: number; y: number; lineWidth: number; color?: string }
+type DrawingLine = DrawingPoint[]
+
+let points: DrawingPoint[] = [];
 const dpr = typeof window !== 'undefined' ? window.devicePixelRatio : 1;
 
 let REL_PX = 1;
@@ -31,7 +34,7 @@ function calculateRelPx(canvas: HTMLCanvasElement) {
 	return canvas.width / 1024;
 }
 
-function drawStrokeSegment(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, stroke: typeof points) {
+function drawStrokeSegment(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, stroke: DrawingPoint[]) {
 	ctx.strokeStyle = 'white';
 	ctx.lineCap = 'round';
 	ctx.lineJoin = 'round';
@@ -56,11 +59,11 @@ function drawStrokeSegment(canvas: HTMLCanvasElement, ctx: CanvasRenderingContex
 	}
 }
 
-function redrawStrokes(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, strokeHistory: typeof points[]) {
+function redrawStrokes(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, strokeHistory: DrawingLine[]) {
 	strokeHistory.forEach((stroke) => {
 		if (stroke && stroke.length > 0) {
 			ctx.beginPath();
-			let currentPath: typeof points = [];
+			let currentPath: DrawingPoint[] = [];
 			stroke.forEach((point) => {
 				currentPath.push(point);
 				drawStrokeSegment(canvas, ctx, currentPath);
@@ -267,7 +270,7 @@ function initCanvasSize(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D
 interface DrawLayersParams {
 	canvas: HTMLCanvasElement;
 	ctx: CanvasRenderingContext2D;
-	strokeHistory: typeof points[];
+	strokeHistory: DrawingLine[];
 	showBees: boolean;
 	showDrones: boolean;
 	isAiQueenVisible: boolean;
@@ -315,12 +318,12 @@ async function loadImage(url: string): Promise<HTMLImageElement> {
 interface DrawingCanvasProps {
 	imageUrl: string;
 	resizes?: { width: number; url: string }[];
-	strokeHistory: typeof points[];
+	strokeHistory: DrawingLine[];
 	detectedQueenCups?: any[];
 	detectedBees?: any[];
 	detectedCells?: any[];
 	detectedVarroa?: any[];
-	onStrokeHistoryUpdate: (history: typeof points[]) => void;
+	onStrokeHistoryUpdate: (history: DrawingLine[] | undefined) => void;
 	frameSideFile: any; // Define more specific type if possible
 	// frameSide: string; // Removed unused prop
 }
@@ -373,7 +376,7 @@ export default function DrawingCanvas({
 	}, [onStrokeHistoryUpdate, forceRedraw]);
 
 	const undoDraw = useCallback(() => {
-		const newHistory = [...strokeHistory];
+		const newHistory: DrawingLine[] = [...strokeHistory];
 		newHistory.pop();
 		onStrokeHistoryUpdate(newHistory);
 		forceRedraw();
@@ -481,9 +484,18 @@ export default function DrawingCanvas({
 			isMousedown = false;
 			// No need to draw again here, just finalize the stroke
 			if (points.length > 0) {
-				const newHistory = [...strokeHistory, [...points]];
+				console.log('[DrawingCanvas] points', points);
+				let newHistory: DrawingLine[] = [[...points]];
+				console.log('[DrawingCanvas] newHistory', newHistory);
+				console.log('[DrawingCanvas] strokeHistory', strokeHistory);
+
+				if(strokeHistory.length > 0) {
+					newHistory = [...strokeHistory, ...newHistory];
+				}
+
+				console.log('[DrawingCanvas] newHistory', newHistory);
 				onStrokeHistoryUpdate(newHistory);
-				points = [];
+				// points = [];
 			}
 			setCurrentLineWidth(0);
 		};

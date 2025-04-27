@@ -52,21 +52,38 @@ export default function FrameSideDrawing({
 
 	// Updated onStrokeHistoryUpdate to use atomic modify function
 	const onStrokeHistoryUpdate = useCallback(async (strokeHistory) => {
+		console.log('[FrameSideDrawing] onStrokeHistoryUpdate received:', strokeHistory);
 		// Optimistically update via mutation first
-		filesStrokeEditMutate({
-			files: [
-				{
-					frameSideId: frameSide.id, // Assuming frameSide.id is correct
-					fileId: file.id,
-					strokeHistory,
-				},
-			],
-		});
+		try {
+			console.log('[FrameSideDrawing] Calling filesStrokeEditMutate with:', {
+				files: [
+					{
+						frameSideId: frameSide.id, // Assuming frameSide.id is correct
+						fileId: file.id,
+						strokeHistory,
+					},
+				],
+			});
+			filesStrokeEditMutate({
+				files: [
+					{
+						frameSideId: frameSide.id, // Assuming frameSide.id is correct
+						fileId: file.id,
+						strokeHistory,
+					},
+				],
+			});
+		} catch (e) {
+			console.error('[FrameSideDrawing] Error calling filesStrokeEditMutate:', e);
+		}
 
 		// Then update Dexie atomically
 		updateStrokeHistoryData(+frameSideId, strokeHistory)
+			.then(() => {
+				console.log('[FrameSideDrawing] updateStrokeHistoryData succeeded for', frameSideId);
+			})
 			.catch(error => {
-				console.error("Failed to update stroke history:", error);
+				console.error('[FrameSideDrawing] Failed to update stroke history:', error);
 			});
 
 	}, [filesStrokeEditMutate, frameSide.id, file.id, frameSideId]); // Added frameSideId dependency

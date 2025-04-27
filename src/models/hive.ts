@@ -8,6 +8,8 @@ export type Hive = {
 	beeCount?: number
 	inspectionCount?: number
 	status?: string
+	collapse_date?: string // Add collapse_date field
+	collapse_cause?: string // Add collapse_cause field
 }
 
 const TABLE_NAME = 'hive'

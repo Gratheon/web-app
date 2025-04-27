@@ -17,6 +17,7 @@ import { listInspections, Inspection } from '../../models/inspections.ts'
 import { getUser } from '../../models/user.ts'
 
 import InspectionIcon from '../../icons/inspection.tsx'
+import SkullIcon from '../../icons/SkullIcon'
 
 import INSPECTION_QUERY from './inspectionQuery.graphql.ts'
 import InspectionBar from './inspectionBar'
@@ -59,6 +60,7 @@ export default function InspectionList({breadcrumbs}) {
 	// inline error from deeper components
 	let errorMsg = <ErrorMsg error={error || errorGet || errorNetwork} />
 
+	const isCollapsed = hive?.status === 'collapsed';
 
 	if (inspectionId) {
 		let selectedInspection = inspections.find(
@@ -89,6 +91,12 @@ export default function InspectionList({breadcrumbs}) {
 						Inspection is a snapshot state of beehive at specific time.
 						Inspection can be created from hive view
 					</T>
+					{isCollapsed && (
+						<div style={{ color: '#b22222', marginTop: 10, display: 'flex', alignItems: 'center', fontWeight: 600 }}>
+							<SkullIcon size={18} color="#b22222" style={{ marginRight: 4 }} />
+							<T>This hive is collapsed. No new inspections can be created.</T>
+						</div>
+					)}
 				</div>
 			</MessageNotFound>
 		)

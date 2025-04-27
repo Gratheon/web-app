@@ -13,6 +13,7 @@ import InspectionIcon from '@/icons/inspection.tsx'
 import Loader from '@/shared/loader'
 import Button from '@/shared/button'
 import QrCodeIcon from '@/icons/qrCodeIcon'// Import the new QR code icon
+import SkullIcon from '@/icons/SkullIcon' // Import the new Skull icon
 import { PopupButton, PopupButtonGroup } from '@/shared/popupButton'
 import { InspectionSnapshot } from '@/models/inspections.ts'
 import BeeCounter from '@/shared/beeCounter'
@@ -36,17 +37,22 @@ import styles from '@/page/hiveEdit/hiveTopInfo/styles.module.less'
 import logoUrl from '@/assets/logo-v7.png'
 
 import HiveTopEditForm from '@/page/hiveEdit/hiveTopInfo/hiveTopEditForm'
+import CollapseHiveModal from '@/page/hiveEdit/CollapseHiveModal'; // Import the modal component
 
 export default function HiveEditDetails({ apiaryId, hiveId }) {
 	let [editable, setEditable] = useState(false)
 	let [creatingInspection, setCreatingInspection] = useState(false)
 	let [okMsg, setOkMsg] = useState(null)
+	let [showCollapseSuccess, setShowCollapseSuccess] = useState(false)
 	let navigate = useNavigate()
+	const [showCollapseModal, setShowCollapseModal] = useState(false); // Add state for collapse modal
 
 	// Model functions now handle invalid IDs
 	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId]);
 	let boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId]);
 	let family = useLiveQuery(() => getFamilyByHive(+hiveId), [hiveId]);
+
+	const isCollapsed = hive?.status === 'collapsed';
 
 	let [mutateInspection, { error: errorInspection }] =
 		useMutation(`	mutation addInspection($inspection: InspectionInput!) {
@@ -69,6 +75,7 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 	const onCreateInspection = useMemo(
 		() =>
 			debounce(async function (v) {
+				if (isCollapsed) return;
 				setCreatingInspection(true)
 
 				let hive = await getHive(+hiveId)
@@ -117,7 +124,7 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 					/>
 				)
 			}, 1000),
-		[]
+		[isCollapsed]
 	)
 
 	if (!hive) {
@@ -131,6 +138,7 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 					loading={creatingInspection}
 					onClick={onCreateInspection}
 					color="green"
+					disabled={isCollapsed}
 				>
 					<InspectionIcon />
 					<T ctx="This is a button that adds new beehive inspection as a snapshot of current beehive state">
@@ -138,14 +146,14 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 					</T>
 				</Button>
 				<PopupButtonGroup>
-					{!editable && (
+					{!editable && !isCollapsed && (
 						<Button onClick={() => setEditable(!editable)}>
 							<T ctx="this is a button to allow editing by displaying a form">
 								Edit
 							</T>
 						</Button>
 					)}
-					{editable && (
+					{editable && !isCollapsed && (
 						<Button onClick={() => setEditable(!editable)}>
 							<T ctx="this is a button to compete editing of a form, but it is not doing any saving because saving is done automatically, this just switches form to view mode">
 								Complete
@@ -160,6 +168,12 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 						>
 							<QrCodeIcon size={16} /> <T>Generate QR sticker</T>
 						</Button>
+						{/* Add Mark as Collapsed button */}
+						{!isCollapsed && (
+							<Button onClick={() => setShowCollapseModal(true)}>
+								<SkullIcon size={16} /> <T>Mark as Collapsed</T>
+							</Button>
+						)}
 						<DeactivateButton hiveId={hive.id} />
 					</PopupButton>
 				</PopupButtonGroup>
@@ -169,46 +183,74 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 
 	if (!editable) {
 		return (
-			<div style="padding: 0 10px;">
-				{okMsg}
+			<>
+				<div style="padding: 0 10px;">
+					{okMsg}
+					{showCollapseSuccess && (
+						<MessageSuccess
+							title={<T>Sorry for your loss</T>}
+							message={<T>This hive is now marked as collapsed.</T>}
+						/>
+					)}
 
-				<div className={styles.horizontal_wrap}>
-					<div className={styles.icon_wrap}>
-						<HiveIcon boxes={boxes} />
-						<BeeCounter count={hive.beeCount} />
-					</div>
-
-					<div className={styles.name_race_wrap}>
-						<div className={styles.wrap4}>
-							<h1 style="flex-grow:1; cursor: pointer" onClick={goToHiveView}>
-								{hive.name}
-							</h1>
+					<div className={styles.horizontal_wrap}>
+						<div className={styles.icon_wrap}>
+							<HiveIcon boxes={boxes} />
+							<BeeCounter count={hive.beeCount} />
 						</div>
 
-						<div id={styles.raceYear}>
-							{family && family.race}
+						<div className={styles.name_race_wrap}>
+							<div className={styles.wrap4}>
+								<h1 style="flex-grow:1; cursor: pointer" onClick={goToHiveView}>
+									{hive.name}
+								</h1>
+							</div>
 
-							{family && family.race && family.added && (
-								<QueenColor year={family?.added} />
+							<div id={styles.raceYear}>
+								{family && family.race}
+
+								{family && family.race && family.added && (
+									<>
+										<QueenColor year={family?.added} />
+										{family && family.added}
+										{isCollapsed && (
+											<span style={{ display: 'inline-flex', alignItems: 'center', marginLeft: 8, color: '#b22222', fontWeight: 600 }}>
+												<SkullIcon size={18} color="#b22222" style={{ marginRight: 4 }} />
+												<T>Collapsed</T>
+											</span>
+										)}
+									</>
+								)}
+							</div>
+
+							{!family && (
+								<MessageSuccess
+									title={<T>This hive has no family set yet</T>}
+									isWarning={true}
+								/>
 							)}
-							{family && family.added}
+
+							{hive.notes && <p>{hive.notes}</p>}
 						</div>
 
-						{!family && (
-							<MessageSuccess
-								title={<T>This hive has no family set yet</T>}
-								isWarning={true}
-							/>
-						)}
-
-						{hive.notes && <p>{hive.notes}</p>}
+						<div className={styles.button_wrap1}>{buttons}</div>
 					</div>
 
-					<div className={styles.button_wrap1}>{buttons}</div>
+					<div className={styles.button_wrap2}>{buttons}</div>
 				</div>
 
-				<div className={styles.button_wrap2}>{buttons}</div>
-			</div>
+				{/* Collapse Modal */}
+				{showCollapseModal && (
+					<CollapseHiveModal
+						hiveId={hiveId}
+						onClose={() => setShowCollapseModal(false)}
+						onSuccess={() => {
+							setShowCollapseModal(false);
+							setShowCollapseSuccess(true);
+						}}
+					/>
+				)}
+			</>
 		)
 	}
 

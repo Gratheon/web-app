@@ -15,6 +15,7 @@ import AccountAuth from './accountAuth'
 import AccountRegister from './accountRegister'
 import Grafana from './grafana'
 import InspectionShare from "./inspectionShare";
+import AlertConfig from './alertConfig';
 
 function LoggedInPage({ children }) {
 	const navigate = useNavigate()
@@ -118,6 +119,8 @@ export default function Page() {
 			<Route path="/account/:stripeStatus" element={<LoggedInPage><AccountEdit /></LoggedInPage>} />
 
 			<Route path="/insights" element={<LoggedInPage><Grafana /></LoggedInPage>} />
+
+			<Route path="/alert-config" element={<LoggedInPage><AlertConfig /></LoggedInPage>} />
 		</Routes>
 	)
 }

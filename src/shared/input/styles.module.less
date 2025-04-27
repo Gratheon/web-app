@@ -1,0 +1,24 @@
+.inputGroup {
+  margin-bottom: 15px;
+}
+
+.label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #333; // Adjust color as needed
+}
+
+.input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box; // Include padding and border in the element's total width and height
+
+  &:focus {
+    outline: none;
+    border-color: #007bff; // Highlight color on focus
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); // Optional focus shadow
+  }
+}

@@ -12,9 +12,34 @@
 }
 
 @media @tabletAndUp {
-  .alertList {
+  .alertDropdownContainer {
       position: absolute;
       right: 0;
       top: 55px;
+      z-index: 1000;
     }
+}
+
+.alertDropdownContainer {
+  display: flex;
+  flex-direction: column;
+  min-height: 150px;
+  min-width: 100px;
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 0 0 0 5px;
+}
+
+.alertList {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 5px 10px;
+}
+
+.alertDropdownFooter {
+  flex-shrink: 0;
+  padding: 10px 0 5px 0;
+  text-align: center;
+  border-top: 1px solid #eee;
+  background: white;
 }

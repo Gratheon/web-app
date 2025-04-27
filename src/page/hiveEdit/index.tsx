@@ -32,6 +32,7 @@ import { getFamilyByHive } from '@/models/family.ts'
 import { Tab } from '@/shared/tab'
 import { TabBar } from '@/shared/tab'
 import InspectionList from '../inspectionList'
+import CollapseHiveModal from './CollapseHiveModal'; // Import the modal component
 
 export default function HiveEditForm() {
 	const { state } = useLocation()
@@ -67,6 +68,7 @@ export default function HiveEditForm() {
 	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId], null);
 	const box = useLiveQuery(() => getBox(+boxId), [boxId], null);
 	const family = useLiveQuery(() => getFamilyByHive(+hiveId), [hiveId]);
+	const isCollapsed = hive?.status === 'collapsed';
 
 	if (apiary === null || hive === null) {
 		return <Loader />
@@ -196,6 +198,7 @@ export default function HiveEditForm() {
 							frameSideId={frameSideId}
 							displayMode={displayMode}
 							setDisplayMode={setDisplayMode}
+							editable={!isCollapsed}
 						/>
 					</div>
 				)}

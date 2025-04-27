@@ -50,7 +50,7 @@ export default function apiaryListRow({ apiary, user }) {
 				{apiary.hives && apiary.hives.length == 0 && <HivesPlaceholder />}
 				{listType == 'list' && apiary.hives &&
 					apiary.hives.map((hive, i) => (
-						<div key={i} className={styles.hive}>
+						<div key={i} className={`${styles.hive} ${hive.status === 'collapsed' ? styles.collapsedHive : ''}`}>
 							<NavLink to={`/apiaries/${apiary.id}/hives/${hive.id}`}>
 								<Hive boxes={hive.boxes} size={60} />
 								<div className={styles.title}>{hive.name}</div>

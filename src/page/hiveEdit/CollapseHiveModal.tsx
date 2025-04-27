@@ -8,7 +8,8 @@ import { h } from 'preact'; // Import h from preact
 import inputStyles from '@/shared/input/styles.module.less'; // Import input styles for label and textarea
 import modalStyles from '@/shared/modal/styles.module.less'; // Import modal styles for button container
 import MessageError from '@/shared/messageError';
-
+import { getHive, setHiveCollapsed, updateHive } from '@/models/hive';
+import { useLiveQuery } from 'dexie-react-hooks';
 // Define the GraphQL mutation
 const MARK_HIVE_AS_COLLAPSED_MUTATION = `
   mutation MarkHiveAsCollapsed($id: ID!, $collapseDate: DateTime!, $collapseCause: String!) {
@@ -28,30 +29,31 @@ interface CollapseHiveModalProps {
 }
 
 export default function CollapseHiveModal({ hiveId, onClose, onSuccess }: CollapseHiveModalProps) {
-  const [collapseDate, setCollapseDate] = useState('2025-04-27'); // Initialize with current date
+  const [collapseDate, setCollapseDate] = useState(new Date().toISOString().slice(0, 10));
   const [collapseCause, setCollapseCause] = useState('');
   const [mutationResult, markHiveAsCollapsed] = useMutation(MARK_HIVE_AS_COLLAPSED_MUTATION);
   const [error, setError] = useState<string | null>(null);
+  const hive = useLiveQuery(() => getHive(+hiveId), [hiveId]);
 
   const handleSubmit = async () => {
     setError(null);
-    if (!collapseDate || !collapseCause) {
-      setError('Please provide both date and cause.');
+    if (!collapseDate) {
+      setError('Please provide date of the collapse.');
       return;
     }
 
     // Execute the mutation
     const result = await markHiveAsCollapsed({
       id: hiveId,
-      collapseDate: collapseDate, // Ensure format matches backend expectation (DateTime)
+      collapseDate: collapseDate,
       collapseCause: collapseCause,
     });
-
-    console.log({result})
 
     if (result.error) {
       setError(result.error.message || 'Error marking hive as collapsed.');
     } else if(result.data) {
+      await setHiveCollapsed(hive, collapseDate, collapseCause);
+
       onSuccess();
     }
   };

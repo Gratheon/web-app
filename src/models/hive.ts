@@ -15,9 +15,14 @@ export type Hive = {
 	isEditable?: () => boolean
 }
 
+const HIVE_STATUS = {
+	ACTIVE: 'active',
+	COLLAPSED: 'collapsed',
+}
+
 // Utility functions to attach to Hive objects
 export function isCollapsed(hive: Hive): boolean {
-	return hive.status === 'collapsed' || !!hive.collapse_date;
+	return hive.status === HIVE_STATUS.COLLAPSED || !!hive.collapse_date;
 }
 
 export function isEditable(hive: Hive): boolean {
@@ -40,6 +45,16 @@ export async function getHive(id: number): Promise<Hive | undefined> {
 		console.error(e)
 		throw e
 	}
+}
+
+export async function setHiveCollapsed(hive: Hive, collapse_date: string, collapse_cause: string) {
+	hive.status = HIVE_STATUS.COLLAPSED;
+	hive.collapse_date = collapse_date;
+	hive.collapse_cause = collapse_cause;
+
+	await updateHive(hive);
+
+	return hive;
 }
 
 export async function updateHive(data: Hive) {

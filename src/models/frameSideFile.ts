@@ -281,7 +281,7 @@ export async function updateStrokeHistoryData(frameSideId: number, strokeHistory
         });
         console.log('[frameSideFile] Successfully updated stroke history for frameSideId:', frameSideId);
     } catch (e) {
-        console.error('[frameSideFile] Error updating stroke history:', e, { frameSideId });
+        console.error('Error updating stroke history:', e, { frameSideId });
         throw e;
     }
 }

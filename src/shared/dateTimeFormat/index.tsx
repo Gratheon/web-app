@@ -4,30 +4,28 @@ import { format, formatDistance } from 'date-fns'
 import { de, et, fr, pl, ru, tr } from 'date-fns/locale'
 const loadedDateLocales = { de, et, fr, pl, ru, tr }
 
-type DateFormatProps = {
+type DateTimeFormatProps = {
 	datetime: string
-	formatString?: string
 	lang?: string
 	style?: string
 }
 
-export function formatTime(datetime, formatString, lang = 'en') {
+export function formatTime(datetime, lang = 'en') {
 	const dateLangOptions = { locale: loadedDateLocales[lang] }
 
-	return format(new Date(datetime), formatString, dateLangOptions)
+	return format(new Date(datetime), 'dd MMMM yyyy, hh:mm', dateLangOptions)
 }
 
-export default function DateFormat({
+export default function DateTimeFormat({
 	datetime,
-	formatString = 'yyyy, dd MMMM',
 	lang = 'en',
 	style = '',
-}: DateFormatProps) {
+}: DateTimeFormatProps) {
 	if (!datetime) return null
 
 	return (
 		<span className="date timeago" title={datetime} style={style}>
-			{formatTime(datetime, formatString, lang)}
+			{formatTime(datetime, lang)}
 		</span>
 	)
 }

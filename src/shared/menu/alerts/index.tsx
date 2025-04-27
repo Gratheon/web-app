@@ -7,7 +7,7 @@ import {gql} from "urql";
 import {useQuery} from "@/api";
 import ErrorMsg from "@/shared/messageError";
 import Loader from "@/shared/loader";
-import DateFormat from "@/shared/dateFormat";
+import DateTimeFormat from "@/shared/dateTimeFormat";
 
 const Alerts = ({alerts, error}) => {
     return (
@@ -19,7 +19,7 @@ const Alerts = ({alerts, error}) => {
                     <div key={alert.id} style={{display: 'flex'}}>
                         <div style={{flexGrow: 1, textAlign: 'left'}}>{alert.text}</div>
                         <div style={{fontSize: 12}}>
-                            <DateFormat datetime={alert.date_added} />
+                            <DateTimeFormat datetime={alert.date_added} />
                         </div>
                     </div>
                 ))}

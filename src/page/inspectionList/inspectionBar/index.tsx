@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 // Use absolute paths
 import colors from '@/colors.ts';
-import DateFormat from '@/shared/dateFormat';
+import DateTimeFormat from '@/shared/dateTimeFormat';
 import { InspectionSnapshot } from '@/models/inspections.ts';
 import BeeCounter from '@/shared/beeCounter';
 import T from '@/shared/translate'; // Import T for translations
@@ -84,7 +84,7 @@ export default function InspectionBar({
 				} : undefined}>
 
 				<div style={{ display: 'flex', alignItems: 'center', minHeight: '16px' }}>
-					{!hideDate && <DateFormat datetime={added} />}
+					{!hideDate && <DateTimeFormat datetime={added} />}
 					<BeeCounter count={tmpdata?.hive?.beeCount} />
 				</div>
 

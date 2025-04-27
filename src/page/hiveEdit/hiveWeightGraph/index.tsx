@@ -16,7 +16,7 @@ import { gql, useQuery } from '@/api'
 
 import ChartHeading from '@/shared/chartHeading'
 import Loader from '@/shared/loader'
-import { formatTime } from '@/shared/dateFormat'
+import { formatTime } from '@/shared/dateTimeFormat'
 import T, { useTranslation as t } from '@/shared/translate'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { getUser } from '@/models/user'

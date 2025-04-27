@@ -38,6 +38,7 @@ import logoUrl from '@/assets/logo-v7.png'
 
 import HiveTopEditForm from '@/page/hiveEdit/hiveTopInfo/hiveTopEditForm'
 import CollapseHiveModal from '@/page/hiveEdit/CollapseHiveModal'; // Import the modal component
+import DateFormat from '@/shared/dateFormat'
 
 export default function HiveEditDetails({ apiaryId, hiveId }) {
 	let [editable, setEditable] = useState(false)
@@ -118,10 +119,10 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 						title={<T>Inspection created</T>}
 						message={
 							<>
-							<T>All frame statistics is reset for the new state</T>.
-							<T>Try sharing the inspection with others</T>!
+								<T>All frame statistics is reset for the new state</T>.
+								<T>Try sharing the inspection with others</T>!
 							</>
-					}
+						}
 					/>
 				)
 			}, 1000),
@@ -141,11 +142,11 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 						onClick={onCreateInspection}
 						color="green"
 					>
-					<InspectionIcon />
-					<T ctx="This is a button that adds new beehive inspection as a snapshot of current beehive state">
-						Create Inspection
-					</T>
-				</Button>
+						<InspectionIcon />
+						<T ctx="This is a button that adds new beehive inspection as a snapshot of current beehive state">
+							Create Inspection
+						</T>
+					</Button>
 				)}
 
 
@@ -174,7 +175,7 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 							>
 								<QrCodeIcon size={16} /> <T>Generate QR sticker</T>
 							</Button>
-							
+
 							{hive && !isCollapsed(hive) && (
 								<Button onClick={() => setShowCollapseModal(true)}>
 									<SkullIcon size={16} /> <T>Mark as Collapsed</T>
@@ -226,11 +227,17 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 										<QueenColor year={family?.added} />
 										{family && family.added}
 										{hive && isCollapsed(hive) && (
-										<span style={{ display: 'inline-flex', alignItems: 'center', marginLeft: 8, color: '#b22222', fontWeight: 600 }}>
-											<SkullIcon size={18} color="#b22222" style={{ marginRight: 4 }} />
-											<T>Collapsed</T>
-										</span>
-									)}
+											<span className={styles.collapsedLabel}>
+												{hive.collapse_date && family.added && <> &mdash; </>}
+
+												<DateFormat datetime={hive.collapse_date} />
+	
+												<SkullIcon size={14} color="#b22222" style={{ marginRight: 4 }} />
+												
+												<T>Collapsed</T>
+
+											</span>
+										)}
 									</>
 								)}
 							</div>
@@ -243,6 +250,9 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 							)}
 
 							{hive.notes && <p>{hive.notes}</p>}
+							{hive && isCollapsed(hive) && hive.collapse_cause && (
+								<>	<T>Collapse cause</T>: {hive.collapse_cause}</>
+							)}
 						</div>
 
 						<div className={styles.button_wrap1}>{buttons}</div>

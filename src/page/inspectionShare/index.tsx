@@ -11,7 +11,7 @@ import InspectionBar from '@/page/inspectionList/inspectionBar';
 import HiveIcon from '@/shared/hive';
 import QueenColor from '@/page/hiveEdit/hiveTopInfo/queenColor';
 import BeeCounter from '@/shared/beeCounter';
-import DateFormat from '@/shared/dateFormat'; // Import DateFormat
+import DateTimeFormat from '@/shared/dateTimeFormat/index.tsx'; // Import DateFormat
 import T from '@/shared/translate';
 import styles from '@/page/hiveEdit/hiveTopInfo/styles.module.less';
 
@@ -108,7 +108,7 @@ export default function InspectionShare() {
 								{/* Inspection Time added here */}
 								{inspectionData?.added && (
 									<div style={{ marginLeft: 'auto', fontSize: '0.9em', color: '#555', whiteSpace: 'nowrap' }}> {/* Push right */}
-										<DateFormat datetime={inspectionData.added} />
+										<DateTimeFormat datetime={inspectionData.added} />
 									</div>
 								)}
 							</div>

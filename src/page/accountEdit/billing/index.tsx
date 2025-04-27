@@ -10,7 +10,7 @@ import metrics from '../../../metrics.tsx'
 
 import { de, et, fr, pl, ru, tr } from 'date-fns/locale'
 import DateTimeAgo from '../../../shared/dateTimeAgo'
-import DateFormat from '../../../shared/dateFormat'
+import DateTimeFormat from '../../../shared/dateTimeFormat/index.tsx'
 import CreditCard from '../../../icons/creditCard.tsx'
 const loadedDateLocales = { de, et, fr, pl, ru, tr }
 
@@ -96,7 +96,7 @@ export default function Billing({ user }) {
 						{!user.isSubscriptionExpired &&
 							<div>
 								<T>Expires in</T>&nbsp;
-								<DateTimeAgo dateString={user.date_expiration} lang={user.lang} /> ( <DateFormat datetime={user.date_expiration} lang={user.lang} /> )
+								<DateTimeAgo dateString={user.date_expiration} lang={user.lang} /> ( <DateTimeFormat datetime={user.date_expiration} lang={user.lang} /> )
 							</div>
 						}
 					</div>

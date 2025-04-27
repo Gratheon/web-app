@@ -9,7 +9,7 @@ import ErrorGeneral from '../../shared/messageErrorGlobal'
 import Loader from '../../shared/loader'
 import MessageNotFound from '../../shared/messageNotFound'
 import T from '../../shared/translate'
-import DateFormat from '../../shared/dateFormat'
+import DateTimeFormat from '../../shared/dateTimeFormat/index.tsx'
 
 import { getHive } from '../../models/hive.ts'
 import { getApiary } from '../../models/apiary.ts'
@@ -71,7 +71,7 @@ export default function InspectionList({breadcrumbs}) {
 				icon: <InspectionIcon size={12} />,
 				name: (
 					<>
-						<DateFormat
+						<DateTimeFormat
 							lang={user ? user.lang : 'en'}
 							datetime={selectedInspection?.added}
 						/>{' '}

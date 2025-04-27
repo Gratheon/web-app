@@ -7,5 +7,4 @@ export function addCustomIndexes(dbSchema) {
 	dbSchema.frame_side_inspection += ',[frameSideId+inspectionId]'
 	dbSchema.files_frame_side_cells += ',frameSideId'
 	dbSchema.frame_side_file += ',id' // Add index for id field
-	dbSchema.hive += ',status' // Add index for status field
 }

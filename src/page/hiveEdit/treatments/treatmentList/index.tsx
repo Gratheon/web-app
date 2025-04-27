@@ -4,7 +4,7 @@ import { gql, useQuery } from '../../../../api'
 import ErrorMessage from '../../../../shared/messageError'
 import T from '../../../../shared/translate'
 import Loader from '../../../../shared/loader'
-import DateFormat from '../../../../shared/dateFormat'
+import DateTimeFormat from '../../../../shared/dateTimeFormat'
 
 export default function TreatmentList({ hiveId, boxId = null }) {
 	let {
@@ -64,7 +64,7 @@ export default function TreatmentList({ hiveId, boxId = null }) {
 							<tr key={treatment.id}>
 								<td>{treatment.type}</td>
 								<td>
-									<DateFormat datetime={treatment.added} />
+									<DateTimeFormat datetime={treatment.added} />
 								</td>
 							</tr>
 						))}

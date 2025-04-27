@@ -12,6 +12,8 @@ export default gql`
 			notes
 			beeCount
 			inspectionCount
+			collapse_date
+			collapse_cause
 
 			files {
 				hiveId

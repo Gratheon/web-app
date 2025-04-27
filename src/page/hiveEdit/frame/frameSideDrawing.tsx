@@ -51,14 +51,12 @@ export default function FrameSideDrawing({
 	`)
 
 	// Updated onStrokeHistoryUpdate to use atomic modify function
-	const onStrokeHistoryUpdate = useCallback(async (strokeHistory) => {
-		console.log('[FrameSideDrawing] onStrokeHistoryUpdate received:', strokeHistory);
-		// Optimistically update via mutation first
+	const onStrokeHistoryUpdate = async (strokeHistory) => {
 		try {
 			console.log('[FrameSideDrawing] Calling filesStrokeEditMutate with:', {
 				files: [
 					{
-						frameSideId: frameSide.id, // Assuming frameSide.id is correct
+						frameSideId: frameSide.id,
 						fileId: file.id,
 						strokeHistory,
 					},
@@ -67,7 +65,7 @@ export default function FrameSideDrawing({
 			filesStrokeEditMutate({
 				files: [
 					{
-						frameSideId: frameSide.id, // Assuming frameSide.id is correct
+						frameSideId: frameSide.id,
 						fileId: file.id,
 						strokeHistory,
 					},
@@ -77,7 +75,6 @@ export default function FrameSideDrawing({
 			console.error('[FrameSideDrawing] Error calling filesStrokeEditMutate:', e);
 		}
 
-		// Then update Dexie atomically
 		updateStrokeHistoryData(+frameSideId, strokeHistory)
 			.then(() => {
 				console.log('[FrameSideDrawing] updateStrokeHistoryData succeeded for', frameSideId);
@@ -85,22 +82,15 @@ export default function FrameSideDrawing({
 			.catch(error => {
 				console.error('[FrameSideDrawing] Failed to update stroke history:', error);
 			});
+	};
 
-	}, [filesStrokeEditMutate, frameSide.id, file.id, frameSideId]); // Added frameSideId dependency
-
-	// Check if liveFrameSideFile is still loading (undefined means initial load)
 	if (liveFrameSideFile === undefined || !frameId || !frameSideId || !frameSide) {
 		return <Loading />
 	}
 
-	// Handle case where frameSideFile doesn't exist for this frameSideId
 	if (liveFrameSideFile === null) {
-		// Optionally render a message or specific UI
 		return <div>No frame side data found.</div>;
 	}
-
-	// Log the bee count being passed to DrawingCanvas
-	// console.log(`Rendering FrameSideDrawing. liveFrameSideFile.detectedBees length: ${liveFrameSideFile?.detectedBees?.length ?? 'N/A'}`); // Removed log
 
 	return (
 		<div className={styles.frame}>
@@ -109,14 +99,13 @@ export default function FrameSideDrawing({
 				<DrawingCanvas
 					imageUrl={file.url}
 					resizes={file.resizes}
-					detectedQueenCups={liveFrameSideFile.detectedQueenCups} // Use live data
-					detectedBees={liveFrameSideFile.detectedBees} // Use live data
-					detectedCells={liveFrameSideFile.detectedCells} // Use live data
-					detectedVarroa={liveFrameSideFile.detectedVarroa} // Use live data
-					strokeHistory={liveFrameSideFile.strokeHistory} // Use live data
+					detectedQueenCups={liveFrameSideFile.detectedQueenCups}
+					detectedBees={liveFrameSideFile.detectedBees}
+					detectedCells={liveFrameSideFile.detectedCells}
+					detectedVarroa={liveFrameSideFile.detectedVarroa}
+					strokeHistory={liveFrameSideFile.strokeHistory}
 					onStrokeHistoryUpdate={onStrokeHistoryUpdate}
-					frameSideFile={liveFrameSideFile} // Pass live data
-					// Removed frameSide prop passing
+					frameSideFile={liveFrameSideFile}
 				/>
 			</div>
 		</div>

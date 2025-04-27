@@ -157,11 +157,9 @@ function drawDetectedBees(
 	showQueens: boolean
 ) {
 	const relPx = calculateRelPx(canvas);
-	REL_PX = relPx; // Update global REL_PX
-	// console.log(`drawDetectedBees: Starting loop for ${detectedBees?.length ?? 0} bees.`); // Removed log
+	REL_PX = relPx;
 
-	detectedBees.forEach((dt, index) => { // Add index to loop
-		// console.log(`drawDetectedBees: Processing bee ${index + 1} at x=${dt.x}, y=${dt.y}`); // Optional detailed log per bee
+	detectedBees.forEach((dt, index) => {
 		const n = parseInt(dt.n, 10);
 		if ((!showBees && (n === 0 || n === 2)) || (!showDrones && n === 1) || (!showQueens && n === 3)) {
 			return;
@@ -478,24 +476,18 @@ export default function DrawingCanvas({
 			ctx.restore();
 		};
 
-		const handleDrawEnd = (e: MouseEvent | TouchEvent) => {
+		const handleDrawEnd = async (e: MouseEvent | TouchEvent) => {
 			if (!isMousedown || isPanning || (e instanceof MouseEvent && e.button !== 0)) return;
 
 			isMousedown = false;
-			// No need to draw again here, just finalize the stroke
 			if (points.length > 0) {
-				console.log('[DrawingCanvas] points', points);
 				let newHistory: DrawingLine[] = [[...points]];
-				console.log('[DrawingCanvas] newHistory', newHistory);
-				console.log('[DrawingCanvas] strokeHistory', strokeHistory);
 
-				if(strokeHistory.length > 0) {
+				if(strokeHistory && strokeHistory.length > 0) {
 					newHistory = [...strokeHistory, ...newHistory];
 				}
 
-				console.log('[DrawingCanvas] newHistory', newHistory);
-				onStrokeHistoryUpdate(newHistory);
-				// points = [];
+				await onStrokeHistoryUpdate(newHistory);
 			}
 			setCurrentLineWidth(0);
 		};
@@ -656,7 +648,6 @@ export default function DrawingCanvas({
 
 	// Redraw when detection data changes
 	useEffect(() => {
-		// console.log(`DrawingCanvas: useEffect triggered by detection data change. detectedBees prop length: ${detectedBees?.length ?? 'N/A'}`); // Removed log
 		redrawCurrentCanvas();
 	}, [detectedBees, detectedCells, detectedQueenCups, detectedVarroa, redrawCurrentCanvas]);
 

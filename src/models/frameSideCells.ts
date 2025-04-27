@@ -47,6 +47,7 @@ export async function getFrameSideCells(
 ): Promise<FrameSideCells | null> {
 	try {
 		let res = await db[FRAME_SIDE_CELL_TABLE].get(+frameSideId)
+		if (!res) return null
 		if (!res.droneBroodPercent){
 			res.droneBroodPercent = 0
 		}

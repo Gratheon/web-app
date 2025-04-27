@@ -5,7 +5,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import QueenColor from '@/page/hiveEdit/hiveTopInfo/queenColor'
 
 import { useMutation } from '@/api'
-import { updateHive, getHive } from '@/models/hive.ts'
+import { updateHive, getHive, isCollapsed, isEditable } from '@/models/hive.ts'
 import { Box, getBoxes, updateBox } from '@/models/boxes.ts'
 import { getFamilyByHive, updateFamily } from '@/models/family.ts'
 import { Family } from '@/models/family.ts'

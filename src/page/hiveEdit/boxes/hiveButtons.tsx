@@ -20,6 +20,8 @@ import metrics from '@/metrics.tsx'
 import styles from './styles.module.less'
 import { PopupButton, PopupButtonGroup } from '@/shared/popupButton'
 import DeleteIcon from '@/icons/deleteIcon'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { getHive, isEditable } from '@/models/hive'
 
 
 export default function HiveButtons({
@@ -30,6 +32,7 @@ export default function HiveButtons({
 	let navigate = useNavigate()
 	const [adding, setAdding] = useState(false)
 	const [errorRemove, setErrorRemove] = useState(false)
+	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId]);
 
 	let [addBoxMutation, { error: errorAdd }] =
 		useMutation(`mutation addBox($hiveId: ID!, $position: Int!, $type: BoxType!) {
@@ -93,6 +96,10 @@ let [removeBoxMutation] = useMutation(`mutation deactivateBox($id: ID!) {
 		navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${id}`, {
 			replace: true,
 		})
+	}
+
+	if(hive && !isEditable(hive)){
+		return null
 	}
 
 	return (

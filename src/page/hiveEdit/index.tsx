@@ -11,7 +11,7 @@ import HiveEditDetails from '@/page/hiveEdit/hiveTopInfo'
 import ErrorMsg from '@/shared/messageError'
 import ErrorGeneral from '@/shared/messageErrorGlobal'
 import { boxTypes, getBox } from '@/models/boxes.ts'
-import { getHive } from '@/models/hive.ts'
+import { getHive, isCollapsed, isEditable } from '@/models/hive.ts'
 import { getApiary } from '@/models/apiary.ts'
 import Loader from '@/shared/loader'
 
@@ -68,7 +68,7 @@ export default function HiveEditForm() {
 	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId], null);
 	const box = useLiveQuery(() => getBox(+boxId), [boxId], null);
 	const family = useLiveQuery(() => getFamilyByHive(+hiveId), [hiveId]);
-	const isCollapsed = hive?.status === 'collapsed';
+	
 
 	if (apiary === null || hive === null) {
 		return <Loader />
@@ -198,7 +198,7 @@ export default function HiveEditForm() {
 							frameSideId={frameSideId}
 							displayMode={displayMode}
 							setDisplayMode={setDisplayMode}
-							editable={!isCollapsed}
+							editable={isEditable(hive)}
 						/>
 					</div>
 				)}

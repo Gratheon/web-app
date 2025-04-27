@@ -20,7 +20,7 @@ import BeeCounter from '@/shared/beeCounter'
 import MessageSuccess from '@/shared/messageSuccess'
 import VisualFormSubmit from '@/shared/visualForm/VisualFormSubmit'
 
-import { updateHive, getHive } from '@/models/hive.ts'
+import { updateHive, getHive, isCollapsed, isEditable } from '@/models/hive.ts'
 import { getBoxes } from '@/models/boxes.ts'
 import { getFamilyByHive } from '@/models/family.ts'
 import {
@@ -52,7 +52,8 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 	let boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId]);
 	let family = useLiveQuery(() => getFamilyByHive(+hiveId), [hiveId]);
 
-	const isCollapsed = hive?.status === 'collapsed';
+	const collapsed = hive ? isCollapsed(hive) : false;
+	const editableHive = hive ? isEditable(hive) : false; // Expose for UI
 
 	let [mutateInspection, { error: errorInspection }] =
 		useMutation(`	mutation addInspection($inspection: InspectionInput!) {
@@ -134,49 +135,60 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 	let buttons = (
 		<div>
 			<VisualFormSubmit>
-				<Button
-					loading={creatingInspection}
-					onClick={onCreateInspection}
-					color="green"
-					disabled={isCollapsed}
-				>
+				{isEditable(hive) && (
+					<Button
+						loading={creatingInspection}
+						onClick={onCreateInspection}
+						color="green"
+					>
 					<InspectionIcon />
 					<T ctx="This is a button that adds new beehive inspection as a snapshot of current beehive state">
 						Create Inspection
 					</T>
 				</Button>
-				<PopupButtonGroup>
-					{!editable && !isCollapsed && (
-						<Button onClick={() => setEditable(!editable)}>
-							<T ctx="this is a button to allow editing by displaying a form">
-								Edit
-							</T>
-						</Button>
-					)}
-					{editable && !isCollapsed && (
-						<Button onClick={() => setEditable(!editable)}>
-							<T ctx="this is a button to compete editing of a form, but it is not doing any saving because saving is done automatically, this just switches form to view mode">
-								Complete
-							</T>
-						</Button>
-					)}
+				)}
 
-					<PopupButton align="right">
-						<Button
-							title="Generate QR sticker for this hive"
-							onClick={onGenerateQR}
-						>
-							<QrCodeIcon size={16} /> <T>Generate QR sticker</T>
-						</Button>
-						{/* Add Mark as Collapsed button */}
-						{!isCollapsed && (
-							<Button onClick={() => setShowCollapseModal(true)}>
-								<SkullIcon size={16} /> <T>Mark as Collapsed</T>
+
+
+				{isEditable(hive) && (
+					<PopupButtonGroup>
+						{!editable && hive && !isCollapsed(hive) && (
+							<Button onClick={() => setEditable(!editable)}>
+								<T ctx="this is a button to allow editing by displaying a form">
+									Edit
+								</T>
 							</Button>
 						)}
-						<DeactivateButton hiveId={hive.id} />
-					</PopupButton>
-				</PopupButtonGroup>
+						{editable && hive && editableHive && (
+							<Button onClick={() => setEditable(!editable)}>
+								<T ctx="this is a button to compete editing of a form, but it is not doing any saving because saving is done automatically, this just switches form to view mode">
+									Complete
+								</T>
+							</Button>
+						)}
+
+						<PopupButton align="right">
+							<Button
+								title="Generate QR sticker for this hive"
+								onClick={onGenerateQR}
+							>
+								<QrCodeIcon size={16} /> <T>Generate QR sticker</T>
+							</Button>
+							
+							{hive && !isCollapsed(hive) && (
+								<Button onClick={() => setShowCollapseModal(true)}>
+									<SkullIcon size={16} /> <T>Mark as Collapsed</T>
+								</Button>
+							)}
+							<DeactivateButton hiveId={hive.id} />
+						</PopupButton>
+					</PopupButtonGroup>
+				)}
+
+
+				{!isEditable(hive) && isCollapsed(hive) && (
+					<DeactivateButton hiveId={hive.id} />
+				)}
 			</VisualFormSubmit>
 		</div>
 	)
@@ -213,12 +225,12 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 									<>
 										<QueenColor year={family?.added} />
 										{family && family.added}
-										{isCollapsed && (
-											<span style={{ display: 'inline-flex', alignItems: 'center', marginLeft: 8, color: '#b22222', fontWeight: 600 }}>
-												<SkullIcon size={18} color="#b22222" style={{ marginRight: 4 }} />
-												<T>Collapsed</T>
-											</span>
-										)}
+										{hive && isCollapsed(hive) && (
+										<span style={{ display: 'inline-flex', alignItems: 'center', marginLeft: 8, color: '#b22222', fontWeight: 600 }}>
+											<SkullIcon size={18} color="#b22222" style={{ marginRight: 4 }} />
+											<T>Collapsed</T>
+										</span>
+									)}
 									</>
 								)}
 							</div>

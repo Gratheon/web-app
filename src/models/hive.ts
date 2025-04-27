@@ -10,6 +10,18 @@ export type Hive = {
 	status?: string
 	collapse_date?: string // Add collapse_date field
 	collapse_cause?: string // Add collapse_cause field
+
+	isCollapsed?: () => boolean
+	isEditable?: () => boolean
+}
+
+// Utility functions to attach to Hive objects
+export function isCollapsed(hive: Hive): boolean {
+	return hive.status === 'collapsed' || !!hive.collapse_date;
+}
+
+export function isEditable(hive: Hive): boolean {
+	return !isCollapsed(hive);
 }
 
 const TABLE_NAME = 'hive'

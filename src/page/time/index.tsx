@@ -1,8 +1,26 @@
 import React, { useRef, useEffect, useState } from 'react';
 import styles from './styles.module.less';
-import { useQuery, gql } from '../../api';
 import Loader from '@/shared/loader';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { getHives, bulkUpsertHives } from '../../models/hive';
+import { listInspections } from '../../models/inspections';
+import { useQuery, gql } from '../../api';
+
+const HIVES_QUERY = gql`
+  query HIVES {
+    hives {
+      id
+      name
+      notes
+      familyId
+      beeCount
+      inspectionCount
+      status
+      collapse_date
+      collapse_cause
+    }
+  }
+`;
 
 // Data declarations (once only)
 const idealPopulationCurve = [
@@ -15,49 +33,7 @@ const idealPopulationCurve = [
 const today = new Date();
 const todayMonth = today.getMonth();
 const todayDay = today.getDate();
-const userColonies = [
-    { hiveId: 1, name: 'Hive A', population: 18000 },
-    { hiveId: 2, name: 'Hive B', population: 22000 },
-];
-const inspections = [
-    { hiveId: 1, date: new Date(today.getFullYear(), 2, 10), population: 12000 },
-    { hiveId: 1, date: new Date(today.getFullYear(), 5, 15), population: 35000 },
-    { hiveId: 2, date: new Date(today.getFullYear(), 3, 5), population: 16000 },
-    { hiveId: 2, date: new Date(today.getFullYear(), 7, 20), population: 30000 },
-];
 
-const HIVES_QUERY = gql`
-    {
-        apiaries {
-            id
-            name
-            hives {
-                id
-                name
-                beeCount
-                status
-                lastInspection
-                isNew
-                family {
-                    id
-                    age
-                    lastTreatment
-                }
-                boxes {
-                    id
-                    position
-                    color
-                    type
-                }
-                inspections {
-                    id
-                    date
-                    population
-                }
-            }
-        }
-    }
-`;
 
 
 function getMonthLabel(month: number) {
@@ -83,32 +59,36 @@ export default function TimeView() {
     });
     const [drag, setDrag] = useState<null | { x: number, startMonth: number }>(null);
 
-    // Data loading
-    const { loading, error, data } = useQuery(HIVES_QUERY);
+    // Data loading from Dexie (with fallback to GraphQL)
+    const { data: gqlData, loading: gqlLoading, error: gqlError } = useQuery(HIVES_QUERY, {});
+    const hives = useLiveQuery(async () => {
+        let localHives = await getHives();
+        if ((!localHives || localHives.length === 0) && gqlData && gqlData.hives && gqlData.hives.length > 0) {
+            // Upsert backend hives to Dexie
+            await bulkUpsertHives(gqlData.hives);
+            return gqlData.hives;
+        }
+        return localHives;
+    }, [gqlData], []);
 
-    if (loading) return <Loader stroke="black" size={0}/>
+    const inspections = useLiveQuery(async () => {
+        if (!hives || hives.length === 0) return [];
+        // Gather all inspections for all hives
+        const allInspections = [];
+        for (const hive of hives) {
+            const ins = await listInspections(hive.id);
+            // Attach hive name for tooltip/grouping
+            allInspections.push(...ins.map(i => ({
+                ...i,
+                hiveName: hive.name,
+                date: i.added ? new Date(i.added) : new Date(),
+            })));
+        }
+        return allInspections;
+    }, [hives], []);
 
-    // Prepare hive and inspection data
-    let hives: any[] = [];
-    let inspections: any[] = [];
-    if (data && data.apiaries) {
-        data.apiaries.forEach(apiary => {
-            if (apiary.hives) {
-                apiary.hives.forEach(hive => {
-                    hives.push(hive);
-                    if (hive.inspections) {
-                        hive.inspections.forEach(ins => {
-                            inspections.push({
-                                ...ins,
-                                hiveId: hive.id,
-                                hiveName: hive.name
-                            });
-                        });
-                    }
-                });
-            }
-        });
-    }
+    if (!hives) return <Loader stroke="black" size={0}/>;
+    if (!inspections) return <Loader stroke="black" size={0}/>;
 
     // Track yellow circle positions for tooltip
     const yellowCircles = useRef<any[]>([]);
@@ -277,12 +257,12 @@ export default function TimeView() {
             ctx.restore();
         }
 
-        // Draw user colonies current population
-        if (showCurrent) {
-            userColonies.forEach(col => {
-                if (todayMonth >= startMonth && todayMonth <= endMonth) {
+        // Draw current population for each hive (yellow dot)
+        if (showCurrent && hives) {
+            hives.forEach(hive => {
+                if (todayMonth >= startMonth && todayMonth <= endMonth && hive.beeCount) {
                     const x = monthToX(todayMonth);
-                    const y = populationToY(col.population);
+                    const y = populationToY(hive.beeCount);
                     ctx.beginPath();
                     ctx.arc(x, y, 7, 0, 2 * Math.PI);
                     ctx.fillStyle = '#ffd900';
@@ -356,9 +336,7 @@ export default function TimeView() {
         setDrag(null);
     }
 
-    // Loading and error states
-    if (loading) return <div className={styles.flowWrap}><h2>Colony Lifecycle</h2><div>Loading...</div></div>;
-    if (error) return <div className={styles.flowWrap}><h2>Colony Lifecycle</h2><div style={{color: 'red'}}>Error loading hives</div></div>;
+    // Loading and error states (handled above by Loader)
 
 
     return (

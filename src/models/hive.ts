@@ -1,4 +1,5 @@
 import { db } from './db'
+export { db };
 
 export type Hive = {
 	id: number
@@ -30,6 +31,24 @@ export function isEditable(hive: Hive): boolean {
 }
 
 const TABLE_NAME = 'hive'
+
+export async function getHives(): Promise<Hive[]> {
+    try {
+        return await db[TABLE_NAME].toArray();
+    } catch (e) {
+        console.error(e);
+        return [];
+    }
+}
+
+export async function bulkUpsertHives(hives: Hive[]): Promise<void> {
+    if (!hives || !Array.isArray(hives) || hives.length === 0) return;
+    try {
+        await db[TABLE_NAME].bulkPut(hives);
+    } catch (e) {
+        console.error('Failed to bulk upsert hives:', e);
+    }
+}
 
 export async function getHive(id: number): Promise<Hive | undefined> {
 	// Validate ID before querying

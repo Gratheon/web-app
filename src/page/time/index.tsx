@@ -1,5 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react';
 import styles from './styles.module.less';
+import { useQuery, gql } from '../../api';
+import Loader from '@/shared/loader';
+import { useLiveQuery } from 'dexie-react-hooks';
 
 // Data declarations (once only)
 const idealPopulationCurve = [
@@ -23,6 +26,40 @@ const inspections = [
     { hiveId: 2, date: new Date(today.getFullYear(), 7, 20), population: 30000 },
 ];
 
+const HIVES_QUERY = gql`
+    {
+        apiaries {
+            id
+            name
+            hives {
+                id
+                name
+                beeCount
+                status
+                lastInspection
+                isNew
+                family {
+                    id
+                    age
+                    lastTreatment
+                }
+                boxes {
+                    id
+                    position
+                    color
+                    type
+                }
+                inspections {
+                    id
+                    date
+                    population
+                }
+            }
+        }
+    }
+`;
+
+
 function getMonthLabel(month: number) {
     return new Date(0, month).toLocaleString('default', { month: 'short' });
 }
@@ -45,6 +82,36 @@ export default function TimeView() {
         maxPop
     });
     const [drag, setDrag] = useState<null | { x: number, startMonth: number }>(null);
+
+    // Data loading
+    const { loading, error, data } = useQuery(HIVES_QUERY);
+
+    if (loading) return <Loader stroke="black" size={0}/>
+
+    // Prepare hive and inspection data
+    let hives: any[] = [];
+    let inspections: any[] = [];
+    if (data && data.apiaries) {
+        data.apiaries.forEach(apiary => {
+            if (apiary.hives) {
+                apiary.hives.forEach(hive => {
+                    hives.push(hive);
+                    if (hive.inspections) {
+                        hive.inspections.forEach(ins => {
+                            inspections.push({
+                                ...ins,
+                                hiveId: hive.id,
+                                hiveName: hive.name
+                            });
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    // Track yellow circle positions for tooltip
+    const yellowCircles = useRef<any[]>([]);
 
     // Responsive canvas
     useEffect(() => {
@@ -70,7 +137,7 @@ export default function TimeView() {
     }, []);
 
     // Group inspections by hive
-    const inspectionsByHive: Record<string, typeof inspections> = {};
+    const inspectionsByHive: Record<string, any[]> = {};
     inspections.forEach(ins => {
         if (!inspectionsByHive[ins.hiveId]) inspectionsByHive[ins.hiveId] = [];
         inspectionsByHive[ins.hiveId].push(ins);
@@ -243,17 +310,17 @@ export default function TimeView() {
                 // Draw dots
                 insList.forEach(ins => {
                     const x = monthToX(ins.date.getMonth());
-                    const y = populationToY(ins.population);
-                    ctx.beginPath();
-                    ctx.arc(x, y, 6, 0, 2 * Math.PI);
-                    ctx.fillStyle = '#1976d2';
-                    ctx.strokeStyle = '#fff';
-                    ctx.fill();
-                    ctx.stroke();
-                });
+                const y = populationToY(ins.population);
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, 2 * Math.PI);
+                ctx.fillStyle = '#1976d2';
+                ctx.strokeStyle = '#fff';
+                ctx.fill();
+                ctx.stroke();
             });
-        }
-    }, [view, canvasSize, showIdeal, showCurrent, showInspections]);
+            });
+    }
+}, [view, canvasSize, showIdeal, showCurrent, showInspections]);
 
     // Mouse events for pan/zoom
     function onWheel(e) {
@@ -288,6 +355,11 @@ export default function TimeView() {
     function onMouseUp() {
         setDrag(null);
     }
+
+    // Loading and error states
+    if (loading) return <div className={styles.flowWrap}><h2>Colony Lifecycle</h2><div>Loading...</div></div>;
+    if (error) return <div className={styles.flowWrap}><h2>Colony Lifecycle</h2><div style={{color: 'red'}}>Error loading hives</div></div>;
+
 
     return (
         <div className={styles.flowWrap} ref={containerRef} style={{width: '100%'}}>

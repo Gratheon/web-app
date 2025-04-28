@@ -1,24 +1,25 @@
-import {useState, useEffect, useCallback} from 'react' // Add useCallback
-import {useNavigate} from 'react-router'
-import {useParams} from 'react-router-dom'
+import { useState, useEffect, useCallback } from 'react' // Add useCallback
+import { useNavigate } from 'react-router'
+import { useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 
-import {gql, useMutation, useQuery} from '@/api'
+import { gql, useMutation, useQuery } from '@/api'
 import { getUser } from '@/models/user' // Import getUser
 
 import VisualForm from '@/shared/visualForm'
 import HiveIcon from '@/shared/hive'
 import ErrorMsg from '@/shared/messageError'
-import VisualFormSubmit from '@/shared/visualForm/VisualFormSubmit'
 import Button from '@/shared/button'
 import T from '@/shared/translate'
 import RefreshIcon from '@/icons/RefreshIcon' // Import the new icon component
 
-import {Box, boxTypes} from '@/models/boxes'
+import { Box, boxTypes } from '@/models/boxes'
+import PagePaddedCentered from '@/shared/pagePaddedCentered'
+import Card from '@/shared/pagePaddedCentered/card'
 
 
 const defaultBoxColor = '#ffc848'
-const supportedLangs = ['en', 'ru', 'et','tr','pl','de','fr']; // Define supported languages
+const supportedLangs = ['en', 'ru', 'et', 'tr', 'pl', 'de', 'fr']; // Define supported languages
 
 const RANDOM_HIVE_NAME_QUERY = gql`
     query RandomHiveName($language: String) { # Add language variable
@@ -27,7 +28,7 @@ const RANDOM_HIVE_NAME_QUERY = gql`
 `
 
 export default function HiveCreateForm() {
-    let {id} = useParams()
+    let { id } = useParams()
     let [boxCount, setBoxCount] = useState(2)
     let defaultBoxes = []
     for (let i = 0; i < boxCount; i++) {
@@ -82,7 +83,7 @@ export default function HiveCreateForm() {
     }, [reexecuteRandomNameQuery]);
 
 
-    let [addHive, {error, data}] = useMutation(
+    let [addHive, { error, data }] = useMutation(
         gql`
 			mutation addHive(
 				$name: String!
@@ -106,7 +107,7 @@ export default function HiveCreateForm() {
 				}
 			}
 		`,
-        {errorPolicy: 'all'}
+        { errorPolicy: 'all' }
     )
 
     async function onSubmit(e) {
@@ -131,93 +132,95 @@ export default function HiveCreateForm() {
     }
 
     return (
-        <div>
-            {error && <ErrorMsg error={error}/>}
-            <div style={{display: 'flex', padding: 20}}>
-                <div style={{paddingTop: 30, width: 100, textAlign: 'center'}}>
-                    <HiveIcon boxes={boxes} editable={true}/>
-                </div>
-
-                <VisualForm onSubmit={onSubmit.bind(this)} style="flex-grow:1">
-                    <div>
-                        <label htmlFor="name" style="width:120px;"><T>Name</T></label>
-                        <input
-                            name="name"
-                            id="name"
-                            style={{flexGrow: '1'}}
-                            autoFocus
-                            value={name}
-                            onInput={(e: any) => setName(e.target.value)}
-                        />
-                        <Button
-                            type="button" // Explicitly set type
-                            iconOnly={true} // Use iconOnly style
-                            onClick={handleRefreshName}
-                            disabled={randomNameLoading}
-                            style={{ // Apply matching styles
-                                height: '32px',
-                                borderRadius: '5px',
-                                padding: '0 8px', // Adjust padding for icon
-                                marginLeft: '5px', // Add some space
-                                verticalAlign: 'middle' // Align vertically
-                            }}
-                            title="Get new name suggestion"
-                        >
-                           <RefreshIcon /> {/* Use the component */}
-                        </Button>
+        <PagePaddedCentered>
+            <h1><T>New Hive</T></h1>
+            {error && <ErrorMsg error={error} />}
+            <Card>
+                <div style={{ display: 'flex', padding: 20 }}>
+                    <div style={{ paddingTop: 30, width: 100, textAlign: 'center' }}>
+                        <HiveIcon boxes={boxes} editable={true} />
                     </div>
 
-                    <div>
-                        <label htmlFor="boxCount"><T>Section count</T></label>
+                    <VisualForm
+                        onSubmit={onSubmit.bind(this)}
+                        style="flex-grow:1"
+                        submit={<Button type="submit" color="green"><T>Install</T></Button>}>
+                        <div>
+                            <label htmlFor="name" style="width:120px;"><T>Name</T></label>
+                            <input
+                                name="name"
+                                id="name"
+                                style={{ flexGrow: '1' }}
+                                autoFocus
+                                value={name}
+                                onInput={(e: any) => setName(e.target.value)}
+                            />
+                            <Button
+                                type="button" // Explicitly set type
+                                iconOnly={true} // Use iconOnly style
+                                onClick={handleRefreshName}
+                                disabled={randomNameLoading}
+                                style={{ // Apply matching styles
+                                    height: '32px',
+                                    borderRadius: '5px',
+                                    padding: '0 8px', // Adjust padding for icon
+                                    marginLeft: '5px', // Add some space
+                                    verticalAlign: 'middle' // Align vertically
+                                }}
+                                title="Get new name suggestion"
+                            >
+                                <RefreshIcon /> {/* Use the component */}
+                            </Button>
+                        </div>
 
-                        <input
-                            style={{width: 60}}
-                            type="number"
-                            id="boxCount"
-                            name="boxCount"
-                            value={boxCount}
-                            onInput={(e: any) => {
-                                const boxCount = parseInt(e.target.value, 10)
-                                if (boxCount < 1) return
-                                if (boxCount > 6) return
+                        <div>
+                            <label htmlFor="boxCount"><T>Section count</T></label>
 
-                                setBoxCount(boxCount)
-                                if (boxCount > boxes.length) {
-                                    setBoxes([{color: defaultBoxColor}, ...boxes])
-                                } else if (boxCount < boxes.length) {
-                                    setBoxes([...boxes.slice(0, boxCount)])
+                            <input
+                                style={{ width: 60 }}
+                                type="number"
+                                id="boxCount"
+                                name="boxCount"
+                                value={boxCount}
+                                onInput={(e: any) => {
+                                    const boxCount = parseInt(e.target.value, 10)
+                                    if (boxCount < 1) return
+                                    if (boxCount > 6) return
+
+                                    setBoxCount(boxCount)
+                                    if (boxCount > boxes.length) {
+                                        setBoxes([{ color: defaultBoxColor }, ...boxes])
+                                    } else if (boxCount < boxes.length) {
+                                        setBoxes([...boxes.slice(0, boxCount)])
+                                    }
+                                }}
+                                min="1"
+                                max="6"
+                                step="1"
+                            />
+                        </div>
+
+                        <div>
+                            <label htmlFor="frameCount"><T>Frame count</T></label>
+
+                            <input
+                                style={{ width: 60 }}
+                                type="number"
+                                id="frameCount"
+                                name="frameCount"
+                                value={frameCount}
+                                onInput={(e: any) => {
+                                    setFrameCount(parseInt(e.target.value, 10))
                                 }
-                            }}
-                            min="1"
-                            max="6"
-                            step="1"
-                        />
-                    </div>
-
-                    <div>
-                        <label htmlFor="frameCount"><T>Frame count</T></label>
-
-                        <input
-                            style={{width: 60}}
-                            type="number"
-                            id="frameCount"
-                            name="frameCount"
-                            value={frameCount}
-                            onInput={(e: any) => {
-                                setFrameCount(parseInt(e.target.value, 10))
-                            }
-                            }
-                            min="0"
-                            max="25"
-                            step="1"
-                        />
-                    </div>
-
-                    <VisualFormSubmit>
-                        <Button type="submit" color="green"><T>Create</T></Button>
-                    </VisualFormSubmit>
-                </VisualForm>
-            </div>
-        </div>
+                                }
+                                min="0"
+                                max="25"
+                                step="1"
+                            />
+                        </div>
+                    </VisualForm>
+                </div>
+            </Card>
+        </PagePaddedCentered>
     )
 }

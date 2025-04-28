@@ -1,0 +1,16 @@
+@import '@/layout.module.less';
+
+.pagePaddedCentered {
+  padding: @mobilePadPx;
+  max-width: @maxTabletWidthPx;
+
+  h2 {
+    padding: 10px 0;
+  }
+}
+
+@media @desktop {
+  .pagePaddedCentered {
+    padding: @desktopPadPx;
+  }
+}

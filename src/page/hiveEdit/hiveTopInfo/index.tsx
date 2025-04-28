@@ -18,7 +18,7 @@ import { PopupButton, PopupButtonGroup } from '@/shared/popupButton'
 import { InspectionSnapshot } from '@/models/inspections.ts'
 import BeeCounter from '@/shared/beeCounter'
 import MessageSuccess from '@/shared/messageSuccess'
-import VisualFormSubmit from '@/shared/visualForm/VisualFormSubmit'
+import VisualFormSubmit from '@/shared/visualForm/submit'
 
 import { updateHive, getHive, isCollapsed, isEditable } from '@/models/hive.ts'
 import { getBoxes } from '@/models/boxes.ts'

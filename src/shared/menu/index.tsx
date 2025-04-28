@@ -125,7 +125,7 @@ const Menu = ({isLoggedIn = false}) => {
                 </ul>
             </nav>
 
-            {isVisible && <Alerts alerts={alerts} error={error}/>}
+            {isVisible && <Alerts alerts={alerts} error={error} onClose={() => setVisible(false)} />}
         </>
     )
 }

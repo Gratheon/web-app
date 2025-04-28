@@ -9,6 +9,7 @@ import KeyIcon from '@/icons/key.tsx';
 
 import style from './style.module.less'
 import CopyButton from '@/shared/copyButton';
+import Card from '@/shared/pagePaddedCentered/card';
 
 const TOKEN_QUERY = gql`
 {
@@ -101,12 +102,14 @@ export default function TokenList() {
 
 	return (
 		<>
-			<div style="padding:10px;border: 1px solid gray;border-radius:5px;margin-bottom: 5px;">
+			<Card>
 				<h3><T>API tokens</T></h3>
 
 				<div style="display:flex;">
-					<p>
+					<p style="flex-grow:1;">
 						<T>API tokens are used to authenticate your requests to our API. You can create multiple tokens to use in different applications.</T>
+						<br />
+						<a href="https://gratheon.com/docs/API">API documentation</a>
 					</p>
 
 					<div>
@@ -114,9 +117,6 @@ export default function TokenList() {
 							<KeyIcon size={16} />
 							<T>Generate</T>
 						</Button>
-						<br />
-
-						<a href="https://gratheon.com/docs/API">API documentation</a>
 					</div>
 				</div>
 
@@ -148,9 +148,9 @@ export default function TokenList() {
 						</tbody>
 					</table>
 				}
-			</div>
+			</Card>
 
-			{shareTokens && shareTokens.length > 0 && <div style="padding:10px;border: 1px solid gray;border-radius:5px;margin-bottom: 5px;">
+			{shareTokens && shareTokens.length > 0 && <Card>
 				<h3><T>Shared links</T></h3>
 				<p><T>You can share access to hive inspections with other people. This list shows list of such shared tokens</T></p>
 
@@ -183,7 +183,7 @@ export default function TokenList() {
 					</tbody>
 
 				</table>
-			</div>
+			</Card>
 			}
 		</>
 	);

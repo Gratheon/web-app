@@ -9,7 +9,14 @@ import ErrorMsg from "@/shared/messageError";
 import Loader from "@/shared/loader";
 import DateTimeFormat from "@/shared/dateTimeFormat";
 
-const Alerts = ({alerts, error}) => {
+// Add onClose prop
+type AlertsProps = {
+  alerts: any,
+  error: any,
+  onClose?: () => void
+}
+
+const Alerts = ({alerts, error, onClose}: AlertsProps) => {
     return (
         <div className={styles.alertDropdownContainer}>
             <div className={styles.alertList}>
@@ -25,7 +32,9 @@ const Alerts = ({alerts, error}) => {
                 ))}
             </div>
             <div className={styles.alertDropdownFooter}>
-                <Link to="/alert-config" style={{ color: '#1976d2', textDecoration: 'underline', fontSize: 14 }}>
+                <Link to="/alert-config" style={{ color: '#1976d2', textDecoration: 'underline', fontSize: 14 }}
+                  onClick={onClose}
+                >
                     Alert Channel Settings
                 </Link>
             </div>

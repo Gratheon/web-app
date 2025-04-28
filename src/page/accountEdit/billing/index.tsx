@@ -12,6 +12,7 @@ import { de, et, fr, pl, ru, tr } from 'date-fns/locale'
 import DateTimeAgo from '../../../shared/dateTimeAgo'
 import DateTimeFormat from '../../../shared/dateTimeFormat/index.tsx'
 import CreditCard from '../../../icons/creditCard.tsx'
+import Card from '@/shared/pagePaddedCentered/card/index.tsx'
 const loadedDateLocales = { de, et, fr, pl, ru, tr }
 
 export default function Billing({ user }) {
@@ -64,7 +65,7 @@ export default function Billing({ user }) {
 	const dateLangOptions = { locale: loadedDateLocales[user.lang] }
 
 	return (
-		<div>
+		<Card>
 			{stripeStatus === 'success' && (
 				<MessageSuccess title={<T>Payment completed</T>} />
 			)}
@@ -72,7 +73,6 @@ export default function Billing({ user }) {
 
 			{expirationError}
 
-			<div style="margin-bottom:5px; border: 1px dotted gray; padding: 10px; border-radius: 5px;">
 				<h3><T ctx="this is a headline for billing form">Billing</T></h3>
 				{error && <MessageError error={error} />}
 				{errorCancel && <MessageError error={errorCancel} />}
@@ -116,7 +116,6 @@ export default function Billing({ user }) {
 						)}
 					</div>
 				</div>
-			</div>
-		</div>
+		</Card>
 	)
 }

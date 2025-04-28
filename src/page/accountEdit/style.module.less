@@ -1,16 +1,25 @@
-@import '../../layout.module.less';
+@import '@/layout.module.less';
 
-#account_edit {
-	padding: @mobilePadPx;
-	max-width: @maxTabletWidthPx;
 
-	h2 {
-		padding: 10px 0;
-	}
+.flexRow {
+	display: flex;
 }
 
-@media @desktop{
-	#account_edit {
-		padding: @desktopPadPx;
-	}
+.visualForm {
+	display: table;
+	width: auto;
+	flex-grow: 1;
+}
+
+.labelWide {
+	width: 120px;
+}
+
+.inputFirst {
+	width: 150px;
+	margin-right: 5px;
+}
+
+.inputLast {
+	width: 150px;
 }

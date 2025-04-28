@@ -13,10 +13,10 @@ import ErrorMsg from '@/shared/messageError'
 import Button from '@/shared/button'
 import T from '@/shared/translate'
 
-import VisualFormSubmit from '@/shared/visualForm/VisualFormSubmit'
 import {saveToken} from '@/user'
 
 import style from './styles.module.less'
+import VisualForm from '@/shared/visualForm'
 
 type Account = {
     email?: string
@@ -124,39 +124,33 @@ export default function AccountAuth() {
 
                     <div className={style.loginModalInternal}>
                         {errorMsg}
-                        <form method="POST" onSubmit={onSubmit}>
-                            <div>
-                                <input
-                                    style="width:100%;"
-                                    name="email"
-                                    type="email"
-                                    id="email"
-                                    placeholder="Email"
-                                    value={account.email}
-                                    onChange={onInput}
-                                />
-                            </div>
-                            <div>
-                                <input
-                                    style="width:100%;"
-                                    name="password"
-                                    id="password"
-                                    type="password"
-                                    placeholder="Password"
-                                    value={account.password}
-                                    onChange={onInput}
-                                />
-                            </div>
-
-                            <VisualFormSubmit>
-                                <Button
-                                    loading={loading || loadingMutation}
-                                    type="submit"
-                                    color="green"
-                                    onClick={onSubmit}>
-                                    <T>Log In</T>
-                                </Button>
-                            </VisualFormSubmit>
+                        <VisualForm 
+                            onSubmit={onSubmit} 
+                            submit={<Button
+                                loading={loading || loadingMutation}
+                                type="submit"
+                                color="green"
+                                onClick={onSubmit}>
+                                <T>Log In</T>
+                            </Button>}>
+                            <input
+                                style="width:100%;"
+                                name="email"
+                                type="email"
+                                id="email"
+                                placeholder="Email"
+                                value={account.email}
+                                onChange={onInput}
+                            />
+                            <input
+                                style="width:100%;"
+                                name="password"
+                                id="password"
+                                type="password"
+                                placeholder="Password"
+                                value={account.password}
+                                onChange={onInput}
+                            />
 
 
                             <div style="display: flex;margin:10px 0 8px;">
@@ -182,7 +176,7 @@ export default function AccountAuth() {
                                 <T>Login with Google</T>
                             </Button>
 
-                        </form>
+                        </VisualForm>
 
                     </div>
                     <div className={style.balancer}></div>

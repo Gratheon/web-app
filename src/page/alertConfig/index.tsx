@@ -5,6 +5,9 @@ import ErrorMsg from '@/shared/messageError'
 import Button from '@/shared/button'
 import T from '@/shared/translate'
 import styles from './styles.module.less'
+import MessageSuccess from '@/shared/messageSuccess'
+import PagePaddedCentered from '@/shared/pagePaddedCentered'
+import Card from '@/shared/pagePaddedCentered/card'
 
 const ALERT_CHANNEL_QUERY = gql`
 	query alertChannelConfig {
@@ -40,6 +43,7 @@ export default function AlertConfig() {
 		enabled: true,
 	});
 	const [saving, setSaving] = useState(false);
+	const [showSuccess, setShowSuccess] = useState(false);
 
 	React.useEffect(() => {
 		if (alertChannelData?.alertChannelConfig) {
@@ -58,6 +62,7 @@ export default function AlertConfig() {
 			...prev,
 			[name]: type === 'checkbox' ? checked : value,
 		}));
+		setShowSuccess(false);
 	}
 
 	async function onAlertConfigSave(e) {
@@ -66,6 +71,8 @@ export default function AlertConfig() {
 		await setAlertChannelConfig({ config: alertConfig });
 		reexecuteQuery();
 		setSaving(false);
+		setShowSuccess(true);
+		setTimeout(() => setShowSuccess(false), 2000);
 	}
 
 	if (!alertChannelData) {
@@ -73,65 +80,62 @@ export default function AlertConfig() {
 	}
 
 	return (
-		<div className={styles.card}>
-			<h2 className={styles.title}><T>Alert Channel Configuration</T></h2>
-			<form onSubmit={onAlertConfigSave} className={styles.form}>
-				<ErrorMsg error={mutationError || null} />
-				<div className={styles.formGroup}>
-					<label className={styles.label} htmlFor="phoneNumber">
-						<T>Phone Number</T>:
-					</label>
-					<input
-						className={styles.input}
-						id="phoneNumber"
-						type="text"
-						name="phoneNumber"
-						value={alertConfig.phoneNumber}
-						onChange={onAlertConfigChange}
-						placeholder="+1234567890"
-					/>
-				</div>
-				<div className={styles.formGroup}>
-					<label className={styles.label} htmlFor="timeStart">
-						<T>Time Window</T>:
-					</label>
-					<input
-						className={styles.input}
-						id="timeStart"
-						type="time"
-						name="timeStart"
-						value={alertConfig.timeStart}
-						onChange={onAlertConfigChange}
-					/>
-					<span className={styles.toText}><T>to</T></span>
-					<input
-						className={styles.input}
-						id="timeEnd"
-						type="time"
-						name="timeEnd"
-						value={alertConfig.timeEnd}
-						onChange={onAlertConfigChange}
-					/>
-				</div>
-				<div className={styles.formGroupCheckbox}>
-					<input
-						className={styles.checkbox}
-						id="enabled"
-						type="checkbox"
-						name="enabled"
-						checked={alertConfig.enabled}
-						onChange={onAlertConfigChange}
-					/>
-					<label className={styles.label} htmlFor="enabled">
-						<T>Enable SMS Alerts</T>
-					</label>
-				</div>
-				<div className={styles.buttonRow}>
-					<Button type="submit" color="blue" loading={saving}>
-						<T>Save SMS Alert Settings</T>
-					</Button>
-				</div>
-			</form>
-		</div>
-	)
+		<PagePaddedCentered>
+			{showSuccess && <MessageSuccess title={<T>Saved!</T>} message={<T>Alert channel settings saved successfully.</T>} />}
+			<ErrorMsg error={mutationError || null} />
+
+			<Card>
+				<form onSubmit={onAlertConfigSave} className={styles.configForm}>
+					<div className={styles.formRow}>
+						<label htmlFor="phoneNumber" className={styles.configLabel}><T>Phone Number</T>:</label>
+						<input
+							className={`${styles.configInput} ${styles.phoneInput}`}
+							id="phoneNumber"
+							type="text"
+							name="phoneNumber"
+							value={alertConfig.phoneNumber}
+							onChange={onAlertConfigChange}
+							placeholder="+1234567890"
+						/>
+					</div>
+					<div className={styles.formRow}>
+						<label htmlFor="timeStart" className={styles.configLabel}><T>Time Window</T>:</label>
+						<input
+							className={`${styles.configInput} ${styles.timeInput}`}
+							id="timeStart"
+							type="time"
+							name="timeStart"
+							value={alertConfig.timeStart}
+							onChange={onAlertConfigChange}
+						/>
+						<span className={styles.toText}><T>to</T></span>
+						<input
+							className={`${styles.configInput} ${styles.timeInput}`}
+							id="timeEnd"
+							type="time"
+							name="timeEnd"
+							value={alertConfig.timeEnd}
+							onChange={onAlertConfigChange}
+						/>
+					</div>
+					<div className={styles.formRow}>
+						<input
+							className={styles.checkboxInput}
+							id="enabled"
+							type="checkbox"
+							name="enabled"
+							checked={alertConfig.enabled}
+							onChange={onAlertConfigChange}
+						/>
+						<label htmlFor="enabled" className={styles.configLabel} style={{ fontWeight: 500 }}><T>Enable SMS Alerts</T></label>
+					</div>
+					<div className={styles.buttonRow}>
+						<Button type="submit" color="green" loading={saving}>
+							<T>Save</T>
+						</Button>
+					</div>
+				</form>
+			</Card>
+		</PagePaddedCentered>
+	);
 } 

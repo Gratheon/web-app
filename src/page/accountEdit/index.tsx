@@ -9,13 +9,14 @@ import Button from '@/shared/button'
 import type { User } from '@/models/user'
 import { getUser, updateUser } from '@/models/user'
 import T from '@/shared/translate'
-import VisualFormSubmit from '@/shared/visualForm/VisualFormSubmit'
 
 import TokenList from './token_list'
 import Billing from './billing'
 import Invoices from './invoices'
 import style from './style.module.less'
+import PagePaddedCentered from '@/shared/pagePaddedCentered'
 import DangerZone from './danger_zone'
+import Card from '@/shared/pagePaddedCentered/card'
 
 export default function AccountEdit() {
 	let [user, setUser] = useState<User>({})
@@ -103,18 +104,20 @@ export default function AccountEdit() {
 	}
 
 	return (
-		<div id={style.account_edit}>
-
+		<PagePaddedCentered>
 			<ErrorMsg error={error} />
-			<div style="padding: 10px; border: 1px solid black; margin-bottom: 5px; border-radius: 5px;">
-				<div style="display:flex;">
-					<VisualForm style="display: table;width:auto;flex-grow:1" onSubmit={onSubmit}>
+			<Card>
+				<div className={style.flexRow}>
+					<VisualForm 
+						className={style.visualForm} 
+						onSubmit={onSubmit}
+						submit={<Button type="submit" color='green' loading={saving}><T>Save</T></Button>}>
 						<div>
-							<label style="width:120px;" htmlFor="first_name"><T ctx="this is a label for the person full name">Name</T></label>
+							<label className={style.labelWide} htmlFor="first_name"><T ctx="this is a label for the person full name">Name</T></label>
 							<input
 								name="first_name"
 								id="first_name"
-								style="width:150px; margin-right: 5px;"
+								className={style.inputFirst}
 								placeholder="First name"
 								autoFocus
 								value={user.first_name}
@@ -123,7 +126,7 @@ export default function AccountEdit() {
 							<input
 								name="last_name"
 								id="last_name"
-								style="width:150px"
+								className={style.inputLast}
 								placeholder="Last name"
 								autoFocus
 								value={user.last_name}
@@ -151,20 +154,14 @@ export default function AccountEdit() {
 								<option value="tr" selected={user.lang == "tr"}>Türkçe</option>
 							</select>
 						</div>
-
-						<VisualFormSubmit>
-							<Button type="submit" color='green' loading={saving}>
-								<T>Save</T>
-							</Button>
-						</VisualFormSubmit>
 					</VisualForm>
 				</div>
-			</div>
+			</Card>
 
 			<Billing user={userStored} />
 			<Invoices />
 			<TokenList />
 			<DangerZone />
-		</div>
+		</PagePaddedCentered>
 	)
 }

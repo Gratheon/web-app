@@ -20,7 +20,7 @@
     "tauri": "tauri"
   },
   "dependencies": {
-    "@amplitude/analytics-browser": "2.3.8",
+    "@amplitude/analytics-browser": "2.12.2",
     "@edorivai/react-smooth-dnd": "0.11.2",
     "@sentry/integrations": "7.114.0",
     "@sentry/react": "8.26.0",

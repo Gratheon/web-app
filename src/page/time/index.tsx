@@ -1,0 +1,321 @@
+import React, { useRef, useEffect, useState } from 'react';
+import styles from './styles.module.less';
+
+// Data declarations (once only)
+const idealPopulationCurve = [
+    { month: 0, value: 10000 },
+    { month: 2, value: 15000 },
+    { month: 5, value: 40000 },
+    { month: 8, value: 35000 },
+    { month: 11, value: 12000 }
+];
+const today = new Date();
+const todayMonth = today.getMonth();
+const todayDay = today.getDate();
+const userColonies = [
+    { hiveId: 1, name: 'Hive A', population: 18000 },
+    { hiveId: 2, name: 'Hive B', population: 22000 },
+];
+const inspections = [
+    { hiveId: 1, date: new Date(today.getFullYear(), 2, 10), population: 12000 },
+    { hiveId: 1, date: new Date(today.getFullYear(), 5, 15), population: 35000 },
+    { hiveId: 2, date: new Date(today.getFullYear(), 3, 5), population: 16000 },
+    { hiveId: 2, date: new Date(today.getFullYear(), 7, 20), population: 30000 },
+];
+
+function getMonthLabel(month: number) {
+    return new Date(0, month).toLocaleString('default', { month: 'short' });
+}
+
+export default function TimeView() {
+    // Legend toggles
+    const [showIdeal, setShowIdeal] = useState(true);
+    const [showCurrent, setShowCurrent] = useState(true);
+    const [showInspections, setShowInspections] = useState(true);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [canvasSize, setCanvasSize] = useState({ width: 1200, height: 400 });
+    const maxPop = 80000;
+    const minPop = 0;
+    // Use fractional months for smooth drag
+    const [view, setView] = useState({
+        startMonth: todayMonth - 5 < 0 ? 0 : todayMonth - 5,
+        monthsVisible: 11,
+        minPop,
+        maxPop
+    });
+    const [drag, setDrag] = useState<null | { x: number, startMonth: number }>(null);
+
+    // Responsive canvas
+    useEffect(() => {
+        function updateSize() {
+            if (containerRef.current) {
+                const width = containerRef.current.offsetWidth;
+                setCanvasSize({ width, height: Math.round(width * 0.33) }); // keep 3:1 aspect ratio
+            }
+        }
+        updateSize();
+        // Prefer ResizeObserver for robustness
+        let observer: ResizeObserver | undefined;
+        if (window.ResizeObserver) {
+            observer = new ResizeObserver(updateSize);
+            if (containerRef.current) observer.observe(containerRef.current);
+        } else {
+            window.addEventListener('resize', updateSize);
+        }
+        return () => {
+            if (observer && containerRef.current) observer.unobserve(containerRef.current);
+            window.removeEventListener('resize', updateSize);
+        };
+    }, []);
+
+    // Group inspections by hive
+    const inspectionsByHive: Record<string, typeof inspections> = {};
+    inspections.forEach(ins => {
+        if (!inspectionsByHive[ins.hiveId]) inspectionsByHive[ins.hiveId] = [];
+        inspectionsByHive[ins.hiveId].push(ins);
+    });
+
+    // Helper to convert month to x pixel
+    function monthToX(month: number) {
+        const { startMonth, monthsVisible } = view;
+        return ((month - startMonth) / monthsVisible) * canvasSize.width;
+    }
+    function populationToY(pop: number) {
+        const { minPop, maxPop } = view;
+        return canvasSize.height - ((pop - minPop) / (maxPop - minPop)) * canvasSize.height;
+    }
+
+    useEffect(() => {
+        // Don't draw if canvas not ready
+        if (!canvasRef.current) return;
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvasSize.width, canvasSize.height);
+
+        // Draw Y axis (population)
+        ctx.save();
+        ctx.strokeStyle = '#bbb';
+        ctx.fillStyle = '#333';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        for (let pop = minPop; pop <= maxPop; pop += 10000) {
+            const y = populationToY(pop);
+            // Draw lighter, dashed, thin grid line
+            ctx.save();
+            ctx.strokeStyle = '#eee';
+            ctx.setLineDash([3, 3]);
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvasSize.width, y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.restore();
+            // Draw label above line (except for maxPop, draw below)
+            ctx.save();
+            ctx.fillStyle = '#333';
+            ctx.font = '12px sans-serif';
+            ctx.textAlign = 'right';
+            if (pop === maxPop) {
+                ctx.textBaseline = 'top';
+                ctx.fillText(pop.toLocaleString(), 38, y + 2);
+            } else {
+                ctx.textBaseline = 'middle';
+                ctx.fillText(pop.toLocaleString(), 38, y);
+            }
+            ctx.restore();
+        }
+        // Y axis label
+        ctx.save();
+        ctx.translate(-16, canvasSize.height / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.font = 'bold 13px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Bee Population', 0, 0);
+        ctx.restore();
+        ctx.restore();
+
+        // Draw calendar axis (X)
+        const { startMonth, monthsVisible } = view;
+        const endMonth = startMonth + monthsVisible;
+        for (let m = Math.floor(startMonth); m <= Math.ceil(endMonth); m++) {
+            const x = monthToX(m);
+            ctx.strokeStyle = '#ccc';
+            ctx.beginPath();
+            ctx.moveTo(x, canvasSize.height - 20);
+            ctx.lineTo(x, canvasSize.height);
+            ctx.stroke();
+            ctx.fillStyle = '#333';
+            ctx.font = '12px sans-serif';
+            if (m === 0) {
+                ctx.textAlign = 'left';
+                ctx.fillText(getMonthLabel(m), x + 2, canvasSize.height - 2);
+            } else {
+                ctx.textAlign = 'center';
+                ctx.fillText(getMonthLabel(m), x, canvasSize.height - 2);
+            }
+        }
+
+        // Draw TODAY vertical line
+        if (todayMonth >= startMonth && todayMonth <= endMonth) {
+            const x = monthToX(todayMonth);
+            ctx.strokeStyle = '#ff0000';
+            ctx.setLineDash([4, 2]);
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, canvasSize.height);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        // Draw ideal population curve (Catmull-Rom spline, extended to Dec)
+        if (showIdeal) {
+            ctx.save();
+            ctx.strokeStyle = '#00c853';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            // Prepare points, ensure we have a point at month 12
+            let points = [...idealPopulationCurve];
+            const last = points[points.length - 1];
+            if (last.month < 12) {
+                points.push({ month: 12, value: last.value });
+            }
+            // Catmull-Rom to Bezier conversion for smoothness
+            function getPt(idx: number) {
+                if (idx < 0) return points[0];
+                if (idx >= points.length) return points[points.length - 1];
+                return points[idx];
+            }
+            let p0 = getPt(0), p1 = getPt(0), p2 = getPt(1), p3 = getPt(2);
+            ctx.moveTo(monthToX(p1.month), populationToY(p1.value));
+            for (let i = 0; i < points.length - 1; i++) {
+                p0 = getPt(i - 1);
+                p1 = getPt(i);
+                p2 = getPt(i + 1);
+                p3 = getPt(i + 2);
+                // Catmull-Rom to cubic Bezier
+                const x1 = monthToX(p1.month);
+                const y1 = populationToY(p1.value);
+                const x2 = monthToX(p2.month);
+                const y2 = populationToY(p2.value);
+                const cp1x = x1 + (x2 - monthToX(p0.month)) / 6;
+                const cp1y = y1 + (y2 - populationToY(p0.value)) / 6;
+                const cp2x = x2 - (monthToX(p3.month) - x1) / 6;
+                const cp2y = y2 - (populationToY(p3.value) - y1) / 6;
+                ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x2, y2);
+            }
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // Draw user colonies current population
+        if (showCurrent) {
+            userColonies.forEach(col => {
+                if (todayMonth >= startMonth && todayMonth <= endMonth) {
+                    const x = monthToX(todayMonth);
+                    const y = populationToY(col.population);
+                    ctx.beginPath();
+                    ctx.arc(x, y, 7, 0, 2 * Math.PI);
+                    ctx.fillStyle = '#ffd900';
+                    ctx.strokeStyle = '#333';
+                    ctx.fill();
+                    ctx.stroke();
+                }
+            });
+        }
+
+        // Draw inspections (dots and lines per hive)
+        if (showInspections) {
+            Object.entries(inspectionsByHive).forEach(([hiveId, insList]) => {
+                // Connect inspections for the same hive
+                ctx.strokeStyle = '#1976d2';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                insList.forEach((ins, i) => {
+                    const x = monthToX(ins.date.getMonth());
+                    const y = populationToY(ins.population);
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+                // Draw dots
+                insList.forEach(ins => {
+                    const x = monthToX(ins.date.getMonth());
+                    const y = populationToY(ins.population);
+                    ctx.beginPath();
+                    ctx.arc(x, y, 6, 0, 2 * Math.PI);
+                    ctx.fillStyle = '#1976d2';
+                    ctx.strokeStyle = '#fff';
+                    ctx.fill();
+                    ctx.stroke();
+                });
+            });
+        }
+    }, [view, canvasSize, showIdeal, showCurrent, showInspections]);
+
+    // Mouse events for pan/zoom
+    function onWheel(e) {
+        e.preventDefault();
+        let { startMonth, monthsVisible } = view;
+        const mouseX = e.nativeEvent.offsetX;
+        let zoomAmount = e.deltaY < 0 ? -1 : 1;
+        let newMonthsVisible = Math.max(1, Math.min(12, monthsVisible + zoomAmount));
+        // Zoom toward mouse
+        let percent = mouseX / canvasSize.width;
+        let centerMonth = startMonth + percent * monthsVisible;
+        let newStart = centerMonth - percent * newMonthsVisible;
+        // Clamp
+        if (newStart < 0) newStart = 0;
+        if (newStart + newMonthsVisible > 12) newStart = 12 - newMonthsVisible;
+        setView(v => ({ ...v, startMonth: newStart, monthsVisible: newMonthsVisible }));
+    }
+    function onMouseDown(e) {
+        setDrag({ x: e.nativeEvent.clientX, startMonth: view.startMonth });
+    }
+    function onMouseMove(e) {
+        if (!drag) return;
+        const dx = e.nativeEvent.clientX - drag.x;
+        const monthsVisible = view.monthsVisible;
+        const monthDelta = dx / (canvasSize.width / monthsVisible);
+        let newStart = drag.startMonth - monthDelta;
+        // Clamp
+        if (newStart < 0) newStart = 0;
+        if (newStart + monthsVisible > 12) newStart = 12 - monthsVisible;
+        setView(v => ({ ...v, startMonth: newStart }));
+    }
+    function onMouseUp() {
+        setDrag(null);
+    }
+
+    return (
+        <div className={styles.flowWrap} ref={containerRef} style={{width: '100%'}}>
+            <h2>Colony Lifecycle</h2>
+            <canvas
+                ref={canvasRef}
+                width={canvasSize.width}
+                height={canvasSize.height}
+                style={{ width: '100%', height: canvasSize.height, background: '#fff', border: '1px solid #eee', cursor: drag ? 'grabbing' : 'grab' }}
+                onWheel={onWheel}
+                onMouseDown={onMouseDown}
+                onMouseMove={onMouseMove}
+                onMouseUp={onMouseUp}
+                onMouseLeave={onMouseUp}
+            />
+            <div style={{ marginTop: 16, userSelect: 'none' }}>
+                <b>Legend:</b>
+                <label style={{ marginLeft: 10, color: '#00c853', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={showIdeal} onChange={e => setShowIdeal((e.target as HTMLInputElement).checked)} /> Ideal population
+                </label>
+                <label style={{ marginLeft: 10, color: '#ffd900', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={showCurrent} onChange={e => setShowCurrent((e.target as HTMLInputElement).checked)} /> Current population
+                </label>
+                <label style={{ marginLeft: 10, color: '#1976d2', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={showInspections} onChange={e => setShowInspections((e.target as HTMLInputElement).checked)} /> Inspections
+                </label>
+                <span style={{ marginLeft: 10, borderBottom: '2px dashed #ff0000' }}>Today</span>
+            </div>
+        </div>
+    );
+}

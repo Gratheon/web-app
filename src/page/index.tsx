@@ -16,6 +16,7 @@ import AccountRegister from './accountRegister'
 import Grafana from './grafana'
 import InspectionShare from "./inspectionShare";
 import AlertConfig from './alertConfig';
+import TimeView from './time';
 
 function LoggedInPage({ children }) {
 	const navigate = useNavigate()
@@ -79,6 +80,7 @@ export default function Page() {
 			<Route path="/account/authenticate" element={<LoggedOutPage><AccountAuth /></LoggedOutPage>} />
 			<Route path="/account/register" element={<LoggedOutPage><AccountRegister /></LoggedOutPage>} />
 
+			<Route path="/time" element={<LoggedInPage><TimeView /></LoggedInPage>} />
 
 			<Route path="/apiaries/create" element={<LoggedInPage><ApiaryCreate /></LoggedInPage>} />
 			<Route path="/apiaries/edit/:id" element={<LoggedInPage><ApiaryEditForm /></LoggedInPage>} />

@@ -87,6 +87,15 @@ const Menu = ({isLoggedIn = false}) => {
                             <T>Hives</T>
                         </NavLink>
                     </li>
+                    <li>
+                        <NavLink
+                            className={({isActive, isPending}) =>
+                                isActive ? styles.active : ""
+                            }
+                            to="/time">
+                            <T>Time</T>
+                        </NavLink>
+                    </li>
 
                     <li>
                         <NavLink activeClassName={styles.active} to="/insights">

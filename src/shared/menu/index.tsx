@@ -97,10 +97,25 @@ const Menu = ({isLoggedIn = false}) => {
                         </NavLink>
                     </li>
 
-                    <li>
+                    {/* <li>
                         <NavLink activeClassName={styles.active} to="/insights">
                             <T ctx="this is a menu link to beehive data analytics">Insights</T>
                         </NavLink>
+                    </li> */}
+
+                </ul>
+                <div style="flex-grow:1"></div>
+
+                <ul>
+                    <li>
+                        <BellIcon size={20}
+                                  color={alerts && alerts.length > 0 ? "#ffd900" : "#ddd"}
+                                  stroke={alerts && alerts.length > 0 ? "black" : "#bbb"}
+                                  onClick={() => setVisible(!isVisible)}/>
+                    </li>
+
+                    <li>
+                        <NavLink to="/alert-config">Alerts</NavLink>
                     </li>
 
                     <li>
@@ -115,17 +130,7 @@ const Menu = ({isLoggedIn = false}) => {
                             </div>
                         </NavLink>
                     </li>
-                </ul>
-                <div style="flex-grow:1"></div>
-
-                <ul>
-                    <li>
-                        <BellIcon size={20}
-                                  color={alerts && alerts.length > 0 ? "#ffd900" : "#ddd"}
-                                  stroke={alerts && alerts.length > 0 ? "black" : "#bbb"}
-                                  onClick={() => setVisible(!isVisible)}/>
-                    </li>
-
+                    
                     <li>
                         <a href="#" onClick={onLogoutClick}>
                             <T>Log out</T>

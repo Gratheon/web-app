@@ -39,6 +39,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20' # Match .nvmrc if possible
+          cache: 'pnpm' # Add caching for pnpm
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10 # Specify pnpm version
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -57,7 +63,7 @@ jobs:
       # Windows dependencies (MSVC Build Tools, WebView2) are usually pre-installed
 
       - name: Install frontend dependencies
-        run: npm install
+        run: pnpm install
 
       - name: Build Tauri app
         # Pass target args from matrix. Empty for Linux/Windows, specific for macOS

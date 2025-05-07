@@ -1,12 +1,7 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
 
 import styles from './styles.module.less'
-import BellIcon from "@/icons/bell";
-import {gql} from "urql";
-import {useQuery} from "@/api";
 import ErrorMsg from "@/shared/messageError";
-import Loader from "@/shared/loader";
 import DateTimeFormat from "@/shared/dateTimeFormat";
 
 // Add onClose prop
@@ -16,7 +11,7 @@ type AlertsProps = {
   onClose?: () => void
 }
 
-const Alerts = ({alerts, error, onClose}: AlertsProps) => {
+const Alerts = ({alerts, error}: AlertsProps) => {
     return (
         <div className={styles.alertDropdownContainer}>
             <div className={styles.alertList}>
@@ -30,13 +25,6 @@ const Alerts = ({alerts, error, onClose}: AlertsProps) => {
                         </div>
                     </div>
                 ))}
-            </div>
-            <div className={styles.alertDropdownFooter}>
-                <Link to="/alert-config" style={{ color: '#1976d2', textDecoration: 'underline', fontSize: 14 }}
-                  onClick={onClose}
-                >
-                    Alert Channel Settings
-                </Link>
             </div>
         </div>
     )

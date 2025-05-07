@@ -40,6 +40,247 @@ function getMonthLabel(month: number) {
     return new Date(0, month).toLocaleString('default', { month: 'short' });
 }
 
+// --- Modular helpers for TimeView ---
+
+function monthToX(month: number, view: { startMonth: number; monthsVisible: number }, canvasSize: { width: number; height: number }) {
+    const { startMonth, monthsVisible } = view;
+    return ((month - startMonth) / monthsVisible) * canvasSize.width;
+}
+
+function populationToY(pop: number, view: { minPop: number; maxPop: number }, canvasSize: { width: number; height: number }) {
+    const { minPop, maxPop } = view;
+    return canvasSize.height - ((pop - minPop) / (maxPop - minPop)) * canvasSize.height;
+}
+
+function drawYAxis(
+    ctx: CanvasRenderingContext2D,
+    view: { minPop: number; maxPop: number },
+    canvasSize: { width: number; height: number },
+    minPop: number,
+    maxPop: number,
+    populationToY: (pop: number, view: any, canvasSize: any) => number
+) {
+    ctx.save();
+    ctx.strokeStyle = '#bbb';
+    ctx.fillStyle = '#333';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    for (let pop = minPop; pop <= maxPop; pop += 10000) {
+        const y = populationToY(pop, view, canvasSize);
+        ctx.save();
+        ctx.strokeStyle = '#eee';
+        ctx.setLineDash([3, 3]);
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvasSize.width, y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+        ctx.save();
+        ctx.fillStyle = '#333';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'right';
+        if (pop === maxPop) {
+            ctx.textBaseline = 'top';
+            ctx.fillText(pop.toLocaleString(), 38, y + 2);
+        } else {
+            ctx.textBaseline = 'middle';
+            ctx.fillText(pop.toLocaleString(), 38, y);
+        }
+        ctx.restore();
+    }
+    ctx.save();
+    ctx.translate(-16, canvasSize.height / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.font = 'bold 13px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Bee Population', 0, 0);
+    ctx.restore();
+    ctx.restore();
+}
+
+function drawXAxis(
+    ctx: CanvasRenderingContext2D,
+    view: { startMonth: number; monthsVisible: number },
+    canvasSize: { width: number; height: number },
+    monthToX: (month: number, view: any, canvasSize: any) => number,
+    getMonthLabel: (month: number) => string
+) {
+    const { startMonth, monthsVisible } = view;
+    const endMonth = startMonth + monthsVisible;
+    for (let m = Math.floor(startMonth); m <= Math.ceil(endMonth); m++) {
+        const x = monthToX(m, view, canvasSize);
+        ctx.strokeStyle = '#ccc';
+        ctx.beginPath();
+        ctx.moveTo(x, canvasSize.height - 20);
+        ctx.lineTo(x, canvasSize.height);
+        ctx.stroke();
+        ctx.fillStyle = '#333';
+        ctx.font = '12px sans-serif';
+        if (m === 0) {
+            ctx.textAlign = 'left';
+            ctx.fillText(getMonthLabel(m), x + 2, canvasSize.height - 2);
+        } else {
+            ctx.textAlign = 'center';
+            ctx.fillText(getMonthLabel(m), x, canvasSize.height - 2);
+        }
+    }
+}
+
+function drawTodayLine(
+    ctx: CanvasRenderingContext2D,
+    todayMonth: number,
+    view: { startMonth: number; monthsVisible: number },
+    canvasSize: { width: number; height: number },
+    monthToX: (month: number, view: any, canvasSize: any) => number
+) {
+    const { startMonth, monthsVisible } = view;
+    const endMonth = startMonth + monthsVisible;
+    if (todayMonth >= startMonth && todayMonth <= endMonth) {
+        const x = monthToX(todayMonth, view, canvasSize);
+        ctx.strokeStyle = '#ff0000';
+        ctx.setLineDash([4, 2]);
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvasSize.height);
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+}
+
+function drawIdealCurve(
+    ctx: CanvasRenderingContext2D,
+    showIdeal: boolean,
+    idealPopulationCurve: { month: number; value: number }[],
+    view: { startMonth: number; monthsVisible: number },
+    canvasSize: { width: number; height: number },
+    monthToX: (month: number, view: any, canvasSize: any) => number,
+    populationToY: (pop: number, view: any, canvasSize: any) => number
+) {
+    if (!showIdeal) return;
+    ctx.save();
+    ctx.strokeStyle = '#00c853';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    let points = [...idealPopulationCurve];
+    const last = points[points.length - 1];
+    if (last.month < 12) {
+        points.push({ month: 12, value: last.value });
+    }
+    function getPt(idx: number) {
+        if (idx < 0) return points[0];
+        if (idx >= points.length) return points[points.length - 1];
+        return points[idx];
+    }
+    let p0 = getPt(0), p1 = getPt(0), p2 = getPt(1), p3 = getPt(2);
+    ctx.moveTo(monthToX(p1.month, view, canvasSize), populationToY(p1.value, view, canvasSize));
+    for (let i = 0; i < points.length - 1; i++) {
+        p0 = getPt(i - 1);
+        p1 = getPt(i);
+        p2 = getPt(i + 1);
+        p3 = getPt(i + 2);
+        const x1 = monthToX(p1.month, view, canvasSize);
+        const y1 = populationToY(p1.value, view, canvasSize);
+        const x2 = monthToX(p2.month, view, canvasSize);
+        const y2 = populationToY(p2.value, view, canvasSize);
+        const cp1x = x1 + (x2 - monthToX(p0.month, view, canvasSize)) / 6;
+        const cp1y = y1 + (y2 - populationToY(p0.value, view, canvasSize)) / 6;
+        const cp2x = x2 - (monthToX(p3.month, view, canvasSize) - x1) / 6;
+        const cp2y = y2 - (populationToY(p3.value, view, canvasSize) - y1) / 6;
+        ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x2, y2);
+    }
+    ctx.stroke();
+    ctx.restore();
+}
+
+function drawCurrentPopulation(
+    ctx: CanvasRenderingContext2D,
+    showCurrent: boolean,
+    hives: any[],
+    todayMonth: number,
+    view: { startMonth: number; monthsVisible: number },
+    canvasSize: { width: number; height: number },
+    monthToX: (month: number, view: any, canvasSize: any) => number,
+    populationToY: (pop: number, view: any, canvasSize: any) => number
+) {
+    const { startMonth, monthsVisible } = view;
+    const endMonth = startMonth + monthsVisible;
+    if (!showCurrent || !hives) return;
+    hives.forEach(hive => {
+        if (todayMonth >= startMonth && todayMonth <= endMonth && hive.beeCount) {
+            const x = monthToX(todayMonth, view, canvasSize);
+            const y = populationToY(hive.beeCount, view, canvasSize);
+            ctx.beginPath();
+            ctx.arc(x, y, 7, 0, 2 * Math.PI);
+            ctx.fillStyle = '#ffd900';
+            ctx.strokeStyle = '#333';
+            ctx.fill();
+            ctx.stroke();
+        }
+    });
+}
+
+function drawInspections(
+    ctx: CanvasRenderingContext2D,
+    showInspections: boolean,
+    inspectionsByHive: Record<string, any[]>,
+    view: { startMonth: number; monthsVisible: number },
+    canvasSize: { width: number; height: number },
+    monthToX: (month: number, view: any, canvasSize: any) => number,
+    populationToY: (pop: number, view: any, canvasSize: any) => number
+) {
+    if (!showInspections) return;
+    Object.entries(inspectionsByHive).forEach(([hiveId, insList]) => {
+        ctx.strokeStyle = '#1976d2';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        insList.forEach((ins, i) => {
+            const x = monthToX(ins.date.getMonth(), view, canvasSize);
+            const y = populationToY(ins.population, view, canvasSize);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+        insList.forEach(ins => {
+            const x = monthToX(ins.date.getMonth(), view, canvasSize);
+            const y = populationToY(ins.population, view, canvasSize);
+            ctx.beginPath();
+            ctx.arc(x, y, 6, 0, 2 * Math.PI);
+            ctx.fillStyle = '#1976d2';
+            ctx.strokeStyle = '#fff';
+            ctx.fill();
+            ctx.stroke();
+        });
+    });
+}
+
+function renderLegend(
+    showIdeal: boolean,
+    setShowIdeal: (v: boolean) => void,
+    showCurrent: boolean,
+    setShowCurrent: (v: boolean) => void,
+    showInspections: boolean,
+    setShowInspections: (v: boolean) => void
+) {
+    return (
+        <div style={{ marginTop: 16, userSelect: 'none' }}>
+            <b>Legend:</b>
+            <label style={{ marginLeft: 10, color: '#00c853', cursor: 'pointer' }}>
+                <input type="checkbox" checked={showIdeal} onChange={e => setShowIdeal((e.target as HTMLInputElement).checked)} /> Ideal population
+            </label>
+            <label style={{ marginLeft: 10, color: '#ffd900', cursor: 'pointer' }}>
+                <input type="checkbox" checked={showCurrent} onChange={e => setShowCurrent((e.target as HTMLInputElement).checked)} /> Current population
+            </label>
+            <label style={{ marginLeft: 10, color: '#1976d2', cursor: 'pointer' }}>
+                <input type="checkbox" checked={showInspections} onChange={e => setShowInspections((e.target as HTMLInputElement).checked)} /> Inspections
+            </label>
+            <span style={{ marginLeft: 10, borderBottom: '2px dashed #ff0000' }}>Today</span>
+        </div>
+    );
+}
+
 export default function TimeView() {
     // Legend toggles
     const [showIdeal, setShowIdeal] = useState(true);
@@ -98,11 +339,10 @@ export default function TimeView() {
         function updateSize() {
             if (containerRef.current) {
                 const width = containerRef.current.offsetWidth;
-                setCanvasSize({ width, height: Math.round(width * 0.33) }); // keep 3:1 aspect ratio
+                setCanvasSize({ width, height: Math.round(width * 0.33) });
             }
         }
         updateSize();
-        // Prefer ResizeObserver for robustness
         let observer: ResizeObserver | undefined;
         if (window.ResizeObserver) {
             observer = new ResizeObserver(updateSize);
@@ -123,184 +363,20 @@ export default function TimeView() {
         inspectionsByHive[ins.hiveId].push(ins);
     });
 
-    // Helper to convert month to x pixel
-    function monthToX(month: number) {
-        const { startMonth, monthsVisible } = view;
-        return ((month - startMonth) / monthsVisible) * canvasSize.width;
-    }
-    function populationToY(pop: number) {
-        const { minPop, maxPop } = view;
-        return canvasSize.height - ((pop - minPop) / (maxPop - minPop)) * canvasSize.height;
-    }
+
 
     useEffect(() => {
-        // Don't draw if canvas not ready
         if (!canvasRef.current) return;
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvasSize.width, canvasSize.height);
-
-        // Draw Y axis (population)
-        ctx.save();
-        ctx.strokeStyle = '#bbb';
-        ctx.fillStyle = '#333';
-        ctx.font = '12px sans-serif';
-        ctx.textAlign = 'right';
-        ctx.textBaseline = 'middle';
-        for (let pop = minPop; pop <= maxPop; pop += 10000) {
-            const y = populationToY(pop);
-            // Draw lighter, dashed, thin grid line
-            ctx.save();
-            ctx.strokeStyle = '#eee';
-            ctx.setLineDash([3, 3]);
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(0, y);
-            ctx.lineTo(canvasSize.width, y);
-            ctx.stroke();
-            ctx.setLineDash([]);
-            ctx.restore();
-            // Draw label above line (except for maxPop, draw below)
-            ctx.save();
-            ctx.fillStyle = '#333';
-            ctx.font = '12px sans-serif';
-            ctx.textAlign = 'right';
-            if (pop === maxPop) {
-                ctx.textBaseline = 'top';
-                ctx.fillText(pop.toLocaleString(), 38, y + 2);
-            } else {
-                ctx.textBaseline = 'middle';
-                ctx.fillText(pop.toLocaleString(), 38, y);
-            }
-            ctx.restore();
-        }
-        // Y axis label
-        ctx.save();
-        ctx.translate(-16, canvasSize.height / 2);
-        ctx.rotate(-Math.PI / 2);
-        ctx.font = 'bold 13px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('Bee Population', 0, 0);
-        ctx.restore();
-        ctx.restore();
-
-        // Draw calendar axis (X)
-        const { startMonth, monthsVisible } = view;
-        const endMonth = startMonth + monthsVisible;
-        for (let m = Math.floor(startMonth); m <= Math.ceil(endMonth); m++) {
-            const x = monthToX(m);
-            ctx.strokeStyle = '#ccc';
-            ctx.beginPath();
-            ctx.moveTo(x, canvasSize.height - 20);
-            ctx.lineTo(x, canvasSize.height);
-            ctx.stroke();
-            ctx.fillStyle = '#333';
-            ctx.font = '12px sans-serif';
-            if (m === 0) {
-                ctx.textAlign = 'left';
-                ctx.fillText(getMonthLabel(m), x + 2, canvasSize.height - 2);
-            } else {
-                ctx.textAlign = 'center';
-                ctx.fillText(getMonthLabel(m), x, canvasSize.height - 2);
-            }
-        }
-
-        // Draw TODAY vertical line
-        if (todayMonth >= startMonth && todayMonth <= endMonth) {
-            const x = monthToX(todayMonth);
-            ctx.strokeStyle = '#ff0000';
-            ctx.setLineDash([4, 2]);
-            ctx.beginPath();
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, canvasSize.height);
-            ctx.stroke();
-            ctx.setLineDash([]);
-        }
-
-        // Draw ideal population curve (Catmull-Rom spline, extended to Dec)
-        if (showIdeal) {
-            ctx.save();
-            ctx.strokeStyle = '#00c853';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            // Prepare points, ensure we have a point at month 12
-            let points = [...idealPopulationCurve];
-            const last = points[points.length - 1];
-            if (last.month < 12) {
-                points.push({ month: 12, value: last.value });
-            }
-            // Catmull-Rom to Bezier conversion for smoothness
-            function getPt(idx: number) {
-                if (idx < 0) return points[0];
-                if (idx >= points.length) return points[points.length - 1];
-                return points[idx];
-            }
-            let p0 = getPt(0), p1 = getPt(0), p2 = getPt(1), p3 = getPt(2);
-            ctx.moveTo(monthToX(p1.month), populationToY(p1.value));
-            for (let i = 0; i < points.length - 1; i++) {
-                p0 = getPt(i - 1);
-                p1 = getPt(i);
-                p2 = getPt(i + 1);
-                p3 = getPt(i + 2);
-                // Catmull-Rom to cubic Bezier
-                const x1 = monthToX(p1.month);
-                const y1 = populationToY(p1.value);
-                const x2 = monthToX(p2.month);
-                const y2 = populationToY(p2.value);
-                const cp1x = x1 + (x2 - monthToX(p0.month)) / 6;
-                const cp1y = y1 + (y2 - populationToY(p0.value)) / 6;
-                const cp2x = x2 - (monthToX(p3.month) - x1) / 6;
-                const cp2y = y2 - (populationToY(p3.value) - y1) / 6;
-                ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x2, y2);
-            }
-            ctx.stroke();
-            ctx.restore();
-        }
-
-        // Draw current population for each hive (yellow dot)
-        if (showCurrent && hives) {
-            hives.forEach(hive => {
-                if (todayMonth >= startMonth && todayMonth <= endMonth && hive.beeCount) {
-                    const x = monthToX(todayMonth);
-                    const y = populationToY(hive.beeCount);
-                    ctx.beginPath();
-                    ctx.arc(x, y, 7, 0, 2 * Math.PI);
-                    ctx.fillStyle = '#ffd900';
-                    ctx.strokeStyle = '#333';
-                    ctx.fill();
-                    ctx.stroke();
-                }
-            });
-        }
-
-        // Draw inspections (dots and lines per hive)
-        if (showInspections) {
-            Object.entries(inspectionsByHive).forEach(([hiveId, insList]) => {
-                // Connect inspections for the same hive
-                ctx.strokeStyle = '#1976d2';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                insList.forEach((ins, i) => {
-                    const x = monthToX(ins.date.getMonth());
-                    const y = populationToY(ins.population);
-                    if (i === 0) ctx.moveTo(x, y);
-                    else ctx.lineTo(x, y);
-                });
-                ctx.stroke();
-                // Draw dots
-                insList.forEach(ins => {
-                    const x = monthToX(ins.date.getMonth());
-                const y = populationToY(ins.population);
-                ctx.beginPath();
-                ctx.arc(x, y, 6, 0, 2 * Math.PI);
-                ctx.fillStyle = '#1976d2';
-                ctx.strokeStyle = '#fff';
-                ctx.fill();
-                ctx.stroke();
-            });
-            });
-    }
-}, [view, canvasSize, showIdeal, showCurrent, showInspections]);
+        drawYAxis(ctx, view, canvasSize, minPop, maxPop, populationToY);
+        drawXAxis(ctx, view, canvasSize, monthToX, getMonthLabel);
+        drawTodayLine(ctx, todayMonth, view, canvasSize, monthToX);
+        drawIdealCurve(ctx, showIdeal, idealPopulationCurve, view, canvasSize, monthToX, populationToY);
+        drawCurrentPopulation(ctx, showCurrent, hives, todayMonth, view, canvasSize, monthToX, populationToY);
+        drawInspections(ctx, showInspections, inspectionsByHive, view, canvasSize, monthToX, populationToY);
+    }, [view, canvasSize, showIdeal, showCurrent, showInspections, hives, todayMonth, inspectionsByHive]);
 
     // Mouse events for pan/zoom
     function onWheel(e) {
@@ -353,19 +429,7 @@ export default function TimeView() {
                 onMouseUp={onMouseUp}
                 onMouseLeave={onMouseUp}
             />
-            <div style={{ marginTop: 16, userSelect: 'none' }}>
-                <b>Legend:</b>
-                <label style={{ marginLeft: 10, color: '#00c853', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={showIdeal} onChange={e => setShowIdeal((e.target as HTMLInputElement).checked)} /> Ideal population
-                </label>
-                <label style={{ marginLeft: 10, color: '#ffd900', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={showCurrent} onChange={e => setShowCurrent((e.target as HTMLInputElement).checked)} /> Current population
-                </label>
-                <label style={{ marginLeft: 10, color: '#1976d2', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={showInspections} onChange={e => setShowInspections((e.target as HTMLInputElement).checked)} /> Inspections
-                </label>
-                <span style={{ marginLeft: 10, borderBottom: '2px dashed #ff0000' }}>Today</span>
-            </div>
+            {renderLegend(showIdeal, setShowIdeal, showCurrent, setShowCurrent, showInspections, setShowInspections)}
         </div>
     );
 }

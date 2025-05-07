@@ -13,7 +13,7 @@
     "build-move": "mv dist/* public",
     "serve": "sirv build --cors --single",
     "prettier": "prettier --write --ignore-unknown .",
-    "test": "npm run test:unit",
+    "test": "pnpm test:unit",
     "test:unit": "vitest run",
     "test:ui": "vitest --ui",
     "test:e2e:write": "./node_modules/.bin/cypress open",

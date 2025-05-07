@@ -32,13 +32,13 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '${{ steps.nvm.outputs.NVMRC }}'
-          cache: 'npm'
+          cache: 'pnpm'
 
       - uses: actions/cache@v3
         with:
           path: '**/node_modules'
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
 
-      - run: npm install
-      - run: npm run build
-      - run: npm run test:unit
+      - run: pnpm install
+      - run: pnpm build
+      - run: pnpm test:unit

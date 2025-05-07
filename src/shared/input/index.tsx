@@ -4,6 +4,7 @@ import styles from './styles.module.less';
 
 interface InputProps extends Omit<JSX.HTMLAttributes<HTMLInputElement>, 'label'> {
   label?: JSX.Element | string;
+  type?: string;
 }
 
 export default function Input({ label, ...rest }: InputProps) {

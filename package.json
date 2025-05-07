@@ -83,6 +83,7 @@
     "per-env": "1.0.2",
     "preact-iso": "^2.6.3",
     "prettier": "2.8.8",
+    "prop-types": "15.8.1",
     "serve": "14.2.3",
     "sirv-cli": "2.0.2",
     "ts-node": "10.9.2",

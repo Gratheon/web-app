@@ -48,13 +48,13 @@ export default function TreatmentList({ hiveId, boxId = null }) {
 				</div>
 			)}
 			{data.hive.family && data.hive.family.treatments.length > 0 && (
-				<table width="100%">
+				<table style={{ width: '100%' }}>
 					<thead>
 						<tr>
 							<th>
 								<T>Treatment type</T>
 							</th>
-							<th width="200">
+							<th style={{ width: '200px' }}>
 								<T>Time</T>
 							</th>
 						</tr>

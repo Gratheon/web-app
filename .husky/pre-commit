@@ -1,6 +1,6 @@
 # Run the DB version check/update script via just
 # Ensure we run it from the web-app directory
-just update-db-version || exit 1 # Exit if the script fails
+/opt/homebrew/bin/just update-db-version || exit 1 # Exit if the script fails
 
 # Optional: Add other pre-commit checks here (e.g., linting, tests)
 # Example: npm run lint || exit 1

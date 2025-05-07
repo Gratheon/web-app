@@ -23,16 +23,18 @@ jobs:
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Read .nvmrc
-        run: echo ::set-output name=NVMRC::$(cat .nvmrc)
-        id: nvm
-
-      - uses: actions/setup-node@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: '${{ steps.nvm.outputs.NVMRC }}'
-          cache: 'pnpm'
+          node-version: '20' # Match .nvmrc if possible
+          cache: 'pnpm' # Add caching for pnpm
+          
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10 # Specify pnpm version
 
       - uses: actions/cache@v3
         with:

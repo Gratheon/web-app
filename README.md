@@ -353,8 +353,7 @@ graph TD
 | **Error Reporting**  |         |                                                                  |
 | Sentry               | ^8.26   | Error tracking and performance monitoring                        |
 | **Analytics**        |         |                                                                  |
-| Amplitude            | ^2.3    | Product analytics                                                |
-| MS Clarity           | -       | User behavior analytics (heatmaps, session recordings)           |
+| Posthog              | ^1.2    | Product analytics, User behavior analytics (heatmaps, session recordings)                                                |
 | **Testing**          |         |                                                                  |
 | Playwright           | ^1.46   | End-to-end testing framework                                     |
 | Vitest               | ^3.1    | Fast unit testing framework, integrated with Vite                |

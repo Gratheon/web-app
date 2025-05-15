@@ -1,54 +1,45 @@
-import * as amplitude from '@amplitude/analytics-browser'
-
+import posthog from 'posthog-js'
 import isDev from './isDev';
 
-// API key, should be safe to be public
-amplitude.init('22c65699d4c0d9ee32ba08a9c3087dcd', {
-	instanceName: isDev() ? "dev" : "prod",
-	defaultTracking: true,
-	flushQueueSize: 30, // flush queued events when there are 30 or more
-});
-
 export default {
-	setUserId: (id) => {
-		function padNumber(number, width) {
-			return number.toString().padStart(width, '0');
-		}
-		amplitude.setUserId(padNumber(id, 5))
+	setUser: (user) => {
+		posthog.identify(user.id,
+			{ email: user.email },
+		)
 	},
 
 	trackLogin: (extraInfo = {}) => {
 		if (isDev()) return
-		amplitude.track('user.logged_in', extraInfo)
+		posthog.capture('user.logged_in', extraInfo)
 	},
 	trackRegistration: (extraInfo = {}) => {
 		if (isDev()) return
-		amplitude.track('user.registered', extraInfo)
+		posthog.capture('user.registered', extraInfo)
 	},
 	trackApiaryCreated: (extraInfo = {}) => {
 		if (isDev()) return
-		amplitude.track('apiary.created', extraInfo)
+		posthog.capture('apiary.created', extraInfo)
 	},
 
 	trackBoxCreated: (extraInfo = {}) => {
 		if (isDev()) return
-		amplitude.track('box.created', extraInfo)
+		posthog.capture('box.created', extraInfo)
 	},
 	trackBoxRemoved: (extraInfo = {}) => {
 		if (isDev()) return
-		amplitude.track('box.removed', extraInfo)
+		posthog.capture('box.removed', extraInfo)
 	},
 
 	trackFrameAdded: (extraInfo = {}) => {
 		if (isDev()) return
-		amplitude.track('frame.created', extraInfo)
+		posthog.capture('frame.created', extraInfo)
 	},
 	trackFramePhotoUploaded: (extraInfo = {}) => {
 		if (isDev()) return
-		amplitude.track('frame.photoUploaded', extraInfo)
+		posthog.capture('frame.photoUploaded', extraInfo)
 	},
 	trackBillingClicked: (extraInfo = {}) => {
 		if (isDev()) return
-		amplitude.track('billing.clicked', extraInfo)
+		posthog.capture('billing.clicked', extraInfo)
 	}
 }

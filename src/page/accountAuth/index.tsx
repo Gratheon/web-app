@@ -88,7 +88,7 @@ export default function AccountAuth() {
         // clear DB on login and on logout to have consistent structure in case of alters
         saveToken(data.login.key)
 
-        if (data.login.user.id) metrics.setUserId(data.login.user.id);
+        if (data.login.user.id) metrics.setUser(data.login.user);
 
         metrics.trackLogin();
 

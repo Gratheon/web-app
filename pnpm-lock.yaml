@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@amplitude/analytics-browser':
-        specifier: 2.3.8
-        version: 2.3.8
       '@edorivai/react-smooth-dnd':
         specifier: 0.11.2
         version: 0.11.2(react@18.3.1)
@@ -65,6 +62,9 @@ importers:
       md5:
         specifier: 2.3.0
         version: 2.3.0
+      posthog-js:
+        specifier: 1.242.2
+        version: 1.242.2
       preact:
         specifier: ^10.23.1
         version: 10.26.6
@@ -235,27 +235,6 @@ packages:
 
   '@adobe/css-tools@4.4.2':
     resolution: {integrity: sha512-baYZExFpsdkBNuvGKTKWCwKH57HRZLVtycZS05WTQNVOiXVSeAki3nU35zlRbToeMW8aHlJfyS+1C4BOv27q0A==}
-
-  '@amplitude/analytics-browser@2.3.8':
-    resolution: {integrity: sha512-K+12aAVJPzAtWIi8Ok5Q5dvg7v7IF4G0cI8PW0COWo3uTyY103r45OcpgrpRVpVAr+41d1eiMo36jqOke89uPA==}
-
-  '@amplitude/analytics-client-common@2.3.20':
-    resolution: {integrity: sha512-yTQytHJetCyn4h7m2A3sWy3cylAgqrgoticH82XBZFVuylB3Ah0esoShsDyRfxcUMIutdSICjh+/VqGFOr/2Ww==}
-
-  '@amplitude/analytics-connector@1.6.4':
-    resolution: {integrity: sha512-SpIv0IQMNIq6SH3UqFGiaZyGSc7PBZwRdq7lvP0pBxW8i4Ny+8zwI0pV+VMfMHQwWY3wdIbWw5WQphNjpdq1/Q==}
-
-  '@amplitude/analytics-core@2.11.2':
-    resolution: {integrity: sha512-TBEGLgmRx9FbRCutSCu/vTFLnJkiHTpwGFhX7OrV6+5Uxz8jZqw9Mx6X9SPCNaP4u+THyc0mTJpMKpO15xFbRw==}
-
-  '@amplitude/analytics-types@2.9.2':
-    resolution: {integrity: sha512-juhTz396dDP/jLJYP9zDOEAZBtJM0JVvP8G10p1OxUDBVwVIprpQL598F9GRQwVFyqV4CEhDmNyAY0HqqU5bhA==}
-
-  '@amplitude/plugin-page-view-tracking-browser@2.3.24':
-    resolution: {integrity: sha512-eT2Na3vELpH4+XZdzDvy/ypbQxvKph0l7IkwNfx136T522Z2/6hJGgaf+37pZ6Z09S86RvThlB72KIEkc5bpyQ==}
-
-  '@amplitude/plugin-web-attribution-browser@2.1.48':
-    resolution: {integrity: sha512-UL6I+059V8CmbFh/i1UXcgPChMkGDFOnN2Qsqk50Yd6PvZlz/SlqSukzKntMrCqpneYmGh3+m+wflgLJ9Vslxg==}
 
   '@ampproject/remapping@2.3.0':
     resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
@@ -1710,6 +1689,9 @@ packages:
     resolution: {integrity: sha512-Kb2wC0fvsWfQrgk8HU5lW6U/Lcs8+9aaYcy4ZFc6DDlo4nZ7n70dEgE5rtR0oG6ufKDUnrwfWL1mXR5ljDatrQ==}
     deprecated: core-js@<3.23.3 is no longer maintained and not recommended for usage due to the number of issues. Because of the V8 engine whims, feature detection in old core-js versions could cause a slowdown up to 100x even if nothing is polyfilled. Some versions have web compatibility issues. Please, upgrade your dependencies to the actual version of core-js.
 
+  core-js@3.42.0:
+    resolution: {integrity: sha512-Sz4PP4ZA+Rq4II21qkNqOEDTDrCvcANId3xpIgB34NDkWc3UduWj2dqEtN9yZIq8Dk3HyPI33x9sqqU5C8sr0g==}
+
   cosmiconfig@8.3.6:
     resolution: {integrity: sha512-kcZ6+W5QzcJ3P1Mt+83OUv/oHFqZHIx8DuxG6eZ5RGMERoLqp4BuGjhHLYGK+Kf5XVkQvqBSmAy/nGWN3qDgEA==}
     engines: {node: '>=14'}
@@ -2053,6 +2035,9 @@ packages:
     peerDependenciesMeta:
       picomatch:
         optional: true
+
+  fflate@0.4.8:
+    resolution: {integrity: sha512-FJqqoDBR00Mdj9ppamLa/Y7vxm+PRmNWA67N846RvsoYVMKB4q3y/de5PA7gUmRMYK/8CMz2GDZQmCRN1wBcWA==}
 
   fflate@0.8.2:
     resolution: {integrity: sha512-cPJU47OaAoCbg0pBvzsgpTPhmhqI5eJjh/JIu8tPj5q+T7iLvW/JAYUqmE7KOB4R1ZyEhzBaIQpQpardBF5z8A==}
@@ -2792,6 +2777,17 @@ packages:
     resolution: {integrity: sha512-dle9A3yYxlBSrt8Fu+IpjGT8SY8hN0mlaA6GY8t0P5PjIOZemULz/E2Bnm/2dcUOena75OTNkHI76uZBNUUq3A==}
     engines: {node: ^10 || ^12 || >=14}
 
+  posthog-js@1.242.2:
+    resolution: {integrity: sha512-bj5Bq9Z/TE24k0fbt/VoD13xsqCybuoLp7KkWmfknEiO63+1Ln/PnX/1CjppikE9yM7toQIWY3vY7hT/RTT57Q==}
+    peerDependencies:
+      '@rrweb/types': 2.0.0-alpha.17
+      rrweb-snapshot: 2.0.0-alpha.17
+    peerDependenciesMeta:
+      '@rrweb/types':
+        optional: true
+      rrweb-snapshot:
+        optional: true
+
   preact-iso@2.9.1:
     resolution: {integrity: sha512-65+oY5FHeSC3mjq2Dg6v72HYjsTYTqI9hXl1BK6vtUkxwfCqDJ5aqk33zjOH3aSuCY7duWiulyqMQ53GXpPIIQ==}
     peerDependencies:
@@ -3478,6 +3474,9 @@ packages:
     resolution: {integrity: sha512-TnbFSbcOCcDgjZ4piURLCbJ3nJhznVh9kw6F6iokjiFPl8ONxe9A6nMDVXDiNbrSfLILs6vB07F7wLBrwPYzJw==}
     engines: {node: '>=10.13.0'}
 
+  web-vitals@4.2.4:
+    resolution: {integrity: sha512-r4DIlprAGwJ7YM11VZp4R884m0Vmgr6EAKe3P+kO0PPj3Unqyvv59rczf6UiGcb9Z8QxZVcqKNwv/g0WNdWwsw==}
+
   webidl-conversions@7.0.0:
     resolution: {integrity: sha512-VwddBukDzu71offAQR975unBIGqfKZpM+8ZX6ySk8nYhVoo5CYaZyzt3YBvYtRtO+aoGlqxPg/B87NGVZ/fu6g==}
     engines: {node: '>=12'}
@@ -3630,44 +3629,6 @@ snapshots:
       graphql: 16.9.0
 
   '@adobe/css-tools@4.4.2': {}
-
-  '@amplitude/analytics-browser@2.3.8':
-    dependencies:
-      '@amplitude/analytics-client-common': 2.3.20
-      '@amplitude/analytics-core': 2.11.2
-      '@amplitude/analytics-types': 2.9.2
-      '@amplitude/plugin-page-view-tracking-browser': 2.3.24
-      '@amplitude/plugin-web-attribution-browser': 2.1.48
-      tslib: 2.8.1
-
-  '@amplitude/analytics-client-common@2.3.20':
-    dependencies:
-      '@amplitude/analytics-connector': 1.6.4
-      '@amplitude/analytics-core': 2.11.2
-      '@amplitude/analytics-types': 2.9.2
-      tslib: 2.8.1
-
-  '@amplitude/analytics-connector@1.6.4': {}
-
-  '@amplitude/analytics-core@2.11.2':
-    dependencies:
-      '@amplitude/analytics-connector': 1.6.4
-      tslib: 2.8.1
-
-  '@amplitude/analytics-types@2.9.2': {}
-
-  '@amplitude/plugin-page-view-tracking-browser@2.3.24':
-    dependencies:
-      '@amplitude/analytics-client-common': 2.3.20
-      '@amplitude/analytics-types': 2.9.2
-      tslib: 2.8.1
-
-  '@amplitude/plugin-web-attribution-browser@2.1.48':
-    dependencies:
-      '@amplitude/analytics-client-common': 2.3.20
-      '@amplitude/analytics-core': 2.11.2
-      '@amplitude/analytics-types': 2.9.2
-      tslib: 2.8.1
 
   '@ampproject/remapping@2.3.0':
     dependencies:
@@ -5199,6 +5160,8 @@ snapshots:
 
   core-js@2.6.12: {}
 
+  core-js@3.42.0: {}
+
   cosmiconfig@8.3.6(typescript@5.5.4):
     dependencies:
       import-fresh: 3.3.1
@@ -5512,6 +5475,8 @@ snapshots:
   fdir@6.4.4(picomatch@4.0.2):
     optionalDependencies:
       picomatch: 4.0.2
+
+  fflate@0.4.8: {}
 
   fflate@0.8.2: {}
 
@@ -6212,6 +6177,13 @@ snapshots:
       nanoid: 3.3.11
       picocolors: 1.1.1
       source-map-js: 1.2.1
+
+  posthog-js@1.242.2:
+    dependencies:
+      core-js: 3.42.0
+      fflate: 0.4.8
+      preact: 10.26.6
+      web-vitals: 4.2.4
 
   preact-iso@2.9.1(preact-render-to-string@6.5.13(preact@10.26.6))(preact@10.26.6):
     dependencies:
@@ -6939,6 +6911,8 @@ snapshots:
     dependencies:
       glob-to-regexp: 0.4.1
       graceful-fs: 4.2.11
+
+  web-vitals@4.2.4: {}
 
   webidl-conversions@7.0.0: {}
 

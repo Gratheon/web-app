@@ -11,3 +11,5 @@ build
 /playwright/.cache/
 dist
 src-tauri/target/
+
+.env

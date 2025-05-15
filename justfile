@@ -1,11 +1,11 @@
 start:
-  source $HOME/.nvm/nvm.sh && nvm use && npm i && npm run dev
+  source $HOME/.nvm/nvm.sh && nvm use && pnpm i && pnpm dev
 
 stop:
 	COMPOSE_PROJECT_NAME=gratheon docker compose -f docker-compose.dev.yml down
 
 test:
-	npm run test:unit
+	pnpm test:unit
 
 test-ui:
 	npx playwright test --ui
@@ -24,7 +24,7 @@ update-db-version:
 
 # Build the Tauri desktop application
 dev-desktop-app:
-	npm run tauri dev
+	pnpm tauri dev
 
 build-desktop-app:
-	npm run tauri build
+	pnpm tauri build

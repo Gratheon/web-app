@@ -11,9 +11,9 @@ if (typeof window !== 'undefined') {
 		await initializeEnvironment()
 		hydrate(
 			<PostHogProvider
-				apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_KEY}
+				apiKey={'phc_cYQZSQ8ZJ8PjGGiT67gLusRp55EjZT41z2pHX6xtPZv'}
 				options={{
-					api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
+					api_host: 'https://eu.i.posthog.com',
 					debug: import.meta.env.MODE === 'development',
 				}}
 			>
@@ -28,9 +28,9 @@ export async function prerender(data: any) {
 	// @ts-ignore
 	const { html, links: discoveredLinks } = ssr(
 		<PostHogProvider
-			apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_KEY}
+			apiKey={'phc_cYQZSQ8ZJ8PjGGiT67gLusRp55EjZT41z2pHX6xtPZv'}
 			options={{
-				api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
+				api_host: 'https://eu.i.posthog.com',
 				debug: import.meta.env.MODE === 'development',
 			}}
 		>

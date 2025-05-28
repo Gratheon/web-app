@@ -5,6 +5,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { getHives, bulkUpsertHives } from '../../models/hive';
 import { listInspections } from '../../models/inspections';
 import { useQuery, gql } from '../../api';
+import imageURL from '@/assets/flower.png';
 
 const HIVES_QUERY = gql`
   query HIVES {
@@ -328,8 +329,18 @@ export default function TimeView() {
         return allInspections;
     }, [hives], []);
 
-    if (!hives) return <Loader stroke="black" size={0}/>;
-    if (!inspections) return <Loader stroke="black" size={0}/>;
+    if (!hives || !inspections) return <Loader stroke="black" size={0}/>;
+
+    // If no hives, display a message
+    if (hives.length === 0) {
+        return (
+            <div className={styles.flowWrap} ref={containerRef} style={{width: '100%', textAlign: 'center', padding: '20px 0', color: 'gray'}}>
+                <h2>Colonies Lifecycle</h2>
+                <p>This view shows how colonies develop over time. Add an apiary with a hive to see first data here.</p>
+                <img height="64" src={imageURL} />
+            </div>
+        );
+    }
 
     // Track yellow circle positions for tooltip
     const yellowCircles = useRef<any[]>([]);

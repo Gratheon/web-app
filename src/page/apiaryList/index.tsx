@@ -11,6 +11,7 @@ import T from '../../shared/translate'
 
 import ApiaryListRow from './apiaryListRow'
 import ApiariesPlaceholder from './apiariesPlaceholder'
+import PagePaddedCentered from '@/shared/pagePaddedCentered/index.tsx'
 
 
 export default function ApiaryList(props) {
@@ -54,22 +55,20 @@ export default function ApiaryList(props) {
 	const { apiaries } = data
 
 	return (
-		<div>
+		<PagePaddedCentered>
 			<ErrorMsg error={error || errorNetwork} borderRadius={0} />
-			<div style={{ maxWidth: 800, paddingLeft: 20 }}>
-				{apiaries !== null && apiaries?.length === 0 && <ApiariesPlaceholder />}
+			{apiaries !== null && apiaries?.length === 0 && <ApiariesPlaceholder />}
 
-				{apiaries &&
-					apiaries.map((apiary, i) => (
-						<ApiaryListRow key={i} apiary={apiary} user={user} />
-					))}
+			{apiaries &&
+				apiaries.map((apiary, i) => (
+					<ApiaryListRow key={i} apiary={apiary} user={user} />
+				))}
 
-				<div style="text-align:center; margin: 15px 0;">
-					<Button 
-						color={apiaries && apiaries.length === 0 ? 'green' : 'white'}
-						href="/apiaries/create"><T ctx="its a button">Setup new apiary</T></Button>
-				</div>
+			<div style="text-align:center; margin: 15px 0;">
+				<Button 
+					color={apiaries && apiaries.length === 0 ? 'green' : 'white'}
+					href="/apiaries/create"><T ctx="its a button">Setup new apiary</T></Button>
 			</div>
-		</div>
+		</PagePaddedCentered>
 	)
 }

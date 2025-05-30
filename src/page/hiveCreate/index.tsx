@@ -29,6 +29,7 @@ const RANDOM_HIVE_NAME_QUERY = gql`
 
 export default function HiveCreateForm() {
     let { id } = useParams()
+    let [hiveType, setHiveType] = useState('vertical') // Add state for hive type
     let [boxCount, setBoxCount] = useState(2)
     let defaultBoxes = []
     for (let i = 0; i < boxCount; i++) {
@@ -43,10 +44,25 @@ export default function HiveCreateForm() {
     const [boxes, setBoxes] = useState(defaultBoxes)
 
     let navigate = useNavigate()
-    let [frameCount, setFrameCount] = useState(8)
+    let [frameCount, setFrameCount] = useState(10) // Default frame count for vertical
     let [name, setName] = useState('')
     const [lang, setLang] = useState('en'); // State for language code
     let user = useLiveQuery(() => getUser(), [], null) // Get user data
+
+    const updateHiveDimensions = (newBoxCount, newFrameCount) => {
+        setBoxCount(newBoxCount);
+        setFrameCount(newFrameCount);
+        const updatedBoxes = [];
+        for (let i = 0; i < newBoxCount; i++) {
+            updatedBoxes.push({
+                color: `${defaultBoxColor}`,
+            });
+        }
+        updatedBoxes.push({
+            type: boxTypes.GATE
+        });
+        setBoxes(updatedBoxes);
+    };
 
     // Determine language code
     useEffect(() => {
@@ -110,6 +126,16 @@ export default function HiveCreateForm() {
         { errorPolicy: 'all' }
     )
 
+    const handleHiveTypeChange = (event) => {
+        const newHiveType = event.target.value;
+        setHiveType(newHiveType);
+        if (newHiveType === 'vertical') {
+            updateHiveDimensions(2, 10);
+        } else if (newHiveType === 'horizontal') {
+            updateHiveDimensions(1, 20);
+        }
+    };
+
     async function onSubmit(e) {
         e.preventDefault()
 
@@ -145,6 +171,31 @@ export default function HiveCreateForm() {
                         onSubmit={onSubmit.bind(this)}
                         style="flex-grow:1"
                         submit={<Button type="submit" color="green"><T>Install</T></Button>}>
+                        {/* Hive Type Radio Buttons */}
+                        <div>
+                            <label><T>Hive Type</T></label>
+                            <div>
+                                <label>
+                                    <input
+                                        type="radio"
+                                        value="vertical"
+                                        checked={hiveType === 'vertical'}
+                                        onChange={handleHiveTypeChange}
+                                    />
+                                    <T>Vertical</T>
+                                </label>
+                                <label style={{ marginLeft: '10px' }}>
+                                    <input
+                                        type="radio"
+                                        value="horizontal"
+                                        checked={hiveType === 'horizontal'}
+                                        onChange={handleHiveTypeChange}
+                                    />
+                                    <T>Horizontal</T>
+                                </label>
+                            </div>
+                        </div>
+
                         <div>
                             <label htmlFor="name" style="width:120px;"><T>Name</T></label>
                             <input
@@ -183,16 +234,10 @@ export default function HiveCreateForm() {
                                 name="boxCount"
                                 value={boxCount}
                                 onInput={(e: any) => {
-                                    const boxCount = parseInt(e.target.value, 10)
-                                    if (boxCount < 1) return
-                                    if (boxCount > 6) return
-
-                                    setBoxCount(boxCount)
-                                    if (boxCount > boxes.length) {
-                                        setBoxes([{ color: defaultBoxColor }, ...boxes])
-                                    } else if (boxCount < boxes.length) {
-                                        setBoxes([...boxes.slice(0, boxCount)])
-                                    }
+                                    const newBoxCount = parseInt(e.target.value, 10);
+                                    if (newBoxCount < 1 || newBoxCount > 6) return;
+                                    // Keep the current frameCount when boxCount is changed manually
+                                    updateHiveDimensions(newBoxCount, frameCount);
                                 }}
                                 min="1"
                                 max="6"

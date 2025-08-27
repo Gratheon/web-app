@@ -16,7 +16,7 @@ jobs:
 
       - name: setup env
         working-directory: /www/web-app/
-        run: chmod +x _setup_env.sh && ./_setup_env.sh
+        run: chmod +x _setup-env.sh && ./_setup-env.sh
         
       - name: build
         working-directory: /www/web-app/

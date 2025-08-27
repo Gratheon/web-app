@@ -10,4 +10,4 @@ curl -fsSL https://get.pnpm.io/install.sh | sh -
 
 # includes robots.txt for bots
 # includes .well-known for google play app
-cp -r src/assets public/
+cp -r static/ public/

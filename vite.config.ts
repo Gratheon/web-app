@@ -5,6 +5,7 @@ import path from "path";
 import svgr from "vite-plugin-svgr";
 import preact from "@preact/preset-vite";
 import { configDefaults } from 'vitest/config';
+import {VitePWA} from 'vite-plugin-pwa'
 
 // https://vitejs.dev/config/
 const host = process.env.TAURI_DEV_HOST;
@@ -12,6 +13,56 @@ const host = process.env.TAURI_DEV_HOST;
 export default defineConfig({
   plugins: [
     svgr(),
+    VitePWA({
+      manifest: {
+        name: 'Gratheon',
+        short_name: 'Gratheon',
+        description: 'Beehive management',
+        start_url: '.',
+        display: 'standalone',
+        background_color: '#ffffff',
+        orientation: 'portrait',
+        icons: [
+          {
+            src: '/icon_96x96.png',
+            sizes: '96x96',
+            type: 'image/png',
+          },
+          {
+            src: '/icon_128x128.png',
+            sizes: '128x128',
+            type: 'image/png',
+          },
+          {
+            src: '/icon_192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+          },
+          {
+            src: '/icon_256x256.png',
+            sizes: '256x256',
+            type: 'image/png',
+          },
+          {
+            src: '/icon_384x384.png',
+            sizes: '384x384',
+            type: 'image/png',
+          },
+          {
+            src: '/icon_512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+          },
+        ],
+      },
+      registerType: 'autoUpdate',
+      devOptions: {
+        enabled: true,
+      },
+      workbox: {
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+      },
+    }),
     preact({
       devtoolsInProd: true,
     }),

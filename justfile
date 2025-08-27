@@ -4,6 +4,9 @@ start:
 stop:
 	COMPOSE_PROJECT_NAME=gratheon docker compose -f docker-compose.dev.yml down
 
+build:
+	./build.sh
+
 test:
 	pnpm test:unit
 

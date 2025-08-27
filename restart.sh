@@ -8,7 +8,6 @@ curl -fsSL https://get.pnpm.io/install.sh | sh -
 /home/www/.local/share/pnpm/pnpm build-clean
 /home/www/.local/share/pnpm/pnpm build-move
 
-# copy file for google play app
-cp -r .well-known public/
-cp src/robots.txt public/
+# includes robots.txt for bots
+# includes .well-known for google play app
 cp -r src/assets public/

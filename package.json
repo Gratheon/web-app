@@ -56,7 +56,6 @@
 		"recharts": "2.12.7",
 		"regenerator-runtime": "0.13.11",
 		"urql": "3.0.4",
-		"webpack-pwa-manifest": "4.3.0",
 		"wonka": "6.3.4"
 	},
 	"devDependencies": {

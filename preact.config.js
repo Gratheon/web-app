@@ -1,6 +1,6 @@
 import preactCliSvgLoader from 'preact-cli-svg-loader'
 import path from 'path'
-import WebpackPwaManifest from 'webpack-pwa-manifest'
+// import WebpackPwaManifest from 'webpack-pwa-manifest'
 // import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer'
 
 /**
@@ -47,23 +47,23 @@ export default (config, env, helpers, options) => {
 	// 	},
 	// }
 
-	config.plugins.push(
-		new WebpackPwaManifest({
-			name: 'Gratheon',
-			filename: 'manifest.json',
-			ios: true,
-			fingerprints: false,
-			short_name: 'Gratheon',
-			description: 'Beehive management',
-			background_color: '#ffffff',
-			icons: [
-				{
-					src: path.resolve('src/assets/favicons/android-chrome-512x512.png'),
-					sizes: [96, 128, 192, 256, 384, 512],
-				},
-			],
-		})
-	)
+	// config.plugins.push(
+	// 	new WebpackPwaManifest({
+	// 		name: 'Gratheon',
+	// 		filename: 'manifest.json',
+	// 		ios: true,
+	// 		fingerprints: false,
+	// 		short_name: 'Gratheon',
+	// 		description: 'Beehive management',
+	// 		background_color: '#ffffff',
+	// 		icons: [
+	// 			{
+	// 				src: path.resolve('src/assets/favicons/android-chrome-512x512.png'),
+	// 				sizes: [96, 128, 192, 256, 384, 512],
+	// 			},
+	// 		],
+	// 	})
+	// )
 	preactCliSvgLoader(config, helpers)
 
 	config.resolve.modules.push(env.src);

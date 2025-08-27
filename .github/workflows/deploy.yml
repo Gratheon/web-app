@@ -14,10 +14,14 @@ jobs:
         working-directory: /www/web-app/
         run: git reset --hard && git pull
 
-      - name: restart
+      - name: setup env
         working-directory: /www/web-app/
-        run: chmod +x restart.sh && ./restart.sh
+        run: chmod +x _setup_env.sh && ./_setup_env.sh
         
+      - name: build
+        working-directory: /www/web-app/
+        run: chmod +x _build.sh && ./_build.sh
+
       - name: cleanup
         working-directory: /www/web-app/
         run: rm -rf /www/web-app/node_modules

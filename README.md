@@ -4,7 +4,7 @@
 
 Frontend application for the Gratheon beehive management and analytics platform. Built with Preact, Vite, Urql, and Dexie for offline support.
 
-See [product feature and ideas](https://gratheon.com/about/products/%F0%9F%93%B1Web-app/), also see technical [architecture docs]([https://gratheon.com/docs/web-app/](https://gratheon.com/docs/%F0%9F%93%B1%20Web-app/)) for the entire system
+See [product feature and ideas](https://gratheon.com/about/products/web_app/), also see technical [architecture docs]([https://gratheon.com/docs/web-app/](https://gratheon.com/docs/%F0%9F%93%B1%20Web-app/)) for the entire system
 
 
 

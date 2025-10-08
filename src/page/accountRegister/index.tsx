@@ -59,7 +59,7 @@ export default function AccountRegister() {
 		})
 	}
 
-	let [accountCreate, { error, data }] = useMutation(gql`
+	let [accountCreate, { error, data, loading }] = useMutation(gql`
 		mutation register($first_name: String, $last_name: String, $email: String!, $password: String!) {
 			register(first_name: $first_name, last_name: $last_name, email: $email, password: $password) {
 				__typename
@@ -226,8 +226,9 @@ export default function AccountRegister() {
 
 
 						<Button type="submit" color="green" onClick={onSubmit}
-							style="width:100%; text-align:center;background-color: #ffd900; color: black; text-shadow:none;">
-							<T key="signup_button" ctx="this a button to register for a new account">Sign Up</T>
+							style="width:100%; text-align:center;background-color: #ffd900; color: black; text-shadow:none;"
+							disabled={loading}>
+							{loading ? <Loader size={0} /> : <T key="signup_button" ctx="this a button to register for a new account">Sign Up</T>}
 						</Button>
 
 

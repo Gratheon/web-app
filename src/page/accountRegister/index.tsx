@@ -165,9 +165,10 @@ export default function AccountRegister() {
 						<input style="display: none" type="text" name="email" />
 						<input style="display: none" type="password" name="password" />
 
-						<div style="display:flex;margin-bottom:10px;margin-top:5px;">
+						<div style="display:flex;margin-bottom:10px;margin-top:5px;gap:10px;">
 							<input
-								style="width:50%;margin-right:5px;padding-left:10px;"
+								className={styles.input}
+								style="width:50%;"
 								type="text"
 								name="first_name"
 								placeholder={tFirstName}
@@ -176,19 +177,19 @@ export default function AccountRegister() {
 								onInput={onInput}
 							/>
 							<input
-								style="width:50%;padding-left:10px;"
+								className={styles.input}
+								style="width:50%;"
 								type="text"
 								name="last_name"
 								placeholder={tLastName}
-								autoFocus
 								value={account.last_name}
 								onInput={onInput}
 							/>
 						</div>
 						<div style="margin-bottom:10px;">
 							<input
-								style="width:100%;padding-left:10px;"
-								className={highlight.email ? styles.highlight : ''}
+								className={`${styles.input} ${highlight.email ? styles.highlight : ''}`}
+								style="width:100%;"
 								type="email"
 								name="email"
 								placeholder={tEmail}
@@ -199,24 +200,22 @@ export default function AccountRegister() {
 						</div>
 						<div style="margin-bottom:10px;">
 							<input
-								style="width:100%;padding-left:10px;"
+								className={`${styles.input} ${highlight.password ? styles.highlight : ''}`}
+								style="width:100%;"
 								name="password"
 								type="password"
-								className={highlight.password ? styles.highlight : ''}
 								placeholder={tPassword}
-								autoFocus
 								value={account.password}
 								onInput={onInput}
 							/>
 						</div>
 						<div style="margin-bottom:20px;">
 							<input
-								style="width:100%;padding-left:10px;"
+								className={`${styles.input} ${highlight.password2 ? styles.highlight : ''}`}
+								style="width:100%;"
 								name="password2"
 								type="password"
-								className={highlight.password2 ? styles.highlight : ''}
 								placeholder={tPassword2}
-								autoFocus
 								value={account.password2}
 								onInput={onInput}
 								autocomplete="new-password"

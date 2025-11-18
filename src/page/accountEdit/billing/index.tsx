@@ -1,22 +1,24 @@
 import { format, formatDistance } from 'date-fns'
 import { useParams } from 'react-router-dom'
+import { useState } from 'react'
 
-import Button from '../../../shared/button'
-import { gql, useMutation } from '../../../api'
-import MessageSuccess from '../../../shared/messageSuccess'
-import MessageError from '../../../shared/messageError'
-import T from '../../../shared/translate'
-import metrics from '../../../metrics.tsx'
+import Button from '@/shared/button'
+import { gql, useMutation } from '@/api'
+import MessageSuccess from '@/shared/messageSuccess'
+import MessageError from '@/shared/messageError'
+import T from '@/shared/translate'
+import metrics from '@/metrics'
 
 import { de, et, fr, pl, ru, tr } from 'date-fns/locale'
-import DateTimeAgo from '../../../shared/dateTimeAgo'
-import DateTimeFormat from '../../../shared/dateTimeFormat/index.tsx'
-import CreditCard from '../../../icons/creditCard.tsx'
-import Card from '@/shared/pagePaddedCentered/card/index.tsx'
+import DateTimeAgo from '@/shared/dateTimeAgo'
+import DateTimeFormat from '@/shared/dateTimeFormat'
+import CreditCard from '@/icons/creditCard'
+import Card from '@/shared/pagePaddedCentered/card'
 const loadedDateLocales = { de, et, fr, pl, ru, tr }
 
 export default function Billing({ user }) {
 	let { stripeStatus } = useParams()
+	const [sessionError, setSessionError] = useState(null)
 
 	let [createCheckoutSession, { error }] = useMutation(gql`
 		mutation createCheckoutSession {
@@ -38,11 +40,17 @@ export default function Billing({ user }) {
 		`)
 
 	async function onSubscribeClick() {
+		setSessionError(null)
 		const result = await createCheckoutSession()
-
 		metrics.trackBillingClicked()
-		if (result?.data) {
-			window.location = result.data.createCheckoutSession
+		const sessionUrl = result?.data?.createCheckoutSession
+		if (sessionUrl) {
+			// Only redirect if a valid url was received
+			window.location = sessionUrl
+		} else if (!error) {
+			// GraphQL/network error already handled via existing error variable;
+			// this branch is for the case when mutation succeeded but returned null / empty
+			setSessionError(new Error('Checkout session could not be created. Please try again later.'))
 		}
 	}
 
@@ -76,6 +84,7 @@ export default function Billing({ user }) {
 				<h3><T ctx="this is a headline for billing form">Billing</T></h3>
 				{error && <MessageError error={error} />}
 				{errorCancel && <MessageError error={errorCancel} />}
+				{sessionError && <MessageError error={sessionError} />}
 
 				<div style=" display: flex">
 					<div style={{ flexGrow: 1, marginTop: 5 }}>

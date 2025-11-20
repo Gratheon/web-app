@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
-import { gql, useMutation } from '../../api'
+import { gql, useMutation, useQuery } from '../../api'
 
 import Loader from '../../shared/loader'
 import ErrorMsg from '../../shared/messageError'
@@ -14,6 +14,7 @@ import logoURL from '@/assets/logo_v7.svg'
 
 import { useNavigate } from 'react-router-dom'
 import isDev from '../../isDev.ts'
+import { computeProofOfWork } from '../../shared/proofOfWork.ts'
 
 type Account = {
 	first_name: string
@@ -37,6 +38,10 @@ export default function AccountRegister() {
 		password2: false,
 	})
 	let [errorOnClient, setErrorOnClient] = useState<string>('')
+	let [isComputing, setIsComputing] = useState(false)
+	let [solution, setSolution] = useState<string | null>(null)
+	let [currentNonce, setCurrentNonce] = useState<string | null>(null)
+	let [userTriedSubmit, setUserTriedSubmit] = useState(false)
 	let navigate = useNavigate()
 
 	let tFirstName = useTranslation('First name')
@@ -51,6 +56,35 @@ export default function AccountRegister() {
 		googleAuthURL = 'http://localhost:4000/auth/google'
 	}
 
+	const { data: nonceData, loading: nonceLoading } = useQuery(gql`
+		query registrationNonce {
+			registrationNonce {
+				nonce
+				challenge
+				difficulty
+			}
+		}
+	`)
+
+	useEffect(() => {
+		if (nonceData?.registrationNonce && !solution && !isComputing) {
+			const { nonce, challenge, difficulty } = nonceData.registrationNonce
+			setCurrentNonce(nonce)
+			setIsComputing(true)
+
+			computeProofOfWork(challenge, difficulty)
+				.then((computedSolution) => {
+					setSolution(computedSolution)
+					setIsComputing(false)
+				})
+				.catch((err) => {
+					console.error('Proof-of-work computation failed:', err)
+					setErrorOnClient('Failed to verify registration. Please refresh the page.')
+					setIsComputing(false)
+				})
+		}
+	}, [nonceData, solution, isComputing])
+
 	function onInput(e: any) {
 		const { name, value } = e.target
 		setAccount({
@@ -60,8 +94,8 @@ export default function AccountRegister() {
 	}
 
 	let [accountCreate, { error, data, loading }] = useMutation(gql`
-		mutation register($first_name: String, $last_name: String, $email: String!, $password: String!) {
-			register(first_name: $first_name, last_name: $last_name, email: $email, password: $password) {
+		mutation register($first_name: String, $last_name: String, $email: String!, $password: String!, $nonce: String!, $solution: String!) {
+			register(first_name: $first_name, last_name: $last_name, email: $email, password: $password, nonce: $nonce, solution: $solution) {
 				__typename
 				... on Error {
 					code
@@ -73,8 +107,10 @@ export default function AccountRegister() {
 		}
 	`)
 
-	function onSubmit(e: any) {
+	async function onSubmit(e: any) {
 		e.preventDefault()
+		setUserTriedSubmit(true)
+
 		highlight = {
 			email: false,
 			password: false,
@@ -112,13 +148,24 @@ export default function AccountRegister() {
 			return
 		}
 
+		if (!solution || !currentNonce) {
+			return
+		}
+
 		setErrorOnClient('')
-		accountCreate({
-			first_name: account?.first_name,
-			last_name: account?.last_name,
-			email: account?.email,
-			password: account?.password,
-		})
+
+		try {
+			accountCreate({
+				first_name: account?.first_name,
+				last_name: account?.last_name,
+				email: account?.email,
+				password: account?.password,
+				nonce: currentNonce,
+				solution,
+			})
+		} catch (err) {
+			setErrorOnClient('Registration failed. Please try again or contact support.')
+		}
 	}
 
 	if (!account) {
@@ -141,8 +188,20 @@ export default function AccountRegister() {
 		window.location = getAppUri() + '/'
 		return <Loader />
 	} else if (data?.register?.code) {
-		errorOnClient = 'Invalid email or password'
+		if (data.register.code === 'INVALID_PROOF_OF_WORK' || data.register.code === 'MISSING_NONCE') {
+			errorOnClient = 'Registration verification failed. Please try again or contact support if the issue persists.'
+		} else if (data.register.code === 'EMAIL_TAKEN') {
+			errorOnClient = 'Email is already registered'
+		} else if (data.register.code === 'INVALID_EMAIL') {
+			errorOnClient = 'Invalid email address'
+		} else if (data.register.code === 'SIMPLE_PASSWORD') {
+			errorOnClient = 'Password is too simple'
+		} else {
+			errorOnClient = 'Registration failed. Please contact support.'
+		}
 	}
+
+	const isProcessing = loading || (isComputing && userTriedSubmit) || nonceLoading
 
 	return (
 		<div id={styles.container}>
@@ -226,8 +285,8 @@ export default function AccountRegister() {
 
 						<Button type="submit" color="green" onClick={onSubmit}
 							style="width:100%; text-align:center;background-color: #ffd900; color: black; text-shadow:none;"
-							disabled={loading}>
-							{loading ? <Loader size={0} /> : <T key="signup_button" ctx="this a button to register for a new account">Sign Up</T>}
+							disabled={isProcessing}>
+							{(isComputing && userTriedSubmit) ? <span><Loader size={0} /> <T>Verifying...</T></span> : loading ? <Loader size={0} /> : <T key="signup_button" ctx="this a button to register for a new account">Sign Up</T>}
 						</Button>
 
 

@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from 'react'
 
-import { gql, useMutation, useQuery } from '../../api'
+import { gql, useMutation, useQuery } from '@/api'
 
-import Loader from '../../shared/loader'
-import ErrorMsg from '../../shared/messageError'
-import Button from '../../shared/button'
-import { saveToken } from '../../user.ts'
-import { getAppUri } from '../../uri.ts'
-import T, { useTranslation } from '../../shared/translate'
-import metrics from '../../metrics.tsx'
+import Loader from '@/shared/loader'
+import ErrorMsg from '@/shared/messageError'
+import Button from '@/shared/button'
+import { saveToken } from '@/user'
+import { getAppUri } from '@/uri'
+import T, { useTranslation } from '@/shared/translate'
+import metrics from '@/metrics'
 import styles from './styles.module.less'
 import logoURL from '@/assets/logo_v7.svg'
 
 import { useNavigate } from 'react-router-dom'
-import isDev from '../../isDev.ts'
-import { computeProofOfWork } from '../../shared/proofOfWork.ts'
+import isDev from '@/isDev'
+import { computeProofOfWork } from '@/shared/proofOfWork'
 
 type Account = {
 	first_name: string

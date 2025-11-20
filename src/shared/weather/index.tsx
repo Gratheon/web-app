@@ -1,7 +1,7 @@
-import {gql, useQuery} from '../../api'
-import Loading from '../loader'
+import {gql, useQuery} from '@/api'
+import Loading from '@/shared/loader'
 import Forecast from './forecast'
-import ErrorMsg from '../messageError'
+import ErrorMsg from '@/shared/messageError'
 
 const WEATHER_QUERY = gql`
 	query weather($lat: String!, $lng: String!) {

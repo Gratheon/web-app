@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useQuery, gql } from 'urql';
 
 import InspectionView from '../inspectionList/inspectionView';
-import { saveShareToken } from '../../user.ts';
+import { saveShareToken } from '@/user';
 import Loader from '@/shared/loader';
 import MessageError from '@/shared/messageError';
 import MessageNotFound from '@/shared/messageNotFound';
@@ -11,7 +11,7 @@ import InspectionBar from '@/page/inspectionList/inspectionBar';
 import HiveIcon from '@/shared/hive';
 import QueenColor from '@/page/hiveEdit/hiveTopInfo/queenColor';
 import BeeCounter from '@/shared/beeCounter';
-import DateTimeFormat from '@/shared/dateTimeFormat/index.tsx'; // Import DateFormat
+import DateTimeFormat from '@/shared/dateTimeFormat';
 import T from '@/shared/translate';
 import styles from '@/page/hiveEdit/hiveTopInfo/styles.module.less';
 

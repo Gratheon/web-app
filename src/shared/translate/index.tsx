@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { gql, useQuery } from '../../api'
+import { gql, useQuery } from '@/api'
 import { useLiveQuery } from 'dexie-react-hooks'
 
-import { getUser } from '../../models/user.ts'
-import { getLocale } from '../../models/locales.ts'
+import { getUser } from '@/models/user'
+import { getLocale } from '@/models/locales'
 
 const supportedLangs = ['en', 'ru', 'et','tr','pl','de','fr'];
 

@@ -1,9 +1,8 @@
 //@ts-nocheck
 import {fromPromise, fromValue, mergeMap, pipe} from 'wonka'
-// Import print function from graphql
 import {execute, TypeInfo, visit, visitWithTypeInfo, print} from 'graphql'
 
-import {db} from '../models/db'
+import {db} from '@/models/db'
 
 // An alternative offline-first URQL exchange with custom resolvers
 // some compromises:

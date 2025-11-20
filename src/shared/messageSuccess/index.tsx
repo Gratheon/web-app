@@ -1,6 +1,6 @@
 import React from 'react'
 
-import WarnIcon from '../../icons/warn.tsx'
+import WarnIcon from '@/icons/warn'
 
 import styles from './index.module.less'
 

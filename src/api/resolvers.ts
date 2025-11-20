@@ -1,11 +1,11 @@
-import { getFrames } from '../models/frames.ts'
+import { getFrames } from '@/models/frames'
 import {
 	listFrameSideInspectionsByInspectionId,
 	FrameSideInspectionRecord,
-} from '../models/frameSideInspection.ts' // Import the new model function and record type
-import { getFile } from '../models/files.ts' // Import file getter
-import { getFileResizes } from '../models/fileResize.ts' // Import file resize getter
-import { getFrameSideCells } from '../models/frameSideCells.ts' // Import cells getter
+} from '@/models/frameSideInspection'
+import { getFile } from '@/models/files'
+import { getFileResizes } from '@/models/fileResize'
+import { getFrameSideCells } from '@/models/frameSideCells'
 
 // these are the resolvers for the graphql schema
 // used by urql to fetch data from the indexdb in offline mode

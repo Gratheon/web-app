@@ -9,16 +9,16 @@ import {
 	dedupExchange,
 	TypedDocumentNode,
 } from 'urql'
-import { devtoolsExchange } from '@urql/devtools'; // Correct import path
+import { devtoolsExchange } from '@urql/devtools';
 import { multipartFetchExchange } from '@urql/exchange-multipart-fetch'
 
-import {getShareToken, getToken} from '../user.ts'
-import { gatewayUri, imageUploadUrl, subscriptionUri } from '../uri.ts'
-import { writeHooks } from '../models/db/writeHooks.ts'
+import {getShareToken, getToken} from '@/user'
+import { gatewayUri, imageUploadUrl, subscriptionUri } from '@/uri'
+import { writeHooks } from '@/models/db/writeHooks'
 
-import { schemaObject } from './schema.ts'
-import { offlineIndexDbExchange } from './offlineIndexDbExchange.ts'
-import resolvers from './resolvers.ts'
+import { schemaObject } from './schema'
+import { offlineIndexDbExchange } from './offlineIndexDbExchange'
+import resolvers from './resolvers'
 
 let uri = gatewayUri()
 

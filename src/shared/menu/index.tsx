@@ -1,13 +1,13 @@
 // @ts-nocheck
 import {NavLink} from 'react-router-dom'
 
-import Header from '../header'
-import {logout} from '../../user.ts'
-import {getAppUri} from '../../uri.ts'
-import T from '../translate'
-import Avatar from '../avatar'
+import Header from '@/shared/header'
+import {logout} from '@/user'
+import {getAppUri} from '@/uri'
+import T from '@/shared/translate'
+import Avatar from '@/shared/avatar'
 import styles from './styles.module.less'
-import BellIcon from "@/icons/bell.tsx";
+import BellIcon from "@/icons/bell";
 import Alerts from "@/shared/menu/alerts";
 import {useState} from "react";
 import {gql} from "urql";

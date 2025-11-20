@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import md5 from 'md5';
 
-import { gql, useQuery } from '../../api';
-import type { User } from '../../models/user.ts'
+import { gql, useQuery } from '@/api';
+import type { User } from '@/models/user'
 
 import styles from './style.module.less';
 

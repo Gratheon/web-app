@@ -1,5 +1,5 @@
 import React from 'react'
-import colors from '../colors.ts'
+import colors from '@/colors'
 
 export default function QueenIcon({ size = 20, className = '', color=colors.queen, onClick = () => { } }) {
 	return <svg className={className} width={size} height={size} viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'>

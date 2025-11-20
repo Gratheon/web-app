@@ -1,6 +1,5 @@
 //@ts-nocheck
-import {format} from 'date-fns'
-import {Area, AreaChart, LineChart, Line, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, ReferenceLine} from 'recharts'
+import { Chart, AreaSeries, LineSeries, PriceLine } from 'lightweight-charts-react-components'
 
 import ChartHeading from '@/shared/chartHeading'
 import { useTranslation as t } from '@/shared/translate'
@@ -30,7 +29,6 @@ function calculateMedian(values: number[]): number {
 export default function Forecast({data}: HumidityProps) {
     const formattedData: any[] = []
     const windData: any[] = []
-    const humidity: Humidity[] = []
     const rain: any[] = []
 
     if (!data?.weather?.hourly) {
@@ -38,32 +36,23 @@ export default function Forecast({data}: HumidityProps) {
     }
 
     data.weather.hourly.time.map((hour: any, i: number) => {
+        const timeStr = new Date(hour).getTime() / 1000
         formattedData.push({
-            name: format(new Date(hour), 'hh:mm (dd.MM)'),
-            temperature: data.weather.hourly.temperature_2m[i],
+            time: timeStr,
+            value: data.weather.hourly.temperature_2m[i],
         })
         windData.push({
-            name: format(new Date(hour), 'hh:mm (dd.MM)'),
-            wind: data.weather.hourly.windspeed_10m[i],
-        })
-        humidity.push({
-            name: format(new Date(hour), 'hh:mm (dd.MM)'),
-            humidity: data.weather.hourly.relativehumidity_2m[i],
+            time: timeStr,
+            value: data.weather.hourly.windspeed_10m[i],
         })
         rain.push({
-            name: format(new Date(hour), 'hh:mm (dd.MM)'),
+            time: timeStr,
+            humidity: data.weather.hourly.relativehumidity_2m[i],
             rain: data.weather.hourly.rain[i],
         })
     })
 
-    const chartMargin = {
-        top: 5,
-        right: 0,
-        left: 0,
-        bottom: 5,
-    }
-
-    const averageTemperature = formattedData.reduce((acc, curr) => acc + curr.temperature, 0) / formattedData.length;
+    const averageTemperature = formattedData.reduce((acc, curr) => acc + curr.value, 0) / formattedData.length;
     let temperatureColor = 'blue'; // Default color
 
     if (averageTemperature >= 13 && averageTemperature <= 27) {
@@ -74,6 +63,26 @@ export default function Forecast({data}: HumidityProps) {
     
     const medianRainProbability = calculateMedian(data.weather.hourly.rain);
 
+    const rainChartData = rain.map(item => ({
+        time: item.time,
+        value: item.rain
+    }))
+
+    const humidityChartData = rain.map(item => ({
+        time: item.time,
+        value: item.humidity
+    }))
+
+    const chartOptions = {
+        layout: {
+            attributionLogo: false,
+        },
+        timeScale: {
+            timeVisible: true,
+            secondsVisible: false,
+        },
+    }
+
     return (
         <>
             <div className={style.forecast}>
@@ -83,30 +92,20 @@ export default function Forecast({data}: HumidityProps) {
                         value={`${data.weather?.current_weather.temperature} °C`}
                         info={t('Too high or low temperature is bad for bees')}/>
 
-                    <ResponsiveContainer width="100%" height={300}>
-                        <AreaChart
-                            accessibilityLayer
+                    <Chart options={chartOptions} containerProps={{ style: { width: '100%', height: '300px' } }}>
+                        <AreaSeries
                             data={formattedData}
-                            margin={chartMargin}
+                            options={{
+                                topColor: temperatureColor,
+                                bottomColor: `${temperatureColor}40`,
+                                lineColor: 'black',
+                                lineWidth: 2,
+                            }}
                         >
-                            <CartesianGrid strokeDasharray="3 3"/>
-                            <XAxis dataKey="name"/>
-                            <YAxis/>
-                            <Tooltip/>
-
-                            <Area
-                                isAnimationActive={true}
-                                type="monotone"
-                                dataKey="temperature"
-                                stroke="black"
-                                fill={temperatureColor}/>
-
-                            <ReferenceLine y={13} label="" stroke="blue" strokeDasharray="3 3"/>
-                            <ReferenceLine y={28} label="" stroke="red" strokeDasharray="3 3"/>
-                        </AreaChart>
-                    </ResponsiveContainer>
-
-
+                            <PriceLine options={{ price: 13, color: 'blue', lineStyle: 2, lineWidth: 1 }} />
+                            <PriceLine options={{ price: 28, color: 'red', lineStyle: 2, lineWidth: 1 }} />
+                        </AreaSeries>
+                    </Chart>
                 </div>
 
                 <div className={style.graph}>
@@ -115,25 +114,19 @@ export default function Forecast({data}: HumidityProps) {
                         value={`${data.weather?.current_weather.windspeed} km/h`}
                         info={t('High wind speed can collapse hives')}/>
 
-
-                    <ResponsiveContainer width="100%" height={300}>
-                        <AreaChart
-                            accessibilityLayer
+                    <Chart options={chartOptions} containerProps={{ style: { width: '100%', height: '300px' } }}>
+                        <AreaSeries
                             data={windData}
-                            margin={chartMargin}
+                            options={{
+                                topColor: 'green',
+                                bottomColor: 'rgba(0,128,0,0.4)',
+                                lineColor: 'black',
+                                lineWidth: 2,
+                            }}
                         >
-                            <CartesianGrid strokeDasharray="3 3"/>
-                            <XAxis dataKey="name"/>
-                            <YAxis/>
-                            <Tooltip/>
-                            <Area
-                                type="monotone"
-                                dataKey="wind"
-                                stroke="black"
-                                fill="green"/>
-                            <ReferenceLine y={50} label="" stroke="red" strokeDasharray="3 3"/>
-                        </AreaChart>
-                    </ResponsiveContainer>
+                            <PriceLine options={{ price: 50, color: 'red', lineStyle: 2, lineWidth: 1 }} />
+                        </AreaSeries>
+                    </Chart>
                 </div>
 
                 <div className={style.graph}>
@@ -142,34 +135,23 @@ export default function Forecast({data}: HumidityProps) {
                         value={`${medianRainProbability} %`}
                         info={t('Bees are not flying in the rain')}/>
 
-                    <ResponsiveContainer width="100%" height={300}>
-                        <LineChart
-                            data={rain}
-                            margin={chartMargin}
-                        >
-                            <CartesianGrid strokeDasharray="3 3"/>
-                            <XAxis dataKey="name"/>
-                            <YAxis yAxisId="left"/>
-                            <YAxis yAxisId="right" orientation="right"/>
-                            <Tooltip/>
-
-                            <Line
-                                yAxisId="left"
-                                type="monotone"
-                                dataKey="humidity"
-                                stroke="#8884d8"
-                                activeDot={{r: 2}}
-                            />
-                            <Line
-                                yAxisId="right"
-                                type="monotone"
-                                dataKey="rain"
-                                stroke="#82ca9d"
-                                activeDot={{r: 2}}
-                            />
-                        </LineChart>
-
-                    </ResponsiveContainer>
+                    <Chart options={chartOptions} containerProps={{ style: { width: '100%', height: '300px' } }}>
+                        <LineSeries
+                            data={humidityChartData}
+                            options={{
+                                color: '#8884d8',
+                                lineWidth: 2,
+                            }}
+                        />
+                        <LineSeries
+                            data={rainChartData}
+                            options={{
+                                color: '#82ca9d',
+                                lineWidth: 2,
+                                priceScaleId: 'right',
+                            }}
+                        />
+                    </Chart>
                 </div>
             </div>
         </>

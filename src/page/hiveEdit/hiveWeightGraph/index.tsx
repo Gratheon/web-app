@@ -1,16 +1,4 @@
-import {
-	Area,
-	AreaChart,
-	Bar,
-	BarChart,
-	CartesianGrid,
-	Cell,
-	ReferenceArea,
-	ResponsiveContainer,
-	Tooltip,
-	XAxis,
-	YAxis,
-} from 'recharts'
+import { Chart, AreaSeries, HistogramSeries, PriceLine } from 'lightweight-charts-react-components'
 
 import { gql, useQuery } from '@/api'
 
@@ -80,13 +68,28 @@ export default function HiveWeightGraph({ hiveId }) {
 	let temperatureDiv = null
 	let kgLabel = t('kg', 'Shortest label for the unit of weight in kilograms')
 
-	console.log({ data })
-
-	if (data.weightKg.code) {
-		return <ErrorMsg error={data.weightKg} />
+	const chartOptions = {
+			layout: {
+				attributionLogo: false,
+			},
+			timeScale: {
+				timeVisible: true,
+				secondsVisible: true,
+			},
 	}
 
-	if (data.weightKg.metrics.length == 0) {
+	console.log({ data })
+
+	if (!data.weightKg || data.weightKg.code) {
+		if (data.weightKg?.code) {
+			return <ErrorMsg error={data.weightKg} />
+		}
+		weightDiv = (
+			<p style="color:#bbb">
+				<T>Hive weight was not reported this week.</T>
+			</p>
+		)
+	} else if (data.weightKg.metrics.length == 0) {
 		weightDiv = (
 			<p style="color:#bbb">
 				<T>Hive weight was not reported this week.</T>
@@ -95,11 +98,36 @@ export default function HiveWeightGraph({ hiveId }) {
 	} else {
 		let formattedWeightData = []
 		formattedWeightData = data.weightKg.metrics.map((row) => {
+			const date = new Date(row.t)
+			const timestamp = Math.floor(date.getTime() / 1000)
 			return {
-				v: Math.round(row.v * 100) / 100,
-				t: formatTime(row.t, userStored.lang),
+				time: timestamp,
+				value: Math.round(row.v * 100) / 100,
 			}
 		})
+
+		const sortedWeightData = formattedWeightData
+			.sort((a, b) => a.time - b.time)
+			.reduce((acc, curr) => {
+				const lastItem = acc[acc.length - 1]
+				if (!lastItem || lastItem.time !== curr.time) {
+					acc.push(curr)
+				} else {
+					acc[acc.length - 1] = curr
+				}
+				return acc
+			}, [])
+
+		const histogramData = sortedWeightData.map((entry, index) => {
+			const previousValue = index > 0 ? sortedWeightData[index - 1].value : entry.value
+			const color = entry.value < previousValue ? red : green
+			return {
+				time: entry.time,
+				value: entry.value,
+				color: color
+			}
+		})
+
 		let lastWeight =
 			Math.round(
 				100 * data.weightKg.metrics[data.weightKg.metrics.length - 1].v
@@ -115,36 +143,16 @@ export default function HiveWeightGraph({ hiveId }) {
 					)}
 				/>
 
-				<ResponsiveContainer width="100%" height={200}>
-					<BarChart
-						accessibilityLayer
-						data={formattedWeightData}
-						margin={{
-							top: 5,
-							right: 20,
-							left: 0,
-							bottom: 5,
-						}}
-					>
-						<CartesianGrid strokeDasharray="1 1" />
-						<XAxis dataKey="t" />
-						<YAxis unit={kgLabel} />
-						<Tooltip content={<ValueOnlyBarTooltip unit={kgLabel} />} />
-						<Bar type="monotone" dataKey="v" stroke="black" fill={green}>
-							{formattedWeightData.map((entry, index) => {
-								const previousValue =
-									index > 0 ? formattedWeightData[index - 1].v : entry.v
-								const fillColor = entry.v < previousValue ? red : green
-								return <Cell key={`cell-${index}`} fill={fillColor} />
-							})}
-						</Bar>
-					</BarChart>
-				</ResponsiveContainer>
+				<Chart options={chartOptions} containerProps={{ style: { width: '100%', height: '200px' } }}>
+					<HistogramSeries
+						data={histogramData}
+					/>
+				</Chart>
 			</div>
 		)
 	}
 
-	if (data.temperatureCelsius.metrics.length == 0) {
+	if (!data.temperatureCelsius || data.temperatureCelsius.metrics.length == 0) {
 		temperatureDiv = (
 			<p style="color:#bbb">
 				<T>Hive temperature was not reported this week.</T>
@@ -175,12 +183,25 @@ export default function HiveWeightGraph({ hiveId }) {
 
 		let formattedTemperatureData = []
 		formattedTemperatureData = data.temperatureCelsius.metrics.map((row) => {
-			console.log({ userStored })
+			const date = new Date(row.t)
+			const timestamp = Math.floor(date.getTime() / 1000)
 			return {
-				v: Math.round(row.v * 100) / 100,
-				t: formatTime(row.t, userStored.lang),
+				time: timestamp,
+				value: Math.round(row.v * 100) / 100,
 			}
 		})
+
+		const sortedTemperatureData = formattedTemperatureData
+			.sort((a, b) => a.time - b.time)
+			.reduce((acc, curr) => {
+				const lastItem = acc[acc.length - 1]
+				if (!lastItem || lastItem.time !== curr.time) {
+					acc.push(curr)
+				} else {
+					acc[acc.length - 1] = curr
+				}
+				return acc
+			}, [])
 
 		temperatureDiv = (
 			<div style="padding-bottom: 20px;">
@@ -190,45 +211,20 @@ export default function HiveWeightGraph({ hiveId }) {
 					info={t('High or low temperature makes bees inefficient')}
 				/>
 
-				<ResponsiveContainer width="100%" height={200}>
-					<AreaChart
-						accessibilityLayer
-						data={formattedTemperatureData}
-						margin={{
-							top: 5,
-							right: 20,
-							left: 0,
-							bottom: 5,
+				<Chart options={chartOptions} containerProps={{ style: { width: '100%', height: '200px' } }}>
+					<AreaSeries
+						data={sortedTemperatureData}
+						options={{
+							topColor: temperatureColor,
+							bottomColor: `${temperatureColor}40`,
+							lineColor: 'black',
+							lineWidth: 2,
 						}}
 					>
-						<CartesianGrid strokeDasharray="1 1" />
-						<XAxis dataKey="t" />
-						<YAxis unit="℃" />
-						<Tooltip content={<ValueOnlyBarTooltip unit={`°C`} />} />
-						<Area
-							type="monotone"
-							dataKey="v"
-							stroke="black"
-							fill={temperatureColor}
-						/>
-
-						<ReferenceArea
-							x1={0}
-							y1={38}
-							y2={maxTemperature + 22}
-							fill="red"
-							fillOpacity={0.1}
-						/>
-						<ReferenceArea
-							x1={0}
-							y1={minTemperature - 3}
-							y2={13}
-							fill="blue"
-							fillOpacity={0.1}
-						/>
-						{/*<ReferenceLine y={50} label="" stroke="red" strokeDasharray="3 3" />*/}
-					</AreaChart>
-				</ResponsiveContainer>
+						<PriceLine options={{ price: 13, color: 'blue', lineStyle: 2, lineWidth: 1 }} />
+						<PriceLine options={{ price: 38, color: 'red', lineStyle: 2, lineWidth: 1 }} />
+					</AreaSeries>
+				</Chart>
 			</div>
 		)
 	}
@@ -254,4 +250,3 @@ const ValueOnlyBarTooltip = (params) => {
 
 	return null
 }
-

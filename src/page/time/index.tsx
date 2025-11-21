@@ -77,7 +77,7 @@ export default function TimeView() {
 					code
 				}
 			}
-			hive_${hive.id}_temp: temperatureCelsius(hiveId: "${hive.id}", timeRangeMin: $timeRangeMin) {
+			hive_${hive.id}_temp: temperatureCelsius(hiveId: "${hive.id}", timeRangeMin: $temperatureTimeRangeMin) {
 				... on MetricFloatList {
 					metrics { t v }
 				}
@@ -103,19 +103,20 @@ export default function TimeView() {
 		`).join('\n')
 
 		return gql`
-			query MultiHiveTelemetry($days: Int!, $timeRangeMin: Int!, $timeFrom: DateTime!, $timeTo: DateTime!) {
+			query MultiHiveTelemetry($days: Int!, $temperatureTimeRangeMin: Int!, $timeFrom: DateTime!, $timeTo: DateTime!) {
 				${queries}
 			}
 		`
 	}, [activeHives])
 
-	const { timeFrom, timeTo, timeRangeMin } = useMemo(() => {
+	const { timeFrom, timeTo, temperatureTimeRangeMin } = useMemo(() => {
 		const now = new Date()
 		const timeFrom = new Date(now.getTime() - timeRangeDays * 24 * 60 * 60 * 1000)
+		const maxTempRangeMin = 7 * 24 * 60
 		return {
 			timeFrom: timeFrom.toISOString(),
 			timeTo: now.toISOString(),
-			timeRangeMin: timeRangeDays * 24 * 60
+			temperatureTimeRangeMin: Math.min(timeRangeDays * 24 * 60, maxTempRangeMin)
 		}
 	}, [timeRangeDays])
 
@@ -123,7 +124,7 @@ export default function TimeView() {
 		skip: !telemetryQueryString,
 		variables: {
 			days: timeRangeDays,
-			timeRangeMin,
+			temperatureTimeRangeMin,
 			timeFrom,
 			timeTo
 		}
@@ -134,12 +135,23 @@ export default function TimeView() {
 		const allInspections = []
 		for (const hive of activeHives) {
 			const ins = await listInspections(hive.id)
-			allInspections.push(...ins.map(i => ({
-				...i,
-				hiveName: hive.name,
-				hiveId: hive.id,
-				date: i.added ? new Date(i.added) : new Date(),
-			})))
+			allInspections.push(...ins.map(i => {
+				let population = null
+				try {
+					const inspectionData = JSON.parse(i.data || '{}')
+					population = inspectionData?.hive?.beeCount || null
+				} catch (e) {
+					console.error('Failed to parse inspection data:', e)
+				}
+
+				return {
+					...i,
+					hiveName: hive.name,
+					hiveId: hive.id,
+					date: i.added ? new Date(i.added) : new Date(),
+					population
+				}
+			}))
 		}
 		return allInspections
 	}, [activeHives], [])

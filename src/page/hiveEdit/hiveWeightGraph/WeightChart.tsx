@@ -27,19 +27,26 @@ export default function WeightChart({ weightData, chartRefs, syncCharts }: Weigh
 			chartRefs.current.push(chartApiRef.current)
 
 			const handleVisibleTimeRangeChange = () => {
-				syncCharts(chartApiRef.current)
+				if (chartApiRef.current) {
+					syncCharts(chartApiRef.current)
+				}
 			}
 
 			chartApiRef.current.timeScale().subscribeVisibleTimeRangeChange(handleVisibleTimeRangeChange)
 
 			return () => {
-				chartRefs.current = chartRefs.current.filter(c => c !== chartApiRef.current)
-				if (chartApiRef.current) {
-					chartApiRef.current.timeScale().unsubscribeVisibleTimeRangeChange(handleVisibleTimeRangeChange)
+				const currentChart = chartApiRef.current
+				chartRefs.current = chartRefs.current.filter(c => c !== currentChart)
+				if (currentChart) {
+					try {
+						currentChart.timeScale().unsubscribeVisibleTimeRangeChange(handleVisibleTimeRangeChange)
+					} catch (e) {
+						console.error('Failed to unsubscribe:', e)
+					}
 				}
 			}
 		}
-	}, [chartRefs, syncCharts])
+	}, [chartApiRef.current])
 
 	const handleChartInit = (chart: any) => {
 		chartApiRef.current = chart
@@ -51,7 +58,9 @@ export default function WeightChart({ weightData, chartRefs, syncCharts }: Weigh
 		},
 		timeScale: {
 			timeVisible: true,
-			secondsVisible: true,
+			secondsVisible: false,
+			fixLeftEdge: true,
+			fixRightEdge: true,
 		},
 	}), [])
 

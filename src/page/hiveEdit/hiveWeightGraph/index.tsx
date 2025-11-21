@@ -59,18 +59,33 @@ const WEIGHT_QUERY = gql`
 export default function HiveWeightGraph({ hiveId }) {
 	let userStored = useLiveQuery(() => getUser(), [], null)
 	const chartRefs = useRef([])
+	const syncingRef = useRef(false)
 
 	const syncCharts = useCallback((sourceChart) => {
-		const timeScale = sourceChart.timeScale()
-		const visibleRange = timeScale.getVisibleRange()
+		if (syncingRef.current) return
 
-		if (!visibleRange) return
+		syncingRef.current = true
 
-		chartRefs.current.forEach((chart) => {
-			if (chart && chart !== sourceChart) {
-				chart.timeScale().setVisibleRange(visibleRange)
-			}
-		})
+		try {
+			const timeScale = sourceChart.timeScale()
+			const visibleRange = timeScale.getVisibleRange()
+
+			if (!visibleRange) return
+
+			chartRefs.current.forEach((chart) => {
+				if (chart && chart !== sourceChart) {
+					try {
+						chart.timeScale().setVisibleRange(visibleRange)
+					} catch (e) {
+						console.error('Failed to sync chart:', e)
+					}
+				}
+			})
+		} finally {
+			setTimeout(() => {
+				syncingRef.current = false
+			}, 10)
+		}
 	}, [])
 
 	const { now, weekAgo } = useMemo(() => {

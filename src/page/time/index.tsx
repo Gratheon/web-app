@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useState, useMemo } from 'react';
 import styles from './styles.module.less';
 import Loader from '@/shared/loader';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -6,24 +6,45 @@ import { getHives, bulkUpsertHives } from '../../models/hive';
 import { listInspections } from '../../models/inspections';
 import { useQuery, gql } from '../../api';
 import imageURL from '@/assets/flower.png';
+import { Chart, LineSeries, AreaSeries, Markers } from 'lightweight-charts-react-components';
 
 const HIVES_QUERY = gql`
   query HIVES {
-    hives {
+    apiaries {
       id
-      name
-      notes
-      familyId
-      beeCount
-      inspectionCount
-      status
-      collapse_date
-      collapse_cause
+      hives {
+        id
+        name
+        notes
+        status
+        inspectionCount
+        collapse_date
+        collapse_cause
+        family {
+          id
+        }
+      }
     }
   }
 `;
 
-// Data declarations (once only)
+const WEIGHT_QUERY = gql`
+  query HiveWeights($hiveIds: [ID!]!, $timeRangeMin: Int!) {
+    ${`hive_HIVE_ID: weightKg(hiveId: "HIVE_ID", timeRangeMin: $timeRangeMin) {
+      ... on MetricFloatList {
+        metrics {
+          t
+          v
+        }
+      }
+      ... on TelemetryError {
+        message
+        code
+      }
+    }`}
+  }
+`;
+
 const idealPopulationCurve = [
     { month: 0, value: 10000 },
     { month: 2, value: 15000 },
@@ -31,230 +52,33 @@ const idealPopulationCurve = [
     { month: 8, value: 35000 },
     { month: 11, value: 12000 }
 ];
-const today = new Date();
-const todayMonth = today.getMonth();
-const todayDay = today.getDate();
 
+function interpolateIdealCurve(curve: { month: number; value: number }[]) {
+    const result = [];
+    const year = new Date().getFullYear();
 
+    for (let i = 0; i < curve.length - 1; i++) {
+        const start = curve[i];
+        const end = curve[i + 1];
+        const monthDiff = end.month - start.month;
+        const daysBetween = monthDiff * 30;
 
-function getMonthLabel(month: number) {
-    return new Date(0, month).toLocaleString('default', { month: 'short' });
-}
+        for (let day = 0; day <= daysBetween; day++) {
+            const t = day / daysBetween;
+            const value = start.value + (end.value - start.value) * t;
+            const date = new Date(year, 0, 1 + start.month * 30 + day);
+            const timestamp = Math.floor(date.getTime() / 1000);
 
-// --- Modular helpers for TimeView ---
-
-function monthToX(month: number, view: { startMonth: number; monthsVisible: number }, canvasSize: { width: number; height: number }) {
-    const { startMonth, monthsVisible } = view;
-    return ((month - startMonth) / monthsVisible) * canvasSize.width;
-}
-
-function populationToY(pop: number, view: { minPop: number; maxPop: number }, canvasSize: { width: number; height: number }) {
-    const { minPop, maxPop } = view;
-    return canvasSize.height - ((pop - minPop) / (maxPop - minPop)) * canvasSize.height;
-}
-
-function drawYAxis(
-    ctx: CanvasRenderingContext2D,
-    view: { minPop: number; maxPop: number },
-    canvasSize: { width: number; height: number },
-    minPop: number,
-    maxPop: number,
-    populationToY: (pop: number, view: any, canvasSize: any) => number
-) {
-    ctx.save();
-    ctx.strokeStyle = '#bbb';
-    ctx.fillStyle = '#333';
-    ctx.font = '12px sans-serif';
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'middle';
-    for (let pop = minPop; pop <= maxPop; pop += 10000) {
-        const y = populationToY(pop, view, canvasSize);
-        ctx.save();
-        ctx.strokeStyle = '#eee';
-        ctx.setLineDash([3, 3]);
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvasSize.width, y);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.restore();
-        ctx.save();
-        ctx.fillStyle = '#333';
-        ctx.font = '12px sans-serif';
-        ctx.textAlign = 'right';
-        if (pop === maxPop) {
-            ctx.textBaseline = 'top';
-            ctx.fillText(pop.toLocaleString(), 38, y + 2);
-        } else {
-            ctx.textBaseline = 'middle';
-            ctx.fillText(pop.toLocaleString(), 38, y);
-        }
-        ctx.restore();
-    }
-    ctx.save();
-    ctx.translate(-16, canvasSize.height / 2);
-    ctx.rotate(-Math.PI / 2);
-    ctx.font = 'bold 13px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('Bee Population', 0, 0);
-    ctx.restore();
-    ctx.restore();
-}
-
-function drawXAxis(
-    ctx: CanvasRenderingContext2D,
-    view: { startMonth: number; monthsVisible: number },
-    canvasSize: { width: number; height: number },
-    monthToX: (month: number, view: any, canvasSize: any) => number,
-    getMonthLabel: (month: number) => string
-) {
-    const { startMonth, monthsVisible } = view;
-    const endMonth = startMonth + monthsVisible;
-    for (let m = Math.floor(startMonth); m <= Math.ceil(endMonth); m++) {
-        const x = monthToX(m, view, canvasSize);
-        ctx.strokeStyle = '#ccc';
-        ctx.beginPath();
-        ctx.moveTo(x, canvasSize.height - 20);
-        ctx.lineTo(x, canvasSize.height);
-        ctx.stroke();
-        ctx.fillStyle = '#333';
-        ctx.font = '12px sans-serif';
-        if (m === 0) {
-            ctx.textAlign = 'left';
-            ctx.fillText(getMonthLabel(m), x + 2, canvasSize.height - 2);
-        } else {
-            ctx.textAlign = 'center';
-            ctx.fillText(getMonthLabel(m), x, canvasSize.height - 2);
+            if (result.length === 0 || result[result.length - 1].time !== timestamp) {
+                result.push({
+                    time: timestamp as any,
+                    value: Math.round(value)
+                });
+            }
         }
     }
-}
 
-function drawTodayLine(
-    ctx: CanvasRenderingContext2D,
-    todayMonth: number,
-    view: { startMonth: number; monthsVisible: number },
-    canvasSize: { width: number; height: number },
-    monthToX: (month: number, view: any, canvasSize: any) => number
-) {
-    const { startMonth, monthsVisible } = view;
-    const endMonth = startMonth + monthsVisible;
-    if (todayMonth >= startMonth && todayMonth <= endMonth) {
-        const x = monthToX(todayMonth, view, canvasSize);
-        ctx.strokeStyle = '#ff0000';
-        ctx.setLineDash([4, 2]);
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvasSize.height);
-        ctx.stroke();
-        ctx.setLineDash([]);
-    }
-}
-
-function drawIdealCurve(
-    ctx: CanvasRenderingContext2D,
-    showIdeal: boolean,
-    idealPopulationCurve: { month: number; value: number }[],
-    view: { startMonth: number; monthsVisible: number },
-    canvasSize: { width: number; height: number },
-    monthToX: (month: number, view: any, canvasSize: any) => number,
-    populationToY: (pop: number, view: any, canvasSize: any) => number
-) {
-    if (!showIdeal) return;
-    ctx.save();
-    ctx.strokeStyle = '#00c853';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    let points = [...idealPopulationCurve];
-    const last = points[points.length - 1];
-    if (last.month < 12) {
-        points.push({ month: 12, value: last.value });
-    }
-    function getPt(idx: number) {
-        if (idx < 0) return points[0];
-        if (idx >= points.length) return points[points.length - 1];
-        return points[idx];
-    }
-    let p0 = getPt(0), p1 = getPt(0), p2 = getPt(1), p3 = getPt(2);
-    ctx.moveTo(monthToX(p1.month, view, canvasSize), populationToY(p1.value, view, canvasSize));
-    for (let i = 0; i < points.length - 1; i++) {
-        p0 = getPt(i - 1);
-        p1 = getPt(i);
-        p2 = getPt(i + 1);
-        p3 = getPt(i + 2);
-        const x1 = monthToX(p1.month, view, canvasSize);
-        const y1 = populationToY(p1.value, view, canvasSize);
-        const x2 = monthToX(p2.month, view, canvasSize);
-        const y2 = populationToY(p2.value, view, canvasSize);
-        const cp1x = x1 + (x2 - monthToX(p0.month, view, canvasSize)) / 6;
-        const cp1y = y1 + (y2 - populationToY(p0.value, view, canvasSize)) / 6;
-        const cp2x = x2 - (monthToX(p3.month, view, canvasSize) - x1) / 6;
-        const cp2y = y2 - (populationToY(p3.value, view, canvasSize) - y1) / 6;
-        ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x2, y2);
-    }
-    ctx.stroke();
-    ctx.restore();
-}
-
-function drawCurrentPopulation(
-    ctx: CanvasRenderingContext2D,
-    showCurrent: boolean,
-    hives: any[],
-    todayMonth: number,
-    view: { startMonth: number; monthsVisible: number },
-    canvasSize: { width: number; height: number },
-    monthToX: (month: number, view: any, canvasSize: any) => number,
-    populationToY: (pop: number, view: any, canvasSize: any) => number
-) {
-    const { startMonth, monthsVisible } = view;
-    const endMonth = startMonth + monthsVisible;
-    if (!showCurrent || !hives) return;
-    hives.forEach(hive => {
-        if (todayMonth >= startMonth && todayMonth <= endMonth && hive.beeCount) {
-            const x = monthToX(todayMonth, view, canvasSize);
-            const y = populationToY(hive.beeCount, view, canvasSize);
-            ctx.beginPath();
-            ctx.arc(x, y, 7, 0, 2 * Math.PI);
-            ctx.fillStyle = '#ffd900';
-            ctx.strokeStyle = '#333';
-            ctx.fill();
-            ctx.stroke();
-        }
-    });
-}
-
-function drawInspections(
-    ctx: CanvasRenderingContext2D,
-    showInspections: boolean,
-    inspectionsByHive: Record<string, any[]>,
-    view: { startMonth: number; monthsVisible: number },
-    canvasSize: { width: number; height: number },
-    monthToX: (month: number, view: any, canvasSize: any) => number,
-    populationToY: (pop: number, view: any, canvasSize: any) => number
-) {
-    if (!showInspections) return;
-    Object.entries(inspectionsByHive).forEach(([hiveId, insList]) => {
-        ctx.strokeStyle = '#1976d2';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        insList.forEach((ins, i) => {
-            const x = monthToX(ins.date.getMonth(), view, canvasSize);
-            const y = populationToY(ins.population, view, canvasSize);
-            if (i === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
-        });
-        ctx.stroke();
-        insList.forEach(ins => {
-            const x = monthToX(ins.date.getMonth(), view, canvasSize);
-            const y = populationToY(ins.population, view, canvasSize);
-            ctx.beginPath();
-            ctx.arc(x, y, 6, 0, 2 * Math.PI);
-            ctx.fillStyle = '#1976d2';
-            ctx.strokeStyle = '#fff';
-            ctx.fill();
-            ctx.stroke();
-        });
-    });
+    return result;
 }
 
 function renderLegend(
@@ -263,7 +87,9 @@ function renderLegend(
     showCurrent: boolean,
     setShowCurrent: (v: boolean) => void,
     showInspections: boolean,
-    setShowInspections: (v: boolean) => void
+    setShowInspections: (v: boolean) => void,
+    showWeight: boolean,
+    setShowWeight: (v: boolean) => void
 ) {
     return (
         <div style={{ marginTop: 16, userSelect: 'none' }}>
@@ -271,8 +97,8 @@ function renderLegend(
             <label style={{ marginLeft: 10, color: '#00c853', cursor: 'pointer' }}>
                 <input type="checkbox" checked={showIdeal} onChange={e => setShowIdeal((e.target as HTMLInputElement).checked)} /> Ideal population
             </label>
-            <label style={{ marginLeft: 10, color: '#ffd900', cursor: 'pointer' }}>
-                <input type="checkbox" checked={showCurrent} onChange={e => setShowCurrent((e.target as HTMLInputElement).checked)} /> Current population
+            <label style={{ marginLeft: 10, color: '#d32f2f', cursor: 'pointer' }}>
+                <input type="checkbox" checked={showWeight} onChange={e => setShowWeight((e.target as HTMLInputElement).checked)} /> Hive Weight (grams)
             </label>
             <label style={{ marginLeft: 10, color: '#1976d2', cursor: 'pointer' }}>
                 <input type="checkbox" checked={showInspections} onChange={e => setShowInspections((e.target as HTMLInputElement).checked)} /> Inspections
@@ -283,46 +109,65 @@ function renderLegend(
 }
 
 export default function TimeView() {
-    // Legend toggles
     const [showIdeal, setShowIdeal] = useState(true);
     const [showCurrent, setShowCurrent] = useState(true);
     const [showInspections, setShowInspections] = useState(true);
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
-    const [canvasSize, setCanvasSize] = useState({ width: 1200, height: 400 });
-    const maxPop = 80000;
-    const minPop = 0;
-    // Use fractional months for smooth drag
-    const [view, setView] = useState({
-        startMonth: todayMonth - 5 < 0 ? 0 : todayMonth - 5,
-        monthsVisible: 11,
-        minPop,
-        maxPop
-    });
-    const [drag, setDrag] = useState<null | { x: number, startMonth: number }>(null);
+    const [showWeight, setShowWeight] = useState(true);
+    const chartApiRef = useRef(null);
 
-    // Data loading from Dexie (with fallback to GraphQL)
-    const { data: gqlData, loading: gqlLoading, error: gqlError } = useQuery(HIVES_QUERY, {});
+    const { data: gqlData } = useQuery(HIVES_QUERY, {});
     const hives = useLiveQuery(async () => {
         let localHives = await getHives();
-        if ((!localHives || localHives.length === 0) && gqlData && gqlData.hives && gqlData.hives.length > 0) {
-            // Upsert backend hives to Dexie
-            await bulkUpsertHives(gqlData.hives);
-            return gqlData.hives;
+        if ((!localHives || localHives.length === 0) && gqlData && gqlData.apiaries) {
+            const allHives = gqlData.apiaries.flatMap(apiary => apiary.hives || []);
+            if (allHives.length > 0) {
+                await bulkUpsertHives(allHives);
+                return allHives;
+            }
         }
         return localHives;
     }, [gqlData], []);
 
+    const hiveIds = useMemo(() => hives?.map(h => h.id) || [], [hives]);
+
+    const weightQueryString = useMemo(() => {
+        if (!hiveIds.length) return null;
+        const queries = hiveIds.map(id => `
+          hive_${id}: weightKgAggregated(hiveId: "${id}", days: $days, aggregation: DAILY_AVG) {
+            ... on MetricFloatList {
+              metrics {
+                t
+                v
+              }
+            }
+            ... on TelemetryError {
+              message
+              code
+            }
+          }
+        `).join('\n');
+
+        return gql`
+          query HiveWeights($days: Int!) {
+            ${queries}
+          }
+        `;
+    }, [hiveIds]);
+
+    const { data: weightData } = useQuery(weightQueryString || HIVES_QUERY, {
+        skip: !weightQueryString,
+        variables: { days: 365 }
+    });
+
     const inspections = useLiveQuery(async () => {
         if (!hives || hives.length === 0) return [];
-        // Gather all inspections for all hives
         const allInspections = [];
         for (const hive of hives) {
             const ins = await listInspections(hive.id);
-            // Attach hive name for tooltip/grouping
             allInspections.push(...ins.map(i => ({
                 ...i,
                 hiveName: hive.name,
+                hiveId: hive.id,
                 date: i.added ? new Date(i.added) : new Date(),
             })));
         }
@@ -331,116 +176,301 @@ export default function TimeView() {
 
     if (!hives || !inspections) return <Loader stroke="black" size={0}/>;
 
-    // If no hives, display a message
     if (hives.length === 0) {
         return (
-            <div className={styles.flowWrap} ref={containerRef} style={{width: '100%', textAlign: 'center', padding: '20px 0', color: 'gray'}}>
+            <div className={styles.flowWrap} style={{width: '100%', textAlign: 'center', padding: '20px 0', color: 'gray'}}>
                 <h2>Colonies Lifecycle</h2>
                 <p>This view shows how colonies develop over time. Add an apiary with a hive to see first data here.</p>
-                <img height="64" src={imageURL} />
+                <img height="64" src={imageURL} alt="Flower illustration" />
             </div>
         );
     }
 
-    // Track yellow circle positions for tooltip
-    const yellowCircles = useRef<any[]>([]);
+    const idealData = useMemo(() => interpolateIdealCurve(idealPopulationCurve), []);
 
-    // Responsive canvas
-    useEffect(() => {
-        function updateSize() {
-            if (containerRef.current) {
-                const width = containerRef.current.offsetWidth;
-                setCanvasSize({ width, height: Math.round(width * 0.33) });
+    const inspectionsByHive = useMemo(() => {
+        const grouped: Record<string, any[]> = {};
+        inspections.forEach(ins => {
+            if (!grouped[ins.hiveId]) grouped[ins.hiveId] = [];
+            grouped[ins.hiveId].push(ins);
+        });
+        Object.keys(grouped).forEach(hiveId => {
+            grouped[hiveId].sort((a, b) => a.date.getTime() - b.date.getTime());
+        });
+        return grouped;
+    }, [inspections]);
+
+    const inspectionSeriesData = useMemo(() => {
+        const seriesMap: Record<string, { data: any[], hiveName: string }> = {};
+
+        Object.entries(inspectionsByHive).forEach(([hiveId, insList]) => {
+            const data = insList
+                .filter(ins => ins.population && ins.population > 0)
+                .map(ins => ({
+                    time: Math.floor(ins.date.getTime() / 1000) as any,
+                    value: ins.population
+                }));
+
+            if (data.length > 0) {
+                seriesMap[hiveId] = {
+                    data,
+                    hiveName: insList[0]?.hiveName || `Hive ${hiveId}`
+                };
             }
-        }
-        updateSize();
-        let observer: ResizeObserver | undefined;
-        if (window.ResizeObserver) {
-            observer = new ResizeObserver(updateSize);
-            if (containerRef.current) observer.observe(containerRef.current);
-        } else {
-            window.addEventListener('resize', updateSize);
-        }
-        return () => {
-            if (observer && containerRef.current) observer.unobserve(containerRef.current);
-            window.removeEventListener('resize', updateSize);
-        };
-    }, []);
+        });
 
-    // Group inspections by hive
-    const inspectionsByHive: Record<string, any[]> = {};
-    inspections.forEach(ins => {
-        if (!inspectionsByHive[ins.hiveId]) inspectionsByHive[ins.hiveId] = [];
-        inspectionsByHive[ins.hiveId].push(ins);
-    });
+        return seriesMap;
+    }, [inspectionsByHive]);
 
+    const weightSeriesData = useMemo(() => {
+        if (!weightData || !hives) return {};
 
+        const seriesMap: Record<string, { data: any[], hiveName: string }> = {};
 
-    useEffect(() => {
-        if (!canvasRef.current) return;
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvasSize.width, canvasSize.height);
-        drawYAxis(ctx, view, canvasSize, minPop, maxPop, populationToY);
-        drawXAxis(ctx, view, canvasSize, monthToX, getMonthLabel);
-        drawTodayLine(ctx, todayMonth, view, canvasSize, monthToX);
-        drawIdealCurve(ctx, showIdeal, idealPopulationCurve, view, canvasSize, monthToX, populationToY);
-        drawCurrentPopulation(ctx, showCurrent, hives, todayMonth, view, canvasSize, monthToX, populationToY);
-        drawInspections(ctx, showInspections, inspectionsByHive, view, canvasSize, monthToX, populationToY);
-    }, [view, canvasSize, showIdeal, showCurrent, showInspections, hives, todayMonth, inspectionsByHive]);
+        hives.forEach(hive => {
+            const weightKey = `hive_${hive.id}`;
+            const hiveWeight = weightData[weightKey];
 
-    // Mouse events for pan/zoom
-    function onWheel(e) {
-        e.preventDefault();
-        let { startMonth, monthsVisible } = view;
-        const mouseX = e.nativeEvent.offsetX;
-        let zoomAmount = e.deltaY < 0 ? -1 : 1;
-        let newMonthsVisible = Math.max(1, Math.min(12, monthsVisible + zoomAmount));
-        // Zoom toward mouse
-        let percent = mouseX / canvasSize.width;
-        let centerMonth = startMonth + percent * monthsVisible;
-        let newStart = centerMonth - percent * newMonthsVisible;
-        // Clamp
-        if (newStart < 0) newStart = 0;
-        if (newStart + newMonthsVisible > 12) newStart = 12 - newMonthsVisible;
-        setView(v => ({ ...v, startMonth: newStart, monthsVisible: newMonthsVisible }));
-    }
-    function onMouseDown(e) {
-        setDrag({ x: e.nativeEvent.clientX, startMonth: view.startMonth });
-    }
-    function onMouseMove(e) {
-        if (!drag) return;
-        const dx = e.nativeEvent.clientX - drag.x;
-        const monthsVisible = view.monthsVisible;
-        const monthDelta = dx / (canvasSize.width / monthsVisible);
-        let newStart = drag.startMonth - monthDelta;
-        // Clamp
-        if (newStart < 0) newStart = 0;
-        if (newStart + monthsVisible > 12) newStart = 12 - monthsVisible;
-        setView(v => ({ ...v, startMonth: newStart }));
-    }
-    function onMouseUp() {
-        setDrag(null);
-    }
+            if (hiveWeight && hiveWeight.metrics && hiveWeight.metrics.length > 0) {
+                const data = hiveWeight.metrics
+                    .filter(m => m.v && m.v > 0)
+                    .map(m => ({
+                        time: Math.floor(new Date(m.t).getTime() / 1000) as any,
+                        value: Math.round(m.v * 1000)
+                    }));
 
-    // Loading and error states (handled above by Loader)
+                if (data.length > 0) {
+                    seriesMap[hive.id] = {
+                        data,
+                        hiveName: hive.name || `Hive ${hive.id}`
+                    };
+                }
+            }
+        });
 
+        return seriesMap;
+    }, [weightData, hives]);
+
+    const chartOptions = useMemo(() => ({
+        layout: {
+            attributionLogo: false,
+            textColor: '#333',
+            background: { color: '#fff' }
+        },
+        grid: {
+            vertLines: { color: '#eee' },
+            horzLines: { color: '#eee' }
+        },
+        timeScale: {
+            timeVisible: true,
+            secondsVisible: false,
+            fixLeftEdge: false,
+            fixRightEdge: false,
+        },
+        rightPriceScale: {
+            borderColor: '#ccc',
+        },
+        crosshair: {
+            mode: 1,
+        },
+    }), []);
 
     return (
-        <div className={styles.flowWrap} ref={containerRef} style={{width: '100%'}}>
+        <div className={styles.flowWrap} style={{width: '100%'}}>
             <h2>Colony Lifecycle</h2>
-            <canvas
-                ref={canvasRef}
-                width={canvasSize.width}
-                height={canvasSize.height}
-                style={{ width: '100%', height: canvasSize.height, background: '#fff', border: '1px solid #eee', cursor: drag ? 'grabbing' : 'grab' }}
-                onWheel={onWheel}
-                onMouseDown={onMouseDown}
-                onMouseMove={onMouseMove}
-                onMouseUp={onMouseUp}
-                onMouseLeave={onMouseUp}
-            />
-            {renderLegend(showIdeal, setShowIdeal, showCurrent, setShowCurrent, showInspections, setShowInspections)}
+            <Chart
+                options={chartOptions}
+                containerProps={{ style: { width: '100%', height: '500px', border: '1px solid #eee' } }}
+                onInit={(chart) => {
+                    chartApiRef.current = chart;
+                }}
+            >
+                {showIdeal && (
+                    <AreaSeries
+                        data={idealData}
+                        options={{
+                            topColor: 'rgba(0, 200, 83, 0.4)',
+                            bottomColor: 'rgba(0, 200, 83, 0.05)',
+                            lineColor: '#00c853',
+                            lineWidth: 2,
+                            title: 'Ideal Population',
+                        }}
+                    />
+                )}
+
+                {showInspections && Object.entries(inspectionSeriesData).map(([hiveId, { data, hiveName }]) => {
+                    const colors = ['#1976d2', '#9c27b0', '#f57c00', '#00897b', '#e91e63'];
+                    const colorIndex = Object.keys(inspectionSeriesData).indexOf(hiveId) % colors.length;
+                    const color = colors[colorIndex];
+
+                    const markers = data.map(d => ({
+                        time: d.time,
+                        position: 'inBar' as const,
+                        color: color,
+                        shape: 'circle' as const,
+                    }));
+
+                    return (
+                        <LineSeries
+                            key={hiveId}
+                            data={data}
+                            options={{
+                                color: color,
+                                lineWidth: 2,
+                                title: hiveName,
+                            }}
+                        >
+                            <Markers markers={markers} />
+                        </LineSeries>
+                    );
+                })}
+
+                {showWeight && Object.entries(weightSeriesData).map(([hiveId, { data, hiveName }]) => {
+                    const colors = ['#d32f2f', '#1976d2', '#388e3c', '#f57c00', '#7b1fa2'];
+                    const colorIndex = Object.keys(weightSeriesData).indexOf(hiveId) % colors.length;
+                    const color = colors[colorIndex];
+
+                    return (
+                        <LineSeries
+                            key={hiveId}
+                            data={data}
+                            options={{
+                                color: color,
+                                lineWidth: 2,
+                                title: `${hiveName} Weight`,
+                            }}
+                        />
+                    );
+                })}
+            </Chart>
+            {renderLegend(showIdeal, setShowIdeal, showCurrent, setShowCurrent, showInspections, setShowInspections, showWeight, setShowWeight)}
+
+            <div style={{ marginTop: 40 }}>
+                <h3>Debug Data</h3>
+
+                <h4>Hives ({hives.length})</h4>
+                <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 20 }}>
+                    <thead>
+                        <tr style={{ background: '#f5f5f5' }}>
+                            <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>ID</th>
+                            <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Name</th>
+                            <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Status</th>
+                            <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Inspection Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {hives.map(hive => (
+                            <tr key={hive.id}>
+                                <td style={{ border: '1px solid #ddd', padding: 8 }}>{hive.id}</td>
+                                <td style={{ border: '1px solid #ddd', padding: 8 }}>{hive.name}</td>
+                                <td style={{ border: '1px solid #ddd', padding: 8 }}>{hive.status}</td>
+                                <td style={{ border: '1px solid #ddd', padding: 8 }}>{hive.inspectionCount}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+
+                <h4>Inspections ({inspections.length})</h4>
+                <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 20 }}>
+                    <thead>
+                        <tr style={{ background: '#f5f5f5' }}>
+                            <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Hive</th>
+                            <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Date</th>
+                            <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Population</th>
+                            <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Raw Data</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {inspections.map((ins, idx) => (
+                            <tr key={idx}>
+                                <td style={{ border: '1px solid #ddd', padding: 8 }}>{ins.hiveName || ins.hiveId}</td>
+                                <td style={{ border: '1px solid #ddd', padding: 8 }}>{ins.date.toLocaleString()}</td>
+                                <td style={{ border: '1px solid #ddd', padding: 8 }}>{ins.population || 'N/A'}</td>
+                                <td style={{ border: '1px solid #ddd', padding: 8, fontSize: '0.8em' }}>
+                                    <details>
+                                        <summary>Show raw</summary>
+                                        <pre style={{ fontSize: '0.9em', maxWidth: 400, overflow: 'auto' }}>
+                                            {JSON.stringify(ins, null, 2)}
+                                        </pre>
+                                    </details>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+
+                <h4>Processed Series Data ({Object.keys(inspectionSeriesData).length} hives)</h4>
+                <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 20 }}>
+                    <thead>
+                        <tr style={{ background: '#f5f5f5' }}>
+                            <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Hive ID</th>
+                            <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Hive Name</th>
+                            <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Data Points</th>
+                            <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Data</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {Object.entries(inspectionSeriesData).map(([hiveId, { data, hiveName }]) => (
+                            <tr key={hiveId}>
+                                <td style={{ border: '1px solid #ddd', padding: 8 }}>{hiveId}</td>
+                                <td style={{ border: '1px solid #ddd', padding: 8 }}>{hiveName}</td>
+                                <td style={{ border: '1px solid #ddd', padding: 8 }}>{data.length}</td>
+                                <td style={{ border: '1px solid #ddd', padding: 8, fontSize: '0.8em' }}>
+                                    <details>
+                                        <summary>Show data</summary>
+                                        <pre style={{ fontSize: '0.9em', maxWidth: 400, overflow: 'auto' }}>
+                                            {JSON.stringify(data.map(d => ({
+                                                date: new Date(d.time * 1000).toLocaleString(),
+                                                value: d.value
+                                            })), null, 2)}
+                                        </pre>
+                                    </details>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+
+                <h4>Weight Metrics ({Object.keys(weightSeriesData).length} hives)</h4>
+                <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 20 }}>
+                    <thead>
+                        <tr style={{ background: '#f5f5f5' }}>
+                            <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Hive ID</th>
+                            <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Hive Name</th>
+                            <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Data Points</th>
+                            <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Weight Range</th>
+                            <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Data</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {Object.entries(weightSeriesData).map(([hiveId, { data, hiveName }]) => {
+                            const values = data.map(d => d.value);
+                            const min = Math.min(...values);
+                            const max = Math.max(...values);
+                            return (
+                                <tr key={hiveId}>
+                                    <td style={{ border: '1px solid #ddd', padding: 8 }}>{hiveId}</td>
+                                    <td style={{ border: '1px solid #ddd', padding: 8 }}>{hiveName}</td>
+                                    <td style={{ border: '1px solid #ddd', padding: 8 }}>{data.length}</td>
+                                    <td style={{ border: '1px solid #ddd', padding: 8 }}>{min}g - {max}g</td>
+                                    <td style={{ border: '1px solid #ddd', padding: 8, fontSize: '0.8em' }}>
+                                        <details>
+                                            <summary>Show data</summary>
+                                            <pre style={{ fontSize: '0.9em', maxWidth: 400, overflow: 'auto' }}>
+                                                {JSON.stringify(data.slice(0, 10).map(d => ({
+                                                    date: new Date(d.time * 1000).toLocaleString(),
+                                                    weight: `${d.value}g`
+                                                })), null, 2)}
+                                                {data.length > 10 ? `\n... and ${data.length - 10} more` : ''}
+                                            </pre>
+                                        </details>
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 }

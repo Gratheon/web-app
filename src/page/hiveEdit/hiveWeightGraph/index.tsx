@@ -1,4 +1,4 @@
-import { useMemo, useRef, useCallback } from 'react'
+import { useMemo } from 'react'
 
 import { gql, useQuery } from '@/api'
 
@@ -9,6 +9,7 @@ import ErrorMsg from '@/shared/messageError'
 import WeightChart from './WeightChart'
 import TemperatureChart from './TemperatureChart'
 import EntranceMovementChart from './EntranceMovementChart'
+import { useChartSync } from '@/shared/charts/useChartSync'
 
 const WEIGHT_QUERY = gql`
 	query hiveWeight($hiveId: ID!, $timeRangeMin: Int, $timeFrom: DateTime!, $timeTo: DateTime!) {
@@ -58,35 +59,7 @@ const WEIGHT_QUERY = gql`
 
 export default function HiveWeightGraph({ hiveId }) {
 	let userStored = useLiveQuery(() => getUser(), [], null)
-	const chartRefs = useRef([])
-	const syncingRef = useRef(false)
-
-	const syncCharts = useCallback((sourceChart) => {
-		if (syncingRef.current) return
-
-		syncingRef.current = true
-
-		try {
-			const timeScale = sourceChart.timeScale()
-			const visibleRange = timeScale.getVisibleRange()
-
-			if (!visibleRange) return
-
-			chartRefs.current.forEach((chart) => {
-				if (chart && chart !== sourceChart) {
-					try {
-						chart.timeScale().setVisibleRange(visibleRange)
-					} catch (e) {
-						console.error('Failed to sync chart:', e)
-					}
-				}
-			})
-		} finally {
-			setTimeout(() => {
-				syncingRef.current = false
-			}, 10)
-		}
-	}, [])
+	const { chartRefs, syncCharts } = useChartSync()
 
 	const { now, weekAgo } = useMemo(() => {
 		const now = new Date()

@@ -1,9 +1,10 @@
-import { Chart, HistogramSeries } from 'lightweight-charts-react-components'
-import { useMemo, useRef, useEffect } from 'react'
+import { HistogramSeries } from 'lightweight-charts-react-components'
+import { useMemo } from 'react'
 
-import ChartHeading from '@/shared/chartHeading'
 import T, { useTranslation as t } from '@/shared/translate'
 import ErrorMsg from '@/shared/messageError'
+import ChartContainer from '@/shared/charts/ChartContainer'
+import { formatMetricData, formatTableData } from '@/shared/charts/formatters'
 
 const red = 'rgba(255,211,174,0.42)'
 const green = 'rgba(126,207,36,0.83)'
@@ -19,50 +20,34 @@ interface WeightChartProps {
 }
 
 export default function WeightChart({ weightData, chartRefs, syncCharts }: WeightChartProps) {
-	const chartApiRef = useRef(null)
 	const kgLabel = t('kg', 'Shortest label for the unit of weight in kilograms')
 
-	useEffect(() => {
-		if (chartApiRef.current) {
-			chartRefs.current.push(chartApiRef.current)
-
-			const handleVisibleTimeRangeChange = () => {
-				if (chartApiRef.current) {
-					syncCharts(chartApiRef.current)
-				}
-			}
-
-			chartApiRef.current.timeScale().subscribeVisibleTimeRangeChange(handleVisibleTimeRangeChange)
-
-			return () => {
-				const currentChart = chartApiRef.current
-				chartRefs.current = chartRefs.current.filter(c => c !== currentChart)
-				if (currentChart) {
-					try {
-						currentChart.timeScale().unsubscribeVisibleTimeRangeChange(handleVisibleTimeRangeChange)
-					} catch (e) {
-						console.error('Failed to unsubscribe:', e)
-					}
-				}
-			}
+	const { histogramData, lastWeight, tableData } = useMemo(() => {
+		if (!weightData || weightData.code || !weightData.metrics || weightData.metrics.length === 0) {
+			return { histogramData: [], lastWeight: 0, tableData: [] }
 		}
-	}, [chartApiRef.current])
 
-	const handleChartInit = (chart: any) => {
-		chartApiRef.current = chart
-	}
+		const sortedWeightData = formatMetricData(weightData.metrics)
 
-	const chartOptions = useMemo(() => ({
-		layout: {
-			attributionLogo: false,
-		},
-		timeScale: {
-			timeVisible: true,
-			secondsVisible: false,
-			fixLeftEdge: true,
-			fixRightEdge: true,
-		},
-	}), [])
+		const histogramData = sortedWeightData.map((entry, index) => {
+			const previousValue = index > 0 ? sortedWeightData[index - 1].value : entry.value
+			const color = entry.value < previousValue ? red : green
+			return {
+				time: entry.time,
+				value: entry.value,
+				color: color
+			}
+		})
+
+		const lastWeight = Math.round(100 * weightData.metrics[weightData.metrics.length - 1].v) / 100
+
+		const tableData = sortedWeightData.map(item => ({
+			Time: new Date(item.time * 1000).toLocaleString(),
+			Weight: `${item.value} ${kgLabel}`
+		}))
+
+		return { histogramData, lastWeight, tableData }
+	}, [weightData, kgLabel])
 
 	if (!weightData || weightData.code) {
 		if (weightData?.code) {
@@ -75,7 +60,7 @@ export default function WeightChart({ weightData, chartRefs, syncCharts }: Weigh
 		)
 	}
 
-	if (weightData.metrics?.length === 0) {
+	if (histogramData.length === 0) {
 		return (
 			<p style="color:#bbb">
 				<T>Hive weight was not reported this week.</T>
@@ -83,50 +68,17 @@ export default function WeightChart({ weightData, chartRefs, syncCharts }: Weigh
 		)
 	}
 
-	const formattedWeightData = weightData.metrics.map((row) => {
-		const date = new Date(row.t)
-		const timestamp = Math.floor(date.getTime() / 1000)
-		return {
-			time: timestamp,
-			value: Math.round(row.v * 100) / 100,
-		}
-	})
-
-	const sortedWeightData = formattedWeightData
-		.sort((a, b) => a.time - b.time)
-		.reduce((acc, curr) => {
-			const lastItem = acc[acc.length - 1]
-			if (!lastItem || lastItem.time !== curr.time) {
-				acc.push(curr)
-			} else {
-				acc[acc.length - 1] = curr
-			}
-			return acc
-		}, [])
-
-	const histogramData = sortedWeightData.map((entry, index) => {
-		const previousValue = index > 0 ? sortedWeightData[index - 1].value : entry.value
-		const color = entry.value < previousValue ? red : green
-		return {
-			time: entry.time,
-			value: entry.value,
-			color: color
-		}
-	})
-
-	const lastWeight = Math.round(100 * weightData.metrics[weightData.metrics.length - 1].v) / 100
-
 	return (
-		<div style="padding-bottom: 20px;">
-			<ChartHeading
-				title={t('Hive Weight') + ' ⚖️️'}
-				value={`${lastWeight} ${kgLabel}`}
-				info={t('Drop in hive weight may correlate with swarming or starvation')}
-			/>
-
-			<Chart onInit={handleChartInit} options={chartOptions} containerProps={{ style: { width: '100%', height: '200px' } }}>
-				<HistogramSeries data={histogramData} />
-			</Chart>
-		</div>
+		<ChartContainer
+			title={t('Hive Weight') + ' ⚖️️'}
+			value={`${lastWeight} ${kgLabel}`}
+			info={t('Drop in hive weight may correlate with swarming or starvation')}
+			chartRefs={chartRefs}
+			syncCharts={syncCharts}
+			showTable={true}
+			tableData={tableData}
+		>
+			<HistogramSeries data={histogramData} />
+		</ChartContainer>
 	)
 }

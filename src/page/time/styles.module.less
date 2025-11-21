@@ -1,3 +1,77 @@
+.pageContainer {
+  width: 100%;
+  max-width: 100%;
+  padding: 0 16px 80px 16px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.contentWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  @media (min-width: 1024px) {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 24px;
+  }
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+
+  @media (min-width: 1024px) {
+    width: 320px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 16px;
+  }
+}
+
+.chartsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  flex: 1;
+}
+
+.emptyState {
+  width: 100%;
+  text-align: center;
+  padding: 20px 0;
+  color: gray;
+
+  h2 {
+    margin-bottom: 12px;
+  }
+
+  p {
+    margin-bottom: 16px;
+  }
+
+  img {
+    height: 64px;
+  }
+}
+
+h2 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+input {
+  height: auto;
+}
+
 .flowWrap {
   width: 100%;
 
@@ -6,12 +80,4 @@
   border-radius: 8px;
   box-shadow: 0 2px 8px #0001;
   padding: 24px 16px 32px 16px;
-}
-
-h2 {
-  margin-bottom: 18px;
-}
-
-input{
-  height:auto;
 }

@@ -2,9 +2,9 @@ import { useState, useMemo } from 'react'
 import styles from './styles.module.less'
 import Loader from '@/shared/loader'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { getHives, bulkUpsertHives } from '../../models/hive'
-import { listInspections } from '../../models/inspections'
-import { useQuery, gql } from '../../api'
+import { getHives, bulkUpsertHives } from '@/models/hive'
+import { listInspections } from '@/models/inspections'
+import { useQuery, gql } from '@/api'
 import imageURL from '@/assets/flower.png'
 import { useChartSync } from '@/shared/charts/useChartSync'
 import PopulationChart from '@/shared/charts/PopulationChart'
@@ -12,6 +12,9 @@ import MultiHiveWeightChart from '@/shared/charts/MultiHiveWeightChart'
 import MultiHiveTemperatureChart from '@/shared/charts/MultiHiveTemperatureChart'
 import MultiHiveEntranceChart from '@/shared/charts/MultiHiveEntranceChart'
 import InfoIcon from '@/shared/infoIcon'
+import TimeRangeSelector from './components/TimeRangeSelector'
+import HiveSelector from './components/HiveSelector'
+import ChartToggles from './components/ChartToggles'
 
 const HIVES_QUERY = gql`
 	query HIVES {
@@ -198,10 +201,10 @@ export default function TimeView() {
 
 	if (hives.length === 0) {
 		return (
-			<div className={styles.flowWrap} style={{width: '100%', textAlign: 'center', padding: '20px 0', color: 'gray'}}>
+			<div className={styles.emptyState}>
 				<h2>Colony Lifecycle</h2>
 				<p>This view shows how colonies develop over time. Add an apiary with a hive to see first data here.</p>
-				<img height="64" src={imageURL} alt="Flower illustration" />
+				<img src={imageURL} alt="Flower illustration" />
 			</div>
 		)
 	}
@@ -225,192 +228,46 @@ export default function TimeView() {
 	}
 
 	return (
-		<div className={styles.flowWrap} style={{width: '100%'}}>
-			<div style={{
-				display: 'flex',
-				justifyContent: 'space-between',
-				alignItems: 'center',
-				marginBottom: '16px'
-			}}>
-				<h2 style={{ margin: 0, display: 'flex', alignItems: 'center' }}>
-					Multi-Hive Analytics
-					<InfoIcon>
-						<p style={{ margin: '0 0 8px 0' }}>
-							<strong>About this view:</strong>
-						</p>
-						<p style={{ margin: '0 0 8px 0' }}>
-							Compare metrics across multiple hives over time to identify trends and anomalies.
-						</p>
-						<p style={{ margin: 0 }}>
-							Look for correlations between weight drops and swarming, temperature extremes and bee activity,
-							or entrance patterns and colony health. Use the table view (📋) on each chart to export data for deeper analysis.
-						</p>
-					</InfoIcon>
-				</h2>
+		<div className={styles.pageContainer}>
+			<h2>
+				Multi-Hive Analytics
+				<InfoIcon>
+					<p style={{ margin: '0 0 8px 0' }}>
+						<strong>About this view:</strong>
+					</p>
+					<p style={{ margin: '0 0 8px 0' }}>
+						Compare metrics across multiple hives over time to identify trends and anomalies.
+					</p>
+					<p style={{ margin: 0 }}>
+						Look for correlations between weight drops and swarming, temperature extremes and bee activity,
+						or entrance patterns and colony health. Use the table view (📋) on each chart to export data for deeper analysis.
+					</p>
+				</InfoIcon>
+			</h2>
 
-				<label style={{ fontWeight: 'bold' }}>
-					Time Range:
-					<select
+			<div className={styles.contentWrapper}>
+				<aside className={styles.sidebar}>
+					<TimeRangeSelector
 						value={timeRangeDays}
-						onChange={e => setTimeRangeDays(Number(e.target.value))}
-						style={{ marginLeft: '8px', padding: '4px 8px' }}
-					>
-						<option value={7}>Last 7 days</option>
-						<option value={30}>Last 30 days</option>
-						<option value={90}>Last 90 days</option>
-						<option value={180}>Last 6 months</option>
-						<option value={365}>Last year</option>
-					</select>
-				</label>
-			</div>
+						onChange={setTimeRangeDays}
+					/>
 
-			<div style={{
-				background: '#f5f5f5',
-				padding: '16px',
-				borderRadius: '8px',
-				marginBottom: '24px'
-			}}>
-				<div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-					<strong>Selected Hives:</strong>
-					<button
-						onClick={toggleAllHives}
-						style={{ padding: '4px 8px', fontSize: '12px', cursor: 'pointer' }}
-					>
-						{selectedHiveIds.length === hives.length ? 'Deselect All' : 'Select All'}
-					</button>
-					<div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-						{hives.map(hive => (
-							<label key={hive.id} style={{
-								cursor: 'pointer',
-								userSelect: 'none',
-								background: (selectedHiveIds.length === 0 || selectedHiveIds.includes(hive.id)) ? '#e3f2fd' : '#fff',
-								padding: '4px 8px',
-								borderRadius: '4px',
-								border: '1px solid #ccc'
-							}}>
-								<input
-									type="checkbox"
-									checked={selectedHiveIds.length === 0 || selectedHiveIds.includes(hive.id)}
-									onChange={() => toggleHive(hive.id)}
-								/>
-								<span style={{ marginLeft: '4px' }}>{hive.name || `Hive ${hive.id}`}</span>
-							</label>
-						))}
-					</div>
-				</div>
-			</div>
+					<HiveSelector
+						hives={hives}
+						selectedHiveIds={selectedHiveIds}
+						onToggleHive={toggleHive}
+						onToggleAll={toggleAllHives}
+					/>
 
-			<div style={{ display: 'flex', gap: '24px' }}>
-				<div style={{
-					width: '200px',
-					flexShrink: 0,
-					background: '#f5f5f5',
-					padding: '16px',
-					borderRadius: '8px',
-					height: 'fit-content',
-					position: 'sticky',
-					top: '16px'
-				}}>
-					<h3 style={{ margin: '0 0 16px 0', fontSize: '16px' }}>Charts</h3>
-					<div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-						<label style={{
-							cursor: 'pointer',
-							userSelect: 'none',
-							display: 'flex',
-							alignItems: 'center',
-							padding: '8px',
-							background: enabledCharts.population ? '#e8f5e9' : 'transparent',
-							borderRadius: '4px',
-							transition: 'background 0.2s'
-						}}>
-							<input
-								type="checkbox"
-								checked={enabledCharts.population}
-								onChange={() => toggleChart('population')}
-								style={{ marginRight: '8px' }}
-							/>
-							<span>🐝 Population</span>
-						</label>
+					<ChartToggles
+						enabledCharts={enabledCharts}
+						showIdealCurve={showIdealCurve}
+						onToggleChart={toggleChart}
+						onToggleIdealCurve={setShowIdealCurve}
+					/>
+				</aside>
 
-						{enabledCharts.population && (
-							<label style={{
-								cursor: 'pointer',
-								userSelect: 'none',
-								display: 'flex',
-								alignItems: 'center',
-								paddingLeft: '32px',
-								fontSize: '14px'
-							}}>
-								<input
-									type="checkbox"
-									checked={showIdealCurve}
-									onChange={e => setShowIdealCurve(e.target.checked)}
-									style={{ marginRight: '8px' }}
-								/>
-								<span>Ideal Curve</span>
-							</label>
-						)}
-
-						<label style={{
-							cursor: 'pointer',
-							userSelect: 'none',
-							display: 'flex',
-							alignItems: 'center',
-							padding: '8px',
-							background: enabledCharts.weight ? '#fff3e0' : 'transparent',
-							borderRadius: '4px',
-							transition: 'background 0.2s'
-						}}>
-							<input
-								type="checkbox"
-								checked={enabledCharts.weight}
-								onChange={() => toggleChart('weight')}
-								style={{ marginRight: '8px' }}
-							/>
-							<span>⚖️ Weight</span>
-						</label>
-
-						<label style={{
-							cursor: 'pointer',
-							userSelect: 'none',
-							display: 'flex',
-							alignItems: 'center',
-							padding: '8px',
-							background: enabledCharts.temperature ? '#fce4ec' : 'transparent',
-							borderRadius: '4px',
-							transition: 'background 0.2s'
-						}}>
-							<input
-								type="checkbox"
-								checked={enabledCharts.temperature}
-								onChange={() => toggleChart('temperature')}
-								style={{ marginRight: '8px' }}
-							/>
-							<span>🌡️ Temperature</span>
-						</label>
-
-						<label style={{
-							cursor: 'pointer',
-							userSelect: 'none',
-							display: 'flex',
-							alignItems: 'center',
-							padding: '8px',
-							background: enabledCharts.entrance ? '#e1f5fe' : 'transparent',
-							borderRadius: '4px',
-							transition: 'background 0.2s'
-						}}>
-							<input
-								type="checkbox"
-								checked={enabledCharts.entrance}
-								onChange={() => toggleChart('entrance')}
-								style={{ marginRight: '8px' }}
-							/>
-							<span>🚪 Entrance Activity</span>
-						</label>
-					</div>
-				</div>
-
-				<div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '24px' }}>
+				<main className={styles.chartsContainer}>
 					{enabledCharts.population && (
 						<PopulationChart
 							inspectionsByHive={inspectionsByHive}
@@ -443,7 +300,7 @@ export default function TimeView() {
 							syncCharts={syncCharts}
 						/>
 					)}
-				</div>
+				</main>
 			</div>
 		</div>
 	)

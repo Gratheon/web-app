@@ -92,34 +92,89 @@ export default function ChartContainer({
 	}
 
 	return (
-		<div style="padding-bottom: 20px;">
-			<div style="display: flex; justify-content: space-between; align-items: center;">
-				<ChartHeading title={title} value={value} info={info} />
-				{showTable && tableData.length > 0 && (
-					<div style="display: flex; gap: 8px;">
-						<button
-							onClick={() => setShowTableView(!showTableView)}
-							style="padding: 4px 8px; font-size: 12px; cursor: pointer;"
-						>
-							{showTableView ? '📊 Chart' : '📋 Table'}
-						</button>
-						<button
-							onClick={exportToCSV}
-							style="padding: 4px 8px; font-size: 12px; cursor: pointer;"
-						>
-							📥 CSV
-						</button>
-					</div>
-				)}
+		<div style={{
+			paddingBottom: '20px',
+			width: '100%',
+			maxWidth: '100%',
+			boxSizing: 'border-box',
+			overflow: 'hidden'
+		}}>
+			<div style={{
+				display: 'flex',
+				flexDirection: 'column',
+				gap: '8px',
+				marginBottom: '8px'
+			}}>
+				<div style={{
+					display: 'flex',
+					justifyContent: 'space-between',
+					alignItems: 'flex-start',
+					flexWrap: 'wrap',
+					gap: '8px'
+				}}>
+					<ChartHeading title={title} value={value} info={info} />
+					{showTable && tableData.length > 0 && (
+						<div style={{
+							display: 'flex',
+							gap: '8px',
+							flexShrink: 0
+						}}>
+							<button
+								onClick={() => setShowTableView(!showTableView)}
+								style={{
+									padding: '4px 8px',
+									fontSize: '12px',
+									cursor: 'pointer',
+									whiteSpace: 'nowrap'
+								}}
+							>
+								{showTableView ? '📊 Chart' : '📋 Table'}
+							</button>
+							<button
+								onClick={exportToCSV}
+								style={{
+									padding: '4px 8px',
+									fontSize: '12px',
+									cursor: 'pointer',
+									whiteSpace: 'nowrap'
+								}}
+							>
+								📥 CSV
+							</button>
+						</div>
+					)}
+				</div>
 			</div>
 
 			{showTableView && tableData.length > 0 ? (
-				<div style="max-height: 400px; overflow: auto; border: 1px solid #eee; margin-top: 8px;">
-					<table style="width: 100%; border-collapse: collapse;">
-						<thead style="position: sticky; top: 0; background: #f5f5f5;">
+				<div style={{
+					maxHeight: '400px',
+					overflow: 'auto',
+					border: '1px solid #eee',
+					marginTop: '8px',
+					width: '100%',
+					maxWidth: '100%',
+					boxSizing: 'border-box'
+				}}>
+					<table style={{
+						width: '100%',
+						borderCollapse: 'collapse',
+						fontSize: '13px'
+					}}>
+						<thead style={{
+							position: 'sticky',
+							top: 0,
+							background: '#f5f5f5',
+							zIndex: 1
+						}}>
 							<tr>
 								{Object.keys(tableData[0]).map(header => (
-									<th key={header} style="border: 1px solid #ddd; padding: 8px; text-align: left;">
+									<th key={header} style={{
+										border: '1px solid #ddd',
+										padding: '8px',
+										textAlign: 'left',
+										fontSize: '12px'
+									}}>
 										{header}
 									</th>
 								))}
@@ -129,7 +184,11 @@ export default function ChartContainer({
 							{tableData.map((row, idx) => (
 								<tr key={idx}>
 									{Object.values(row).map((cell, cellIdx) => (
-										<td key={cellIdx} style="border: 1px solid #ddd; padding: 8px;">
+										<td key={cellIdx} style={{
+											border: '1px solid #ddd',
+											padding: '8px',
+											fontSize: '12px'
+										}}>
 											{cell}
 										</td>
 									))}
@@ -139,15 +198,28 @@ export default function ChartContainer({
 					</table>
 				</div>
 			) : (
-				<Chart
-					onInit={handleChartInit}
-					options={defaultChartOptions}
-					containerProps={{ style: { width: '100%', height: '200px' } }}
-				>
-					{children}
-				</Chart>
+				<div style={{
+					width: '100%',
+					maxWidth: '100%',
+					overflow: 'hidden',
+					boxSizing: 'border-box'
+				}}>
+					<Chart
+						onInit={handleChartInit}
+						options={defaultChartOptions}
+						containerProps={{
+							style: {
+								width: '100%',
+								height: '200px',
+								maxWidth: '100%',
+								boxSizing: 'border-box'
+							}
+						}}
+					>
+						{children}
+					</Chart>
+				</div>
 			)}
 		</div>
 	)
 }
-

@@ -3,4 +3,7 @@ export NVM_DIR="$HOME/.nvm"
 
 nvm use
 export PNPM_HOME="$HOME/.local/share/pnpm"
-curl -fsSL https://get.pnpm.io/install.sh | sh -
+
+if ! command -v pnpm &> /dev/null; then
+  TMPDIR="$HOME/tmp" curl -fsSL https://get.pnpm.io/install.sh | sh -
+fi

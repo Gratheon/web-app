@@ -14,13 +14,12 @@ jobs:
         working-directory: /www/web-app/
         run: git reset --hard && git pull
 
-      - name: setup env
+      - name: setup env and build
         working-directory: /www/web-app/
-        run: chmod +x _setup-env.sh && ./_setup-env.sh
-        
-      - name: build
-        working-directory: /www/web-app/
-        run: chmod +x _build.sh && ./_build.sh
+        run: |
+          chmod +x _setup-env.sh _build.sh
+          source ./_setup-env.sh
+          ./_build.sh
 
       - name: cleanup
         working-directory: /www/web-app/

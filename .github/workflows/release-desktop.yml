@@ -2,7 +2,7 @@ name: Build Desktop App and Create Release
 
 on:
   workflow_run:
-    workflows: [Unit tests]
+    workflows: [Deploy]
     types:
       - completed
     branches:

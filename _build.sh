@@ -1,4 +1,5 @@
 pnpm install
+mkdir -p ./node_modules/.tmp
 TMPDIR=./node_modules/.tmp pnpm build
 pnpm build-clean
 pnpm build-move

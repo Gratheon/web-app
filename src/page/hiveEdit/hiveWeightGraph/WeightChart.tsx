@@ -42,8 +42,8 @@ export default function WeightChart({ weightData, chartRefs, syncCharts }: Weigh
 		const lastWeight = Math.round(100 * weightData.metrics[weightData.metrics.length - 1].v) / 100
 
 		const tableData = sortedWeightData.map(item => ({
-			Time: new Date(item.time * 1000).toLocaleString(),
-			Weight: `${item.value} ${kgLabel}`
+			label: new Date(item.time * 1000).toLocaleString(),
+			value: `${item.value} ${kgLabel}`
 		}))
 
 		return { histogramData, lastWeight, tableData }

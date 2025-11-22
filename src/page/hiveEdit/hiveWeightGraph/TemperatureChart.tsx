@@ -36,8 +36,8 @@ export default function TemperatureChart({ temperatureData, chartRefs, syncChart
 		}
 
 		const tableData = sortedTemperatureData.map(item => ({
-			Time: new Date(item.time * 1000).toLocaleString(),
-			'Temperature (°C)': item.value
+			label: new Date(item.time * 1000).toLocaleString(),
+			value: `${item.value} °C`
 		}))
 
 		return { sortedTemperatureData, lastTemperature, temperatureColor, tableData }
@@ -70,8 +70,8 @@ export default function TemperatureChart({ temperatureData, chartRefs, syncChart
 					lineWidth: 2,
 				}}
 			>
-				<PriceLine options={{ price: 13, color: 'blue', lineStyle: 2, lineWidth: 1 }} />
-				<PriceLine options={{ price: 38, color: 'red', lineStyle: 2, lineWidth: 1 }} />
+				<PriceLine price={13} options={{ color: 'blue', lineStyle: 2, lineWidth: 1 }} />
+				<PriceLine price={38} options={{ color: 'red', lineStyle: 2, lineWidth: 1 }} />
 			</AreaSeries>
 		</ChartContainer>
 	)

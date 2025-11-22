@@ -31,10 +31,8 @@ export default function EntranceMovementChart({ movementData, chartRefs, syncCha
 		const lastMetric = movementData.metrics[movementData.metrics.length - 1]
 
 		const tableData = movementData.metrics.map(item => ({
-			Time: new Date(item.time).toLocaleString(),
-			'Bees In': item.beesIn?.toFixed(2) || '0',
-			'Bees Out': item.beesOut?.toFixed(2) || '0',
-			'Net Flow': item.netFlow?.toFixed(2) || '0'
+			label: new Date(item.time).toLocaleString(),
+			value: `In: ${item.beesIn?.toFixed(2) || '0'} | Out: ${item.beesOut?.toFixed(2) || '0'} | Net: ${item.netFlow?.toFixed(2) || '0'}`
 		}))
 
 		return { beesInData, beesOutData, lastMetric, tableData }

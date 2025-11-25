@@ -11,9 +11,17 @@ type WeatherSectionProps = {
 	days: number
 	chartRefs?: React.MutableRefObject<any[]>
 	syncCharts?: (sourceChart: any) => void
+	enabledCharts: {
+		wind: boolean
+		rain: boolean
+		solarRadiation: boolean
+		cloudCover: boolean
+		pollen: boolean
+		pollution: boolean
+	}
 }
 
-export default function WeatherSection({ apiaries, days, chartRefs, syncCharts }: WeatherSectionProps) {
+export default function WeatherSection({ apiaries, days, chartRefs, syncCharts, enabledCharts }: WeatherSectionProps) {
 	if (apiaries.length === 0) return null
 
 	return (
@@ -27,6 +35,7 @@ export default function WeatherSection({ apiaries, days, chartRefs, syncCharts }
 						days={days}
 						chartRefs={chartRefs}
 						syncCharts={syncCharts}
+						enabledCharts={enabledCharts}
 					/>
 				</div>
 			))}

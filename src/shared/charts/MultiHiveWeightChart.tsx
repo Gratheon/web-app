@@ -63,7 +63,8 @@ export default function MultiHiveWeightChart({ weightDataByHive, chartRefs, sync
 
 	return (
 		<ChartContainer
-			title={t('Hive Weight Comparison') + ' ⚖️'}
+			emoji="⚖️"
+			title={t('Hive Weight Comparison')}
 			value={`${hiveCount} ${hiveCount === 1 ? 'hive' : 'hives'}`}
 			info={t('Compare weight across multiple hives')}
 			chartRefs={chartRefs}

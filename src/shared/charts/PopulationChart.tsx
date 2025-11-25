@@ -127,7 +127,8 @@ export default function PopulationChart({ inspectionsByHive, showIdealCurve, cha
 
 	return (
 		<ChartContainer
-			title={t('Colony Population') + ' 🐝'}
+			emoji="🐝"
+			title={t('Colony Population')}
 			value={`${Object.keys(seriesData).length} ${Object.keys(seriesData).length === 1 ? 'hive' : 'hives'}`}
 			info={t('Track colony population over time across multiple hives')}
 			chartRefs={chartRefs}

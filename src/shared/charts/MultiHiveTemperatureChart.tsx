@@ -61,7 +61,8 @@ export default function MultiHiveTemperatureChart({ temperatureDataByHive, chart
 
 	return (
 		<ChartContainer
-			title={t('Hive Temperature Comparison') + ' 🌡️'}
+			emoji="🌡️"
+			title={t('Hive Temperature Comparison')}
 			value={`${hiveCount} ${hiveCount === 1 ? 'hive' : 'hives'}`}
 			info={t('Compare internal temperature across multiple hives')}
 			chartRefs={chartRefs}

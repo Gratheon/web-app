@@ -75,7 +75,8 @@ export default function MultiHiveEntranceChart({ entranceDataByHive, chartRefs, 
 
 	return (
 		<ChartContainer
-			title={t('Hive Entrance Activity Comparison') + ' 🐝'}
+			emoji="🐝"
+			title={t('Hive Entrance Activity Comparison')}
 			value={`${hiveCount} ${hiveCount === 1 ? 'hive' : 'hives'}`}
 			info={t('Compare net bee flow across multiple hives')}
 			chartRefs={chartRefs}

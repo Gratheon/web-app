@@ -9,8 +9,8 @@ interface ChartHeadingProps {
 
 export default function ChartHeading({title, value, info, emoji}: ChartHeadingProps) {
     return (
-        <div style={{fontSize: '18px', display: 'flex', alignItems: 'center', paddingRight: '20px'}}>
-            {emoji && <span style={{marginRight: '8px', fontSize: '20px'}}>{emoji}</span>}
+        <div style={{fontSize: '18px', display: 'flex', alignItems: 'center', paddingRight: '20px', gap: '8px'}}>
+            {emoji && <span style={{fontSize: '20px'}}>{emoji}</span>}
             <span style={{flexGrow: 1, display: 'flex', alignItems: 'center'}}>
                 {title}
                 {info && (
@@ -19,7 +19,7 @@ export default function ChartHeading({title, value, info, emoji}: ChartHeadingPr
                     </InfoIcon>
                 )}
             </span>
-            {value && <strong>{value}</strong>}
+            {value && <span style={{fontSize: '14px', fontWeight: 'normal'}}>{value}</span>}
         </div>
     )
 }

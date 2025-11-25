@@ -50,9 +50,17 @@ type HistoricalWeatherProps = {
 	days: number
 	chartRefs?: React.MutableRefObject<any[]>
 	syncCharts?: (sourceChart: any) => void
+	enabledCharts: {
+		wind: boolean
+		rain: boolean
+		solarRadiation: boolean
+		cloudCover: boolean
+		pollen: boolean
+		pollution: boolean
+	}
 }
 
-export default function HistoricalWeather({lat, lng, days, chartRefs, syncCharts}: HistoricalWeatherProps) {
+export default function HistoricalWeather({lat, lng, days, chartRefs, syncCharts, enabledCharts}: HistoricalWeatherProps) {
 	const { startDate, endDate } = useMemo(() => {
 		const end = new Date()
 		const start = new Date(end.getTime() - days * 24 * 60 * 60 * 1000)
@@ -82,43 +90,53 @@ export default function HistoricalWeather({lat, lng, days, chartRefs, syncCharts
 
 	return (
 		<>
+			{enabledCharts.wind && (
+				<WindChart
+					windData={weatherData.wind}
+					chartRefs={chartRefs}
+					syncCharts={syncCharts}
+				/>
+			)}
 
+			{enabledCharts.rain && (
+				<RainChart
+					rainData={weatherData.rain}
+					chartRefs={chartRefs}
+					syncCharts={syncCharts}
+				/>
+			)}
 
-			<WindChart
-				windData={weatherData.wind}
-				chartRefs={chartRefs}
-				syncCharts={syncCharts}
-			/>
+			{enabledCharts.solarRadiation && (
+				<SolarRadiationChart
+					solarData={weatherData.solarRadiation}
+					chartRefs={chartRefs}
+					syncCharts={syncCharts}
+				/>
+			)}
 
-			<RainChart
-				rainData={weatherData.rain}
-				chartRefs={chartRefs}
-				syncCharts={syncCharts}
-			/>
+			{enabledCharts.cloudCover && (
+				<CloudCoverChart
+					cloudData={weatherData.cloudCover}
+					chartRefs={chartRefs}
+					syncCharts={syncCharts}
+				/>
+			)}
 
-			<SolarRadiationChart
-				solarData={weatherData.solarRadiation}
-				chartRefs={chartRefs}
-				syncCharts={syncCharts}
-			/>
+			{enabledCharts.pollen && (
+				<PollenChart
+					pollenData={weatherData.pollen}
+					chartRefs={chartRefs}
+					syncCharts={syncCharts}
+				/>
+			)}
 
-			<CloudCoverChart
-				cloudData={weatherData.cloudCover}
-				chartRefs={chartRefs}
-				syncCharts={syncCharts}
-			/>
-
-			<PollenChart
-				pollenData={weatherData.pollen}
-				chartRefs={chartRefs}
-				syncCharts={syncCharts}
-			/>
-
-			<PollutionChart
-				pollutionData={weatherData.pollution}
-				chartRefs={chartRefs}
-				syncCharts={syncCharts}
-			/>
+			{enabledCharts.pollution && (
+				<PollutionChart
+					pollutionData={weatherData.pollution}
+					chartRefs={chartRefs}
+					syncCharts={syncCharts}
+				/>
+			)}
 		</>
 	)
 }

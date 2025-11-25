@@ -51,7 +51,14 @@ export default function TimeView() {
 		population: true,
 		weight: true,
 		temperature: true,
-		entrance: true
+		entrance: true,
+		weather: true,
+		wind: true,
+		rain: true,
+		solarRadiation: true,
+		cloudCover: true,
+		pollen: true,
+		pollution: true
 	})
 
 	const { data: gqlData } = useQuery(HIVES_QUERY, {})
@@ -357,7 +364,22 @@ export default function TimeView() {
 						/>
 					)}
 
-					<WeatherSection apiaries={relevantApiaries} days={timeRangeDays} chartRefs={chartRefs} syncCharts={syncCharts} />
+					{enabledCharts.weather && (
+						<WeatherSection
+							apiaries={relevantApiaries}
+							days={timeRangeDays}
+							chartRefs={chartRefs}
+							syncCharts={syncCharts}
+							enabledCharts={{
+								wind: enabledCharts.wind,
+								rain: enabledCharts.rain,
+								solarRadiation: enabledCharts.solarRadiation,
+								cloudCover: enabledCharts.cloudCover,
+								pollen: enabledCharts.pollen,
+								pollution: enabledCharts.pollution
+							}}
+						/>
+					)}
 				</main>
 			</div>
 		</div>

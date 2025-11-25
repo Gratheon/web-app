@@ -210,7 +210,7 @@ export default function ChartContainer({
 						containerProps={{
 							style: {
 								width: '100%',
-								height: '200px',
+								height: '400px',
 								maxWidth: '100%',
 								boxSizing: 'border-box'
 							}

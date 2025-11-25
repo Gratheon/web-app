@@ -93,7 +93,7 @@ const Menu = ({isLoggedIn = false}) => {
                                 isActive ? styles.active : ""
                             }
                             to="/time">
-                            <T>Time</T>
+                            <T>Insights</T>
                         </NavLink>
                     </li>
 

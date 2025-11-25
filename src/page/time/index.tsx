@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import styles from './styles.module.less'
 import Loader from '@/shared/loader'
 import { useLiveQuery } from 'dexie-react-hooks'
@@ -16,6 +16,7 @@ import TimeRangeSelector from './components/TimeRangeSelector'
 import HiveSelector from './components/HiveSelector'
 import ChartToggles from './components/ChartToggles'
 import WeatherSection from './components/WeatherSection'
+import ApiarySelector from './components/ApiarySelector'
 
 const HIVES_QUERY = gql`
 	query HIVES {
@@ -42,6 +43,7 @@ const HIVES_QUERY = gql`
 
 export default function TimeView() {
 	const { chartRefs, syncCharts } = useChartSync()
+	const [selectedApiaryId, setSelectedApiaryId] = useState<string | null>(null)
 	const [selectedHiveIds, setSelectedHiveIds] = useState<string[]>([])
 	const [timeRangeDays, setTimeRangeDays] = useState(90)
 	const [showIdealCurve, setShowIdealCurve] = useState(true)
@@ -53,7 +55,14 @@ export default function TimeView() {
 	})
 
 	const { data: gqlData } = useQuery(HIVES_QUERY, {})
-	const hives = useLiveQuery(async () => {
+
+	useEffect(() => {
+		if (gqlData?.apiaries?.length > 0 && !selectedApiaryId) {
+			setSelectedApiaryId(gqlData.apiaries[0].id)
+		}
+	}, [gqlData, selectedApiaryId])
+
+	const allHives = useLiveQuery(async () => {
 		let localHives = await getHives()
 		if ((!localHives || localHives.length === 0) && gqlData && gqlData.apiaries) {
 			const allHives = gqlData.apiaries.flatMap(apiary => apiary.hives || [])
@@ -64,12 +73,6 @@ export default function TimeView() {
 		}
 		return localHives
 	}, [gqlData], [])
-
-	const activeHives = useMemo(() => {
-		if (!hives) return []
-		if (selectedHiveIds.length === 0) return hives
-		return hives.filter(h => selectedHiveIds.includes(h.id))
-	}, [hives, selectedHiveIds])
 
 	const hiveToApiaryMap = useMemo(() => {
 		if (!gqlData?.apiaries) return {}
@@ -87,17 +90,32 @@ export default function TimeView() {
 		return map
 	}, [gqlData])
 
+	const selectedApiary = useMemo(() => {
+		if (!selectedApiaryId || !gqlData?.apiaries) return null
+		return gqlData.apiaries.find(a => a.id === selectedApiaryId)
+	}, [selectedApiaryId, gqlData])
+
+	const hives = useMemo(() => {
+		if (!allHives) return []
+		if (!selectedApiaryId) return allHives
+		return allHives.filter(h => hiveToApiaryMap[h.id]?.id === selectedApiaryId)
+	}, [allHives, selectedApiaryId, hiveToApiaryMap])
+
+	const activeHives = useMemo(() => {
+		if (!hives) return []
+		if (selectedHiveIds.length === 0) return hives
+		return hives.filter(h => selectedHiveIds.includes(h.id))
+	}, [hives, selectedHiveIds])
+
 	const relevantApiaries = useMemo(() => {
-		if (!activeHives.length || !hiveToApiaryMap) return []
-		const apiarySet = new Map()
-		activeHives.forEach(hive => {
-			const apiary = hiveToApiaryMap[hive.id]
-			if (apiary && apiary.lat && apiary.lng) {
-				apiarySet.set(apiary.id, apiary)
-			}
-		})
-		return Array.from(apiarySet.values())
-	}, [activeHives, hiveToApiaryMap])
+		if (!selectedApiary || !selectedApiary.lat || !selectedApiary.lng) return []
+		return [{
+			id: selectedApiary.id,
+			name: selectedApiary.name,
+			lat: selectedApiary.lat,
+			lng: selectedApiary.lng
+		}]
+	}, [selectedApiary])
 
 	const telemetryQueryString = useMemo(() => {
 		if (!activeHives.length) return null
@@ -229,9 +247,9 @@ export default function TimeView() {
 		return { weightDataByHive, temperatureDataByHive, entranceDataByHive }
 	}, [telemetryData, activeHives])
 
-	if (!hives || !inspections) return <Loader stroke="black" size={0}/>
+	if (!allHives || !inspections) return <Loader stroke="black" size={0}/>
 
-	if (hives.length === 0) {
+	if (allHives.length === 0) {
 		return (
 			<div className={styles.emptyState}>
 				<h2>Colony Lifecycle</h2>
@@ -279,6 +297,12 @@ export default function TimeView() {
 
 			<div className={styles.contentWrapper}>
 				<aside className={styles.sidebar}>
+					<ApiarySelector
+						apiaries={gqlData?.apiaries || []}
+						selectedApiaryId={selectedApiaryId}
+						onSelectApiary={setSelectedApiaryId}
+					/>
+
 					<TimeRangeSelector
 						value={timeRangeDays}
 						onChange={setTimeRangeDays}

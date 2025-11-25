@@ -23,7 +23,8 @@ function calculateMedian(values: number[]): number {
 export default function RainHumidityChart({ humidityData, rainData, medianRain, chartRefs, syncCharts }: RainHumidityChartProps) {
 	return (
 		<ChartContainer
-			title={t('Rain probability') + ' 🌧️'}
+			emoji="🌧️"
+			title={t('Rain probability')}
 			value={`${medianRain} %`}
 			info={t('Bees are not flying in the rain')}
 			chartRefs={chartRefs}

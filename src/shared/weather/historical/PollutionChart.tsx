@@ -37,7 +37,8 @@ export default function PollutionChart({ pollutionData, chartRefs, syncCharts }:
 
 	return (
 		<ChartContainer
-			title="Air Quality 🏭"
+			emoji="🏭"
+			title="Air Quality"
 			value={`${avgPM25.toFixed(1)} μg/m³ PM2.5 avg`}
 			info="Air pollution can affect bee health and navigation. High PM levels may impact foraging."
 			chartRefs={chartRefs}

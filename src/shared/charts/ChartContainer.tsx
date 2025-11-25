@@ -1,9 +1,11 @@
 import { useRef, useEffect, useState } from 'react'
 import { Chart } from 'lightweight-charts-react-components'
 import ChartHeading from '@/shared/chartHeading'
+import Button from '@/shared/button'
 
 interface ChartContainerProps {
 	title: string
+	emoji?: string
 	value?: string
 	info?: string
 	chartRefs?: React.MutableRefObject<any[]>
@@ -16,6 +18,7 @@ interface ChartContainerProps {
 
 export default function ChartContainer({
 	title,
+	emoji,
 	value,
 	info,
 	chartRefs,
@@ -112,35 +115,25 @@ export default function ChartContainer({
 					flexWrap: 'wrap',
 					gap: '8px'
 				}}>
-					<ChartHeading title={title} value={value} info={info} />
+					<ChartHeading title={title} emoji={emoji} value={value} info={info} />
 					{showTable && tableData.length > 0 && (
 						<div style={{
 							display: 'flex',
-							gap: '8px',
+							gap: '4px',
 							flexShrink: 0
 						}}>
-							<button
+							<Button
+								size="small"
 								onClick={() => setShowTableView(!showTableView)}
-								style={{
-									padding: '4px 8px',
-									fontSize: '12px',
-									cursor: 'pointer',
-									whiteSpace: 'nowrap'
-								}}
 							>
 								{showTableView ? '📊 Chart' : '📋 Table'}
-							</button>
-							<button
+							</Button>
+							<Button
+								size="small"
 								onClick={exportToCSV}
-								style={{
-									padding: '4px 8px',
-									fontSize: '12px',
-									cursor: 'pointer',
-									whiteSpace: 'nowrap'
-								}}
 							>
 								📥 CSV
-							</button>
+							</Button>
 						</div>
 					)}
 				</div>

@@ -21,7 +21,8 @@ export default function RainChart({ rainData, chartRefs, syncCharts }: RainChart
 
 	return (
 		<ChartContainer
-			title="Rainfall 🌧️"
+			emoji="🌧️"
+			title="Rainfall"
 			value={`${totalRain.toFixed(1)} mm total`}
 			info="Rain prevents bees from foraging. Extended rainy periods can impact colony nutrition."
 			chartRefs={chartRefs}

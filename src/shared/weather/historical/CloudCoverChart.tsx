@@ -39,7 +39,8 @@ export default function CloudCoverChart({ cloudData, chartRefs, syncCharts }: Cl
 
 	return (
 		<ChartContainer
-			title="Cloud Cover ☁️"
+			emoji="☁️"
+			title="Cloud Cover"
 			value={`${avgTotal.toFixed(0)}% avg`}
 			info="Cloud cover affects temperature and light levels, influencing bee foraging behavior."
 			chartRefs={chartRefs}

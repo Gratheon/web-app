@@ -31,7 +31,8 @@ export default function WindChart({ windData, chartRefs, syncCharts }: WindChart
 
 	return (
 		<ChartContainer
-			title="Wind Speed 💨"
+			emoji="💨"
+			title="Wind Speed"
 			value={`${avgWindSpeed.toFixed(1)} m/s avg`}
 			info="Wind affects bee foraging activity. Strong winds (>10 m/s) can prevent bees from flying."
 			chartRefs={chartRefs}

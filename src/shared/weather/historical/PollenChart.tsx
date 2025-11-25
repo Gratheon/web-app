@@ -47,7 +47,8 @@ export default function PollenChart({ pollenData, chartRefs, syncCharts }: Polle
 
 	return (
 		<ChartContainer
-			title="Pollen Levels 🌸"
+			emoji="🌸"
+			title="Pollen Levels"
 			value={`${maxPollen.toFixed(0)} max grains/m³`}
 			info="Pollen availability is crucial for bee nutrition. Different plants bloom at different times."
 			chartRefs={chartRefs}

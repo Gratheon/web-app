@@ -31,7 +31,8 @@ export default function SolarRadiationChart({ solarData, chartRefs, syncCharts }
 
 	return (
 		<ChartContainer
-			title="Solar Radiation ☀️"
+			emoji="☀️"
+			title="Solar Radiation"
 			value={`${avgDirect.toFixed(0)} W/m² avg direct`}
 			info="Solar radiation affects hive temperature and bee activity. High radiation can lead to overheating."
 			chartRefs={chartRefs}

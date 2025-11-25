@@ -25,7 +25,8 @@ export default function TemperatureChart({ data, currentTemperature, chartRefs, 
 
 	return (
 		<ChartContainer
-			title={t('Temperature') + ' 🌡️'}
+			emoji="🌡️"
+			title={t('Temperature')}
 			value={`${currentTemperature} °C`}
 			info={t('Too high or low temperature is bad for bees')}
 			chartRefs={chartRefs}

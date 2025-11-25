@@ -12,7 +12,8 @@ type WindChartProps = {
 export default function WindChart({ data, currentWindSpeed, chartRefs, syncCharts }: WindChartProps) {
 	return (
 		<ChartContainer
-			title={t('Wind speed') + ' 💨'}
+			emoji="💨"
+			title={t('Wind speed')}
 			value={`${currentWindSpeed} km/h`}
 			info={t('High wind speed can collapse hives')}
 			chartRefs={chartRefs}

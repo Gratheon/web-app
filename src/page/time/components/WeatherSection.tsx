@@ -1,4 +1,4 @@
-import Weather from '@/shared/weather'
+import HistoricalWeather from '@/shared/weather/historical'
 import style from './WeatherSection.module.less'
 
 type WeatherSectionProps = {
@@ -8,19 +8,26 @@ type WeatherSectionProps = {
 		lat: string
 		lng: string
 	}>
+	days: number
 	chartRefs?: React.MutableRefObject<any[]>
 	syncCharts?: (sourceChart: any) => void
 }
 
-export default function WeatherSection({ apiaries, chartRefs, syncCharts }: WeatherSectionProps) {
+export default function WeatherSection({ apiaries, days, chartRefs, syncCharts }: WeatherSectionProps) {
 	if (apiaries.length === 0) return null
 
 	return (
 		<div className={style.weatherSection}>
 			{apiaries.map(apiary => (
 				<div key={apiary.id} className={style.weatherCard}>
-					<h3>{apiary.name || `Apiary ${apiary.id}`} Weather Forecast</h3>
-					<Weather lat={apiary.lat} lng={apiary.lng} chartRefs={chartRefs} syncCharts={syncCharts} />
+					<h3>{apiary.name || `Apiary ${apiary.id}`} Historical Weather</h3>
+					<HistoricalWeather
+						lat={apiary.lat}
+						lng={apiary.lng}
+						days={days}
+						chartRefs={chartRefs}
+						syncCharts={syncCharts}
+					/>
 				</div>
 			))}
 		</div>

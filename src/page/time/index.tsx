@@ -357,7 +357,7 @@ export default function TimeView() {
 						/>
 					)}
 
-					<WeatherSection apiaries={relevantApiaries} chartRefs={chartRefs} syncCharts={syncCharts} />
+					<WeatherSection apiaries={relevantApiaries} days={timeRangeDays} chartRefs={chartRefs} syncCharts={syncCharts} />
 				</main>
 			</div>
 		</div>

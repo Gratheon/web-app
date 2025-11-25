@@ -93,7 +93,7 @@ export default function ChartContainer({
 
 	return (
 		<div style={{
-			paddingBottom: '20px',
+			paddingBottom: '8px',
 			width: '100%',
 			maxWidth: '100%',
 			boxSizing: 'border-box',
@@ -102,8 +102,8 @@ export default function ChartContainer({
 			<div style={{
 				display: 'flex',
 				flexDirection: 'column',
-				gap: '8px',
-				marginBottom: '8px'
+				gap: '4px',
+				marginBottom: '4px'
 			}}>
 				<div style={{
 					display: 'flex',
@@ -210,7 +210,7 @@ export default function ChartContainer({
 						containerProps={{
 							style: {
 								width: '100%',
-								height: '400px',
+								height: `${chartOptions.height || 300}px`,
 								maxWidth: '100%',
 								boxSizing: 'border-box'
 							}

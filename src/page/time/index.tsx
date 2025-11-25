@@ -15,11 +15,15 @@ import InfoIcon from '@/shared/infoIcon'
 import TimeRangeSelector from './components/TimeRangeSelector'
 import HiveSelector from './components/HiveSelector'
 import ChartToggles from './components/ChartToggles'
+import WeatherSection from './components/WeatherSection'
 
 const HIVES_QUERY = gql`
 	query HIVES {
 		apiaries {
 			id
+			name
+			lat
+			lng
 			hives {
 				id
 				name
@@ -66,6 +70,34 @@ export default function TimeView() {
 		if (selectedHiveIds.length === 0) return hives
 		return hives.filter(h => selectedHiveIds.includes(h.id))
 	}, [hives, selectedHiveIds])
+
+	const hiveToApiaryMap = useMemo(() => {
+		if (!gqlData?.apiaries) return {}
+		const map: Record<string, any> = {}
+		gqlData.apiaries.forEach(apiary => {
+			apiary.hives?.forEach(hive => {
+				map[hive.id] = {
+					id: apiary.id,
+					name: apiary.name,
+					lat: apiary.lat,
+					lng: apiary.lng
+				}
+			})
+		})
+		return map
+	}, [gqlData])
+
+	const relevantApiaries = useMemo(() => {
+		if (!activeHives.length || !hiveToApiaryMap) return []
+		const apiarySet = new Map()
+		activeHives.forEach(hive => {
+			const apiary = hiveToApiaryMap[hive.id]
+			if (apiary && apiary.lat && apiary.lng) {
+				apiarySet.set(apiary.id, apiary)
+			}
+		})
+		return Array.from(apiarySet.values())
+	}, [activeHives, hiveToApiaryMap])
 
 	const telemetryQueryString = useMemo(() => {
 		if (!activeHives.length) return null
@@ -300,6 +332,8 @@ export default function TimeView() {
 							syncCharts={syncCharts}
 						/>
 					)}
+
+					<WeatherSection apiaries={relevantApiaries} chartRefs={chartRefs} syncCharts={syncCharts} />
 				</main>
 			</div>
 		</div>

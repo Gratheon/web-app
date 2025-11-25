@@ -9,7 +9,14 @@ const WEATHER_QUERY = gql`
 	}
 `
 
-export default function Weather({lat, lng}: { lat: any; lng: any }) {
+type WeatherProps = {
+    lat: any
+    lng: any
+    chartRefs?: React.MutableRefObject<any[]>
+    syncCharts?: (sourceChart: any) => void
+}
+
+export default function Weather({lat, lng, chartRefs, syncCharts}: WeatherProps) {
     if (!lat) return
     if (!lng) return
 
@@ -30,6 +37,6 @@ export default function Weather({lat, lng}: { lat: any; lng: any }) {
     }
 
     return (
-        <Forecast data={data}/>
+        <Forecast data={data} chartRefs={chartRefs} syncCharts={syncCharts}/>
     )
 }

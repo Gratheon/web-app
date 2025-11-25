@@ -53,12 +53,15 @@ export default function Forecast({data}: HumidityProps) {
     })
 
     const averageTemperature = formattedData.reduce((acc, curr) => acc + curr.value, 0) / formattedData.length;
-    let temperatureColor = 'blue'; // Default color
+    let temperatureTopColor = '#0000FF';
+    let temperatureBottomColor = 'rgba(0, 0, 255, 0.25)';
 
     if (averageTemperature >= 13 && averageTemperature <= 27) {
-        temperatureColor = 'green';
+        temperatureTopColor = '#00FF00';
+        temperatureBottomColor = 'rgba(0, 255, 0, 0.25)';
     } else if (averageTemperature > 27) {
-        temperatureColor = 'red';
+        temperatureTopColor = '#FF0000';
+        temperatureBottomColor = 'rgba(255, 0, 0, 0.25)';
     }
     
     const medianRainProbability = calculateMedian(data.weather.hourly.rain);
@@ -96,8 +99,8 @@ export default function Forecast({data}: HumidityProps) {
                         <AreaSeries
                             data={formattedData}
                             options={{
-                                topColor: temperatureColor,
-                                bottomColor: `${temperatureColor}40`,
+                                topColor: temperatureTopColor,
+                                bottomColor: temperatureBottomColor,
                                 lineColor: 'black',
                                 lineWidth: 2,
                             }}

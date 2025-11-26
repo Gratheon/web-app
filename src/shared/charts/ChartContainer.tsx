@@ -38,6 +38,7 @@ export default function ChartContainer({
 	const chartApiRef = useRef(null)
 	const [showTableView, setShowTableView] = useState(false)
 	const [showAlertView, setShowAlertView] = useState(false)
+	const [alertCount, setAlertCount] = useState(0)
 
 	useEffect(() => {
 		if (chartApiRef.current && chartRefs && syncCharts) {
@@ -134,11 +135,10 @@ export default function ChartContainer({
 								size="small"
 								onClick={() => {
 									setShowAlertView(!showAlertView)
-									setShowTableView(false)
 								}}
 								color={showAlertView ? 'orange' : 'gray'}
 							>
-								🔔 {showAlertView ? 'Hide' : 'Alerts'}
+								🔔 Alerts{alertCount > 0 ? ` (${alertCount})` : ''}
 							</Button>
 						)}
 						{showTable && tableData.length > 0 && (
@@ -164,13 +164,7 @@ export default function ChartContainer({
 				</div>
 			</div>
 
-			{showAlertView ? (
-				<AlertRulesPanel
-					metricType={metricType!}
-					metricLabel={metricLabel!}
-					hives={hives}
-				/>
-			) : showTableView && tableData.length > 0 ? (
+			{showTableView && tableData.length > 0 ? (
 				<div style={{
 					maxHeight: '400px',
 					overflow: 'auto',
@@ -222,27 +216,37 @@ export default function ChartContainer({
 					</table>
 				</div>
 			) : (
-				<div style={{
-					width: '100%',
-					maxWidth: '100%',
-					overflow: 'hidden',
-					boxSizing: 'border-box'
-				}}>
-					<Chart
-						onInit={handleChartInit}
-						options={defaultChartOptions}
-						containerProps={{
-							style: {
-								width: '100%',
-								height: `${chartOptions.height || 300}px`,
-								maxWidth: '100%',
-								boxSizing: 'border-box'
-							}
-						}}
-					>
-						{children}
-					</Chart>
-				</div>
+				<>
+					<div style={{
+						width: '100%',
+						maxWidth: '100%',
+						overflow: 'hidden',
+						boxSizing: 'border-box'
+					}}>
+						<Chart
+							onInit={handleChartInit}
+							options={defaultChartOptions}
+							containerProps={{
+								style: {
+									width: '100%',
+									height: `${chartOptions.height || 300}px`,
+									maxWidth: '100%',
+									boxSizing: 'border-box'
+								}
+							}}
+						>
+							{children}
+						</Chart>
+					</div>
+					{showAlertView && (
+						<AlertRulesPanel
+							metricType={metricType!}
+							metricLabel={metricLabel!}
+							hives={hives}
+							onAlertCountChange={setAlertCount}
+						/>
+					)}
+				</>
 			)}
 		</div>
 	)

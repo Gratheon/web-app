@@ -1,9 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { gql, useMutation, useQuery } from '@/api'
 import Button from '@/shared/button'
 import T from '@/shared/translate'
 import ErrorMsg from '@/shared/messageError'
 import MessageSuccess from '@/shared/messageSuccess'
+import DeleteIcon from '@/icons/deleteIcon'
 import styles from './AlertRulesPanel.module.less'
 
 const ALERT_RULES_QUERY = gql`
@@ -60,9 +61,10 @@ interface AlertRulesPanelProps {
 	metricType: string
 	metricLabel: string
 	hives: Array<{ id: string; name: string }>
+	onAlertCountChange?: (count: number) => void
 }
 
-export default function AlertRulesPanel({ metricType, metricLabel, hives }: AlertRulesPanelProps) {
+export default function AlertRulesPanel({ metricType, metricLabel, hives, onAlertCountChange }: AlertRulesPanelProps) {
 	const { data, reexecuteQuery } = useQuery(ALERT_RULES_QUERY, { variables: { metricType } });
 	const [createAlertRule, { error: createError }] = useMutation(CREATE_ALERT_RULE_MUTATION);
 	const [updateAlertRule, { error: updateError }] = useMutation(UPDATE_ALERT_RULE_MUTATION);
@@ -80,6 +82,12 @@ export default function AlertRulesPanel({ metricType, metricLabel, hives }: Aler
 
 	const alertRules = data?.alertRules || [];
 	const error = createError || updateError || deleteError;
+
+	useEffect(() => {
+		if (onAlertCountChange) {
+			onAlertCountChange(alertRules.length);
+		}
+	}, [alertRules.length, onAlertCountChange]);
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
 		const target = e.target as HTMLInputElement | HTMLSelectElement;
@@ -205,7 +213,7 @@ export default function AlertRulesPanel({ metricType, metricLabel, hives }: Aler
 											✏️
 										</Button>
 										<Button size="small" color="red" onClick={() => handleDelete(rule.id)}>
-											🗑️
+											<DeleteIcon size={16} />
 										</Button>
 									</div>
 								</div>

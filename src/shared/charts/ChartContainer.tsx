@@ -18,6 +18,11 @@ interface ChartContainerProps {
 	metricType?: string
 	metricLabel?: string
 	hives?: Array<{ id: string; name: string }>
+	timeFrom?: number
+	timeTo?: number
+	minValue?: number
+	maxValue?: number
+	showAlertThresholds?: boolean
 }
 
 export default function ChartContainer({
@@ -33,7 +38,12 @@ export default function ChartContainer({
 	tableData = [],
 	metricType,
 	metricLabel,
-	hives = []
+	hives = [],
+	timeFrom,
+	timeTo,
+	minValue = 0,
+	maxValue = 100,
+	showAlertThresholds = true
 }: ChartContainerProps) {
 	const chartApiRef = useRef(null)
 	const [showTableView, setShowTableView] = useState(false)

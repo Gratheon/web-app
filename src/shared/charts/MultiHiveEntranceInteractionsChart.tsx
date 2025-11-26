@@ -29,11 +29,15 @@ interface MultiHiveEntranceInteractionsChartProps {
 }
 
 export default function MultiHiveEntranceInteractionsChart({ entranceDataByHive, chartRefs, syncCharts }: MultiHiveEntranceInteractionsChartProps) {
-	const { seriesData, tableData, hasData, hives } = useMemo(() => {
+	const { seriesData, tableData, hasData, hives, timeFrom, timeTo, minValue, maxValue } = useMemo(() => {
 		const seriesData: Record<string, { data: any[], hiveName: string }> = {}
 		const tableData = []
 		const hives = []
 		let hasData = false
+		let minValue = Infinity
+		let maxValue = -Infinity
+		let timeFrom = Infinity
+		let timeTo = -Infinity
 
 		Object.entries(entranceDataByHive).forEach(([hiveId, { hiveName, data }]) => {
 			hives.push({ id: hiveId, name: hiveName })
@@ -59,11 +63,25 @@ export default function MultiHiveEntranceInteractionsChart({ entranceDataByHive,
 						Time: new Date(item.time * 1000).toLocaleString(),
 						'Bee Interactions': item.value
 					})
+					minValue = Math.min(minValue, item.value)
+					maxValue = Math.max(maxValue, item.value)
+					timeFrom = Math.min(timeFrom, item.time)
+					timeTo = Math.max(timeTo, item.time)
 				})
 			}
 		})
 
-		return { seriesData, tableData, hasData, hives }
+		const padding = (maxValue - minValue) * 0.1
+		return {
+			seriesData,
+			tableData,
+			hasData,
+			hives,
+			timeFrom: timeFrom === Infinity ? undefined : timeFrom,
+			timeTo: timeTo === -Infinity ? undefined : timeTo,
+			minValue: minValue === Infinity ? 0 : Math.max(0, minValue - padding),
+			maxValue: maxValue === -Infinity ? 100 : maxValue + padding
+		}
 	}, [entranceDataByHive])
 
 	if (!hasData) {
@@ -91,9 +109,21 @@ export default function MultiHiveEntranceInteractionsChart({ entranceDataByHive,
 			metricLabel="bee interactions"
 			hives={hives}
 			chartOptions={{ height: 300 }}
+			timeFrom={timeFrom}
+			timeTo={timeTo}
+			minValue={minValue}
+			maxValue={maxValue}
 		>
 			{Object.entries(seriesData).map(([hiveId, { data, hiveName }], index) => {
 				const color = colors[index % colors.length]
+				const isFirstSeries = index === 0
+				const alertRules = alertRulesData?.alertRules || []
+				const relevantRules = alertRules.filter((rule: any) =>
+					rule.enabled &&
+					(!rule.hiveId || hiveId === rule.hiveId) &&
+					(rule.conditionType === 'ABOVE' || rule.conditionType === 'BELOW')
+				)
+
 				return (
 					<LineSeries
 						key={hiveId}
@@ -103,7 +133,21 @@ export default function MultiHiveEntranceInteractionsChart({ entranceDataByHive,
 							lineWidth: 2,
 							title: hiveName,
 						}}
-					/>
+					>
+						{isFirstSeries && relevantRules.map((rule: any) => (
+							<PriceLine
+								key={`threshold-${rule.id}`}
+								price={rule.thresholdValue}
+								options={{
+									color: 'rgba(255, 82, 82, 0.8)',
+									lineWidth: 2,
+									lineStyle: 2,
+									axisLabelVisible: true,
+									title: `${rule.conditionType} ${rule.thresholdValue}`
+								}}
+							/>
+						))}
+					</LineSeries>
 				)
 			})}
 		</ChartContainer>

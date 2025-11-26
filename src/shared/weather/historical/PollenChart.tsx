@@ -19,7 +19,7 @@ export default function PollenChart({ pollenData, chartRefs, syncCharts }: Polle
 		data
 			.filter(d => d.value !== null && d.value > 0)
 			.map(d => ({
-				time: new Date(d.time).getTime() / 1000,
+				time: new Date(d.time).getTime() / 1000 as any,
 				value: d.value
 			}))
 

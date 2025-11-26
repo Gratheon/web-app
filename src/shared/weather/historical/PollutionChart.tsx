@@ -14,14 +14,14 @@ export default function PollutionChart({ pollutionData, chartRefs, syncCharts }:
 	const pm25Data = pollutionData.pm2_5
 		.filter(d => d.value !== null)
 		.map(d => ({
-			time: new Date(d.time).getTime() / 1000,
+			time: new Date(d.time).getTime() / 1000 as any,
 			value: d.value
 		}))
 
 	const pm10Data = pollutionData.pm10
 		.filter(d => d.value !== null)
 		.map(d => ({
-			time: new Date(d.time).getTime() / 1000,
+			time: new Date(d.time).getTime() / 1000 as any,
 			value: d.value
 		}))
 

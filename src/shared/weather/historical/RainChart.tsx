@@ -13,7 +13,7 @@ export default function RainChart({ rainData, chartRefs, syncCharts }: RainChart
 	const formattedData = rainData.rain
 		.filter(d => d.value !== null)
 		.map(d => ({
-			time: new Date(d.time).getTime() / 1000,
+			time: new Date(d.time).getTime() / 1000 as any,
 			value: d.value
 		}))
 

@@ -15,21 +15,21 @@ export default function CloudCoverChart({ cloudData, chartRefs, syncCharts }: Cl
 	const lowData = cloudData.cloud_cover_low
 		.filter(d => d.value !== null)
 		.map(d => ({
-			time: new Date(d.time).getTime() / 1000,
+			time: new Date(d.time).getTime() / 1000 as any,
 			value: d.value
 		}))
 
 	const midData = cloudData.cloud_cover_mid
 		.filter(d => d.value !== null)
 		.map(d => ({
-			time: new Date(d.time).getTime() / 1000,
+			time: new Date(d.time).getTime() / 1000 as any,
 			value: d.value
 		}))
 
 	const highData = cloudData.cloud_cover_high
 		.filter(d => d.value !== null)
 		.map(d => ({
-			time: new Date(d.time).getTime() / 1000,
+			time: new Date(d.time).getTime() / 1000 as any,
 			value: d.value
 		}))
 

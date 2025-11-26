@@ -14,14 +14,14 @@ export default function WindChart({ windData, chartRefs, syncCharts }: WindChart
 	const windSpeedData = windData.wind_speed_10m
 		.filter(d => d.value !== null)
 		.map(d => ({
-			time: new Date(d.time).getTime() / 1000,
+			time: new Date(d.time).getTime() / 1000 as any,
 			value: d.value
 		}))
 
 	const windGustsData = windData.wind_gusts_10m
 		.filter(d => d.value !== null)
 		.map(d => ({
-			time: new Date(d.time).getTime() / 1000,
+			time: new Date(d.time).getTime() / 1000 as any,
 			value: d.value
 		}))
 

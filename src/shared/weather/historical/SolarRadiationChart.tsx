@@ -14,14 +14,14 @@ export default function SolarRadiationChart({ solarData, chartRefs, syncCharts }
 	const diffuseData = solarData.diffuse_radiation
 		.filter(d => d.value !== null)
 		.map(d => ({
-			time: new Date(d.time).getTime() / 1000,
+			time: new Date(d.time).getTime() / 1000 as any,
 			value: d.value
 		}))
 
 	const directData = solarData.direct_radiation
 		.filter(d => d.value !== null)
 		.map(d => ({
-			time: new Date(d.time).getTime() / 1000,
+			time: new Date(d.time).getTime() / 1000 as any,
 			value: d.value
 		}))
 

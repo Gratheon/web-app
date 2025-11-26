@@ -113,7 +113,6 @@ export default function MultiHiveEntranceDetectedChart({ entranceDataByHive, cha
 			minValue={minValue}
 			maxValue={maxValue}
 		>
-		>
 			{Object.entries(seriesData).map(([hiveId, { data, hiveName }], index) => {
 				const color = colors[index % colors.length]
 				const isFirstSeries = index === 0

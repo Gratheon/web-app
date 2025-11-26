@@ -83,12 +83,13 @@ export default function CreateAlertModal({
 		}
 	};
 
+	if (!isOpen) return null;
+
 	return (
-		<Modal isOpen={isOpen} onClose={onClose}>
+		<Modal title={<T>Create Alert Rule</T>} onClose={onClose}>
 			<div className={styles.modalContent}>
-				<h3><T>Create Alert Rule</T></h3>
 				<p style={{ color: '#666', marginBottom: '16px' }}>
-					<T>Get notified when {metricLabel} meets certain conditions</T>
+					<T>{`Get notified when ${metricLabel} meets certain conditions`}</T>
 				</p>
 
 				{showSuccess && <MessageSuccess title={<T>Created!</T>} message={<T>Alert rule created successfully</T>} />}

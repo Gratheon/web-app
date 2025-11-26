@@ -258,7 +258,7 @@ export default function AlertConfig() {
 							onChange={onConfigChange}
 						/>
 						<label htmlFor="enabled" className={styles.configLabel} style={{ fontWeight: 500 }}>
-							<T>Enable {selectedChannel} Alerts</T>
+							<T>{`Enable ${selectedChannel} Alerts`}</T>
 						</label>
 					</div>
 

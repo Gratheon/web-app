@@ -11,6 +11,10 @@ import PopulationChart from '@/shared/charts/PopulationChart'
 import MultiHiveWeightChart from '@/shared/charts/MultiHiveWeightChart'
 import MultiHiveTemperatureChart from '@/shared/charts/MultiHiveTemperatureChart'
 import MultiHiveEntranceChart from '@/shared/charts/MultiHiveEntranceChart'
+import MultiHiveEntranceSpeedChart from '@/shared/charts/MultiHiveEntranceSpeedChart'
+import MultiHiveEntranceDetectedChart from '@/shared/charts/MultiHiveEntranceDetectedChart'
+import MultiHiveEntranceStationaryChart from '@/shared/charts/MultiHiveEntranceStationaryChart'
+import MultiHiveEntranceInteractionsChart from '@/shared/charts/MultiHiveEntranceInteractionsChart'
 import InfoIcon from '@/shared/infoIcon'
 import TimeRangeSelector from './components/TimeRangeSelector'
 import HiveSelector from './components/HiveSelector'
@@ -52,6 +56,10 @@ export default function TimeView() {
 		weight: true,
 		temperature: true,
 		entrance: true,
+		entranceSpeed: true,
+		entranceDetected: true,
+		entranceStationary: true,
+		entranceInteractions: true,
 		weather: true,
 		wind: true,
 		rain: true,
@@ -153,6 +161,11 @@ export default function TimeView() {
 						beesIn
 						beesOut
 						netFlow
+						avgSpeed
+						p95Speed
+						stationaryBees
+						detectedBees
+						beeInteractions
 					}
 				}
 				... on TelemetryError {
@@ -358,6 +371,38 @@ export default function TimeView() {
 
 					{enabledCharts.entrance && (
 						<MultiHiveEntranceChart
+							entranceDataByHive={entranceDataByHive}
+							chartRefs={chartRefs}
+							syncCharts={syncCharts}
+						/>
+					)}
+
+					{enabledCharts.entranceSpeed && (
+						<MultiHiveEntranceSpeedChart
+							entranceDataByHive={entranceDataByHive}
+							chartRefs={chartRefs}
+							syncCharts={syncCharts}
+						/>
+					)}
+
+					{enabledCharts.entranceDetected && (
+						<MultiHiveEntranceDetectedChart
+							entranceDataByHive={entranceDataByHive}
+							chartRefs={chartRefs}
+							syncCharts={syncCharts}
+						/>
+					)}
+
+					{enabledCharts.entranceStationary && (
+						<MultiHiveEntranceStationaryChart
+							entranceDataByHive={entranceDataByHive}
+							chartRefs={chartRefs}
+							syncCharts={syncCharts}
+						/>
+					)}
+
+					{enabledCharts.entranceInteractions && (
+						<MultiHiveEntranceInteractionsChart
 							entranceDataByHive={entranceDataByHive}
 							chartRefs={chartRefs}
 							syncCharts={syncCharts}

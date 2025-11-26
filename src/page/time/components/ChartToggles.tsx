@@ -6,6 +6,10 @@ interface ChartTogglesProps {
 		weight: boolean
 		temperature: boolean
 		entrance: boolean
+		entranceSpeed: boolean
+		entranceDetected: boolean
+		entranceStationary: boolean
+		entranceInteractions: boolean
 		weather: boolean
 		wind: boolean
 		rain: boolean
@@ -49,6 +53,8 @@ export default function ChartToggles({
 					</label>
 				)}
 
+				<div className={styles.groupTitle}>📊 Scales & Sensors</div>
+
 				<label className={`${styles.chartToggle} ${enabledCharts.weight ? styles.enabled : ''}`}>
 					<input
 						type="checkbox"
@@ -67,14 +73,54 @@ export default function ChartToggles({
 					<span>🌡️ Temperature</span>
 				</label>
 
+				<div className={styles.groupTitle}>🚪 Entrance Observer</div>
+
 				<label className={`${styles.chartToggle} ${enabledCharts.entrance ? styles.enabled : ''}`}>
 					<input
 						type="checkbox"
 						checked={enabledCharts.entrance}
 						onChange={() => onToggleChart('entrance')}
 					/>
-					<span>🚪 Entrance Activity</span>
+					<span>Entrance Activity</span>
 				</label>
+
+				<label className={`${styles.chartToggle} ${enabledCharts.entranceSpeed ? styles.enabled : ''}`}>
+					<input
+						type="checkbox"
+						checked={enabledCharts.entranceSpeed}
+						onChange={() => onToggleChart('entranceSpeed')}
+					/>
+					<span>Bee Speed</span>
+				</label>
+
+				<label className={`${styles.chartToggle} ${enabledCharts.entranceDetected ? styles.enabled : ''}`}>
+					<input
+						type="checkbox"
+						checked={enabledCharts.entranceDetected}
+						onChange={() => onToggleChart('entranceDetected')}
+					/>
+					<span>Detected Bees</span>
+				</label>
+
+				<label className={`${styles.chartToggle} ${enabledCharts.entranceStationary ? styles.enabled : ''}`}>
+					<input
+						type="checkbox"
+						checked={enabledCharts.entranceStationary}
+						onChange={() => onToggleChart('entranceStationary')}
+					/>
+					<span>Stationary Bees</span>
+				</label>
+
+				<label className={`${styles.chartToggle} ${enabledCharts.entranceInteractions ? styles.enabled : ''}`}>
+					<input
+						type="checkbox"
+						checked={enabledCharts.entranceInteractions}
+						onChange={() => onToggleChart('entranceInteractions')}
+					/>
+					<span>Bee Interactions</span>
+				</label>
+
+				<div className={styles.groupTitle}>🌤️ Weather</div>
 
 				<label className={`${styles.chartToggle} ${enabledCharts.weather ? styles.enabled : ''}`}>
 					<input
@@ -82,7 +128,7 @@ export default function ChartToggles({
 						checked={enabledCharts.weather}
 						onChange={() => onToggleChart('weather')}
 					/>
-					<span>🌤️ Weather</span>
+					<span>Weather</span>
 				</label>
 
 				{enabledCharts.weather && (

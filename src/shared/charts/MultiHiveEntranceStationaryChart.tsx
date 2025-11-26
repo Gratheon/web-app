@@ -3,9 +3,16 @@ import { useMemo } from 'react'
 
 import T, { useTranslation as t } from '@/shared/translate'
 import ChartContainer from './ChartContainer'
-import { formatEntranceMovementData } from './formatters'
 
-interface MultiHiveEntranceChartProps {
+function deduplicateByTime(data: Array<{ time: number; value: number }>) {
+	const map = new Map<number, number>()
+	data.forEach(item => map.set(item.time, item.value))
+	return Array.from(map.entries())
+		.map(([time, value]) => ({ time, value }))
+		.sort((a, b) => a.time - b.time)
+}
+
+interface MultiHiveEntranceStationaryChartProps {
 	entranceDataByHive: Record<string, {
 		hiveName: string
 		data: {
@@ -13,9 +20,7 @@ interface MultiHiveEntranceChartProps {
 			message?: string
 			metrics?: Array<{
 				time: string
-				beesIn: number | null
-				beesOut: number | null
-				netFlow: number | null
+				stationaryBees: number | null
 			}>
 		}
 	}>
@@ -23,37 +28,33 @@ interface MultiHiveEntranceChartProps {
 	syncCharts: (sourceChart: any) => void
 }
 
-export default function MultiHiveEntranceChart({ entranceDataByHive, chartRefs, syncCharts }: MultiHiveEntranceChartProps) {
+export default function MultiHiveEntranceStationaryChart({ entranceDataByHive, chartRefs, syncCharts }: MultiHiveEntranceStationaryChartProps) {
 	const { seriesData, tableData, hasData } = useMemo(() => {
-		const seriesData: Record<string, { netFlowData: any[], hiveName: string }> = {}
+		const seriesData: Record<string, { data: any[], hiveName: string }> = {}
 		const tableData = []
 		let hasData = false
 
 		Object.entries(entranceDataByHive).forEach(([hiveId, { hiveName, data }]) => {
 			if (!data || data.code || !data.metrics || data.metrics.length === 0) return
 
-			const { beesInData, beesOutData } = formatEntranceMovementData(data.metrics)
+			const stationaryData = deduplicateByTime(
+				data.metrics
+					.filter(m => m.stationaryBees != null && m.stationaryBees > 0)
+					.map(m => ({
+						time: Math.floor(new Date(m.time).getTime() / 1000),
+						value: m.stationaryBees
+					}))
+			)
 
-			const netFlowData = beesInData.map((inEntry) => {
-				const outEntry = beesOutData.find(out => out.time === inEntry.time)
-				return {
-					time: inEntry.time,
-					value: Math.round((inEntry.value - (outEntry?.value || 0)) * 100) / 100
-				}
-			})
-
-			if (netFlowData.length > 0) {
-				seriesData[hiveId] = {
-					netFlowData,
-					hiveName
-				}
+			if (stationaryData.length > 0) {
+				seriesData[hiveId] = { data: stationaryData, hiveName }
 				hasData = true
 
-				netFlowData.forEach(item => {
+				stationaryData.forEach(item => {
 					tableData.push({
 						Hive: hiveName,
 						Time: new Date(item.time * 1000).toLocaleString(),
-						'Net Flow': item.value
+						'Stationary Bees': item.value
 					})
 				})
 			}
@@ -65,7 +66,7 @@ export default function MultiHiveEntranceChart({ entranceDataByHive, chartRefs, 
 	if (!hasData) {
 		return (
 			<p style={{ color: '#bbb' }}>
-				<T>Entrance activity data not available for selected hives.</T>
+				<T>Stationary bees data not available for selected hives.</T>
 			</p>
 		)
 	}
@@ -75,22 +76,22 @@ export default function MultiHiveEntranceChart({ entranceDataByHive, chartRefs, 
 
 	return (
 		<ChartContainer
-			emoji="🐝"
-			title={t('Hive Entrance Activity Comparison')}
+			emoji="🐌"
+			title={t('Stationary Bees Comparison')}
 			value={`${hiveCount} ${hiveCount === 1 ? 'hive' : 'hives'}`}
-			info={t('Compare net bee flow across multiple hives')}
+			info={t('Bees with minimal movement (guard bees, orientation flights)')}
 			chartRefs={chartRefs}
 			syncCharts={syncCharts}
 			showTable={true}
 			tableData={tableData}
 			chartOptions={{ height: 300 }}
 		>
-			{Object.entries(seriesData).map(([hiveId, { netFlowData, hiveName }], index) => {
+			{Object.entries(seriesData).map(([hiveId, { data, hiveName }], index) => {
 				const color = colors[index % colors.length]
 				return (
 					<LineSeries
 						key={hiveId}
-						data={netFlowData}
+						data={data}
 						options={{
 							color,
 							lineWidth: 2,
@@ -102,3 +103,4 @@ export default function MultiHiveEntranceChart({ entranceDataByHive, chartRefs, 
 		</ChartContainer>
 	)
 }
+

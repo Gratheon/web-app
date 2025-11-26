@@ -9,6 +9,7 @@ import MessageSuccess from '@/shared/messageSuccess'
 import PagePaddedCentered from '@/shared/pagePaddedCentered'
 import Card from '@/shared/pagePaddedCentered/card'
 import DateTimeFormat from '@/shared/dateTimeFormat'
+import { Tab, TabBar } from '@/shared/tab'
 
 const ALERT_CHANNELS_QUERY = gql`
 	query alertChannels {
@@ -60,6 +61,12 @@ export default function AlertConfig() {
 	const [setAlertChannel, { error: mutationError }] = useMutation(SET_ALERT_CHANNEL_MUTATION);
 	const [deleteAlertChannel] = useMutation(DELETE_ALERT_CHANNEL_MUTATION);
 
+	const channels = data?.alertChannels || [];
+	const alerts = data?.alerts || [];
+
+	const hasEnabledChannels = channels.some(ch => ch.enabled);
+	const [activeTab, setActiveTab] = useState(hasEnabledChannels ? 'history' : 'channels');
+
 	const [selectedChannel, setSelectedChannel] = useState('SMS');
 	const [channelConfig, setChannelConfig] = useState({
 		phoneNumber: '',
@@ -72,8 +79,6 @@ export default function AlertConfig() {
 	const [saving, setSaving] = useState(false);
 	const [showSuccess, setShowSuccess] = useState(false);
 
-	const channels = data?.alertChannels || [];
-	const alerts = data?.alerts || [];
 
 	React.useEffect(() => {
 		const existing = channels.find(ch => ch.channelType === selectedChannel);
@@ -141,39 +146,39 @@ export default function AlertConfig() {
 
 	return (
 		<PagePaddedCentered>
-			<h2><T>Alert Configuration</T></h2>
-
 			{showSuccess && <MessageSuccess title={<T>Saved!</T>} message={<T>Alert channel settings saved successfully.</T>} />}
 			<ErrorMsg error={mutationError || null} />
 
-			<Card>
-				<h3><T>Alert Channels</T></h3>
-				<p style={{ color: '#666', marginBottom: '16px' }}>
-					<T>Configure how you want to receive alerts. You can enable multiple channels.</T>
-				</p>
+			<TabBar variant="rounded">
+				<Tab variant="rounded" isSelected={activeTab === 'channels'} onClick={() => setActiveTab('channels')}>
+					⚙️ <T>Alert Channels</T>
+				</Tab>
+				<Tab variant="rounded" isSelected={activeTab === 'history'} onClick={() => setActiveTab('history')}>
+					📜 <T>Alert History</T>
+				</Tab>
+			</TabBar>
 
-				<div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-					<Button
-						color={selectedChannel === 'SMS' ? 'green' : 'gray'}
-						onClick={() => setSelectedChannel('SMS')}
-					>
-						📱 SMS
-					</Button>
-					<Button
-						color={selectedChannel === 'EMAIL' ? 'green' : 'gray'}
-						onClick={() => setSelectedChannel('EMAIL')}
-					>
-						📧 Email
-					</Button>
-					<Button
-						color={selectedChannel === 'TELEGRAM' ? 'green' : 'gray'}
-						onClick={() => setSelectedChannel('TELEGRAM')}
-					>
-						💬 Telegram
-					</Button>
-				</div>
+			<Card style={{ borderTop: '1px solid #d0d0d0' }}>
 
-				<form onSubmit={onSave} className={styles.configForm}>
+				{activeTab === 'channels' && (
+					<>
+						<p style={{ color: '#666', margin: '16px 0' }}>
+							<T>Configure how you want to receive alerts. You can enable multiple channels.</T>
+						</p>
+
+						<TabBar>
+							<Tab isSelected={selectedChannel === 'SMS'} onClick={() => setSelectedChannel('SMS')}>
+								📱 SMS
+							</Tab>
+							<Tab isSelected={selectedChannel === 'EMAIL'} onClick={() => setSelectedChannel('EMAIL')}>
+								📧 Email
+							</Tab>
+							<Tab isSelected={selectedChannel === 'TELEGRAM'} onClick={() => setSelectedChannel('TELEGRAM')}>
+								💬 Telegram
+							</Tab>
+						</TabBar>
+
+				<form onSubmit={onSave} className={styles.configForm} style={{ marginTop: '16px' }}>
 					{selectedChannel === 'SMS' && (
 						<div className={styles.formRow}>
 							<label htmlFor="phoneNumber" className={styles.configLabel}><T>Phone Number</T>:</label>
@@ -268,30 +273,33 @@ export default function AlertConfig() {
 						)}
 					</div>
 				</form>
-			</Card>
+					</>
+				)}
 
-			<Card style={{ marginTop: '16px' }}>
-				<h3><T>Alert History</T></h3>
-				{alerts.length === 0 ? (
-					<p style={{ color: '#999' }}><T>No alerts yet</T></p>
-				) : (
-					<div className={styles.alertList}>
-						{alerts.map((alert) => (
-							<div key={alert.id} className={styles.alertItem}>
-								<div className={styles.alertContent}>
-									<div className={styles.alertText}>{alert.text}</div>
-									{alert.hiveId && (
-										<div className={styles.alertMeta}>
-											Hive: {alert.hiveId} | {alert.metricType}: {alert.metricValue}
+				{activeTab === 'history' && (
+					<div style={{ padding: '16px' }}>
+						{alerts.length === 0 ? (
+							<p style={{ color: '#999' }}><T>No alerts yet</T></p>
+						) : (
+							<div className={styles.alertList}>
+								{alerts.map((alert) => (
+									<div key={alert.id} className={styles.alertItem}>
+										<div className={styles.alertContent}>
+											<div className={styles.alertText}>{alert.text}</div>
+											{alert.hiveId && (
+												<div className={styles.alertMeta}>
+													Hive: {alert.hiveId} | {alert.metricType}: {alert.metricValue}
+												</div>
+											)}
 										</div>
-									)}
-								</div>
-								<div className={styles.alertTime}>
-									<DateTimeFormat datetime={alert.date_added} />
-									{alert.delivered && <span style={{ color: 'green', marginLeft: '8px' }}>✓</span>}
-								</div>
+										<div className={styles.alertTime}>
+											<DateTimeFormat datetime={alert.date_added} />
+											{alert.delivered && <span style={{ color: 'green', marginLeft: '8px' }}>✓</span>}
+										</div>
+									</div>
+								))}
 							</div>
-						))}
+						)}
 					</div>
 				)}
 			</Card>

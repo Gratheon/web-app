@@ -14,6 +14,9 @@ interface ChartContainerProps {
 	children: React.ReactNode
 	showTable?: boolean
 	tableData?: Array<{ label: string; value: any }>
+	hiveId?: string
+	metricType?: string
+	onCreateAlert?: () => void
 }
 
 export default function ChartContainer({
@@ -26,7 +29,10 @@ export default function ChartContainer({
 	chartOptions = {},
 	children,
 	showTable = false,
-	tableData = []
+	tableData = [],
+	hiveId,
+	metricType,
+	onCreateAlert
 }: ChartContainerProps) {
 	const chartApiRef = useRef(null)
 	const [showTableView, setShowTableView] = useState(false)
@@ -116,26 +122,37 @@ export default function ChartContainer({
 					gap: '8px'
 				}}>
 					<ChartHeading title={title} emoji={emoji} value={value} info={info} />
-					{showTable && tableData.length > 0 && (
-						<div style={{
-							display: 'flex',
-							gap: '4px',
-							flexShrink: 0
-						}}>
+					<div style={{
+						display: 'flex',
+						gap: '4px',
+						flexShrink: 0
+					}}>
+						{showTable && tableData.length > 0 && (
+							<>
+								<Button
+									size="small"
+									onClick={() => setShowTableView(!showTableView)}
+								>
+									{showTableView ? '📊 Chart' : '📋 Table'}
+								</Button>
+								<Button
+									size="small"
+									onClick={exportToCSV}
+								>
+									📥 CSV
+								</Button>
+							</>
+						)}
+						{onCreateAlert && hiveId && metricType && (
 							<Button
 								size="small"
-								onClick={() => setShowTableView(!showTableView)}
+								onClick={onCreateAlert}
+								color="orange"
 							>
-								{showTableView ? '📊 Chart' : '📋 Table'}
+								🔔 Alert
 							</Button>
-							<Button
-								size="small"
-								onClick={exportToCSV}
-							>
-								📥 CSV
-							</Button>
-						</div>
-					)}
+						)}
+					</div>
 				</div>
 			</div>
 

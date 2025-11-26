@@ -96,12 +96,15 @@ const Menu = ({isLoggedIn = false}) => {
                             <T>Insights</T>
                         </NavLink>
                     </li>
-
-                    {/* <li>
-                        <NavLink activeClassName={styles.active} to="/insights">
-                            <T ctx="this is a menu link to beehive data analytics">Insights</T>
+                    <li>
+                        <NavLink
+                            className={({isActive, isPending}) =>
+                                isActive ? styles.active : ""
+                            }
+                            to="/alert-config">
+                            <T>Alerts</T>
                         </NavLink>
-                    </li> */}
+                    </li>
 
                 </ul>
                 <div style="flex-grow:1"></div>
@@ -112,10 +115,6 @@ const Menu = ({isLoggedIn = false}) => {
                                   color={alerts && alerts.length > 0 ? "#ffd900" : "#ddd"}
                                   stroke={alerts && alerts.length > 0 ? "black" : "#bbb"}
                                   onClick={() => setVisible(!isVisible)}/>
-                    </li>
-
-                    <li>
-                        <NavLink to="/alert-config">Alerts</NavLink>
                     </li>
 
                     <li>

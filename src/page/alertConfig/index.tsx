@@ -8,24 +8,40 @@ import styles from './styles.module.less'
 import MessageSuccess from '@/shared/messageSuccess'
 import PagePaddedCentered from '@/shared/pagePaddedCentered'
 import Card from '@/shared/pagePaddedCentered/card'
+import DateTimeFormat from '@/shared/dateTimeFormat'
 
-const ALERT_CHANNEL_QUERY = gql`
-	query alertChannelConfig {
-		alertChannelConfig {
+const ALERT_CHANNELS_QUERY = gql`
+	query alertChannels {
+		alertChannels {
+			id
 			channelType
 			phoneNumber
+			email
+			telegramUsername
 			timeStart
 			timeEnd
 			enabled
+		}
+		alerts {
+			id
+			text
+			date_added
+			hiveId
+			metricType
+			metricValue
+			delivered
 		}
 	}
 `;
 
 const SET_ALERT_CHANNEL_MUTATION = gql`
-	mutation setAlertChannelConfig($config: AlertChannelConfigInput!) {
-		setAlertChannelConfig(config: $config) {
+	mutation setAlertChannel($config: AlertChannelInput!) {
+		setAlertChannel(config: $config) {
+			id
 			channelType
 			phoneNumber
+			email
+			telegramUsername
 			timeStart
 			timeEnd
 			enabled
@@ -33,71 +49,179 @@ const SET_ALERT_CHANNEL_MUTATION = gql`
 	}
 `;
 
+const DELETE_ALERT_CHANNEL_MUTATION = gql`
+	mutation deleteAlertChannel($channelType: String!) {
+		deleteAlertChannel(channelType: $channelType)
+	}
+`;
+
 export default function AlertConfig() {
-	const { data: alertChannelData, reexecuteQuery } = useQuery(ALERT_CHANNEL_QUERY);
-	const [setAlertChannelConfig, { error: mutationError }] = useMutation(SET_ALERT_CHANNEL_MUTATION);
-	const [alertConfig, setAlertConfig] = useState({
+	const { data, reexecuteQuery } = useQuery(ALERT_CHANNELS_QUERY);
+	const [setAlertChannel, { error: mutationError }] = useMutation(SET_ALERT_CHANNEL_MUTATION);
+	const [deleteAlertChannel] = useMutation(DELETE_ALERT_CHANNEL_MUTATION);
+
+	const [selectedChannel, setSelectedChannel] = useState('SMS');
+	const [channelConfig, setChannelConfig] = useState({
 		phoneNumber: '',
+		email: '',
+		telegramUsername: '',
 		timeStart: '09:00',
-		timeEnd: '18:00',
+		timeEnd: '22:00',
 		enabled: true,
 	});
 	const [saving, setSaving] = useState(false);
 	const [showSuccess, setShowSuccess] = useState(false);
 
+	const channels = data?.alertChannels || [];
+	const alerts = data?.alerts || [];
+
 	React.useEffect(() => {
-		if (alertChannelData?.alertChannelConfig) {
-			setAlertConfig({
-				phoneNumber: alertChannelData.alertChannelConfig.phoneNumber || '',
-				timeStart: alertChannelData.alertChannelConfig.timeStart || '09:00',
-				timeEnd: alertChannelData.alertChannelConfig.timeEnd || '18:00',
-				enabled: alertChannelData.alertChannelConfig.enabled !== false,
+		const existing = channels.find(ch => ch.channelType === selectedChannel);
+		if (existing) {
+			setChannelConfig({
+				phoneNumber: existing.phoneNumber || '',
+				email: existing.email || '',
+				telegramUsername: existing.telegramUsername || '',
+				timeStart: existing.timeStart || '09:00',
+				timeEnd: existing.timeEnd || '22:00',
+				enabled: existing.enabled !== false,
+			});
+		} else {
+			setChannelConfig({
+				phoneNumber: '',
+				email: '',
+				telegramUsername: '',
+				timeStart: '09:00',
+				timeEnd: '22:00',
+				enabled: true,
 			});
 		}
-	}, [alertChannelData]);
+	}, [selectedChannel, channels]);
 
-	function onAlertConfigChange(e) {
+	function onConfigChange(e) {
 		const { name, value, type, checked } = e.target;
-		setAlertConfig((prev) => ({
+		setChannelConfig((prev) => ({
 			...prev,
 			[name]: type === 'checkbox' ? checked : value,
 		}));
 		setShowSuccess(false);
 	}
 
-	async function onAlertConfigSave(e) {
+	async function onSave(e) {
 		e.preventDefault();
 		setSaving(true);
-		await setAlertChannelConfig({ config: alertConfig });
+		await setAlertChannel({
+			config: {
+				channelType: selectedChannel,
+				phoneNumber: selectedChannel === 'SMS' ? channelConfig.phoneNumber : null,
+				email: selectedChannel === 'EMAIL' ? channelConfig.email : null,
+				telegramUsername: selectedChannel === 'TELEGRAM' ? channelConfig.telegramUsername : null,
+				timeStart: channelConfig.timeStart,
+				timeEnd: channelConfig.timeEnd,
+				enabled: channelConfig.enabled,
+			}
+		});
 		reexecuteQuery();
 		setSaving(false);
 		setShowSuccess(true);
 		setTimeout(() => setShowSuccess(false), 2000);
 	}
 
-	if (!alertChannelData) {
+	async function onDelete() {
+		if (!confirm(`Delete ${selectedChannel} alert channel?`)) return;
+		await deleteAlertChannel({ channelType: selectedChannel });
+		reexecuteQuery();
+	}
+
+	if (!data) {
 		return <Loader />;
 	}
 
+	const existingChannel = channels.find(ch => ch.channelType === selectedChannel);
+
 	return (
 		<PagePaddedCentered>
+			<h2><T>Alert Configuration</T></h2>
+
 			{showSuccess && <MessageSuccess title={<T>Saved!</T>} message={<T>Alert channel settings saved successfully.</T>} />}
 			<ErrorMsg error={mutationError || null} />
 
 			<Card>
-				<form onSubmit={onAlertConfigSave} className={styles.configForm}>
-					<div className={styles.formRow}>
-						<label htmlFor="phoneNumber" className={styles.configLabel}><T>Phone Number</T>:</label>
-						<input
-							className={`${styles.configInput} ${styles.phoneInput}`}
-							id="phoneNumber"
-							type="text"
-							name="phoneNumber"
-							value={alertConfig.phoneNumber}
-							onChange={onAlertConfigChange}
-							placeholder="+1234567890"
-						/>
-					</div>
+				<h3><T>Alert Channels</T></h3>
+				<p style={{ color: '#666', marginBottom: '16px' }}>
+					<T>Configure how you want to receive alerts. You can enable multiple channels.</T>
+				</p>
+
+				<div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+					<Button
+						color={selectedChannel === 'SMS' ? 'green' : 'gray'}
+						onClick={() => setSelectedChannel('SMS')}
+					>
+						📱 SMS
+					</Button>
+					<Button
+						color={selectedChannel === 'EMAIL' ? 'green' : 'gray'}
+						onClick={() => setSelectedChannel('EMAIL')}
+					>
+						📧 Email
+					</Button>
+					<Button
+						color={selectedChannel === 'TELEGRAM' ? 'green' : 'gray'}
+						onClick={() => setSelectedChannel('TELEGRAM')}
+					>
+						💬 Telegram
+					</Button>
+				</div>
+
+				<form onSubmit={onSave} className={styles.configForm}>
+					{selectedChannel === 'SMS' && (
+						<div className={styles.formRow}>
+							<label htmlFor="phoneNumber" className={styles.configLabel}><T>Phone Number</T>:</label>
+							<input
+								className={`${styles.configInput} ${styles.phoneInput}`}
+								id="phoneNumber"
+								type="text"
+								name="phoneNumber"
+								value={channelConfig.phoneNumber}
+								onChange={onConfigChange}
+								placeholder="+1234567890"
+								required
+							/>
+						</div>
+					)}
+
+					{selectedChannel === 'EMAIL' && (
+						<div className={styles.formRow}>
+							<label htmlFor="email" className={styles.configLabel}><T>Email Address</T>:</label>
+							<input
+								className={`${styles.configInput} ${styles.phoneInput}`}
+								id="email"
+								type="email"
+								name="email"
+								value={channelConfig.email}
+								onChange={onConfigChange}
+								placeholder="you@example.com"
+								required
+							/>
+						</div>
+					)}
+
+					{selectedChannel === 'TELEGRAM' && (
+						<div className={styles.formRow}>
+							<label htmlFor="telegramUsername" className={styles.configLabel}><T>Telegram Username</T>:</label>
+							<input
+								className={`${styles.configInput} ${styles.phoneInput}`}
+								id="telegramUsername"
+								type="text"
+								name="telegramUsername"
+								value={channelConfig.telegramUsername}
+								onChange={onConfigChange}
+								placeholder="@username"
+								required
+							/>
+						</div>
+					)}
+
 					<div className={styles.formRow}>
 						<label htmlFor="timeStart" className={styles.configLabel}><T>Time Window</T>:</label>
 						<input
@@ -105,8 +229,8 @@ export default function AlertConfig() {
 							id="timeStart"
 							type="time"
 							name="timeStart"
-							value={alertConfig.timeStart}
-							onChange={onAlertConfigChange}
+							value={channelConfig.timeStart}
+							onChange={onConfigChange}
 						/>
 						<span className={styles.toText}><T>to</T></span>
 						<input
@@ -114,27 +238,62 @@ export default function AlertConfig() {
 							id="timeEnd"
 							type="time"
 							name="timeEnd"
-							value={alertConfig.timeEnd}
-							onChange={onAlertConfigChange}
+							value={channelConfig.timeEnd}
+							onChange={onConfigChange}
 						/>
 					</div>
+
 					<div className={styles.formRow}>
 						<input
 							className={styles.checkboxInput}
 							id="enabled"
 							type="checkbox"
 							name="enabled"
-							checked={alertConfig.enabled}
-							onChange={onAlertConfigChange}
+							checked={channelConfig.enabled}
+							onChange={onConfigChange}
 						/>
-						<label htmlFor="enabled" className={styles.configLabel} style={{ fontWeight: 500 }}><T>Enable SMS Alerts</T></label>
+						<label htmlFor="enabled" className={styles.configLabel} style={{ fontWeight: 500 }}>
+							<T>Enable {selectedChannel} Alerts</T>
+						</label>
 					</div>
+
 					<div className={styles.buttonRow}>
 						<Button type="submit" color="green" loading={saving}>
 							<T>Save</T>
 						</Button>
+						{existingChannel && (
+							<Button type="button" color="red" onClick={onDelete}>
+								<T>Delete</T>
+							</Button>
+						)}
 					</div>
 				</form>
+			</Card>
+
+			<Card style={{ marginTop: '16px' }}>
+				<h3><T>Alert History</T></h3>
+				{alerts.length === 0 ? (
+					<p style={{ color: '#999' }}><T>No alerts yet</T></p>
+				) : (
+					<div className={styles.alertList}>
+						{alerts.map((alert) => (
+							<div key={alert.id} className={styles.alertItem}>
+								<div className={styles.alertContent}>
+									<div className={styles.alertText}>{alert.text}</div>
+									{alert.hiveId && (
+										<div className={styles.alertMeta}>
+											Hive: {alert.hiveId} | {alert.metricType}: {alert.metricValue}
+										</div>
+									)}
+								</div>
+								<div className={styles.alertTime}>
+									<DateTimeFormat datetime={alert.date_added} />
+									{alert.delivered && <span style={{ color: 'green', marginLeft: '8px' }}>✓</span>}
+								</div>
+							</div>
+						))}
+					</div>
+				)}
 			</Card>
 		</PagePaddedCentered>
 	);

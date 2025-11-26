@@ -17,34 +17,47 @@
   font-weight: bold;
 }
 
-.selectAllButton {
-  padding: 4px 8px;
-  font-size: 12px;
-  cursor: pointer;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  background: white;
-
-  &:hover {
-    background: #f9f9f9;
-  }
-}
-
 .hiveList {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 8px;
+
+  &.scrollable {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 4px;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: #e0e0e0;
+      border-radius: 3px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #999;
+      border-radius: 3px;
+
+      &:hover {
+        background: #777;
+      }
+    }
+  }
 }
 
 .hiveCheckbox {
   cursor: pointer;
   user-select: none;
-  padding: 6px 10px;
+  padding: 8px 10px;
   border-radius: 4px;
   border: 1px solid #ccc;
   font-size: 13px;
   transition: background 0.2s;
   background: white;
+  display: flex;
+  align-items: center;
 
   &.selected {
     background: #e3f2fd;
@@ -52,7 +65,7 @@
   }
 
   input {
-    margin-right: 4px;
+    margin-right: 8px;
   }
 
   &:hover {

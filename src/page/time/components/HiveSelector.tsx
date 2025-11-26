@@ -4,19 +4,17 @@ interface HiveSelectorProps {
 	hives: Array<{ id: string; name: string }>
 	selectedHiveIds: string[]
 	onToggleHive: (hiveId: string) => void
-	onToggleAll: () => void
 }
 
-export default function HiveSelector({ hives, selectedHiveIds, onToggleHive, onToggleAll }: HiveSelectorProps) {
+export default function HiveSelector({ hives, selectedHiveIds, onToggleHive }: HiveSelectorProps) {
+	const shouldScroll = hives.length > 6
+
 	return (
 		<div className={styles.panel}>
 			<div className={styles.header}>
 				<strong className={styles.title}>Selected Hives:</strong>
-				<button onClick={onToggleAll} className={styles.selectAllButton}>
-					{selectedHiveIds.length === hives.length ? 'Deselect All' : 'Select All'}
-				</button>
 			</div>
-			<div className={styles.hiveList}>
+			<div className={`${styles.hiveList} ${shouldScroll ? styles.scrollable : ''}`}>
 				{hives.map(hive => {
 					const isSelected = selectedHiveIds.length === 0 || selectedHiveIds.includes(hive.id)
 					return (

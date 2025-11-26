@@ -22,6 +22,30 @@ import ChartToggles from './components/ChartToggles'
 import WeatherSection from './components/WeatherSection'
 import ApiarySelector from './components/ApiarySelector'
 
+const LS_KEYS = {
+	SELECTED_APIARY: 'timeView.selectedApiaryId',
+	SELECTED_HIVES: 'timeView.selectedHiveIds',
+	ENABLED_CHARTS: 'timeView.enabledCharts',
+	SHOW_IDEAL_CURVE: 'timeView.showIdealCurve'
+}
+
+const loadFromLocalStorage = <T,>(key: string, defaultValue: T): T => {
+	try {
+		const stored = localStorage.getItem(key)
+		return stored ? JSON.parse(stored) : defaultValue
+	} catch {
+		return defaultValue
+	}
+}
+
+const saveToLocalStorage = <T,>(key: string, value: T): void => {
+	try {
+		localStorage.setItem(key, JSON.stringify(value))
+	} catch (e) {
+		console.error('Failed to save to localStorage:', e)
+	}
+}
+
 const HIVES_QUERY = gql`
 	query HIVES {
 		apiaries {
@@ -47,27 +71,35 @@ const HIVES_QUERY = gql`
 
 export default function TimeView() {
 	const { chartRefs, syncCharts } = useChartSync()
-	const [selectedApiaryId, setSelectedApiaryId] = useState<string | null>(null)
-	const [selectedHiveIds, setSelectedHiveIds] = useState<string[]>([])
+	const [selectedApiaryId, setSelectedApiaryId] = useState<string | null>(() =>
+		loadFromLocalStorage(LS_KEYS.SELECTED_APIARY, null)
+	)
+	const [selectedHiveIds, setSelectedHiveIds] = useState<string[]>(() =>
+		loadFromLocalStorage(LS_KEYS.SELECTED_HIVES, [])
+	)
 	const [timeRangeDays, setTimeRangeDays] = useState(90)
-	const [showIdealCurve, setShowIdealCurve] = useState(true)
-	const [enabledCharts, setEnabledCharts] = useState({
-		population: true,
-		weight: true,
-		temperature: true,
-		entrance: true,
-		entranceSpeed: true,
-		entranceDetected: true,
-		entranceStationary: true,
-		entranceInteractions: true,
-		weather: true,
-		wind: true,
-		rain: true,
-		solarRadiation: true,
-		cloudCover: true,
-		pollen: true,
-		pollution: true
-	})
+	const [showIdealCurve, setShowIdealCurve] = useState(() =>
+		loadFromLocalStorage(LS_KEYS.SHOW_IDEAL_CURVE, true)
+	)
+	const [enabledCharts, setEnabledCharts] = useState(() =>
+		loadFromLocalStorage(LS_KEYS.ENABLED_CHARTS, {
+			population: true,
+			weight: true,
+			temperature: true,
+			entrance: true,
+			entranceSpeed: true,
+			entranceDetected: true,
+			entranceStationary: true,
+			entranceInteractions: true,
+			weather: true,
+			wind: true,
+			rain: true,
+			solarRadiation: true,
+			cloudCover: true,
+			pollen: true,
+			pollution: true
+		})
+	)
 
 	const { data: gqlData } = useQuery(HIVES_QUERY, {})
 
@@ -76,6 +108,22 @@ export default function TimeView() {
 			setSelectedApiaryId(gqlData.apiaries[0].id)
 		}
 	}, [gqlData, selectedApiaryId])
+
+	useEffect(() => {
+		saveToLocalStorage(LS_KEYS.SELECTED_APIARY, selectedApiaryId)
+	}, [selectedApiaryId])
+
+	useEffect(() => {
+		saveToLocalStorage(LS_KEYS.SELECTED_HIVES, selectedHiveIds)
+	}, [selectedHiveIds])
+
+	useEffect(() => {
+		saveToLocalStorage(LS_KEYS.ENABLED_CHARTS, enabledCharts)
+	}, [enabledCharts])
+
+	useEffect(() => {
+		saveToLocalStorage(LS_KEYS.SHOW_IDEAL_CURVE, showIdealCurve)
+	}, [showIdealCurve])
 
 	const allHives = useLiveQuery(async () => {
 		let localHives = await getHives()
@@ -285,13 +333,6 @@ export default function TimeView() {
 		)
 	}
 
-	const toggleAllHives = () => {
-		if (selectedHiveIds.length === hives.length) {
-			setSelectedHiveIds([])
-		} else {
-			setSelectedHiveIds(hives.map(h => h.id))
-		}
-	}
 
 	const toggleChart = (chartName: string) => {
 		setEnabledCharts(prev => ({ ...prev, [chartName]: !prev[chartName] }))
@@ -332,7 +373,6 @@ export default function TimeView() {
 						hives={hives}
 						selectedHiveIds={selectedHiveIds}
 						onToggleHive={toggleHive}
-						onToggleAll={toggleAllHives}
 					/>
 
 					<ChartToggles

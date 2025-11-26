@@ -1,8 +1,21 @@
-import { LineSeries } from 'lightweight-charts-react-components'
+import { LineSeries, PriceLine } from 'lightweight-charts-react-components'
 import { useMemo } from 'react'
 
 import T, { useTranslation as t } from '@/shared/translate'
 import ChartContainer from './ChartContainer'
+import { gql, useQuery } from '@/api'
+
+const ALERT_RULES_QUERY = gql`
+	query alertRules($metricType: String!) {
+		alertRules(metricType: $metricType) {
+			id
+			hiveId
+			conditionType
+			thresholdValue
+			enabled
+		}
+	}
+`
 
 function deduplicateByTime(data: Array<{ time: number; value: number }>) {
 	const map = new Map<number, number>()
@@ -30,6 +43,10 @@ interface MultiHiveEntranceSpeedChartProps {
 }
 
 export default function MultiHiveEntranceSpeedChart({ entranceDataByHive, chartRefs, syncCharts }: MultiHiveEntranceSpeedChartProps) {
+	const { data: alertRulesData } = useQuery(ALERT_RULES_QUERY, {
+		variables: { metricType: 'ENTRANCE_SPEED' }
+	})
+
 	const { seriesData, tableData, hasData, hives, timeFrom, timeTo, minValue, maxValue } = useMemo(() => {
 		const seriesData: Record<string, { avgSpeedData: any[], p95SpeedData: any[], hiveName: string }> = {}
 		const tableData = []

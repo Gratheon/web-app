@@ -29,6 +29,10 @@ interface MultiHiveEntranceInteractionsChartProps {
 }
 
 export default function MultiHiveEntranceInteractionsChart({ entranceDataByHive, chartRefs, syncCharts }: MultiHiveEntranceInteractionsChartProps) {
+	const { data: alertRulesData } = useQuery(ALERT_RULES_QUERY, {
+		variables: { metricType: 'ENTRANCE_INTERACTIONS' }
+	})
+
 	const { seriesData, tableData, hasData, hives, timeFrom, timeTo, minValue, maxValue } = useMemo(() => {
 		const seriesData: Record<string, { data: any[], hiveName: string }> = {}
 		const tableData = []

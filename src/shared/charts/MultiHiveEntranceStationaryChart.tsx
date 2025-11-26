@@ -29,12 +29,15 @@ interface MultiHiveEntranceStationaryChartProps {
 }
 
 export default function MultiHiveEntranceStationaryChart({ entranceDataByHive, chartRefs, syncCharts }: MultiHiveEntranceStationaryChartProps) {
-	const { seriesData, tableData, hasData } = useMemo(() => {
+	const { seriesData, tableData, hasData, hives } = useMemo(() => {
 		const seriesData: Record<string, { data: any[], hiveName: string }> = {}
 		const tableData = []
+		const hives = []
 		let hasData = false
 
 		Object.entries(entranceDataByHive).forEach(([hiveId, { hiveName, data }]) => {
+			hives.push({ id: hiveId, name: hiveName })
+
 			if (!data || data.code || !data.metrics || data.metrics.length === 0) return
 
 			const stationaryData = deduplicateByTime(
@@ -60,7 +63,7 @@ export default function MultiHiveEntranceStationaryChart({ entranceDataByHive, c
 			}
 		})
 
-		return { seriesData, tableData, hasData }
+		return { seriesData, tableData, hasData, hives }
 	}, [entranceDataByHive])
 
 	if (!hasData) {
@@ -84,6 +87,9 @@ export default function MultiHiveEntranceStationaryChart({ entranceDataByHive, c
 			syncCharts={syncCharts}
 			showTable={true}
 			tableData={tableData}
+			metricType="ENTRANCE_STATIONARY"
+			metricLabel="stationary bees"
+			hives={hives}
 			chartOptions={{ height: 300 }}
 		>
 			{Object.entries(seriesData).map(([hiveId, { data, hiveName }], index) => {

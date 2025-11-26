@@ -30,12 +30,15 @@ interface MultiHiveEntranceSpeedChartProps {
 }
 
 export default function MultiHiveEntranceSpeedChart({ entranceDataByHive, chartRefs, syncCharts }: MultiHiveEntranceSpeedChartProps) {
-	const { seriesData, tableData, hasData } = useMemo(() => {
+	const { seriesData, tableData, hasData, hives } = useMemo(() => {
 		const seriesData: Record<string, { avgSpeedData: any[], p95SpeedData: any[], hiveName: string }> = {}
 		const tableData = []
+		const hives = []
 		let hasData = false
 
 		Object.entries(entranceDataByHive).forEach(([hiveId, { hiveName, data }]) => {
+			hives.push({ id: hiveId, name: hiveName })
+
 			if (!data || data.code || !data.metrics || data.metrics.length === 0) return
 
 			const avgSpeedData = deduplicateByTime(
@@ -71,7 +74,7 @@ export default function MultiHiveEntranceSpeedChart({ entranceDataByHive, chartR
 			}
 		})
 
-		return { seriesData, tableData, hasData }
+		return { seriesData, tableData, hasData, hives }
 	}, [entranceDataByHive])
 
 	if (!hasData) {
@@ -96,6 +99,9 @@ export default function MultiHiveEntranceSpeedChart({ entranceDataByHive, chartR
 			showTable={true}
 			tableData={tableData}
 			chartOptions={{ height: 300 }}
+			metricType="ENTRANCE_SPEED"
+			metricLabel="bee speed"
+			hives={hives}
 		>
 			{Object.entries(seriesData).map(([hiveId, { avgSpeedData, hiveName }], index) => {
 				const color = colors[index % colors.length]

@@ -29,12 +29,15 @@ interface MultiHiveEntranceDetectedChartProps {
 }
 
 export default function MultiHiveEntranceDetectedChart({ entranceDataByHive, chartRefs, syncCharts }: MultiHiveEntranceDetectedChartProps) {
-	const { seriesData, tableData, hasData } = useMemo(() => {
+	const { seriesData, tableData, hasData, hives } = useMemo(() => {
 		const seriesData: Record<string, { data: any[], hiveName: string }> = {}
 		const tableData = []
+		const hives = []
 		let hasData = false
 
 		Object.entries(entranceDataByHive).forEach(([hiveId, { hiveName, data }]) => {
+			hives.push({ id: hiveId, name: hiveName })
+
 			if (!data || data.code || !data.metrics || data.metrics.length === 0) return
 
 			const detectedData = deduplicateByTime(
@@ -60,7 +63,7 @@ export default function MultiHiveEntranceDetectedChart({ entranceDataByHive, cha
 			}
 		})
 
-		return { seriesData, tableData, hasData }
+		return { seriesData, tableData, hasData, hives }
 	}, [entranceDataByHive])
 
 	if (!hasData) {
@@ -84,6 +87,9 @@ export default function MultiHiveEntranceDetectedChart({ entranceDataByHive, cha
 			syncCharts={syncCharts}
 			showTable={true}
 			tableData={tableData}
+			metricType="ENTRANCE_DETECTED"
+			metricLabel="detected bees"
+			hives={hives}
 			chartOptions={{ height: 300 }}
 		>
 			{Object.entries(seriesData).map(([hiveId, { data, hiveName }], index) => {

@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from 'react'
 import { Chart } from 'lightweight-charts-react-components'
 import ChartHeading from '@/shared/chartHeading'
 import Button from '@/shared/button'
+import AlertRulesPanel from './AlertRulesPanel'
 
 interface ChartContainerProps {
 	title: string
@@ -14,9 +15,9 @@ interface ChartContainerProps {
 	children: React.ReactNode
 	showTable?: boolean
 	tableData?: Array<{ label: string; value: any }>
-	hiveId?: string
 	metricType?: string
-	onCreateAlert?: () => void
+	metricLabel?: string
+	hives?: Array<{ id: string; name: string }>
 }
 
 export default function ChartContainer({
@@ -30,12 +31,13 @@ export default function ChartContainer({
 	children,
 	showTable = false,
 	tableData = [],
-	hiveId,
 	metricType,
-	onCreateAlert
+	metricLabel,
+	hives = []
 }: ChartContainerProps) {
 	const chartApiRef = useRef(null)
 	const [showTableView, setShowTableView] = useState(false)
+	const [showAlertView, setShowAlertView] = useState(false)
 
 	useEffect(() => {
 		if (chartApiRef.current && chartRefs && syncCharts) {
@@ -127,11 +129,26 @@ export default function ChartContainer({
 						gap: '4px',
 						flexShrink: 0
 					}}>
+						{metricType && metricLabel && hives.length > 0 && (
+							<Button
+								size="small"
+								onClick={() => {
+									setShowAlertView(!showAlertView)
+									setShowTableView(false)
+								}}
+								color={showAlertView ? 'orange' : 'gray'}
+							>
+								🔔 {showAlertView ? 'Hide' : 'Alerts'}
+							</Button>
+						)}
 						{showTable && tableData.length > 0 && (
 							<>
 								<Button
 									size="small"
-									onClick={() => setShowTableView(!showTableView)}
+									onClick={() => {
+										setShowTableView(!showTableView)
+										setShowAlertView(false)
+									}}
 								>
 									{showTableView ? '📊 Chart' : '📋 Table'}
 								</Button>
@@ -143,20 +160,17 @@ export default function ChartContainer({
 								</Button>
 							</>
 						)}
-						{onCreateAlert && hiveId && metricType && (
-							<Button
-								size="small"
-								onClick={onCreateAlert}
-								color="orange"
-							>
-								🔔 Alert
-							</Button>
-						)}
 					</div>
 				</div>
 			</div>
 
-			{showTableView && tableData.length > 0 ? (
+			{showAlertView ? (
+				<AlertRulesPanel
+					metricType={metricType!}
+					metricLabel={metricLabel!}
+					hives={hives}
+				/>
+			) : showTableView && tableData.length > 0 ? (
 				<div style={{
 					maxHeight: '400px',
 					overflow: 'auto',

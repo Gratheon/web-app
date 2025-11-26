@@ -24,12 +24,15 @@ interface MultiHiveEntranceChartProps {
 }
 
 export default function MultiHiveEntranceChart({ entranceDataByHive, chartRefs, syncCharts }: MultiHiveEntranceChartProps) {
-	const { seriesData, tableData, hasData } = useMemo(() => {
+	const { seriesData, tableData, hasData, hives } = useMemo(() => {
 		const seriesData: Record<string, { netFlowData: any[], hiveName: string }> = {}
 		const tableData = []
+		const hives = []
 		let hasData = false
 
 		Object.entries(entranceDataByHive).forEach(([hiveId, { hiveName, data }]) => {
+			hives.push({ id: hiveId, name: hiveName })
+
 			if (!data || data.code || !data.metrics || data.metrics.length === 0) return
 
 			const { beesInData, beesOutData } = formatEntranceMovementData(data.metrics)
@@ -59,7 +62,7 @@ export default function MultiHiveEntranceChart({ entranceDataByHive, chartRefs, 
 			}
 		})
 
-		return { seriesData, tableData, hasData }
+		return { seriesData, tableData, hasData, hives }
 	}, [entranceDataByHive])
 
 	if (!hasData) {
@@ -84,6 +87,9 @@ export default function MultiHiveEntranceChart({ entranceDataByHive, chartRefs, 
 			showTable={true}
 			tableData={tableData}
 			chartOptions={{ height: 300 }}
+			metricType="ENTRANCE_ACTIVITY"
+			metricLabel="entrance activity"
+			hives={hives}
 		>
 			{Object.entries(seriesData).map(([hiveId, { netFlowData, hiveName }], index) => {
 				const color = colors[index % colors.length]

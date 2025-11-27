@@ -92,6 +92,7 @@ export default function TimeView() {
 			entranceStationary: true,
 			entranceInteractions: true,
 			weather: true,
+			weatherTemperature: true,
 			wind: true,
 			rain: true,
 			solarRadiation: true,
@@ -456,6 +457,7 @@ export default function TimeView() {
 							chartRefs={chartRefs}
 							syncCharts={syncCharts}
 							enabledCharts={{
+								temperature: enabledCharts.weatherTemperature,
 								wind: enabledCharts.wind,
 								rain: enabledCharts.rain,
 								solarRadiation: enabledCharts.solarRadiation,

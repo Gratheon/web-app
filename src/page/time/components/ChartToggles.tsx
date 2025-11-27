@@ -11,6 +11,7 @@ interface ChartTogglesProps {
 		entranceStationary: boolean
 		entranceInteractions: boolean
 		weather: boolean
+		weatherTemperature: boolean
 		wind: boolean
 		rain: boolean
 		solarRadiation: boolean
@@ -133,6 +134,15 @@ export default function ChartToggles({
 
 				{enabledCharts.weather && (
 					<>
+						<label className={`${styles.chartToggle} ${styles.subOption} ${enabledCharts.weatherTemperature ? styles.enabled : ''}`}>
+							<input
+								type="checkbox"
+								checked={enabledCharts.weatherTemperature}
+								onChange={() => onToggleChart('weatherTemperature')}
+							/>
+							<span>🌡️ Temperature</span>
+						</label>
+
 						<label className={`${styles.chartToggle} ${styles.subOption} ${enabledCharts.wind ? styles.enabled : ''}`}>
 							<input
 								type="checkbox"

@@ -12,6 +12,7 @@ type WeatherSectionProps = {
 	chartRefs?: React.MutableRefObject<any[]>
 	syncCharts?: (sourceChart: any) => void
 	enabledCharts: {
+		temperature: boolean
 		wind: boolean
 		rain: boolean
 		solarRadiation: boolean

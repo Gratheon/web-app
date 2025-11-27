@@ -2,6 +2,7 @@ import {gql, useQuery} from '@/api'
 import Loading from '@/shared/loader'
 import ErrorMsg from '@/shared/messageError'
 import { useMemo } from 'react'
+import TemperatureChart from './TemperatureChart'
 import WindChart from './WindChart'
 import RainChart from './RainChart'
 import SolarRadiationChart from './SolarRadiationChart'
@@ -12,6 +13,9 @@ import PollutionChart from './PollutionChart'
 const HISTORICAL_WEATHER_QUERY = gql`
 	query historicalWeather($lat: String!, $lng: String!, $startDate: String!, $endDate: String!) {
 		historicalWeather(lat: $lat, lng: $lng, startDate: $startDate, endDate: $endDate) {
+			temperature {
+				temperature_2m { time value }
+			}
 			solarRadiation {
 				diffuse_radiation { time value }
 				direct_radiation { time value }
@@ -51,6 +55,7 @@ type HistoricalWeatherProps = {
 	chartRefs?: React.MutableRefObject<any[]>
 	syncCharts?: (sourceChart: any) => void
 	enabledCharts: {
+		temperature: boolean
 		wind: boolean
 		rain: boolean
 		solarRadiation: boolean
@@ -90,6 +95,14 @@ export default function HistoricalWeather({lat, lng, days, chartRefs, syncCharts
 
 	return (
 		<>
+			{enabledCharts.temperature && (
+				<TemperatureChart
+					temperatureData={weatherData.temperature}
+					chartRefs={chartRefs}
+					syncCharts={syncCharts}
+				/>
+			)}
+
 			{enabledCharts.wind && (
 				<WindChart
 					windData={weatherData.wind}

@@ -23,6 +23,7 @@ interface ChartContainerProps {
 	minValue?: number
 	maxValue?: number
 	showAlertThresholds?: boolean
+	selectedApiaryId?: string | null
 }
 
 export default function ChartContainer({
@@ -43,7 +44,8 @@ export default function ChartContainer({
 	timeTo,
 	minValue = 0,
 	maxValue = 100,
-	showAlertThresholds = true
+	showAlertThresholds = true,
+	selectedApiaryId
 }: ChartContainerProps) {
 	const chartApiRef = useRef(null)
 	const [showTableView, setShowTableView] = useState(false)
@@ -254,6 +256,7 @@ export default function ChartContainer({
 							metricLabel={metricLabel!}
 							hives={hives}
 							onAlertCountChange={setAlertCount}
+							selectedApiaryId={selectedApiaryId}
 						/>
 					)}
 				</>

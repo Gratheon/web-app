@@ -29,9 +29,10 @@ interface MultiHiveWeightChartProps {
 	}>
 	chartRefs: React.MutableRefObject<any[]>
 	syncCharts: (sourceChart: any) => void
+	selectedApiaryId?: string | null
 }
 
-export default function MultiHiveWeightChart({ weightDataByHive, chartRefs, syncCharts }: MultiHiveWeightChartProps) {
+export default function MultiHiveWeightChart({ weightDataByHive, chartRefs, syncCharts, selectedApiaryId }: MultiHiveWeightChartProps) {
 	const kgLabel = t('kg', 'Shortest label for the unit of weight in kilograms')
 	const { data: alertRulesData } = useQuery(ALERT_RULES_QUERY, {
 		variables: { metricType: 'WEIGHT' }
@@ -116,6 +117,7 @@ export default function MultiHiveWeightChart({ weightDataByHive, chartRefs, sync
 			timeTo={timeTo}
 			minValue={minValue}
 			maxValue={maxValue}
+			selectedApiaryId={selectedApiaryId}
 		>
 			{Object.entries(seriesData).map(([hiveId, { data, hiveName }], index) => {
 				const color = colors[index % colors.length]

@@ -459,6 +459,7 @@ export default function TimeView() {
 								weightDataByHive={weightDataByHive}
 								chartRefs={chartRefs}
 								syncCharts={syncCharts}
+								selectedApiaryId={selectedApiaryId}
 							/>
 						</div>
 					)}
@@ -469,6 +470,7 @@ export default function TimeView() {
 								temperatureDataByHive={temperatureDataByHive}
 								chartRefs={chartRefs}
 								syncCharts={syncCharts}
+								selectedApiaryId={selectedApiaryId}
 							/>
 						</div>
 					)}

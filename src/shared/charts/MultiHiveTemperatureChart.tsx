@@ -29,9 +29,10 @@ interface MultiHiveTemperatureChartProps {
 	}>
 	chartRefs: React.MutableRefObject<any[]>
 	syncCharts: (sourceChart: any) => void
+	selectedApiaryId?: string | null
 }
 
-export default function MultiHiveTemperatureChart({ temperatureDataByHive, chartRefs, syncCharts }: MultiHiveTemperatureChartProps) {
+export default function MultiHiveTemperatureChart({ temperatureDataByHive, chartRefs, syncCharts, selectedApiaryId }: MultiHiveTemperatureChartProps) {
 	const { data: alertRulesData } = useQuery(ALERT_RULES_QUERY, {
 		variables: { metricType: 'TEMPERATURE' }
 	})
@@ -115,6 +116,7 @@ export default function MultiHiveTemperatureChart({ temperatureDataByHive, chart
 			timeTo={timeTo}
 			minValue={minValue}
 			maxValue={maxValue}
+			selectedApiaryId={selectedApiaryId}
 		>
 			{Object.entries(seriesData).map(([hiveId, { data, hiveName }], index) => {
 				const color = colors[index % colors.length]

@@ -62,9 +62,10 @@ interface AlertRulesPanelProps {
 	metricLabel: string
 	hives: Array<{ id: string; name: string }>
 	onAlertCountChange?: (count: number) => void
+	selectedApiaryId?: string | null
 }
 
-export default function AlertRulesPanel({ metricType, metricLabel, hives, onAlertCountChange }: AlertRulesPanelProps) {
+export default function AlertRulesPanel({ metricType, metricLabel, hives, onAlertCountChange, selectedApiaryId }: AlertRulesPanelProps) {
 	const { data, reexecuteQuery } = useQuery(ALERT_RULES_QUERY, { variables: { metricType } });
 	const [createAlertRule, { error: createError }] = useMutation(CREATE_ALERT_RULE_MUTATION);
 	const [updateAlertRule, { error: updateError }] = useMutation(UPDATE_ALERT_RULE_MUTATION);
@@ -108,6 +109,7 @@ export default function AlertRulesPanel({ metricType, metricLabel, hives, onAler
 					id: editingId,
 					rule: {
 						hiveId: formData.hiveId || null,
+						apiaryId: formData.hiveId ? null : selectedApiaryId,
 						metricType,
 						conditionType: formData.conditionType,
 						thresholdValue: formData.thresholdValue,
@@ -119,6 +121,7 @@ export default function AlertRulesPanel({ metricType, metricLabel, hives, onAler
 				await createAlertRule({
 					rule: {
 						hiveId: formData.hiveId || null,
+						apiaryId: formData.hiveId ? null : selectedApiaryId,
 						metricType,
 						conditionType: formData.conditionType,
 						thresholdValue: formData.thresholdValue,

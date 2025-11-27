@@ -121,25 +121,31 @@
 }
 
 @media (min-width: 768px) {
-	.form {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-		gap: 12px;
-		align-items: start;
-	}
-
 	.form h4 {
-		grid-column: 1 / -1;
-		margin-bottom: 0;
+		margin-bottom: 12px;
 	}
 
 	.formGroup {
+		display: inline-block;
+		width: calc(25% - 9px);
+		margin-right: 12px;
+		vertical-align: top;
 		margin-bottom: 0;
 	}
 
+	.formGroup:nth-child(5) {
+		margin-right: 0;
+	}
+
+	.formGroup:nth-child(6) {
+		display: block;
+		width: 100%;
+		margin-right: 0;
+		margin-bottom: 12px;
+	}
+
 	.buttonRow {
-		grid-column: 1 / -1;
-		margin-top: 0;
+		justify-content: flex-end;
 	}
 }
 

@@ -86,9 +86,35 @@
   color: #666;
 }
 
+.viewChartLink {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+
+  &:hover {
+    text-decoration: underline;
+    color: #1d4ed8;
+  }
+}
+
 .alertTime {
   font-size: 0.85rem;
   color: #999;
   white-space: nowrap;
   margin-left: 12px;
 }
+
+.deleteRuleBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 4px 8px;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+

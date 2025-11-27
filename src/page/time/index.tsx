@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import styles from './styles.module.less'
 import Loader from '@/shared/loader'
 import { useLiveQuery } from 'dexie-react-hooks'
@@ -70,7 +71,15 @@ const HIVES_QUERY = gql`
 `
 
 export default function TimeView() {
+	const [searchParams, setSearchParams] = useSearchParams()
 	const { chartRefs, syncCharts } = useChartSync()
+	const scrollHandledRef = useRef(false)
+
+	const urlHiveId = searchParams.get('hiveId')
+	const urlApiaryId = searchParams.get('apiaryId')
+	const urlChartType = searchParams.get('chartType')
+	const urlScrollTo = searchParams.get('scrollTo')
+
 	const [selectedApiaryId, setSelectedApiaryId] = useState<string | null>(() =>
 		loadFromLocalStorage(LS_KEYS.SELECTED_APIARY, null)
 	)
@@ -153,6 +162,54 @@ export default function TimeView() {
 		})
 		return map
 	}, [gqlData])
+
+	useEffect(() => {
+		if (urlHiveId && allHives && hiveToApiaryMap) {
+			const targetHive = allHives.find(h => h.id === urlHiveId)
+			if (targetHive) {
+				const apiaryId = hiveToApiaryMap[urlHiveId]?.id
+				if (apiaryId && apiaryId !== selectedApiaryId) {
+					setSelectedApiaryId(apiaryId)
+				}
+
+				if (!selectedHiveIds.includes(urlHiveId)) {
+					setSelectedHiveIds(prev => [...prev, urlHiveId])
+				}
+			}
+		}
+	}, [urlHiveId, allHives, hiveToApiaryMap, selectedApiaryId, selectedHiveIds])
+
+	useEffect(() => {
+		if (urlApiaryId && urlApiaryId !== selectedApiaryId) {
+			setSelectedApiaryId(urlApiaryId)
+		}
+	}, [urlApiaryId, selectedApiaryId])
+
+	useEffect(() => {
+		if (urlChartType && enabledCharts.hasOwnProperty(urlChartType)) {
+			if (!enabledCharts[urlChartType]) {
+				setEnabledCharts(prev => ({ ...prev, [urlChartType]: true }))
+			}
+		}
+	}, [urlChartType, enabledCharts])
+
+	useEffect(() => {
+		if (urlScrollTo && !scrollHandledRef.current && enabledCharts[urlScrollTo]) {
+			const timer = setTimeout(() => {
+				const chartElement = document.querySelector(`[data-chart-type="${urlScrollTo}"]`)
+				if (chartElement) {
+					chartElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+					scrollHandledRef.current = true
+
+					const newParams = new URLSearchParams(searchParams)
+					newParams.delete('scrollTo')
+					setSearchParams(newParams, { replace: true })
+				}
+			}, 500)
+
+			return () => clearTimeout(timer)
+		}
+	}, [urlScrollTo, enabledCharts, searchParams, setSearchParams])
 
 	const selectedApiary = useMemo(() => {
 		if (!selectedApiaryId || !gqlData?.apiaries) return null
@@ -386,68 +443,84 @@ export default function TimeView() {
 
 				<main className={styles.chartsContainer}>
 					{enabledCharts.population && (
-						<PopulationChart
-							inspectionsByHive={inspectionsByHive}
-							showIdealCurve={showIdealCurve}
-							chartRefs={chartRefs}
-							syncCharts={syncCharts}
-						/>
+						<div data-chart-type="population">
+							<PopulationChart
+								inspectionsByHive={inspectionsByHive}
+								showIdealCurve={showIdealCurve}
+								chartRefs={chartRefs}
+								syncCharts={syncCharts}
+							/>
+						</div>
 					)}
 
 					{enabledCharts.weight && (
-						<MultiHiveWeightChart
-							weightDataByHive={weightDataByHive}
-							chartRefs={chartRefs}
-							syncCharts={syncCharts}
-						/>
+						<div data-chart-type="weight">
+							<MultiHiveWeightChart
+								weightDataByHive={weightDataByHive}
+								chartRefs={chartRefs}
+								syncCharts={syncCharts}
+							/>
+						</div>
 					)}
 
 					{enabledCharts.temperature && (
-						<MultiHiveTemperatureChart
-							temperatureDataByHive={temperatureDataByHive}
-							chartRefs={chartRefs}
-							syncCharts={syncCharts}
-						/>
+						<div data-chart-type="temperature">
+							<MultiHiveTemperatureChart
+								temperatureDataByHive={temperatureDataByHive}
+								chartRefs={chartRefs}
+								syncCharts={syncCharts}
+							/>
+						</div>
 					)}
 
 					{enabledCharts.entrance && (
-						<MultiHiveEntranceChart
-							entranceDataByHive={entranceDataByHive}
-							chartRefs={chartRefs}
-							syncCharts={syncCharts}
-						/>
+						<div data-chart-type="entrance">
+							<MultiHiveEntranceChart
+								entranceDataByHive={entranceDataByHive}
+								chartRefs={chartRefs}
+								syncCharts={syncCharts}
+							/>
+						</div>
 					)}
 
 					{enabledCharts.entranceSpeed && (
-						<MultiHiveEntranceSpeedChart
-							entranceDataByHive={entranceDataByHive}
-							chartRefs={chartRefs}
-							syncCharts={syncCharts}
-						/>
+						<div data-chart-type="entranceSpeed">
+							<MultiHiveEntranceSpeedChart
+								entranceDataByHive={entranceDataByHive}
+								chartRefs={chartRefs}
+								syncCharts={syncCharts}
+							/>
+						</div>
 					)}
 
 					{enabledCharts.entranceDetected && (
-						<MultiHiveEntranceDetectedChart
-							entranceDataByHive={entranceDataByHive}
-							chartRefs={chartRefs}
-							syncCharts={syncCharts}
-						/>
+						<div data-chart-type="entranceDetected">
+							<MultiHiveEntranceDetectedChart
+								entranceDataByHive={entranceDataByHive}
+								chartRefs={chartRefs}
+								syncCharts={syncCharts}
+							/>
+						</div>
 					)}
 
 					{enabledCharts.entranceStationary && (
-						<MultiHiveEntranceStationaryChart
-							entranceDataByHive={entranceDataByHive}
-							chartRefs={chartRefs}
-							syncCharts={syncCharts}
-						/>
+						<div data-chart-type="entranceStationary">
+							<MultiHiveEntranceStationaryChart
+								entranceDataByHive={entranceDataByHive}
+								chartRefs={chartRefs}
+								syncCharts={syncCharts}
+							/>
+						</div>
 					)}
 
 					{enabledCharts.entranceInteractions && (
-						<MultiHiveEntranceInteractionsChart
-							entranceDataByHive={entranceDataByHive}
-							chartRefs={chartRefs}
-							syncCharts={syncCharts}
-						/>
+						<div data-chart-type="entranceInteractions">
+							<MultiHiveEntranceInteractionsChart
+								entranceDataByHive={entranceDataByHive}
+								chartRefs={chartRefs}
+								syncCharts={syncCharts}
+							/>
+						</div>
 					)}
 
 					{enabledCharts.weather && (

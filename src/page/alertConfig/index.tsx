@@ -32,6 +32,60 @@ const ALERT_CHANNELS_QUERY = gql`
 			metricValue
 			delivered
 		}
+		alertRules {
+			id
+			hiveId
+			apiaryId
+			metricType
+			conditionType
+			thresholdValue
+			durationMinutes
+			enabled
+			createdAt
+			updatedAt
+		}
+		apiaries {
+			id
+			name
+			hives {
+				id
+				name
+			}
+		}
+	}
+`;
+
+const CREATE_ALERT_RULE_MUTATION = gql`
+	mutation createAlertRule($rule: AlertRuleInput!) {
+		createAlertRule(rule: $rule) {
+			id
+			hiveId
+			metricType
+			conditionType
+			thresholdValue
+			durationMinutes
+			enabled
+		}
+	}
+`;
+
+const UPDATE_ALERT_RULE_MUTATION = gql`
+	mutation updateAlertRule($id: ID!, $rule: AlertRuleInput!) {
+		updateAlertRule(id: $id, rule: $rule) {
+			id
+			hiveId
+			metricType
+			conditionType
+			thresholdValue
+			durationMinutes
+			enabled
+		}
+	}
+`;
+
+const DELETE_ALERT_RULE_MUTATION = gql`
+	mutation deleteAlertRule($id: ID!) {
+		deleteAlertRule(id: $id)
 	}
 `;
 
@@ -56,13 +110,48 @@ const DELETE_ALERT_CHANNEL_MUTATION = gql`
 	}
 `;
 
+function getChartTypeFromMetricType(metricType: string | null | undefined): string | null {
+	if (!metricType) return null;
+
+	const metricTypeMap: Record<string, string> = {
+		'WEIGHT': 'weight',
+		'TEMPERATURE': 'temperature',
+		'ENTRANCE_MOVEMENT': 'entrance',
+		'ENTRANCE_SPEED': 'entranceSpeed',
+		'ENTRANCE_DETECTED': 'entranceDetected',
+		'ENTRANCE_STATIONARY': 'entranceStationary',
+		'ENTRANCE_INTERACTIONS': 'entranceInteractions'
+	};
+
+	return metricTypeMap[metricType] || null;
+}
+
 export default function AlertConfig() {
 	const { data, reexecuteQuery } = useQuery(ALERT_CHANNELS_QUERY);
 	const [setAlertChannel, { error: mutationError }] = useMutation(SET_ALERT_CHANNEL_MUTATION);
 	const [deleteAlertChannel] = useMutation(DELETE_ALERT_CHANNEL_MUTATION);
+	const [createAlertRule] = useMutation(CREATE_ALERT_RULE_MUTATION);
+	const [updateAlertRule] = useMutation(UPDATE_ALERT_RULE_MUTATION);
+	const [deleteAlertRule] = useMutation(DELETE_ALERT_RULE_MUTATION);
 
 	const channels = data?.alertChannels || [];
 	const alerts = data?.alerts || [];
+	const alertRules = data?.alertRules || [];
+	const apiaries = data?.apiaries || [];
+
+	const hiveMap = React.useMemo(() => {
+		const map: Record<string, { name: string; apiaryId: string; apiaryName: string }> = {};
+		apiaries.forEach(apiary => {
+			apiary.hives?.forEach(hive => {
+				map[hive.id] = {
+					name: hive.name || `Hive ${hive.id}`,
+					apiaryId: apiary.id,
+					apiaryName: apiary.name
+				};
+			});
+		});
+		return map;
+	}, [apiaries]);
 
 	const hasEnabledChannels = channels.some(ch => ch.enabled);
 	const [activeTab, setActiveTab] = useState(hasEnabledChannels ? 'history' : 'channels');
@@ -152,6 +241,9 @@ export default function AlertConfig() {
 			<TabBar variant="rounded">
 				<Tab variant="rounded" isSelected={activeTab === 'channels'} onClick={() => setActiveTab('channels')}>
 					⚙️ <T>Alert Channels</T>
+				</Tab>
+				<Tab variant="rounded" isSelected={activeTab === 'rules'} onClick={() => setActiveTab('rules')}>
+					📋 <T>Alert Rules</T>
 				</Tab>
 				<Tab variant="rounded" isSelected={activeTab === 'history'} onClick={() => setActiveTab('history')}>
 					📜 <T>Alert History</T>
@@ -282,22 +374,148 @@ export default function AlertConfig() {
 							<p style={{ color: '#999' }}><T>No alerts yet</T></p>
 						) : (
 							<div className={styles.alertList}>
-								{alerts.map((alert) => (
-									<div key={alert.id} className={styles.alertItem}>
-										<div className={styles.alertContent}>
-											<div className={styles.alertText}>{alert.text}</div>
-											{alert.hiveId && (
-												<div className={styles.alertMeta}>
-													Hive: {alert.hiveId} | {alert.metricType}: {alert.metricValue}
+								{alerts.map((alert) => {
+									const chartType = getChartTypeFromMetricType(alert.metricType);
+									const timeViewUrl = alert.hiveId && chartType
+										? `/time?hiveId=${alert.hiveId}&chartType=${chartType}&scrollTo=${chartType}`
+										: null;
+
+									return (
+										<div key={alert.id} className={styles.alertItem}>
+											<div className={styles.alertContent}>
+												<div className={styles.alertText}>{alert.text}</div>
+												{alert.hiveId && (
+													<div className={styles.alertMeta}>
+														Hive: {alert.hiveId} | {alert.metricType}: {alert.metricValue}
+														{timeViewUrl && (
+															<>
+																{' | '}
+																<a href={timeViewUrl} className={styles.viewChartLink}>
+																	<T>View Chart</T> →
+																</a>
+															</>
+														)}
+													</div>
+												)}
+											</div>
+											<div className={styles.alertTime}>
+												<DateTimeFormat datetime={alert.date_added} />
+												{alert.delivered && <span style={{ color: 'green', marginLeft: '8px' }}>✓</span>}
+											</div>
+										</div>
+									);
+								})}
+							</div>
+						)}
+					</div>
+				)}
+
+				{activeTab === 'rules' && (
+					<div style={{ padding: '16px' }}>
+						<p style={{ color: '#666', marginBottom: '16px' }}>
+							<T>Alert rules define when you should be notified about specific conditions in your hives.</T>
+						</p>
+
+						{alertRules.length === 0 ? (
+							<p style={{ color: '#999' }}>
+								<T>No alert rules configured yet. Alert rules are created from specific charts in the time view.</T>
+							</p>
+						) : (
+							<div className={styles.alertList}>
+								{alertRules.map((rule) => {
+									const chartType = getChartTypeFromMetricType(rule.metricType);
+									const hiveInfo = rule.hiveId ? hiveMap[rule.hiveId] : null;
+									const apiary = rule.apiaryId ? apiaries.find(a => a.id === rule.apiaryId) : (hiveInfo ? apiaries.find(a => a.id === hiveInfo.apiaryId) : null);
+
+									const timeViewUrl = chartType
+										? rule.hiveId
+											? `/time?hiveId=${rule.hiveId}&chartType=${chartType}&scrollTo=${chartType}`
+											: rule.apiaryId
+												? `/time?apiaryId=${rule.apiaryId}&chartType=${chartType}`
+												: `/time?chartType=${chartType}`
+										: null;
+
+									const hiveViewUrl = hiveInfo
+										? `/apiaries/${hiveInfo.apiaryId}/hives/${rule.hiveId}`
+										: null;
+
+									const apiaryViewUrl = apiary
+										? `/apiaries/edit/${apiary.id}`
+										: null;
+
+									return (
+										<div key={rule.id} className={styles.alertItem}>
+											<div className={styles.alertContent}>
+												<div className={styles.alertText}>
+													<strong>{rule.metricType}</strong>
+													{' '}
+													{rule.conditionType === 'GREATER_THAN' && '>'}
+													{rule.conditionType === 'LESS_THAN' && '<'}
+													{rule.conditionType === 'EQUALS' && '='}
+													{' '}
+													{rule.thresholdValue}
+													{rule.durationMinutes > 0 && ` for ${rule.durationMinutes} min`}
 												</div>
-											)}
+												<div className={styles.alertMeta}>
+													{rule.hiveId ? (
+														hiveInfo ? (
+															<>
+																<a href={hiveViewUrl} className={styles.viewChartLink}>
+																	{hiveInfo.name}
+																</a>
+																{' in '}
+																{apiary && apiaryViewUrl ? (
+																	<a href={apiaryViewUrl} className={styles.viewChartLink}>
+																		{apiary.name}
+																	</a>
+																) : (
+																	<span style={{ color: '#666' }}>{hiveInfo.apiaryName}</span>
+																)}
+															</>
+														) : (
+															<>Hive ID: {rule.hiveId}</>
+														)
+													) : apiary && apiaryViewUrl ? (
+														<>
+															All hives in{' '}
+															<a href={apiaryViewUrl} className={styles.viewChartLink}>
+																{apiary.name}
+															</a>
+														</>
+													) : (
+														<>All hives</>
+													)}
+													{' | '}
+													<span style={{ color: rule.enabled ? 'green' : 'red' }}>
+														{rule.enabled ? '✓ Enabled' : '✗ Disabled'}
+													</span>
+													{timeViewUrl && (
+														<>
+															{' | '}
+															<a href={timeViewUrl} className={styles.viewChartLink}>
+																<T>View Chart</T> →
+															</a>
+														</>
+													)}
+												</div>
+											</div>
+											<div className={styles.alertTime}>
+												<button
+													className={styles.deleteRuleBtn}
+													onClick={async () => {
+														if (confirm('Delete this alert rule?')) {
+															await deleteAlertRule({ id: rule.id });
+															reexecuteQuery();
+														}
+													}}
+													title="Delete rule"
+												>
+													🗑️
+												</button>
+											</div>
 										</div>
-										<div className={styles.alertTime}>
-											<DateTimeFormat datetime={alert.date_added} />
-											{alert.delivered && <span style={{ color: 'green', marginLeft: '8px' }}>✓</span>}
-										</div>
-									</div>
-								))}
+									);
+								})}
 							</div>
 						)}
 					</div>

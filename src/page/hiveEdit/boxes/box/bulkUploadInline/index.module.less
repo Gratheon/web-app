@@ -1,0 +1,254 @@
+.bulkUploadInline {
+	background: white;
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	padding: 16px;
+	margin-bottom: 16px;
+	box-sizing: border-box;
+	width: 100%;
+	overflow: hidden;
+}
+
+.header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 8px;
+}
+
+.buttonContainer {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+	flex: 1;
+}
+
+.fileCountHint {
+	font-size: 13px;
+	color: #666;
+	text-align: center;
+}
+
+.collapseButton {
+	background: transparent;
+	border: none;
+	cursor: pointer;
+	font-size: 16px;
+	padding: 4px 8px;
+	color: #666;
+	align-self: flex-start;
+
+	&:hover {
+		color: #333;
+	}
+}
+
+.expandedContent {
+	margin-top: 16px;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.info {
+	padding: 12px;
+	background: #f5f5f5;
+	border-radius: 4px;
+	font-size: 14px;
+	line-height: 1.6;
+}
+
+.warning {
+	color: #ff6b00;
+	font-weight: 500;
+}
+
+.dropZone {
+	border: 2px dashed #ccc;
+	border-radius: 8px;
+	padding: 40px;
+	text-align: center;
+	cursor: pointer;
+	transition: all 0.2s;
+	min-height: 150px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	&:hover {
+		border-color: #666;
+		background: #fafafa;
+	}
+}
+
+.dropZoneContent {
+	pointer-events: none;
+
+	svg {
+		width: 48px;
+		height: 48px;
+		margin-bottom: 16px;
+		opacity: 0.5;
+	}
+
+	p {
+		margin: 8px 0;
+		font-size: 16px;
+		color: #333;
+	}
+}
+
+.dropZoneHint {
+	font-size: 12px !important;
+	color: #666 !important;
+}
+
+.previewGrid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+	gap: 12px;
+	max-height: 400px;
+	overflow-y: auto;
+	padding: 4px;
+}
+
+.previewItem {
+	position: relative;
+	aspect-ratio: 1;
+	border-radius: 8px;
+	overflow: hidden;
+	border: 2px solid #ddd;
+	box-sizing: border-box;
+
+	img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+}
+
+.previewOverlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.3);
+	opacity: 0;
+	transition: opacity 0.2s;
+	display: flex;
+	flex-direction: column;
+
+	.previewItem:hover & {
+		opacity: 1;
+	}
+}
+
+.previewNumber {
+	position: absolute;
+	top: 4px;
+	left: 4px;
+	background: rgba(0, 0, 0, 0.7);
+	color: white;
+	padding: 2px 6px;
+	border-radius: 4px;
+	font-size: 11px;
+	font-weight: bold;
+}
+
+.previewActions {
+	position: absolute;
+	top: 4px;
+	right: 4px;
+	display: flex;
+	gap: 2px;
+
+	button {
+		background: rgba(0, 0, 0, 0.7);
+		color: white;
+		border: none;
+		border-radius: 4px;
+		width: 24px;
+		height: 24px;
+		cursor: pointer;
+		font-size: 14px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+		&:hover {
+			background: rgba(0, 0, 0, 0.9);
+		}
+	}
+}
+
+.progressBar {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: 4px;
+	background: rgba(0, 0, 0, 0.3);
+	overflow: hidden;
+	border: none;
+}
+
+.progressFill {
+	height: 100%;
+	background: #4caf50;
+	transition: width 0.3s;
+	max-width: 100%;
+	border: none;
+}
+
+.uploadedBadge {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	background: #4caf50;
+	color: white;
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 20px;
+	font-weight: bold;
+}
+
+.errorBadge {
+	position: absolute;
+	bottom: 4px;
+	left: 4px;
+	right: 4px;
+	background: rgba(244, 67, 54, 0.9);
+	color: white;
+	padding: 2px 4px;
+	border-radius: 4px;
+	font-size: 10px;
+	text-align: center;
+}
+
+.frameSideInfo {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	background: rgba(0, 0, 0, 0.7);
+	color: white;
+	padding: 2px 4px;
+	font-size: 10px;
+	text-align: center;
+}
+
+.actions {
+	display: flex;
+	gap: 8px;
+	justify-content: flex-end;
+	padding-top: 8px;
+	border-top: 1px solid #ddd;
+}
+

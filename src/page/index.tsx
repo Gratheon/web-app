@@ -3,6 +3,7 @@ import { Routes, Route, useNavigate } from 'react-router';
 
 import Menu from '../shared/menu';
 import Footer from '../shared/footer';
+import MinimizedUploadProgress from '../shared/minimizedUploadProgress';
 import { isLoggedIn } from '../user';
 
 import ApiaryCreate from './apiaryCreate'
@@ -40,6 +41,7 @@ function LoggedInPage({ children }) {
 function PageWithMenu({children}) {
 	return <div style={{display: 'flex', flexDirection: 'column', height: "100%"}}>
 		<Menu isLoggedIn={isLoggedIn()}/>
+		<MinimizedUploadProgress />
 		<div style={{flex: 1}}>
 			{children}
 		</div>

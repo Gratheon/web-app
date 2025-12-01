@@ -12,6 +12,7 @@ import initErrorReporting from './error_reporter'
 import GlobalErrorHandler from './error_handler'
 import { syncGraphqlSchemaToIndexDB } from './models/db'
 import { schemaObject } from './api/schema'
+import { UploadProvider } from './contexts/UploadContext'
 
 initErrorReporting()
 
@@ -26,7 +27,8 @@ export default function App() {
 	return (
 		<GlobalErrorHandler>
 			<Provider value={apiClient}>
-				<Helmet
+				<UploadProvider>
+					<Helmet
 					htmlAttributes={{ lang: 'en', amp: undefined }} // amp takes no value
 					title="App"
 					titleTemplate="Gratheon.com - %s"
@@ -68,6 +70,7 @@ export default function App() {
 					<Paywall isLoggedIn={isLoggedIn()} />
 					<Page />
 				</BrowserRouter>
+				</UploadProvider>
 			</Provider>
 		</GlobalErrorHandler>
 	)

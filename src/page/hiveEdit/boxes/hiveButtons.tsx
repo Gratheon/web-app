@@ -7,21 +7,25 @@ import {
 	addBox,
 	maxBoxPosition,
 	removeBox
-} from '@/models/boxes.ts'
+} from '@/models/boxes'
 import T from '@/shared/translate'
 
-import AddBoxIcon from '@/icons/addBox.tsx'
-import AddSuperIcon from '@/icons/addSuper.tsx'
-import GateIcon from '@/icons/gate.tsx'
+import AddBoxIcon from '@/icons/addBox'
+import AddSuperIcon from '@/icons/addSuper'
+import GateIcon from '@/icons/gate'
 import ErrorMessage from '@/shared/messageError'
 
 import { useState } from 'react'
-import metrics from '@/metrics.tsx'
+import metrics from '@/metrics'
 import styles from './styles.module.less'
 import { PopupButton, PopupButtonGroup } from '@/shared/popupButton'
 import DeleteIcon from '@/icons/deleteIcon'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { getHive, isEditable } from '@/models/hive'
+import BulkUploadInline from './box/bulkUploadInline/index'
+import { getFrames } from '@/models/frames'
+import { enrichFramesWithSides } from '@/models/frameSide'
+import { enrichFramesWithSideFiles } from '@/models/frameSideFile'
 
 
 export default function HiveButtons({
@@ -33,6 +37,19 @@ export default function HiveButtons({
 	const [adding, setAdding] = useState(false)
 	const [errorRemove, setErrorRemove] = useState(false)
 	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId]);
+
+	const frames = useLiveQuery(
+		async () => {
+			if (!box || !box.id) return null
+			const framesWithoutSides = await getFrames({ boxId: box.id })
+			if (!framesWithoutSides) return null
+			const framesWithSides = await enrichFramesWithSides(framesWithoutSides)
+			if (!framesWithSides) return null
+			return await enrichFramesWithSideFiles(framesWithSides)
+		},
+		[box?.id],
+		null
+	)
 
 	let [addBoxMutation, { error: errorAdd }] =
 		useMutation(`mutation addBox($hiveId: ID!, $position: Int!, $type: BoxType!) {
@@ -102,9 +119,12 @@ let [removeBoxMutation] = useMutation(`mutation deactivateBox($id: ID!) {
 		return null
 	}
 
+	const showBulkUpload = box && (box.type === boxTypes.DEEP || box.type === boxTypes.SUPER) && frames && frames.length > 0
+
 	return (
 		<>
 			<ErrorMessage error={errorAdd || errorRemove} />
+
 			<div className={styles.hiveButtons}>
 
 				<Button
@@ -162,6 +182,16 @@ let [removeBoxMutation] = useMutation(`mutation deactivateBox($id: ID!) {
 					</PopupButton>
 				</PopupButtonGroup>
 			</div>
+
+			{showBulkUpload && (
+				<BulkUploadInline
+					hiveId={+hiveId}
+					boxId={+box.id}
+					apiaryId={+apiaryId}
+					frames={frames}
+					onComplete={() => {}}
+				/>
+			)}
 		</>
 	)
 }

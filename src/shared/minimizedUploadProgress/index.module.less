@@ -1,0 +1,89 @@
+.minimizedProgress {
+	position: fixed;
+	z-index: 9999;
+	background: white;
+	border: 2px solid #333;
+	border-radius: 8px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+	min-width: 300px;
+	max-width: 400px;
+	user-select: none;
+}
+
+.minimizedHeader {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 8px 12px;
+	background: #333;
+	color: white;
+	border-radius: 6px 6px 0 0;
+	cursor: grab;
+
+	&:active {
+		cursor: grabbing;
+	}
+}
+
+.minimizedTitle {
+	font-weight: 600;
+	font-size: 14px;
+}
+
+.minimizedActions {
+	display: flex;
+	gap: 4px;
+}
+
+.minimizedButton {
+	background: rgba(255, 255, 255, 0.2);
+	border: none;
+	color: white;
+	width: 24px;
+	height: 24px;
+	border-radius: 4px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 16px;
+
+	&:hover {
+		background: rgba(255, 255, 255, 0.3);
+	}
+}
+
+.minimizedBody {
+	padding: 12px;
+	box-sizing: border-box;
+	overflow: hidden;
+}
+
+.progressBar {
+	height: 8px;
+	background: #e0e0e0;
+	border-radius: 4px;
+	overflow: hidden;
+	margin-bottom: 8px;
+	width: 100%;
+	border: none;
+}
+
+.progressFill {
+	height: 100%;
+	background: #4caf50;
+	transition: width 0.3s;
+	border: none;
+}
+
+.progressText {
+	font-size: 12px;
+	color: #666;
+	text-align: center;
+}
+
+.errorCount {
+	color: #f44336;
+	font-weight: 600;
+}
+

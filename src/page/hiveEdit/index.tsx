@@ -229,7 +229,7 @@ export default function HiveEditForm() {
 								extraButtons={null}
 							/>
 
-							<HiveButtons apiaryId={apiaryId} hiveId={hiveId} box={box} />
+							<HiveButtons apiaryId={apiaryId} hiveId={hiveId} box={box} frameId={frameId} />
 
 							{/* {!frameId && <Button
                             color="red"

@@ -31,7 +31,8 @@ import { enrichFramesWithSideFiles } from '@/models/frameSideFile'
 export default function HiveButtons({
 	apiaryId,
 	hiveId,
-	box
+	box,
+	frameId
 }) {
 	let navigate = useNavigate()
 	const [adding, setAdding] = useState(false)
@@ -119,7 +120,7 @@ let [removeBoxMutation] = useMutation(`mutation deactivateBox($id: ID!) {
 		return null
 	}
 
-	const showBulkUpload = box && (box.type === boxTypes.DEEP || box.type === boxTypes.SUPER) && frames && frames.length > 0
+	const showBulkUpload = box && (box.type === boxTypes.DEEP || box.type === boxTypes.SUPER) && frames && frames.length > 0 && !frameId
 
 	return (
 		<>

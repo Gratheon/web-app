@@ -8,7 +8,10 @@ import {
 	countBoxFrames,
 	frameTypes,
 	addFrame,
+	getFrames,
 } from '@/models/frames.ts'
+import { enrichFramesWithSides } from '@/models/frameSide.ts'
+import { enrichFramesWithSideFiles } from '@/models/frameSideFile.ts'
 import FoundationIcon from '@/icons/foundationIcon.tsx'
 import T from '@/shared/translate'
 import metrics from '@/metrics.tsx'
@@ -17,8 +20,21 @@ import FeederIcon from '@/icons/feederIcon.tsx'
 import PartitionIcon from '@/icons/partitionIcon.tsx'
 import Button from '@/shared/button'
 import { PopupButton, PopupButtonGroup } from '@/shared/popupButton'
+import BulkUpload from '../bulkUpload'
+import { useLiveQuery } from 'dexie-react-hooks'
 
 export default function FrameButtons({ box, onError }) {
+	const frames = useLiveQuery(
+		async () => {
+			const framesWithoutSides = await getFrames({ boxId: box.id })
+			if (!framesWithoutSides) return null
+			const framesWithSides = await enrichFramesWithSides(framesWithoutSides)
+			if (!framesWithSides) return null
+			return await enrichFramesWithSideFiles(framesWithSides)
+		},
+		[box.id],
+		null
+	)
 	let [addFrameMutation] =
 		useMutation(`mutation addFrame($boxId: ID!, $type: String!, $position: Int!) {
 		addFrame(boxId: $boxId, type: $type, position: $position){
@@ -96,6 +112,14 @@ export default function FrameButtons({ box, onError }) {
 						}}
 					><PartitionIcon /><T ctx="this is a button that adds new frame-like separator made of wood into a beehive to reduce available space for bees">Add partition</T></Button>
 				</PopupButton>
+
+				{frames && frames.length > 0 && (
+					<BulkUpload
+						hiveId={box.hiveId}
+						frames={frames}
+						onComplete={() => {}}
+					/>
+				)}
 			</PopupButtonGroup>
 	)
 }

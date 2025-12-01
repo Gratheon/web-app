@@ -7,7 +7,10 @@
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 	min-width: 300px;
 	max-width: 400px;
+	width: 320px;
 	user-select: none;
+	box-sizing: border-box;
+	overflow: hidden;
 }
 
 .minimizedHeader {
@@ -66,14 +69,19 @@
 	overflow: hidden;
 	margin-bottom: 8px;
 	width: 100%;
+	max-width: 100%;
 	border: none;
+	box-sizing: border-box;
 }
 
 .progressFill {
 	height: 100%;
+	width: 0;
+	max-width: 100%;
 	background: #4caf50;
 	transition: width 0.3s;
 	border: none;
+	box-sizing: border-box;
 }
 
 .progressText {

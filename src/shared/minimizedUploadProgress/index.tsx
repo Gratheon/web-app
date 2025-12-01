@@ -94,19 +94,17 @@ export default function MinimizedUploadProgress() {
 				</div>
 			</div>
 			<div className={styles.minimizedBody}>
-				<div className={styles.minimizedProgress}>
-					<div className={styles.progressBar}>
-						<div
-							className={styles.progressFill}
-							style={{ width: `${uploadProgress}%` }}
-						/>
-					</div>
-					<div className={styles.progressText}>
-						{completedCount} / {totalCount} <T>completed</T>
-						{errorCount > 0 && (
-							<span className={styles.errorCount}> ({errorCount} <T>errors</T>)</span>
-						)}
-					</div>
+				<div className={styles.progressBar}>
+					<div
+						className={styles.progressFill}
+						style={{ width: `${uploadProgress}%` }}
+					/>
+				</div>
+				<div className={styles.progressText}>
+					{completedCount} / {totalCount} <T>completed</T>
+					{errorCount > 0 && (
+						<span className={styles.errorCount}> ({errorCount} <T>errors</T>)</span>
+					)}
 				</div>
 			</div>
 		</div>

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'preact/hooks'
+import { useState, useRef, useEffect } from 'preact/hooks'
 import { gql, useUploadMutation, useMutation } from '@/api'
 import { updateFile } from '@/models/files.ts'
 import { updateFrameSideFile } from '@/models/frameSideFile.ts'
@@ -46,6 +46,15 @@ export default function BulkUploadInline({ hiveId, boxId, apiaryId, frames, onCo
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const dragCounter = useRef(0)
 	const uploadContext = useUploadContext()
+
+	useEffect(() => {
+		if (uploadContext.isUploading && uploadContext.boxId === boxId) {
+			setIsExpanded(true)
+			if (uploadContext.images.length > 0 && images.length === 0) {
+				setImages(uploadContext.images)
+			}
+		}
+	}, [uploadContext.isUploading, uploadContext.boxId, uploadContext.images, boxId, images.length])
 
 	const [uploadFile] = useUploadMutation(gql`
 		mutation uploadFrameSide($file: Upload!) {
@@ -233,13 +242,18 @@ export default function BulkUploadInline({ hiveId, boxId, apiaryId, frames, onCo
 			}
 		}
 
-		setImages([])
-		setIsExpanded(false)
-
 		if (onComplete) {
 			setTimeout(() => {
 				onComplete()
 				uploadContext.completeUpload()
+				setImages([])
+				setIsExpanded(false)
+			}, 2000)
+		} else {
+			setTimeout(() => {
+				uploadContext.completeUpload()
+				setImages([])
+				setIsExpanded(false)
 			}, 2000)
 		}
 	}
@@ -259,21 +273,23 @@ export default function BulkUploadInline({ hiveId, boxId, apiaryId, frames, onCo
 	return (
 		<div className={styles.bulkUploadInline}>
 			<div className={styles.header}>
-				<div className={styles.buttonContainer}>
-					<Button
-						onClick={() => fileInputRef.current?.click()}
-						disabled={uploadContext.isUploading}
-						color="green"
-					>
-						<UploadIcon />
-						<span><T>Bulk upload frame photos</T></span>
-					</Button>
-					{maxImages > 0 && !isExpanded && (
-						<div className={styles.fileCountHint}>
-							<T>Pick up to</T> {maxImages} <T>images</T>
-						</div>
-					)}
-				</div>
+				{!isExpanded && (
+					<div className={styles.buttonContainer}>
+						<Button
+							onClick={() => fileInputRef.current?.click()}
+							disabled={uploadContext.isUploading}
+							color="green"
+						>
+							<UploadIcon />
+							<span><T>Bulk upload frame photos</T></span>
+						</Button>
+						{maxImages > 0 && (
+							<div className={styles.fileCountHint}>
+								<T>Pick up to</T> {maxImages} <T>images</T>
+							</div>
+						)}
+					</div>
+				)}
 				{isExpanded && !uploadContext.isUploading && (
 					<button
 						className={styles.collapseButton}
@@ -344,14 +360,31 @@ export default function BulkUploadInline({ hiveId, boxId, apiaryId, frames, onCo
 
 					{images.length > 0 && (
 						<>
+							{uploadContext.isUploading && uploadContext.boxId === boxId && (
+								<div className={styles.overallProgress}>
+									<div className={styles.progressInfo}>
+										<T>Uploading</T> {uploadContext.images.filter(img => img.uploaded).length} / {images.length}
+									</div>
+									<div className={styles.progressBarOuter}>
+										<div
+											className={styles.progressFillOuter}
+											style={{ width: `${uploadContext.uploadProgress}%` }}
+										/>
+									</div>
+								</div>
+							)}
+
 							<div className={styles.previewGrid}>
 								{images.map((image, index) => {
-									const contextImage = uploadContext.images[index]
+									const contextImage = uploadContext.isUploading && uploadContext.boxId === boxId
+										? uploadContext.images[index]
+										: null
 									const displayImage = contextImage || image
 
 									return (
 										<div key={index} className={styles.previewItem}>
 											<img src={image.previewUrl} alt={`Preview ${index + 1}`} />
+
 											<div className={styles.previewOverlay}>
 												<span className={styles.previewNumber}>{index + 1}</span>
 												{!uploadContext.isUploading && (
@@ -365,19 +398,11 @@ export default function BulkUploadInline({ hiveId, boxId, apiaryId, frames, onCo
 														<button onClick={() => removeImage(index)}>×</button>
 													</div>
 												)}
-												{displayImage.uploadProgress !== undefined && displayImage.uploadProgress > 0 && (
-													<div className={styles.progressBar}>
-														<div
-															className={styles.progressFill}
-															style={{ width: `${displayImage.uploadProgress}%` }}
-														/>
-													</div>
-												)}
-												{displayImage.uploaded && (
+												{contextImage?.uploaded && (
 													<div className={styles.uploadedBadge}>✓</div>
 												)}
-												{displayImage.error && (
-													<div className={styles.errorBadge}>{displayImage.error}</div>
+												{contextImage?.error && (
+													<div className={styles.errorBadge}>{contextImage.error}</div>
 												)}
 											</div>
 											{availableFrameSides[index] && (

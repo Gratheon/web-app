@@ -51,6 +51,21 @@
 	gap: 16px;
 }
 
+.overallProgress {
+	padding: 12px;
+	background: #f5f5f5;
+	border-radius: 8px;
+	border: 1px solid #ddd;
+}
+
+.progressInfo {
+	font-size: 14px;
+	font-weight: 600;
+	margin-bottom: 8px;
+	color: #333;
+	text-align: center;
+}
+
 .info {
 	padding: 12px;
 	background: #f5f5f5;
@@ -128,6 +143,27 @@
 	}
 }
 
+.progressBarOuter {
+	height: 12px;
+	background: #e0e0e0;
+	border-radius: 6px;
+	overflow: hidden;
+	border: none;
+	box-sizing: border-box;
+	width: 100%;
+}
+
+.progressFillOuter {
+	height: 100%;
+	background: linear-gradient(90deg, #4caf50 0%, #66bb6a 100%);
+	transition: width 0.3s ease;
+	max-width: 100%;
+	border: none;
+	box-sizing: border-box;
+	box-shadow: 0 0 8px rgba(76, 175, 80, 0.4);
+	border-radius: 6px;
+}
+
 .previewOverlay {
 	position: absolute;
 	top: 0;
@@ -139,6 +175,7 @@
 	transition: opacity 0.2s;
 	display: flex;
 	flex-direction: column;
+	z-index: 5;
 
 	.previewItem:hover & {
 		opacity: 1;

@@ -148,10 +148,10 @@ let [removeBoxMutation] = useMutation(`mutation deactivateBox($id: ID!) {
 					<PopupButton>
 						<Button
 							loading={adding}
-							title="Add gate"
+							title="Add entrance"
 							onClick={() => onBoxAdd(boxTypes.GATE)}
 						>
-							<GateIcon /><span><T ctx="this is a button to add new section of beehive, specifically holes, an entrance">Add base</T></span>
+							<GateIcon /><span><T ctx="this is a button to add new section of beehive, specifically holes, an entrance">Add entrance</T></span>
 						</Button>
 						<Button
 							loading={adding}
@@ -170,6 +170,12 @@ let [removeBoxMutation] = useMutation(`mutation deactivateBox($id: ID!) {
 							title="Add feeder"
 							onClick={() => onBoxAdd(boxTypes.HORIZONTAL_FEEDER)}
 						><span><T ctx="this is a button to add tiny part of beehive, a horizontal box where sugar syrup can be poured to feed bees">Add feeder</T></span>
+						</Button>
+						<Button
+							loading={adding}
+							title="Add bottom board"
+							onClick={() => onBoxAdd(boxTypes.BOTTOM)}
+						><span><T ctx="this is a button to add bottom board of beehive with slideable white panel for varroa mite counting">Add bottom</T></span>
 						</Button>
 
 

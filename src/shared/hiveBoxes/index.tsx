@@ -77,6 +77,21 @@ export default function HiveBoxes({
 					{box.type === boxTypes.HORIZONTAL_FEEDER && (
 						<FeederHorizontal selected={+boxId === box.id} />
 					)}
+					{box.type === boxTypes.BOTTOM && (
+						<div
+							className={styles.bottom}
+							style={{
+								height: '20px',
+								backgroundColor: +boxId === box.id ? '#999' : '#ccc',
+								border: +boxId === box.id ? '2px solid #666' : '1px solid #aaa',
+								borderRadius: '4px',
+								width: '100%',
+								boxSizing: 'border-box',
+								cursor: 'pointer',
+								transition: 'all 0.2s ease'
+							}}
+						/>
+					)}
 				</div>
 
 				<div

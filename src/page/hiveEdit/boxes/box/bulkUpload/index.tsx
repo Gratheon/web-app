@@ -116,24 +116,24 @@ export default function BulkUpload({ hiveId, frames, onComplete }: BulkUploadPro
 		setImages(prev => [...prev, ...validFiles].slice(0, maxImages))
 	}
 
-	const handleDragEnter = (e: React.DragEvent) => {
+	const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
 		e.preventDefault()
 		e.stopPropagation()
 		dragCounter.current++
 	}
 
-	const handleDragLeave = (e: React.DragEvent) => {
+	const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
 		e.preventDefault()
 		e.stopPropagation()
 		dragCounter.current--
 	}
 
-	const handleDragOver = (e: React.DragEvent) => {
+	const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
 		e.preventDefault()
 		e.stopPropagation()
 	}
 
-	const handleDrop = (e: React.DragEvent) => {
+	const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
 		e.preventDefault()
 		e.stopPropagation()
 		dragCounter.current = 0
@@ -179,6 +179,7 @@ export default function BulkUpload({ hiveId, frames, onComplete }: BulkUploadPro
 				updatedImages[i] = { ...image, uploadProgress: 10 }
 				setImages([...updatedImages])
 
+				//@ts-ignore
 				const uploadResult = await uploadFile({ file: image.file })
 				const uploadData = uploadResult?.data?.uploadFrameSide
 
@@ -321,7 +322,7 @@ export default function BulkUpload({ hiveId, frames, onComplete }: BulkUploadPro
 									type="file"
 									multiple
 									accept={SUPPORTED_IMAGE_TYPES_STRING}
-									onChange={(e) => handleFileSelect(e.target.files)}
+									onChange={(e) => handleFileSelect((e.target as HTMLInputElement).files)}
 									className={styles.fileInput}
 								/>
 								<div className={styles.dropZoneContent}>

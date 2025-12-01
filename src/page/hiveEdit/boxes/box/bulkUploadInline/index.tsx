@@ -128,24 +128,24 @@ export default function BulkUploadInline({ hiveId, boxId, apiaryId, frames, onCo
 		setIsExpanded(true)
 	}
 
-	const handleDragEnter = (e: React.DragEvent) => {
+	const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
 		e.preventDefault()
 		e.stopPropagation()
 		dragCounter.current++
 	}
 
-	const handleDragLeave = (e: React.DragEvent) => {
+	const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
 		e.preventDefault()
 		e.stopPropagation()
 		dragCounter.current--
 	}
 
-	const handleDragOver = (e: React.DragEvent) => {
+	const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
 		e.preventDefault()
 		e.stopPropagation()
 	}
 
-	const handleDrop = (e: React.DragEvent) => {
+	const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
 		e.preventDefault()
 		e.stopPropagation()
 		dragCounter.current = 0
@@ -188,6 +188,7 @@ export default function BulkUploadInline({ hiveId, boxId, apiaryId, frames, onCo
 			try {
 				uploadContext.updateImageProgress(i, 10)
 
+				//@ts-ignore
 				const uploadResult = await uploadFile({ file: image.file })
 				const uploadData = uploadResult?.data?.uploadFrameSide
 
@@ -305,7 +306,7 @@ export default function BulkUploadInline({ hiveId, boxId, apiaryId, frames, onCo
 				type="file"
 				multiple
 				accept={SUPPORTED_IMAGE_TYPES_STRING}
-				onChange={(e) => handleFileSelect(e.target.files)}
+				onChange={(e) => handleFileSelect((e.target as HTMLInputElement).files)}
 				style={{ display: 'none' }}
 			/>
 

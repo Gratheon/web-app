@@ -73,7 +73,8 @@ export default function Boxes({
 				event.target.className.indexOf('excluder') >= 0 ||
 				event.target.className.indexOf('feeder') >= 0 ||
 				event.target.className.indexOf('box') >= 0 ||
-				event.target.className.indexOf('gate') >= 0)
+				event.target.className.indexOf('gate') >= 0 ||
+				event.target.className.indexOf('bottom') >= 0)
 		) {
 			event.stopPropagation()
 			navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`, {

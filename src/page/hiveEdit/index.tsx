@@ -17,6 +17,7 @@ import Loader from '@/shared/loader'
 
 import Frame from '@/page/hiveEdit/frame'
 import GateBox from '@/page/hiveEdit/gateBox/GateBox.tsx'
+import BottomBox from '@/page/hiveEdit/bottomBox/BottomBox.tsx'
 import MessageNotFound from '@/shared/messageNotFound'
 import HiveAdvisor from '@/page/hiveEdit/hiveAdvisor'
 import BreadCrumbs from '@/shared/breadcrumbs'
@@ -231,6 +232,8 @@ export default function HiveEditForm() {
 
 							<HiveButtons apiaryId={apiaryId} hiveId={hiveId} box={box} frameId={frameId} />
 
+							{box && box.type === boxTypes.BOTTOM && <BottomBox boxId={boxId} hiveId={hiveId} />}
+
 							{/* {!frameId && <Button
                             color="red"
                             loading={removingBox}
@@ -288,6 +291,18 @@ function composeBreadCrumbs(
 						{box.id}{' '}
 						<T ctx="this is part of the beehive where bees enter or exit">
 							entrance
+						</T>
+					</>
+				),
+				uri: `/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`,
+			})
+		} else if (box.type === boxTypes.BOTTOM) {
+			breadcrumbs.push({
+				name: (
+					<>
+						{box.id}{' '}
+						<T ctx="this is the bottom board of the beehive used for varroa monitoring">
+							bottom
 						</T>
 					</>
 				),

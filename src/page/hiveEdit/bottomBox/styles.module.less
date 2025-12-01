@@ -1,0 +1,54 @@
+.bottomBoxWrap {
+	padding: 20px;
+	background: #f9f9f9;
+	border-radius: 8px;
+	margin: 20px 0;
+}
+
+.uploadArea {
+	margin-top: 15px;
+}
+
+.uploadLabel {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	padding: 12px 24px;
+	background: #4CAF50;
+	color: white;
+	border-radius: 4px;
+	cursor: pointer;
+	transition: background 0.3s;
+}
+
+.uploadLabel:hover {
+	background: #45a049;
+}
+
+.fileInput {
+	display: none;
+}
+
+.existingImages {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+	gap: 15px;
+	margin: 15px 0;
+}
+
+.uploadedImage {
+	margin-top: 15px;
+}
+
+.uploadedImage img {
+	max-width: 100%;
+	border-radius: 4px;
+	box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.uploadedImage p {
+	margin-top: 10px;
+	color: #4CAF50;
+	font-weight: 500;
+}
+

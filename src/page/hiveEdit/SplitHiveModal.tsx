@@ -214,7 +214,7 @@ export default function SplitHiveModal({
 							title="Generate new name"
 							className={styles.refreshButton}
 						>
-							<RefreshIcon size={16} />
+							<RefreshIcon width={16} height={16} />
 						</Button>
 					</div>
 				</div>

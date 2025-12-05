@@ -1,5 +1,7 @@
 import { db, upsertEntityWithNumericID } from './db'
-import { Frame } from './frames.ts'; // Added import
+import { Frame } from './frames.ts'
+import { getFile } from './files'
+import { getFileResizes } from './fileResize'
 
 export type FrameSideFile = {
     id?: number // same as frameSideId, just for indexing
@@ -350,6 +352,27 @@ export async function enrichFramesWithSideFiles(
 	}
 }
 
+export async function getFrameSidePreviewImage(frameSideId: number) {
+	if (!frameSideId) return null
+
+	try {
+		const frameSideFile = await getFrameSideFile({ frameSideId })
+		if (!frameSideFile?.fileId) return null
+
+		const file = await getFile(frameSideFile.fileId)
+		if (!file) return null
+
+		const resizes = await getFileResizes({ file_id: file.id })
+
+		return {
+			...file,
+			resizes: resizes || []
+		}
+	} catch (e) {
+		console.error('Error fetching frame side preview image:', e)
+		return null
+	}
+}
 
 export default {
 	upsertEntity: async function (entity: FrameSideFile, originalValue) {

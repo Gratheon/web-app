@@ -134,7 +134,11 @@ let [removeBoxMutation] = useMutation(`mutation deactivateBox($id: ID!) {
 			for (const b of boxes) {
 				const boxFrames = await getFrames({ boxId: b.id })
 				if (boxFrames) {
-					allFrames.push(...boxFrames)
+					const framesWithBoxId = boxFrames.map(f => ({
+						...f,
+						boxId: b.id
+					}))
+					allFrames.push(...framesWithBoxId)
 				}
 			}
 			return allFrames

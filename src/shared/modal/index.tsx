@@ -6,9 +6,10 @@ interface ModalProps {
   title: h.JSX.Element | string;
   onClose: () => void;
   children: h.JSX.Element | h.JSX.Element[];
+  className?: string;
 }
 
-export default function Modal({ title, onClose, children }: ModalProps) {
+export default function Modal({ title, onClose, children, className }: ModalProps) {
   const modalRef = useRef(null);
 
   // Close modal on outside click
@@ -40,7 +41,7 @@ export default function Modal({ title, onClose, children }: ModalProps) {
 
   return (
     <div className={styles.modalOverlay}>
-      <div className={styles.modalContent} ref={modalRef}>
+      <div className={`${styles.modalContent} ${className || ''}`} ref={modalRef}>
         <div className={styles.modalHeader}>
           <h2>{title}</h2>
           <button className={styles.closeButton} onClick={onClose}>&times;</button>

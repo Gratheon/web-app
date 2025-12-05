@@ -20,7 +20,7 @@ import BeeCounter from '@/shared/beeCounter'
 import MessageSuccess from '@/shared/messageSuccess'
 import VisualFormSubmit from '@/shared/visualForm/submit'
 
-import { updateHive, getHive, isCollapsed, isEditable } from '@/models/hive.ts'
+import { updateHive, getHive, isCollapsed, isEditable, isMerged } from '@/models/hive.ts'
 import { getBoxes } from '@/models/boxes.ts'
 import { getFamilyByHive } from '@/models/family.ts'
 import {
@@ -37,7 +37,9 @@ import styles from '@/page/hiveEdit/hiveTopInfo/styles.module.less'
 import logoUrl from '@/assets/logo-v7.png'
 
 import HiveTopEditForm from '@/page/hiveEdit/hiveTopInfo/hiveTopEditForm'
-import CollapseHiveModal from '@/page/hiveEdit/CollapseHiveModal'; // Import the modal component
+import CollapseHiveModal from '@/page/hiveEdit/CollapseHiveModal'
+import SplitHiveModal from '@/page/hiveEdit/SplitHiveModal'
+import JoinColonyModal from '@/page/hiveEdit/JoinColonyModal'
 import DateFormat from '@/shared/dateFormat'
 
 export default function HiveEditDetails({ apiaryId, hiveId }) {
@@ -46,12 +48,37 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 	let [okMsg, setOkMsg] = useState(null)
 	let [showCollapseSuccess, setShowCollapseSuccess] = useState(false)
 	let navigate = useNavigate()
-	const [showCollapseModal, setShowCollapseModal] = useState(false); // Add state for collapse modal
+	const [showCollapseModal, setShowCollapseModal] = useState(false)
+	const [splitModalOpen, setSplitModalOpen] = useState(false)
+	const [joinModalOpen, setJoinModalOpen] = useState(false) // Add state for collapse modal
 
 	// Model functions now handle invalid IDs
 	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId]);
 	let boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId]);
 	let family = useLiveQuery(() => getFamilyByHive(+hiveId), [hiveId]);
+
+	const allHiveFrames = useLiveQuery(
+		async () => {
+			if (!hiveId) return []
+			const boxes = await getBoxes({ hiveId: +hiveId })
+			if (!boxes) return []
+			const allFrames = []
+			for (const b of boxes) {
+				const { getFrames } = await import('@/models/frames')
+				const boxFrames = await getFrames({ boxId: b.id })
+				if (boxFrames) {
+					const framesWithBoxId = boxFrames.map(f => ({
+						...f,
+						boxId: b.id
+					}))
+					allFrames.push(...framesWithBoxId)
+				}
+			}
+			return allFrames
+		},
+		[hiveId],
+		[]
+	)
 
 	const collapsed = hive ? isCollapsed(hive) : false;
 	const editableHive = hive ? isEditable(hive) : false; // Expose for UI
@@ -149,7 +176,23 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 					</Button>
 				)}
 
+				{isEditable(hive) && (
+					<Button
+						title="Split hive"
+						onClick={() => setSplitModalOpen(true)}
+					>
+						<span><T>Split Hive</T></span>
+					</Button>
+				)}
 
+				{isEditable(hive) && (
+					<Button
+						title="Join colonies"
+						onClick={() => setJoinModalOpen(true)}
+					>
+						<span><T>Join Colony</T></span>
+					</Button>
+				)}
 
 				{isEditable(hive) && (
 					<PopupButtonGroup>
@@ -187,7 +230,7 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 				)}
 
 
-				{!isEditable(hive) && isCollapsed(hive) && (
+				{!isEditable(hive) && (isCollapsed(hive) || isMerged(hive)) && (
 					<DeactivateButton hiveId={hive.id} />
 				)}
 			</VisualFormSubmit>
@@ -342,6 +385,21 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 						}}
 					/>
 				)}
+
+				<SplitHiveModal
+					isOpen={splitModalOpen}
+					onClose={() => setSplitModalOpen(false)}
+					hiveId={hiveId}
+					apiaryId={apiaryId}
+					frames={allHiveFrames}
+				/>
+
+				<JoinColonyModal
+					isOpen={joinModalOpen}
+					onClose={() => setJoinModalOpen(false)}
+					hiveId={hiveId}
+					apiaryId={apiaryId}
+				/>
 			</>
 		)
 	}

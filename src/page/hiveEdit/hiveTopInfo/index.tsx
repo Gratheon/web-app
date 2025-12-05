@@ -253,6 +253,41 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 							{hive && isCollapsed(hive) && hive.collapse_cause && (
 								<>	<T>Collapse cause</T>: {hive.collapse_cause}</>
 							)}
+
+							{hive.parentHive && (
+								<div className={styles.splitLineage}>
+									<T>Split from</T>:{' '}
+									<a href={`/apiaries/${apiaryId}/hives/${hive.parentHive.id}`}>
+										{hive.parentHive.name}
+									</a>
+									{hive.splitDate && (
+										<>
+											{' '}
+											<T>on</T> <DateFormat datetime={hive.splitDate} />
+										</>
+									)}
+								</div>
+							)}
+
+							{hive.childHives && hive.childHives.length > 0 && (
+								<div className={styles.splitLineage}>
+									<T>Child hives</T>:{' '}
+									{hive.childHives.map((child, idx) => (
+										<span key={child.id}>
+											{idx > 0 && ', '}
+											<a href={`/apiaries/${apiaryId}/hives/${child.id}`}>
+												{child.name}
+											</a>
+											{child.splitDate && (
+												<>
+													{' '}
+													(<DateFormat datetime={child.splitDate} />)
+												</>
+											)}
+										</span>
+									))}
+								</div>
+							)}
 						</div>
 
 						<div className={styles.button_wrap1}>{buttons}</div>

@@ -14,6 +14,18 @@ export default gql`
 			inspectionCount
 			collapse_date
 			collapse_cause
+			splitDate
+
+			parentHive {
+				id
+				name
+			}
+
+			childHives {
+				id
+				name
+				splitDate
+			}
 
 			files {
 				hiveId

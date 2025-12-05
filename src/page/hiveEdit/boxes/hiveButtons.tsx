@@ -26,6 +26,7 @@ import BulkUploadInline from './box/bulkUploadInline/index'
 import { getFrames } from '@/models/frames'
 import { enrichFramesWithSides } from '@/models/frameSide'
 import { enrichFramesWithSideFiles } from '@/models/frameSideFile'
+import SplitHiveModal from '../SplitHiveModal'
 
 
 export default function HiveButtons({
@@ -37,6 +38,7 @@ export default function HiveButtons({
 	let navigate = useNavigate()
 	const [adding, setAdding] = useState(false)
 	const [errorRemove, setErrorRemove] = useState(false)
+	const [splitModalOpen, setSplitModalOpen] = useState(false)
 	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId]);
 
 	const frames = useLiveQuery(
@@ -122,9 +124,36 @@ let [removeBoxMutation] = useMutation(`mutation deactivateBox($id: ID!) {
 
 	const showBulkUpload = box && (box.type === boxTypes.DEEP || box.type === boxTypes.SUPER) && frames && frames.length > 0 && !frameId
 
+	const allHiveFrames = useLiveQuery(
+		async () => {
+			if (!hiveId) return []
+			const { getBoxes } = await import('@/models/boxes')
+			const boxes = await getBoxes({ hiveId: +hiveId })
+			if (!boxes) return []
+			const allFrames = []
+			for (const b of boxes) {
+				const boxFrames = await getFrames({ boxId: b.id })
+				if (boxFrames) {
+					allFrames.push(...boxFrames)
+				}
+			}
+			return allFrames
+		},
+		[hiveId],
+		[]
+	)
+
 	return (
 		<>
 			<ErrorMessage error={errorAdd || errorRemove} />
+
+			<SplitHiveModal
+				isOpen={splitModalOpen}
+				onClose={() => setSplitModalOpen(false)}
+				hiveId={hiveId}
+				apiaryId={apiaryId}
+				frames={allHiveFrames}
+			/>
 
 			<div className={styles.hiveButtons}>
 
@@ -135,6 +164,13 @@ let [removeBoxMutation] = useMutation(`mutation deactivateBox($id: ID!) {
 					onClick={() => onBoxAdd(boxTypes.DEEP)}
 				>
 					<AddBoxIcon /><span><T ctx="this is a button to add new section of beehive, a deep box that is intended for brood frames">Add deep</T></span>
+				</Button>
+
+				<Button
+					title="Split hive"
+					onClick={() => setSplitModalOpen(true)}
+				>
+					<span><T>Split Hive</T></span>
 				</Button>
 				<PopupButtonGroup>
 					<Button

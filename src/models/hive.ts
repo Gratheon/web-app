@@ -9,8 +9,18 @@ export type Hive = {
 	beeCount?: number
 	inspectionCount?: number
 	status?: string
-	collapse_date?: string // Add collapse_date field
-	collapse_cause?: string // Add collapse_cause field
+	collapse_date?: string
+	collapse_cause?: string
+	splitDate?: string
+	parentHive?: {
+		id: number
+		name: string
+	}
+	childHives?: Array<{
+		id: number
+		name: string
+		splitDate?: string
+	}>
 
 	isCollapsed?: () => boolean
 	isEditable?: () => boolean

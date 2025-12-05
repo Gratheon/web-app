@@ -27,6 +27,7 @@ import { getFrames } from '@/models/frames'
 import { enrichFramesWithSides } from '@/models/frameSide'
 import { enrichFramesWithSideFiles } from '@/models/frameSideFile'
 import SplitHiveModal from '../SplitHiveModal'
+import JoinColonyModal from '../JoinColonyModal'
 
 
 export default function HiveButtons({
@@ -39,6 +40,7 @@ export default function HiveButtons({
 	const [adding, setAdding] = useState(false)
 	const [errorRemove, setErrorRemove] = useState(false)
 	const [splitModalOpen, setSplitModalOpen] = useState(false)
+	const [joinModalOpen, setJoinModalOpen] = useState(false)
 	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId]);
 
 	const frames = useLiveQuery(
@@ -159,6 +161,13 @@ let [removeBoxMutation] = useMutation(`mutation deactivateBox($id: ID!) {
 				frames={allHiveFrames}
 			/>
 
+			<JoinColonyModal
+				isOpen={joinModalOpen}
+				onClose={() => setJoinModalOpen(false)}
+				hiveId={hiveId}
+				apiaryId={apiaryId}
+			/>
+
 			<div className={styles.hiveButtons}>
 
 				<Button
@@ -175,6 +184,13 @@ let [removeBoxMutation] = useMutation(`mutation deactivateBox($id: ID!) {
 					onClick={() => setSplitModalOpen(true)}
 				>
 					<span><T>Split Hive</T></span>
+				</Button>
+
+				<Button
+					title="Join colonies"
+					onClick={() => setJoinModalOpen(true)}
+				>
+					<span><T>Join Colony</T></span>
 				</Button>
 				<PopupButtonGroup>
 					<Button

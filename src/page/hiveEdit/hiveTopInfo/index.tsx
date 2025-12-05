@@ -288,6 +288,41 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 									))}
 								</div>
 							)}
+
+							{hive.mergedIntoHive && (
+								<div className={styles.splitLineage}>
+									<T>Merged into</T>:{' '}
+									<a href={`/apiaries/${apiaryId}/hives/${hive.mergedIntoHive.id}`}>
+										{hive.mergedIntoHive.name}
+									</a>
+									{hive.mergeDate && (
+										<>
+											{' '}
+											<T>on</T> <DateFormat datetime={hive.mergeDate} />
+										</>
+									)}
+								</div>
+							)}
+
+							{hive.mergedFromHives && hive.mergedFromHives.length > 0 && (
+								<div className={styles.splitLineage}>
+									<T>Merged from</T>:{' '}
+									{hive.mergedFromHives.map((merged, idx) => (
+										<span key={merged.id}>
+											{idx > 0 && ', '}
+											<a href={`/apiaries/${apiaryId}/hives/${merged.id}`}>
+												{merged.name}
+											</a>
+											{merged.mergeDate && (
+												<>
+													{' '}
+													(<DateFormat datetime={merged.mergeDate} />)
+												</>
+											)}
+										</span>
+									))}
+								</div>
+							)}
 						</div>
 
 						<div className={styles.button_wrap1}>{buttons}</div>

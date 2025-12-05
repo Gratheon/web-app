@@ -21,23 +21,40 @@ export type Hive = {
 		name: string
 		splitDate?: string
 	}>
+	mergeDate?: string
+	mergeType?: string
+	mergedIntoHive?: {
+		id: number
+		name: string
+	}
+	mergedFromHives?: Array<{
+		id: number
+		name: string
+		mergeDate?: string
+		mergeType?: string
+	}>
 
 	isCollapsed?: () => boolean
 	isEditable?: () => boolean
+	isMerged?: () => boolean
 }
 
 const HIVE_STATUS = {
 	ACTIVE: 'active',
 	COLLAPSED: 'collapsed',
+	MERGED: 'merged',
 }
 
-// Utility functions to attach to Hive objects
 export function isCollapsed(hive: Hive): boolean {
 	return hive.status === HIVE_STATUS.COLLAPSED || !!hive.collapse_date;
 }
 
+export function isMerged(hive: Hive): boolean {
+	return hive.status === HIVE_STATUS.MERGED || !!hive.mergedIntoHive;
+}
+
 export function isEditable(hive: Hive): boolean {
-	return !isCollapsed(hive);
+	return !isCollapsed(hive) && !isMerged(hive);
 }
 
 const TABLE_NAME = 'hive'

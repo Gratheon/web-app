@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import { useMemo, useState } from 'preact/hooks'
 import debounce from 'lodash/debounce'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate } from 'react-router-dom'
@@ -9,30 +9,30 @@ import HiveIcon from '@/shared/hive'
 import QRCode from 'qrcode'
 import { useMutation } from '@/api'
 
-import InspectionIcon from '@/icons/inspection.tsx'
+import InspectionIcon from '@/icons/inspection'
 import Loader from '@/shared/loader'
 import Button from '@/shared/button'
-import QrCodeIcon from '@/icons/qrCodeIcon'// Import the new QR code icon
-import SkullIcon from '@/icons/SkullIcon' // Import the new Skull icon
+import QrCodeIcon from '@/icons/qrCodeIcon'
+import SkullIcon from '@/icons/SkullIcon'
 import { PopupButton, PopupButtonGroup } from '@/shared/popupButton'
-import { InspectionSnapshot } from '@/models/inspections.ts'
+import { InspectionSnapshot } from '@/models/inspections'
 import BeeCounter from '@/shared/beeCounter'
 import MessageSuccess from '@/shared/messageSuccess'
 import VisualFormSubmit from '@/shared/visualForm/submit'
 
-import { updateHive, getHive, isCollapsed, isEditable, isMerged } from '@/models/hive.ts'
-import { getBoxes } from '@/models/boxes.ts'
-import { getFamilyByHive } from '@/models/family.ts'
+import { updateHive, getHive, isCollapsed, isEditable, isMerged } from '@/models/hive'
+import { getBoxes } from '@/models/boxes'
+import { getFamilyByHive } from '@/models/family'
 import {
 	getHiveInspectionStats,
 	deleteCellsByFrameSideIDs,
-} from '@/models/frameSideCells.ts'
-import { getFramesByHive } from '@/models/frames.ts'
-import { collectFrameSideIDsFromFrames } from '@/models/frameSide.ts'
-import { deleteFilesByFrameSideIDs } from '@/models/frameSideFile.ts'
+} from '@/models/frameSideCells'
+import { getFramesByHive } from '@/models/frames'
+import { collectFrameSideIDsFromFrames } from '@/models/frameSide'
+import { deleteFilesByFrameSideIDs } from '@/models/frameSideFile'
 
 import DeactivateButton from '@/page/hiveEdit/deleteButton'
-import QueenColor from '@/page/hiveEdit/hiveTopInfo/queenColor'
+import QueenSlot from '@/page/hiveEdit/hiveTopInfo/QueenSlot'
 import styles from '@/page/hiveEdit/hiveTopInfo/styles.module.less'
 import logoUrl from '@/assets/logo-v7.png'
 
@@ -55,7 +55,10 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 	// Model functions now handle invalid IDs
 	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId]);
 	let boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId]);
-	let family = useLiveQuery(() => getFamilyByHive(+hiveId), [hiveId]);
+	let families = useLiveQuery(async () => {
+		const { getAllFamiliesByHive } = await import('@/models/family')
+		return getAllFamiliesByHive(+hiveId)
+	}, [hiveId]) || [];
 
 	const allHiveFrames = useLiveQuery(
 		async () => {
@@ -262,35 +265,27 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 								</h1>
 							</div>
 
-							<div id={styles.raceYear}>
-								{family && family.race}
+							<div id={styles.queenSection}>
+								<QueenSlot
+									families={families}
+									editable={false}
+									onAddQueen={() => {}}
+									onRemoveQueen={() => {}}
+								/>
 
-								{family && family.race && family.added && (
-									<>
-										<QueenColor year={family?.added} />
-										{family && family.added}
-										{hive && isCollapsed(hive) && (
-											<span className={styles.collapsedLabel}>
-												{hive.collapse_date && family.added && <> &mdash; </>}
-
+								{hive && isCollapsed(hive) && (
+									<div className={styles.collapsedLabel}>
+										{hive.collapse_date && (
+											<>
 												<DateFormat datetime={hive.collapse_date} />
-	
-												<SkullIcon size={14} color="#b22222" style={{ marginRight: 4 }} />
-												
-												<T>Collapsed</T>
-
-											</span>
+												{' '}
+											</>
 										)}
-									</>
+										<SkullIcon size={14} color="#b22222" style={{ marginRight: 4 }} />
+										<T>Collapsed</T>
+									</div>
 								)}
 							</div>
-
-							{!family && (
-								<MessageSuccess
-									title={<T>This hive has no family set yet</T>}
-									isWarning={true}
-								/>
-							)}
 
 							{hive.notes && <p>{hive.notes}</p>}
 							{hive && isCollapsed(hive) && hive.collapse_cause && (

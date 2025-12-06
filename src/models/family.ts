@@ -11,15 +11,27 @@ export type Family = {
 const TABLE_NAME = 'family'
 
 export async function getFamilyByHive(hiveId: number): Promise<Family | undefined> {
-	// Validate hiveId before querying
 	if (!hiveId || !Number.isFinite(hiveId) || hiveId <= 0) {
 		console.warn(`Attempted to get family with invalid hiveId: ${hiveId}`);
-		return undefined; // Return undefined for invalid hiveId
+		return undefined;
 	}
 
 	try {
-		// Ensure hiveId passed to Dexie is a number
 		return await db[TABLE_NAME].get({ hiveId: +hiveId });
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
+}
+
+export async function getAllFamiliesByHive(hiveId: number): Promise<Family[]> {
+	if (!hiveId || !Number.isFinite(hiveId) || hiveId <= 0) {
+		console.warn(`Attempted to get families with invalid hiveId: ${hiveId}`);
+		return [];
+	}
+
+	try {
+		return await db[TABLE_NAME].where({ hiveId: +hiveId }).toArray();
 	} catch (e) {
 		console.error(e)
 		throw e
@@ -34,3 +46,13 @@ export async function updateFamily(data: Family) {
 		throw e
 	}
 }
+
+export async function deleteFamily(familyId: number) {
+	try {
+		return await db[TABLE_NAME].delete(familyId)
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
+}
+

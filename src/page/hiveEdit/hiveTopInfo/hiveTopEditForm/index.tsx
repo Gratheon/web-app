@@ -1,19 +1,21 @@
-import React, { useMemo, useState, useEffect, useRef } from 'react'
+import { useMemo, useState, useEffect } from 'preact/hooks'
 import debounce from 'lodash/debounce'
 import { useLiveQuery } from 'dexie-react-hooks'
 
-import QueenColor from '@/page/hiveEdit/hiveTopInfo/queenColor'
+import QueenSlot from '@/page/hiveEdit/hiveTopInfo/QueenSlot'
+import AddQueenModal from '@/page/hiveEdit/hiveTopInfo/AddQueenModal'
+import WarehouseDropZone from '@/page/hiveEdit/hiveTopInfo/WarehouseDropZone'
 
 import { useMutation } from '@/api'
-import { updateHive, getHive, isCollapsed, isEditable } from '@/models/hive.ts'
-import { Box, getBoxes, updateBox } from '@/models/boxes.ts'
-import { getFamilyByHive, updateFamily } from '@/models/family.ts'
-import { Family } from '@/models/family.ts'
-import { InspectionSnapshot } from '@/models/inspections.ts'
-import { getFramesByHive } from '@/models/frames.ts'
-import { getHiveInspectionStats, deleteCellsByFrameSideIDs } from '@/models/frameSideCells.ts'
-import { collectFrameSideIDsFromFrames } from '@/models/frameSide.ts'
-import { deleteFilesByFrameSideIDs } from '@/models/frameSideFile.ts'
+import { updateHive, getHive } from '@/models/hive'
+import { Box, getBoxes, updateBox } from '@/models/boxes'
+import { getFamilyByHive, getAllFamiliesByHive, updateFamily, deleteFamily } from '@/models/family'
+import { Family } from '@/models/family'
+import { InspectionSnapshot } from '@/models/inspections'
+import { getFramesByHive } from '@/models/frames'
+import { getHiveInspectionStats, deleteCellsByFrameSideIDs } from '@/models/frameSideCells'
+import { collectFrameSideIDsFromFrames } from '@/models/frameSide'
+import { deleteFilesByFrameSideIDs } from '@/models/frameSideFile'
 
 
 import T from '@/shared/translate'
@@ -29,11 +31,12 @@ import styles from './styles.module.less'
 export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 	let [creatingInspection, setCreatingInspection] = useState(false)
 	let [okMsg, setOkMsg] = useState(null)
+	let [showAddQueenModal, setShowAddQueenModal] = useState(false)
+	let [isDraggingQueen, setIsDraggingQueen] = useState(false)
 
-	// Model functions now handle invalid IDs
 	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId]);
 	let boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId]);
-	let family = useLiveQuery(() => getFamilyByHive(+hiveId), [hiveId]);
+	let families = useLiveQuery(() => getAllFamiliesByHive(+hiveId), [hiveId]) || [];
 
 	let [mutateBoxColor, { error: errorColor }] = useMutation(
 		`mutation updateBoxColor($boxID: ID!, $color: String!) { updateBoxColor(id: $boxID, color: $color) }`
@@ -246,12 +249,48 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 		[]
 	)
 
+	const handleAddQueen = () => {
+		setShowAddQueenModal(true)
+	}
+
+	const handleRemoveQueen = async (familyId: number) => {
+		try {
+			await deleteFamily(familyId)
+
+			const remainingFamilies = await getAllFamiliesByHive(+hiveId)
+			const hive = await getHive(+hiveId)
+
+			if (remainingFamilies.length === 0) {
+				await mutateHive({
+					hive: {
+						id: hive.id,
+						name: hive.name,
+						notes: hive.notes,
+						family: null,
+					},
+				})
+			}
+		} catch (err) {
+			console.error('Failed to remove queen:', err)
+		}
+	}
+
+	const handleWarehouseDrop = async (familyId: number) => {
+		console.log('Move queen to warehouse:', familyId)
+		await handleRemoveQueen(familyId)
+	}
+
 	if (!hive) {
 		return <Loader />
 	}
 
 	return (
 		<div>
+			<WarehouseDropZone
+				visible={isDraggingQueen}
+				onDrop={handleWarehouseDrop}
+			/>
+
 			<ErrorMessage error={errorColor || errorHive} />
 			{okMsg}
 
@@ -273,37 +312,29 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 								onInput={onNameChange}
 							/>
 						</div>
+
 						<div>
-							<label htmlFor="race"><T ctx="this is a form label for input of the bee queen race and year">Queen</T></label>
-
-							<div>
-								<input
-									name="race"
-									placeholder="Race"
-									className={styles.race}
-									value={family ? family.race : ''}
-									onInput={onRaceChange}
+							<label htmlFor="queen">
+								<T ctx="this is a form label for input of the bee queen race and year">
+									Queen{families.length > 1 ? 's' : ''}
+								</T>
+							</label>
+							<div style={families.length > 0 ? "position: relative; padding-top: 36px;" : "position: relative;"}>
+								<QueenSlot
+									families={families}
+									editable={true}
+									onAddQueen={handleAddQueen}
+									onRemoveQueen={handleRemoveQueen}
+									onDragStart={() => setIsDraggingQueen(true)}
+									onDragEnd={() => setIsDraggingQueen(false)}
+									showAddButton={families.length > 0}
 								/>
-
-								<div style="position:relative;display:inline-block;">
-									<input
-										placeholder="Year"
-										name="queenYear"
-										id="queenYear"
-										minLength={4}
-										maxLength={4}
-										className={styles.year}
-										value={family ? family.added : ''}
-										onInput={onQueenYearChange}
-									/>
-
-									<QueenColor year={family?.added} useRelative={false} />
-								</div>
 							</div>
 						</div>
 
 						<div>
-							<label htmlFor="race">
+							<label htmlFor="notes">
+								<T>Notes</T>
 							</label>
 
 							<div>
@@ -329,6 +360,22 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 
 				</div>
 			</div>
+
+			{showAddQueenModal && (
+				<AddQueenModal
+					hiveId={+hiveId}
+					onClose={() => setShowAddQueenModal(false)}
+					onSuccess={() => {
+						setShowAddQueenModal(false)
+						setOkMsg(
+							<MessageSuccess
+								title={<T>Queen Added</T>}
+								message={<T>The queen has been successfully added to the hive</T>}
+							/>
+						)
+					}}
+				/>
+			)}
 		</div>
 	)
 }

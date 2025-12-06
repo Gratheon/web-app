@@ -1,8 +1,8 @@
 .queenSlot {
-	min-height: 50px;
-	border-radius: 6px;
-	padding: 8px 12px;
-	margin: 6px 0;
+	min-height: 36px;
+	border-radius: 4px;
+	padding: 6px 10px;
+	margin: 4px 0;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -25,11 +25,13 @@
 	}
 
 	&.filled {
-		background: #fff;
-		border: 2px solid #e0e0e0;
+		background: transparent;
+		border: none;
 
 		&.editable {
 			cursor: grab;
+			background: #fff;
+			border: 2px solid #e0e0e0;
 
 			&:hover {
 				border-color: #ffc848;
@@ -51,7 +53,7 @@
 .queenInfo {
 	display: flex;
 	align-items: center;
-	gap: 12px;
+	gap: 10px;
 	flex: 1;
 }
 
@@ -61,12 +63,13 @@
 
 .queenDetails {
 	display: flex;
-	flex-direction: column;
-	gap: 4px;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
 }
 
 .queenRace {
-	font-size: 16px;
+	font-size: 15px;
 	font-weight: 600;
 	color: #333;
 }
@@ -77,6 +80,33 @@
 	display: flex;
 	align-items: center;
 	gap: 4px;
+}
+
+.raceInput {
+	font-size: 15px;
+	font-weight: 600;
+	padding: 2px 6px;
+	border: 1px solid #ccc;
+	border-radius: 3px;
+	min-width: 100px;
+
+	&:focus {
+		outline: none;
+		border-color: #ffc848;
+	}
+}
+
+.yearInput {
+	font-size: 14px;
+	padding: 2px 6px;
+	border: 1px solid #ccc;
+	border-radius: 3px;
+	width: 60px;
+
+	&:focus {
+		outline: none;
+		border-color: #ffc848;
+	}
 }
 
 .queenActions {
@@ -145,11 +175,21 @@
 	display: inline-block;
 }
 
+.queensContainer {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+}
+
+.queensList {
+	flex: 1;
+}
+
 .addAnotherButton {
-	position: absolute;
-	top: -40px;
-	right: 0;
+	flex-shrink: 0;
+	align-self: flex-start;
 	padding: 6px 10px;
+	margin-top: 6px;
 	border: 1px solid #ccc;
 	background: white;
 	border-radius: 4px;
@@ -161,7 +201,6 @@
 	color: #4caf50;
 	font-size: 13px;
 	transition: all 0.2s ease;
-	z-index: 10;
 
 	&:hover {
 		background: #e8f5e9;

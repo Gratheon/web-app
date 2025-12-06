@@ -14,6 +14,7 @@ interface QueenSlotProps {
 	editable: boolean
 	onAddQueen: () => void
 	onRemoveQueen: (familyId: number) => void
+	onUpdateQueen?: (familyId: number, race: string, year: string) => void
 	onDragStart?: (familyId: number) => void
 	onDragEnd?: () => void
 	showAddButton?: boolean
@@ -24,11 +25,15 @@ export default function QueenSlot({
 	editable,
 	onAddQueen,
 	onRemoveQueen,
+	onUpdateQueen,
 	onDragStart,
 	onDragEnd,
 	showAddButton = false
 }: QueenSlotProps) {
 	const [draggingId, setDraggingId] = useState<number | null>(null)
+	const [editingId, setEditingId] = useState<number | null>(null)
+	const [editRace, setEditRace] = useState('')
+	const [editYear, setEditYear] = useState('')
 
 	const handleDragStart = (e: h.JSX.TargetedDragEvent<HTMLDivElement>, familyId: number) => {
 		setDraggingId(familyId)
@@ -63,30 +68,16 @@ export default function QueenSlot({
 	}
 
 	return (
-		<div style={{ position: 'relative' }}>
-			{showAddButton && (
-				<Button
-					type="button"
-					className={styles.addAnotherButton}
-					onClick={(e) => {
-						e.preventDefault()
-						e.stopPropagation()
-						onAddQueen()
-					}}
-					title="Add another queen"
-				>
-					<PlusIcon size={14} />
-					<span>Add</span>
-				</Button>
-			)}
-
+		<div>
 			{families.length > 1 && editable && (
 				<div className={styles.multipleWarning}>
 					<T>Multiple Queens</T> ({families.length})
 				</div>
 			)}
 
-			{families.map((family) => (
+			<div className={styles.queensContainer}>
+				<div className={styles.queensList}>
+					{families.map((family) => (
 				<div
 					key={family.id}
 					className={`${styles.queenSlot} ${styles.filled} ${editable ? styles.editable : ''} ${
@@ -98,17 +89,88 @@ export default function QueenSlot({
 				>
 					<div className={styles.queenInfo}>
 						<div className={styles.queenIcon}>
-							<QueenIcon size={32} />
+							<QueenIcon size={28} />
 						</div>
 						<div className={styles.queenDetails}>
-							<div className={styles.queenRace}>
-								{family.race || <T>Unknown Race</T>}
-							</div>
-							<div className={styles.queenYear}>
-								<QueenColor year={family.added} />
-								{family.added || <T>Unknown Year</T>}
-								{family.age && <span>({family.age} <T>years</T>)</span>}
-							</div>
+							<QueenColor year={editingId === family.id ? editYear : family.added} />
+							{editable && editingId === family.id ? (
+								<>
+									<input
+										type="text"
+										className={styles.raceInput}
+										value={editRace}
+										onChange={(e: any) => setEditRace(e.target.value)}
+										onBlur={() => {
+											if (onUpdateQueen) {
+												onUpdateQueen(family.id, editRace, editYear)
+											}
+											setEditingId(null)
+										}}
+										onKeyDown={(e: any) => {
+											if (e.key === 'Enter') {
+												if (onUpdateQueen) {
+													onUpdateQueen(family.id, editRace, editYear)
+												}
+												setEditingId(null)
+											}
+										}}
+										placeholder="Race"
+										autoFocus
+									/>
+									<input
+										type="text"
+										className={styles.yearInput}
+										value={editYear}
+										onChange={(e: any) => setEditYear(e.target.value)}
+										onBlur={() => {
+											if (onUpdateQueen) {
+												onUpdateQueen(family.id, editRace, editYear)
+											}
+											setEditingId(null)
+										}}
+										onKeyDown={(e: any) => {
+											if (e.key === 'Enter') {
+												if (onUpdateQueen) {
+													onUpdateQueen(family.id, editRace, editYear)
+												}
+												setEditingId(null)
+											}
+										}}
+										placeholder="Year"
+										maxLength={4}
+									/>
+								</>
+							) : (
+								<>
+									<span
+										className={styles.queenRace}
+										onClick={() => {
+											if (editable && onUpdateQueen) {
+												setEditingId(family.id)
+												setEditRace(family.race || '')
+												setEditYear(family.added || '')
+											}
+										}}
+										style={{ cursor: editable ? 'pointer' : 'default' }}
+									>
+										{family.race || <T>Unknown Race</T>}
+									</span>
+									<span
+										className={styles.queenYear}
+										onClick={() => {
+											if (editable && onUpdateQueen) {
+												setEditingId(family.id)
+												setEditRace(family.race || '')
+												setEditYear(family.added || '')
+											}
+										}}
+										style={{ cursor: editable ? 'pointer' : 'default' }}
+									>
+										{family.added || <T>Unknown Year</T>}
+										{family.age && <> ({family.age} <T>years</T>)</>}
+									</span>
+								</>
+							)}
 						</div>
 					</div>
 
@@ -129,8 +191,26 @@ export default function QueenSlot({
 							</Button>
 						</div>
 					)}
+					</div>
+				))}
 				</div>
-			))}
+
+				{showAddButton && (
+					<Button
+						type="button"
+						className={styles.addAnotherButton}
+						onClick={(e) => {
+							e.preventDefault()
+							e.stopPropagation()
+							onAddQueen()
+						}}
+						title="Add another queen"
+					>
+						<PlusIcon size={14} />
+						<span>Add</span>
+					</Button>
+				)}
+			</div>
 		</div>
 	)
 }

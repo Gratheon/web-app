@@ -253,6 +253,36 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 		setShowAddQueenModal(true)
 	}
 
+	const handleUpdateQueen = async (familyId: number, race: string, year: string) => {
+		try {
+			const families = await getAllFamiliesByHive(+hiveId)
+			const family = families.find(f => f.id === familyId)
+
+			if (family) {
+				family.race = race
+				family.added = year
+
+				await updateFamily(family)
+
+				const hive = await getHive(+hiveId)
+				await mutateHive({
+					hive: {
+						id: hive.id,
+						name: hive.name,
+						notes: hive.notes,
+						family: {
+							id: family.id,
+							race: family.race,
+							added: family.added,
+						},
+					},
+				})
+			}
+		} catch (err) {
+			console.error('Failed to update queen:', err)
+		}
+	}
+
 	const handleRemoveQueen = async (familyId: number) => {
 		try {
 			await deleteFamily(familyId)
@@ -315,21 +345,18 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 
 						<div>
 							<label htmlFor="queen">
-								<T ctx="this is a form label for input of the bee queen race and year">
-									Queen{families.length > 1 ? 's' : ''}
-								</T>
+								{families.length > 1 ? <T>Queens</T> : <T>Queen</T>}
 							</label>
-							<div style={families.length > 0 ? "position: relative; padding-top: 36px;" : "position: relative;"}>
-								<QueenSlot
-									families={families}
-									editable={true}
-									onAddQueen={handleAddQueen}
-									onRemoveQueen={handleRemoveQueen}
-									onDragStart={() => setIsDraggingQueen(true)}
-									onDragEnd={() => setIsDraggingQueen(false)}
-									showAddButton={families.length > 0}
-								/>
-							</div>
+							<QueenSlot
+								families={families}
+								editable={true}
+								onAddQueen={handleAddQueen}
+								onRemoveQueen={handleRemoveQueen}
+								onUpdateQueen={handleUpdateQueen}
+								onDragStart={() => setIsDraggingQueen(true)}
+								onDragEnd={() => setIsDraggingQueen(false)}
+								showAddButton={families.length > 0}
+							/>
 						</div>
 
 						<div>

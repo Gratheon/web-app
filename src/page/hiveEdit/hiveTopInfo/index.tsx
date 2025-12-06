@@ -22,7 +22,7 @@ import VisualFormSubmit from '@/shared/visualForm/submit'
 
 import { updateHive, getHive, isCollapsed, isEditable, isMerged } from '@/models/hive'
 import { getBoxes } from '@/models/boxes'
-import { getFamilyByHive } from '@/models/family'
+import { getFamilyByHive, getAllFamiliesByHive } from '@/models/family'
 import {
 	getHiveInspectionStats,
 	deleteCellsByFrameSideIDs,
@@ -55,10 +55,7 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 	// Model functions now handle invalid IDs
 	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId]);
 	let boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId]);
-	let families = useLiveQuery(async () => {
-		const { getAllFamiliesByHive } = await import('@/models/family')
-		return getAllFamiliesByHive(+hiveId)
-	}, [hiveId]) || [];
+	let families = useLiveQuery(() => getAllFamiliesByHive(+hiveId), [hiveId]) || [];
 
 	const allHiveFrames = useLiveQuery(
 		async () => {

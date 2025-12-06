@@ -34,7 +34,7 @@ export default function QueenColor({ year, useRelative = true}) {
 	return <div style={{ 
 		background: color, 
 		position: useRelative ? 'relative' : 'absolute',
-		marginLeft: useRelative ? '5px' : '-5px',
-		marginRight: useRelative ? '5px' : '0',
+		marginLeft: useRelative ? '0' : '-5px',
+		marginRight: useRelative ? '8px' : '0',
 	}} className={style.queenColor}></div>
 }

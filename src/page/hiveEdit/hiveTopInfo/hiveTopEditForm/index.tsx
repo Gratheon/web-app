@@ -36,7 +36,16 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 
 	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId]);
 	let boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId]);
-	let families = useLiveQuery(() => getAllFamiliesByHive(+hiveId), [hiveId]) || [];
+	let families = useLiveQuery(() => {
+		console.log('HiveTopEditForm: querying families for hive', hiveId)
+		return getAllFamiliesByHive(+hiveId)
+	}, [hiveId]);
+
+	console.log('HiveTopEditForm: families loaded:', families)
+
+	if (!families) {
+		families = []
+	}
 
 	let [mutateBoxColor, { error: errorColor }] = useMutation(
 		`mutation updateBoxColor($boxID: ID!, $color: String!) { updateBoxColor(id: $boxID, color: $color) }`
@@ -48,6 +57,9 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 			__typename
 			family{
 				id
+				__typename
+				race
+				added
 				color
 			}
 		}

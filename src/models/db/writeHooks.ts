@@ -18,8 +18,11 @@ export const writeHooks = {
 		await upsertEntityWithNumericID('box', entity)
 	},
 	Family: async ({ id }, entity) => {
+		console.log('writeHook Family: parent id:', id, 'entity:', entity)
 		entity.hiveId = +id
+		console.log('writeHook Family: setting hiveId to', entity.hiveId)
 		await upsertEntityWithNumericID('family', entity)
+		console.log('writeHook Family: upsert complete for family id', entity.id)
 	},
 	Frame: async (parent, value: Frame, { originalValue: frame }) => {
 		if (parent) {

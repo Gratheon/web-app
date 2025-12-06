@@ -55,7 +55,16 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 	// Model functions now handle invalid IDs
 	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId]);
 	let boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId]);
-	let families = useLiveQuery(() => getAllFamiliesByHive(+hiveId), [hiveId]) || [];
+	let families = useLiveQuery(() => {
+		console.log('HiveTopInfo (view mode): querying families for hive', hiveId)
+		return getAllFamiliesByHive(+hiveId)
+	}, [hiveId]);
+
+	console.log('HiveTopInfo (view mode): families loaded:', families)
+
+	if (!families) {
+		families = []
+	}
 
 	const allHiveFrames = useLiveQuery(
 		async () => {

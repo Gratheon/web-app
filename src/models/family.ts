@@ -32,7 +32,9 @@ export async function getAllFamiliesByHive(hiveId: number): Promise<Family[]> {
 	}
 
 	try {
-		return await db[TABLE_NAME].where({ hiveId: +hiveId }).toArray();
+		const families = await db[TABLE_NAME].where({ hiveId: +hiveId }).toArray();
+		console.log(`getAllFamiliesByHive(${hiveId}): found ${families.length} families`, families);
+		return families;
 	} catch (e) {
 		console.error(e)
 		throw e

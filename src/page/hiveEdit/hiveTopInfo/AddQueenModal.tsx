@@ -77,8 +77,10 @@ export default function AddQueenModal({ hiveId, onClose, onSuccess }: AddQueenMo
 		mutation updateHive($hive: HiveUpdateInput!) {
 			updateHive(hive: $hive) {
 				id
+				__typename
 				family {
 					id
+					__typename
 					race
 					added
 					color
@@ -117,6 +119,8 @@ export default function AddQueenModal({ hiveId, onClose, onSuccess }: AddQueenMo
 				},
 			})
 
+			console.log('AddQueenModal: mutation result:', result)
+
 			if (result.data?.updateHive?.family) {
 				const family = {
 					id: +result.data.updateHive.family.id,
@@ -125,11 +129,19 @@ export default function AddQueenModal({ hiveId, onClose, onSuccess }: AddQueenMo
 					added: result.data.updateHive.family.added,
 					color: result.data.updateHive.family.color,
 				}
+				console.log('AddQueenModal: saving family to local DB:', family)
 				await updateFamily(family)
+				console.log('AddQueenModal: family saved successfully')
+
+				await new Promise(resolve => setTimeout(resolve, 100))
+			} else {
+				console.error('AddQueenModal: no family data in response:', result)
+				throw new Error('Failed to create queen - no family data returned')
 			}
 
 			onSuccess()
 		} catch (err) {
+			console.error('AddQueenModal: error adding queen:', err)
 			setError(err.message || 'Failed to add queen')
 		}
 	}

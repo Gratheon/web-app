@@ -57,6 +57,7 @@ const HIVES_QUERY = gql`
 			hives {
 				id
 				name
+				hiveNumber
 				notes
 				status
 				inspectionCount

@@ -1,7 +1,7 @@
 import styles from './HiveSelector.module.less'
 
 interface HiveSelectorProps {
-	hives: Array<{ id: string; name: string }>
+	hives: Array<{ id: string; name: string; hiveNumber?: number }>
 	selectedHiveIds: string[]
 	onToggleHive: (hiveId: string) => void
 }

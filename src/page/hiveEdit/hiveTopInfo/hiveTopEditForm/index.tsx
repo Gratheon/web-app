@@ -48,6 +48,7 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 			__typename
 			family{
 				id
+				color
 			}
 		}
 	}`)
@@ -253,7 +254,7 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 		setShowAddQueenModal(true)
 	}
 
-	const handleUpdateQueen = async (familyId: number, race: string, year: string) => {
+	const handleUpdateQueen = async (familyId: number, race: string, year: string, color?: string) => {
 		try {
 			const families = await getAllFamiliesByHive(+hiveId)
 			const family = families.find(f => f.id === familyId)
@@ -261,6 +262,7 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 			if (family) {
 				family.race = race
 				family.added = year
+				family.color = color || null
 
 				await updateFamily(family)
 
@@ -274,6 +276,7 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 							id: family.id,
 							race: family.race,
 							added: family.added,
+							color: family.color,
 						},
 					},
 				})

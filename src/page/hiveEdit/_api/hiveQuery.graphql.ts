@@ -41,6 +41,7 @@ export default gql`
 				id
 				race
 				added
+				color
 			}
 		}
 	}

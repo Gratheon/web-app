@@ -1,11 +1,12 @@
 import { db } from './db'
 
 export type Family = {
-	hiveId?: number //reference
+	hiveId?: number
 	id: number
 	race: string
 	added: string
-	age?: number // in years
+	color?: string
+	age?: number
   }
 
 const TABLE_NAME = 'family'

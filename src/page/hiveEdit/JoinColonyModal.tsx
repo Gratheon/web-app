@@ -40,6 +40,7 @@ const HIVES_BY_APIARY_QUERY = gql`
 					id
 					race
 					added
+					color
 				}
 			}
 		}

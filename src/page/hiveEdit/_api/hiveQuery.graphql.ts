@@ -9,6 +9,7 @@ export default gql`
 		hive(id: $id) {
 			id
 			name
+			hiveNumber
 			notes
 			beeCount
 			inspectionCount
@@ -39,6 +40,15 @@ export default gql`
 
 			family {
 				id
+				name
+				race
+				added
+				color
+			}
+
+			families {
+				id
+				name
 				race
 				added
 				color

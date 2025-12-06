@@ -7,7 +7,7 @@ import AddQueenModal from '@/page/hiveEdit/hiveTopInfo/AddQueenModal'
 import WarehouseDropZone from '@/page/hiveEdit/hiveTopInfo/WarehouseDropZone'
 
 import { useMutation } from '@/api'
-import { updateHive, getHive } from '@/models/hive'
+import { updateHive, getHive, getHives } from '@/models/hive'
 import { Box, getBoxes, updateBox } from '@/models/boxes'
 import { getFamilyByHive, getAllFamiliesByHive, updateFamily, deleteFamily } from '@/models/family'
 import { Family } from '@/models/family'
@@ -33,6 +33,7 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 	let [okMsg, setOkMsg] = useState(null)
 	let [showAddQueenModal, setShowAddQueenModal] = useState(false)
 	let [isDraggingQueen, setIsDraggingQueen] = useState(false)
+	let [hiveNumberError, setHiveNumberError] = useState(null)
 
 	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId]);
 	let boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId]);
@@ -58,6 +59,7 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 			family{
 				id
 				__typename
+				name
 				race
 				added
 				color
@@ -129,37 +131,52 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 		[]
 	)
 
-	const onNameChange = useMemo(
+	const onHiveNumberChange = useMemo(
 		() =>
 			debounce(async function (v) {
-				const hive = await getHive(+hiveId)
-				hive.name = v.target.value
+				const newHiveNumber = v.target.value ? parseInt(v.target.value) : undefined
 
-				let family = await getFamilyByHive(+hiveId)
-				if (!family) {
-					family = {
-						id: null,
-						race: '',
-						added: ''
+				if (newHiveNumber) {
+					const allHives = await getHives()
+					const duplicateHive = allHives.find(h =>
+						h.hiveNumber === newHiveNumber &&
+						h.id !== +hiveId
+					)
+
+					if (duplicateHive) {
+						setHiveNumberError({
+							message: `Hive number ${newHiveNumber} is already used`,
+							duplicateHiveId: duplicateHive.id
+						})
+						return
 					}
 				}
+
+				setHiveNumberError(null)
+
+				const hive = await getHive(+hiveId)
+				hive.hiveNumber = newHiveNumber
+
+				let family = await getFamilyByHive(+hiveId)
 
 				await mutateHive({
 					hive: {
 						id: hive.id,
-						name: hive.name,
+						hiveNumber: hive.hiveNumber,
 						notes: hive.notes,
-						family: {
+						family: family ? {
 							id: family.id,
+							name: family.name,
 							race: family.race,
 							added: family.added,
-						},
+							color: family.color,
+						} : undefined,
 					},
 				})
 
 				await updateHive(hive)
 			}, 1000),
-		[]
+		[hiveId]
 	)
 
 	const onNotesChange = useMemo(
@@ -183,7 +200,6 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 				await mutateHive({
 					hive: {
 						id: hive.id,
-						name: hive.name,
 						notes: hive.notes,
 						family: {
 							id: family.id,
@@ -215,7 +231,6 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 				let { data } = await mutateHive({
 					hive: {
 						id: hive.id,
-						name: hive.name,
 						notes: hive.notes,
 						family: {
 							id: family?.id,
@@ -243,7 +258,6 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 				let { data } = await mutateHive({
 					hive: {
 						id: hive.id,
-						name: hive.name,
 						notes: hive.notes,
 						family: {
 							id: family.id,
@@ -266,12 +280,13 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 		setShowAddQueenModal(true)
 	}
 
-	const handleUpdateQueen = async (familyId: number, race: string, year: string, color?: string) => {
+	const handleUpdateQueen = async (familyId: number, name: string, race: string, year: string, color?: string) => {
 		try {
 			const families = await getAllFamiliesByHive(+hiveId)
 			const family = families.find(f => f.id === familyId)
 
 			if (family) {
+				family.name = name
 				family.race = race
 				family.added = year
 				family.color = color || null
@@ -282,10 +297,10 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 				await mutateHive({
 					hive: {
 						id: hive.id,
-						name: hive.name,
 						notes: hive.notes,
 						family: {
 							id: family.id,
+							name: family.name,
 							race: family.race,
 							added: family.added,
 							color: family.color,
@@ -309,7 +324,6 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 				await mutateHive({
 					hive: {
 						id: hive.id,
-						name: hive.name,
 						notes: hive.notes,
 						family: null,
 					},
@@ -347,15 +361,44 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 				<div>
 					<VisualForm>
 						<div>
-							<label htmlFor="name" style="width:100px;"><T ctx="this is a form label for input of the beehive">Name</T></label>
-							<input
-								name="name"
-								id="name"
-								style="width:100%;"
-								autoFocus
-								value={hive.name}
-								onInput={onNameChange}
-							/>
+							<label htmlFor="hiveNumber" style="width:100px;"><T>Hive Number</T></label>
+							<div style="width: 100%;">
+								<input
+									name="hiveNumber"
+									id="hiveNumber"
+									type="number"
+									style={{
+										width: '100%',
+										borderColor: hiveNumberError ? '#f94144' : undefined
+									}}
+									value={hive.hiveNumber || ''}
+									onInput={onHiveNumberChange}
+									placeholder="Auto-assigned if empty"
+								/>
+								{hiveNumberError && (
+									<div className={styles.validationError}>
+										<ErrorMessage
+											error={
+												<span>
+													{hiveNumberError.message}.{' '}
+													<a
+														href={`/apiaries/${apiaryId}/hives/${hiveNumberError.duplicateHiveId}`}
+														className={styles.errorLink}
+														onClick={(e) => {
+															if (window.innerWidth > 768) {
+																e.preventDefault()
+																window.open(`/apiaries/${apiaryId}/hives/${hiveNumberError.duplicateHiveId}`, '_blank')
+															}
+														}}
+													>
+														<T>View hive</T> →
+													</a>
+												</span>
+											}
+										/>
+									</div>
+								)}
+							</div>
 						</div>
 
 						<div>

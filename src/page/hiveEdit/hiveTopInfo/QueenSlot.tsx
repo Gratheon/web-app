@@ -62,7 +62,7 @@ interface QueenSlotProps {
 	editable: boolean
 	onAddQueen: () => void
 	onRemoveQueen: (familyId: number) => void
-	onUpdateQueen?: (familyId: number, race: string, year: string, color?: string) => void
+	onUpdateQueen?: (familyId: number, name: string, race: string, year: string, color?: string) => void
 	onDragStart?: (familyId: number) => void
 	onDragEnd?: () => void
 	showAddButton?: boolean
@@ -80,6 +80,7 @@ export default function QueenSlot({
 }: QueenSlotProps) {
 	const [draggingId, setDraggingId] = useState<number | null>(null)
 	const [editingId, setEditingId] = useState<number | null>(null)
+	const [editName, setEditName] = useState('')
 	const [editRace, setEditRace] = useState('')
 	const [editYear, setEditYear] = useState('')
 	const [editColor, setEditColor] = useState<string | null>(null)
@@ -191,7 +192,7 @@ export default function QueenSlot({
                       }}
                       onBlur={() => {
                         if (onUpdateQueen) {
-                          onUpdateQueen(family.id, editRace, editYear, editColor)
+                          onUpdateQueen(family.id, editName, editRace, editYear, editColor)
                         }
                         setEditingId(null)
                         setShowColorPicker(false)
@@ -199,7 +200,7 @@ export default function QueenSlot({
                       onKeyDown={(e: any) => {
                         if (e.key === 'Enter') {
                           if (onUpdateQueen) {
-                            onUpdateQueen(family.id, editRace, editYear, editColor)
+                            onUpdateQueen(family.id, editName, editRace, editYear, editColor)
                           }
                           setEditingId(null)
                           setShowColorPicker(false)
@@ -210,12 +211,12 @@ export default function QueenSlot({
                   />
 									<input
 										type="text"
-										className={styles.raceInput}
-										value={editRace}
-										onChange={(e: any) => setEditRace(e.target.value)}
+										className={styles.nameInput}
+										value={editName}
+										onChange={(e: any) => setEditName(e.target.value)}
 										onBlur={() => {
 											if (onUpdateQueen) {
-												onUpdateQueen(family.id, editRace, editYear, editColor)
+												onUpdateQueen(family.id, editName, editRace, editYear, editColor)
 											}
 											setEditingId(null)
 											setShowColorPicker(false)
@@ -223,24 +224,64 @@ export default function QueenSlot({
 										onKeyDown={(e: any) => {
 											if (e.key === 'Enter') {
 												if (onUpdateQueen) {
-													onUpdateQueen(family.id, editRace, editYear, editColor)
+													onUpdateQueen(family.id, editName, editRace, editYear, editColor)
+												}
+												setEditingId(null)
+												setShowColorPicker(false)
+											}
+										}}
+										placeholder="Queen Name"
+										autoFocus
+									/>
+									<input
+										type="text"
+										className={styles.raceInput}
+										value={editRace}
+										onChange={(e: any) => setEditRace(e.target.value)}
+										onBlur={() => {
+											if (onUpdateQueen) {
+												onUpdateQueen(family.id, editName, editRace, editYear, editColor)
+											}
+											setEditingId(null)
+											setShowColorPicker(false)
+										}}
+										onKeyDown={(e: any) => {
+											if (e.key === 'Enter') {
+												if (onUpdateQueen) {
+													onUpdateQueen(family.id, editName, editRace, editYear, editColor)
 												}
 												setEditingId(null)
 												setShowColorPicker(false)
 											}
 										}}
 										placeholder="Race"
-										autoFocus
 									/>
 
 								</>
 							) : (
 								<>
+									<span
+										className={styles.queenName}
+										onClick={() => {
+											if (editable && onUpdateQueen) {
+												setEditingId(family.id)
+												setEditName(family.name || '')
+												setEditRace(family.race || '')
+												setEditYear(family.added || '')
+												setEditColor(family.color || null)
+												setShowColorPicker(false)
+											}
+										}}
+										style={{ cursor: editable ? 'pointer' : 'default' }}
+									>
+										{family.name || <T>Unnamed Queen</T>}
+									</span>
                   <span
                       className={styles.queenYear}
                       onClick={() => {
                         if (editable && onUpdateQueen) {
                           setEditingId(family.id)
+                          setEditName(family.name || '')
                           setEditRace(family.race || '')
                           setEditYear(family.added || '')
                           setEditColor(family.color || null)
@@ -258,6 +299,7 @@ export default function QueenSlot({
 										onClick={() => {
 											if (editable && onUpdateQueen) {
 												setEditingId(family.id)
+												setEditName(family.name || '')
 												setEditRace(family.race || '')
 												setEditYear(family.added || '')
 												setEditColor(family.color || null)

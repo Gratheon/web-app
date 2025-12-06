@@ -4,6 +4,7 @@ export { db };
 export type Hive = {
 	id: number
 	name?: string
+	hiveNumber?: number
 	notes?: string
 	familyId?: number
 	beeCount?: number

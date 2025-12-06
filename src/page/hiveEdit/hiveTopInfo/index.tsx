@@ -267,7 +267,7 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 						<div className={styles.name_race_wrap}>
 							<div className={styles.wrap4}>
 								<h1 style="flex-grow:1; cursor: pointer" onClick={goToHiveView}>
-									{hive.name}
+									{hive.hiveNumber ? `Hive #${hive.hiveNumber}` : <T>Hive without number</T>}
 								</h1>
 							</div>
 

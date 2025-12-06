@@ -53,7 +53,10 @@ export default function apiaryListRow({ apiary, user }) {
 						<div key={i} className={`${styles.hive} ${hive.status === 'collapsed' ? styles.collapsedHive : ''} ${hive.status === 'merged' ? styles.mergedHive : ''}`}>
 							<NavLink to={`/apiaries/${apiary.id}/hives/${hive.id}`}>
 								<Hive boxes={hive.boxes} size={60} />
-								<div className={styles.title}>{hive.name}</div>
+								<div className={styles.title}>
+									{hive.hiveNumber && <span>#{hive.hiveNumber} </span>}
+									{hive?.family?.name || hive.name || 'Unnamed'}
+								</div>
 							</NavLink>
 
 							<BeeCounter count={hive.beeCount} />
@@ -65,7 +68,8 @@ export default function apiaryListRow({ apiary, user }) {
 						<thead>
 							<tr>
 								<th></th>
-								<th><T ctx="table header of beekeeping app, this is a column for beehive name, start with uppercase latter">Name</T></th>
+								<th><T ctx="table header - hive number">Hive #</T></th>
+								<th><T ctx="table header - queen name">Queen</T></th>
 								<th><T ctx="table header of beekeeping app, start with uppercase latter">Bee count</T></th>
 								<th><T ctx="table header of beekeeping app, this is a bee colony information, start with uppercase latter">Colony status</T></th>
 								<th><T ctx="table header of beekeeping app, this column is about anti-varroa mite treatment, in amount of days, start with uppercase latter">Last treatment</T></th>
@@ -83,9 +87,11 @@ export default function apiaryListRow({ apiary, user }) {
 										</td>
 										<td>
 											{hive.isNew && <span className={styles.newHive}><T ctx="new beehive">New</T></span>}
-
+											{hive.hiveNumber || '-'}
+										</td>
+										<td>
 											<NavLink className={styles.title} to={`/apiaries/${apiary.id}/hives/${hive.id}`}>
-												{hive.name}
+												{hive?.family?.name || hive.name || '-'}
 											</NavLink>
 										</td>
 

@@ -27,7 +27,7 @@ export default function HiveSelector({ hives, selectedHiveIds, onToggleHive }: H
 								checked={isSelected}
 								onChange={() => onToggleHive(hive.id)}
 							/>
-							<span>{hive.name || `Hive ${hive.id}`}</span>
+							<span>{hive.hiveNumber ? `Hive #${hive.hiveNumber}` : `Hive ${hive.id}`}</span>
 						</label>
 					)
 				})}

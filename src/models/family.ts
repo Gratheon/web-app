@@ -3,6 +3,7 @@ import { db } from './db'
 export type Family = {
 	hiveId?: number
 	id: number
+	name?: string
 	race: string
 	added: string
 	color?: string

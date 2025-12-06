@@ -9,6 +9,15 @@ export type Apiary = {
 
 const TABLE_NAME = 'apiary'
 
+export async function getApiaries(): Promise<Apiary[]> {
+	try {
+		return await db[TABLE_NAME].toArray();
+	} catch (e) {
+		console.error("failed to read apiaries", e);
+		return [];
+	}
+}
+
 export async function getApiary(id: number): Promise<Apiary | undefined> {
 	// Validate ID before querying
 	if (!id || !Number.isFinite(id) || id <= 0) {

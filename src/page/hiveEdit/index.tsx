@@ -276,7 +276,7 @@ function composeBreadCrumbs(
 			icon: <HiveIcon size={12} />,
 			name: (
 				<>
-					«{hive.name}» <T>hive</T>
+					{hive.hiveNumber ? `#${hive.hiveNumber}` : <T>Hive</T>}
 				</>
 			),
 			uri: `/apiaries/${apiaryId}/hives/${hiveId}`,

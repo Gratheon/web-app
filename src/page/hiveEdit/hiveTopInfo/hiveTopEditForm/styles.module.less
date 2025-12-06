@@ -22,3 +22,36 @@
 	padding: 0 10px;
 	display: flex;
 }
+
+.validationError {
+	margin-top: 4px;
+	width: 100%;
+	display: block;
+
+	a {
+		color: inherit;
+		text-decoration: underline;
+		cursor: pointer;
+
+		&:hover {
+			opacity: 0.8;
+		}
+	}
+}
+
+.errorLink {
+	color: inherit;
+	text-decoration: underline;
+	cursor: pointer;
+	white-space: nowrap;
+
+	&:hover {
+		opacity: 0.8;
+	}
+}
+
+@media (max-width: 768px) {
+	.validationError {
+		font-size: 13px;
+	}
+}

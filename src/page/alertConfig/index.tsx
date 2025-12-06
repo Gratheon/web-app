@@ -144,7 +144,7 @@ export default function AlertConfig() {
 		apiaries.forEach(apiary => {
 			apiary.hives?.forEach(hive => {
 				map[hive.id] = {
-					name: hive.name || `Hive ${hive.id}`,
+					name: hive.hiveNumber ? `Hive #${hive.hiveNumber}` : `Hive ${hive.id}`,
 					apiaryId: apiary.id,
 					apiaryName: apiary.name
 				};

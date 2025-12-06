@@ -356,16 +356,17 @@ export default function TimeView() {
 		const entranceDataByHive = {}
 
 		activeHives.forEach(hive => {
+			const displayName = hive.hiveNumber ? `Hive #${hive.hiveNumber}` : `Hive ${hive.id}`
 			weightDataByHive[hive.id] = {
-				hiveName: hive.name || `Hive ${hive.id}`,
+				hiveName: displayName,
 				data: telemetryData[`hive_${hive.id}_weight`] || {}
 			}
 			temperatureDataByHive[hive.id] = {
-				hiveName: hive.name || `Hive ${hive.id}`,
+				hiveName: displayName,
 				data: telemetryData[`hive_${hive.id}_temp`] || {}
 			}
 			entranceDataByHive[hive.id] = {
-				hiveName: hive.name || `Hive ${hive.id}`,
+				hiveName: displayName,
 				data: telemetryData[`hive_${hive.id}_entrance`] || {}
 			}
 		})

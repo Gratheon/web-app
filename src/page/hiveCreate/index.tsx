@@ -102,7 +102,8 @@ export default function HiveCreateForm() {
     let [addHive, { error, data }] = useMutation(
         gql`
 			mutation addHive(
-				$name: String!
+				$queenName: String
+				$hiveNumber: Int
 				$boxCount: Int!
 				$frameCount: Int!
 				$apiaryId: ID!
@@ -110,7 +111,8 @@ export default function HiveCreateForm() {
 			) {
 				addHive(
 					hive: {
-						name: $name
+						queenName: $queenName
+						hiveNumber: $hiveNumber
 						boxCount: $boxCount
 						frameCount: $frameCount
 						apiaryId: $apiaryId
@@ -118,7 +120,7 @@ export default function HiveCreateForm() {
 					}
 				) {
 					id
-					name
+					hiveNumber
 					boxCount
 				}
 			}
@@ -141,7 +143,8 @@ export default function HiveCreateForm() {
 
         const result = await addHive({
             apiaryId: id,
-            name,
+            queenName: name || undefined,
+            hiveNumber: undefined,
             boxCount,
             frameCount,
             colors: boxes.map((b: Box) => {
@@ -197,7 +200,7 @@ export default function HiveCreateForm() {
                         </div>
 
                         <div>
-                            <label htmlFor="name" style="width:120px;"><T>Name</T></label>
+                            <label htmlFor="name" style="width:120px;"><T>Queen Name</T></label>
                             <input
                                 name="name"
                                 id="name"
@@ -207,16 +210,16 @@ export default function HiveCreateForm() {
                                 onInput={(e: any) => setName(e.target.value)}
                             />
                             <Button
-                                type="button" // Explicitly set type
-                                iconOnly={true} // Use iconOnly style
+                                type="button"
+                                iconOnly={true}
                                 onClick={handleRefreshName}
                                 disabled={randomNameLoading}
-                                style={{ // Apply matching styles
+                                style={{
                                     height: '32px',
                                     borderRadius: '5px',
-                                    padding: '0 8px', // Adjust padding for icon
-                                    marginLeft: '5px', // Add some space
-                                    verticalAlign: 'middle' // Align vertically
+                                    padding: '0 8px',
+                                    marginLeft: '5px',
+                                    verticalAlign: 'middle'
                                 }}
                                 title="Get new name suggestion"
                             >

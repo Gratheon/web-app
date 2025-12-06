@@ -1,19 +1,29 @@
 import { h } from 'preact'
-import { useState } from 'preact/hooks'
-import { useMutation } from '@/api'
+import { useState, useEffect, useCallback } from 'preact/hooks'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { useMutation, useQuery, gql } from '@/api'
 import T from '@/shared/translate'
 import Modal from '@/shared/modal'
 import Button from '@/shared/button'
 import MessageError from '@/shared/messageError'
 import QueenColor from '@/page/hiveEdit/hiveTopInfo/queenColor'
 import { updateFamily } from '@/models/family'
-import { getHive } from '@/models/hive'
+import { getUser } from '@/models/user'
 import { getQueenColorFromYear } from '@/page/hiveEdit/hiveTopInfo/queenColor/utils'
+import RefreshIcon from '@/icons/RefreshIcon'
 import styles from './AddQueenModal.module.less'
 import inputStyles from '@/shared/input/styles.module.less'
 
 //@ts-ignore
 import GithubPicker from 'react-color/es/Github'
+
+const supportedLangs = ['en', 'ru', 'et', 'tr', 'pl', 'de', 'fr']
+
+const RANDOM_QUEEN_NAME_QUERY = gql`
+	query RandomHiveName($language: String) {
+		randomHiveName(language: $language)
+	}
+`
 
 const colors = [
 	'#fefee3',
@@ -67,24 +77,53 @@ interface AddQueenModalProps {
 
 export default function AddQueenModal({ hiveId, onClose, onSuccess }: AddQueenModalProps) {
 	const currentYear = new Date().getFullYear().toString()
+	const [name, setName] = useState('')
 	const [race, setRace] = useState('')
 	const [year, setYear] = useState(currentYear)
 	const [customColor, setCustomColor] = useState<string | null>(null)
 	const [showColorPicker, setShowColorPicker] = useState(false)
 	const [error, setError] = useState<string | null>(null)
+	const [lang, setLang] = useState('en')
 
-	const [mutateHive, { error: mutationError, loading }] = useMutation(`
-		mutation updateHive($hive: HiveUpdateInput!) {
-			updateHive(hive: $hive) {
+	const user = useLiveQuery(() => getUser(), [], null)
+
+	useEffect(() => {
+		let currentLang = 'en'
+		if (user && user?.lang) {
+			currentLang = user.lang
+		} else if (user === null) {
+			const browserLang = navigator.language.substring(0, 2)
+			if (supportedLangs.includes(browserLang)) {
+				currentLang = browserLang
+			}
+		}
+		setLang(currentLang)
+	}, [user])
+
+	const { data: randomNameData, loading: randomNameLoading, reexecuteQuery: reexecuteRandomNameQuery } = useQuery(
+		RANDOM_QUEEN_NAME_QUERY,
+		{ variables: { language: lang } }
+	)
+
+	useEffect(() => {
+		if (randomNameData?.randomHiveName && !randomNameLoading) {
+			setName(randomNameData.randomHiveName)
+		}
+	}, [randomNameData, randomNameLoading])
+
+	const handleRefreshName = useCallback(() => {
+		reexecuteRandomNameQuery({ requestPolicy: 'network-only' })
+	}, [reexecuteRandomNameQuery])
+
+	const [addQueenMutation, { error: mutationError, loading }] = useMutation(`
+		mutation addQueenToHive($hiveId: ID!, $queen: FamilyInput!) {
+			addQueenToHive(hiveId: $hiveId, queen: $queen) {
 				id
 				__typename
-				family {
-					id
-					__typename
-					race
-					added
-					color
-				}
+				name
+				race
+				added
+				color
 			}
 		}
 	`)
@@ -103,31 +142,26 @@ export default function AddQueenModal({ hiveId, onClose, onSuccess }: AddQueenMo
 		}
 
 		try {
-			const hive = await getHive(hiveId)
-
-			const result = await mutateHive({
-				hive: {
-					id: hiveId,
-					name: hive.name,
-					notes: hive.notes,
-					family: {
-						id: null,
-						race: race.trim(),
-						added: year,
-						color: customColor,
-					},
+			const result = await addQueenMutation({
+				hiveId: hiveId.toString(),
+				queen: {
+					name: name.trim() || null,
+					race: race.trim(),
+					added: year,
+					color: customColor,
 				},
 			})
 
 			console.log('AddQueenModal: mutation result:', result)
 
-			if (result.data?.updateHive?.family) {
+			if (result.data?.addQueenToHive) {
 				const family = {
-					id: +result.data.updateHive.family.id,
+					id: +result.data.addQueenToHive.id,
 					hiveId: hiveId,
-					race: result.data.updateHive.family.race,
-					added: result.data.updateHive.family.added,
-					color: result.data.updateHive.family.color,
+					name: result.data.addQueenToHive.name,
+					race: result.data.addQueenToHive.race,
+					added: result.data.addQueenToHive.added,
+					color: result.data.addQueenToHive.color,
 				}
 				console.log('AddQueenModal: saving family to local DB:', family)
 				await updateFamily(family)
@@ -151,13 +185,41 @@ export default function AddQueenModal({ hiveId, onClose, onSuccess }: AddQueenMo
 			<div className={styles.modalContent}>
 				<MessageError error={error || mutationError} />
 
+				<div className={styles.nameInputWrapper}>
+					<div style="flex: 1;">
+						<label className={inputStyles.label}><T>Queen Name</T></label>
+						<input
+							className={inputStyles.input}
+							type="text"
+							value={name}
+							onChange={(e: h.JSX.TargetedEvent<HTMLInputElement, Event>) => setName((e.target as HTMLInputElement).value)}
+							autoFocus
+							placeholder="Enter queen name"
+						/>
+					</div>
+					<Button
+						type="button"
+						onClick={handleRefreshName}
+						disabled={randomNameLoading}
+						style={{
+							marginTop: '24px',
+							height: '40px',
+							minWidth: '40px',
+							padding: '0 12px',
+						}}
+						title="Get new name suggestion"
+					>
+						<RefreshIcon />
+					</Button>
+				</div>
+
 				<label className={inputStyles.label}><T>Race</T></label>
 				<input
 					className={inputStyles.input}
 					type="text"
 					value={race}
 					onChange={(e: h.JSX.TargetedEvent<HTMLInputElement, Event>) => setRace((e.target as HTMLInputElement).value)}
-					autoFocus
+					placeholder="e.g. Carniolan, Italian, etc."
 				/>
 
 				<div className={styles.yearInputWrapper}>

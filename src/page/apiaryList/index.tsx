@@ -25,6 +25,7 @@ export default function ApiaryList(props) {
 				hives {
 					id
 					name
+					hiveNumber
 					beeCount
 					status
 
@@ -33,6 +34,7 @@ export default function ApiaryList(props) {
 
 					family{
 						id
+						name
 						age
 						lastTreatment
 					}

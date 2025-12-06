@@ -228,7 +228,10 @@ export default function JoinColonyModal({
 									}`}
 									onClick={() => setSelectedTargetHiveId(hive.id)}
 								>
-									<div className={styles.hiveName}>{hive.name}</div>
+									<div className={styles.hiveName}>
+										{hive.hiveNumber && `#${hive.hiveNumber} `}
+										{hive.family?.name || <T>Unnamed Queen</T>}
+									</div>
 									{hive.family && (
 										<div className={styles.hiveDetails}>
 											{hive.family.race} ({hive.family.added})

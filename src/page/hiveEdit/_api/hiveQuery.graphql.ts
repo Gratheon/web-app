@@ -8,7 +8,6 @@ export default gql`
 		}
 		hive(id: $id) {
 			id
-			name
 			hiveNumber
 			notes
 			beeCount
@@ -19,12 +18,12 @@ export default gql`
 
 			parentHive {
 				id
-				name
+				hiveNumber
 			}
 
 			childHives {
 				id
-				name
+				hiveNumber
 				splitDate
 			}
 

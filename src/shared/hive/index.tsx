@@ -78,6 +78,8 @@ export default function HiveIcon({
 	let visualBoxes: any = []
 	if (boxes && boxes.length > 0) {
 		boxes.forEach((box: any, i: number) => {
+			if (!box) return
+
 			const boxStyle = {
 				backgroundColor: box.color,
 				paddingTop: `${size / 2}px`,

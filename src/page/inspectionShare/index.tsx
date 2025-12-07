@@ -104,7 +104,10 @@ export default function InspectionShare() {
 						</div>
 						<div className={styles.name_race_wrap}>
 							<div className={styles.wrap4} style={{ alignItems: 'center' }}> {/* Align items vertically */}
-								<h1 style={{ flexGrow: 1, marginRight: '10px' }}>{hiveData.name}</h1> {/* Add margin */}
+								<h1 style={{ flexGrow: 1, marginRight: '10px' }}>
+									{hiveData.hiveNumber && `#${hiveData.hiveNumber} `}
+									{familyData?.name || 'Unnamed'}
+								</h1> {/* Add margin */}
 								{/* Inspection Time added here */}
 								{inspectionData?.added && (
 									<div style={{ marginLeft: 'auto', fontSize: '0.9em', color: '#555', whiteSpace: 'nowrap' }}> {/* Push right */}

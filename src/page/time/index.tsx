@@ -56,7 +56,6 @@ const HIVES_QUERY = gql`
 			lng
 			hives {
 				id
-				name
 				hiveNumber
 				notes
 				status
@@ -326,7 +325,7 @@ export default function TimeView() {
 
 				return {
 					...i,
-					hiveName: hive.name,
+					hiveName: hive.hiveNumber ? `#${hive.hiveNumber}` : hive.id,
 					hiveId: hive.id,
 					date: i.added ? new Date(i.added) : new Date(),
 					population

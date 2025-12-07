@@ -302,7 +302,7 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 								<div className={styles.splitLineage}>
 									<T>Split from</T>:{' '}
 									<a href={`/apiaries/${apiaryId}/hives/${hive.parentHive.id}`}>
-										{hive.parentHive.name}
+										{hive.parentHive.hiveNumber ? `Hive #${hive.parentHive.hiveNumber}` : `Hive ${hive.parentHive.id}`}
 									</a>
 									{hive.splitDate && (
 										<>
@@ -320,7 +320,7 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 										<span key={child.id}>
 											{idx > 0 && ', '}
 											<a href={`/apiaries/${apiaryId}/hives/${child.id}`}>
-												{child.name}
+												{child.hiveNumber ? `Hive #${child.hiveNumber}` : `Hive ${child.id}`}
 											</a>
 											{child.splitDate && (
 												<>

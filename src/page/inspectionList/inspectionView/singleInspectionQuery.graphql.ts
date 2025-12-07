@@ -13,7 +13,7 @@ export default gql`
 		hive(id: $hiveId) {
 			__typename
 			id
-			name
+			hiveNumber
 		}
 
 		frameSidesInspections(inspectionId: $inspectionId) {

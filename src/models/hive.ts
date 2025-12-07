@@ -15,22 +15,22 @@ export type Hive = {
 	splitDate?: string
 	parentHive?: {
 		id: number
-		name: string
+		hiveNumber?: number
 	}
 	childHives?: Array<{
 		id: number
-		name: string
+		hiveNumber?: number
 		splitDate?: string
 	}>
 	mergeDate?: string
 	mergeType?: string
 	mergedIntoHive?: {
 		id: number
-		name: string
+		hiveNumber?: number
 	}
 	mergedFromHives?: Array<{
 		id: number
-		name: string
+		hiveNumber?: number
 		mergeDate?: string
 		mergeType?: string
 	}>

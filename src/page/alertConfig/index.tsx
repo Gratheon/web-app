@@ -49,7 +49,7 @@ const ALERT_CHANNELS_QUERY = gql`
 			name
 			hives {
 				id
-				name
+				hiveNumber
 			}
 		}
 	}

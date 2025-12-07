@@ -34,7 +34,7 @@ const HIVES_BY_APIARY_QUERY = gql`
 			id
 			hives {
 				id
-				name
+				hiveNumber
 				boxCount
 				family {
 					id
@@ -189,7 +189,7 @@ export default function JoinColonyModal({
 						{selectedTargetHive ? (
 							<div className={styles.hiveCard}>
 								<div className={styles.hiveInfo}>
-									<h4>{selectedTargetHive.name}</h4>
+									<h4>{selectedTargetHive.hiveNumber ? `#${selectedTargetHive.hiveNumber}` : `Hive ${selectedTargetHive.id}`}</h4>
 									{selectedTargetHive.family && (
 										<div className={styles.familyInfo}>
 											<div>

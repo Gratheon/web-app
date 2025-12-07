@@ -4,14 +4,14 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { gql, useQuery } from '../../api'
 
 import Button from '../../shared/button'
-import { getUser } from '../../models/user.ts'
+import { getUser } from '@/models/user'
 import Loader from '../../shared/loader'
 import ErrorMsg from '../../shared/messageError'
 import T from '../../shared/translate'
 
 import ApiaryListRow from './apiaryListRow'
 import ApiariesPlaceholder from './apiariesPlaceholder'
-import PagePaddedCentered from '@/shared/pagePaddedCentered/index.tsx'
+import PagePaddedCentered from '@/shared/pagePaddedCentered/index'
 
 
 export default function ApiaryList(props) {
@@ -24,7 +24,6 @@ export default function ApiaryList(props) {
 
 				hives {
 					id
-					name
 					hiveNumber
 					beeCount
 					status

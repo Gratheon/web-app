@@ -213,7 +213,6 @@ type Hive {
   # amount of bees detected on all frames. Includes all types (workers, drones, queens)
   beeCount: Int
   files: [FrameSideFile]
-  name: String
   notes: String
   boxes: [Box]
   family: Family

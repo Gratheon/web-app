@@ -37,21 +37,21 @@ export default gql`
 				}
 			}
 
-			family {
-				id
-				name
-				race
-				added
-				color
-			}
+		family {
+			id
+			name
+			race
+			added
+			color
+		}
 
-			families {
-				id
-				name
-				race
-				added
-				color
-			}
+		families {
+			id
+			name
+			race
+			added
+			color
+		}
 		}
 	}
 `

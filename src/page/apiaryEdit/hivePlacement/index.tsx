@@ -48,6 +48,9 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 	const [selectedObstacle, setSelectedObstacle] = useState<string | null>(null)
 	const [isDragging, setIsDragging] = useState(false)
 	const [isDraggingRotation, setIsDraggingRotation] = useState(false)
+	const [isDraggingObstacle, setIsDraggingObstacle] = useState(false)
+	const [isDraggingObstacleRotation, setIsDraggingObstacleRotation] = useState(false)
+	const [isResizingObstacle, setIsResizingObstacle] = useState(false)
 	const [sunAngle, setSunAngle] = useState(90)
 	const [autoRotate, setAutoRotate] = useState(false)
 	const [addingObstacle, setAddingObstacle] = useState<'CIRCLE' | 'RECTANGLE' | null>(null)
@@ -224,83 +227,160 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 		ctx.fillText('S', x, y + radius + 20)
 		ctx.fillText('E', x + radius + 15, y + 5)
 		ctx.fillText('W', x - radius - 15, y + 5)
+
+		const angleRad = (sunAngle - 90) * (Math.PI / 180)
+		const sunDistance = radius + 15
+		const sunX = x + sunDistance * Math.cos(angleRad)
+		const sunY = y + sunDistance * Math.sin(angleRad)
+
+		ctx.font = '20px Arial'
+		ctx.textAlign = 'center'
+		ctx.textBaseline = 'middle'
+		ctx.fillText('☀️', sunX, sunY)
 	}
 
 	const drawSunPosition = (ctx: CanvasRenderingContext2D) => {
-		const centerX = canvasWidth / 2
-		const centerY = CANVAS_HEIGHT / 2
-		const orbitRadius = Math.min(canvasWidth, CANVAS_HEIGHT) / 2 - 80
-
-		const angleRad = (sunAngle - 90) * (Math.PI / 180)
-		const sunX = centerX + orbitRadius * Math.cos(angleRad)
-		const sunY = centerY + orbitRadius * Math.sin(angleRad)
-
-		const gradient = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, 30)
-		gradient.addColorStop(0, '#FFD700')
-		gradient.addColorStop(1, 'rgba(255, 215, 0, 0)')
-		ctx.fillStyle = gradient
-		ctx.beginPath()
-		ctx.arc(sunX, sunY, 30, 0, Math.PI * 2)
-		ctx.fill()
-
-		ctx.strokeStyle = '#FFA500'
-		ctx.lineWidth = 1
-		ctx.beginPath()
-		ctx.arc(sunX, sunY, 20, 0, Math.PI * 2)
-		ctx.stroke()
 	}
 
 	const drawShadows = (ctx: CanvasRenderingContext2D) => {
 		const angleRad = (sunAngle - 90) * (Math.PI / 180)
-		const shadowLength = 100
+		const shadowLength = 80
+		const shadowOffsetX = Math.cos(angleRad) * shadowLength
+		const shadowOffsetY = Math.sin(angleRad) * shadowLength
 
-		ctx.fillStyle = 'rgba(0, 0, 0, 0.15)'
+		ctx.fillStyle = 'rgba(0, 0, 0, 0.25)'
+
 		obstacles.forEach((obs) => {
 			if (obs.type === 'CIRCLE' && obs.radius) {
-				const shadowX = obs.x - shadowLength * Math.cos(angleRad)
-				const shadowY = obs.y - shadowLength * Math.sin(angleRad)
+				const points = 16
 				ctx.beginPath()
-				ctx.arc(shadowX, shadowY, obs.radius, 0, Math.PI * 2)
+				for (let i = 0; i <= points; i++) {
+					const a = (i / points) * Math.PI * 2
+					const px = obs.x + Math.cos(a) * obs.radius
+					const py = obs.y + Math.sin(a) * obs.radius
+					if (i === 0) ctx.moveTo(px, py)
+					else ctx.lineTo(px, py)
+				}
+				for (let i = points; i >= 0; i--) {
+					const a = (i / points) * Math.PI * 2
+					const px = obs.x + Math.cos(a) * obs.radius + shadowOffsetX
+					const py = obs.y + Math.sin(a) * obs.radius + shadowOffsetY
+					ctx.lineTo(px, py)
+				}
+				ctx.closePath()
 				ctx.fill()
 			} else if (obs.type === 'RECTANGLE' && obs.width && obs.height) {
-				const shadowX = obs.x - shadowLength * Math.cos(angleRad)
-				const shadowY = obs.y - shadowLength * Math.sin(angleRad)
-				ctx.save()
-				ctx.translate(shadowX, shadowY)
-				ctx.rotate((obs.rotation || 0) * (Math.PI / 180))
-				ctx.fillRect(-obs.width / 2, -obs.height / 2, obs.width, obs.height)
-				ctx.restore()
+				const rotRad = (obs.rotation || 0) * (Math.PI / 180)
+				const corners = [
+					{ x: -obs.width / 2, y: -obs.height / 2 },
+					{ x: obs.width / 2, y: -obs.height / 2 },
+					{ x: obs.width / 2, y: obs.height / 2 },
+					{ x: -obs.width / 2, y: obs.height / 2 }
+				]
+
+				const rotatedCorners = corners.map(c => ({
+					x: obs.x + c.x * Math.cos(rotRad) - c.y * Math.sin(rotRad),
+					y: obs.y + c.x * Math.sin(rotRad) + c.y * Math.cos(rotRad)
+				}))
+
+				ctx.beginPath()
+				rotatedCorners.forEach((c, i) => {
+					if (i === 0) ctx.moveTo(c.x, c.y)
+					else ctx.lineTo(c.x, c.y)
+				})
+				ctx.closePath()
+				rotatedCorners.reverse().forEach(c => {
+					ctx.lineTo(c.x + shadowOffsetX, c.y + shadowOffsetY)
+				})
+				ctx.closePath()
+				ctx.fill()
 			}
+		})
+
+		placements.forEach(placement => {
+			const rotRad = (placement.rotation || 0) * (Math.PI / 180)
+			const corners = [
+				{ x: -HIVE_SIZE / 2, y: -HIVE_SIZE / 2 },
+				{ x: HIVE_SIZE / 2, y: -HIVE_SIZE / 2 },
+				{ x: HIVE_SIZE / 2, y: HIVE_SIZE / 2 },
+				{ x: -HIVE_SIZE / 2, y: HIVE_SIZE / 2 }
+			]
+
+			const rotatedCorners = corners.map(c => ({
+				x: placement.x + c.x * Math.cos(rotRad) - c.y * Math.sin(rotRad),
+				y: placement.y + c.x * Math.sin(rotRad) + c.y * Math.cos(rotRad)
+			}))
+
+			ctx.beginPath()
+			rotatedCorners.forEach((c, i) => {
+				if (i === 0) ctx.moveTo(c.x, c.y)
+				else ctx.lineTo(c.x, c.y)
+			})
+			ctx.closePath()
+			rotatedCorners.reverse().forEach(c => {
+				ctx.lineTo(c.x + shadowOffsetX, c.y + shadowOffsetY)
+			})
+			ctx.closePath()
+			ctx.fill()
 		})
 	}
 
 	const drawObstacles = (ctx: CanvasRenderingContext2D) => {
 		obstacles.forEach((obs) => {
 			const isSelected = obs.id === selectedObstacle
-			ctx.strokeStyle = isSelected ? '#2196F3' : '#666'
-			ctx.fillStyle = isSelected ? 'rgba(100, 100, 100, 0.4)' : 'rgba(100, 100, 100, 0.3)'
-			ctx.lineWidth = isSelected ? 3 : 2
+
+			ctx.save()
+			ctx.translate(obs.x, obs.y)
 
 			if (obs.type === 'CIRCLE' && obs.radius) {
+				ctx.strokeStyle = isSelected ? '#2196F3' : '#666'
+				ctx.fillStyle = isSelected ? 'rgba(100, 100, 100, 0.4)' : 'rgba(100, 100, 100, 0.3)'
+				ctx.lineWidth = isSelected ? 3 : 2
 				ctx.beginPath()
-				ctx.arc(obs.x, obs.y, obs.radius, 0, Math.PI * 2)
+				ctx.arc(0, 0, obs.radius, 0, Math.PI * 2)
 				ctx.fill()
 				ctx.stroke()
+
+				if (isSelected) {
+					ctx.fillStyle = '#2196F3'
+					ctx.beginPath()
+					ctx.arc(obs.radius, 0, 6, 0, Math.PI * 2)
+					ctx.fill()
+					ctx.strokeStyle = '#fff'
+					ctx.lineWidth = 2
+					ctx.stroke()
+				}
 			} else if (obs.type === 'RECTANGLE' && obs.width && obs.height) {
-				ctx.save()
-				ctx.translate(obs.x, obs.y)
 				ctx.rotate((obs.rotation || 0) * (Math.PI / 180))
+
+				ctx.strokeStyle = isSelected ? '#2196F3' : '#666'
+				ctx.fillStyle = isSelected ? 'rgba(100, 100, 100, 0.4)' : 'rgba(100, 100, 100, 0.3)'
+				ctx.lineWidth = isSelected ? 3 : 2
 				ctx.fillRect(-obs.width / 2, -obs.height / 2, obs.width, obs.height)
 				ctx.strokeRect(-obs.width / 2, -obs.height / 2, obs.width, obs.height)
-				ctx.restore()
+
+				if (isSelected) {
+					ctx.fillStyle = '#2196F3'
+					ctx.beginPath()
+					ctx.arc(obs.width / 2, obs.height / 2, 6, 0, Math.PI * 2)
+					ctx.fill()
+					ctx.strokeStyle = '#fff'
+					ctx.lineWidth = 2
+					ctx.stroke()
+
+					ctx.rotate(-(obs.rotation || 0) * (Math.PI / 180))
+					const rotHandleDistance = Math.sqrt((obs.width / 2) ** 2 + (obs.height / 2) ** 2) + 20
+					ctx.fillStyle = '#FF9800'
+					ctx.beginPath()
+					ctx.arc(rotHandleDistance, 0, 6, 0, Math.PI * 2)
+					ctx.fill()
+					ctx.strokeStyle = '#fff'
+					ctx.lineWidth = 2
+					ctx.stroke()
+				}
 			}
 
-			if (obs.label) {
-				ctx.fillStyle = '#333'
-				ctx.font = '12px Arial'
-				ctx.textAlign = 'center'
-				ctx.fillText(obs.label, obs.x, obs.y + 5)
-			}
+			ctx.restore()
 		})
 	}
 
@@ -443,6 +523,49 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 		const x = e.clientX - rect.left
 		const y = e.clientY - rect.top
 
+		if (selectedObstacle) {
+			const obs = obstacles.find(o => o.id === selectedObstacle)
+			if (obs) {
+				if (obs.type === 'CIRCLE' && obs.radius) {
+					const resizeHandleDist = Math.sqrt((x - (obs.x + obs.radius)) ** 2 + (y - obs.y) ** 2)
+					if (resizeHandleDist <= 8) {
+						setIsResizingObstacle(true)
+						return
+					}
+					const centerDist = Math.sqrt((x - obs.x) ** 2 + (y - obs.y) ** 2)
+					if (centerDist <= obs.radius) {
+						setIsDraggingObstacle(true)
+						return
+					}
+				} else if (obs.type === 'RECTANGLE' && obs.width && obs.height) {
+					const rotHandleDistance = Math.sqrt((obs.width / 2) ** 2 + (obs.height / 2) ** 2) + 20
+					const rotHandleDist = Math.sqrt((x - (obs.x + rotHandleDistance)) ** 2 + (y - obs.y) ** 2)
+					if (rotHandleDist <= 8) {
+						setIsDraggingObstacleRotation(true)
+						return
+					}
+
+					const rotRad = (obs.rotation || 0) * (Math.PI / 180)
+					const resizeHandleX = obs.x + (obs.width / 2 * Math.cos(rotRad) - obs.height / 2 * Math.sin(rotRad))
+					const resizeHandleY = obs.y + (obs.width / 2 * Math.sin(rotRad) + obs.height / 2 * Math.cos(rotRad))
+					const resizeHandleDist = Math.sqrt((x - resizeHandleX) ** 2 + (y - resizeHandleY) ** 2)
+					if (resizeHandleDist <= 8) {
+						setIsResizingObstacle(true)
+						return
+					}
+
+					const dx = x - obs.x
+					const dy = y - obs.y
+					const localX = dx * Math.cos(-rotRad) - dy * Math.sin(-rotRad)
+					const localY = dx * Math.sin(-rotRad) + dy * Math.cos(-rotRad)
+					if (Math.abs(localX) <= obs.width / 2 && Math.abs(localY) <= obs.height / 2) {
+						setIsDraggingObstacle(true)
+						return
+					}
+				}
+			}
+		}
+
 		if (selectedHive) {
 			const placement = placements.get(selectedHive)
 			if (placement) {
@@ -465,6 +588,27 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 			}
 		}
 
+		for (const obs of obstacles) {
+			let isInside = false
+			if (obs.type === 'CIRCLE' && obs.radius) {
+				const dist = Math.sqrt((x - obs.x) ** 2 + (y - obs.y) ** 2)
+				isInside = dist <= obs.radius
+			} else if (obs.type === 'RECTANGLE' && obs.width && obs.height) {
+				const rotRad = (obs.rotation || 0) * (Math.PI / 180)
+				const dx = x - obs.x
+				const dy = y - obs.y
+				const localX = dx * Math.cos(-rotRad) - dy * Math.sin(-rotRad)
+				const localY = dx * Math.sin(-rotRad) + dy * Math.cos(-rotRad)
+				isInside = Math.abs(localX) <= obs.width / 2 && Math.abs(localY) <= obs.height / 2
+			}
+			if (isInside) {
+				setSelectedObstacle(obs.id)
+				setSelectedHive(null)
+				setIsDraggingObstacle(true)
+				return
+			}
+		}
+
 		for (const hive of hives) {
 			const placement = placements.get(hive.id)
 			if (placement) {
@@ -480,14 +624,57 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 	}
 
 	const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-		if (!selectedHive) return
-
 		const canvas = canvasRef.current
 		if (!canvas) return
 
 		const rect = canvas.getBoundingClientRect()
 		const x = e.clientX - rect.left
 		const y = e.clientY - rect.top
+
+		if (selectedObstacle) {
+			const obs = obstacles.find(o => o.id === selectedObstacle)
+			if (obs) {
+				if (isDraggingObstacle) {
+					const newObstacles = obstacles.map(o =>
+						o.id === selectedObstacle ? { ...o, x, y } : o
+					)
+					setObstacles(newObstacles)
+				} else if (isResizingObstacle) {
+					if (obs.type === 'CIRCLE') {
+						const newRadius = Math.sqrt((x - obs.x) ** 2 + (y - obs.y) ** 2)
+						const newObstacles = obstacles.map(o =>
+							o.id === selectedObstacle ? { ...o, radius: Math.max(20, newRadius) } : o
+						)
+						setObstacles(newObstacles)
+					} else if (obs.type === 'RECTANGLE' && obs.width && obs.height) {
+						const rotRad = (obs.rotation || 0) * (Math.PI / 180)
+						const dx = x - obs.x
+						const dy = y - obs.y
+						const localX = dx * Math.cos(-rotRad) - dy * Math.sin(-rotRad)
+						const localY = dx * Math.sin(-rotRad) + dy * Math.cos(-rotRad)
+						const newObstacles = obstacles.map(o =>
+							o.id === selectedObstacle ? {
+								...o,
+								width: Math.max(30, Math.abs(localX) * 2),
+								height: Math.max(30, Math.abs(localY) * 2)
+							} : o
+						)
+						setObstacles(newObstacles)
+					}
+				} else if (isDraggingObstacleRotation && obs.type === 'RECTANGLE') {
+					const dx = x - obs.x
+					const dy = y - obs.y
+					const angle = Math.atan2(dy, dx) * (180 / Math.PI)
+					const newObstacles = obstacles.map(o =>
+						o.id === selectedObstacle ? { ...o, rotation: angle } : o
+					)
+					setObstacles(newObstacles)
+				}
+				return
+			}
+		}
+
+		if (!selectedHive) return
 
 		const placement = placements.get(selectedHive)
 		if (!placement) return
@@ -510,6 +697,25 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 	}
 
 	const handleCanvasMouseUp = () => {
+		if ((isDraggingObstacle || isResizingObstacle || isDraggingObstacleRotation) && selectedObstacle) {
+			const obs = obstacles.find(o => o.id === selectedObstacle)
+			if (obs) {
+				updateObstacle({
+					id: selectedObstacle,
+					obstacle: {
+						type: obs.type,
+						x: obs.x,
+						y: obs.y,
+						width: obs.width,
+						height: obs.height,
+						radius: obs.radius,
+						rotation: obs.rotation,
+						label: obs.label
+					}
+				})
+			}
+		}
+
 		if ((isDragging || isDraggingRotation) && selectedHive) {
 			const placement = placements.get(selectedHive)
 			if (placement) {
@@ -524,6 +730,9 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 		}
 		setIsDragging(false)
 		setIsDraggingRotation(false)
+		setIsDraggingObstacle(false)
+		setIsDraggingObstacleRotation(false)
+		setIsResizingObstacle(false)
 	}
 
 	const rotateHive = (direction: number) => {
@@ -613,7 +822,10 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 				style={{
 					borderTop: '2px solid #ccc',
 					borderBottom: '2px solid #ccc',
-					cursor: addingObstacle ? 'crosshair' : (isDragging || isDraggingRotation) ? 'grabbing' : 'pointer',
+					cursor: addingObstacle ? 'crosshair' :
+						(isDragging || isDraggingRotation || isDraggingObstacle) ? 'grabbing' :
+						(isResizingObstacle || isDraggingObstacleRotation) ? 'nwse-resize' :
+						'pointer',
 					display: 'block',
 					width: '100%',
 					height: 'auto'
@@ -626,8 +838,10 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 					<li><T>Click on a hive to select it, then drag to move</T></li>
 					<li><T>When hive is selected, drag the blue rotation handle or use buttons to adjust entrance direction</T></li>
 					<li><T>Blue arrow shows entrance direction - avoid facing north or other hives</T></li>
-					<li><T>Add trees and buildings to visualize shadows throughout the day</T></li>
-					<li><T>Sun simulation shows daytime (☀️) and nighttime (🌙) positions</T></li>
+					<li><T>Click obstacles to select, drag to move, resize, or rotate them</T></li>
+					<li><T>Blue handle on obstacles = resize, Orange handle = rotate (rectangles only)</T></li>
+					<li><T>Sun moves around compass (top right) from East → South → West</T></li>
+					<li><T>Realistic polygonal shadows help visualize sun impact throughout the day</T></li>
 					<li><T>Consider flight patterns - hives should not be in line with each other</T></li>
 				</ul>
 			</div>

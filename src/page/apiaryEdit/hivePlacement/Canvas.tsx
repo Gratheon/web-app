@@ -16,6 +16,7 @@ interface CanvasProps {
 	isDraggingObstacle: boolean
 	isResizingObstacle: boolean
 	isDraggingObstacleRotation: boolean
+	isDraggingHeight: boolean
 	onClick: (x: number, y: number) => void
 	onMouseDown: (x: number, y: number) => void
 	onMouseMove: (x: number, y: number) => void
@@ -36,6 +37,7 @@ export default function Canvas({
 	isDraggingObstacle,
 	isResizingObstacle,
 	isDraggingObstacleRotation,
+	isDraggingHeight,
 	onClick,
 	onMouseDown,
 	onMouseMove,
@@ -121,6 +123,21 @@ export default function Canvas({
 					ctx.beginPath()
 					ctx.arc(obs.x + obs.radius, obs.y, 8, 0, Math.PI * 2)
 					ctx.fill()
+
+					const heightHandleY = obs.y + obs.radius + 30
+					ctx.fillStyle = '#4CAF50'
+					ctx.beginPath()
+					ctx.arc(obs.x, heightHandleY, 8, 0, Math.PI * 2)
+					ctx.fill()
+
+					ctx.strokeStyle = '#4CAF50'
+					ctx.lineWidth = 1
+					ctx.setLineDash([2, 2])
+					ctx.beginPath()
+					ctx.moveTo(obs.x, obs.y + obs.radius)
+					ctx.lineTo(obs.x, heightHandleY)
+					ctx.stroke()
+					ctx.setLineDash([])
 				}
 			} else if (obs.type === 'RECTANGLE' && obs.width && obs.height) {
 				ctx.save()
@@ -150,6 +167,21 @@ export default function Canvas({
 					ctx.beginPath()
 					ctx.arc(obs.x + rotHandleDistance, obs.y, 8, 0, Math.PI * 2)
 					ctx.fill()
+
+					const heightHandleDistance = Math.sqrt((obs.width / 2) ** 2 + (obs.height / 2) ** 2) + 40
+					ctx.fillStyle = '#4CAF50'
+					ctx.beginPath()
+					ctx.arc(obs.x, obs.y + heightHandleDistance, 8, 0, Math.PI * 2)
+					ctx.fill()
+
+					ctx.strokeStyle = '#4CAF50'
+					ctx.lineWidth = 1
+					ctx.setLineDash([2, 2])
+					ctx.beginPath()
+					ctx.moveTo(obs.x, obs.y)
+					ctx.lineTo(obs.x, obs.y + heightHandleDistance)
+					ctx.stroke()
+					ctx.setLineDash([])
 				}
 			}
 
@@ -258,6 +290,7 @@ export default function Canvas({
 				cursor: addingObstacle ? 'crosshair' :
 					(isDragging || isDraggingRotation || isDraggingObstacle) ? 'grabbing' :
 					(isResizingObstacle || isDraggingObstacleRotation) ? 'nwse-resize' :
+					isDraggingHeight ? 'ns-resize' :
 					'pointer',
 				display: 'block',
 				width: '100%',

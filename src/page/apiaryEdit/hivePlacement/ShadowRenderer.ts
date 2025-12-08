@@ -16,7 +16,8 @@ export const calculateShadow = (
 	ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'
 
 	obstacles.forEach((obs) => {
-		const shadowLength = DEFAULT_OBSTACLE_HEIGHT * 1.5
+		const obstacleHeight = obs.objectHeight ?? DEFAULT_OBSTACLE_HEIGHT
+		const shadowLength = obstacleHeight * 1.5
 
 		if (obs.type === 'CIRCLE' && obs.radius) {
 			drawCircleShadow(ctx, obs, sunDirX, sunDirY, shadowLength, sunAngleRad)

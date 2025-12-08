@@ -18,6 +18,7 @@ export interface Obstacle {
 	radius?: number
 	rotation: number
 	label?: string
+	objectHeight?: number
 }
 
 export interface Hive {

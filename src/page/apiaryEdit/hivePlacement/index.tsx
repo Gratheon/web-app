@@ -27,6 +27,7 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 	const [isDraggingObstacle, setIsDraggingObstacle] = useState(false)
 	const [isDraggingObstacleRotation, setIsDraggingObstacleRotation] = useState(false)
 	const [isResizingObstacle, setIsResizingObstacle] = useState(false)
+	const [isDraggingHeight, setIsDraggingHeight] = useState(false)
 	const [sunAngle, setSunAngle] = useState(90)
 	const [autoRotate, setAutoRotate] = useState(false)
 	const [addingObstacle, setAddingObstacle] = useState<'CIRCLE' | 'RECTANGLE' | null>(null)
@@ -88,7 +89,11 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 	useEffect(() => {
 		if (loading) return
 		if (data?.apiaryObstacles) {
-			setObstacles(data.apiaryObstacles)
+			const obstaclesWithHeight = data.apiaryObstacles.map((obs: Obstacle) => ({
+				...obs,
+				objectHeight: obs.objectHeight ?? (obs.type === 'CIRCLE' ? 150 : 100)
+			}))
+			setObstacles(obstaclesWithHeight)
 		}
 	}, [data, loading])
 
@@ -114,7 +119,8 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 				height: addingObstacle === 'RECTANGLE' ? 60 : undefined,
 				radius: addingObstacle === 'CIRCLE' ? 40 : undefined,
 				rotation: 0,
-				label: addingObstacle === 'CIRCLE' ? 'Tree' : 'House'
+				label: addingObstacle === 'CIRCLE' ? 'Tree' : 'House',
+				objectHeight: addingObstacle === 'CIRCLE' ? 150 : 100
 			}
 			addObstacleMutation({ apiaryId, obstacle: newObstacle }).then((result) => {
 				if (result?.data?.addApiaryObstacle?.id) {
@@ -166,6 +172,13 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 			const obs = obstacles.find(o => o.id === selectedObstacle)
 			if (obs) {
 				if (obs.type === 'CIRCLE' && obs.radius) {
+					const heightHandleY = obs.y + obs.radius + 30
+					const heightHandleDist = Math.sqrt((x - obs.x) ** 2 + (y - heightHandleY) ** 2)
+					if (heightHandleDist <= 8) {
+						setIsDraggingHeight(true)
+						return
+					}
+
 					const resizeHandleDist = Math.sqrt((x - (obs.x + obs.radius)) ** 2 + (y - obs.y) ** 2)
 					if (resizeHandleDist <= 8) {
 						setIsResizingObstacle(true)
@@ -177,6 +190,13 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 						return
 					}
 				} else if (obs.type === 'RECTANGLE' && obs.width && obs.height) {
+					const heightHandleDistance = Math.sqrt((obs.width / 2) ** 2 + (obs.height / 2) ** 2) + 40
+					const heightHandleDist = Math.sqrt((x - obs.x) ** 2 + (y - (obs.y + heightHandleDistance)) ** 2)
+					if (heightHandleDist <= 8) {
+						setIsDraggingHeight(true)
+						return
+					}
+
 					const rotHandleDistance = Math.sqrt((obs.width / 2) ** 2 + (obs.height / 2) ** 2) + 20
 					const rotHandleDist = Math.sqrt((x - (obs.x + rotHandleDistance)) ** 2 + (y - obs.y) ** 2)
 					if (rotHandleDist <= 8) {
@@ -266,7 +286,18 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 		if (selectedObstacle) {
 			const obs = obstacles.find(o => o.id === selectedObstacle)
 			if (obs) {
-				if (isDraggingObstacle) {
+				if (isDraggingHeight) {
+					const baseY = obs.type === 'CIRCLE' && obs.radius ?
+						obs.y + obs.radius :
+						obs.y + Math.sqrt((obs.width! / 2) ** 2 + (obs.height! / 2) ** 2)
+					const heightDelta = y - baseY
+					const newHeight = Math.max(20, Math.min(300, heightDelta * 2))
+					const newObstacles = obstacles.map(o =>
+						o.id === selectedObstacle ? { ...o, objectHeight: newHeight } : o
+					)
+					setObstacles(newObstacles)
+					return
+				} else if (isDraggingObstacle) {
 					const newObstacles = obstacles.map(o =>
 						o.id === selectedObstacle ? { ...o, x, y } : o
 					)
@@ -329,7 +360,7 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 	}
 
 	const handleCanvasMouseUp = () => {
-		if ((isDraggingObstacle || isResizingObstacle || isDraggingObstacleRotation) && selectedObstacle) {
+		if ((isDraggingObstacle || isResizingObstacle || isDraggingObstacleRotation || isDraggingHeight) && selectedObstacle) {
 			const obs = obstacles.find(o => o.id === selectedObstacle)
 			if (obs) {
 				updateObstacleMutation({
@@ -365,6 +396,7 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 		setIsDraggingObstacle(false)
 		setIsDraggingObstacleRotation(false)
 		setIsResizingObstacle(false)
+		setIsDraggingHeight(false)
 	}
 
 	const rotateHive = (direction: number) => {
@@ -433,6 +465,7 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 				isDraggingObstacle={isDraggingObstacle}
 				isResizingObstacle={isResizingObstacle}
 				isDraggingObstacleRotation={isDraggingObstacleRotation}
+				isDraggingHeight={isDraggingHeight}
 				onClick={handleCanvasClick}
 				onMouseDown={handleCanvasMouseDown}
 				onMouseMove={handleCanvasMouseMove}

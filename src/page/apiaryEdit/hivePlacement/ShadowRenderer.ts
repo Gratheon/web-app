@@ -116,7 +116,7 @@ const drawRectangleShadow = (
 		y: obs.y + c.x * Math.sin(rotRad) + c.y * Math.cos(rotRad)
 	}))
 
-	const backFacingEdges: number[] = []
+	const litEdges: number[] = []
 	for (let i = 0; i < rotatedCorners.length; i++) {
 		const p1 = rotatedCorners[i]
 		const p2 = rotatedCorners[(i + 1) % rotatedCorners.length]
@@ -126,18 +126,18 @@ const drawRectangleShadow = (
 		const normalY = edgeDx
 		const dot = normalX * sunDirX + normalY * sunDirY
 
-		if (dot < 0) {
-			backFacingEdges.push(i)
+		if (dot > 0) {
+			litEdges.push(i)
 		}
 	}
 
-	if (backFacingEdges.length >= 2) {
+	if (litEdges.length >= 2) {
 		const silhouettePoints: { x: number; y: number }[] = []
 
-		let minIdx = Math.min(...backFacingEdges)
-		let maxIdx = Math.max(...backFacingEdges)
+		let minIdx = Math.min(...litEdges)
+		let maxIdx = Math.max(...litEdges)
 
-		if (maxIdx - minIdx === backFacingEdges.length - 1) {
+		if (maxIdx - minIdx === litEdges.length - 1) {
 			for (let i = minIdx; i <= maxIdx + 1; i++) {
 				silhouettePoints.push(rotatedCorners[i % rotatedCorners.length])
 			}

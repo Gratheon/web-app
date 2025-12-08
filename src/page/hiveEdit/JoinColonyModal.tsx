@@ -23,7 +23,6 @@ const JOIN_HIVES_MUTATION = gql`
 	mutation joinHives($sourceHiveId: ID!, $targetHiveId: ID!, $mergeType: String!) {
 		joinHives(sourceHiveId: $sourceHiveId, targetHiveId: $targetHiveId, mergeType: $mergeType) {
 			id
-			name
 		}
 	}
 `

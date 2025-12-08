@@ -140,7 +140,8 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 
 	const handleCanvasClick = (x: number, y: number) => {
 		if (addingObstacle) {
-			const newObstacle = {
+			const objectHeight = addingObstacle === 'CIRCLE' ? 150 : 100
+			const obstacleForMutation = {
 				type: addingObstacle,
 				x,
 				y,
@@ -148,12 +149,11 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 				height: addingObstacle === 'RECTANGLE' ? 60 : undefined,
 				radius: addingObstacle === 'CIRCLE' ? 40 : undefined,
 				rotation: 0,
-				label: addingObstacle === 'CIRCLE' ? 'Tree' : 'House',
-				objectHeight: addingObstacle === 'CIRCLE' ? 150 : 100
+				label: addingObstacle === 'CIRCLE' ? 'Tree' : 'House'
 			}
-			addObstacleMutation({ apiaryId, obstacle: newObstacle }).then((result) => {
+			addObstacleMutation({ apiaryId, obstacle: obstacleForMutation }).then((result) => {
 				if (result?.data?.addApiaryObstacle?.id) {
-					setObstacles([...obstacles, { ...newObstacle, id: result.data.addApiaryObstacle.id }])
+					setObstacles([...obstacles, { ...obstacleForMutation, objectHeight, id: result.data.addApiaryObstacle.id }])
 				}
 			})
 			setAddingObstacle(null)

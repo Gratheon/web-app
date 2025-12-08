@@ -301,18 +301,20 @@ export default function Canvas({
 		const xRaw = e.clientX - rect.left
 		const yRaw = e.clientY - rect.top
 
-		const compassX = canvasWidth - 60
-		const compassY = 60
-		const radius = 40
-		const angleRad = (sunAngle - 90) * (Math.PI / 180)
-		const sunDistance = radius + 15
-		const sunX = compassX + sunDistance * Math.cos(angleRad)
-		const sunY = compassY + sunDistance * Math.sin(angleRad)
+		if (!addingObstacle) {
+			const compassX = canvasWidth - 60
+			const compassY = 60
+			const radius = 40
+			const angleRad = (sunAngle - 90) * (Math.PI / 180)
+			const sunDistance = radius + 15
+			const sunX = compassX + sunDistance * Math.cos(angleRad)
+			const sunY = compassY + sunDistance * Math.sin(angleRad)
 
-		const distToSun = Math.sqrt((xRaw - sunX) ** 2 + (yRaw - sunY) ** 2)
-		if (distToSun <= 15) {
-			onAutoRotateToggle()
-			return
+			const distToSun = Math.sqrt((xRaw - sunX) ** 2 + (yRaw - sunY) ** 2)
+			if (distToSun <= 15) {
+				onAutoRotateToggle()
+				return
+			}
 		}
 
 		const x = xRaw - panOffset.x
@@ -329,18 +331,20 @@ export default function Canvas({
 		const xRaw = e.clientX - rect.left
 		const yRaw = e.clientY - rect.top
 
-		const compassX = canvasWidth - 60
-		const compassY = 60
-		const radius = 40
-		const angleRad = (sunAngle - 90) * (Math.PI / 180)
-		const sunDistance = radius + 15
-		const sunX = compassX + sunDistance * Math.cos(angleRad)
-		const sunY = compassY + sunDistance * Math.sin(angleRad)
+		if (!addingObstacle) {
+			const compassX = canvasWidth - 60
+			const compassY = 60
+			const radius = 40
+			const angleRad = (sunAngle - 90) * (Math.PI / 180)
+			const sunDistance = radius + 15
+			const sunX = compassX + sunDistance * Math.cos(angleRad)
+			const sunY = compassY + sunDistance * Math.sin(angleRad)
 
-		const distToSun = Math.sqrt((xRaw - sunX) ** 2 + (yRaw - sunY) ** 2)
-		if (distToSun <= 15) {
-			setIsDraggingSun(true)
-			return
+			const distToSun = Math.sqrt((xRaw - sunX) ** 2 + (yRaw - sunY) ** 2)
+			if (distToSun <= 15) {
+				setIsDraggingSun(true)
+				return
+			}
 		}
 
 		const x = xRaw - panOffset.x

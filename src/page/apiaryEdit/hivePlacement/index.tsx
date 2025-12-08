@@ -194,11 +194,10 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 		ctx.fillStyle = '#e8f5e9'
 		ctx.fillRect(0, 0, canvasWidth, CANVAS_HEIGHT)
 
-		drawCompass(ctx)
-		drawSunPosition(ctx)
 		drawShadows(ctx)
 		drawObstacles(ctx)
 		drawHives(ctx)
+		drawCompass(ctx)
 	}
 
 	const drawCompass = (ctx: CanvasRenderingContext2D) => {
@@ -243,31 +242,53 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 	}
 
 	const drawShadows = (ctx: CanvasRenderingContext2D) => {
-		const angleRad = (sunAngle - 90) * (Math.PI / 180)
-		const shadowLength = 80
-		const shadowOffsetX = -Math.cos(angleRad) * shadowLength
-		const shadowOffsetY = -Math.sin(angleRad) * shadowLength
+		const sunAngleRad = (sunAngle - 90) * (Math.PI / 180)
+		const sunDirX = Math.cos(sunAngleRad)
+		const sunDirY = Math.sin(sunAngleRad)
+		const shadowLength = 150
 
-		ctx.fillStyle = 'rgba(0, 0, 0, 0.25)'
+		ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'
 
 		obstacles.forEach((obs) => {
 			if (obs.type === 'CIRCLE' && obs.radius) {
-				const points = 32
-				ctx.beginPath()
+				const sunAngleFromCenter = Math.atan2(sunDirY, sunDirX)
+				const perpAngle1 = sunAngleFromCenter + Math.PI / 2
+				const perpAngle2 = sunAngleFromCenter - Math.PI / 2
 
-				for (let i = 0; i <= points; i++) {
-					const a = (i / points) * Math.PI * 2
-					const px = obs.x + Math.cos(a) * obs.radius
-					const py = obs.y + Math.sin(a) * obs.radius
-					if (i === 0) ctx.moveTo(px, py)
-					else ctx.lineTo(px, py)
+				const tangent1 = {
+					x: obs.x + Math.cos(perpAngle1) * obs.radius,
+					y: obs.y + Math.sin(perpAngle1) * obs.radius
+				}
+				const tangent2 = {
+					x: obs.x + Math.cos(perpAngle2) * obs.radius,
+					y: obs.y + Math.sin(perpAngle2) * obs.radius
 				}
 
-				for (let i = points; i >= 0; i--) {
-					const a = (i / points) * Math.PI * 2
-					const px = obs.x + Math.cos(a) * obs.radius + shadowOffsetX
-					const py = obs.y + Math.sin(a) * obs.radius + shadowOffsetY
-					ctx.lineTo(px, py)
+				const startAngle = perpAngle1
+				const endAngle = perpAngle2
+				const points = 32
+				const silhouettePoints: { x: number; y: number }[] = []
+
+				silhouettePoints.push(tangent1)
+				for (let i = 1; i < points; i++) {
+					const t = i / points
+					const angle = startAngle + (endAngle - startAngle + Math.PI * 2) * t
+					silhouettePoints.push({
+						x: obs.x + Math.cos(angle) * obs.radius,
+						y: obs.y + Math.sin(angle) * obs.radius
+					})
+				}
+				silhouettePoints.push(tangent2)
+
+				ctx.beginPath()
+				silhouettePoints.forEach((p, i) => {
+					if (i === 0) ctx.moveTo(p.x, p.y)
+					else ctx.lineTo(p.x, p.y)
+				})
+
+				for (let i = silhouettePoints.length - 1; i >= 0; i--) {
+					const p = silhouettePoints[i]
+					ctx.lineTo(p.x - sunDirX * shadowLength, p.y - sunDirY * shadowLength)
 				}
 
 				ctx.closePath()
@@ -286,19 +307,63 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 					y: obs.y + c.x * Math.sin(rotRad) + c.y * Math.cos(rotRad)
 				}))
 
-				ctx.beginPath()
-				rotatedCorners.forEach((c, i) => {
-					if (i === 0) ctx.moveTo(c.x, c.y)
-					else ctx.lineTo(c.x, c.y)
-				})
+				const litEdges: number[] = []
+				for (let i = 0; i < rotatedCorners.length; i++) {
+					const p1 = rotatedCorners[i]
+					const p2 = rotatedCorners[(i + 1) % rotatedCorners.length]
+					const edgeDx = p2.x - p1.x
+					const edgeDy = p2.y - p1.y
+					const normalX = -edgeDy
+					const normalY = edgeDx
+					const dot = normalX * sunDirX + normalY * sunDirY
 
-				for (let i = rotatedCorners.length - 1; i >= 0; i--) {
-					const c = rotatedCorners[i]
-					ctx.lineTo(c.x + shadowOffsetX, c.y + shadowOffsetY)
+					if (dot < 0) {
+						litEdges.push(i)
+					}
 				}
 
-				ctx.closePath()
-				ctx.fill()
+				if (litEdges.length >= 2) {
+					const silhouettePoints: { x: number; y: number }[] = []
+
+					let minIdx = Math.min(...litEdges)
+					let maxIdx = Math.max(...litEdges)
+
+					if (maxIdx - minIdx === litEdges.length - 1) {
+						for (let i = minIdx; i <= maxIdx + 1; i++) {
+							silhouettePoints.push(rotatedCorners[i % rotatedCorners.length])
+						}
+					} else {
+						for (let i = maxIdx; i < rotatedCorners.length + minIdx + 1; i++) {
+							silhouettePoints.push(rotatedCorners[i % rotatedCorners.length])
+						}
+					}
+
+					ctx.beginPath()
+					silhouettePoints.forEach((p, i) => {
+						if (i === 0) ctx.moveTo(p.x, p.y)
+						else ctx.lineTo(p.x, p.y)
+					})
+
+					for (let i = silhouettePoints.length - 1; i >= 0; i--) {
+						const p = silhouettePoints[i]
+						ctx.lineTo(p.x - sunDirX * shadowLength, p.y - sunDirY * shadowLength)
+					}
+
+					ctx.closePath()
+					ctx.fill()
+
+					ctx.beginPath()
+					const shadowPoints = silhouettePoints.map(p => ({
+						x: p.x - sunDirX * shadowLength,
+						y: p.y - sunDirY * shadowLength
+					}))
+					shadowPoints.forEach((p, i) => {
+						if (i === 0) ctx.moveTo(p.x, p.y)
+						else ctx.lineTo(p.x, p.y)
+					})
+					ctx.closePath()
+					ctx.fill()
+				}
 			}
 		})
 
@@ -316,19 +381,63 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 				y: placement.y + c.x * Math.sin(rotRad) + c.y * Math.cos(rotRad)
 			}))
 
-			ctx.beginPath()
-			rotatedCorners.forEach((c, i) => {
-				if (i === 0) ctx.moveTo(c.x, c.y)
-				else ctx.lineTo(c.x, c.y)
-			})
+			const litEdges: number[] = []
+			for (let i = 0; i < rotatedCorners.length; i++) {
+				const p1 = rotatedCorners[i]
+				const p2 = rotatedCorners[(i + 1) % rotatedCorners.length]
+				const edgeDx = p2.x - p1.x
+				const edgeDy = p2.y - p1.y
+				const normalX = -edgeDy
+				const normalY = edgeDx
+				const dot = normalX * sunDirX + normalY * sunDirY
 
-			for (let i = rotatedCorners.length - 1; i >= 0; i--) {
-				const c = rotatedCorners[i]
-				ctx.lineTo(c.x + shadowOffsetX, c.y + shadowOffsetY)
+				if (dot < 0) {
+					litEdges.push(i)
+				}
 			}
 
-			ctx.closePath()
-			ctx.fill()
+			if (litEdges.length >= 2) {
+				const silhouettePoints: { x: number; y: number }[] = []
+
+				let minIdx = Math.min(...litEdges)
+				let maxIdx = Math.max(...litEdges)
+
+				if (maxIdx - minIdx === litEdges.length - 1) {
+					for (let i = minIdx; i <= maxIdx + 1; i++) {
+						silhouettePoints.push(rotatedCorners[i % rotatedCorners.length])
+					}
+				} else {
+					for (let i = maxIdx; i < rotatedCorners.length + minIdx + 1; i++) {
+						silhouettePoints.push(rotatedCorners[i % rotatedCorners.length])
+					}
+				}
+
+				ctx.beginPath()
+				silhouettePoints.forEach((p, i) => {
+					if (i === 0) ctx.moveTo(p.x, p.y)
+					else ctx.lineTo(p.x, p.y)
+				})
+
+				for (let i = silhouettePoints.length - 1; i >= 0; i--) {
+					const p = silhouettePoints[i]
+					ctx.lineTo(p.x - sunDirX * shadowLength, p.y - sunDirY * shadowLength)
+				}
+
+				ctx.closePath()
+				ctx.fill()
+
+				ctx.beginPath()
+				const shadowPoints = silhouettePoints.map(p => ({
+					x: p.x - sunDirX * shadowLength,
+					y: p.y - sunDirY * shadowLength
+				}))
+				shadowPoints.forEach((p, i) => {
+					if (i === 0) ctx.moveTo(p.x, p.y)
+					else ctx.lineTo(p.x, p.y)
+				})
+				ctx.closePath()
+				ctx.fill()
+			}
 		})
 	}
 

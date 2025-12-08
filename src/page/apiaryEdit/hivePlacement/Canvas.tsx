@@ -17,6 +17,7 @@ interface CanvasProps {
 	isResizingObstacle: boolean
 	isDraggingObstacleRotation: boolean
 	isDraggingHeight: boolean
+	isMobile?: boolean
 	onClick: (x: number, y: number) => void
 	onMouseDown: (x: number, y: number) => void
 	onMouseMove: (x: number, y: number) => void
@@ -38,12 +39,14 @@ export default function Canvas({
 	isResizingObstacle,
 	isDraggingObstacleRotation,
 	isDraggingHeight,
+	isMobile = false,
 	onClick,
 	onMouseDown,
 	onMouseMove,
 	onMouseUp
 }: CanvasProps) {
 	const canvasRef = useRef<HTMLCanvasElement>(null)
+	const handleSize = isMobile ? 12 : 8
 
 	useEffect(() => {
 		drawCanvas()
@@ -121,13 +124,13 @@ export default function Canvas({
 				if (isSelected) {
 					ctx.fillStyle = '#2196F3'
 					ctx.beginPath()
-					ctx.arc(obs.x + obs.radius, obs.y, 8, 0, Math.PI * 2)
+					ctx.arc(obs.x + obs.radius, obs.y, handleSize, 0, Math.PI * 2)
 					ctx.fill()
 
 					const heightHandleY = obs.y + obs.radius + 30
 					ctx.fillStyle = '#4CAF50'
 					ctx.beginPath()
-					ctx.arc(obs.x, heightHandleY, 8, 0, Math.PI * 2)
+					ctx.arc(obs.x, heightHandleY, handleSize, 0, Math.PI * 2)
 					ctx.fill()
 
 					ctx.strokeStyle = '#4CAF50'
@@ -159,19 +162,19 @@ export default function Canvas({
 
 					ctx.fillStyle = '#2196F3'
 					ctx.beginPath()
-					ctx.arc(resizeHandleX, resizeHandleY, 8, 0, Math.PI * 2)
+					ctx.arc(resizeHandleX, resizeHandleY, handleSize, 0, Math.PI * 2)
 					ctx.fill()
 
 					const rotHandleDistance = Math.sqrt((obs.width / 2) ** 2 + (obs.height / 2) ** 2) + 20
 					ctx.fillStyle = '#FF9800'
 					ctx.beginPath()
-					ctx.arc(obs.x + rotHandleDistance, obs.y, 8, 0, Math.PI * 2)
+					ctx.arc(obs.x + rotHandleDistance, obs.y, handleSize, 0, Math.PI * 2)
 					ctx.fill()
 
 					const heightHandleDistance = Math.sqrt((obs.width / 2) ** 2 + (obs.height / 2) ** 2) + 40
 					ctx.fillStyle = '#4CAF50'
 					ctx.beginPath()
-					ctx.arc(obs.x, obs.y + heightHandleDistance, 8, 0, Math.PI * 2)
+					ctx.arc(obs.x, obs.y + heightHandleDistance, handleSize, 0, Math.PI * 2)
 					ctx.fill()
 
 					ctx.strokeStyle = '#4CAF50'
@@ -203,11 +206,23 @@ export default function Canvas({
 			ctx.translate(placement.x, placement.y)
 			ctx.rotate((placement.rotation || 0) * Math.PI / 180)
 
+			if (isSelected && isMobile) {
+				ctx.shadowColor = 'rgba(255, 160, 0, 0.6)'
+				ctx.shadowBlur = 15
+				ctx.shadowOffsetX = 0
+				ctx.shadowOffsetY = 0
+			}
+
 			ctx.fillStyle = isSelected ? '#FFD54F' : '#FFF9C4'
 			ctx.strokeStyle = isSelected ? '#FFA000' : '#FBC02D'
-			ctx.lineWidth = isSelected ? 3 : 2
+			ctx.lineWidth = isSelected ? (isMobile ? 4 : 3) : 2
 			ctx.fillRect(-HIVE_SIZE / 2, -HIVE_SIZE / 2, HIVE_SIZE, HIVE_SIZE)
 			ctx.strokeRect(-HIVE_SIZE / 2, -HIVE_SIZE / 2, HIVE_SIZE, HIVE_SIZE)
+
+			if (isSelected && isMobile) {
+				ctx.shadowColor = 'transparent'
+				ctx.shadowBlur = 0
+			}
 
 			ctx.fillStyle = isSelected ? '#2196F3' : '#1976D2'
 			ctx.beginPath()
@@ -227,7 +242,7 @@ export default function Canvas({
 
 				ctx.fillStyle = '#2196F3'
 				ctx.beginPath()
-				ctx.arc(rotHandleX, rotHandleY, 8, 0, Math.PI * 2)
+				ctx.arc(rotHandleX, rotHandleY, handleSize, 0, Math.PI * 2)
 				ctx.fill()
 			}
 
@@ -274,6 +289,37 @@ export default function Canvas({
 		onMouseMove(x, y)
 	}
 
+	const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
+		e.preventDefault()
+		const canvas = canvasRef.current
+		if (!canvas) return
+
+		const rect = canvas.getBoundingClientRect()
+		const touch = e.touches[0]
+		const x = touch.clientX - rect.left
+		const y = touch.clientY - rect.top
+
+		onMouseDown(x, y)
+	}
+
+	const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
+		e.preventDefault()
+		const canvas = canvasRef.current
+		if (!canvas) return
+
+		const rect = canvas.getBoundingClientRect()
+		const touch = e.touches[0]
+		const x = touch.clientX - rect.left
+		const y = touch.clientY - rect.top
+
+		onMouseMove(x, y)
+	}
+
+	const handleTouchEnd = (e: React.TouchEvent<HTMLCanvasElement>) => {
+		e.preventDefault()
+		onMouseUp()
+	}
+
 	return (
 		<canvas
 			ref={canvasRef}
@@ -284,6 +330,10 @@ export default function Canvas({
 			onMouseMove={handleCanvasMouseMove}
 			onMouseUp={onMouseUp}
 			onMouseLeave={onMouseUp}
+			onTouchStart={handleTouchStart}
+			onTouchMove={handleTouchMove}
+			onTouchEnd={handleTouchEnd}
+			onTouchCancel={handleTouchEnd}
 			style={{
 				borderTop: '2px solid #ccc',
 				borderBottom: '2px solid #ccc',
@@ -294,7 +344,8 @@ export default function Canvas({
 					'pointer',
 				display: 'block',
 				width: '100%',
-				height: 'auto'
+				height: 'auto',
+				touchAction: 'none'
 			}}
 		/>
 	)

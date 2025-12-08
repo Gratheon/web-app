@@ -215,12 +215,12 @@ export default function ApiaryEditForm() {
 				<Tab isSelected={mapTab == 0} onClick={() => {
 					setMapTab(0)
 				}}><T>Position</T></Tab>
+        <Tab isSelected={mapTab == 2} onClick={() => {
+          setMapTab(2)
+        }}><T>Hive Placement</T></Tab>
 				<Tab isSelected={mapTab == 1} onClick={() => {
 					setMapTab(1)
 				}}><T>Satellite</T></Tab>
-				<Tab isSelected={mapTab == 2} onClick={() => {
-					setMapTab(2)
-				}}><T>Hive Placement</T></Tab>
 				<Tab isSelected={mapTab == 3} onClick={() => {
 					setMapTab(3)
 				}}><T>Moisture</T></Tab>
@@ -241,6 +241,10 @@ export default function ApiaryEditForm() {
 					<HivePlacement apiaryId={id} hives={apiaryGet.apiary.hives} />
 				)}
 				{mapTab == 3 && moisture_map}
+
+
+        {mapTab == 0 && apiary && <Weather lat={lat} lng={lng} />}
+        {mapTab == 0 && apiary && <Plants lat={lat} lng={lng} />}
 			</div>
 
 			{/*<div>*/}
@@ -255,8 +259,6 @@ export default function ApiaryEditForm() {
 
 			{/*</div>*/}
 
-			{apiary && <Weather lat={lat} lng={lng} />}
-			{apiary && <Plants lat={lat} lng={lng} />}
 		</div>
 	)
 }

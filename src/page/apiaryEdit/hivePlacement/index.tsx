@@ -6,12 +6,22 @@ import T from '../../../shared/translate'
 import Canvas from './Canvas'
 import Toolbar from './Toolbar'
 import Tips from './Tips'
+import HiveList from './HiveList'
 import { HivePlacement as HivePlacementType, Obstacle, Hive, HIVE_SIZE, CANVAS_HEIGHT } from './types'
 import { GET_HIVE_PLACEMENTS, UPDATE_HIVE_PLACEMENT, ADD_OBSTACLE, UPDATE_OBSTACLE, DELETE_OBSTACLE } from './graphql'
+import { mobileStyles } from './styles'
 
 interface Props {
 	apiaryId: string
 	hives: Hive[]
+}
+
+const isMobile = () => {
+	return typeof window !== 'undefined' && (
+		'ontouchstart' in window ||
+		navigator.maxTouchPoints > 0 ||
+		window.innerWidth <= 768
+	)
 }
 
 export default function HivePlacement({ apiaryId, hives }: Props) {
@@ -29,8 +39,12 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 	const [isResizingObstacle, setIsResizingObstacle] = useState(false)
 	const [isDraggingHeight, setIsDraggingHeight] = useState(false)
 	const [sunAngle, setSunAngle] = useState(90)
-	const [autoRotate, setAutoRotate] = useState(false)
+	const [autoRotate, setAutoRotate] = useState(true)
 	const [addingObstacle, setAddingObstacle] = useState<'CIRCLE' | 'RECTANGLE' | null>(null)
+	const [showHiveList, setShowHiveList] = useState(false)
+	const [isMobileDevice, setIsMobileDevice] = useState(false)
+
+	const handleRadius = isMobileDevice ? 16 : 8
 
 	const { data, loading, error } = useQuery(GET_HIVE_PLACEMENTS, { variables: { apiaryId } })
 
@@ -40,10 +54,14 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 	const [deleteObstacleMutation] = useMutation(DELETE_OBSTACLE)
 
 	useEffect(() => {
+		setIsMobileDevice(isMobile())
+	}, [])
+
+	useEffect(() => {
 		const updateCanvasWidth = () => {
 			if (containerRef.current) {
 				const width = containerRef.current.offsetWidth
-				setCanvasWidth(Math.max(600, width))
+				setCanvasWidth(Math.max(isMobile() ? 320 : 600, width))
 			}
 		}
 
@@ -174,13 +192,13 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 				if (obs.type === 'CIRCLE' && obs.radius) {
 					const heightHandleY = obs.y + obs.radius + 30
 					const heightHandleDist = Math.sqrt((x - obs.x) ** 2 + (y - heightHandleY) ** 2)
-					if (heightHandleDist <= 8) {
+					if (heightHandleDist <= handleRadius) {
 						setIsDraggingHeight(true)
 						return
 					}
 
 					const resizeHandleDist = Math.sqrt((x - (obs.x + obs.radius)) ** 2 + (y - obs.y) ** 2)
-					if (resizeHandleDist <= 8) {
+					if (resizeHandleDist <= handleRadius) {
 						setIsResizingObstacle(true)
 						return
 					}
@@ -192,14 +210,14 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 				} else if (obs.type === 'RECTANGLE' && obs.width && obs.height) {
 					const heightHandleDistance = Math.sqrt((obs.width / 2) ** 2 + (obs.height / 2) ** 2) + 40
 					const heightHandleDist = Math.sqrt((x - obs.x) ** 2 + (y - (obs.y + heightHandleDistance)) ** 2)
-					if (heightHandleDist <= 8) {
+					if (heightHandleDist <= handleRadius) {
 						setIsDraggingHeight(true)
 						return
 					}
 
 					const rotHandleDistance = Math.sqrt((obs.width / 2) ** 2 + (obs.height / 2) ** 2) + 20
 					const rotHandleDist = Math.sqrt((x - (obs.x + rotHandleDistance)) ** 2 + (y - obs.y) ** 2)
-					if (rotHandleDist <= 8) {
+					if (rotHandleDist <= handleRadius) {
 						setIsDraggingObstacleRotation(true)
 						return
 					}
@@ -208,7 +226,7 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 					const resizeHandleX = obs.x + (obs.width / 2 * Math.cos(rotRad) - obs.height / 2 * Math.sin(rotRad))
 					const resizeHandleY = obs.y + (obs.width / 2 * Math.sin(rotRad) + obs.height / 2 * Math.cos(rotRad))
 					const resizeHandleDist = Math.sqrt((x - resizeHandleX) ** 2 + (y - resizeHandleY) ** 2)
-					if (resizeHandleDist <= 8) {
+					if (resizeHandleDist <= handleRadius) {
 						setIsResizingObstacle(true)
 						return
 					}
@@ -272,7 +290,7 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 			const placement = placements.get(hive.id)
 			if (placement) {
 				const dist = Math.sqrt((x - placement.x) ** 2 + (y - placement.y) ** 2)
-				if (dist <= HIVE_SIZE / 2 + 5) {
+				if (dist <= HIVE_SIZE / 2 + (isMobileDevice ? 15 : 5)) {
 					setSelectedHive(hive.id)
 					setSelectedObstacle(null)
 					setIsDragging(true)
@@ -431,11 +449,24 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 	if (loading) return <Loader />
 	if (error) return <ErrorMsg error={error} />
 
+	const getSelectionName = () => {
+		if (selectedHive) {
+			const hive = hives.find(h => h.id === selectedHive)
+			return `Hive #${hive?.hiveNumber || selectedHive.slice(0, 4)}`
+		}
+		if (selectedObstacle) {
+			const obs = obstacles.find(o => o.id === selectedObstacle)
+			return obs?.label || 'Obstacle'
+		}
+		return null
+	}
+
+	const selectionName = getSelectionName()
+
 	return (
-		<div ref={containerRef} style={{ width: '100%' }}>
-			<div style={{ marginBottom: '20px', padding: '0 20px' }}>
-				<h3><T>Hive Placement Planner</T></h3>
-				<p><T>Position your hives optimally considering sun movement, shadows, and flight patterns</T></p>
+		<div ref={containerRef} style={mobileStyles.container(isMobileDevice)}>
+			<div style={mobileStyles.header(isMobileDevice)}>
+				<p style={mobileStyles.description(isMobileDevice)}><T>Position your hives optimally considering sun movement, shadows, and flight patterns</T></p>
 			</div>
 
 			<Toolbar
@@ -444,12 +475,24 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 				selectedObstacle={selectedObstacle}
 				sunAngle={sunAngle}
 				autoRotate={autoRotate}
+				isMobile={isMobileDevice}
+				showHiveList={showHiveList}
 				onAddObstacle={handleAddObstacle}
 				onRotateHive={rotateHive}
 				onDeleteObstacle={handleDeleteObstacle}
 				onSunAngleChange={setSunAngle}
 				onAutoRotateChange={setAutoRotate}
+				onToggleHiveList={() => setShowHiveList(!showHiveList)}
 			/>
+
+			{isMobileDevice && showHiveList && (
+				<HiveList
+					hives={hives}
+					placements={placements}
+					selectedHive={selectedHive}
+					onSelectHive={setSelectedHive}
+				/>
+			)}
 
 			<Canvas
 				canvasWidth={canvasWidth}
@@ -466,13 +509,20 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 				isResizingObstacle={isResizingObstacle}
 				isDraggingObstacleRotation={isDraggingObstacleRotation}
 				isDraggingHeight={isDraggingHeight}
+				isMobile={isMobileDevice}
 				onClick={handleCanvasClick}
 				onMouseDown={handleCanvasMouseDown}
 				onMouseMove={handleCanvasMouseMove}
 				onMouseUp={handleCanvasMouseUp}
 			/>
 
-			<Tips />
+			{!isMobileDevice && <Tips />}
+
+			{isMobileDevice && selectionName && (
+				<div style={mobileStyles.selectionIndicator(isMobileDevice)}>
+					{selectionName}
+				</div>
+			)}
 		</div>
 	)
 }

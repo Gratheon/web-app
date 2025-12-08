@@ -5,7 +5,7 @@ import Loader from '../../../shared/loader'
 import ErrorMsg from '../../../shared/messageError'
 import T from '../../../shared/translate'
 import HiveIcon from '../../../shared/hive'
-import { getBoxes } from '../../../models/boxes'
+import { getBoxes } from '@/models/boxes'
 import Canvas from './Canvas'
 import Toolbar from './Toolbar'
 import Tips from './Tips'
@@ -41,6 +41,9 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 	const [isDraggingObstacleRotation, setIsDraggingObstacleRotation] = useState(false)
 	const [isResizingObstacle, setIsResizingObstacle] = useState(false)
 	const [isDraggingHeight, setIsDraggingHeight] = useState(false)
+	const [isPanning, setIsPanning] = useState(false)
+	const [panOffset, setPanOffset] = useState({ x: 0, y: 0 })
+	const [lastPanPoint, setLastPanPoint] = useState({ x: 0, y: 0 })
 	const [sunAngle, setSunAngle] = useState(90)
 	const [autoRotate, setAutoRotate] = useState(true)
 	const [addingObstacle, setAddingObstacle] = useState<'CIRCLE' | 'RECTANGLE' | null>(null)
@@ -193,7 +196,16 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 		setSelectedObstacle(null)
 	}
 
-	const handleCanvasMouseDown = (x: number, y: number) => {
+	const handleCanvasMouseDown = (x: number, y: number, e?: any) => {
+		if (e && (e.button === 1 || e.button === 2 || e.shiftKey)) {
+			setIsPanning(true)
+			setLastPanPoint({ x, y })
+			if (e.button === 2) {
+				e.preventDefault()
+			}
+			return
+		}
+
 		if (selectedObstacle) {
 			const obs = obstacles.find(o => o.id === selectedObstacle)
 			if (obs) {
@@ -309,6 +321,14 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 	}
 
 	const handleCanvasMouseMove = (x: number, y: number) => {
+		if (isPanning) {
+			const dx = x - lastPanPoint.x
+			const dy = y - lastPanPoint.y
+			setPanOffset({ x: panOffset.x + dx, y: panOffset.y + dy })
+			setLastPanPoint({ x, y })
+			return
+		}
+
 		if (selectedObstacle) {
 			const obs = obstacles.find(o => o.id === selectedObstacle)
 			if (obs) {
@@ -423,6 +443,7 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 		setIsDraggingObstacleRotation(false)
 		setIsResizingObstacle(false)
 		setIsDraggingHeight(false)
+		setIsPanning(false)
 	}
 
 	const rotateHive = (direction: number) => {
@@ -486,21 +507,22 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 				/>
 			)}
 
-			{selectedHive && (
+			{isMobileDevice && selectedHive && (
 				<div style={{
-					padding: isMobileDevice ? '12px 20px' : '16px 20px',
+					padding: '12px 20px',
 					backgroundColor: '#FFF9C4',
 					borderLeft: '4px solid #FFA000',
 					marginBottom: '10px',
-					fontSize: isMobileDevice ? '14px' : '16px',
-					fontWeight: 'bold',
 					display: 'flex',
 					alignItems: 'center',
-					gap: '15px'
+					gap: '12px'
 				}}>
-					<HiveIcon boxes={selectedHiveBoxes || []} size={isMobileDevice ? 40 : 50} />
-					<span>
-						<T>Selected</T>: {(() => {
+					<HiveIcon boxes={selectedHiveBoxes || []} size={40} />
+					<div style={{
+						fontSize: '14px',
+						fontWeight: 'bold'
+					}}>
+						{(() => {
 							const hive = hives.find(h => h.id === selectedHive)
 							return `Hive #${hive?.hiveNumber || selectedHive.slice(0, 4)}`
 						})()}
@@ -508,31 +530,68 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 							const hive = hives.find(h => h.id === selectedHive)
 							return hive?.boxCount ? ` (${hive.boxCount} boxes)` : ''
 						})()}
-					</span>
+					</div>
 				</div>
 			)}
 
-			<Canvas
-				canvasWidth={canvasWidth}
-				placements={placements}
-				obstacles={obstacles}
-				hives={hives}
-				sunAngle={sunAngle}
-				selectedHive={selectedHive}
-				selectedObstacle={selectedObstacle}
-				addingObstacle={addingObstacle}
-				isDragging={isDragging}
-				isDraggingRotation={isDraggingRotation}
-				isDraggingObstacle={isDraggingObstacle}
-				isResizingObstacle={isResizingObstacle}
-				isDraggingObstacleRotation={isDraggingObstacleRotation}
-				isDraggingHeight={isDraggingHeight}
-				isMobile={isMobileDevice}
-				onClick={handleCanvasClick}
-				onMouseDown={handleCanvasMouseDown}
-				onMouseMove={handleCanvasMouseMove}
-				onMouseUp={handleCanvasMouseUp}
-			/>
+			<div style={{ position: 'relative' }}>
+				{selectedHive && !isMobileDevice && (
+					<div style={{
+						position: 'absolute',
+						top: '80px',
+						right: '20px',
+						backgroundColor: '#FFF9C4',
+						borderLeft: '4px solid #FFA000',
+						padding: '12px',
+						zIndex: 10,
+						display: 'flex',
+						flexDirection: 'column',
+						alignItems: 'center',
+						gap: '8px',
+						boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+					}}>
+						<HiveIcon boxes={selectedHiveBoxes || []} size={60} />
+						<div style={{
+							fontSize: '12px',
+							fontWeight: 'bold',
+							textAlign: 'center'
+						}}>
+							{(() => {
+								const hive = hives.find(h => h.id === selectedHive)
+								return `#${hive?.hiveNumber || selectedHive.slice(0, 4)}`
+							})()}
+							{(() => {
+								const hive = hives.find(h => h.id === selectedHive)
+								return hive?.boxCount ? ` (${hive.boxCount})` : ''
+							})()}
+						</div>
+					</div>
+				)}
+
+					<Canvas
+					canvasWidth={canvasWidth}
+					placements={placements}
+					obstacles={obstacles}
+					hives={hives}
+					sunAngle={sunAngle}
+					selectedHive={selectedHive}
+					selectedObstacle={selectedObstacle}
+					addingObstacle={addingObstacle}
+					isDragging={isDragging}
+					isDraggingRotation={isDraggingRotation}
+					isDraggingObstacle={isDraggingObstacle}
+					isResizingObstacle={isResizingObstacle}
+					isDraggingObstacleRotation={isDraggingObstacleRotation}
+					isDraggingHeight={isDraggingHeight}
+					isPanning={isPanning}
+					panOffset={panOffset}
+					isMobile={isMobileDevice}
+					onClick={handleCanvasClick}
+					onMouseDown={handleCanvasMouseDown}
+					onMouseMove={handleCanvasMouseMove}
+					onMouseUp={handleCanvasMouseUp}
+				/>
+			</div>
 
 			<Toolbar
 				addingObstacle={addingObstacle}
@@ -551,12 +610,6 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 			/>
 
 			{!isMobileDevice && <Tips />}
-
-			{isMobileDevice && selectionName && (
-				<div style={mobileStyles.selectionIndicator(isMobileDevice)}>
-					{selectionName}
-				</div>
-			)}
 		</div>
 	)
 }

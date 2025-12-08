@@ -17,9 +17,11 @@ interface CanvasProps {
 	isResizingObstacle: boolean
 	isDraggingObstacleRotation: boolean
 	isDraggingHeight: boolean
+	isPanning: boolean
+	panOffset: { x: number; y: number }
 	isMobile?: boolean
 	onClick: (x: number, y: number) => void
-	onMouseDown: (x: number, y: number) => void
+	onMouseDown: (x: number, y: number, e?: any) => void
 	onMouseMove: (x: number, y: number) => void
 	onMouseUp: () => void
 }
@@ -39,6 +41,8 @@ export default function Canvas({
 	isResizingObstacle,
 	isDraggingObstacleRotation,
 	isDraggingHeight,
+	isPanning,
+	panOffset,
 	isMobile = false,
 	onClick,
 	onMouseDown,
@@ -50,7 +54,7 @@ export default function Canvas({
 
 	useEffect(() => {
 		drawCanvas()
-	}, [placements, obstacles, sunAngle, selectedHive, selectedObstacle, hives.length, canvasWidth])
+	}, [placements, obstacles, sunAngle, selectedHive, selectedObstacle, hives.length, canvasWidth, panOffset])
 
 	const drawCanvas = () => {
 		const canvas = canvasRef.current
@@ -64,9 +68,15 @@ export default function Canvas({
 		ctx.fillStyle = '#e8f5e9'
 		ctx.fillRect(0, 0, canvasWidth, CANVAS_HEIGHT)
 
+		ctx.save()
+		ctx.translate(panOffset.x, panOffset.y)
+
 		calculateShadow(ctx, obstacles, placements, hives, sunAngle)
 		drawObstacles(ctx)
 		drawHives(ctx)
+
+		ctx.restore()
+
 		drawCompass(ctx)
 	}
 
@@ -271,8 +281,8 @@ export default function Canvas({
 		if (!canvas) return
 
 		const rect = canvas.getBoundingClientRect()
-		const x = e.clientX - rect.left
-		const y = e.clientY - rect.top
+		const x = e.clientX - rect.left - panOffset.x
+		const y = e.clientY - rect.top - panOffset.y
 
 		onClick(x, y)
 	}
@@ -282,10 +292,10 @@ export default function Canvas({
 		if (!canvas) return
 
 		const rect = canvas.getBoundingClientRect()
-		const x = e.clientX - rect.left
-		const y = e.clientY - rect.top
+		const x = e.clientX - rect.left - panOffset.x
+		const y = e.clientY - rect.top - panOffset.y
 
-		onMouseDown(x, y)
+		onMouseDown(x, y, e)
 	}
 
 	const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -293,8 +303,8 @@ export default function Canvas({
 		if (!canvas) return
 
 		const rect = canvas.getBoundingClientRect()
-		const x = e.clientX - rect.left
-		const y = e.clientY - rect.top
+		const x = isPanning ? e.clientX - rect.left : e.clientX - rect.left - panOffset.x
+		const y = isPanning ? e.clientY - rect.top : e.clientY - rect.top - panOffset.y
 
 		onMouseMove(x, y)
 	}
@@ -306,10 +316,10 @@ export default function Canvas({
 
 		const rect = canvas.getBoundingClientRect()
 		const touch = e.touches[0]
-		const x = touch.clientX - rect.left
-		const y = touch.clientY - rect.top
+		const x = touch.clientX - rect.left - panOffset.x
+		const y = touch.clientY - rect.top - panOffset.y
 
-		onMouseDown(x, y)
+		onMouseDown(x, y, e)
 	}
 
 	const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
@@ -319,8 +329,8 @@ export default function Canvas({
 
 		const rect = canvas.getBoundingClientRect()
 		const touch = e.touches[0]
-		const x = touch.clientX - rect.left
-		const y = touch.clientY - rect.top
+		const x = isPanning ? touch.clientX - rect.left : touch.clientX - rect.left - panOffset.x
+		const y = isPanning ? touch.clientY - rect.top : touch.clientY - rect.top - panOffset.y
 
 		onMouseMove(x, y)
 	}
@@ -340,6 +350,7 @@ export default function Canvas({
 			onMouseMove={handleCanvasMouseMove}
 			onMouseUp={onMouseUp}
 			onMouseLeave={onMouseUp}
+			onContextMenu={(e) => e.preventDefault()}
 			onTouchStart={handleTouchStart}
 			onTouchMove={handleTouchMove}
 			onTouchEnd={handleTouchEnd}
@@ -347,7 +358,8 @@ export default function Canvas({
 			style={{
 				borderTop: '2px solid #ccc',
 				borderBottom: '2px solid #ccc',
-				cursor: addingObstacle ? 'crosshair' :
+				cursor: isPanning ? 'move' :
+					addingObstacle ? 'crosshair' :
 					(isDragging || isDraggingRotation || isDraggingObstacle) ? 'grabbing' :
 					(isResizingObstacle || isDraggingObstacleRotation) ? 'nwse-resize' :
 					isDraggingHeight ? 'ns-resize' :

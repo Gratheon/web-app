@@ -1,0 +1,269 @@
+import React, { useRef, useEffect } from 'react'
+import { Obstacle, HivePlacement, Hive, HIVE_SIZE, CANVAS_HEIGHT } from './types'
+import { calculateShadow } from './ShadowRenderer'
+
+interface CanvasProps {
+	canvasWidth: number
+	placements: Map<string, HivePlacement>
+	obstacles: Obstacle[]
+	hives: Hive[]
+	sunAngle: number
+	selectedHive: string | null
+	selectedObstacle: string | null
+	addingObstacle: 'CIRCLE' | 'RECTANGLE' | null
+	isDragging: boolean
+	isDraggingRotation: boolean
+	isDraggingObstacle: boolean
+	isResizingObstacle: boolean
+	isDraggingObstacleRotation: boolean
+	onClick: (x: number, y: number) => void
+	onMouseDown: (x: number, y: number) => void
+	onMouseMove: (x: number, y: number) => void
+	onMouseUp: () => void
+}
+
+export default function Canvas({
+	canvasWidth,
+	placements,
+	obstacles,
+	hives,
+	sunAngle,
+	selectedHive,
+	selectedObstacle,
+	addingObstacle,
+	isDragging,
+	isDraggingRotation,
+	isDraggingObstacle,
+	isResizingObstacle,
+	isDraggingObstacleRotation,
+	onClick,
+	onMouseDown,
+	onMouseMove,
+	onMouseUp
+}: CanvasProps) {
+	const canvasRef = useRef<HTMLCanvasElement>(null)
+
+	useEffect(() => {
+		drawCanvas()
+	}, [placements, obstacles, sunAngle, selectedHive, selectedObstacle, hives.length, canvasWidth])
+
+	const drawCanvas = () => {
+		const canvas = canvasRef.current
+		if (!canvas) return
+
+		const ctx = canvas.getContext('2d')
+		if (!ctx) return
+
+		ctx.clearRect(0, 0, canvasWidth, CANVAS_HEIGHT)
+
+		ctx.fillStyle = '#e8f5e9'
+		ctx.fillRect(0, 0, canvasWidth, CANVAS_HEIGHT)
+
+		calculateShadow(ctx, obstacles, placements, hives, sunAngle)
+		drawObstacles(ctx)
+		drawHives(ctx)
+		drawCompass(ctx)
+	}
+
+	const drawCompass = (ctx: CanvasRenderingContext2D) => {
+		const x = canvasWidth - 60
+		const y = 60
+		const radius = 40
+
+		ctx.strokeStyle = '#333'
+		ctx.lineWidth = 2
+		ctx.beginPath()
+		ctx.arc(x, y, radius, 0, Math.PI * 2)
+		ctx.stroke()
+
+		ctx.fillStyle = '#e53935'
+		ctx.beginPath()
+		ctx.moveTo(x, y - radius)
+		ctx.lineTo(x - 8, y - radius + 15)
+		ctx.lineTo(x + 8, y - radius + 15)
+		ctx.closePath()
+		ctx.fill()
+
+		ctx.font = 'bold 14px Arial'
+		ctx.fillStyle = '#333'
+		ctx.textAlign = 'center'
+		ctx.fillText('N', x, y - radius - 10)
+		ctx.fillText('S', x, y + radius + 20)
+		ctx.fillText('E', x + radius + 15, y + 5)
+		ctx.fillText('W', x - radius - 15, y + 5)
+
+		const angleRad = (sunAngle - 90) * (Math.PI / 180)
+		const sunDistance = radius + 15
+		const sunX = x + sunDistance * Math.cos(angleRad)
+		const sunY = y + sunDistance * Math.sin(angleRad)
+
+		ctx.font = '20px Arial'
+		ctx.textAlign = 'center'
+		ctx.textBaseline = 'middle'
+		ctx.fillText('☀️', sunX, sunY)
+	}
+
+	const drawObstacles = (ctx: CanvasRenderingContext2D) => {
+		obstacles.forEach(obs => {
+			const isSelected = obs.id === selectedObstacle
+
+			if (obs.type === 'CIRCLE' && obs.radius) {
+				ctx.fillStyle = isSelected ? 'rgba(76, 175, 80, 0.5)' : 'rgba(76, 175, 80, 0.3)'
+				ctx.strokeStyle = isSelected ? '#43a047' : '#66bb6a'
+				ctx.lineWidth = isSelected ? 3 : 2
+				ctx.beginPath()
+				ctx.arc(obs.x, obs.y, obs.radius, 0, Math.PI * 2)
+				ctx.fill()
+				ctx.stroke()
+
+				if (isSelected) {
+					ctx.fillStyle = '#2196F3'
+					ctx.beginPath()
+					ctx.arc(obs.x + obs.radius, obs.y, 8, 0, Math.PI * 2)
+					ctx.fill()
+				}
+			} else if (obs.type === 'RECTANGLE' && obs.width && obs.height) {
+				ctx.save()
+				ctx.translate(obs.x, obs.y)
+				ctx.rotate((obs.rotation || 0) * Math.PI / 180)
+
+				ctx.fillStyle = isSelected ? 'rgba(158, 158, 158, 0.5)' : 'rgba(158, 158, 158, 0.3)'
+				ctx.strokeStyle = isSelected ? '#757575' : '#9e9e9e'
+				ctx.lineWidth = isSelected ? 3 : 2
+				ctx.fillRect(-obs.width / 2, -obs.height / 2, obs.width, obs.height)
+				ctx.strokeRect(-obs.width / 2, -obs.height / 2, obs.width, obs.height)
+
+				ctx.restore()
+
+				if (isSelected) {
+					const rotRad = (obs.rotation || 0) * (Math.PI / 180)
+					const resizeHandleX = obs.x + (obs.width / 2 * Math.cos(rotRad) - obs.height / 2 * Math.sin(rotRad))
+					const resizeHandleY = obs.y + (obs.width / 2 * Math.sin(rotRad) + obs.height / 2 * Math.cos(rotRad))
+
+					ctx.fillStyle = '#2196F3'
+					ctx.beginPath()
+					ctx.arc(resizeHandleX, resizeHandleY, 8, 0, Math.PI * 2)
+					ctx.fill()
+
+					const rotHandleDistance = Math.sqrt((obs.width / 2) ** 2 + (obs.height / 2) ** 2) + 20
+					ctx.fillStyle = '#FF9800'
+					ctx.beginPath()
+					ctx.arc(obs.x + rotHandleDistance, obs.y, 8, 0, Math.PI * 2)
+					ctx.fill()
+				}
+			}
+
+			if (obs.label) {
+				ctx.font = '12px Arial'
+				ctx.fillStyle = '#333'
+				ctx.textAlign = 'center'
+				ctx.fillText(obs.label, obs.x, obs.y)
+			}
+		})
+	}
+
+	const drawHives = (ctx: CanvasRenderingContext2D) => {
+		placements.forEach((placement) => {
+			const hive = hives.find(h => h.id === placement.hiveId)
+			const isSelected = placement.hiveId === selectedHive
+
+			ctx.save()
+			ctx.translate(placement.x, placement.y)
+			ctx.rotate((placement.rotation || 0) * Math.PI / 180)
+
+			ctx.fillStyle = isSelected ? '#FFD54F' : '#FFF9C4'
+			ctx.strokeStyle = isSelected ? '#FFA000' : '#FBC02D'
+			ctx.lineWidth = isSelected ? 3 : 2
+			ctx.fillRect(-HIVE_SIZE / 2, -HIVE_SIZE / 2, HIVE_SIZE, HIVE_SIZE)
+			ctx.strokeRect(-HIVE_SIZE / 2, -HIVE_SIZE / 2, HIVE_SIZE, HIVE_SIZE)
+
+			ctx.fillStyle = isSelected ? '#2196F3' : '#1976D2'
+			ctx.beginPath()
+			ctx.moveTo(0, -HIVE_SIZE / 2)
+			ctx.lineTo(-5, -HIVE_SIZE / 2 + 10)
+			ctx.lineTo(5, -HIVE_SIZE / 2 + 10)
+			ctx.closePath()
+			ctx.fill()
+
+			ctx.restore()
+
+			if (isSelected) {
+				const rotHandleDistance = HIVE_SIZE / 2 + 20
+				const rotHandleAngle = (placement.rotation || 0) * (Math.PI / 180)
+				const rotHandleX = placement.x + rotHandleDistance * Math.sin(rotHandleAngle)
+				const rotHandleY = placement.y - rotHandleDistance * Math.cos(rotHandleAngle)
+
+				ctx.fillStyle = '#2196F3'
+				ctx.beginPath()
+				ctx.arc(rotHandleX, rotHandleY, 8, 0, Math.PI * 2)
+				ctx.fill()
+			}
+
+			if (hive?.hiveNumber) {
+				ctx.font = 'bold 12px Arial'
+				ctx.fillStyle = '#333'
+				ctx.textAlign = 'center'
+				ctx.textBaseline = 'middle'
+				ctx.fillText(`#${hive.hiveNumber}`, placement.x, placement.y)
+			}
+		})
+	}
+
+	const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+		const canvas = canvasRef.current
+		if (!canvas) return
+
+		const rect = canvas.getBoundingClientRect()
+		const x = e.clientX - rect.left
+		const y = e.clientY - rect.top
+
+		onClick(x, y)
+	}
+
+	const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+		const canvas = canvasRef.current
+		if (!canvas) return
+
+		const rect = canvas.getBoundingClientRect()
+		const x = e.clientX - rect.left
+		const y = e.clientY - rect.top
+
+		onMouseDown(x, y)
+	}
+
+	const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+		const canvas = canvasRef.current
+		if (!canvas) return
+
+		const rect = canvas.getBoundingClientRect()
+		const x = e.clientX - rect.left
+		const y = e.clientY - rect.top
+
+		onMouseMove(x, y)
+	}
+
+	return (
+		<canvas
+			ref={canvasRef}
+			width={canvasWidth}
+			height={CANVAS_HEIGHT}
+			onClick={handleCanvasClick}
+			onMouseDown={handleCanvasMouseDown}
+			onMouseMove={handleCanvasMouseMove}
+			onMouseUp={onMouseUp}
+			onMouseLeave={onMouseUp}
+			style={{
+				borderTop: '2px solid #ccc',
+				borderBottom: '2px solid #ccc',
+				cursor: addingObstacle ? 'crosshair' :
+					(isDragging || isDraggingRotation || isDraggingObstacle) ? 'grabbing' :
+					(isResizingObstacle || isDraggingObstacleRotation) ? 'nwse-resize' :
+					'pointer',
+				display: 'block',
+				width: '100%',
+				height: 'auto'
+			}}
+		/>
+	)
+}
+

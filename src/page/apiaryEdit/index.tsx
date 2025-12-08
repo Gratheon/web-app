@@ -70,6 +70,7 @@ export default function ApiaryEditForm() {
 				hives {
 					id
 					hiveNumber
+					boxCount
 					family {
 						name
 					}

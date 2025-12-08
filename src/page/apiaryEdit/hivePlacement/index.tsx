@@ -245,15 +245,16 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 	const drawShadows = (ctx: CanvasRenderingContext2D) => {
 		const angleRad = (sunAngle - 90) * (Math.PI / 180)
 		const shadowLength = 80
-		const shadowOffsetX = Math.cos(angleRad) * shadowLength
-		const shadowOffsetY = Math.sin(angleRad) * shadowLength
+		const shadowOffsetX = -Math.cos(angleRad) * shadowLength
+		const shadowOffsetY = -Math.sin(angleRad) * shadowLength
 
 		ctx.fillStyle = 'rgba(0, 0, 0, 0.25)'
 
 		obstacles.forEach((obs) => {
 			if (obs.type === 'CIRCLE' && obs.radius) {
-				const points = 16
+				const points = 32
 				ctx.beginPath()
+
 				for (let i = 0; i <= points; i++) {
 					const a = (i / points) * Math.PI * 2
 					const px = obs.x + Math.cos(a) * obs.radius
@@ -261,12 +262,14 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 					if (i === 0) ctx.moveTo(px, py)
 					else ctx.lineTo(px, py)
 				}
+
 				for (let i = points; i >= 0; i--) {
 					const a = (i / points) * Math.PI * 2
 					const px = obs.x + Math.cos(a) * obs.radius + shadowOffsetX
 					const py = obs.y + Math.sin(a) * obs.radius + shadowOffsetY
 					ctx.lineTo(px, py)
 				}
+
 				ctx.closePath()
 				ctx.fill()
 			} else if (obs.type === 'RECTANGLE' && obs.width && obs.height) {
@@ -288,10 +291,12 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 					if (i === 0) ctx.moveTo(c.x, c.y)
 					else ctx.lineTo(c.x, c.y)
 				})
-				ctx.closePath()
-				rotatedCorners.reverse().forEach(c => {
+
+				for (let i = rotatedCorners.length - 1; i >= 0; i--) {
+					const c = rotatedCorners[i]
 					ctx.lineTo(c.x + shadowOffsetX, c.y + shadowOffsetY)
-				})
+				}
+
 				ctx.closePath()
 				ctx.fill()
 			}
@@ -316,10 +321,12 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 				if (i === 0) ctx.moveTo(c.x, c.y)
 				else ctx.lineTo(c.x, c.y)
 			})
-			ctx.closePath()
-			rotatedCorners.reverse().forEach(c => {
+
+			for (let i = rotatedCorners.length - 1; i >= 0; i--) {
+				const c = rotatedCorners[i]
 				ctx.lineTo(c.x + shadowOffsetX, c.y + shadowOffsetY)
-			})
+			}
+
 			ctx.closePath()
 			ctx.fill()
 		})

@@ -32,10 +32,46 @@
 	margin-bottom: 20px;
 	padding: 0 20px;
 
-	label {
+	> label {
 		display: block;
 		margin-bottom: 8px;
 		font-weight: 500;
+	}
+}
+
+.radioGroup {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.radioLabel {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px;
+	border: 1px solid #e0e0e0;
+	border-radius: 4px;
+	cursor: pointer;
+	transition: background-color 0.2s, border-color 0.2s;
+	font-weight: normal !important;
+
+	&:hover {
+		background-color: #f5f5f5;
+	}
+
+	input[type="radio"] {
+		cursor: pointer;
+		margin: 0;
+	}
+
+	input[type="radio"]:checked + * {
+		font-weight: 500;
+	}
+
+	&:has(input[type="radio"]:checked) {
+		background-color: #fff8e5;
+		border-color: #ffc848;
 	}
 }
 

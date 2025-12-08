@@ -51,6 +51,7 @@ export default function SplitHiveModal({
 	frames,
 }: SplitHiveModalProps) {
 	const [selectedFrameIds, setSelectedFrameIds] = useState<Set<number>>(new Set())
+	const [queenAction, setQueenAction] = useState<'new_queen' | 'take_old_queen' | 'no_queen'>('new_queen')
 	const [newHiveName, setNewHiveName] = useState('')
 	const [error, setError] = useState<Error | null>(null)
 	const [lang, setLang] = useState('en')
@@ -87,11 +88,20 @@ export default function SplitHiveModal({
 		reexecuteRandomNameQuery({ requestPolicy: 'network-only' })
 	}, [reexecuteRandomNameQuery])
 
+	const handleQueenActionChange = useCallback((value: string) => {
+		if (value === 'new_queen' || value === 'take_old_queen' || value === 'no_queen') {
+			setQueenAction(value as 'new_queen' | 'take_old_queen' | 'no_queen')
+		}
+	}, [])
+
 	const [splitHiveMutation, { loading }] = useMutation(`
-		mutation splitHive($sourceHiveId: ID!, $name: String!, $frameIds: [ID!]!) {
-			splitHive(sourceHiveId: $sourceHiveId, name: $name, frameIds: $frameIds) {
+		mutation splitHive($sourceHiveId: ID!, $queenName: String, $queenAction: String!, $frameIds: [ID!]!) {
+			splitHive(sourceHiveId: $sourceHiveId, queenName: $queenName, queenAction: $queenAction, frameIds: $frameIds) {
 				id
-				name
+				family {
+					id
+					name
+				}
 			}
 		}
 	`)
@@ -142,20 +152,21 @@ export default function SplitHiveModal({
 	}, [frames, toggleFrameSelection])
 
 	const handleSplit = async () => {
-		if (!newHiveName.trim()) {
-			setError(new Error('Please enter a name for the new hive'))
+		if (selectedFrameIds.size === 0) {
+			setError(new Error('Please select at least one frame'))
 			return
 		}
 
-		if (selectedFrameIds.size === 0) {
-			setError(new Error('Please select at least one frame'))
+		if (queenAction === 'new_queen' && !newHiveName.trim()) {
+			setError(new Error('Please enter a queen name or generate one'))
 			return
 		}
 
 		try {
 			const { data, error: mutationError } = await splitHiveMutation({
 				sourceHiveId: hiveId,
-				name: newHiveName,
+				queenName: queenAction === 'new_queen' ? newHiveName : null,
+				queenAction: queenAction,
 				frameIds: Array.from(selectedFrameIds).map(String),
 			})
 
@@ -165,10 +176,20 @@ export default function SplitHiveModal({
 			}
 
 			if (data?.splitHive) {
+				let message = `New hive created with ${selectedFrameIds.size} frames`
+				if (queenAction === 'new_queen') {
+					const queenName = data.splitHive.family?.name || 'Unknown'
+					message = `New hive with queen "${queenName}" created with ${selectedFrameIds.size} frames`
+				} else if (queenAction === 'take_old_queen') {
+					message = `New hive created with ${selectedFrameIds.size} frames and the old queen`
+				} else if (queenAction === 'no_queen') {
+					message = `New hive created with ${selectedFrameIds.size} frames (queenless)`
+				}
+
 				navigate(`/apiaries/${apiaryId}/hives/${data.splitHive.id}`, {
 					state: {
 						title: 'Hive split successfully',
-						message: `New hive "${data.splitHive.name}" created with ${selectedFrameIds.size} frames`,
+						message: message,
 					},
 				})
 			}
@@ -179,6 +200,7 @@ export default function SplitHiveModal({
 
 	const handleClose = () => {
 		setSelectedFrameIds(new Set())
+		setQueenAction('new_queen')
 		setNewHiveName('')
 		setError(null)
 		onClose()
@@ -196,28 +218,68 @@ export default function SplitHiveModal({
 				{error && <ErrorMsg error={error} />}
 
 				<div className={styles.formGroup}>
-					<label htmlFor="newHiveName">
-						<T>New Hive Name</T>
+					<label>
+						<T>Queen Management</T>
 					</label>
-					<div className={styles.nameInputWrapper}>
-						<input
-							id="newHiveName"
-							type="text"
-							value={newHiveName}
-							onInput={(e) => setNewHiveName((e.target as HTMLInputElement).value)}
-							placeholder="Enter name for new hive"
-							className={styles.input}
-						/>
-						<Button
-							onClick={handleRefreshName}
-							loading={randomNameLoading}
-							title="Generate new name"
-							className={styles.refreshButton}
-						>
-							<RefreshIcon width={16} height={16} />
-						</Button>
+					<div className={styles.radioGroup}>
+						<label className={styles.radioLabel}>
+							<input
+								type="radio"
+								name="queenAction"
+								value="new_queen"
+								checked={queenAction === 'new_queen'}
+								onChange={(e) => handleQueenActionChange(e.target.value)}
+							/>
+							<T>Install new queen</T>
+						</label>
+						<label className={styles.radioLabel}>
+							<input
+								type="radio"
+								name="queenAction"
+								value="take_old_queen"
+								checked={queenAction === 'take_old_queen'}
+								onChange={(e) => handleQueenActionChange(e.target.value)}
+							/>
+							<T>Take old queen (source hive becomes queenless)</T>
+						</label>
+						<label className={styles.radioLabel}>
+							<input
+								type="radio"
+								name="queenAction"
+								value="no_queen"
+								checked={queenAction === 'no_queen'}
+								onChange={(e) => handleQueenActionChange(e.target.value)}
+							/>
+							<T>No queen (queenless split)</T>
+						</label>
 					</div>
 				</div>
+
+				{queenAction === 'new_queen' && (
+					<div className={styles.formGroup}>
+						<label htmlFor="newHiveName">
+							<T>Queen Name</T>
+						</label>
+						<div className={styles.nameInputWrapper}>
+							<input
+								id="newHiveName"
+								type="text"
+								value={newHiveName}
+								onInput={(e) => setNewHiveName((e.target as HTMLInputElement).value)}
+								placeholder="Enter name for queen"
+								className={styles.input}
+							/>
+							<Button
+								onClick={handleRefreshName}
+								loading={randomNameLoading}
+								title="Generate new name"
+								className={styles.refreshButton}
+							>
+								<RefreshIcon width={16} height={16} />
+							</Button>
+						</div>
+					</div>
+				)}
 
 				<div className={styles.frameSelection}>
 					<h3>
@@ -266,7 +328,7 @@ export default function SplitHiveModal({
 						color="primary"
 						onClick={handleSplit}
 						loading={loading}
-						disabled={selectedFrameIds.size === 0 || !newHiveName.trim()}
+						disabled={selectedFrameIds.size === 0 || (queenAction === 'new_queen' && !newHiveName.trim())}
 					>
 						<T>Split Colony</T>
 					</Button>

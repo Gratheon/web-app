@@ -228,7 +228,7 @@ export default function SplitHiveModal({
 								name="queenAction"
 								value="new_queen"
 								checked={queenAction === 'new_queen'}
-								onChange={(e) => handleQueenActionChange(e.target.value)}
+								onChange={(e) => handleQueenActionChange((e.target as HTMLInputElement).value)}
 							/>
 							<T>Install new queen</T>
 						</label>
@@ -238,7 +238,7 @@ export default function SplitHiveModal({
 								name="queenAction"
 								value="take_old_queen"
 								checked={queenAction === 'take_old_queen'}
-								onChange={(e) => handleQueenActionChange(e.target.value)}
+								onChange={(e) => handleQueenActionChange((e.target as HTMLInputElement).value)}
 							/>
 							<T>Take old queen (source hive becomes queenless)</T>
 						</label>
@@ -248,7 +248,7 @@ export default function SplitHiveModal({
 								name="queenAction"
 								value="no_queen"
 								checked={queenAction === 'no_queen'}
-								onChange={(e) => handleQueenActionChange(e.target.value)}
+								onChange={(e) => handleQueenActionChange((e.target as HTMLInputElement).value)}
 							/>
 							<T>No queen (queenless split)</T>
 						</label>

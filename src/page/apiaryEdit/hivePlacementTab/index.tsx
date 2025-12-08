@@ -533,7 +533,7 @@ export default function HivePlacementTab({ apiaryId, hives }: Props) {
 					min="0"
 					max="360"
 					value={sunAngle}
-					onChange={e => setSunAngle(+e.target.value)}
+					onChange={e => setSunAngle(+(e.target as HTMLInputElement).value)}
 					style={{ width: '200px' }}
 				/>
 				<Button onClick={() => setAutoPlaySun(!autoPlaySun)}>

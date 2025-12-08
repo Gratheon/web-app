@@ -17,8 +17,8 @@ import Plants from './plants'
 import MessageNotFound from '../../shared/messageNotFound'
 import DeleteIcon from '../../icons/deleteIcon.tsx'
 import T from '../../shared/translate'
+import HivePlacement from './hivePlacement'
 
-// import PollinationTab from './pollinationTab'
 import { Tab, TabBar } from '../../shared/tab'
 import LocationMarker from '../../icons/locationMarker.tsx'
 
@@ -67,6 +67,13 @@ export default function ApiaryEditForm() {
 				name
 				lat
 				lng
+				hives {
+					id
+					hiveNumber
+					family {
+						name
+					}
+				}
 			}
 		}
 	`,
@@ -210,12 +217,12 @@ export default function ApiaryEditForm() {
 				<Tab isSelected={mapTab == 1} onClick={() => {
 					setMapTab(1)
 				}}><T>Satellite</T></Tab>
+				<Tab isSelected={mapTab == 2} onClick={() => {
+					setMapTab(2)
+				}}><T>Hive Placement</T></Tab>
 				<Tab isSelected={mapTab == 3} onClick={() => {
 					setMapTab(3)
 				}}><T>Moisture</T></Tab>
-				{/*<Tab isSelected={mapTab == 4} onClick={() => {*/}
-				{/*	setMapTab(4)*/}
-				{/*}}><T>Pollination</T></Tab>*/}
 			</TabBar>
 			<div>
 				{mapTab == 0 && <Map
@@ -229,8 +236,10 @@ export default function ApiaryEditForm() {
 				/>}
 
 				{mapTab == 1 && satellite_map}
+				{mapTab == 2 && apiaryGet?.apiary?.hives && (
+					<HivePlacement apiaryId={id} hives={apiaryGet.apiary.hives} />
+				)}
 				{mapTab == 3 && moisture_map}
-				{/*{mapTab == 4 && <PollinationTab lat={lat} lng={lng} />}*/}
 			</div>
 
 			{/*<div>*/}

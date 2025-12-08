@@ -16,10 +16,61 @@ import RefreshIcon from '@/icons/RefreshIcon' // Import the new icon component
 import { Box, boxTypes } from '@/models/boxes'
 import PagePaddedCentered from '@/shared/pagePaddedCentered'
 import Card from '@/shared/pagePaddedCentered/card'
+import QueenColor from '@/page/hiveEdit/hiveTopInfo/queenColor'
+import { getQueenColorFromYear } from '@/page/hiveEdit/hiveTopInfo/queenColor/utils'
+
+import styles from './styles.module.less'
+
+//@ts-ignore
+import GithubPicker from 'react-color/es/Github'
 
 
 const defaultBoxColor = '#ffc848'
-const supportedLangs = ['en', 'ru', 'et', 'tr', 'pl', 'de', 'fr']; // Define supported languages
+const supportedLangs = ['en', 'ru', 'et', 'tr', 'pl', 'de', 'fr']
+
+const queenColors = [
+	'#fefee3',
+	'#ffba08',
+	'#f94144',
+	'#38b000',
+	'#0466c8',
+	'#4D4D4D',
+	'#999999',
+	'#FFFFFF',
+	'#F44E3B',
+	'#FE9200',
+	'#FCDC00',
+	'#DBDF00',
+	'#A4DD00',
+	'#68CCCA',
+	'#73D8FF',
+	'#AEA1FF',
+	'#FDA1FF',
+	'#333333',
+	'#808080',
+	'#cccccc',
+	'#D33115',
+	'#E27300',
+	'#FCC400',
+	'#B0BC00',
+	'#68BC00',
+	'#16A5A5',
+	'#009CE0',
+	'#7B64FF',
+	'#FA28FF',
+	'#000000',
+	'#666666',
+	'#B3B3B3',
+	'#9F0500',
+	'#C45100',
+	'#FB9E00',
+	'#808900',
+	'#194D33',
+	'#0C797D',
+	'#0062B1',
+	'#653294',
+	'#AB149E',
+]
 
 const RANDOM_HIVE_NAME_QUERY = gql`
     query RandomHiveName($language: String) { # Add language variable
@@ -29,8 +80,8 @@ const RANDOM_HIVE_NAME_QUERY = gql`
 
 export default function HiveCreateForm() {
     let { id } = useParams()
-    let [hiveType, setHiveType] = useState('vertical') // Add state for hive type
-    let [boxCount, setBoxCount] = useState(2)
+    let [hiveType, setHiveType] = useState('vertical')
+    let [boxCount, setBoxCount] = useState(1)
     let defaultBoxes = []
     for (let i = 0; i < boxCount; i++) {
         defaultBoxes.push({
@@ -44,10 +95,14 @@ export default function HiveCreateForm() {
     const [boxes, setBoxes] = useState(defaultBoxes)
 
     let navigate = useNavigate()
-    let [frameCount, setFrameCount] = useState(10) // Default frame count for vertical
+    let [frameCount, setFrameCount] = useState(10)
     let [name, setName] = useState('')
-    const [lang, setLang] = useState('en'); // State for language code
-    let user = useLiveQuery(() => getUser(), [], null) // Get user data
+    let [queenYear, setQueenYear] = useState(new Date().getFullYear().toString())
+    let [queenColor, setQueenColor] = useState<string | null>(null)
+    let [hiveNumber, setHiveNumber] = useState<number | undefined>(undefined)
+    const [lang, setLang] = useState('en')
+    const [showColorPicker, setShowColorPicker] = useState(false)
+    let user = useLiveQuery(() => getUser(), [], null)
 
     const updateHiveDimensions = (newBoxCount, newFrameCount) => {
         setBoxCount(newBoxCount);
@@ -103,6 +158,8 @@ export default function HiveCreateForm() {
         gql`
 			mutation addHive(
 				$queenName: String
+				$queenYear: String
+				$queenColor: String
 				$hiveNumber: Int
 				$boxCount: Int!
 				$frameCount: Int!
@@ -112,6 +169,8 @@ export default function HiveCreateForm() {
 				addHive(
 					hive: {
 						queenName: $queenName
+						queenYear: $queenYear
+						queenColor: $queenColor
 						hiveNumber: $hiveNumber
 						boxCount: $boxCount
 						frameCount: $frameCount
@@ -132,7 +191,7 @@ export default function HiveCreateForm() {
         const newHiveType = event.target.value;
         setHiveType(newHiveType);
         if (newHiveType === 'vertical') {
-            updateHiveDimensions(2, 10);
+            updateHiveDimensions(1, 10);
         } else if (newHiveType === 'horizontal') {
             updateHiveDimensions(1, 20);
         }
@@ -144,7 +203,9 @@ export default function HiveCreateForm() {
         const result = await addHive({
             apiaryId: id,
             queenName: name || undefined,
-            hiveNumber: undefined,
+            queenYear: queenYear || undefined,
+            queenColor: queenColor || undefined,
+            hiveNumber: hiveNumber || undefined,
             boxCount,
             frameCount,
             colors: boxes.map((b: Box) => {
@@ -165,18 +226,16 @@ export default function HiveCreateForm() {
             <h1><T>New Hive</T></h1>
             {error && <ErrorMsg error={error} />}
             <Card>
-                <div style={{ display: 'flex', padding: 20 }}>
-                    <div style={{ paddingTop: 30, width: 100, textAlign: 'center' }}>
+                <div style={{ padding: 20 }}>
+                    <div style={{ textAlign: 'center', marginBottom: 20 }}>
                         <HiveIcon boxes={boxes} editable={true} />
                     </div>
 
                     <VisualForm
                         onSubmit={onSubmit.bind(this)}
-                        style="flex-grow:1"
                         submit={<Button type="submit" color="green"><T>Install</T></Button>}>
-                        {/* Hive Type Radio Buttons */}
-                        <div>
-                            <label><T>Hive Type</T></label>
+                        <div className={styles.formField}>
+                            <label className={styles.formLabel}><T>Hive Type</T></label>
                             <div>
                                 <label>
                                     <input
@@ -199,39 +258,101 @@ export default function HiveCreateForm() {
                             </div>
                         </div>
 
-                        <div>
-                            <label htmlFor="name" style="width:120px;"><T>Queen Name</T></label>
+                        <div className={styles.formField}>
+                            <label htmlFor="hiveNumber" className={styles.formLabel}><T>Hive Number</T></label>
                             <input
-                                name="name"
-                                id="name"
-                                style={{ flexGrow: '1' }}
-                                autoFocus
-                                value={name}
-                                onInput={(e: any) => setName(e.target.value)}
-                            />
-                            <Button
-                                type="button"
-                                iconOnly={true}
-                                onClick={handleRefreshName}
-                                disabled={randomNameLoading}
-                                style={{
-                                    height: '32px',
-                                    borderRadius: '5px',
-                                    padding: '0 8px',
-                                    marginLeft: '5px',
-                                    verticalAlign: 'middle'
+                                className={styles.smallInput}
+                                type="number"
+                                id="hiveNumber"
+                                name="hiveNumber"
+                                value={hiveNumber || ''}
+                                onInput={(e: any) => {
+                                    const val = e.target.value;
+                                    setHiveNumber(val ? parseInt(val, 10) : undefined);
                                 }}
-                                title="Get new name suggestion"
-                            >
-                                <RefreshIcon /> {/* Use the component */}
-                            </Button>
+                                min="1"
+                                step="1"
+                            />
                         </div>
 
-                        <div>
-                            <label htmlFor="boxCount"><T>Section count</T></label>
+                        <div className={styles.formField}>
+                            <label htmlFor="name" className={styles.formLabel}><T>Queen Name</T></label>
+                            <div className={styles.flexRow}>
+                                <input
+                                    name="name"
+                                    id="name"
+                                    className={styles.flexInput}
+                                    autoFocus
+                                    value={name}
+                                    onInput={(e: any) => setName(e.target.value)}
+                                />
+                                <Button
+                                    type="button"
+                                    iconOnly={true}
+                                    onClick={handleRefreshName}
+                                    disabled={randomNameLoading}
+                                    style={{
+                                        height: '32px',
+                                        borderRadius: '5px',
+                                        padding: '0 8px',
+                                    }}
+                                    title="Get new name suggestion"
+                                >
+                                    <RefreshIcon />
+                                </Button>
+                            </div>
+                        </div>
 
+                        <div className={styles.formField}>
+                            <label className={styles.formLabel}><T>Queen Year</T></label>
+                            <div className={styles.yearColorRow}>
+                                <input
+                                    className={styles.smallInput}
+                                    type="text"
+                                    id="queenYear"
+                                    name="queenYear"
+                                    value={queenYear}
+                                    onInput={(e: any) => {
+                                        setQueenYear(e.target.value);
+                                        setQueenColor(null);
+                                    }}
+                                    placeholder="YYYY"
+                                    maxLength={4}
+                                />
+                                <div className={styles.colorPickerWrapper}>
+                                    <div
+                                        className={styles.colorDisplay}
+                                        onClick={() => setShowColorPicker(!showColorPicker)}
+                                    >
+                                        <QueenColor year={queenYear} color={queenColor} />
+                                    </div>
+                                    {showColorPicker && (
+                                        <>
+                                            <div
+                                                className={styles.colorPickerOverlay}
+                                                onClick={() => setShowColorPicker(false)}
+                                            />
+                                            <div className={styles.colorPickerPopup}>
+                                                <GithubPicker
+                                                    width={212}
+                                                    colors={queenColors}
+                                                    onChangeComplete={(c: any) => {
+                                                        setQueenColor(c.hex);
+                                                        setShowColorPicker(false);
+                                                    }}
+                                                    color={queenColor || getQueenColorFromYear(queenYear)}
+                                                />
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className={styles.formField}>
+                            <label htmlFor="boxCount" className={styles.formLabel}><T>Section count</T></label>
                             <input
-                                style={{ width: 60 }}
+                                className={styles.smallInput}
                                 type="number"
                                 id="boxCount"
                                 name="boxCount"
@@ -239,7 +360,6 @@ export default function HiveCreateForm() {
                                 onInput={(e: any) => {
                                     const newBoxCount = parseInt(e.target.value, 10);
                                     if (newBoxCount < 1 || newBoxCount > 6) return;
-                                    // Keep the current frameCount when boxCount is changed manually
                                     updateHiveDimensions(newBoxCount, frameCount);
                                 }}
                                 min="1"
@@ -248,19 +368,17 @@ export default function HiveCreateForm() {
                             />
                         </div>
 
-                        <div>
-                            <label htmlFor="frameCount"><T>Frame count</T></label>
-
+                        <div className={styles.formField}>
+                            <label htmlFor="frameCount" className={styles.formLabel}><T>Frame count</T></label>
                             <input
-                                style={{ width: 60 }}
+                                className={styles.smallInput}
                                 type="number"
                                 id="frameCount"
                                 name="frameCount"
                                 value={frameCount}
                                 onInput={(e: any) => {
                                     setFrameCount(parseInt(e.target.value, 10))
-                                }
-                                }
+                                }}
                                 min="0"
                                 max="25"
                                 step="1"

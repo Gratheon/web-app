@@ -1,0 +1,84 @@
+.formField {
+  margin-bottom: 15px;
+  display: flex !important;
+  flex-direction: column;
+}
+
+.formLabel {
+  display: block !important;
+  margin-bottom: 5px;
+  padding: 0 !important;
+}
+
+.flexRow {
+  display: flex !important;
+  gap: 5px;
+  align-items: center;
+}
+
+.flexInput {
+  flex: 1;
+  display: block !important;
+}
+
+.yearColorRow {
+  display: flex !important;
+  gap: 10px;
+  align-items: center;
+}
+
+.colorPickerWrapper {
+  position: relative;
+}
+
+.colorDisplay {
+  display: inline-flex;
+  cursor: pointer;
+  align-items: center;
+}
+
+.colorPickerOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+}
+
+.colorPickerPopup {
+  position: absolute;
+  z-index: 11;
+  top: 100%;
+  left: 0;
+  margin-top: 5px;
+}
+
+.smallInput {
+  width: 100px;
+  display: block !important;
+}
+
+@media (min-width: 768px) {
+  .formField {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .formLabel {
+    margin-bottom: 0;
+    margin-right: 10px;
+    min-width: 140px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .flexRow {
+    flex: 1;
+  }
+
+  .yearColorRow {
+    flex: 1;
+  }
+}
+

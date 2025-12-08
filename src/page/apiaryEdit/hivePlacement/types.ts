@@ -1,4 +1,4 @@
-export const HIVE_SIZE = 30
+export const HIVE_SIZE = 37.5
 export const CANVAS_HEIGHT = 600
 
 export interface HivePlacement {

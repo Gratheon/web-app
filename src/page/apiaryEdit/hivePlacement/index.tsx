@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { useQuery, useMutation } from '../../../api'
 import Loader from '../../../shared/loader'
 import ErrorMsg from '../../../shared/messageError'
 import T from '../../../shared/translate'
+import HiveIcon from '../../../shared/hive'
+import { getBoxes } from '../../../models/boxes'
 import Canvas from './Canvas'
 import Toolbar from './Toolbar'
 import Tips from './Tips'
@@ -52,6 +55,11 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 	const [addObstacleMutation] = useMutation(ADD_OBSTACLE)
 	const [updateObstacleMutation] = useMutation(UPDATE_OBSTACLE)
 	const [deleteObstacleMutation] = useMutation(DELETE_OBSTACLE)
+
+	const selectedHiveBoxes = useLiveQuery(
+		() => selectedHive ? getBoxes({ hiveId: +selectedHive }) : Promise.resolve([]),
+		[selectedHive]
+	)
 
 	useEffect(() => {
 		setIsMobileDevice(isMobile())
@@ -469,22 +477,6 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 				<p style={mobileStyles.description(isMobileDevice)}><T>Position your hives optimally considering sun movement, shadows, and flight patterns</T></p>
 			</div>
 
-			<Toolbar
-				addingObstacle={addingObstacle}
-				selectedHive={selectedHive}
-				selectedObstacle={selectedObstacle}
-				sunAngle={sunAngle}
-				autoRotate={autoRotate}
-				isMobile={isMobileDevice}
-				showHiveList={showHiveList}
-				onAddObstacle={handleAddObstacle}
-				onRotateHive={rotateHive}
-				onDeleteObstacle={handleDeleteObstacle}
-				onSunAngleChange={setSunAngle}
-				onAutoRotateChange={setAutoRotate}
-				onToggleHiveList={() => setShowHiveList(!showHiveList)}
-			/>
-
 			{isMobileDevice && showHiveList && (
 				<HiveList
 					hives={hives}
@@ -492,6 +484,32 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 					selectedHive={selectedHive}
 					onSelectHive={setSelectedHive}
 				/>
+			)}
+
+			{selectedHive && (
+				<div style={{
+					padding: isMobileDevice ? '12px 20px' : '16px 20px',
+					backgroundColor: '#FFF9C4',
+					borderLeft: '4px solid #FFA000',
+					marginBottom: '10px',
+					fontSize: isMobileDevice ? '14px' : '16px',
+					fontWeight: 'bold',
+					display: 'flex',
+					alignItems: 'center',
+					gap: '15px'
+				}}>
+					<HiveIcon boxes={selectedHiveBoxes || []} size={isMobileDevice ? 40 : 50} />
+					<span>
+						<T>Selected</T>: {(() => {
+							const hive = hives.find(h => h.id === selectedHive)
+							return `Hive #${hive?.hiveNumber || selectedHive.slice(0, 4)}`
+						})()}
+						{(() => {
+							const hive = hives.find(h => h.id === selectedHive)
+							return hive?.boxCount ? ` (${hive.boxCount} boxes)` : ''
+						})()}
+					</span>
+				</div>
 			)}
 
 			<Canvas
@@ -514,6 +532,22 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 				onMouseDown={handleCanvasMouseDown}
 				onMouseMove={handleCanvasMouseMove}
 				onMouseUp={handleCanvasMouseUp}
+			/>
+
+			<Toolbar
+				addingObstacle={addingObstacle}
+				selectedHive={selectedHive}
+				selectedObstacle={selectedObstacle}
+				sunAngle={sunAngle}
+				autoRotate={autoRotate}
+				isMobile={isMobileDevice}
+				showHiveList={showHiveList}
+				onAddObstacle={handleAddObstacle}
+				onRotateHive={rotateHive}
+				onDeleteObstacle={handleDeleteObstacle}
+				onSunAngleChange={setSunAngle}
+				onAutoRotateChange={setAutoRotate}
+				onToggleHiveList={() => setShowHiveList(!showHiveList)}
 			/>
 
 			{!isMobileDevice && <Tips />}

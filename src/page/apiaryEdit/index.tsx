@@ -50,7 +50,7 @@ export default function ApiaryEditForm() {
 	let [lat, setLat] = useState(0)
 	let [lng, setLng] = useState(0)
 
-	let [mapTab, setMapTab] = useState(0)
+	let [mapTab, setMapTab] = useState(2)
 
 	// Model function getApiary now handles invalid IDs
 	let apiary = useLiveQuery(() => getApiary(+id), [id]);
@@ -212,18 +212,22 @@ export default function ApiaryEditForm() {
 				</VisualForm>
 			</div>
 			<TabBar>
-				<Tab isSelected={mapTab == 0} onClick={() => {
-					setMapTab(0)
-				}}><T>Position</T></Tab>
         <Tab isSelected={mapTab == 2} onClick={() => {
           setMapTab(2)
         }}><T>Hive Placement</T></Tab>
+
+        <Tab isSelected={mapTab == 0} onClick={() => {
+					setMapTab(0)
+				}}><T>Geo Position</T></Tab>
+
 				<Tab isSelected={mapTab == 1} onClick={() => {
 					setMapTab(1)
 				}}><T>Satellite</T></Tab>
+
 				<Tab isSelected={mapTab == 3} onClick={() => {
 					setMapTab(3)
 				}}><T>Moisture</T></Tab>
+
 			</TabBar>
 			<div>
 				{mapTab == 0 && <Map

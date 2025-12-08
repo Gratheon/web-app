@@ -37,6 +37,7 @@ export default function Toolbar({
 			<div style={{
 				display: 'flex',
 				gap: isMobile ? '8px' : '20px',
+				marginTop: '20px',
 				marginBottom: '20px',
 				flexWrap: 'wrap',
 				padding: '0 20px'
@@ -109,7 +110,7 @@ export default function Toolbar({
 				)}
 			</div>
 
-			<div style={{ marginBottom: '20px', padding: '0 20px' }}>
+			<div style={{ padding: '0 20px' }}>
 				<div style={{
 					display: 'flex',
 					flexDirection: isMobile ? 'column' : 'row',

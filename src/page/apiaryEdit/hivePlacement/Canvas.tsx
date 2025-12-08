@@ -224,11 +224,21 @@ export default function Canvas({
 				ctx.shadowBlur = 0
 			}
 
-			ctx.fillStyle = isSelected ? '#2196F3' : '#1976D2'
+			const flightLineLength = 60
+			ctx.strokeStyle = isSelected ? '#2196F3' : '#1976D2'
+			ctx.lineWidth = 2
+			ctx.setLineDash([4, 4])
 			ctx.beginPath()
 			ctx.moveTo(0, -HIVE_SIZE / 2)
-			ctx.lineTo(-5, -HIVE_SIZE / 2 + 10)
-			ctx.lineTo(5, -HIVE_SIZE / 2 + 10)
+			ctx.lineTo(0, -HIVE_SIZE / 2 - flightLineLength)
+			ctx.stroke()
+			ctx.setLineDash([])
+
+			ctx.fillStyle = isSelected ? '#2196F3' : '#1976D2'
+			ctx.beginPath()
+			ctx.moveTo(0, -HIVE_SIZE / 2 - flightLineLength)
+			ctx.lineTo(-6, -HIVE_SIZE / 2 - flightLineLength + 12)
+			ctx.lineTo(6, -HIVE_SIZE / 2 - flightLineLength + 12)
 			ctx.closePath()
 			ctx.fill()
 

@@ -475,6 +475,10 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 		setAddingObstacle(addingObstacle === type ? null : type)
 	}
 
+	const toggleAutoRotate = () => {
+		setAutoRotate(!autoRotate)
+	}
+
 	if (loading) return <Loader />
 	if (error) return <ErrorMsg error={error} />
 
@@ -507,49 +511,36 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 				/>
 			)}
 
-			{isMobileDevice && selectedHive && (
-				<div style={{
-					padding: '12px 20px',
-					backgroundColor: '#FFF9C4',
-					borderLeft: '4px solid #FFA000',
-					marginBottom: '10px',
-					display: 'flex',
-					alignItems: 'center',
-					gap: '12px'
-				}}>
-					<HiveIcon boxes={selectedHiveBoxes || []} size={40} />
-					<div style={{
-						fontSize: '14px',
-						fontWeight: 'bold'
-					}}>
-						{(() => {
-							const hive = hives.find(h => h.id === selectedHive)
-							return `Hive #${hive?.hiveNumber || selectedHive.slice(0, 4)}`
-						})()}
-						{(() => {
-							const hive = hives.find(h => h.id === selectedHive)
-							return hive?.boxCount ? ` (${hive.boxCount} boxes)` : ''
-						})()}
-					</div>
-				</div>
-			)}
 
 			<div style={{ position: 'relative' }}>
 				{selectedHive && !isMobileDevice && (
-					<div style={{
-						position: 'absolute',
-						top: '80px',
-						right: '20px',
-						backgroundColor: '#FFF9C4',
-						borderLeft: '4px solid #FFA000',
-						padding: '12px',
-						zIndex: 10,
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						gap: '8px',
-						boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-					}}>
+					<div
+						onClick={() => window.location.href = `/apiaries/${apiaryId}/hives/${selectedHive}`}
+						style={{
+							position: 'absolute',
+							top: '180px',
+							right: '20px',
+							backgroundColor: '#FFF9C4',
+							borderLeft: '4px solid #FFA000',
+							padding: '12px',
+							zIndex: 10,
+							display: 'flex',
+							flexDirection: 'column',
+							alignItems: 'center',
+							gap: '8px',
+							boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+							cursor: 'pointer',
+							transition: 'transform 0.2s, box-shadow 0.2s'
+						}}
+						onMouseEnter={(e) => {
+							e.currentTarget.style.transform = 'scale(1.05)'
+							e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)'
+						}}
+						onMouseLeave={(e) => {
+							e.currentTarget.style.transform = 'scale(1)'
+							e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'
+						}}
+					>
 						<HiveIcon boxes={selectedHiveBoxes || []} size={60} />
 						<div style={{
 							fontSize: '12px',
@@ -574,6 +565,7 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 					obstacles={obstacles}
 					hives={hives}
 					sunAngle={sunAngle}
+					autoRotate={autoRotate}
 					selectedHive={selectedHive}
 					selectedObstacle={selectedObstacle}
 					addingObstacle={addingObstacle}
@@ -590,22 +582,52 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 					onMouseDown={handleCanvasMouseDown}
 					onMouseMove={handleCanvasMouseMove}
 					onMouseUp={handleCanvasMouseUp}
+					onSunAngleChange={setSunAngle}
+					onAutoRotateToggle={toggleAutoRotate}
 				/>
 			</div>
+
+			{isMobileDevice && selectedHive && (
+				<div
+					onClick={() => window.location.href = `/apiaries/${apiaryId}/hives/${selectedHive}`}
+					style={{
+						padding: '12px 20px',
+						backgroundColor: '#FFF9C4',
+						borderLeft: '4px solid #FFA000',
+						marginTop: '10px',
+						marginBottom: '10px',
+						display: 'flex',
+						alignItems: 'center',
+						gap: '12px',
+						cursor: 'pointer'
+					}}
+				>
+					<HiveIcon boxes={selectedHiveBoxes || []} size={40} />
+					<div style={{
+						fontSize: '14px',
+						fontWeight: 'bold'
+					}}>
+						{(() => {
+							const hive = hives.find(h => h.id === selectedHive)
+							return `Hive #${hive?.hiveNumber || selectedHive.slice(0, 4)}`
+						})()}
+						{(() => {
+							const hive = hives.find(h => h.id === selectedHive)
+							return hive?.boxCount ? ` (${hive.boxCount} boxes)` : ''
+						})()}
+					</div>
+				</div>
+			)}
 
 			<Toolbar
 				addingObstacle={addingObstacle}
 				selectedHive={selectedHive}
 				selectedObstacle={selectedObstacle}
-				sunAngle={sunAngle}
-				autoRotate={autoRotate}
 				isMobile={isMobileDevice}
 				showHiveList={showHiveList}
 				onAddObstacle={handleAddObstacle}
 				onRotateHive={rotateHive}
 				onDeleteObstacle={handleDeleteObstacle}
-				onSunAngleChange={setSunAngle}
-				onAutoRotateChange={setAutoRotate}
 				onToggleHiveList={() => setShowHiveList(!showHiveList)}
 			/>
 

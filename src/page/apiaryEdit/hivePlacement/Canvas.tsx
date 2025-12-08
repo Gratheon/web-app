@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react'
+import React, { useRef, useEffect, useState } from 'react'
 import { Obstacle, HivePlacement, Hive, HIVE_SIZE, CANVAS_HEIGHT } from './types'
 import { calculateShadow } from './ShadowRenderer'
 
@@ -8,6 +8,7 @@ interface CanvasProps {
 	obstacles: Obstacle[]
 	hives: Hive[]
 	sunAngle: number
+	autoRotate: boolean
 	selectedHive: string | null
 	selectedObstacle: string | null
 	addingObstacle: 'CIRCLE' | 'RECTANGLE' | null
@@ -24,6 +25,8 @@ interface CanvasProps {
 	onMouseDown: (x: number, y: number, e?: any) => void
 	onMouseMove: (x: number, y: number) => void
 	onMouseUp: () => void
+	onSunAngleChange: (angle: number) => void
+	onAutoRotateToggle: () => void
 }
 
 export default function Canvas({
@@ -32,6 +35,7 @@ export default function Canvas({
 	obstacles,
 	hives,
 	sunAngle,
+	autoRotate,
 	selectedHive,
 	selectedObstacle,
 	addingObstacle,
@@ -47,10 +51,13 @@ export default function Canvas({
 	onClick,
 	onMouseDown,
 	onMouseMove,
-	onMouseUp
+	onMouseUp,
+	onSunAngleChange,
+	onAutoRotateToggle
 }: CanvasProps) {
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 	const handleSize = isMobile ? 12 : 8
+	const [isDraggingSun, setIsDraggingSun] = useState(false)
 
 	useEffect(() => {
 		drawCanvas()
@@ -112,7 +119,17 @@ export default function Canvas({
 		const sunX = x + sunDistance * Math.cos(angleRad)
 		const sunY = y + sunDistance * Math.sin(angleRad)
 
-		ctx.font = '20px Arial'
+		if (autoRotate) {
+			ctx.strokeStyle = 'rgba(255, 193, 7, 0.5)'
+			ctx.lineWidth = 2
+			ctx.setLineDash([4, 4])
+			ctx.beginPath()
+			ctx.arc(x, y, sunDistance, 0, Math.PI * 2)
+			ctx.stroke()
+			ctx.setLineDash([])
+		}
+
+		ctx.font = '24px Arial'
 		ctx.textAlign = 'center'
 		ctx.textBaseline = 'middle'
 		ctx.fillText('☀️', sunX, sunY)
@@ -281,8 +298,25 @@ export default function Canvas({
 		if (!canvas) return
 
 		const rect = canvas.getBoundingClientRect()
-		const x = e.clientX - rect.left - panOffset.x
-		const y = e.clientY - rect.top - panOffset.y
+		const xRaw = e.clientX - rect.left
+		const yRaw = e.clientY - rect.top
+
+		const compassX = canvasWidth - 60
+		const compassY = 60
+		const radius = 40
+		const angleRad = (sunAngle - 90) * (Math.PI / 180)
+		const sunDistance = radius + 15
+		const sunX = compassX + sunDistance * Math.cos(angleRad)
+		const sunY = compassY + sunDistance * Math.sin(angleRad)
+
+		const distToSun = Math.sqrt((xRaw - sunX) ** 2 + (yRaw - sunY) ** 2)
+		if (distToSun <= 15) {
+			onAutoRotateToggle()
+			return
+		}
+
+		const x = xRaw - panOffset.x
+		const y = yRaw - panOffset.y
 
 		onClick(x, y)
 	}
@@ -292,8 +326,25 @@ export default function Canvas({
 		if (!canvas) return
 
 		const rect = canvas.getBoundingClientRect()
-		const x = e.clientX - rect.left - panOffset.x
-		const y = e.clientY - rect.top - panOffset.y
+		const xRaw = e.clientX - rect.left
+		const yRaw = e.clientY - rect.top
+
+		const compassX = canvasWidth - 60
+		const compassY = 60
+		const radius = 40
+		const angleRad = (sunAngle - 90) * (Math.PI / 180)
+		const sunDistance = radius + 15
+		const sunX = compassX + sunDistance * Math.cos(angleRad)
+		const sunY = compassY + sunDistance * Math.sin(angleRad)
+
+		const distToSun = Math.sqrt((xRaw - sunX) ** 2 + (yRaw - sunY) ** 2)
+		if (distToSun <= 15) {
+			setIsDraggingSun(true)
+			return
+		}
+
+		const x = xRaw - panOffset.x
+		const y = yRaw - panOffset.y
 
 		onMouseDown(x, y, e)
 	}
@@ -303,8 +354,23 @@ export default function Canvas({
 		if (!canvas) return
 
 		const rect = canvas.getBoundingClientRect()
-		const x = isPanning ? e.clientX - rect.left : e.clientX - rect.left - panOffset.x
-		const y = isPanning ? e.clientY - rect.top : e.clientY - rect.top - panOffset.y
+		const xRaw = e.clientX - rect.left
+		const yRaw = e.clientY - rect.top
+
+		if (isDraggingSun) {
+			const compassX = canvasWidth - 60
+			const compassY = 60
+			const dx = xRaw - compassX
+			const dy = yRaw - compassY
+			const angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90
+			const normalizedAngle = ((angle % 360) + 360) % 360
+			const clampedAngle = Math.max(90, Math.min(270, normalizedAngle))
+			onSunAngleChange(clampedAngle)
+			return
+		}
+
+		const x = isPanning ? xRaw : xRaw - panOffset.x
+		const y = isPanning ? yRaw : yRaw - panOffset.y
 
 		onMouseMove(x, y)
 	}
@@ -337,6 +403,12 @@ export default function Canvas({
 
 	const handleTouchEnd = (e: React.TouchEvent<HTMLCanvasElement>) => {
 		e.preventDefault()
+		setIsDraggingSun(false)
+		onMouseUp()
+	}
+
+	const handleMouseUp = () => {
+		setIsDraggingSun(false)
 		onMouseUp()
 	}
 
@@ -348,8 +420,8 @@ export default function Canvas({
 			onClick={handleCanvasClick}
 			onMouseDown={handleCanvasMouseDown}
 			onMouseMove={handleCanvasMouseMove}
-			onMouseUp={onMouseUp}
-			onMouseLeave={onMouseUp}
+			onMouseUp={handleMouseUp}
+			onMouseLeave={handleMouseUp}
 			onContextMenu={(e) => e.preventDefault()}
 			onTouchStart={handleTouchStart}
 			onTouchMove={handleTouchMove}
@@ -358,7 +430,8 @@ export default function Canvas({
 			style={{
 				borderTop: '2px solid #ccc',
 				borderBottom: '2px solid #ccc',
-				cursor: isPanning ? 'move' :
+				cursor: isDraggingSun ? 'grabbing' :
+					isPanning ? 'move' :
 					addingObstacle ? 'crosshair' :
 					(isDragging || isDraggingRotation || isDraggingObstacle) ? 'grabbing' :
 					(isResizingObstacle || isDraggingObstacleRotation) ? 'nwse-resize' :

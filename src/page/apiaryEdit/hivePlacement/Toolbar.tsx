@@ -5,15 +5,11 @@ interface ToolbarProps {
 	addingObstacle: 'CIRCLE' | 'RECTANGLE' | null
 	selectedHive: string | null
 	selectedObstacle: string | null
-	sunAngle: number
-	autoRotate: boolean
 	isMobile: boolean
 	showHiveList: boolean
 	onAddObstacle: (type: 'CIRCLE' | 'RECTANGLE') => void
 	onRotateHive: (direction: number) => void
 	onDeleteObstacle: () => void
-	onSunAngleChange: (angle: number) => void
-	onAutoRotateChange: (autoRotate: boolean) => void
 	onToggleHiveList: () => void
 }
 
@@ -21,15 +17,11 @@ export default function Toolbar({
 	addingObstacle,
 	selectedHive,
 	selectedObstacle,
-	sunAngle,
-	autoRotate,
 	isMobile,
 	showHiveList,
 	onAddObstacle,
 	onRotateHive,
 	onDeleteObstacle,
-	onSunAngleChange,
-	onAutoRotateChange,
 	onToggleHiveList
 }: ToolbarProps) {
 	return (
@@ -108,43 +100,6 @@ export default function Toolbar({
 						{isMobile ? '🗑️' : <T>Delete Obstacle</T>}
 					</Button>
 				)}
-			</div>
-
-			<div style={{ padding: '0 20px' }}>
-				<div style={{
-					display: 'flex',
-					flexDirection: isMobile ? 'column' : 'row',
-					alignItems: isMobile ? 'stretch' : 'center',
-					gap: '10px'
-				}}>
-					<label style={{ fontSize: isMobile ? '14px' : undefined }}>
-						<T>Sun Position</T>: {sunAngle}°
-					</label>
-					<input
-						type="range"
-						min="90"
-						max="270"
-						value={sunAngle}
-						onChange={(e) => onSunAngleChange(parseInt((e.target as HTMLInputElement).value))}
-						style={{
-							width: isMobile ? '100%' : '300px',
-							minHeight: isMobile ? '40px' : 'auto'
-						}}
-					/>
-					<label style={{ fontSize: isMobile ? '14px' : undefined }}>
-						<input
-							type="checkbox"
-							checked={autoRotate}
-							onChange={(e) => onAutoRotateChange((e.target as HTMLInputElement).checked)}
-							style={{
-								width: isMobile ? '20px' : 'auto',
-								height: isMobile ? '20px' : 'auto',
-								marginRight: '8px'
-							}}
-						/>
-						<T>Auto-rotate</T>
-					</label>
-				</div>
 			</div>
 		</>
 	)

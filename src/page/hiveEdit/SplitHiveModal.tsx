@@ -187,7 +187,7 @@ export default function SplitHiveModal({
 	if (!isOpen) return null
 
 	return (
-		<Modal onClose={handleClose} title={<T>Split Hive</T>} className={styles.wideModal}>
+		<Modal onClose={handleClose} title={<T>Split Colony</T>} className={styles.wideModal}>
 			<div className={styles.content}>
 				<p>
 					<T>Select up to 10 frames to move to a new hive</T>
@@ -268,7 +268,7 @@ export default function SplitHiveModal({
 						loading={loading}
 						disabled={selectedFrameIds.size === 0 || !newHiveName.trim()}
 					>
-						<T>Split Hive</T>
+						<T>Split Colony</T>
 					</Button>
 				</div>
 			</div>

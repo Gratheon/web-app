@@ -1,6 +1,7 @@
 .wideModal {
 	max-width: 95vw !important;
 	width: 95vw !important;
+	max-height: 90vh !important;
 
 	@media (min-width: 768px) {
 		max-width: 80vw !important;
@@ -10,7 +11,17 @@
 
 .content {
 	padding: 0;
-	min-width: 800px;
+	min-width: 0 !important;
+	max-height: calc(90vh - 80px);
+	overflow-y: auto;
+
+	@media (max-width: 767px) {
+		min-width: 0 !important;
+	}
+
+	@media (min-width: 768px) {
+		min-width: 800px !important;
+	}
 
 	> p {
 		padding: 0 20px;
@@ -62,12 +73,20 @@
 }
 
 .boxesContainer {
-	max-height: 500px;
+	max-height: 300px !important;
 	overflow-y: auto;
 	padding: 10px;
 	border: 1px solid #e0e0e0;
 	border-radius: 4px;
 	background: #fafafa;
+
+	@media (max-width: 767px) {
+		max-height: 300px !important;
+	}
+
+	@media (min-width: 768px) {
+		max-height: 500px !important;
+	}
 }
 
 .boxGroup {

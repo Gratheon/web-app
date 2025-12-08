@@ -169,6 +169,18 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 		return <Loader />
 	}
 
+	const SplitIcon = () => (
+		<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 4px">
+			<path d="M8 2L8 6M8 6L6 4M8 6L10 4M8 10L8 14M8 10L6 12M8 10L10 12M3 8L6 8M10 8L13 8" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round"/>
+		</svg>
+	)
+
+	const JoinIcon = () => (
+		<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 4px">
+			<path d="M2 6L5 8L2 10M14 6L11 8L14 10M5 8L11 8" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+		</svg>
+	)
+
 	let buttons = (
 		<div>
 			<VisualFormSubmit>
@@ -186,11 +198,84 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 				)}
 
 				{isEditable(hive) && (
+					<PopupButtonGroup>
+						{!editable && hive && !isCollapsed(hive) && (
+							<Button onClick={() => setEditable(!editable)}>
+								<T ctx="this is a button to allow editing by displaying a form">
+									Edit
+								</T>
+							</Button>
+						)}
+						{editable && hive && editableHive && (
+							<Button onClick={() => setEditable(!editable)}>
+								<T ctx="this is a button to compete editing of a form, but it is not doing any saving because saving is done automatically, this just switches form to view mode">
+									Complete
+								</T>
+							</Button>
+						)}
+
+						<PopupButton align="right">
+							<Button
+								title="Split colony"
+								onClick={() => setSplitModalOpen(true)}
+							>
+								<SplitIcon /> <T>Split Colony</T>
+							</Button>
+
+							<Button
+								title="Join colonies"
+								onClick={() => setJoinModalOpen(true)}
+							>
+								<JoinIcon /> <T>Join Colony</T>
+							</Button>
+
+							<Button
+								title="Generate QR sticker for this hive"
+								onClick={onGenerateQR}
+							>
+								<QrCodeIcon size={16} /> <T>Generate QR sticker</T>
+							</Button>
+
+							{hive && !isCollapsed(hive) && (
+								<Button onClick={() => setShowCollapseModal(true)}>
+									<SkullIcon size={16} /> <T>Mark as Collapsed</T>
+								</Button>
+							)}
+							<DeactivateButton hiveId={hive.id} />
+						</PopupButton>
+					</PopupButtonGroup>
+				)}
+
+
+				{!isEditable(hive) && (isCollapsed(hive) || isMerged(hive)) && (
+					<DeactivateButton hiveId={hive.id} />
+				)}
+			</VisualFormSubmit>
+		</div>
+	)
+
+	let buttonsDesktop = (
+		<div>
+			<VisualFormSubmit>
+				{isEditable(hive) && (
 					<Button
-						title="Split hive"
+						loading={creatingInspection}
+						onClick={onCreateInspection}
+						color="green"
+					>
+						<InspectionIcon />
+						<T ctx="This is a button that adds new beehive inspection as a snapshot of current beehive state">
+							Create Inspection
+						</T>
+					</Button>
+				)}
+
+				{isEditable(hive) && (
+					<Button
+						title="Split colony"
 						onClick={() => setSplitModalOpen(true)}
 					>
-						<span><T>Split Hive</T></span>
+						<SplitIcon /> <span><T>Split Colony</T></span>
 					</Button>
 				)}
 
@@ -199,7 +284,7 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 						title="Join colonies"
 						onClick={() => setJoinModalOpen(true)}
 					>
-						<span><T>Join Colony</T></span>
+						<JoinIcon /> <span><T>Join Colony</T></span>
 					</Button>
 				)}
 
@@ -369,7 +454,7 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 						)}
 						</div>
 
-						<div className={styles.button_wrap1}>{buttons}</div>
+						<div className={styles.button_wrap1}>{buttonsDesktop}</div>
 					</div>
 
 					<div className={styles.button_wrap2}>{buttons}</div>

@@ -17,6 +17,8 @@ import { mobileStyles } from './styles'
 interface Props {
 	apiaryId: string
 	hives: Hive[]
+	selectedHiveId?: string | null
+	onHiveSelect?: (hiveId: string | null) => void
 }
 
 const isMobile = () => {
@@ -27,13 +29,13 @@ const isMobile = () => {
 	)
 }
 
-export default function HivePlacement({ apiaryId, hives }: Props) {
+export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveSelect }: Props) {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [canvasWidth, setCanvasWidth] = useState(800)
 	const [placements, setPlacements] = useState<Map<string, HivePlacementType>>(new Map())
 	const [initializedPlacements, setInitializedPlacements] = useState(false)
 	const [obstacles, setObstacles] = useState<Obstacle[]>([])
-	const [selectedHive, setSelectedHive] = useState<string | null>(null)
+	const [selectedHive, setSelectedHive] = useState<string | null>(selectedHiveId || null)
 	const [selectedObstacle, setSelectedObstacle] = useState<string | null>(null)
 	const [isDragging, setIsDragging] = useState(false)
 	const [isDraggingRotation, setIsDraggingRotation] = useState(false)
@@ -67,6 +69,18 @@ export default function HivePlacement({ apiaryId, hives }: Props) {
 	useEffect(() => {
 		setIsMobileDevice(isMobile())
 	}, [])
+
+	useEffect(() => {
+		if (selectedHiveId !== undefined && selectedHiveId !== selectedHive) {
+			setSelectedHive(selectedHiveId)
+		}
+	}, [selectedHiveId])
+
+	useEffect(() => {
+		if (onHiveSelect) {
+			onHiveSelect(selectedHive)
+		}
+	}, [selectedHive])
 
 	useEffect(() => {
 		const updateCanvasWidth = () => {

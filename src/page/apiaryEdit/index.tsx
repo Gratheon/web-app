@@ -42,17 +42,47 @@ export function isEstonia(lat, lng){
 	return matchesLng && matchesLat
 }
 
+const TAB_MAPPING = {
+	'placement': 2,
+	'position': 0,
+	'satellite': 1,
+	'moisture': 3,
+}
+
+const REVERSE_TAB_MAPPING = {
+	2: 'placement',
+	0: 'position',
+	1: 'satellite',
+	3: 'moisture',
+}
+
 export default function ApiaryEditForm() {
 	let navigate = useNavigate()
-	let { id } = useParams()
+	let { id, tab, hiveId } = useParams()
 	let [autoLocate, setAutoLocate] = useState(false)
 	let [name, setName] = useState('')
 	let [lat, setLat] = useState(0)
 	let [lng, setLng] = useState(0)
 
-	let [mapTab, setMapTab] = useState(2)
+	const initialTab = tab && TAB_MAPPING[tab] !== undefined ? TAB_MAPPING[tab] : 2
+	let [mapTab, setMapTab] = useState(initialTab)
 
-	// Model function getApiary now handles invalid IDs
+	const changeTab = (tabIndex: number) => {
+		setMapTab(tabIndex)
+		const tabSlug = REVERSE_TAB_MAPPING[tabIndex]
+		const hiveIdPart = hiveId ? `/${hiveId}` : ''
+		navigate(`/apiaries/edit/${id}/${tabSlug}${hiveIdPart}`, { replace: true })
+	}
+
+	const onHiveSelect = (selectedHiveId: string | null) => {
+		const tabSlug = REVERSE_TAB_MAPPING[mapTab] || 'placement'
+		if (selectedHiveId) {
+			navigate(`/apiaries/edit/${id}/${tabSlug}/${selectedHiveId}`, { replace: true })
+		} else {
+			navigate(`/apiaries/edit/${id}/${tabSlug}`, { replace: true })
+		}
+	}
+
 	let apiary = useLiveQuery(() => getApiary(+id), [id]);
 
 	let {
@@ -197,52 +227,47 @@ export default function ApiaryEditForm() {
 							<Button color="red" loading={saving}
 									onClick={onDeleteApiary}><DeleteIcon/><span><T>Delete</T></span></Button>
 							<Button type="submit" loading={saving} color="green"><T>Save</T></Button>
-
-
-							<Button
-								onClick={() => {
-									setAutoLocate(!autoLocate)
-								}}
-							><LocationMarker/><span><T>Locate me</T></span></Button>
-
-							{estonia_plane_map}
-
 						</div>
 					</div>
 				</VisualForm>
 			</div>
 			<TabBar>
-        <Tab isSelected={mapTab == 2} onClick={() => {
-          setMapTab(2)
-        }}><T>Hive Placement</T></Tab>
-
-        <Tab isSelected={mapTab == 0} onClick={() => {
-					setMapTab(0)
-				}}><T>Geo Position</T></Tab>
-
-				<Tab isSelected={mapTab == 1} onClick={() => {
-					setMapTab(1)
-				}}><T>Satellite</T></Tab>
-
-				<Tab isSelected={mapTab == 3} onClick={() => {
-					setMapTab(3)
-				}}><T>Moisture</T></Tab>
-
+        <Tab isSelected={mapTab == 2} onClick={() => changeTab(2)}><T>Hive Placement</T></Tab>
+        <Tab isSelected={mapTab == 0} onClick={() => changeTab(0)}><T>Geo Position</T></Tab>
+				<Tab isSelected={mapTab == 1} onClick={() => changeTab(1)}><T>Satellite</T></Tab>
+				<Tab isSelected={mapTab == 3} onClick={() => changeTab(3)}><T>Moisture</T></Tab>
 			</TabBar>
 			<div>
-				{mapTab == 0 && <Map
-					lat={lat}
-					lng={lng}
-					autoLocate={autoLocate}
-					onMarkerSet={(coords) => {
-						setLat(coords.lat)
-						setLng(coords.lng)
-					}}
-				/>}
+				{mapTab == 0 && (
+					<>
+						<div style={"padding: 20px; display:flex; gap: 10px;"}>
+							<Button
+								onClick={() => {
+									setAutoLocate(!autoLocate)
+								}}
+							><LocationMarker/><span><T>Locate me</T></span></Button>
+							{estonia_plane_map}
+						</div>
+						<Map
+							lat={lat}
+							lng={lng}
+							autoLocate={autoLocate}
+							onMarkerSet={(coords) => {
+								setLat(coords.lat)
+								setLng(coords.lng)
+							}}
+						/>
+					</>
+				)}
 
 				{mapTab == 1 && satellite_map}
 				{mapTab == 2 && apiaryGet?.apiary?.hives && (
-					<HivePlacement apiaryId={id} hives={apiaryGet.apiary.hives} />
+					<HivePlacement
+						apiaryId={id}
+						hives={apiaryGet.apiary.hives}
+						selectedHiveId={hiveId || null}
+						onHiveSelect={onHiveSelect}
+					/>
 				)}
 				{mapTab == 3 && moisture_map}
 

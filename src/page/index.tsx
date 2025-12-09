@@ -85,7 +85,7 @@ export default function Page() {
 			<Route path="/time" element={<LoggedInPage><TimeView /></LoggedInPage>} />
 
 			<Route path="/apiaries/create" element={<LoggedInPage><ApiaryCreate /></LoggedInPage>} />
-			<Route path="/apiaries/edit/:id" element={<LoggedInPage><ApiaryEditForm /></LoggedInPage>} />
+			<Route path="/apiaries/edit/:id/:tab?/:hiveId?" element={<LoggedInPage><ApiaryEditForm /></LoggedInPage>} />
 			<Route path="/" element={<LoggedInPage><ApiaryList /></LoggedInPage>} />
 			<Route path="/apiaries/" element={<LoggedInPage><ApiaryList /></LoggedInPage>} />
 

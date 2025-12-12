@@ -3,7 +3,8 @@
 	"name": "web-app",
 	"type": "module",
 	"version": "1.0.0",
-	"license": "AGPL",
+	"description": "Gratheon web application for beehive management. Dual-licensed under AGPL-3.0 (open source) and Commercial License (enterprise). See LICENSE-AGPL and LICENSE-COMMERCIAL.",
+	"license": "AGPL-3.0-or-later",
 	"scripts": {
 		"prepare": "husky",
 		"build-clean": "rm -rf public/*",

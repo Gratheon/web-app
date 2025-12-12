@@ -405,7 +405,44 @@ web-app/
 
 ## License
 
-This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**. See the [LICENSE](LICENSE) file for details.
+This project is **dual-licensed**:
+
+- **[AGPL v3](LICENSE-AGPL)** - For open source use
+- **[Commercial License](LICENSE-COMMERCIAL)** - For enterprise customers
+
+### Open Source License (AGPL v3)
+
+The open source version is licensed under the GNU Affero General Public License v3. This means:
+
+- ✅ You can use, modify, and distribute the software
+- ✅ Source code is freely available
+- ⚠️ If you modify and host a public instance, you must share your modifications
+- ⚠️ Any derivative work must also be licensed under AGPL v3
+
+See [LICENSE-AGPL](LICENSE-AGPL) for full terms.
+
+### Commercial License
+
+For enterprise customers who need:
+- 🏢 On-premise deployment without source disclosure
+- 🔧 Custom modifications without copyleft obligations
+- 🎨 White-label/rebranding rights
+- 📞 Priority support and SLA guarantees
+
+Contact us at [pilot@gratheon.com](mailto:pilot@gratheon.com) for commercial licensing options.
+
+### Contributing
+
+If you'd like to contribute, please see our [Contributing Guide](CONTRIBUTING.md) and sign our Contributor License Agreement (CLA).
+
+The CLA allows us to:
+- Include your contribution in both open source and commercial versions
+- Maintain the dual-licensing model
+- Protect the project legally
+
+**You retain ownership** of your contributions.
+
+**Company**: Gratheon OÜ
 
 ## Support
 

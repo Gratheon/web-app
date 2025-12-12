@@ -397,12 +397,6 @@ web-app/
 └── vite.config.ts          # Vite build tool configuration
 ```
 
-## Contributing
-
-*   Please refer to the `CODEOWNERS` file for ownership details.
-*   Code style is enforced by Prettier (`npm run prettier`).
-*   Follow standard GitHub flow: Fork the repository, create a feature branch, make changes, and submit a Pull Request.
-
 ## License
 
 This project is **dual-licensed**:
@@ -419,7 +413,7 @@ The open source version is licensed under the GNU Affero General Public License 
 - ⚠️ If you modify and host a public instance, you must share your modifications
 - ⚠️ Any derivative work must also be licensed under AGPL v3
 
-See [LICENSE-AGPL](LICENSE-AGPL) for full terms.
+See [LICENSE-AGPL.md](LICENSE-AGPL.md) for full terms.
 
 ### Commercial License
 
@@ -435,14 +429,10 @@ Contact us at [pilot@gratheon.com](mailto:pilot@gratheon.com) for commercial lic
 
 If you'd like to contribute, please see our [Contributing Guide](CONTRIBUTING.md) and sign our Contributor License Agreement (CLA).
 
-The CLA allows us to:
-- Include your contribution in both open source and commercial versions
-- Maintain the dual-licensing model
-- Protect the project legally
+*   Please refer to the `CODEOWNERS` file for ownership details.
+*   Code style is enforced by Prettier (`npm run prettier`).
+*   Follow standard GitHub flow: Fork the repository, create a feature branch, make changes, and submit a Pull Request.
 
-**You retain ownership** of your contributions.
-
-**Company**: Gratheon OÜ
 
 ## Support
 

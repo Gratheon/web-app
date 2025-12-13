@@ -401,8 +401,8 @@ web-app/
 
 This project is **dual-licensed**:
 
-- **[AGPL v3](LICENSE-AGPL)** - For open source use
-- **[Commercial License](LICENSE-COMMERCIAL)** - For enterprise customers
+- **[AGPL v3](LICENSE-AGPL.md)** - For open source use
+- **[Commercial License](LICENSE-COMMERCIAL.md)** - For enterprise customers
 
 ### Open Source License (AGPL v3)
 

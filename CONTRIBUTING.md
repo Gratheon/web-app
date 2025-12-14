@@ -37,16 +37,16 @@ We use [CLA Assistant](https://cla-assistant.io) to streamline the CLA process:
 4. **That's it!** Once signed, you can contribute to any Gratheon repository.
 
 Alternatively, you can:
-- Download the [Individual CLA](https://gratheon.com/about/company/legal/CLA-INDIVIDUAL)
-- Or [Corporate CLA](https://gratheon.com/about/company/legal/CLA-CORPORATE) if contributing on behalf 
+- Download the [Individual CLA](../templates/CLA-INDIVIDUAL.md)
+- Or [Corporate CLA](../templates/CLA-CORPORATE.md) if contributing on behalf 
   of a company
-- Sign and email to pilot@gratheon.com
+- Sign and email to contributors@gratheon.com
 
 ### For Corporate Contributors
 
 If you're contributing as part of your job, your employer needs to sign the 
 Corporate CLA. Please have your legal department review and sign the 
-[Corporate CLA](https://gratheon.com/about/company/legal/CLA-CORPORATE).
+[Corporate CLA](../templates/CLA-CORPORATE.md).
 
 ## Code of Conduct
 
@@ -82,7 +82,8 @@ source community guidelines.
 - Write clean, maintainable code
 - Follow existing patterns in the codebase
 - No TODO comments (create issues instead)
-- Use `// ARRANGE // ACT // ASSERT` pattern in tests
+- For Go: add `t.Parallel()` to independent tests
+- For Go: use `// ARRANGE // ACT // ASSERT` in tests
 - Use human-readable test names
 
 ### Development Setup

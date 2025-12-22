@@ -88,7 +88,7 @@ export default function HiveIcon({
 			if (box.type === 'GATE') {
 				boxStyle.paddingTop = `${size / 10}px`
 			}
-			else if (box.type === 'VENTILATION' || box.type === 'QUEEN_EXCLUDER') {
+			else if (box.type === 'VENTILATION' || box.type === 'QUEEN_EXCLUDER' || box.type === 'BOTTOM') {
 				boxStyle.paddingTop = `${size / 20}px`
 			}
 			else if (box.type === 'HORIZONTAL_FEEDER') {

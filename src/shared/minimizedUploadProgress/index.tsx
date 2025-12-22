@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from 'preact/hooks'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useUploadContext } from '@/contexts/UploadContext'
+import { useConfirm } from '@/hooks/useConfirm'
 import T from '@/shared/translate'
 import styles from './index.module.less'
 
 export default function MinimizedUploadProgress() {
+	const { confirm, ConfirmDialog } = useConfirm()
 	const { isUploading, images, uploadProgress, boxId, hiveId, apiaryId, cancelUpload } = useUploadContext()
 	const navigate = useNavigate()
 	const location = useLocation()
@@ -53,8 +55,13 @@ export default function MinimizedUploadProgress() {
 		}
 	}
 
-	const handleCancel = () => {
-		if (confirm('Are you sure you want to cancel the upload?')) {
+	const handleCancel = async () => {
+		const confirmed = await confirm(
+			'Are you sure you want to cancel the upload?',
+			{ confirmText: 'Cancel Upload', cancelText: 'Continue', isDangerous: true }
+		)
+
+		if (confirmed) {
 			cancelUpload()
 		}
 	}
@@ -107,6 +114,7 @@ export default function MinimizedUploadProgress() {
 					)}
 				</div>
 			</div>
+			{ConfirmDialog}
 		</div>
 	)
 }

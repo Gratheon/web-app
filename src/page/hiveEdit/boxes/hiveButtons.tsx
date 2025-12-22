@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router'
 
 import { useMutation } from '@/api'
+import { useConfirm } from '@/hooks/useConfirm'
 import Button from '@/shared/button'
 import {
 	boxTypes,
@@ -35,6 +36,7 @@ export default function HiveButtons({
 	frameId
 }) {
 	let navigate = useNavigate()
+	const { confirm, ConfirmDialog } = useConfirm()
 	const [adding, setAdding] = useState(false)
 	const [errorRemove, setErrorRemove] = useState(false)
 	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId]);
@@ -68,7 +70,12 @@ let [removeBoxMutation] = useMutation(`mutation deactivateBox($id: ID!) {
 
 	const [removingBox, setRemovingBox] = useState(false);
 	async function onBoxRemove(id: number) {
-		if (confirm('Are you sure you want to remove this box?')) {
+		const confirmed = await confirm(
+			'Are you sure you want to remove this box?',
+			{ confirmText: 'Remove', isDangerous: true }
+		)
+
+		if (confirmed) {
 			setRemovingBox(true)
 			const { error } = await removeBoxMutation({ id })
 
@@ -188,8 +195,8 @@ let [removeBoxMutation] = useMutation(`mutation deactivateBox($id: ID!) {
         <Button
             color="red"
             loading={removingBox}
-            onClick={() => {
-              onBoxRemove(+box.id)
+            onClick={async () => {
+              await onBoxRemove(+box.id)
             }}
         ><DeleteIcon /> <T>Remove box</T></Button>
 			</div>
@@ -203,6 +210,7 @@ let [removeBoxMutation] = useMutation(`mutation deactivateBox($id: ID!) {
 					onComplete={() => {}}
 				/>
 			)}
+			{ConfirmDialog}
 		</>
 	)
 }

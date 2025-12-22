@@ -1,33 +1,37 @@
 start:
-  source $HOME/.nvm/nvm.sh && nvm use && pnpm i && pnpm dev
+  . $HOME/.nvm/nvm.sh && nvm use && pnpm i && pnpm dev
 
 stop:
 	COMPOSE_PROJECT_NAME=gratheon docker compose -f docker-compose.dev.yml down
 
 build:
-	./_build.sh
+	. $HOME/.nvm/nvm.sh && ./_build.sh
 
 test:
-	pnpm test:unit
+	. $HOME/.nvm/nvm.sh && pnpm test:unit
 
 test-ui:
-	npx playwright test --ui
+	. $HOME/.nvm/nvm.sh && npx playwright test --ui
 
 test-ui-headless:
-	npx playwright test
+	. $HOME/.nvm/nvm.sh && npx playwright test
 
 test-ui-create:
-	npx playwright codegen
+	. $HOME/.nvm/nvm.sh && npx playwright codegen
 
 test-ui-report:
-	npx playwright show-report
+	. $HOME/.nvm/nvm.sh && npx playwright show-report
 
 update-db-version:
 	./scripts/check-and-update-db-version.sh
 
+# Run full checks before pushing (build + tests)
+pre-push:
+	./scripts/pre-push-check.sh
+
 # Build the Tauri desktop application
 dev-desktop-app:
-	pnpm tauri dev
+	. $HOME/.nvm/nvm.sh && pnpm tauri dev
 
 build-desktop-app:
-	pnpm tauri build
+	. $HOME/.nvm/nvm.sh && pnpm tauri build

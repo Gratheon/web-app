@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { gql, useMutation, useQuery } from '@/api'
+import { useConfirm } from '@/hooks/useConfirm'
 import Button from '@/shared/button'
 import T from '@/shared/translate'
 import ErrorMsg from '@/shared/messageError'
@@ -66,6 +67,7 @@ interface AlertRulesPanelProps {
 }
 
 export default function AlertRulesPanel({ metricType, metricLabel, hives, onAlertCountChange, selectedApiaryId }: AlertRulesPanelProps) {
+	const { confirm, ConfirmDialog } = useConfirm()
 	const { data, reexecuteQuery } = useQuery(ALERT_RULES_QUERY, { variables: { metricType } });
 	const [createAlertRule, { error: createError }] = useMutation(CREATE_ALERT_RULE_MUTATION);
 	const [updateAlertRule, { error: updateError }] = useMutation(UPDATE_ALERT_RULE_MUTATION);
@@ -151,7 +153,12 @@ export default function AlertRulesPanel({ metricType, metricLabel, hives, onAler
 	};
 
 	const handleDelete = async (id: string) => {
-		if (!confirm('Delete this alert rule?')) return;
+		const confirmed = await confirm(
+			'Delete this alert rule?',
+			{ confirmText: 'Delete', isDangerous: true }
+		)
+
+		if (!confirmed) return;
 		await deleteAlertRule({ id });
 		reexecuteQuery();
 	};
@@ -311,7 +318,9 @@ export default function AlertRulesPanel({ metricType, metricLabel, hives, onAler
 					</div>
 				</form>
 			</div>
+			{ConfirmDialog}
 		</div>
 	);
 }
+
 

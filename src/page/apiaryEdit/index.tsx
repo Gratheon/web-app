@@ -6,6 +6,7 @@ import proj4 from 'proj4'
 
 import { getApiary, updateApiary } from '@/models/apiary'
 import { gql, useMutation, useQuery } from '@/api'
+import { useConfirm } from '@/hooks/useConfirm'
 import VisualForm from '@/shared/visualForm'
 import Loader from '@/shared/loader'
 import ErrorMsg from '@/shared/messageError'
@@ -58,6 +59,7 @@ const REVERSE_TAB_MAPPING = {
 }
 
 export default function ApiaryEditForm() {
+	const { confirm, ConfirmDialog } = useConfirm()
 	let navigate = useNavigate()
 	let { id, tab, hiveId } = useParams()
 	let [autoLocate, setAutoLocate] = useState(false)
@@ -152,7 +154,12 @@ export default function ApiaryEditForm() {
 	const [saving, setSaving] = useState(false)
 
 	async function onDeleteApiary() {
-		if (confirm('Are you sure?')) {
+		const confirmed = await confirm(
+			'Are you sure you want to delete this apiary?',
+			{ confirmText: 'Delete', isDangerous: true }
+		)
+
+		if (confirmed) {
 			setSaving(true);
 			await deactivateApiary({
 				id,
@@ -224,11 +231,11 @@ export default function ApiaryEditForm() {
 
 					<div>
 						<div></div>
-						<div style={"display:flex; flex-direction: row-reverse;"}>
-							<Button color="red" loading={saving}
-									onClick={onDeleteApiary}><DeleteIcon/><span><T>Delete</T></span></Button>
-							<Button type="submit" loading={saving} color="green"><T>Save</T></Button>
-						</div>
+					<div style={"display:flex; flex-direction: row-reverse;"}>
+						<Button color="red" loading={saving}
+								onClick={async () => await onDeleteApiary()}><DeleteIcon/><span><T>Delete</T></span></Button>
+						<Button type="submit" loading={saving} color="green"><T>Save</T></Button>
+					</div>
 					</div>
 				</VisualForm>
 			</div>
@@ -276,19 +283,7 @@ export default function ApiaryEditForm() {
         {mapTab == 0 && apiary && <Weather lat={lat} lng={lng} />}
         {mapTab == 0 && apiary && <Plants lat={lat} lng={lng} />}
 			</div>
-
-			{/*<div>*/}
-			{/*	Metadata: lat={lat}, lng={lng}.*/}
-			{/*	<a*/}
-			{/*		target="_blank"*/}
-			{/*		href={`https://www.google.com/maps/@${lat},${lng},16z/data=!3m1!1e3`}*/}
-			{/*		rel="noreferrer"*/}
-			{/*	>*/}
-			{/*		Google maps*/}
-			{/*	</a>*/}
-
-			{/*</div>*/}
-
+			{ConfirmDialog}
 		</div>
 	)
 }

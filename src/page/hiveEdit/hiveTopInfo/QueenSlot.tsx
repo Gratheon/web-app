@@ -8,6 +8,7 @@ import PlusIcon from '@/icons/plusIcon'
 import QueenColor from '@/page/hiveEdit/hiveTopInfo/queenColor'
 import { getQueenColorFromYear } from '@/page/hiveEdit/hiveTopInfo/queenColor/utils'
 import { Family } from '@/models/family'
+import { useConfirm } from '@/hooks/useConfirm'
 import styles from './QueenSlot.module.less'
 
 //@ts-ignore
@@ -78,6 +79,7 @@ export default function QueenSlot({
 	onDragEnd,
 	showAddButton = false
 }: QueenSlotProps) {
+	const { confirm, ConfirmDialog } = useConfirm()
 	const [draggingId, setDraggingId] = useState<number | null>(null)
 	const [editingId, setEditingId] = useState<number | null>(null)
 	const [editName, setEditName] = useState('')
@@ -320,9 +322,13 @@ export default function QueenSlot({
 						<div className={styles.queenActions}>
 							<Button
 								className={`${styles.actionButton} ${styles.remove}`}
-								onClick={(e) => {
+								onClick={async (e) => {
 									e.stopPropagation()
-									if (confirm('Are you sure you want to remove this queen from the hive?')) {
+									const confirmed = await confirm(
+										'Are you sure you want to remove this queen from the hive?',
+										{ confirmText: 'Remove', isDangerous: true }
+									)
+									if (confirmed) {
 										onRemoveQueen(family.id)
 									}
 								}}
@@ -353,6 +359,7 @@ export default function QueenSlot({
 					</Button>
 				)}
 			</div>
+			{ConfirmDialog}
 		</div>
 	)
 }

@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react' // Import useEffect
+import React, { useState, useEffect } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate } from 'react-router-dom'
 
 import { gql, useMutation, useQuery, useSubscription } from '@/api'
+import { useConfirm } from '@/hooks/useConfirm'
 
 import { getFrame, removeFrame } from '@/models/frames.ts'
 import { FrameSide as FrameSideType, getFrameSide, upsertFrameSide } from '@/models/frameSide.ts'
@@ -38,6 +39,7 @@ export default function Frame({
 		return
 	}
 
+	const { confirm, ConfirmDialog } = useConfirm()
 	let [frameRemoving, setFrameRemoving] = useState<boolean>(false)
 	// Local state for the queen checkbox
 	const [isQueenChecked, setIsQueenChecked] = useState<boolean | undefined>(undefined);
@@ -126,7 +128,12 @@ export default function Frame({
 	`)
 
 	async function onFrameRemove() {
-		if (confirm('Are you sure?')) {
+		const confirmed = await confirm(
+			'Are you sure you want to remove this frame?',
+			{ confirmText: 'Remove', isDangerous: true }
+		)
+
+		if (confirmed) {
 			setFrameRemoving(true)
 			await removeFrame(frameId, boxId)
 			await removeFrameMutation({
@@ -281,12 +288,12 @@ export default function Frame({
 							</Button>
 						)}
 
-						<Button color="red" title="Remove frame" onClick={onFrameRemove}>
-							<DeleteIcon />
-							<span>
-								<T>Remove frame</T>
-							</span>
-						</Button>
+					<Button color="red" title="Remove frame" onClick={async () => await onFrameRemove()}>
+						<DeleteIcon />
+						<span>
+							<T>Remove frame</T>
+						</span>
+					</Button>
 					</div>
 				</div>
 
@@ -298,6 +305,7 @@ export default function Frame({
 
 				{extraButtons}
 			</div>
+			{ConfirmDialog}
 		</div>
 	)
 }

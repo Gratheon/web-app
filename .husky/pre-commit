@@ -1,7 +1,25 @@
-/opt/homebrew/bin/just update-db-version || exit 1
+#!/usr/bin/env sh
 
-/opt/homebrew/bin/just build || exit 1
+# Load nvm
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
-/opt/homebrew/bin/just test || exit 1
+# Use the node version from .nvmrc if it exists
+[ -f .nvmrc ] && nvm use
 
+echo "Running pre-commit checks..."
+
+# 1. Check DB version
+echo "1/2 Checking DB version..."
+./scripts/check-and-update-db-version.sh || exit 1
+
+# 2. Run unit tests (use npm run instead of pnpm directly)
+echo "2/2 Running unit tests..."
+npm run test:unit || exit 1
+
+echo "✓ Pre-commit checks passed!"
 exit 0
+
+
+
+

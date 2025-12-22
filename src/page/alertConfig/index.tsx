@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { gql, useMutation, useQuery } from '@/api'
+import { useConfirm } from '@/hooks/useConfirm'
 import Loader from '@/shared/loader'
 import ErrorMsg from '@/shared/messageError'
 import Button from '@/shared/button'
@@ -127,6 +128,7 @@ function getChartTypeFromMetricType(metricType: string | null | undefined): stri
 }
 
 export default function AlertConfig() {
+	const { confirm, ConfirmDialog } = useConfirm()
 	const { data, reexecuteQuery } = useQuery(ALERT_CHANNELS_QUERY);
 	const [setAlertChannel, { error: mutationError }] = useMutation(SET_ALERT_CHANNEL_MUTATION);
 	const [deleteAlertChannel] = useMutation(DELETE_ALERT_CHANNEL_MUTATION);
@@ -222,7 +224,12 @@ export default function AlertConfig() {
 	}
 
 	async function onDelete() {
-		if (!confirm(`Delete ${selectedChannel} alert channel?`)) return;
+		const confirmed = await confirm(
+			`Delete ${selectedChannel} alert channel?`,
+			{ confirmText: 'Delete', isDangerous: true }
+		)
+
+		if (!confirmed) return;
 		await deleteAlertChannel({ channelType: selectedChannel });
 		reexecuteQuery();
 	}
@@ -503,7 +510,12 @@ export default function AlertConfig() {
 												<button
 													className={styles.deleteRuleBtn}
 													onClick={async () => {
-														if (confirm('Delete this alert rule?')) {
+														const confirmed = await confirm(
+															'Delete this alert rule?',
+															{ confirmText: 'Delete', isDangerous: true }
+														)
+
+														if (confirmed) {
 															await deleteAlertRule({ id: rule.id });
 															reexecuteQuery();
 														}
@@ -521,6 +533,7 @@ export default function AlertConfig() {
 					</div>
 				)}
 			</Card>
+			{ConfirmDialog}
 		</PagePaddedCentered>
 	);
 } 

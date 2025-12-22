@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react'
 import { gql, useUploadMutation, useMutation } from '@/api'
+import { useConfirm } from '@/hooks/useConfirm'
 import { updateFile } from '@/models/files.ts'
 import { updateFrameSideFile } from '@/models/frameSideFile.ts'
 import ErrorMessage from '@/shared/messageError'
@@ -38,6 +39,7 @@ type BulkUploadProps = {
 }
 
 export default function BulkUpload({ hiveId, frames, onComplete }: BulkUploadProps) {
+	const { confirm, ConfirmDialog } = useConfirm()
 	const [isOpen, setIsOpen] = useState(false)
 	const [images, setImages] = useState<ImagePreview[]>([])
 	const [error, setError] = useState<Error | null>(null)
@@ -249,9 +251,14 @@ export default function BulkUpload({ hiveId, frames, onComplete }: BulkUploadPro
 		}
 	}
 
-	const handleClose = () => {
+	const handleClose = async () => {
 		if (isUploading && !uploadComplete) {
-			if (!confirm('Upload is in progress. Are you sure you want to close?')) {
+			const confirmed = await confirm(
+				'Upload is in progress. Are you sure you want to close?',
+				{ confirmText: 'Close', cancelText: 'Continue Upload', isDangerous: true }
+			)
+
+			if (!confirmed) {
 				return
 			}
 		}
@@ -405,6 +412,7 @@ export default function BulkUpload({ hiveId, frames, onComplete }: BulkUploadPro
 					</div>
 				</Modal>
 			)}
+			{ConfirmDialog}
 		</>
 	)
 }

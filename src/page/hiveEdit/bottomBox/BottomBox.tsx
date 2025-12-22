@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useUploadMutation, useMutation, useQuery, gql } from '@/api'
 import ErrorMessage from '@/shared/messageError'
 import Loader from '@/shared/loader'
 import T from '@/shared/translate'
 import styles from './styles.module.less'
 import UploadIcon from '@/icons/uploadIcon'
+import DrawingCanvas from '@/page/hiveEdit/frame/drawingCanvas'
 
 export default function BottomBox({ boxId, hiveId }) {
 	const { data: filesData, loading: filesLoading, reexecuteQuery } = useQuery(gql`
@@ -13,8 +14,25 @@ export default function BottomBox({ boxId, hiveId }) {
 				file {
 					id
 					url
+					resizes {
+						id
+						url
+						max_dimension_px
+					}
 				}
 				addedTime
+			}
+		}
+	`, { variables: { boxId } })
+
+	const { data: detectionsData, loading: detectionsLoading } = useQuery(gql`
+		query varroaBottomDetections($boxId: ID!) {
+			varroaBottomDetections(boxId: $boxId) {
+				id
+				fileId
+				varroaCount
+				detections
+				processedAt
 			}
 		}
 	`, { variables: { boxId } })
@@ -37,13 +55,27 @@ export default function BottomBox({ boxId, hiveId }) {
 
 	//@ts-ignore
 	const [addFileToBoxMutation] = useMutation(gql`
-		mutation addFileToBox($boxId: ID!, $fileId: ID!, $hiveId: ID!) {
-			addFileToBox(boxId: $boxId, fileId: $fileId, hiveId: $hiveId)
+		mutation addFileToBox($boxId: ID!, $fileId: ID!, $hiveId: ID!, $boxType: String) {
+			addFileToBox(boxId: $boxId, fileId: $fileId, hiveId: $hiveId, boxType: $boxType)
 		}
 	`)
 
 	const [error, setError] = useState(null)
 	const [loading, setLoading] = useState(false)
+
+	const transformedDetections = useMemo(() => {
+		if (!detectionsData?.varroaBottomDetections?.detections) {
+			return []
+		}
+
+		const detections = detectionsData.varroaBottomDetections.detections
+
+		if (typeof detections === 'string') {
+			return JSON.parse(detections)
+		}
+
+		return detections
+	}, [detectionsData])
 
 	async function onFileSelect(event: React.ChangeEvent<HTMLInputElement>) {
 		const target = event.target as HTMLInputElement
@@ -70,7 +102,8 @@ export default function BottomBox({ boxId, hiveId }) {
 			await addFileToBoxMutation({
 				boxId: boxId,
 				fileId: uploadData.id,
-				hiveId: hiveId
+				hiveId: hiveId,
+				boxType: "BOTTOM"
 			})
 
 			reexecuteQuery({ requestPolicy: 'network-only' })
@@ -82,9 +115,11 @@ export default function BottomBox({ boxId, hiveId }) {
 		}
 	}
 
-	if (loading || filesLoading) return <Loader />
+	if (loading || filesLoading || detectionsLoading) return <Loader />
 
 	const existingFiles = filesData?.boxFiles || []
+	const varroaCount = detectionsData?.varroaBottomDetections?.varroaCount || 0
+	const hasDetections = varroaCount > 0
 
 	return (
 		<div className={styles.bottomBoxWrap}>
@@ -99,11 +134,27 @@ export default function BottomBox({ boxId, hiveId }) {
 
 			<ErrorMessage error={error} />
 
+			{hasDetections && (
+				<div className={styles.detectionCount}>
+					<strong><T>Detected varroa mites</T>: {varroaCount}</strong>
+				</div>
+			)}
+
 			{existingFiles.length > 0 && (
 				<div className={styles.existingImages}>
 					{existingFiles.map((boxFile, index) => (
 						<div key={boxFile.file.id} className={styles.uploadedImage}>
-							<img src={boxFile.file.url} alt={`Bottom board ${index + 1}`} />
+							<DrawingCanvas
+								imageUrl={boxFile.file.url}
+								resizes={boxFile.file.resizes || []}
+								detectedVarroa={transformedDetections}
+								strokeHistory={[]}
+								onStrokeHistoryUpdate={() => {}}
+								frameSideFile={{
+									isVarroaDetectionComplete: hasDetections
+								}}
+								hideControls={true}
+							/>
 						</div>
 					))}
 				</div>

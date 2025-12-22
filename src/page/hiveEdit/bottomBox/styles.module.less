@@ -31,13 +31,14 @@
 
 .existingImages {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+	grid-template-columns: repeat(auto-fill, minmax(600px, 1fr));
 	gap: 15px;
 	margin: 15px 0;
 }
 
 .uploadedImage {
 	margin-top: 15px;
+	width: 100%;
 }
 
 .uploadedImage img {
@@ -50,5 +51,18 @@
 	margin-top: 10px;
 	color: #4CAF50;
 	font-weight: 500;
+}
+
+.detectionCount {
+	margin: 15px 0;
+	padding: 12px;
+	background: #fff;
+	border-left: 4px solid #ff9800;
+	border-radius: 4px;
+
+	strong {
+		color: #333;
+		font-size: 16px;
+	}
 }
 

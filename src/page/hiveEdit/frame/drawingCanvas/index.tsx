@@ -322,8 +322,8 @@ interface DrawingCanvasProps {
 	detectedCells?: any[];
 	detectedVarroa?: any[];
 	onStrokeHistoryUpdate: (history: DrawingLine[] | undefined) => void;
-	frameSideFile: any; // Define more specific type if possible
-	// frameSide: string; // Removed unused prop
+	frameSideFile: any;
+	hideControls?: boolean;
 }
 
 export default function DrawingCanvas({
@@ -336,7 +336,7 @@ export default function DrawingCanvas({
 	detectedVarroa = [],
 	onStrokeHistoryUpdate,
 	frameSideFile,
-	// frameSide, // Removed from destructuring
+	hideControls = false,
 }: DrawingCanvasProps) {
 
 	const ref = useRef<HTMLCanvasElement>(null);
@@ -664,63 +664,67 @@ export default function DrawingCanvas({
 
 	return (
 		<div style={{ position: 'relative', overflow: 'hidden' }}>
-			<div
-				className={styles.buttonPanel}
-				style={{ left: panelVisible ? 0 : -200 }}
-			>
-				<Button
-					onClick={() => setPanelVisible(!panelVisible)}
-					style={{ position: 'absolute', right: -43, top: 100, borderRadius: '0 20px 20px 0', border: '2px solid white', borderLeft: 'none' }}
+			{!hideControls && (
+				<div
+					className={styles.buttonPanel}
+					style={{ left: panelVisible ? 0 : -200 }}
 				>
-					{isAnyDetectionLoading ? <Loader size={0} /> : panelVisible ? <LeftChevron /> : <RightChevron />}
-				</Button>
-
-				<div className={styles.buttonGrp}>
-					<Button onClick={() => setBeeVisibility(!showBees)}>
-						{frameSideFile?.isBeeDetectionComplete ? <Checkbox on={showBees} /> : <Loader size={0} />}
-						<span><T ctx="toggle worker bees visibility">Worker bees</T></span>
+					<Button
+						onClick={() => setPanelVisible(!panelVisible)}
+						style={{ position: 'absolute', right: -43, top: 100, borderRadius: '0 20px 20px 0', border: '2px solid white', borderLeft: 'none' }}
+					>
+						{isAnyDetectionLoading ? <Loader size={0} /> : panelVisible ? <LeftChevron /> : <RightChevron />}
 					</Button>
 
-					{detectedCells && (
-						<Button onClick={() => setCellVisibility(!showCells)}>
-							{frameSideFile?.isCellsDetectionComplete ? <Checkbox on={showCells} /> : <Loader size={0} />}
-							<span><T ctx="toggle frame cells visibility">Frame cells</T>{frameSideFile?.isCellsDetectionComplete && <FrameCells />}</span>
+					<div className={styles.buttonGrp}>
+						<Button onClick={() => setBeeVisibility(!showBees)}>
+							{frameSideFile?.isBeeDetectionComplete ? <Checkbox on={showBees} /> : <Loader size={0} />}
+							<span><T ctx="toggle worker bees visibility">Worker bees</T></span>
 						</Button>
-					)}
 
-					<Button onClick={() => setIsAiQueenVisible(!isAiQueenVisible)}>
-						{frameSideFile?.isQueenDetectionComplete ? <Checkbox on={isAiQueenVisible} /> : <Loader size={0} />}
-						<span><T ctx="toggle AI queen visibility">Queen</T></span>
-						<QueenIcon size={14} color={'white'} />
-					</Button>
+						{detectedCells && (
+							<Button onClick={() => setCellVisibility(!showCells)}>
+								{frameSideFile?.isCellsDetectionComplete ? <Checkbox on={showCells} /> : <Loader size={0} />}
+								<span><T ctx="toggle frame cells visibility">Frame cells</T>{frameSideFile?.isCellsDetectionComplete && <FrameCells />}</span>
+							</Button>
+						)}
 
-					<Button onClick={() => setDroneVisibility(!showDrones)}>
-						{frameSideFile?.isBeeDetectionComplete ? <Checkbox on={showDrones} /> : <Loader size={0} />}
-						<span><T ctx="toggle drones visibility">Drones</T>{frameSideFile?.detectedDroneCount > 0 && ` (${frameSideFile.detectedDroneCount})`}</span>
-					</Button>
-
-					{detectedQueenCups && (
-						<Button onClick={() => setQueenCupsVisibility(!showQueenCups)}>
-							{frameSideFile?.isQueenCupsDetectionComplete ? <Checkbox on={showQueenCups} /> : <Loader size={0} />}
-							<span><T ctx="toggle queen cups visibility">Queen cups</T></span>
+						<Button onClick={() => setIsAiQueenVisible(!isAiQueenVisible)}>
+							{frameSideFile?.isQueenDetectionComplete ? <Checkbox on={isAiQueenVisible} /> : <Loader size={0} />}
+							<span><T ctx="toggle AI queen visibility">Queen</T></span>
+							<QueenIcon size={14} color={'white'} />
 						</Button>
-					)}
 
-					<Button onClick={() => setShowVarroaVisibility(!showVarroa)}>
-						{frameSideFile?.isVarroaDetectionComplete ? <Checkbox on={showVarroa} /> : <Loader size={0} />}
-						<span><T ctx="toggle varroa mites visibility">Varroa mites</T></span>
-					</Button>
+						<Button onClick={() => setDroneVisibility(!showDrones)}>
+							{frameSideFile?.isBeeDetectionComplete ? <Checkbox on={showDrones} /> : <Loader size={0} />}
+							<span><T ctx="toggle drones visibility">Drones</T>{frameSideFile?.detectedDroneCount > 0 && ` (${frameSideFile.detectedDroneCount})`}</span>
+						</Button>
+
+						{detectedQueenCups && (
+							<Button onClick={() => setQueenCupsVisibility(!showQueenCups)}>
+								{frameSideFile?.isQueenCupsDetectionComplete ? <Checkbox on={showQueenCups} /> : <Loader size={0} />}
+								<span><T ctx="toggle queen cups visibility">Queen cups</T></span>
+							</Button>
+						)}
+
+						<Button onClick={() => setShowVarroaVisibility(!showVarroa)}>
+							{frameSideFile?.isVarroaDetectionComplete ? <Checkbox on={showVarroa} /> : <Loader size={0} />}
+							<span><T ctx="toggle varroa mites visibility">Varroa mites</T></span>
+						</Button>
+					</div>
 				</div>
-			</div>
+			)}
 
 			<canvas ref={ref} id="container" style={{ width: '100%', display: 'block', touchAction: 'none' }}>
 				<T>Canvas not supported.</T>
 			</canvas>
 
-			<div className={styles.buttonGrp} style={{ position: 'absolute', bottom: 10, right: 10, background: 'rgba(0,0,0,0.5)', padding: '5px', borderRadius: '5px' }}>
-				<Button onClick={clearHistory}><T ctx="clear drawing button">Clear drawing</T></Button>
-				<Button onClick={undoDraw}><T>Undo</T></Button>
-			</div>
+			{!hideControls && (
+				<div className={styles.buttonGrp} style={{ position: 'absolute', bottom: 10, right: 10, background: 'rgba(0,0,0,0.5)', padding: '5px', borderRadius: '5px' }}>
+					<Button onClick={clearHistory}><T ctx="clear drawing button">Clear drawing</T></Button>
+					<Button onClick={undoDraw}><T>Undo</T></Button>
+				</div>
+			)}
 		</div>
 	);
 }

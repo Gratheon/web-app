@@ -219,14 +219,14 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 								title="Split colony"
 								onClick={() => setSplitModalOpen(true)}
 							>
-								<SplitIcon /> <T>Split Colony</T>
+								<SplitIcon /> <T ctx={"An operation on a bee colony by separating it into two or more parts. This is done to prevent swarming, expand the apiary, or create nucleus colonies."}>Split Colony</T>
 							</Button>
 
 							<Button
 								title="Join colonies"
 								onClick={() => setJoinModalOpen(true)}
 							>
-								<JoinIcon /> <T>Join Colony</T>
+								<JoinIcon /> <T ctx={"Joining two bee colonies involves physically combining two separate colonies into one. This is done to strengthen a weak colony, manage queen genetics, or consolidate resources."}>Combine Colonies</T>
 							</Button>
 
 							<Button
@@ -238,7 +238,7 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 
 							{hive && !isCollapsed(hive) && (
 								<Button onClick={() => setShowCollapseModal(true)}>
-									<SkullIcon size={16} /> <T>Mark as Collapsed</T>
+									<SkullIcon size={16} /> <T ctx={"Marking bee colony as dead due to varroa mite infestation or other unknown causes"}>Mark as Collapsed</T>
 								</Button>
 							)}
 							<DeactivateButton hiveId={hive.id} />
@@ -275,7 +275,7 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 						title="Split colony"
 						onClick={() => setSplitModalOpen(true)}
 					>
-						<SplitIcon /> <span><T>Split Colony</T></span>
+						<SplitIcon /> <span><T ctx={"An operation on a bee colony by separating it into two or more parts. This is done to prevent swarming, expand the apiary, or create nucleus colonies."}>Split Colony</T></span>
 					</Button>
 				)}
 
@@ -315,7 +315,7 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 
 							{hive && !isCollapsed(hive) && (
 								<Button onClick={() => setShowCollapseModal(true)}>
-									<SkullIcon size={16} /> <T>Mark as Collapsed</T>
+									<SkullIcon size={16} /> <T ctx={"Marking bee colony as dead due to varroa mite infestation or other unknown causes"}>Mark as Collapsed</T>
 								</Button>
 							)}
 							<DeactivateButton hiveId={hive.id} />

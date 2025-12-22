@@ -9,6 +9,7 @@ import Gate from '@/page/hiveEdit/boxes/gate'
 import Ventilation from '@/page/hiveEdit/boxes/ventilation'
 import QueenExcluder from '@/page/hiveEdit/boxes/queenExcluder'
 import FeederHorizontal from '@/page/hiveEdit/boxes/feederHorizontal'
+import Bottom from '@/page/hiveEdit/boxes/bottom'
 import T from '@/shared/translate'
 import Button from '@/shared/button'
 import ListIcon from '@/icons/listIcon.tsx'
@@ -74,24 +75,12 @@ export default function HiveBoxes({
 					{box.type === boxTypes.QUEEN_EXCLUDER && (
 						<QueenExcluder selected={+boxId === box.id} />
 					)}
-					{box.type === boxTypes.HORIZONTAL_FEEDER && (
-						<FeederHorizontal selected={+boxId === box.id} />
-					)}
-					{box.type === boxTypes.BOTTOM && (
-						<div
-							className={styles.bottom}
-							style={{
-								height: '20px',
-								backgroundColor: +boxId === box.id ? '#999' : '#ccc',
-								border: +boxId === box.id ? '2px solid #666' : '1px solid #aaa',
-								borderRadius: '4px',
-								width: '100%',
-								boxSizing: 'border-box',
-								cursor: 'pointer',
-								transition: 'all 0.2s ease'
-							}}
-						/>
-					)}
+				{box.type === boxTypes.HORIZONTAL_FEEDER && (
+					<FeederHorizontal selected={+boxId === box.id} />
+				)}
+				{box.type === boxTypes.BOTTOM && (
+					<Bottom selected={+boxId === box.id} />
+				)}
 				</div>
 
 				<div

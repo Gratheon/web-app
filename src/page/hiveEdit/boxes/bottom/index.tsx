@@ -1,18 +1,12 @@
+import style from './style.module.less'
+
 export default function Bottom({ selected = false }) {
 	return (
-		<div
-			className="bottom"
-			style={{
-				height: '20px',
-				backgroundColor: selected ? '#999' : '#ccc',
-				border: selected ? '2px solid #666' : '1px solid #aaa',
-				borderRadius: '4px',
-				width: '100%',
-				boxSizing: 'border-box',
-				cursor: 'pointer',
-				transition: 'all 0.2s ease'
-			}}
-		/>
+		<div className={`${style.bottom} ${selected && style.selected} bottom`}>
+			<div className={`${style.sideSupport} bottom`}></div>
+			<div className={`${style.baseBoard} bottom`}></div>
+			<div className={`${style.sideSupport} bottom`}></div>
+		</div>
 	)
 }
 

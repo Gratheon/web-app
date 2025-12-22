@@ -1,0 +1,61 @@
+.bottom {
+	display: flex;
+	align-items: flex-end;
+	height: 24px;
+	cursor: pointer;
+	position: relative;
+	flex-grow: 1;
+	//background: #000;
+}
+
+.sideSupport {
+	width: 16px;
+	height: 100%;
+	background: #4a4a4a;
+	border: 1px solid #3a3a3a;
+	border-radius: 2px;
+}
+
+.baseBoard {
+	flex: 1;
+	height: 12px;
+	background: linear-gradient(to bottom, #555, #666, #555);
+	border: 1px solid #4a4a4a;
+	border-left: none;
+	border-right: none;
+	margin-bottom: 10px;
+}
+
+.baseBoardSlats {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	gap: 2px;
+	padding: 0 2px;
+}
+
+.slat {
+	flex: 1;
+	background: linear-gradient(to right, #555, #6a6a6a, #555);
+	border-right: 1px solid #3a3a3a;
+}
+
+.slat:last-child {
+	border-right: none;
+}
+
+.selected {
+	.sideSupport {
+		background: #2a2a2a;
+		border-color: #1a1a1a;
+	}
+
+	.baseBoard {
+		background: linear-gradient(to bottom, #333, #4a4a4a, #333);
+		border-color: #2a2a2a;
+	}
+}
+

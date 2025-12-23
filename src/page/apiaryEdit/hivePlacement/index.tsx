@@ -181,7 +181,7 @@ export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveS
 				height: addingObstacle === 'RECTANGLE' ? 60 : undefined,
 				radius: addingObstacle === 'CIRCLE' ? 40 : undefined,
 				rotation: 0,
-				label: addingObstacle === 'CIRCLE' ? 'Tree' : 'House'
+				label: addingObstacle === 'CIRCLE' ? labelTree : labelBuilding
 			}
 			addObstacleMutation({ apiaryId, obstacle: obstacleForMutation }).then((result) => {
 				if (result?.data?.addApiaryObstacle?.id) {

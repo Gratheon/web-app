@@ -25,6 +25,7 @@ export interface Hive {
 	id: string
 	hiveNumber?: number
 	boxCount?: number
+	collapse_date?: string
 }
 
 export interface DragState {

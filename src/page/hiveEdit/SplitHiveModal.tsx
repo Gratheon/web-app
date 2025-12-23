@@ -5,7 +5,7 @@ import { useMutation, useQuery, gql } from '@/api'
 import { useLiveQuery } from 'dexie-react-hooks'
 import Button from '@/shared/button'
 import Modal from '@/shared/modal'
-import T from '@/shared/translate'
+import T, { useTranslation as t } from '@/shared/translate'
 import ErrorMsg from '@/shared/messageError'
 import FramePreview from '@/shared/framePreview'
 import RefreshIcon from '@/icons/RefreshIcon'
@@ -266,7 +266,7 @@ export default function SplitHiveModal({
 								type="text"
 								value={newHiveName}
 								onInput={(e) => setNewHiveName((e.target as HTMLInputElement).value)}
-								placeholder="Enter name for queen"
+								placeholder={t('Enter name for queen')}
 								className={styles.input}
 							/>
 							<Button

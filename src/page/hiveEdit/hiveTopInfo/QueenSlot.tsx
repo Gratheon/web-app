@@ -355,7 +355,7 @@ export default function QueenSlot({
 						title="Add another queen"
 					>
 						<PlusIcon size={14} />
-						<span>Add</span>
+						<span><T>Add</T></span>
 					</Button>
 				)}
 			</div>

@@ -18,7 +18,7 @@ import { collectFrameSideIDsFromFrames } from '@/models/frameSide'
 import { deleteFilesByFrameSideIDs } from '@/models/frameSideFile'
 
 
-import T from '@/shared/translate'
+import T, { useTranslation as t } from '@/shared/translate'
 import VisualForm from '@/shared/visualForm'
 import HiveIcon from '@/shared/hive'
 import Loader from '@/shared/loader'
@@ -373,7 +373,7 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 									}}
 									value={hive.hiveNumber || ''}
 									onInput={onHiveNumberChange}
-									placeholder="Auto-assigned if empty"
+									placeholder={t('Auto-assigned if empty')}
 								/>
 								{hiveNumberError && (
 									<div className={styles.validationError}>
@@ -432,7 +432,7 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 										width: `calc(100% - 20px)`
 									}}
 									name="notes"
-									placeholder="Notes"
+									placeholder={t('Notes')}
 									id="notes"
 									value={noteInput}
 									onChange={onNotesChange}

@@ -101,14 +101,15 @@ export function useTranslation(text, translationContext = '') {
 	  }
 	}, [user]);
   
-	// Extract simple context for lookup key: "plural:few (for...)" -> "plural:few"
-	const simpleContext = translationContext ? translationContext.split(' (')[0] : '';
+	// Only use composite keys for plural forms, not for regular contextual translations
+	const isPluralContext = translationContext.startsWith('plural:');
+	const simpleContext = isPluralContext ? translationContext.split(' (')[0] : '';
 	const lookupKey = simpleContext ? `${text}__ctx__${simpleContext}` : text;
 
 	let cachedTranslation = useLiveQuery(() => {
 	  const where = simpleContext
-	    ? { key: lookupKey }  // Lookup by composite key when context exists
-	    : { en: text };        // Lookup by en when no context
+	    ? { key: lookupKey }  // Lookup by composite key for plural forms
+	    : { en: text };        // Lookup by en for regular translations
 	  return getLocale(where);
 	}, [lookupKey, text, simpleContext], false);
 

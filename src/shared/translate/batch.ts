@@ -51,21 +51,24 @@ class TranslationBatcher {
 			const uniqueRequests = this.deduplicateRequests(batch)
 
 			const requests = uniqueRequests.map(req => {
-				if (req.tc) {
+				// Only use composite keys for plural forms
+				if (req.tc && req.tc.startsWith('plural:')) {
 					// Extract simple form from detailed context
-					// "plural:few (for counts...)" -> "plural:few"
+					// "plural:few (genitive singular...)" -> "plural:few"
 					const simpleContext = req.tc.split(' (')[0]
 					const shortKey = `${req.en}__ctx__${simpleContext}`
 
 					return {
 						en: req.en,
 						tc: req.tc,  // Full detailed context for LLM
-						key: shortKey  // Short key for DB
+						key: shortKey  // Short key for DB (only for plural forms)
 					}
 				} else {
+					// Regular translation (with or without context)
 					return {
 						en: req.en,
-						tc: ''
+						tc: req.tc || ''
+						// No key field - will use 'en' for lookup
 					}
 				}
 			})

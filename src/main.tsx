@@ -1,42 +1,48 @@
 import './index.css'
 import App from './app'
+import posthog from 'posthog-js'
 import { PostHogProvider } from 'posthog-js/react'
 
 import { hydrate, prerender as ssr } from 'preact-iso'
 import { initializeEnvironment } from './env'
 
+const isDev = import.meta.env.MODE === 'development' || import.meta.env.DEV;
+
+// Initialize PostHog only in production
+if (!isDev && typeof window !== 'undefined') {
+	posthog.init('phc_cYQZSQ8ZJ8PjGGiT67gLusRp55EjZT41z2pHX6xtPZv', {
+		api_host: 'https://eu.i.posthog.com',
+		person_profiles: 'identified_only',
+	})
+}
+
 if (typeof window !== 'undefined') {
-	// Initialize environment check before hydrating the app
 	;(async () => {
 		await initializeEnvironment()
-		hydrate(
-			<PostHogProvider
-				apiKey={'phc_cYQZSQ8ZJ8PjGGiT67gLusRp55EjZT41z2pHX6xtPZv'}
-				options={{
-					api_host: 'https://eu.i.posthog.com',
-					debug: import.meta.env.MODE === 'development',
-				}}
-			>
-				<App />
-			</PostHogProvider>,
-			document.getElementById('app')
-		)
+
+		const appElement = <App />;
+
+		const wrappedApp = isDev ? appElement : (
+			<PostHogProvider client={posthog}>
+				{appElement}
+			</PostHogProvider>
+		);
+
+		hydrate(wrappedApp, document.getElementById('app'))
 	})()
 }
 
 export async function prerender(data: any) {
-	// @ts-ignore
-	const { html, links: discoveredLinks } = ssr(
-		<PostHogProvider
-			apiKey={'phc_cYQZSQ8ZJ8PjGGiT67gLusRp55EjZT41z2pHX6xtPZv'}
-			options={{
-				api_host: 'https://eu.i.posthog.com',
-				debug: import.meta.env.MODE === 'development',
-			}}
-		>
-			<App />
+	const appElement = <App />;
+
+	const wrappedApp = isDev ? appElement : (
+		<PostHogProvider client={posthog}>
+			{appElement}
 		</PostHogProvider>
-	)
+	);
+
+	// @ts-ignore
+	const { html, links: discoveredLinks } = ssr(wrappedApp)
 
 	return {
 		html,

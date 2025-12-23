@@ -165,6 +165,9 @@ importers:
       expect:
         specifier: 27.5.1
         version: 27.5.1
+      fake-indexeddb:
+        specifier: 6.2.5
+        version: 6.2.5
       husky:
         specifier: 9.1.7
         version: 9.1.7
@@ -2338,6 +2341,10 @@ packages:
   extract-files@11.0.0:
     resolution: {integrity: sha512-FuoE1qtbJ4bBVvv94CC7s0oTnKUGvQs+Rjf1L2SJFfS+HTVVjhPFtehPdQ0JiGPqVNfSSZvL5yzHHQq2Z4WNhQ==}
     engines: {node: ^12.20 || >= 14.13}
+
+  fake-indexeddb@6.2.5:
+    resolution: {integrity: sha512-CGnyrvbhPlWYMngksqrSSUT1BAVP49dZocrHuK0SvtR0D5TMs5wP0o3j7jexDJW01KSadjBp1M/71o/KR3nD1w==}
+    engines: {node: '>=18'}
 
   fancy-canvas@2.1.0:
     resolution: {integrity: sha512-nifxXJ95JNLFR2NgRV4/MxVP45G9909wJTEKz5fg/TZS20JJZA6hfgRVh/bC9bwl2zBtBNcYPjiBE4njQHVBwQ==}
@@ -6597,6 +6604,8 @@ snapshots:
       jest-message-util: 27.5.1
 
   extract-files@11.0.0: {}
+
+  fake-indexeddb@6.2.5: {}
 
   fancy-canvas@2.1.0: {}
 

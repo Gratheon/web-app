@@ -9,7 +9,7 @@ import { FRAME_SIDE_FILE_TABLE } from '../frameSideFile.ts'
 import { has } from 'lodash'
 
 const DB_NAME = 'gratheon'
-export const DB_VERSION = 102 // Updated version to match browser
+export const DB_VERSION = 103
 
 export const db = new Dexie(DB_NAME, {
 	autoOpen: true,
@@ -59,14 +59,10 @@ export function syncGraphqlSchemaToIndexDB(schemaObject) {
 
 	try {
 		addCustomIndexes(dbSchema)
-
-		if (isDev()) {
-			console.info('Setting up db schema', dbSchema)
-		}
-		db.version(DB_VERSION).stores(dbSchema) // createObjectStore
+		db.version(DB_VERSION).stores(dbSchema)
 	} catch (e) {
-		console.error(e)
-		throw e
+		console.error('[syncGraphqlSchemaToIndexDB] Error applying schema:', e);
+		throw e;
 	}
 }
 

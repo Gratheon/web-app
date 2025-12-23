@@ -1,61 +1,65 @@
-import React, { useEffect, useState } from 'react'
-import { gql, useQuery } from '@/api'
+import { h } from 'preact'
+import { useEffect, useState } from 'preact/hooks'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { getUser } from '@/models/user'
-import { getLocale } from '@/models/locales'
-import { translationBatcher } from './batch'
+import {
+	getTranslation,
+	getTranslationValue,
+	getPluralForms
+} from '@/models/translations'
+import {
+	fetchTranslationWithRemote,
+	fetchPluralWithRemote,
+	getUserLanguage
+} from '@/models/translationService'
+import { getPluralForm } from './pluralRules'
+import { newTranslationBatcher } from './newBatch'
 
 const supportedLangs = ['en', 'ru', 'et','tr','pl','de','fr'];
 
-const translateQuery = gql`query translate($en: String!, $tc: String){
-	translate(en: $en, tc: $tc){
-		__typename
-		id
-		en
-		ru
-		et
-		tr
-		pl
-		de
-		fr
-		key
-	}
-}`
-
-function TRemote({ lang, children, tc }: { lang: string, children: any, tc: string }) {
+function TRemote({ lang, children, onFetched }: { lang: string, children: string, onFetched?: () => void }) {
 	const [translation, setTranslation] = useState<any>(null)
 	const [loading, setLoading] = useState(true)
+	const [fetched, setFetched] = useState(false)
 
 	useEffect(() => {
-		translationBatcher.request(children, tc)
-			.then(data => {
-				setTranslation(data)
-				setLoading(false)
-			})
-			.catch(() => {
-				setLoading(false)
-			})
-	}, [children, tc])
+		if (fetched) return;
+
+		const fetchTranslation = async () => {
+			try {
+				const trans = await newTranslationBatcher.request(children, false);
+				setTranslation(trans);
+				setLoading(false);
+				setFetched(true);
+				onFetched?.();
+			} catch (error) {
+				console.error('Translation fetch error:', error);
+				setLoading(false);
+				setFetched(true);
+				onFetched?.();
+			}
+		};
+
+		fetchTranslation();
+	}, [children, fetched, onFetched]);
 
 	if (loading || !translation) return <>{children}</>
 
-	return <>
-		{translation[lang] ? translation[lang] : children}
-	</>
+	const value = translation.values?.[lang];
+	return <>{value || children}</>
 }
 
 // Define a specific props interface for clarity
 interface TProps {
-  children: string; // Changed from 'any' to 'string'
-  key?: string;
-  ctx?: string;
+  children: string;
 }
 
-export default function T({ children, key = null, ctx = '' }: TProps) {
+export default function T({ children }: TProps) {
 	let user = useLiveQuery(() => getUser(), [], null)
-
 	const [lang, setLanguageCode] = useState('en');
+	const [shouldShowRemote, setShouldShowRemote] = useState(false);
+	const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
 
 	useEffect(() => {
 		if (user && user?.lang) {
@@ -68,142 +72,104 @@ export default function T({ children, key = null, ctx = '' }: TProps) {
 		}
 	}, [user]);
 
-	let translated = useLiveQuery(() => {
-		const where = { en: children }
-		return getLocale(where)
-	}, [children], false)
+	let translation = useLiveQuery(async () => {
+		const trans = await getTranslation(children);
+		if (!trans) {
+			return null;
+		}
 
-	// get cached translation
-	if (translated && translated[lang]) return <>{translated[lang]}</>
+		return await getTranslationValue(trans.id, lang);
+	}, [children, lang], null);
 
-	// loading cache?
-	if( translated == false) return <>{children}</>
+	useEffect(() => {
+		if (!hasAttemptedFetch && translation === null) {
+			setShouldShowRemote(true);
+		}
+	}, [translation, hasAttemptedFetch]);
 
-	// ask backend
-	return <TRemote lang={lang} key={key} tc={ctx}>{children}</TRemote>
+	if (translation) return <>{translation}</>
+
+	if (shouldShowRemote && !hasAttemptedFetch) {
+		return <TRemote
+			lang={lang}
+			onFetched={() => {
+				setShouldShowRemote(false);
+				setHasAttemptedFetch(true);
+			}}
+		>{children}</TRemote>
+	}
+
+	return <>{children}</>
 }
 
 
-export function useTranslation(text, translationContext = '') {
-	const [translatedText, setTranslatedText] = useState(text);
-	const [lang, setLang] = useState('en');
+export function useTranslation(key: string) {
+	const [translatedText, setTranslatedText] = useState(key);
+	const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
 
 	let user = useLiveQuery(() => getUser(), [], null);
-  
+	const lang = getUserLanguage(user, supportedLangs);
+
+	let cachedTranslation = useLiveQuery(async () => {
+		const translation = await getTranslation(key);
+		if (!translation) return null;
+
+		const value = await getTranslationValue(translation.id, lang);
+		return { translationId: translation.id, value };
+	}, [key, lang], null);
+
 	useEffect(() => {
-	  if (user && user?.lang) {
-		setLang(user.lang);
-	  } else if (user === null) {
-		const browserLang = navigator.language.substring(0, 2);
-		if (supportedLangs.includes(browserLang)) {
-		  setLang(browserLang);
+		setHasAttemptedFetch(false);
+	}, [key, lang]);
+
+	useEffect(() => {
+		if (cachedTranslation?.value) {
+			setTranslatedText(cachedTranslation.value);
+		} else if (cachedTranslation === null && !hasAttemptedFetch) {
+			setHasAttemptedFetch(true);
+			fetchTranslationWithRemote(key, lang)
+				.then(text => setTranslatedText(text))
+				.catch(error => {
+					console.error('Translation fetch error:', error);
+				});
 		}
-	  }
-	}, [user]);
-  
-	// Only use composite keys for plural forms, not for regular contextual translations
-	const isPluralContext = translationContext.startsWith('plural:');
-	const simpleContext = isPluralContext ? translationContext.split(' (')[0] : '';
-	const lookupKey = simpleContext ? `${text}__ctx__${simpleContext}` : text;
-
-	let cachedTranslation = useLiveQuery(() => {
-	  const where = simpleContext
-	    ? { key: lookupKey }  // Lookup by composite key for plural forms
-	    : { en: text };        // Lookup by en for regular translations
-	  return getLocale(where);
-	}, [lookupKey, text, simpleContext], false);
-
-	useEffect(() => {
-	  if (cachedTranslation && cachedTranslation[lang]) {
-		setTranslatedText(cachedTranslation[lang]);
-	  } else if (cachedTranslation === null) {
-		// Pass full context to backend for LLM translation
-		translationBatcher.request(text, translationContext)
-		  .then(data => {
-			if (data && data[lang]) {
-			  setTranslatedText(data[lang]);
-			}
-		  })
-		  .catch(() => {});
-	  }
-	}, [cachedTranslation, text, translationContext, lang]);
+	}, [cachedTranslation, key, lang, hasAttemptedFetch]);
 
 	return translatedText;
 }
 
-function getPluralForm(count: number, lang: string): string {
-	const n = Math.abs(count);
-	const i = Math.floor(n);
+export function usePlural(count: number, key: string) {
+	const [translatedText, setTranslatedText] = useState(key);
+	const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
 
-	switch (lang) {
-		case 'ru':
-		case 'pl':
-			if (i % 10 === 1 && i % 100 !== 11) return 'one';
-			if (i % 10 >= 2 && i % 10 <= 4 && (i % 100 < 10 || i % 100 >= 20)) return 'few';
-			return 'many';
-
-		case 'en':
-		case 'de':
-		case 'fr':
-		case 'et':
-		case 'tr':
-		default:
-			return i === 1 ? 'one' : 'other';
-	}
-}
-
-function getPluralContextDescription(form: string, lang: string): string {
-	switch (lang) {
-		case 'ru':
-		case 'pl':
-			switch (form) {
-				case 'one':
-					return 'nominative singular - for counts like 1, 21, 31, 41, 101, 121... (e.g., 1 улей, 21 улей)';
-				case 'few':
-					return 'genitive singular - for counts like 2, 3, 4, 22, 23, 24, 32, 33, 34... (e.g., 2 улья, 3 улья, 4 улья)';
-				case 'many':
-					return 'genitive plural - for counts like 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25, 26, 27... (e.g., 5 ульев, 10 ульев, 20 ульев)';
-				default:
-					return '';
-			}
-		case 'en':
-		case 'de':
-		case 'fr':
-		case 'et':
-		case 'tr':
-		default:
-			switch (form) {
-				case 'one':
-					return 'singular - for count = 1';
-				case 'other':
-					return 'plural - for count > 1';
-				default:
-					return '';
-			}
-	}
-}
-
-export function usePlural(count: number, text: string) {
-	const [lang, setLang] = useState('en');
 	let user = useLiveQuery(() => getUser(), [], null);
+	const lang = getUserLanguage(user, supportedLangs);
+	const pluralForm = getPluralForm(count, lang);
+
+	let cachedPlural = useLiveQuery(async () => {
+		const translation = await getTranslation(key);
+		if (!translation) return null;
+
+		const pluralData = await getPluralForms(translation.id, lang);
+		return { translationId: translation.id, pluralData };
+	}, [key, lang], null);
 
 	useEffect(() => {
-		if (user && user?.lang) {
-			setLang(user.lang);
-		} else if (user === null) {
-			const browserLang = navigator.language.substring(0, 2);
-			if (supportedLangs.includes(browserLang)) {
-				setLang(browserLang);
-			}
+		setHasAttemptedFetch(false);
+	}, [key, lang]);
+
+	useEffect(() => {
+		if (cachedPlural?.pluralData?.[pluralForm]) {
+			setTranslatedText(cachedPlural.pluralData[pluralForm]);
+		} else if ((cachedPlural === null || cachedPlural?.pluralData === null) && !hasAttemptedFetch) {
+			setHasAttemptedFetch(true);
+			fetchPluralWithRemote(key, lang, pluralForm)
+				.then(text => setTranslatedText(text))
+				.catch(error => {
+					console.error('Plural fetch error:', error);
+				});
 		}
-	}, [user]);
+	}, [cachedPlural, key, lang, pluralForm, hasAttemptedFetch]);
 
-	const pluralForm = getPluralForm(count, lang);
-	const simpleContext = `plural:${pluralForm}`;
-	const detailedContext = getPluralContextDescription(pluralForm, lang);
-	// Full context for LLM, simple context will be extracted for key
-	const fullContext = detailedContext ? `${simpleContext} (${detailedContext})` : simpleContext;
-
-	return useTranslation(text, fullContext);
+	return translatedText;
 }
-

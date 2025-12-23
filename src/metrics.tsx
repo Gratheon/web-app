@@ -1,10 +1,6 @@
 import posthog from 'posthog-js'
 import isDev from './isDev';
 
-    posthog.init('phc_cYQZSQ8ZJ8PjGGiT67gLusRp55EjZT41z2pHX6xtPZv', {
-        api_host: 'https://eu.i.posthog.com',
-        person_profiles: 'identified_only',
-    })
 
 export default {
 	setUser: (user) => {

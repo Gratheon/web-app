@@ -5,8 +5,8 @@ import {
 	upsertPluralForm
 } from '@/models/translations'
 
-const getTranslationsQuery = gql`query getTranslations($keys: [String!]!){
-	getTranslations(keys: $keys){
+const getTranslationsQuery = gql`query getTranslations($inputs: [TranslationInput!]!){
+	getTranslations(inputs: $inputs){
 		__typename
 		id
 		key
@@ -19,6 +19,7 @@ const getTranslationsQuery = gql`query getTranslations($keys: [String!]!){
 
 interface TranslationRequest {
 	key: string
+	context?: string
 	isPlural?: boolean
 	resolve: (value: any) => void
 	reject: (error: any) => void
@@ -29,9 +30,9 @@ class NewTranslationBatcher {
 	private timer: ReturnType<typeof setTimeout> | null = null
 	private batchDelay: number = 150
 
-	async request(key: string, isPlural: boolean = false): Promise<any> {
+	async request(key: string, isPlural: boolean = false, context?: string): Promise<any> {
 		return new Promise((resolve, reject) => {
-			this.queue.push({ key, isPlural, resolve, reject })
+			this.queue.push({ key, context, isPlural, resolve, reject })
 
 			if (this.timer) {
 				clearTimeout(this.timer)
@@ -50,10 +51,13 @@ class NewTranslationBatcher {
 
 		try {
 			const uniqueRequests = this.deduplicateRequests(batch)
-			const keys = uniqueRequests.map(req => req.key)
+			const inputs = uniqueRequests.map(req => ({
+				key: req.key,
+				context: req.context || null
+			}))
 
-			console.log('[Batcher] Requesting translations for keys:', keys);
-			const result = await apiClient.query(getTranslationsQuery, { keys }).toPromise()
+			console.log('[Batcher] Requesting translations for inputs:', inputs);
+			const result = await apiClient.query(getTranslationsQuery, { inputs }).toPromise()
 
 			if (result.data?.getTranslations) {
 				const translationMap = new Map()
@@ -63,7 +67,10 @@ class NewTranslationBatcher {
 				for (const trans of result.data.getTranslations) {
 					const translationId = +trans.id;
 
-					console.log('[Batcher] Processing translation - requested key:', keys.find(k => k === trans.key || k.toLowerCase() === trans.key.toLowerCase()), 'received key:', trans.key, 'id:', translationId);
+					const requestedInput = inputs.find(i => i.key === trans.key || i.key.toLowerCase() === trans.key.toLowerCase());
+					console.log('[Batcher] Processing translation - requested:', requestedInput, 'received key:', trans.key, 'id:', translationId);
+
+					// ...existing code...
 
 					// Validate that we have a valid translation ID
 					if (!translationId || isNaN(translationId)) {
@@ -73,7 +80,7 @@ class NewTranslationBatcher {
 
 					// Cache in IndexedDB - IMPORTANT: Use the key from the REQUEST, not the response
 					// This ensures case-sensitive lookup works
-					const requestKey = keys.find(k => k.toLowerCase() === trans.key.toLowerCase()) || trans.key;
+					const requestKey = inputs.find(i => i.key.toLowerCase() === trans.key.toLowerCase())?.key || trans.key;
 					console.log('[Batcher] Caching with key:', requestKey, '(original from backend:', trans.key, ')');
 
 					await upsertTranslation({

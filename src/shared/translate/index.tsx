@@ -21,7 +21,7 @@ import { useMutation } from '@/api'
 
 const supportedLangs = ['en', 'ru', 'et','tr','pl','de','fr'];
 
-function TRemote({ lang, children, onFetched }: { lang: string, children: string, onFetched?: () => void }) {
+function TRemote({ lang, children, ctx, onFetched }: { lang: string, children: string, ctx?: string, onFetched?: () => void }) {
 	const [translation, setTranslation] = useState<any>(null)
 	const [loading, setLoading] = useState(true)
 	const [fetched, setFetched] = useState(false)
@@ -31,7 +31,7 @@ function TRemote({ lang, children, onFetched }: { lang: string, children: string
 
 		const fetchTranslation = async () => {
 			try {
-				const trans = await newTranslationBatcher.request(children, false);
+				const trans = await newTranslationBatcher.request(children, false, ctx);
 				setTranslation(trans);
 				setLoading(false);
 				setFetched(true);
@@ -45,7 +45,7 @@ function TRemote({ lang, children, onFetched }: { lang: string, children: string
 		};
 
 		fetchTranslation();
-	}, [children, fetched, onFetched]);
+	}, [children, ctx, fetched, onFetched]);
 
 	if (loading || !translation) return <>{children}</>
 
@@ -211,6 +211,7 @@ export default function T({ children, ctx }: TProps) {
 	if (shouldShowRemote && !hasAttemptedFetch) {
 		return <TRemote
 			lang={lang}
+			ctx={ctx}
 			onFetched={() => {
 				setShouldShowRemote(false);
 				setHasAttemptedFetch(true);
@@ -222,7 +223,7 @@ export default function T({ children, ctx }: TProps) {
 }
 
 
-export function useTranslation(key: string) {
+export function useTranslation(key: string, ctx?: string) {
 	const [translatedText, setTranslatedText] = useState(key);
 	const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
 
@@ -246,13 +247,13 @@ export function useTranslation(key: string) {
 			setTranslatedText(cachedTranslation.value);
 		} else if (cachedTranslation === null && !hasAttemptedFetch) {
 			setHasAttemptedFetch(true);
-			fetchTranslationWithRemote(key, lang)
+			fetchTranslationWithRemote(key, lang, ctx)
 				.then(text => setTranslatedText(text))
 				.catch(error => {
 					console.error('Translation fetch error:', error);
 				});
 		}
-	}, [cachedTranslation, key, lang, hasAttemptedFetch]);
+	}, [cachedTranslation, key, lang, ctx, hasAttemptedFetch]);
 
 	return translatedText;
 }

@@ -2,6 +2,15 @@ import React, { useRef, useEffect, useState } from 'react'
 import { Obstacle, HivePlacement, Hive, HIVE_SIZE, CANVAS_HEIGHT } from './types'
 import { calculateShadow } from './ShadowRenderer'
 
+interface CanvasLabels {
+	compassN: string
+	compassS: string
+	compassE: string
+	compassW: string
+	building: string
+	tree: string
+}
+
 interface CanvasProps {
 	canvasWidth: number
 	placements: Map<string, HivePlacement>
@@ -21,6 +30,7 @@ interface CanvasProps {
 	isPanning: boolean
 	panOffset: { x: number; y: number }
 	isMobile?: boolean
+	labels: CanvasLabels
 	onClick: (x: number, y: number) => void
 	onMouseDown: (x: number, y: number, e?: any) => void
 	onMouseMove: (x: number, y: number) => void
@@ -48,6 +58,7 @@ export default function Canvas({
 	isPanning,
 	panOffset,
 	isMobile = false,
+	labels,
 	onClick,
 	onMouseDown,
 	onMouseMove,
@@ -61,7 +72,7 @@ export default function Canvas({
 
 	useEffect(() => {
 		drawCanvas()
-	}, [placements, obstacles, sunAngle, selectedHive, selectedObstacle, hives.length, canvasWidth, panOffset])
+	}, [placements, obstacles, sunAngle, selectedHive, selectedObstacle, hives.length, canvasWidth, panOffset, labels])
 
 	const drawCanvas = () => {
 		const canvas = canvasRef.current
@@ -109,10 +120,10 @@ export default function Canvas({
 		ctx.font = 'bold 14px Arial'
 		ctx.fillStyle = '#333'
 		ctx.textAlign = 'center'
-		ctx.fillText('N', x, y - radius - 10)
-		ctx.fillText('S', x, y + radius + 20)
-		ctx.fillText('E', x + radius + 15, y + 5)
-		ctx.fillText('W', x - radius - 15, y + 5)
+		ctx.fillText(labels.compassN, x, y - radius - 10)
+		ctx.fillText(labels.compassS, x, y + radius + 20)
+		ctx.fillText(labels.compassE, x + radius + 15, y + 5)
+		ctx.fillText(labels.compassW, x - radius - 15, y + 5)
 
 		const angleRad = (sunAngle - 90) * (Math.PI / 180)
 		const sunDistance = radius + 15
@@ -219,7 +230,10 @@ export default function Canvas({
 				ctx.font = '12px Arial'
 				ctx.fillStyle = '#333'
 				ctx.textAlign = 'center'
-				ctx.fillText(obs.label, obs.x, obs.y)
+				const translatedLabel = obs.label === 'Building' ? labels.building :
+				                       obs.label === 'Tree' ? labels.tree :
+				                       obs.label
+				ctx.fillText(translatedLabel, obs.x, obs.y)
 			}
 		})
 	}

@@ -36,7 +36,8 @@ export async function fetchTranslationForLanguage(
 
 export async function fetchTranslationWithRemote(
 	key: string,
-	lang: string
+	lang: string,
+	context?: string
 ): Promise<string> {
 	const cached = await fetchTranslationForLanguage(key, lang);
 
@@ -45,7 +46,7 @@ export async function fetchTranslationWithRemote(
 	}
 
 	try {
-		const trans = await newTranslationBatcher.request(key, false);
+		const trans = await newTranslationBatcher.request(key, false, context);
 		return trans?.values?.[lang] || key;
 	} catch (error) {
 		console.error('[fetchTranslationWithRemote] Error:', error);
@@ -85,7 +86,7 @@ export async function fetchPluralWithRemote(
 	}
 
 	try {
-		const trans = await newTranslationBatcher.request(key, true);
+		const trans = await newTranslationBatcher.request(key, true, undefined);
 		const pluralValue = trans?.plurals?.[lang]?.[pluralForm];
 		return pluralValue || key;
 	} catch (error) {

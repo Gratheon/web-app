@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useQuery, useMutation } from '../../../api'
 import Loader from '../../../shared/loader'
 import ErrorMsg from '../../../shared/messageError'
-import T from '../../../shared/translate'
+import T, { useTranslation as t } from '../../../shared/translate'
 import HiveIcon from '../../../shared/hive'
 import { getBoxes } from '@/models/boxes'
 import Canvas from './Canvas'
@@ -51,6 +51,14 @@ export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveS
 	const [addingObstacle, setAddingObstacle] = useState<'CIRCLE' | 'RECTANGLE' | null>(null)
 	const [showHiveList, setShowHiveList] = useState(false)
 	const [isMobileDevice, setIsMobileDevice] = useState(false)
+
+	// Translations at parent level to prevent canvas flickering
+	const compassN = t('N', 'single letter compass direction: North')
+	const compassS = t('S', 'single letter compass direction: South')
+	const compassE = t('E', 'single letter compass direction: East')
+	const compassW = t('W', 'single letter compass direction: West')
+	const labelBuilding = t('Building', 'obstacle type: building/house structure')
+	const labelTree = t('Tree', 'obstacle type: tree plant')
 
 	const handleRadius = isMobileDevice ? 16 : 8
 
@@ -592,6 +600,14 @@ export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveS
 					isPanning={isPanning}
 					panOffset={panOffset}
 					isMobile={isMobileDevice}
+					labels={{
+						compassN,
+						compassS,
+						compassE,
+						compassW,
+						building: labelBuilding,
+						tree: labelTree
+					}}
 					onClick={handleCanvasClick}
 					onMouseDown={handleCanvasMouseDown}
 					onMouseMove={handleCanvasMouseMove}

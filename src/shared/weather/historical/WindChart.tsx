@@ -1,5 +1,6 @@
 import { LineSeries } from 'lightweight-charts-react-components'
 import ChartContainer from '@/shared/charts/ChartContainer'
+import { useTranslation as t } from '@/shared/translate'
 
 type WindChartProps = {
 	windData: {
@@ -32,9 +33,9 @@ export default function WindChart({ windData, chartRefs, syncCharts }: WindChart
 	return (
 		<ChartContainer
 			emoji="💨"
-			title="Wind Speed"
-			value={`${avgWindSpeed.toFixed(1)} m/s avg`}
-			info="Wind affects bee foraging activity. Strong winds (>10 m/s) can prevent bees from flying."
+			title={t('Wind Speed')}
+			value={`${avgWindSpeed.toFixed(1)} m/s ${t('avg')}`}
+			info={t('Wind affects bee foraging activity. Strong winds (>10 m/s) can prevent bees from flying.')}
 			chartRefs={chartRefs}
 			syncCharts={syncCharts}
 			chartOptions={{ height: 300 }}
@@ -44,7 +45,7 @@ export default function WindChart({ windData, chartRefs, syncCharts }: WindChart
 				options={{
 					color: '#2962FF',
 					lineWidth: 2,
-					title: 'Wind Speed (10m)'
+					title: t('Wind Speed (10m)')
 				}}
 			/>
 			<LineSeries
@@ -53,7 +54,7 @@ export default function WindChart({ windData, chartRefs, syncCharts }: WindChart
 					color: '#FF6D00',
 					lineWidth: 1,
 					lineStyle: 2,
-					title: 'Wind Gusts (10m)'
+					title: t('Wind Gusts (10m)')
 				}}
 			/>
 		</ChartContainer>

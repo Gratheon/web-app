@@ -1,5 +1,6 @@
 import { LineSeries } from 'lightweight-charts-react-components'
 import ChartContainer from '@/shared/charts/ChartContainer'
+import { useTranslation as t } from '@/shared/translate'
 
 type CloudCoverChartProps = {
 	cloudData: {
@@ -40,9 +41,9 @@ export default function CloudCoverChart({ cloudData, chartRefs, syncCharts }: Cl
 	return (
 		<ChartContainer
 			emoji="☁️"
-			title="Cloud Cover"
-			value={`${avgTotal.toFixed(0)}% avg`}
-			info="Cloud cover affects temperature and light levels, influencing bee foraging behavior."
+			title={t('Cloud Cover')}
+			value={`${avgTotal.toFixed(0)}% ${t('avg')}`}
+			info={t('Cloud cover affects temperature and light levels, influencing bee foraging behavior.')}
 			chartRefs={chartRefs}
 			syncCharts={syncCharts}
 			chartOptions={{ height: 300 }}
@@ -52,7 +53,7 @@ export default function CloudCoverChart({ cloudData, chartRefs, syncCharts }: Cl
 				options={{
 					color: '#90CAF9',
 					lineWidth: 2,
-					title: 'Low Cloud Cover'
+					title: t('Low Cloud Cover')
 				}}
 			/>
 			<LineSeries
@@ -60,7 +61,7 @@ export default function CloudCoverChart({ cloudData, chartRefs, syncCharts }: Cl
 				options={{
 					color: '#64B5F6',
 					lineWidth: 2,
-					title: 'Mid Cloud Cover'
+					title: t('Mid Cloud Cover')
 				}}
 			/>
 			<LineSeries
@@ -68,7 +69,7 @@ export default function CloudCoverChart({ cloudData, chartRefs, syncCharts }: Cl
 				options={{
 					color: '#2196F3',
 					lineWidth: 2,
-					title: 'High Cloud Cover'
+					title: t('High Cloud Cover')
 				}}
 			/>
 		</ChartContainer>

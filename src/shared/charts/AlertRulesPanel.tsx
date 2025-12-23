@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { gql, useMutation, useQuery } from '@/api'
 import { useConfirm } from '@/hooks/useConfirm'
 import Button from '@/shared/button'
-import T from '@/shared/translate'
+import T, { useTranslation as t } from '@/shared/translate'
 import ErrorMsg from '@/shared/messageError'
 import MessageSuccess from '@/shared/messageSuccess'
 import DeleteIcon from '@/icons/deleteIcon'
@@ -154,8 +154,8 @@ export default function AlertRulesPanel({ metricType, metricLabel, hives, onAler
 
 	const handleDelete = async (id: string) => {
 		const confirmed = await confirm(
-			'Delete this alert rule?',
-			{ confirmText: 'Delete', isDangerous: true }
+			t('Delete this alert rule?'),
+			{ confirmText: t('Delete'), isDangerous: true }
 		)
 
 		if (!confirmed) return;
@@ -175,16 +175,16 @@ export default function AlertRulesPanel({ metricType, metricLabel, hives, onAler
 	};
 
 	const getHiveName = (hiveId: string | null) => {
-		if (!hiveId) return 'All hives';
+		if (!hiveId) return t('All hives');
 		return hives.find(h => h.id === hiveId)?.name || hiveId;
 	};
 
 	const getConditionLabel = (conditionType: string) => {
 		const labels = {
-			ABOVE: 'Above',
-			BELOW: 'Below',
-			CHANGE_UP: 'Increases by',
-			CHANGE_DOWN: 'Decreases by'
+			ABOVE: t('Above'),
+			BELOW: t('Below'),
+			CHANGE_UP: t('Increases by'),
+			CHANGE_DOWN: t('Decreases by')
 		};
 		return labels[conditionType] || conditionType;
 	};
@@ -192,7 +192,7 @@ export default function AlertRulesPanel({ metricType, metricLabel, hives, onAler
 	return (
 		<div className={styles.panel}>
 			<div className={styles.header}>
-				<h3><T>{`Alert Rules for ${metricLabel}`}</T></h3>
+				<h3><T>Alert Rules for hive weight</T></h3>
 			</div>
 
 			{showSuccess && <MessageSuccess title={<T>Success!</T>} message={<T>Alert rule saved</T>} />}
@@ -214,7 +214,7 @@ export default function AlertRulesPanel({ metricType, metricLabel, hives, onAler
 											<span className={styles.separator}>•</span>
 											<span>{getConditionLabel(rule.conditionType)} {rule.thresholdValue}</span>
 											<span className={styles.separator}>•</span>
-											<span>{rule.durationMinutes} min</span>
+											<span>{rule.durationMinutes} <T>min</T></span>
 											{!rule.enabled && <span className={styles.disabled}>(<T>Disabled</T>)</span>}
 										</div>
 									</div>
@@ -243,7 +243,7 @@ export default function AlertRulesPanel({ metricType, metricLabel, hives, onAler
 							onChange={handleChange}
 							className={styles.select}
 						>
-							<option value="">All hives</option>
+							<option value=""><T>All hives</T></option>
 							{hives.map(hive => (
 								<option key={hive.id} value={hive.id}>{hive.name}</option>
 							))}
@@ -258,10 +258,10 @@ export default function AlertRulesPanel({ metricType, metricLabel, hives, onAler
 							onChange={handleChange}
 							className={styles.select}
 						>
-							<option value="ABOVE">Above threshold</option>
-							<option value="BELOW">Below threshold</option>
-							<option value="CHANGE_UP">Increases by</option>
-							<option value="CHANGE_DOWN">Decreases by</option>
+							<option value="ABOVE"><T>Above threshold</T></option>
+							<option value="BELOW"><T>Below threshold</T></option>
+							<option value="CHANGE_UP"><T>Increases by</T></option>
+							<option value="CHANGE_DOWN"><T>Decreases by</T></option>
 						</select>
 					</div>
 

@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from 'react'
 import { Chart } from 'lightweight-charts-react-components'
 import ChartHeading from '@/shared/chartHeading'
 import Button from '@/shared/button'
+import T from '@/shared/translate'
 import AlertRulesPanel from './AlertRulesPanel'
 
 interface ChartContainerProps {
@@ -150,7 +151,7 @@ export default function ChartContainer({
 								}}
 								color={showAlertView ? 'orange' : 'gray'}
 							>
-								🔔 Alerts{alertCount > 0 ? ` (${alertCount})` : ''}
+								🔔 <T>Alerts</T>{alertCount > 0 ? ` (${alertCount})` : ''}
 							</Button>
 						)}
 						{showTable && tableData.length > 0 && (
@@ -162,13 +163,13 @@ export default function ChartContainer({
 										setShowAlertView(false)
 									}}
 								>
-									{showTableView ? '📊 Chart' : '📋 Table'}
+									{showTableView ? <>📊 <T>Chart</T></> : <>📋 <T>Table</T></>}
 								</Button>
 								<Button
 									size="small"
 									onClick={exportToCSV}
 								>
-									📥 CSV
+									📥 <T>CSV</T>
 								</Button>
 							</>
 						)}
@@ -264,3 +265,4 @@ export default function ChartContainer({
 		</div>
 	)
 }
+

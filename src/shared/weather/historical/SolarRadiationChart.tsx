@@ -1,5 +1,6 @@
 import { LineSeries } from 'lightweight-charts-react-components'
 import ChartContainer from '@/shared/charts/ChartContainer'
+import { useTranslation as t } from '@/shared/translate'
 
 type SolarRadiationChartProps = {
 	solarData: {
@@ -32,9 +33,9 @@ export default function SolarRadiationChart({ solarData, chartRefs, syncCharts }
 	return (
 		<ChartContainer
 			emoji="☀️"
-			title="Solar Radiation"
-			value={`${avgDirect.toFixed(0)} W/m² avg direct`}
-			info="Solar radiation affects hive temperature and bee activity. High radiation can lead to overheating."
+			title={t('Solar Radiation')}
+			value={`${avgDirect.toFixed(0)} W/m² ${t('avg direct')}`}
+			info={t('Solar radiation affects hive temperature and bee activity. High radiation can lead to overheating.')}
 			chartRefs={chartRefs}
 			syncCharts={syncCharts}
 			chartOptions={{ height: 300 }}
@@ -44,7 +45,7 @@ export default function SolarRadiationChart({ solarData, chartRefs, syncCharts }
 				options={{
 					color: '#FFA726',
 					lineWidth: 2,
-					title: 'Direct Radiation'
+					title: t('Direct Radiation')
 				}}
 			/>
 			<LineSeries
@@ -52,7 +53,7 @@ export default function SolarRadiationChart({ solarData, chartRefs, syncCharts }
 				options={{
 					color: '#FFD54F',
 					lineWidth: 2,
-					title: 'Diffuse Radiation'
+					title: t('Diffuse Radiation')
 				}}
 			/>
 		</ChartContainer>

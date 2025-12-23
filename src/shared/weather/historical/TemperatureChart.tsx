@@ -1,5 +1,6 @@
 import { LineSeries, PriceLine } from 'lightweight-charts-react-components'
 import ChartContainer from '@/shared/charts/ChartContainer'
+import { useTranslation as t } from '@/shared/translate'
 
 type TemperatureChartProps = {
 	temperatureData: {
@@ -32,9 +33,9 @@ export default function TemperatureChart({ temperatureData, chartRefs, syncChart
 	return (
 		<ChartContainer
 			emoji="🌡️"
-			title="Temperature"
-			value={`${avgTemp.toFixed(1)}°C avg`}
-			info="Temperature greatly affects bee activity. Bees fly between 10-35°C, with optimal foraging at 18-25°C. Below 10°C or above 38°C bees stay in the hive."
+			title={t('Temperature')}
+			value={`${avgTemp.toFixed(1)}°C ${t('avg')}`}
+			info={t('Temperature greatly affects bee activity. Bees fly between 10-35°C, with optimal foraging at 18-25°C. Below 10°C or above 38°C bees stay in the hive.')}
 			chartRefs={chartRefs}
 			syncCharts={syncCharts}
 			chartOptions={{ height: 300 }}
@@ -44,7 +45,7 @@ export default function TemperatureChart({ temperatureData, chartRefs, syncChart
 				options={{
 					color: '#FF6B35',
 					lineWidth: 2,
-					title: 'Temperature (2m)'
+					title: t('Temperature (2m)')
 				}}
 			>
 				<PriceLine
@@ -54,7 +55,7 @@ export default function TemperatureChart({ temperatureData, chartRefs, syncChart
 						lineWidth: 1,
 						lineStyle: 2,
 						axisLabelVisible: true,
-						title: 'Min flight temp (10°C)'
+						title: t('Min flight temp (10°C)')
 					}}
 				/>
 				<PriceLine
@@ -64,7 +65,7 @@ export default function TemperatureChart({ temperatureData, chartRefs, syncChart
 						lineWidth: 1,
 						lineStyle: 2,
 						axisLabelVisible: true,
-						title: 'Optimal min (18°C)'
+						title: t('Optimal min (18°C)')
 					}}
 				/>
 				<PriceLine
@@ -74,7 +75,7 @@ export default function TemperatureChart({ temperatureData, chartRefs, syncChart
 						lineWidth: 1,
 						lineStyle: 2,
 						axisLabelVisible: true,
-						title: 'Optimal max (25°C)'
+						title: t('Optimal max (25°C)')
 					}}
 				/>
 				<PriceLine
@@ -84,7 +85,7 @@ export default function TemperatureChart({ temperatureData, chartRefs, syncChart
 						lineWidth: 1,
 						lineStyle: 2,
 						axisLabelVisible: true,
-						title: 'Max flight temp (35°C)'
+						title: t('Max flight temp (35°C)')
 					}}
 				/>
 			</LineSeries>

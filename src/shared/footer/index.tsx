@@ -101,7 +101,7 @@ export default function Footer() {
 					style="text-decoration: underline; cursor:pointer;"
 					onClick={triggerSupportChat}
 				>
-					Support
+					<T>Support</T>
 				</a>
 			</li>
 		</ul>

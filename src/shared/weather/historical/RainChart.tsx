@@ -1,5 +1,6 @@
 import { AreaSeries } from 'lightweight-charts-react-components'
 import ChartContainer from '@/shared/charts/ChartContainer'
+import { useTranslation as t } from '@/shared/translate'
 
 type RainChartProps = {
 	rainData: {
@@ -22,9 +23,9 @@ export default function RainChart({ rainData, chartRefs, syncCharts }: RainChart
 	return (
 		<ChartContainer
 			emoji="🌧️"
-			title="Rainfall"
-			value={`${totalRain.toFixed(1)} mm total`}
-			info="Rain prevents bees from foraging. Extended rainy periods can impact colony nutrition."
+			title={t('Rainfall')}
+			value={`${totalRain.toFixed(1)} mm ${t('total')}`}
+			info={t('Rain prevents bees from foraging. Extended rainy periods can impact colony nutrition.')}
 			chartRefs={chartRefs}
 			syncCharts={syncCharts}
 			chartOptions={{ height: 300 }}

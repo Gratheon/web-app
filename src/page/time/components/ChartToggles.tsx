@@ -1,4 +1,5 @@
 import styles from './ChartToggles.module.less'
+import T from '@/shared/translate'
 
 interface ChartTogglesProps {
 	enabledCharts: {
@@ -32,7 +33,7 @@ export default function ChartToggles({
 }: ChartTogglesProps) {
 	return (
 		<div className={styles.panel}>
-			<h3 className={styles.title}>Charts</h3>
+			<h3 className={styles.title}><T>Charts</T></h3>
 			<div className={styles.chartList}>
 				<label className={`${styles.chartToggle} ${enabledCharts.population ? styles.enabled : ''}`}>
 					<input
@@ -40,7 +41,7 @@ export default function ChartToggles({
 						checked={enabledCharts.population}
 						onChange={() => onToggleChart('population')}
 					/>
-					<span>🐝 Population</span>
+					<span>🐝 <T>Population</T></span>
 				</label>
 
 				{enabledCharts.population && (
@@ -50,11 +51,11 @@ export default function ChartToggles({
 							checked={showIdealCurve}
 							onChange={e => onToggleIdealCurve((e.target as HTMLInputElement).checked)}
 						/>
-						<span>Ideal Curve</span>
+						<span><T>Ideal Curve</T></span>
 					</label>
 				)}
 
-				<div className={styles.groupTitle}>📊 Scales & Sensors</div>
+				<div className={styles.groupTitle}>📊 <T>Scales & Sensors</T></div>
 
 				<label className={`${styles.chartToggle} ${enabledCharts.weight ? styles.enabled : ''}`}>
 					<input
@@ -62,7 +63,7 @@ export default function ChartToggles({
 						checked={enabledCharts.weight}
 						onChange={() => onToggleChart('weight')}
 					/>
-					<span>⚖️ Weight</span>
+					<span>⚖️ <T>Weight</T></span>
 				</label>
 
 				<label className={`${styles.chartToggle} ${enabledCharts.temperature ? styles.enabled : ''}`}>
@@ -71,10 +72,10 @@ export default function ChartToggles({
 						checked={enabledCharts.temperature}
 						onChange={() => onToggleChart('temperature')}
 					/>
-					<span>🌡️ Temperature</span>
+					<span>🌡️ <T>Temperature</T></span>
 				</label>
 
-				<div className={styles.groupTitle}>🚪 Entrance Observer</div>
+				<div className={styles.groupTitle}>🚪 <T>Entrance Observer</T></div>
 
 				<label className={`${styles.chartToggle} ${enabledCharts.entrance ? styles.enabled : ''}`}>
 					<input
@@ -82,7 +83,7 @@ export default function ChartToggles({
 						checked={enabledCharts.entrance}
 						onChange={() => onToggleChart('entrance')}
 					/>
-					<span>Entrance Activity</span>
+					<span><T>Entrance Activity</T></span>
 				</label>
 
 				<label className={`${styles.chartToggle} ${enabledCharts.entranceSpeed ? styles.enabled : ''}`}>
@@ -91,7 +92,7 @@ export default function ChartToggles({
 						checked={enabledCharts.entranceSpeed}
 						onChange={() => onToggleChart('entranceSpeed')}
 					/>
-					<span>Bee Speed</span>
+					<span><T>Bee Speed</T></span>
 				</label>
 
 				<label className={`${styles.chartToggle} ${enabledCharts.entranceDetected ? styles.enabled : ''}`}>
@@ -100,7 +101,7 @@ export default function ChartToggles({
 						checked={enabledCharts.entranceDetected}
 						onChange={() => onToggleChart('entranceDetected')}
 					/>
-					<span>Detected Bees</span>
+					<span><T>Detected Bees</T></span>
 				</label>
 
 				<label className={`${styles.chartToggle} ${enabledCharts.entranceStationary ? styles.enabled : ''}`}>
@@ -109,7 +110,7 @@ export default function ChartToggles({
 						checked={enabledCharts.entranceStationary}
 						onChange={() => onToggleChart('entranceStationary')}
 					/>
-					<span>Stationary Bees</span>
+					<span><T>Stationary Bees</T></span>
 				</label>
 
 				<label className={`${styles.chartToggle} ${enabledCharts.entranceInteractions ? styles.enabled : ''}`}>
@@ -118,10 +119,10 @@ export default function ChartToggles({
 						checked={enabledCharts.entranceInteractions}
 						onChange={() => onToggleChart('entranceInteractions')}
 					/>
-					<span>Bee Interactions</span>
+					<span><T>Bee Interactions</T></span>
 				</label>
 
-				<div className={styles.groupTitle}>🌤️ Weather</div>
+				<div className={styles.groupTitle}>🌤️ <T>Weather</T></div>
 
 				<label className={`${styles.chartToggle} ${enabledCharts.weather ? styles.enabled : ''}`}>
 					<input
@@ -129,7 +130,7 @@ export default function ChartToggles({
 						checked={enabledCharts.weather}
 						onChange={() => onToggleChart('weather')}
 					/>
-					<span>Weather</span>
+					<span><T>Weather</T></span>
 				</label>
 
 				{enabledCharts.weather && (
@@ -140,7 +141,7 @@ export default function ChartToggles({
 								checked={enabledCharts.weatherTemperature}
 								onChange={() => onToggleChart('weatherTemperature')}
 							/>
-							<span>🌡️ Temperature</span>
+							<span>🌡️ <T>Temperature</T></span>
 						</label>
 
 						<label className={`${styles.chartToggle} ${styles.subOption} ${enabledCharts.wind ? styles.enabled : ''}`}>
@@ -149,7 +150,7 @@ export default function ChartToggles({
 								checked={enabledCharts.wind}
 								onChange={() => onToggleChart('wind')}
 							/>
-							<span>💨 Wind</span>
+							<span>💨 <T>Wind</T></span>
 						</label>
 
 						<label className={`${styles.chartToggle} ${styles.subOption} ${enabledCharts.rain ? styles.enabled : ''}`}>
@@ -158,7 +159,7 @@ export default function ChartToggles({
 								checked={enabledCharts.rain}
 								onChange={() => onToggleChart('rain')}
 							/>
-							<span>🌧️ Rain</span>
+							<span>🌧️ <T>Rain</T></span>
 						</label>
 
 						<label className={`${styles.chartToggle} ${styles.subOption} ${enabledCharts.solarRadiation ? styles.enabled : ''}`}>
@@ -167,7 +168,7 @@ export default function ChartToggles({
 								checked={enabledCharts.solarRadiation}
 								onChange={() => onToggleChart('solarRadiation')}
 							/>
-							<span>☀️ Solar Radiation</span>
+							<span>☀️ <T>Solar Radiation</T></span>
 						</label>
 
 						<label className={`${styles.chartToggle} ${styles.subOption} ${enabledCharts.cloudCover ? styles.enabled : ''}`}>
@@ -176,7 +177,7 @@ export default function ChartToggles({
 								checked={enabledCharts.cloudCover}
 								onChange={() => onToggleChart('cloudCover')}
 							/>
-							<span>☁️ Cloud Cover</span>
+							<span>☁️ <T>Cloud Cover</T></span>
 						</label>
 
 						<label className={`${styles.chartToggle} ${styles.subOption} ${enabledCharts.pollen ? styles.enabled : ''}`}>
@@ -185,7 +186,7 @@ export default function ChartToggles({
 								checked={enabledCharts.pollen}
 								onChange={() => onToggleChart('pollen')}
 							/>
-							<span>🌸 Pollen</span>
+							<span>🌸 <T>Pollen</T></span>
 						</label>
 
 						<label className={`${styles.chartToggle} ${styles.subOption} ${enabledCharts.pollution ? styles.enabled : ''}`}>
@@ -194,7 +195,7 @@ export default function ChartToggles({
 								checked={enabledCharts.pollution}
 								onChange={() => onToggleChart('pollution')}
 							/>
-							<span>🏭 Air Quality</span>
+							<span>🏭 <T>Air Quality</T></span>
 						</label>
 					</>
 				)}

@@ -1,7 +1,7 @@
 import { LineSeries, PriceLine } from 'lightweight-charts-react-components'
 import { useMemo } from 'react'
 
-import T, { useTranslation as t } from '@/shared/translate'
+import T, { useTranslation as t, usePlural } from '@/shared/translate'
 import ChartContainer from './ChartContainer'
 import { gql, useQuery } from '@/api'
 
@@ -111,12 +111,13 @@ export default function MultiHiveEntranceStationaryChart({ entranceDataByHive, c
 
 	const colors = ['#00c853', '#ff6f00', '#00acc1', '#e91e63', '#7e57c2']
 	const hiveCount = Object.keys(seriesData).length
+	const hiveLabel = usePlural(hiveCount, 'hive')
 
 	return (
 		<ChartContainer
 			emoji="🐌"
 			title={t('Stationary Bees Comparison')}
-			value={`${hiveCount} ${hiveCount === 1 ? 'hive' : 'hives'}`}
+			value={`${hiveCount} ${hiveLabel}`}
 			info={t('Bees with minimal movement (guard bees, orientation flights)')}
 			chartRefs={chartRefs}
 			syncCharts={syncCharts}

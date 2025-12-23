@@ -9,6 +9,7 @@ export type Locale = {
 	pl?: string
 	de?: string
 	fr?: string
+	key?: string | null
 }
 
 const TABLE_NAME = 'locale'

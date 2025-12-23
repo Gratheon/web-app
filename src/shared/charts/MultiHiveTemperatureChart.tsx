@@ -1,7 +1,7 @@
 import { LineSeries, PriceLine } from 'lightweight-charts-react-components'
 import { useMemo } from 'react'
 
-import T, { useTranslation as t } from '@/shared/translate'
+import T, { useTranslation as t, usePlural } from '@/shared/translate'
 import ChartContainer from './ChartContainer'
 import { formatMetricData } from './formatters'
 import { gql, useQuery } from '@/api'
@@ -97,12 +97,13 @@ export default function MultiHiveTemperatureChart({ temperatureDataByHive, chart
 
 	const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7']
 	const hiveCount = Object.keys(seriesData).length
+	const hiveLabel = usePlural(hiveCount, 'hive')
 
 	return (
 		<ChartContainer
 			emoji="🌡️"
 			title={t('Hive Temperature Comparison')}
-			value={`${hiveCount} ${hiveCount === 1 ? 'hive' : 'hives'}`}
+			value={`${hiveCount} ${hiveLabel}`}
 			info={t('Compare internal temperature across multiple hives')}
 			chartRefs={chartRefs}
 			syncCharts={syncCharts}

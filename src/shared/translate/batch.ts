@@ -50,10 +50,25 @@ class TranslationBatcher {
 		try {
 			const uniqueRequests = this.deduplicateRequests(batch)
 
-			const requests = uniqueRequests.map(req => ({
-				en: req.en,
-				tc: req.tc || ''
-			}))
+			const requests = uniqueRequests.map(req => {
+				if (req.tc) {
+					// Extract simple form from detailed context
+					// "plural:few (for counts...)" -> "plural:few"
+					const simpleContext = req.tc.split(' (')[0]
+					const shortKey = `${req.en}__ctx__${simpleContext}`
+
+					return {
+						en: req.en,
+						tc: req.tc,  // Full detailed context for LLM
+						key: shortKey  // Short key for DB
+					}
+				} else {
+					return {
+						en: req.en,
+						tc: ''
+					}
+				}
+			})
 
 			const result = await apiClient.query(translateBatchQuery, { requests }).toPromise()
 
@@ -61,8 +76,16 @@ class TranslationBatcher {
 				const translationMap = new Map()
 
 				for (const locale of result.data.translateBatch) {
+					const request = requests.find(r => r.en === locale.en)
+
+					// Use the short key that was already calculated, not the full context
+					const localeWithKey = {
+						...locale,
+						key: request?.key || locale.en
+					}
+
 					translationMap.set(locale.en, locale)
-					await updateLocale(locale)
+					await updateLocale(localeWithKey)
 				}
 
 				batch.forEach(req => {

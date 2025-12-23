@@ -1,7 +1,7 @@
 import { LineSeries, AreaSeries, Markers } from 'lightweight-charts-react-components'
 import { useMemo } from 'react'
 
-import T, { useTranslation as t } from '@/shared/translate'
+import T, { useTranslation as t, usePlural } from '@/shared/translate'
 import ChartContainer from './ChartContainer'
 import InfoIcon from '@/shared/infoIcon'
 
@@ -49,6 +49,8 @@ function interpolateIdealCurve(curve: { month: number; value: number }[]) {
 }
 
 export default function PopulationChart({ inspectionsByHive, showIdealCurve, chartRefs, syncCharts }: PopulationChartProps) {
+	const hiveLabel = t('Hive')
+
 	const { idealData, seriesData, tableData } = useMemo(() => {
 		const idealData = interpolateIdealCurve(idealPopulationCurve)
 
@@ -76,7 +78,7 @@ export default function PopulationChart({ inspectionsByHive, showIdealCurve, cha
 
 				seriesData[hiveId] = {
 					data,
-					hiveName: insList[0]?.hiveName || `Hive ${hiveId}`,
+					hiveName: insList[0]?.hiveName || `${hiveLabel} ${hiveId}`,
 					markers
 				}
 			}
@@ -94,7 +96,7 @@ export default function PopulationChart({ inspectionsByHive, showIdealCurve, cha
 		})
 
 		return { idealData, seriesData, tableData }
-	}, [inspectionsByHive])
+	}, [inspectionsByHive, hiveLabel])
 
 	if (Object.keys(seriesData).length === 0) {
 		return (
@@ -105,19 +107,19 @@ export default function PopulationChart({ inspectionsByHive, showIdealCurve, cha
 				border: '1px solid #e0e0e0'
 			}}>
 				<p style={{ margin: 0, color: '#666', display: 'flex', alignItems: 'center' }}>
-					<strong>No population data available.</strong>
+					<strong><T>No population data available.</T></strong>
 					<InfoIcon>
 						<p style={{ margin: '0 0 8px 0' }}>
-							<strong>To see colony population trends on this chart:</strong>
+							<strong><T>To see colony population trends on this chart:</T></strong>
 						</p>
 						<ol style={{ margin: '0 0 12px 16px', paddingLeft: 0 }}>
-							<li>Go to a hive page and click the <strong>"Inspections"</strong> tab</li>
-							<li>Create or edit an inspection</li>
-							<li>Add the <strong>bee count</strong> (estimated colony population)</li>
-							<li>Save the inspection</li>
+							<li><T>Go to a hive page and click the "Inspections" tab</T></li>
+							<li><T>Create or edit an inspection</T></li>
+							<li><T>Add the bee count (estimated colony population)</T></li>
+							<li><T>Save the inspection</T></li>
 						</ol>
 						<p style={{ margin: 0, fontSize: '13px', color: '#555' }}>
-							💡 <em>Tip: Regular inspections with population estimates help track colony growth over time and identify potential swarming or decline.</em>
+							💡 <em><T>Tip: Regular inspections with population estimates help track colony growth over time and identify potential swarming or decline.</T></em>
 						</p>
 					</InfoIcon>
 				</p>
@@ -125,11 +127,14 @@ export default function PopulationChart({ inspectionsByHive, showIdealCurve, cha
 		)
 	}
 
+	const hiveCount = Object.keys(seriesData).length
+	const hivePluralLabel = usePlural(hiveCount, 'hive')
+
 	return (
 		<ChartContainer
 			emoji="🐝"
 			title={t('Colony Population')}
-			value={`${Object.keys(seriesData).length} ${Object.keys(seriesData).length === 1 ? 'hive' : 'hives'}`}
+			value={`${hiveCount} ${hivePluralLabel}`}
 			info={t('Track colony population over time across multiple hives')}
 			chartRefs={chartRefs}
 			syncCharts={syncCharts}
@@ -147,7 +152,7 @@ export default function PopulationChart({ inspectionsByHive, showIdealCurve, cha
 						bottomColor: 'rgba(0, 200, 83, 0.05)',
 						lineColor: '#00c853',
 						lineWidth: 2,
-						title: 'Ideal Population',
+						title: t('Ideal Population'),
 					}}
 				/>
 			)}

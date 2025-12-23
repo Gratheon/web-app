@@ -1,4 +1,5 @@
 import styles from './ApiarySelector.module.less'
+import T, { usePlural } from '@/shared/translate'
 
 interface Apiary {
 	id: string
@@ -18,7 +19,7 @@ export default function ApiarySelector({ apiaries, selectedApiaryId, onSelectApi
 	return (
 		<div className={styles.panel}>
 			<div className={styles.header}>
-				<strong className={styles.title}>Apiary:</strong>
+				<strong className={styles.title}><T>Apiary</T>:</strong>
 			</div>
 			<div className={styles.apiaryList}>
 				{apiaries.map(apiary => {
@@ -36,12 +37,17 @@ export default function ApiarySelector({ apiaries, selectedApiaryId, onSelectApi
 								onChange={() => onSelectApiary(apiary.id)}
 							/>
 							<span className={styles.apiaryName}>{apiary.name || `Apiary ${apiary.id}`}</span>
-							<span className={styles.hiveCount}>({hiveCount} {hiveCount === 1 ? 'hive' : 'hives'})</span>
+							<span className={styles.hiveCount}>({hiveCount} <HiveLabel count={hiveCount} />)</span>
 						</label>
 					)
 				})}
 			</div>
 		</div>
 	)
+}
+
+function HiveLabel({ count }: { count: number }) {
+	const label = usePlural(count, 'hive')
+	return <>{label}</>
 }
 

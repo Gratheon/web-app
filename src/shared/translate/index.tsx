@@ -101,15 +101,22 @@ export function useTranslation(text, translationContext = '') {
 	  }
 	}, [user]);
   
+	// Extract simple context for lookup key: "plural:few (for...)" -> "plural:few"
+	const simpleContext = translationContext ? translationContext.split(' (')[0] : '';
+	const lookupKey = simpleContext ? `${text}__ctx__${simpleContext}` : text;
+
 	let cachedTranslation = useLiveQuery(() => {
-	  const where = { en: text };
+	  const where = simpleContext
+	    ? { key: lookupKey }  // Lookup by composite key when context exists
+	    : { en: text };        // Lookup by en when no context
 	  return getLocale(where);
-	}, [text], false);
+	}, [lookupKey, text, simpleContext], false);
 
 	useEffect(() => {
 	  if (cachedTranslation && cachedTranslation[lang]) {
 		setTranslatedText(cachedTranslation[lang]);
 	  } else if (cachedTranslation === null) {
+		// Pass full context to backend for LLM translation
 		translationBatcher.request(text, translationContext)
 		  .then(data => {
 			if (data && data[lang]) {
@@ -122,3 +129,80 @@ export function useTranslation(text, translationContext = '') {
 
 	return translatedText;
 }
+
+function getPluralForm(count: number, lang: string): string {
+	const n = Math.abs(count);
+	const i = Math.floor(n);
+
+	switch (lang) {
+		case 'ru':
+		case 'pl':
+			if (i % 10 === 1 && i % 100 !== 11) return 'one';
+			if (i % 10 >= 2 && i % 10 <= 4 && (i % 100 < 10 || i % 100 >= 20)) return 'few';
+			return 'many';
+
+		case 'en':
+		case 'de':
+		case 'fr':
+		case 'et':
+		case 'tr':
+		default:
+			return i === 1 ? 'one' : 'other';
+	}
+}
+
+function getPluralContextDescription(form: string, lang: string): string {
+	switch (lang) {
+		case 'ru':
+		case 'pl':
+			switch (form) {
+				case 'one':
+					return 'nominative singular - for counts like 1, 21, 31, 41, 101, 121... (e.g., 1 улей, 21 улей)';
+				case 'few':
+					return 'genitive singular - for counts like 2, 3, 4, 22, 23, 24, 32, 33, 34... (e.g., 2 улья, 3 улья, 4 улья)';
+				case 'many':
+					return 'genitive plural - for counts like 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25, 26, 27... (e.g., 5 ульев, 10 ульев, 20 ульев)';
+				default:
+					return '';
+			}
+		case 'en':
+		case 'de':
+		case 'fr':
+		case 'et':
+		case 'tr':
+		default:
+			switch (form) {
+				case 'one':
+					return 'singular - for count = 1';
+				case 'other':
+					return 'plural - for count > 1';
+				default:
+					return '';
+			}
+	}
+}
+
+export function usePlural(count: number, text: string) {
+	const [lang, setLang] = useState('en');
+	let user = useLiveQuery(() => getUser(), [], null);
+
+	useEffect(() => {
+		if (user && user?.lang) {
+			setLang(user.lang);
+		} else if (user === null) {
+			const browserLang = navigator.language.substring(0, 2);
+			if (supportedLangs.includes(browserLang)) {
+				setLang(browserLang);
+			}
+		}
+	}, [user]);
+
+	const pluralForm = getPluralForm(count, lang);
+	const simpleContext = `plural:${pluralForm}`;
+	const detailedContext = getPluralContextDescription(pluralForm, lang);
+	// Full context for LLM, simple context will be extracted for key
+	const fullContext = detailedContext ? `${simpleContext} (${detailedContext})` : simpleContext;
+
+	return useTranslation(text, fullContext);
+}
+

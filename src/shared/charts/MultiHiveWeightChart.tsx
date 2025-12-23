@@ -1,7 +1,7 @@
 import { LineSeries, PriceLine } from 'lightweight-charts-react-components'
 import { useMemo } from 'react'
 
-import T, { useTranslation as t } from '@/shared/translate'
+import T, { useTranslation as t, usePlural } from '@/shared/translate'
 import ChartContainer from './ChartContainer'
 import { formatMetricData } from './formatters'
 import { gql, useQuery } from '@/api'
@@ -98,12 +98,13 @@ export default function MultiHiveWeightChart({ weightDataByHive, chartRefs, sync
 
 	const colors = ['#1976d2', '#d32f2f', '#388e3c', '#f57c00', '#7b1fa2']
 	const hiveCount = Object.keys(seriesData).length
+	const hiveLabel = usePlural(hiveCount, 'hive')
 
 	return (
 		<ChartContainer
 			emoji="⚖️"
 			title={t('Hive Weight Comparison')}
-			value={`${hiveCount} ${hiveCount === 1 ? 'hive' : 'hives'}`}
+			value={`${hiveCount} ${hiveLabel}`}
 			info={t('Compare weight across multiple hives')}
 			chartRefs={chartRefs}
 			syncCharts={syncCharts}

@@ -22,6 +22,7 @@ import HiveSelector from './components/HiveSelector'
 import ChartToggles from './components/ChartToggles'
 import WeatherSection from './components/WeatherSection'
 import ApiarySelector from './components/ApiarySelector'
+import T, { useTranslation as t } from '@/shared/translate'
 
 const LS_KEYS = {
 	SELECTED_APIARY: 'timeView.selectedApiaryId',
@@ -74,6 +75,7 @@ export default function TimeView() {
 	const [searchParams, setSearchParams] = useSearchParams()
 	const { chartRefs, syncCharts } = useChartSync()
 	const scrollHandledRef = useRef(false)
+	const hiveLabel = t('Hive')
 
 	const urlHiveId = searchParams.get('hiveId')
 	const urlApiaryId = searchParams.get('apiaryId')
@@ -356,7 +358,7 @@ export default function TimeView() {
 		const entranceDataByHive = {}
 
 		activeHives.forEach(hive => {
-			const displayName = hive.hiveNumber ? `Hive #${hive.hiveNumber}` : `Hive ${hive.id}`
+			const displayName = hive.hiveNumber ? `${hiveLabel} #${hive.hiveNumber}` : `${hiveLabel} ${hive.id}`
 			weightDataByHive[hive.id] = {
 				hiveName: displayName,
 				data: telemetryData[`hive_${hive.id}_weight`] || {}
@@ -372,15 +374,15 @@ export default function TimeView() {
 		})
 
 		return { weightDataByHive, temperatureDataByHive, entranceDataByHive }
-	}, [telemetryData, activeHives])
+	}, [telemetryData, activeHives, hiveLabel])
 
 	if (!allHives || !inspections) return <Loader stroke="black" size={0}/>
 
 	if (allHives.length === 0) {
 		return (
 			<div className={styles.emptyState}>
-				<h2>Colony Lifecycle</h2>
-				<p>This view shows how colonies develop over time. Add an apiary with a hive to see first data here.</p>
+				<h2><T>Colony Lifecycle</T></h2>
+				<p><T>This view shows how colonies develop over time. Add an apiary with a hive to see first data here.</T></p>
 				<img src={imageURL} alt="Flower illustration" />
 			</div>
 		)
@@ -400,17 +402,16 @@ export default function TimeView() {
 	return (
 		<div className={styles.pageContainer}>
 			<h2>
-				Multi-Hive Analytics
+				<T>Multi-Hive Analytics</T>
 				<InfoIcon>
 					<p style={{ margin: '0 0 8px 0' }}>
-						<strong>About this view:</strong>
+						<strong><T>About this view:</T></strong>
 					</p>
 					<p style={{ margin: '0 0 8px 0' }}>
-						Compare metrics across multiple hives over time to identify trends and anomalies.
+						<T>Compare metrics across multiple hives over time to identify trends and anomalies.</T>
 					</p>
 					<p style={{ margin: 0 }}>
-						Look for correlations between weight drops and swarming, temperature extremes and bee activity,
-						or entrance patterns and colony health. Use the table view (📋) on each chart to export data for deeper analysis.
+						<T>Look for correlations between weight drops and swarming, temperature extremes and bee activity, or entrance patterns and colony health. Use the table view (📋) on each chart to export data for deeper analysis.</T>
 					</p>
 				</InfoIcon>
 			</h2>

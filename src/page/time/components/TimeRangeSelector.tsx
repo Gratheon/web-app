@@ -1,4 +1,5 @@
 import styles from './TimeRangeSelector.module.less'
+import T from '@/shared/translate'
 
 interface TimeRangeSelectorProps {
 	value: number
@@ -9,17 +10,17 @@ export default function TimeRangeSelector({ value, onChange }: TimeRangeSelector
 	return (
 		<div className={styles.container}>
 			<label className={styles.label}>
-				Time Range:
+				<T>Time Range</T>:
 				<select
 					value={value}
 					onChange={e => onChange(Number((e.target as HTMLSelectElement).value))}
 					className={styles.select}
 				>
-					<option value={7}>Last 7 days</option>
-					<option value={30}>Last 30 days</option>
-					<option value={90}>Last 90 days</option>
-					<option value={180}>Last 6 months</option>
-					<option value={365}>Last year</option>
+					<option value={7}><T>Last 7 days</T></option>
+					<option value={30}><T>Last 30 days</T></option>
+					<option value={90}><T>Last 90 days</T></option>
+					<option value={180}><T>Last 6 months</T></option>
+					<option value={365}><T>Last year</T></option>
 				</select>
 			</label>
 		</div>

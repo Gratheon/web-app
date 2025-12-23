@@ -1,4 +1,5 @@
 import styles from './HiveSelector.module.less'
+import T, { useTranslation as t } from '@/shared/translate'
 
 interface HiveSelectorProps {
 	hives: Array<{ id: string; name: string; hiveNumber?: number }>
@@ -8,11 +9,12 @@ interface HiveSelectorProps {
 
 export default function HiveSelector({ hives, selectedHiveIds, onToggleHive }: HiveSelectorProps) {
 	const shouldScroll = hives.length > 6
+	const hiveLabel = t('Hive')
 
 	return (
 		<div className={styles.panel}>
 			<div className={styles.header}>
-				<strong className={styles.title}>Selected Hives:</strong>
+				<strong className={styles.title}><T>Selected Hives</T>:</strong>
 			</div>
 			<div className={`${styles.hiveList} ${shouldScroll ? styles.scrollable : ''}`}>
 				{hives.map(hive => {
@@ -27,7 +29,7 @@ export default function HiveSelector({ hives, selectedHiveIds, onToggleHive }: H
 								checked={isSelected}
 								onChange={() => onToggleHive(hive.id)}
 							/>
-							<span>{hive.hiveNumber ? `Hive #${hive.hiveNumber}` : `Hive ${hive.id}`}</span>
+							<span>{hive.hiveNumber ? `${hiveLabel} #${hive.hiveNumber}` : `${hiveLabel} ${hive.id}`}</span>
 						</label>
 					)
 				})}

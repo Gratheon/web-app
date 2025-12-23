@@ -1,5 +1,6 @@
 import HistoricalWeather from '@/shared/weather/historical'
 import style from './WeatherSection.module.less'
+import T from '@/shared/translate'
 
 type WeatherSectionProps = {
 	apiaries: Array<{
@@ -29,7 +30,7 @@ export default function WeatherSection({ apiaries, days, chartRefs, syncCharts, 
 		<div className={style.weatherSection}>
 			{apiaries.map(apiary => (
 				<div key={apiary.id} className={style.weatherCard}>
-					<h3>{apiary.name || `Apiary ${apiary.id}`} Historical Weather</h3>
+					<h3>{apiary.name || `Apiary ${apiary.id}`} <T>Historical Weather</T></h3>
 					<HistoricalWeather
 						lat={apiary.lat}
 						lng={apiary.lng}

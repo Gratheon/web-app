@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useQuery, useMutation } from '../../../api'
 import Loader from '../../../shared/loader'
@@ -59,6 +59,16 @@ export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveS
 	const compassW = t('W', 'single letter compass direction: West')
 	const labelBuilding = t('Building', 'obstacle type: building/house structure')
 	const labelTree = t('Tree', 'obstacle type: tree plant')
+
+	// Memoize labels object to prevent unnecessary re-renders and race conditions
+	const labels = useMemo(() => ({
+		compassN,
+		compassS,
+		compassE,
+		compassW,
+		building: labelBuilding,
+		tree: labelTree
+	}), [compassN, compassS, compassE, compassW, labelBuilding, labelTree])
 
 	const handleRadius = isMobileDevice ? 16 : 8
 
@@ -581,7 +591,7 @@ export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveS
 					</div>
 				)}
 
-					<Canvas
+				<Canvas
 					canvasWidth={canvasWidth}
 					placements={placements}
 					obstacles={obstacles}
@@ -600,14 +610,7 @@ export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveS
 					isPanning={isPanning}
 					panOffset={panOffset}
 					isMobile={isMobileDevice}
-					labels={{
-						compassN,
-						compassS,
-						compassE,
-						compassW,
-						building: labelBuilding,
-						tree: labelTree
-					}}
+					labels={labels}
 					onClick={handleCanvasClick}
 					onMouseDown={handleCanvasMouseDown}
 					onMouseMove={handleCanvasMouseMove}

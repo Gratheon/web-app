@@ -15,6 +15,13 @@ export interface PluralTranslationResult {
 	fromCache: boolean;
 }
 
+export interface TranslationData {
+	id: number;
+	key: string;
+	values: Record<string, string>;
+	plurals?: Record<string, Record<string, string>>;
+}
+
 export async function fetchTranslationForLanguage(
 	key: string,
 	lang: string
@@ -111,5 +118,32 @@ export function getUserLanguage(
 	}
 
 	return 'en';
+}
+
+export async function fetchRemoteTranslation(
+	key: string,
+	lang: string,
+	context?: string
+): Promise<TranslationData | null> {
+	try {
+		const trans = await newTranslationBatcher.request(key, false, context);
+		return trans || null;
+	} catch (error) {
+		console.error('[fetchRemoteTranslation] Error:', error);
+		return null;
+	}
+}
+
+export async function fetchRemotePlural(
+	key: string,
+	context?: string
+): Promise<TranslationData | null> {
+	try {
+		const trans = await newTranslationBatcher.request(key, true, context);
+		return trans || null;
+	} catch (error) {
+		console.error('[fetchRemotePlural] Error:', error);
+		return null;
+	}
 }
 

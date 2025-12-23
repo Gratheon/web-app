@@ -1,5 +1,5 @@
 import { h } from 'preact'
-import { useEffect, useState, useRef } from 'preact/hooks'
+import { useEffect, useState, useRef, useMemo, useCallback } from 'preact/hooks'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { getUser } from '@/models/user'
@@ -12,42 +12,55 @@ import {
 import {
 	fetchTranslationWithRemote,
 	fetchPluralWithRemote,
-	getUserLanguage
+	getUserLanguage,
+	fetchRemoteTranslation,
+	type TranslationData
 } from '@/models/translationService'
 import { getPluralForm } from './pluralRules'
-import { newTranslationBatcher } from './newBatch'
 import isDev from '@/isDev'
 import { useMutation } from '@/api'
 
 const supportedLangs = ['en', 'ru', 'et','tr','pl','de','fr'];
 
-function TRemote({ lang, children, ctx, onFetched }: { lang: string, children: string, ctx?: string, onFetched?: () => void }) {
-	const [translation, setTranslation] = useState<any>(null)
-	const [loading, setLoading] = useState(true)
+function TRemote({ lang, children, ctx, onFetched }: {
+	lang: string,
+	children: string,
+	ctx?: string,
+	onFetched?: () => void
+}) {
+	const [translation, setTranslation] = useState<TranslationData | null>(null)
 	const [fetched, setFetched] = useState(false)
 
 	useEffect(() => {
 		if (fetched) return;
 
+		let cancelled = false;
+
 		const fetchTranslation = async () => {
 			try {
-				const trans = await newTranslationBatcher.request(children, false, ctx);
-				setTranslation(trans);
-				setLoading(false);
-				setFetched(true);
-				onFetched?.();
+				const trans = await fetchRemoteTranslation(children, lang, ctx);
+				if (!cancelled) {
+					setTranslation(trans);
+					setFetched(true);
+					onFetched?.();
+				}
 			} catch (error) {
-				console.error('Translation fetch error:', error);
-				setLoading(false);
-				setFetched(true);
-				onFetched?.();
+				if (!cancelled) {
+					console.error('Translation fetch error:', error);
+					setFetched(true);
+					onFetched?.();
+				}
 			}
 		};
 
 		fetchTranslation();
-	}, [children, ctx, fetched, onFetched]);
 
-	if (loading || !translation) return <>{children}</>
+		return () => {
+			cancelled = true;
+		};
+	}, [children, ctx, fetched, lang]);
+
+	if (!fetched || !translation) return <>{children}</>
 
 	const value = translation.values?.[lang];
 	return <>{value || children}</>
@@ -60,11 +73,12 @@ interface TProps {
 
 export default function T({ children, ctx }: TProps) {
 	let user = useLiveQuery(() => getUser(), [], null)
-	const [lang, setLanguageCode] = useState('en');
+	const lang = getUserLanguage(user, supportedLangs);
 	const [shouldShowRemote, setShouldShowRemote] = useState(false);
 	const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
 	const [isEditing, setIsEditing] = useState(false);
 	const [editValue, setEditValue] = useState('');
+	const [isSaving, setIsSaving] = useState(false);
 	const inputRef = useRef<HTMLInputElement>(null);
 	const devMode = isDev();
 
@@ -78,16 +92,6 @@ export default function T({ children, ctx }: TProps) {
 		}
 	`);
 
-	useEffect(() => {
-		if (user && user?.lang) {
-			setLanguageCode(user.lang)
-		} else if (user === null) {
-			const browserLang = navigator.language.substring(0, 2)
-			if(supportedLangs.indexOf(browserLang)>=0){
-				setLanguageCode(browserLang);
-			}
-		}
-	}, [user]);
 
 	let translation = useLiveQuery(async () => {
 		const trans = await getTranslation(children);
@@ -133,10 +137,12 @@ export default function T({ children, ctx }: TProps) {
 	};
 
 	const handleSubmit = async () => {
-		if (!editValue.trim()) {
+		if (!editValue.trim() || isSaving) {
 			setIsEditing(false);
 			return;
 		}
+
+		setIsSaving(true);
 
 		try {
 			const trans = await getTranslation(children);
@@ -159,13 +165,28 @@ export default function T({ children, ctx }: TProps) {
 			setIsEditing(false);
 		} catch (error) {
 			console.error('Failed to update translation:', error);
-			setIsEditing(false);
+		} finally {
+			setIsSaving(false);
 		}
 	};
 
 	const handleBlur = () => {
 		setIsEditing(false);
 	};
+
+	const wrapperStyle = useMemo(() =>
+		devMode ? {
+			cursor: 'pointer',
+			textDecoration: 'underline dotted',
+			textDecorationColor: 'rgba(76, 175, 80, 0.3)'
+		} : {},
+		[devMode]
+	);
+
+	const handleFetched = useCallback(() => {
+		setShouldShowRemote(false);
+		setHasAttemptedFetch(true);
+	}, []);
 
 	if (isEditing) {
 		return (
@@ -198,12 +219,6 @@ export default function T({ children, ctx }: TProps) {
 		);
 	}
 
-	const wrapperStyle = devMode ? {
-		cursor: 'pointer',
-		textDecoration: 'underline dotted',
-		textDecorationColor: 'rgba(76, 175, 80, 0.3)'
-	} : {};
-
 	if (translation) {
 		return <span onClick={handleClick} style={wrapperStyle}>{translation}</span>;
 	}
@@ -212,10 +227,7 @@ export default function T({ children, ctx }: TProps) {
 		return <TRemote
 			lang={lang}
 			ctx={ctx}
-			onFetched={() => {
-				setShouldShowRemote(false);
-				setHasAttemptedFetch(true);
-			}}
+			onFetched={handleFetched}
 		>{children}</TRemote>
 	}
 
@@ -245,13 +257,29 @@ export function useTranslation(key: string, ctx?: string) {
 	useEffect(() => {
 		if (cachedTranslation?.value) {
 			setTranslatedText(cachedTranslation.value);
-		} else if (cachedTranslation === null && !hasAttemptedFetch) {
+			return;
+		}
+
+		if (cachedTranslation === null && !hasAttemptedFetch) {
 			setHasAttemptedFetch(true);
+
+			let cancelled = false;
+
 			fetchTranslationWithRemote(key, lang, ctx)
-				.then(text => setTranslatedText(text))
+				.then(text => {
+					if (!cancelled) {
+						setTranslatedText(text);
+					}
+				})
 				.catch(error => {
-					console.error('Translation fetch error:', error);
+					if (!cancelled) {
+						console.error('Translation fetch error:', error);
+					}
 				});
+
+			return () => {
+				cancelled = true;
+			};
 		}
 	}, [cachedTranslation, key, lang, ctx, hasAttemptedFetch]);
 
@@ -281,13 +309,29 @@ export function usePlural(count: number, key: string) {
 	useEffect(() => {
 		if (cachedPlural?.pluralData?.[pluralForm]) {
 			setTranslatedText(cachedPlural.pluralData[pluralForm]);
-		} else if ((cachedPlural === null || cachedPlural?.pluralData === null) && !hasAttemptedFetch) {
+			return;
+		}
+
+		if ((cachedPlural === null || cachedPlural?.pluralData === null) && !hasAttemptedFetch) {
 			setHasAttemptedFetch(true);
+
+			let cancelled = false;
+
 			fetchPluralWithRemote(key, lang, pluralForm)
-				.then(text => setTranslatedText(text))
+				.then(text => {
+					if (!cancelled) {
+						setTranslatedText(text);
+					}
+				})
 				.catch(error => {
-					console.error('Plural fetch error:', error);
+					if (!cancelled) {
+						console.error('Plural fetch error:', error);
+					}
 				});
+
+			return () => {
+				cancelled = true;
+			};
 		}
 	}, [cachedPlural, key, lang, pluralForm, hasAttemptedFetch]);
 

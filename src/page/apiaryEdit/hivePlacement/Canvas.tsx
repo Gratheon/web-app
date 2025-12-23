@@ -241,6 +241,10 @@ export default function Canvas({
 	const drawHives = (ctx: CanvasRenderingContext2D) => {
 		placements.forEach((placement) => {
 			const hive = hives.find(h => h.id === placement.hiveId)
+			if (!hive) {
+				console.log('[Canvas] Skipping render for placement with non-existent hive:', placement.hiveId)
+				return
+			}
 			const isSelected = placement.hiveId === selectedHive
 
 			ctx.save()

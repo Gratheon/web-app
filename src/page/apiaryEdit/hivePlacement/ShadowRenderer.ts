@@ -28,6 +28,9 @@ export const calculateShadow = (
 
 	placements.forEach(placement => {
 		const hive = hives.find(h => h.id === placement.hiveId)
+		if (!hive) {
+			return
+		}
 		const boxCount = hive?.boxCount || 2
 		const hiveHeight = boxCount * 15
 		const shadowLength = hiveHeight * 1.5

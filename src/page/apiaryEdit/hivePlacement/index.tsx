@@ -125,10 +125,18 @@ export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveS
 		if (initializedPlacements && placements.size > 0) return
 
 		const map = new Map()
+		const hiveIds = new Set(hives.map(h => h.id))
+
+		console.log('[HivePlacement] Active hives:', hives.map(h => h.id))
+		console.log('[HivePlacement] All placements from DB:', data?.hivePlacements?.map(p => p.hiveId))
 
 		if (data?.hivePlacements) {
 			data.hivePlacements.forEach((p: HivePlacementType) => {
-				map.set(p.hiveId, p)
+				if (hiveIds.has(p.hiveId)) {
+					map.set(p.hiveId, p)
+				} else {
+					console.log('[HivePlacement] Skipping placement for non-existent hive:', p.hiveId)
+				}
 			})
 		}
 
@@ -143,6 +151,7 @@ export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveS
 			}
 		})
 
+		console.log('[HivePlacement] Final placements:', Array.from(map.keys()))
 		setPlacements(map)
 		setInitializedPlacements(true)
 	}, [data, hives.length, initializedPlacements, loading, placements.size])

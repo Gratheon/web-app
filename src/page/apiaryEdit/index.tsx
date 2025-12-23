@@ -104,7 +104,6 @@ export default function ApiaryEditForm() {
 					id
 					hiveNumber
 					boxCount
-					collapse_date
 					family {
 						name
 					}
@@ -273,7 +272,7 @@ export default function ApiaryEditForm() {
 				{mapTab == 2 && apiaryGet?.apiary?.hives && (
 					<HivePlacement
 						apiaryId={id}
-						hives={apiaryGet.apiary.hives.filter(h => !h.collapse_date)}
+						hives={apiaryGet.apiary.hives}
 						selectedHiveId={hiveId || null}
 						onHiveSelect={onHiveSelect}
 					/>

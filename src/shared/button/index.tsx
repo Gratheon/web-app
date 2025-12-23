@@ -54,16 +54,27 @@ export default function Button({
 		classNames.push(styles.iconOnly)
 	}
 
-	if (href !== null) {
-		onClick = () => {
+	const handleClick = (e: any) => {
+		if (e.ctrlKey || e.metaKey) return;
 
+		if (href !== null) {
 			if (href.startsWith('http')) {
 				window.location.href = href
 			} else {
 				navigate(href, { replace: true })
 			}
+		} else {
+			onClick(e);
 		}
-	}
+	};
+
+	const handleKeyDown = (e: any) => {
+		if (e.ctrlKey || e.metaKey) {
+			e.preventDefault();
+			e.stopPropagation();
+			return false;
+		}
+	};
 
 	return (
 		<button
@@ -72,7 +83,8 @@ export default function Button({
 			type={type}
 			title={title}
 			className={classNames.join(' ')}
-			onClick={onClick}
+			onClick={handleClick}
+			onKeyDown={handleKeyDown}
 			onMouseOver={onMouseOver}
 			onMouseOut={onMouseOut}
 		>

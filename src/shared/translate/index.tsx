@@ -1,12 +1,13 @@
 import { h } from 'preact'
-import { useEffect, useState } from 'preact/hooks'
+import { useEffect, useState, useRef } from 'preact/hooks'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { getUser } from '@/models/user'
 import {
 	getTranslation,
 	getTranslationValue,
-	getPluralForms
+	getPluralForms,
+	upsertTranslationValue
 } from '@/models/translations'
 import {
 	fetchTranslationWithRemote,
@@ -15,6 +16,8 @@ import {
 } from '@/models/translationService'
 import { getPluralForm } from './pluralRules'
 import { newTranslationBatcher } from './newBatch'
+import isDev from '@/isDev'
+import { useMutation } from '@/api'
 
 const supportedLangs = ['en', 'ru', 'et','tr','pl','de','fr'];
 
@@ -50,16 +53,30 @@ function TRemote({ lang, children, onFetched }: { lang: string, children: string
 	return <>{value || children}</>
 }
 
-// Define a specific props interface for clarity
 interface TProps {
   children: string;
+  ctx?: string;
 }
 
-export default function T({ children }: TProps) {
+export default function T({ children, ctx }: TProps) {
 	let user = useLiveQuery(() => getUser(), [], null)
 	const [lang, setLanguageCode] = useState('en');
 	const [shouldShowRemote, setShouldShowRemote] = useState(false);
 	const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
+	const [isEditing, setIsEditing] = useState(false);
+	const [editValue, setEditValue] = useState('');
+	const inputRef = useRef<HTMLInputElement>(null);
+	const devMode = isDev();
+
+	const [updateTranslationMutation] = useMutation(`
+		mutation updateTranslationValue($key: String!, $lang: String!, $value: String!) {
+			updateTranslationValue(key: $key, lang: $lang, value: $value) {
+				id
+				key
+				values
+			}
+		}
+	`);
 
 	useEffect(() => {
 		if (user && user?.lang) {
@@ -87,7 +104,109 @@ export default function T({ children }: TProps) {
 		}
 	}, [translation, hasAttemptedFetch]);
 
-	if (translation) return <>{translation}</>
+	useEffect(() => {
+		if (isEditing && inputRef.current) {
+			inputRef.current.focus();
+			inputRef.current.select();
+		}
+	}, [isEditing]);
+
+	const handleClick = (e: any) => {
+		if (!devMode) return;
+		if (!e.ctrlKey && !e.metaKey) return;
+		e.preventDefault();
+		e.stopPropagation();
+		setEditValue(translation || children);
+		setIsEditing(true);
+	};
+
+	const handleKeyDown = (e: any) => {
+		e.stopPropagation();
+
+		if (e.key === 'Enter') {
+			e.preventDefault();
+			handleSubmit();
+		} else if (e.key === 'Escape') {
+			e.preventDefault();
+			setIsEditing(false);
+		}
+	};
+
+	const handleSubmit = async () => {
+		if (!editValue.trim()) {
+			setIsEditing(false);
+			return;
+		}
+
+		try {
+			const trans = await getTranslation(children);
+			const translationId = trans?.id;
+
+			await updateTranslationMutation({
+				key: children,
+				lang: lang,
+				value: editValue
+			});
+
+			if (translationId) {
+				await upsertTranslationValue({
+					translationId,
+					lang,
+					value: editValue
+				});
+			}
+
+			setIsEditing(false);
+		} catch (error) {
+			console.error('Failed to update translation:', error);
+			setIsEditing(false);
+		}
+	};
+
+	const handleBlur = () => {
+		setIsEditing(false);
+	};
+
+	if (isEditing) {
+		return (
+			<span
+				onClick={(e) => e.stopPropagation()}
+				onKeyDown={(e) => e.stopPropagation()}
+				onKeyUp={(e) => e.stopPropagation()}
+				onKeyPress={(e) => e.stopPropagation()}
+			>
+				<input
+					ref={inputRef}
+					type="text"
+					value={editValue}
+					onInput={(e) => setEditValue((e.target as HTMLInputElement).value)}
+					onKeyDown={handleKeyDown}
+					onKeyPress={(e) => e.stopPropagation()}
+					onKeyUp={(e) => e.stopPropagation()}
+					onClick={(e) => e.stopPropagation()}
+					onBlur={handleBlur}
+					style={{
+						font: 'inherit',
+						border: '1px solid #4CAF50',
+						padding: '2px 4px',
+						borderRadius: '2px',
+						outline: 'none',
+						minWidth: '100px'
+					}}
+				/>
+			</span>
+		);
+	}
+
+	const wrapperStyle = devMode ? {
+		cursor: 'pointer',
+		textDecoration: 'underline dotted',
+		textDecorationColor: 'rgba(76, 175, 80, 0.3)'
+	} : {};
+
+	if (translation) {
+		return <span onClick={handleClick} style={wrapperStyle}>{translation}</span>;
+	}
 
 	if (shouldShowRemote && !hasAttemptedFetch) {
 		return <TRemote
@@ -99,7 +218,7 @@ export default function T({ children }: TProps) {
 		>{children}</TRemote>
 	}
 
-	return <>{children}</>
+	return <span onClick={handleClick} style={wrapperStyle}>{children}</span>;
 }
 
 

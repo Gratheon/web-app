@@ -226,15 +226,15 @@ export default function Canvas({
 				}
 			}
 
-			if (obs.label) {
-				ctx.font = '12px Arial'
-				ctx.fillStyle = '#333'
-				ctx.textAlign = 'center'
-				const translatedLabel = obs.label === 'Building' ? labels.building :
-				                       obs.label === 'Tree' ? labels.tree :
-				                       obs.label
-				ctx.fillText(translatedLabel, obs.x, obs.y)
-			}
+		if (obs.label) {
+			ctx.font = '12px Arial'
+			ctx.fillStyle = '#333'
+			ctx.textAlign = 'center'
+			const translatedLabel = obs.type === 'RECTANGLE' ? labels.building :
+			                       obs.type === 'CIRCLE' ? labels.tree :
+			                       obs.label
+			ctx.fillText(translatedLabel, obs.x, obs.y)
+		}
 		})
 	}
 

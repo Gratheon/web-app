@@ -104,7 +104,7 @@ export async function fetchPluralWithRemote(
 
 export function getUserLanguage(
 	user: { lang?: string } | null,
-	supportedLangs: string[] = ['en', 'ru', 'et', 'tr', 'pl', 'de', 'fr', 'zh']
+	supportedLangs: string[] = ['en', 'ru', 'et', 'tr', 'pl', 'de', 'fr', 'zh', 'hi']
 ): string {
 	if (user && user.lang) {
 		return user.lang;

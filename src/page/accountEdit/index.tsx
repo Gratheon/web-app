@@ -149,6 +149,7 @@ export default function AccountEdit() {
                 <option value="zh" selected={user.lang == "zh"}>简体中文</option>
                 <option value="hi" selected={user.lang == "hi"}>हिन्दी</option>
                 <option value="es" selected={user.lang == "es"}>Español</option>
+                <option value="ar" selected={user.lang == "ar"}>العربية</option>
                 <option value="fr" selected={user.lang == "fr"}>Français</option>
                 <option value="ru" selected={user.lang == "ru"}>Русский</option>
 

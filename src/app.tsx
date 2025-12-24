@@ -1,6 +1,8 @@
 import Helmet from 'react-helmet'
 import { BrowserRouter } from 'react-router-dom'
 import { Provider } from 'urql'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { useEffect } from 'preact/hooks'
 
 import { apiClient } from './api'
 import Page from './page'
@@ -13,6 +15,9 @@ import GlobalErrorHandler from './error_handler'
 import { syncGraphqlSchemaToIndexDB } from './models/db'
 import { schemaObject } from './api/schema'
 import { UploadProvider } from './contexts/UploadContext'
+import { getUser } from './models/user'
+import { getUserLanguage } from './models/translationService'
+import { SUPPORTED_LANGUAGES } from './config/languages'
 
 initErrorReporting()
 
@@ -24,16 +29,25 @@ export default function App() {
 		return
 	}
 
+	const user = useLiveQuery(() => getUser(), [], null)
+	const lang = getUserLanguage(user, SUPPORTED_LANGUAGES)
+
+	useEffect(() => {
+		if (typeof document !== 'undefined') {
+			document.documentElement.setAttribute('lang', lang)
+		}
+	}, [lang])
+
 	return (
 		<GlobalErrorHandler>
 			<Provider value={apiClient}>
 				<UploadProvider>
 					<Helmet
-					htmlAttributes={{ lang: 'en', amp: undefined }} // amp takes no value
+					htmlAttributes={{ amp: undefined }}
 					title="App"
 					titleTemplate="Gratheon.com - %s"
 					defaultTitle="Gratheon"
-					titleAttributes={{ itemprop: 'name', lang: 'en' }}
+					titleAttributes={{ itemprop: 'name' }}
 					// base={{ target: '_blank', href: 'https://app.gratheon.com/' }}
 					meta={[
 						{

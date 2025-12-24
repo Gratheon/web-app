@@ -282,9 +282,20 @@ describe('translationService', () => {
 			expect(result).toBe('ru');
 		});
 
-		it('should return en when browser language not supported', () => {
+		it('should return browser language when supported', () => {
 			Object.defineProperty(navigator, 'language', {
 				value: 'zh-CN',
+				configurable: true
+			});
+
+			const result = getUserLanguage(null);
+
+			expect(result).toBe('zh');
+		});
+
+		it('should return en when browser language not supported', () => {
+			Object.defineProperty(navigator, 'language', {
+				value: 'ja-JP',
 				configurable: true
 			});
 

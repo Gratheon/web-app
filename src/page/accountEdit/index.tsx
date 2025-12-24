@@ -145,6 +145,7 @@ export default function AccountEdit() {
 						<div>
 							<label htmlFor="last_name"><T>Language</T></label>
 							<select name="lang" onInput={onInput}>
+								<option value="zh" selected={user.lang == "zh"}>简体中文</option>
 								<option value="de" selected={user.lang == "de"}>Deutsch</option>
 								<option value="en" selected={user.lang == "en"}>English</option>
 								<option value="et" selected={user.lang == "et"}>Eesti</option>

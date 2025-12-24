@@ -148,11 +148,12 @@ export default function AccountEdit() {
                 <option value="en" selected={user.lang == "en"}>English</option>
                 <option value="zh" selected={user.lang == "zh"}>简体中文</option>
                 <option value="hi" selected={user.lang == "hi"}>हिन्दी</option>
-
+                <option value="es" selected={user.lang == "es"}>Español</option>
+                <option value="fr" selected={user.lang == "fr"}>Français</option>
                 <option value="ru" selected={user.lang == "ru"}>Русский</option>
+
                 <option value="de" selected={user.lang == "de"}>Deutsch</option>
                 <option value="et" selected={user.lang == "et"}>Eesti</option>
-                <option value="fr" selected={user.lang == "fr"}>Français</option>
                 <option value="pl" selected={user.lang == "pl"}>Polski</option>
 								<option value="tr" selected={user.lang == "tr"}>Türkçe</option>
 							</select>

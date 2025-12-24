@@ -6,8 +6,10 @@ import Loader from '@/shared/loader'
 import ErrorMsg from '@/shared/messageError'
 import Button from '@/shared/button'
 import { saveToken } from '@/user'
+import { updateUser } from '@/models/user'
 import { getAppUri } from '@/uri'
 import T, { useTranslation } from '@/shared/translate'
+import { getUserLanguage } from '@/models/translationService'
 import metrics from '@/metrics'
 import styles from './styles.module.less'
 import logoURL from '@/assets/logo_v7.svg'
@@ -94,14 +96,26 @@ export default function AccountRegister() {
 	}
 
 	let [accountCreate, { error, data, loading }] = useMutation(gql`
-		mutation register($first_name: String, $last_name: String, $email: String!, $password: String!, $nonce: String!, $solution: String!) {
-			register(first_name: $first_name, last_name: $last_name, email: $email, password: $password, nonce: $nonce, solution: $solution) {
+		mutation register($input: RegisterInput!) {
+			register(input: $input) {
 				__typename
 				... on Error {
 					code
 				}
 				... on UserSession {
 					key
+					user {
+						id
+						email
+						first_name
+						last_name
+						lang
+						date_expiration
+						date_added
+						hasSubscription
+						isSubscriptionExpired
+						billingPlan
+					}
 				}
 			}
 		}
@@ -109,6 +123,11 @@ export default function AccountRegister() {
 
 	async function onSubmit(e: any) {
 		e.preventDefault()
+
+		if (userTriedSubmit) {
+			return
+		}
+
 		setUserTriedSubmit(true)
 
 		highlight = {
@@ -123,7 +142,7 @@ export default function AccountRegister() {
 				...highlight,
 				email: true
 			})
-
+			setUserTriedSubmit(false)
 			return
 		}
 
@@ -134,7 +153,7 @@ export default function AccountRegister() {
 				...highlight,
 				password: true
 			})
-
+			setUserTriedSubmit(false)
 			return
 		}
 
@@ -145,23 +164,30 @@ export default function AccountRegister() {
 				...highlight,
 				password2: true
 			})
+			setUserTriedSubmit(false)
 			return
 		}
 
 		if (!solution || !currentNonce) {
+			setUserTriedSubmit(false)
 			return
 		}
 
 		setErrorOnClient('')
 
+		const detectedLang = getUserLanguage(null)
+
 		try {
 			accountCreate({
-				first_name: account?.first_name,
-				last_name: account?.last_name,
-				email: account?.email,
-				password: account?.password,
-				nonce: currentNonce,
-				solution,
+				input: {
+					first_name: account?.first_name,
+					last_name: account?.last_name,
+					email: account?.email,
+					password: account?.password,
+					lang: detectedLang,
+					nonce: currentNonce,
+					solution,
+				}
 			})
 		} catch (err) {
 			setErrorOnClient('Registration failed. Please try again or contact support.')
@@ -182,6 +208,10 @@ export default function AccountRegister() {
 
 	if (data?.register?.key) {
 		saveToken(data.register.key)
+
+		if (data.register.user) {
+			updateUser(data.register.user)
+		}
 
 		metrics.trackRegistration()
 		//@ts-ignore
@@ -286,7 +316,7 @@ export default function AccountRegister() {
 						<Button type="submit" color="green" onClick={onSubmit}
 							style="width:100%; text-align:center;background-color: #ffd900; color: black; text-shadow:none;"
 							disabled={isProcessing}>
-							{(isComputing && userTriedSubmit) ? <span><Loader size={0} /> <T>Verifying...</T></span> : loading ? <Loader size={0} /> : <T key="signup_button" ctx="this a button to register for a new account">Sign Up</T>}
+							{userTriedSubmit ? <span><Loader size={0} /> <T>Verifying...</T></span> : <T key="signup_button" ctx="this a button to register for a new account">Sign Up</T>}
 						</Button>
 
 

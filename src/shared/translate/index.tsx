@@ -19,8 +19,7 @@ import {
 import { getPluralForm } from './pluralRules'
 import isDev from '@/isDev'
 import { useMutation } from '@/api'
-
-const supportedLangs = ['en', 'ru', 'et','tr','pl','de','fr'];
+import { SUPPORTED_LANGUAGES } from '@/config/languages'
 
 function TRemote({ lang, children, ctx, onFetched }: {
 	lang: string,
@@ -73,7 +72,7 @@ interface TProps {
 
 export default function T({ children, ctx }: TProps) {
 	let user = useLiveQuery(() => getUser(), [], null)
-	const lang = getUserLanguage(user, supportedLangs);
+	const lang = getUserLanguage(user, SUPPORTED_LANGUAGES);
 	const [shouldShowRemote, setShouldShowRemote] = useState(false);
 	const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
 	const [isEditing, setIsEditing] = useState(false);
@@ -240,7 +239,7 @@ export function useTranslation(key: string, ctx?: string) {
 	const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
 
 	let user = useLiveQuery(() => getUser(), [], null);
-	const lang = getUserLanguage(user, supportedLangs);
+	const lang = getUserLanguage(user, SUPPORTED_LANGUAGES);
 
 	let cachedTranslation = useLiveQuery(async () => {
 		const translation = await getTranslation(key);
@@ -291,7 +290,7 @@ export function usePlural(count: number, key: string) {
 	const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
 
 	let user = useLiveQuery(() => getUser(), [], null);
-	const lang = getUserLanguage(user, supportedLangs);
+	const lang = getUserLanguage(user, SUPPORTED_LANGUAGES);
 	const pluralForm = getPluralForm(count, lang);
 
 	let cachedPlural = useLiveQuery(async () => {

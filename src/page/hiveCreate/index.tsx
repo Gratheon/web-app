@@ -26,7 +26,6 @@ import GithubPicker from 'react-color/es/Github'
 
 
 const defaultBoxColor = '#ffc848'
-const supportedLangs = ['en', 'ru', 'et', 'tr', 'pl', 'de', 'fr']
 
 const queenColors = [
 	'#fefee3',
@@ -126,8 +125,8 @@ export default function HiveCreateForm() {
             currentLang = user.lang;
         } else if (user === null) { // Only check browser if user data is loaded and null
             const browserLang = navigator.language.substring(0, 2);
-            if (supportedLangs.includes(browserLang)) {
-                currentLang = browserLang;
+            if (SUPPORTED_LANGUAGES.includes(browserLang)) {
+                lang = browserLang;
             }
         }
         setLang(currentLang);

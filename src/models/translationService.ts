@@ -4,6 +4,7 @@ import {
 	getPluralForms
 } from './translations';
 import { newTranslationBatcher } from '@/shared/translate/newBatch';
+import { SUPPORTED_LANGUAGES } from '@/config/languages';
 
 export interface TranslationResult {
 	value: string | null;
@@ -104,7 +105,7 @@ export async function fetchPluralWithRemote(
 
 export function getUserLanguage(
 	user: { lang?: string } | null,
-	supportedLangs: string[] = ['en', 'ru', 'et', 'tr', 'pl', 'de', 'fr', 'zh', 'hi', 'es', 'ar', 'bn', 'pt', 'ja']
+	supportedLangs: readonly string[] = SUPPORTED_LANGUAGES
 ): string {
 	if (user && user.lang) {
 		return user.lang;

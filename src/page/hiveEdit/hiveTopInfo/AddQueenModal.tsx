@@ -17,8 +17,6 @@ import inputStyles from '@/shared/input/styles.module.less'
 //@ts-ignore
 import GithubPicker from 'react-color/es/Github'
 
-const supportedLangs = ['en', 'ru', 'et', 'tr', 'pl', 'de', 'fr']
-
 const RANDOM_QUEEN_NAME_QUERY = gql`
 	query RandomHiveName($language: String) {
 		randomHiveName(language: $language)
@@ -93,7 +91,7 @@ export default function AddQueenModal({ hiveId, onClose, onSuccess }: AddQueenMo
 			currentLang = user.lang
 		} else if (user === null) {
 			const browserLang = navigator.language.substring(0, 2)
-			if (supportedLangs.includes(browserLang)) {
+			if (SUPPORTED_LANGUAGES.includes(browserLang)) {
 				currentLang = browserLang
 			}
 		}

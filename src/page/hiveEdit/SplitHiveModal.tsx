@@ -10,6 +10,7 @@ import ErrorMsg from '@/shared/messageError'
 import FramePreview from '@/shared/framePreview'
 import RefreshIcon from '@/icons/RefreshIcon'
 import { getUser } from '@/models/user'
+import { SUPPORTED_LANGUAGES } from '@/config/languages'
 import { getBoxes } from '@/models/boxes'
 import styles from './SplitHiveModal.module.less'
 
@@ -63,9 +64,9 @@ export default function SplitHiveModal({
 		if (user && user?.lang) {
 			currentLang = user.lang
 		} else if (user === null) {
-			const browserLang = navigator.language.substring(0, 2)
+			const browserLang = navigator.language.substring(0, 2) as any
 			if (SUPPORTED_LANGUAGES.includes(browserLang)) {
-				lang = browserLang
+				currentLang = browserLang
 			}
 		}
 		setLang(currentLang)

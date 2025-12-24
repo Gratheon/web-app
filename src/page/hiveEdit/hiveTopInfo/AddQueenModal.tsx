@@ -9,6 +9,7 @@ import MessageError from '@/shared/messageError'
 import QueenColor from '@/page/hiveEdit/hiveTopInfo/queenColor'
 import { updateFamily } from '@/models/family'
 import { getUser } from '@/models/user'
+import { SUPPORTED_LANGUAGES } from '@/config/languages'
 import { getQueenColorFromYear } from '@/page/hiveEdit/hiveTopInfo/queenColor/utils'
 import RefreshIcon from '@/icons/RefreshIcon'
 import styles from './AddQueenModal.module.less'
@@ -90,7 +91,7 @@ export default function AddQueenModal({ hiveId, onClose, onSuccess }: AddQueenMo
 		if (user && user?.lang) {
 			currentLang = user.lang
 		} else if (user === null) {
-			const browserLang = navigator.language.substring(0, 2)
+			const browserLang = navigator.language.substring(0, 2) as any
 			if (SUPPORTED_LANGUAGES.includes(browserLang)) {
 				currentLang = browserLang
 			}

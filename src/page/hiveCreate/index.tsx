@@ -4,7 +4,8 @@ import { useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { gql, useMutation, useQuery } from '@/api'
-import { getUser } from '@/models/user' // Import getUser
+import { getUser } from '@/models/user'
+import { SUPPORTED_LANGUAGES } from '@/config/languages'
 
 import VisualForm from '@/shared/visualForm'
 import HiveIcon from '@/shared/hive'
@@ -120,17 +121,17 @@ export default function HiveCreateForm() {
 
     // Determine language code
     useEffect(() => {
-        let currentLang = 'en'; // Default
+        let currentLang = 'en';
         if (user && user?.lang) {
             currentLang = user.lang;
-        } else if (user === null) { // Only check browser if user data is loaded and null
-            const browserLang = navigator.language.substring(0, 2);
+        } else if (user === null) {
+            const browserLang = navigator.language.substring(0, 2) as any;
             if (SUPPORTED_LANGUAGES.includes(browserLang)) {
-                lang = browserLang;
+                currentLang = browserLang;
             }
         }
         setLang(currentLang);
-    }, [user]); // Re-run if user data changes
+    }, [user]);
 
     // Fetch random hive name with language
     const { data: randomNameData, loading: randomNameLoading, reexecuteQuery: reexecuteRandomNameQuery } = useQuery( // Get reexecuteQuery function

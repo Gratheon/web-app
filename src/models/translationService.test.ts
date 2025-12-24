@@ -295,7 +295,7 @@ describe('translationService', () => {
 
 		it('should return en when browser language not supported', () => {
 			Object.defineProperty(navigator, 'language', {
-				value: 'ja-JP',
+				value: 'ko-KR',
 				configurable: true
 			});
 

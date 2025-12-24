@@ -14,6 +14,7 @@ import Button from '@/shared/button'
 import T from '@/shared/translate'
 
 import {saveToken} from '@/user'
+import {updateUser} from '@/models/user'
 
 import style from './styles.module.less'
 import VisualForm from '@/shared/visualForm'
@@ -49,6 +50,15 @@ export default function AccountAuth() {
 					user{
 						__typename
 						id
+						email
+						first_name
+						last_name
+						lang
+						date_expiration
+						date_added
+						hasSubscription
+						isSubscriptionExpired
+						billingPlan
 					}
 				}
 			}
@@ -88,7 +98,10 @@ export default function AccountAuth() {
         // clear DB on login and on logout to have consistent structure in case of alters
         saveToken(data.login.key)
 
-        if (data.login.user.id) metrics.setUser(data.login.user);
+        if (data.login.user) {
+            updateUser(data.login.user)
+            if (data.login.user.id) metrics.setUser(data.login.user);
+        }
 
         metrics.trackLogin();
 

@@ -25,10 +25,11 @@ export interface TranslationData {
 
 export async function fetchTranslationForLanguage(
 	key: string,
-	lang: string
+	lang: string,
+	namespace?: string
 ): Promise<TranslationResult> {
-	console.log(`[translationService] fetchTranslationForLanguage: key="${key}", lang="${lang}"`);
-	const translation = await getTranslation(key);
+	console.log(`[translationService] fetchTranslationForLanguage: key="${key}", lang="${lang}", namespace="${namespace}"`);
+	const translation = await getTranslation(key, namespace);
 	console.log(`[translationService] Translation record for "${key}":`, translation);
 
 	if (!translation) {

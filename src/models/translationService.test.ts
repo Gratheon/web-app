@@ -41,7 +41,7 @@ describe('translationService', () => {
 				value: 'Привет',
 				fromCache: true
 			});
-			expect(translations.getTranslation).toHaveBeenCalledWith('hello');
+			expect(translations.getTranslation).toHaveBeenCalledWith('hello', undefined);
 			expect(translations.getTranslationValue).toHaveBeenCalledWith(1, 'ru');
 		});
 

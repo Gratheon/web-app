@@ -17,6 +17,7 @@ const getTranslationsQuery = gql`query getTranslations($inputs: [TranslationInpu
 interface TranslationRequest {
   key: string
   context?: string
+  namespace?: string
   isPlural?: boolean
   resolve: (value: any) => void
   reject: (error: any) => void

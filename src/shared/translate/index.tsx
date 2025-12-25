@@ -37,7 +37,9 @@ function TRemote({ lang, children, ctx, onFetched }: {
 
 		const fetchTranslation = async () => {
 			try {
+				console.log(`[TRemote] Fetching translation for "${children}", lang=${lang}, ctx=${ctx}`);
 				const trans = await fetchRemoteTranslation(children, lang, ctx);
+				console.log(`[TRemote] Received translation for "${children}":`, trans);
 				if (!cancelled) {
 					setTranslation(trans);
 					setFetched(true);
@@ -45,7 +47,7 @@ function TRemote({ lang, children, ctx, onFetched }: {
 				}
 			} catch (error) {
 				if (!cancelled) {
-					console.error('Translation fetch error:', error);
+					console.error(`[TRemote] Translation fetch error for "${children}":`, error);
 					setFetched(true);
 					onFetched?.();
 				}
@@ -62,6 +64,7 @@ function TRemote({ lang, children, ctx, onFetched }: {
 	if (!fetched || !translation) return <>{children}</>
 
 	const value = translation.values?.[lang];
+	console.log(`[TRemote] Rendering "${children}" with value:`, value, 'from translation:', translation);
 	return <>{value || children}</>
 }
 
@@ -81,6 +84,8 @@ export default function T({ children, ctx }: TProps) {
 	const inputRef = useRef<HTMLInputElement>(null);
 	const devMode = isDev();
 
+	console.log(`[T] Rendering "${children}", lang=${lang}, ctx=${ctx}`);
+
 	const [updateTranslationMutation] = useMutation(`
 		mutation updateTranslationValue($key: String!, $lang: String!, $value: String!) {
 			updateTranslationValue(key: $key, lang: $lang, value: $value) {
@@ -92,20 +97,35 @@ export default function T({ children, ctx }: TProps) {
 	`);
 
 
-	let translation = useLiveQuery(async () => {
+	let translationData = useLiveQuery(async () => {
 		const trans = await getTranslation(children);
+		console.log(`[T] Translation lookup for "${children}":`, trans);
+
 		if (!trans) {
-			return null;
+			console.log(`[T] No translation record in IndexedDB for "${children}", will fetch from network`);
+			return { exists: false, value: null };
 		}
 
-		return await getTranslationValue(trans.id, lang);
+		const value = await getTranslationValue(trans.id, lang);
+		console.log(`[T] Translation value for "${children}" (lang=${lang}):`, value);
+		if (value) {
+			console.log(`[T] ✅ Using cached translation for "${children}"`);
+		}
+		return { exists: true, value };
 	}, [children, lang], null);
 
+	const translation = translationData?.value || null;
+	const translationExists = translationData?.exists ?? false;
+
 	useEffect(() => {
-		if (!hasAttemptedFetch && translation === null) {
+		// Only fetch if translation record doesn't exist in IndexedDB at all
+		if (!hasAttemptedFetch && translationData && !translationExists) {
+			console.log(`[T] Translation missing from IndexedDB for "${children}", will fetch from network`);
 			setShouldShowRemote(true);
+		} else if (translation) {
+			console.log(`[T] Translation loaded from cache for "${children}", no remote fetch needed`);
 		}
-	}, [translation, hasAttemptedFetch]);
+	}, [translation, translationExists, translationData, hasAttemptedFetch, children]);
 
 	useEffect(() => {
 		if (isEditing && inputRef.current) {
@@ -219,10 +239,12 @@ export default function T({ children, ctx }: TProps) {
 	}
 
 	if (translation) {
+		console.log(`[T] Using translation for "${children}":`, translation);
 		return <span onClick={handleClick} style={wrapperStyle}>{translation}</span>;
 	}
 
 	if (shouldShowRemote && !hasAttemptedFetch) {
+		console.log(`[T] Fetching remote translation for "${children}"`);
 		return <TRemote
 			lang={lang}
 			ctx={ctx}
@@ -230,6 +252,7 @@ export default function T({ children, ctx }: TProps) {
 		>{children}</TRemote>
 	}
 
+	console.log(`[T] Falling back to original text for "${children}"`);
 	return <span onClick={handleClick} style={wrapperStyle}>{children}</span>;
 }
 

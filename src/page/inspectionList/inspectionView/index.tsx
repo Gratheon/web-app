@@ -7,7 +7,7 @@ import DateTimeFormat from '../../../shared/dateTimeFormat/index.tsx'; // Import
 import HiveBoxes from '../../../shared/hiveBoxes'
 import { Inspection, InspectionSnapshot } from '../../../models/inspections.ts'
 import { Hive } from '../../../models/hive.ts'
-// Removed unused upsertFrameSide and upsertFrame imports
+import T from '../../../shared/translate'
 
 type InspectionViewProps = {
 	apiaryId?: string
@@ -95,21 +95,21 @@ export default function InspectionView({
 				onFrameImageClick={handleFrameImageClick}
 			/>
 
-			{/* Section to display the selected full-size image */}
-			{selectedImageUrl && (
-				<div style={{ marginTop: '20px', padding: '10px 30px', textAlign: 'center' }}>
-					<button onClick={() => setSelectedImageUrl(null)} style={{ marginBottom: '10px' }}>
-						Close Image
-					</button>
-					<div>
-						<img
-							src={selectedImageUrl}
-							alt="Selected frame side"
-							style={{ maxWidth: '100%', maxHeight: '80vh', border: '1px solid #ccc' }}
-						/>
-					</div>
+		{/* Section to display the selected full-size image */}
+		{selectedImageUrl && (
+			<div style={{ marginTop: '20px', padding: '10px 30px', textAlign: 'center' }}>
+				<button onClick={() => setSelectedImageUrl(null)} style={{ marginBottom: '10px' }}>
+					<T>Close Image</T>
+				</button>
+				<div>
+					<img
+						src={selectedImageUrl}
+						alt="Selected frame side"
+						style={{ maxWidth: '100%', maxHeight: '80vh', border: '1px solid #ccc' }}
+					/>
 				</div>
-			)}
+			</div>
+		)}
 		</div>
 	)
 }

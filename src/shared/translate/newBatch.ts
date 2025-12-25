@@ -27,6 +27,7 @@ class NewTranslationBatcher {
   private batchDelay: number = 150
 
   async request(key: string, isPlural: boolean = false, context?: string): Promise<any> {
+    console.log(`[Batcher] Request queued: key="${key}", isPlural=${isPlural}, context="${context}"`);
     return new Promise((resolve, reject) => {
       this.queue.push({key, context, isPlural, resolve, reject})
 
@@ -45,6 +46,8 @@ class NewTranslationBatcher {
     this.queue = []
     this.timer = null
 
+    console.log(`[Batcher] Flushing batch of ${batch.length} requests`);
+
     try {
       const uniqueRequests = this.deduplicateRequests(batch)
       const inputs = uniqueRequests.map(req => ({
@@ -52,12 +55,15 @@ class NewTranslationBatcher {
         context: req.context || null
       }))
 
+      console.log(`[Batcher] Fetching translations for inputs:`, inputs);
       const result = await apiClient.query(getTranslationsQuery, {inputs}).toPromise()
+      console.log(`[Batcher] Received result:`, result);
 
       if (result.data?.getTranslations) {
         const translationMap = new Map()
 
         for (const trans of result.data.getTranslations) {
+          console.log(`[Batcher] Processing translation:`, trans);
           const translationId = +trans.id;
 
           if (!translationId || isNaN(translationId)) {
@@ -67,31 +73,63 @@ class NewTranslationBatcher {
 
           const requestKey = inputs.find(i => i.key.toLowerCase() === trans.key.toLowerCase())?.key || trans.key;
 
-          await upsertTranslation({
-            id: translationId,
-            key: requestKey,
-            context: trans.context
-          })
-
-          if (trans.values) {
-            for (const [lang, value] of Object.entries(trans.values)) {
-              await upsertTranslationValue({
-                translationId: translationId,
-                lang,
-                value: value as string
-              })
-            }
+          // Special warning for "Hives" translation issue
+          if (trans.key === 'Hives' && !trans.values) {
+            console.warn(`[Batcher] 🚨 CRITICAL: "Hives" has no values field!`);
+            console.warn(`[Batcher] 🚨 This is a MENU LABEL, not a count-based plural.`);
+            console.warn(`[Batcher] 🚨 Backend should have: values: {ru: "Ульи", en: "Hives", ...}`);
+            console.warn(`[Batcher] 🚨 See BACKEND-FIX-HIVES-TRANSLATION.md for fix`);
           }
 
-          if (trans.plurals) {
-            for (const [lang, pluralData] of Object.entries(trans.plurals)) {
-              await upsertPluralForm({
-                translationId: translationId,
-                lang,
-                pluralData
-              })
-            }
-          }
+			await upsertTranslation({
+				id: translationId,
+				key: requestKey,
+				context: trans.context
+			})
+
+			if (trans.values) {
+				console.log(`[Batcher] Upserting values for "${trans.key}":`, trans.values);
+				for (const [lang, value] of Object.entries(trans.values)) {
+					await upsertTranslationValue({
+						translationId: translationId,
+						lang,
+						value: value as string
+					})
+				}
+			} else if (trans.plurals && !trans.values) {
+				console.log(`[Batcher] ⚠️ No values for "${trans.key}", deriving from plurals:`, trans.plurals);
+				console.log(`[Batcher] ⚠️ WARNING: "${trans.key}" is using plural forms for a menu label - this should have proper values in backend!`);
+
+				for (const [lang, pluralData] of Object.entries(trans.plurals)) {
+					const pd = pluralData as any;
+					const rawValue = pd?.other || pd?.few || pd?.many || pd?.one || pd?.zero || pd?.two || requestKey;
+
+					// Capitalize first letter for menu items
+					const capitalizedValue = rawValue.charAt(0).toUpperCase() + rawValue.slice(1);
+
+					console.log(`[Batcher] Deriving for "${trans.key}" (lang=${lang}):`);
+					console.log(`  - Available forms: ${Object.keys(pd || {}).join(', ')}`);
+					console.log(`  - Selected form: ${rawValue}`);
+					console.log(`  - Capitalized: ${capitalizedValue}`);
+					console.log(`  - ⚠️ This is a WORKAROUND - proper fix needed in backend!`);
+
+					await upsertTranslationValue({
+						translationId: translationId,
+						lang,
+						value: capitalizedValue as string
+					})
+				}
+			}
+
+			if (trans.plurals) {
+				for (const [lang, pluralData] of Object.entries(trans.plurals)) {
+					await upsertPluralForm({
+						translationId: translationId,
+						lang,
+						pluralData
+					})
+				}
+			}
 
           translationMap.set(trans.key, trans)
         }
@@ -100,15 +138,19 @@ class NewTranslationBatcher {
         batch.forEach(req => {
           const translation = translationMap.get(req.key)
           if (translation) {
+            console.log(`[Batcher] Resolving request for "${req.key}" with:`, translation);
             req.resolve(translation)
           } else {
+            console.warn(`[Batcher] Translation not found for "${req.key}"`);
             req.reject(new Error('Translation not found'))
           }
         })
       } else {
+        console.error('[Batcher] No translation data in result');
         batch.forEach(req => req.reject(new Error('No translation data')))
       }
     } catch (error) {
+      console.error('[Batcher] Flush error:', error);
       batch.forEach(req => req.reject(error))
     }
   }

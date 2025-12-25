@@ -215,7 +215,7 @@ export default function ApiaryEditForm() {
 			<div style="padding:20px;">
 				<VisualForm onSubmit={onSubmit.bind(this)}>
 					<div>
-						<label htmlFor="name" style="width:120px;"><T>Name</T></label>
+						<label htmlFor="name" style="width:120px;"><T ns="apiary">Name</T></label>
 						<div>
 							<input
 								name="name"

@@ -9,7 +9,7 @@ import { FRAME_SIDE_FILE_TABLE } from '../frameSideFile.ts'
 import { has } from 'lodash'
 
 const DB_NAME = 'gratheon'
-export const DB_VERSION = 103
+export const DB_VERSION = 104
 
 export const db = new Dexie(DB_NAME, {
 	autoOpen: true,

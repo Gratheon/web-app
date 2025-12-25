@@ -48,16 +48,17 @@ export async function fetchTranslationForLanguage(
 export async function fetchTranslationWithRemote(
 	key: string,
 	lang: string,
-	context?: string
+	context?: string,
+	namespace?: string
 ): Promise<string> {
-	const cached = await fetchTranslationForLanguage(key, lang);
+	const cached = await fetchTranslationForLanguage(key, lang, namespace);
 
 	if (cached.value) {
 		return cached.value;
 	}
 
 	try {
-		const trans = await newTranslationBatcher.request(key, false, context);
+		const trans = await newTranslationBatcher.request(key, false, context, namespace);
 		return trans?.values?.[lang] || key;
 	} catch (error) {
 		console.error('[fetchTranslationWithRemote] Error:', error);
@@ -68,9 +69,10 @@ export async function fetchTranslationWithRemote(
 export async function fetchPluralForLanguage(
 	key: string,
 	lang: string,
-	pluralForm: string
+	pluralForm: string,
+	namespace?: string
 ): Promise<PluralTranslationResult> {
-	const translation = await getTranslation(key);
+	const translation = await getTranslation(key, namespace);
 
 	if (!translation) {
 		return { value: key, fromCache: false };
@@ -88,16 +90,17 @@ export async function fetchPluralForLanguage(
 export async function fetchPluralWithRemote(
 	key: string,
 	lang: string,
-	pluralForm: string
+	pluralForm: string,
+	namespace?: string
 ): Promise<string> {
-	const cached = await fetchPluralForLanguage(key, lang, pluralForm);
+	const cached = await fetchPluralForLanguage(key, lang, pluralForm, namespace);
 
 	if (cached.fromCache) {
 		return cached.value;
 	}
 
 	try {
-		const trans = await newTranslationBatcher.request(key, true, undefined);
+		const trans = await newTranslationBatcher.request(key, true, undefined, namespace);
 		const pluralValue = trans?.plurals?.[lang]?.[pluralForm];
 		return pluralValue || key;
 	} catch (error) {
@@ -127,12 +130,13 @@ export function getUserLanguage(
 export async function fetchRemoteTranslation(
 	key: string,
 	lang: string,
-	context?: string
+	context?: string,
+	namespace?: string
 ): Promise<TranslationData | null> {
 	try {
-		console.log(`[translationService] fetchRemoteTranslation: key="${key}", lang="${lang}", context="${context}"`);
-		const trans = await newTranslationBatcher.request(key, false, context);
-		console.log(`[translationService] Remote translation result for "${key}":`, trans);
+		console.log(`[translationService] fetchRemoteTranslation: key="${key}", lang="${lang}", context="${context}", namespace="${namespace}"`);
+		const trans = await newTranslationBatcher.request(key, false, context, namespace);
+		console.log(`[translationService] Remote translation result for "${key}" (namespace: ${namespace}):`, trans);
 		return trans || null;
 	} catch (error) {
 		console.error('[fetchRemoteTranslation] Error:', error);

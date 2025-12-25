@@ -10,7 +10,7 @@ export function addCustomIndexes(dbSchema) {
 
 	// New translation tables - ALWAYS create these, even if not in GraphQL schema
 	// Use ++id for auto-incrementing primary key (not &id!)
-	dbSchema.translation = '++id, key'
+	dbSchema.translation = '++id, key, namespace, [key+namespace]'
 	dbSchema.translationvalue = '++id, [translationId+lang], translationId, lang'
 	dbSchema.pluralform = '++id, [translationId+lang], translationId, lang'
 

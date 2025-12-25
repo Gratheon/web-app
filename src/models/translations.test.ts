@@ -18,15 +18,19 @@ vi.mock('./db', () => {
 		const mockWhere = vi.fn();
 		const mockEquals = vi.fn();
 		const mockFirst = vi.fn();
+		const mockToArray = vi.fn();
 
-		const mockCollection = { first: mockFirst };
+		const mockCollection = {
+			first: mockFirst,
+			toArray: mockToArray
+		};
 		mockEquals.mockReturnValue(mockCollection);
 		mockWhere.mockReturnValue({ equals: mockEquals });
 
 		return {
 			put: mockPut,
 			where: mockWhere,
-			__mocks: { mockPut, mockWhere, mockEquals, mockFirst }
+			__mocks: { mockPut, mockWhere, mockEquals, mockFirst, mockToArray }
 		};
 	};
 
@@ -57,29 +61,34 @@ describe('Translations Integration Tests', () => {
 			tableMocks.mockWhere.mockReset();
 			tableMocks.mockEquals.mockReset();
 			tableMocks.mockFirst.mockReset();
+			tableMocks.mockToArray.mockReset();
 
-			const mockCollection = { first: tableMocks.mockFirst };
+			const mockCollection = {
+				first: tableMocks.mockFirst,
+				toArray: tableMocks.mockToArray
+			};
 			tableMocks.mockEquals.mockReturnValue(mockCollection);
 			tableMocks.mockWhere.mockReturnValue({ equals: tableMocks.mockEquals });
 			tableMocks.mockFirst.mockResolvedValue(undefined);
+			tableMocks.mockToArray.mockResolvedValue([]);
 		});
 	});
 
 	describe('getTranslation', () => {
 		it('should return translation when key exists', async () => {
 			const translation: Translation = { id: 1, key: 'greeting', context: 'home' };
-			dbMocks.translation.mockFirst.mockResolvedValue(translation);
+			dbMocks.translation.mockToArray.mockResolvedValue([translation]);
 
 			const result = await getTranslation('greeting');
 
 			expect(result).toEqual(translation);
 			expect(dbMocks.translation.mockWhere).toHaveBeenCalledWith('key');
 			expect(dbMocks.translation.mockEquals).toHaveBeenCalledWith('greeting');
-			expect(dbMocks.translation.mockFirst).toHaveBeenCalled();
+			expect(dbMocks.translation.mockToArray).toHaveBeenCalled();
 		});
 
 		it('should return null when key does not exist', async () => {
-			dbMocks.translation.mockFirst.mockResolvedValue(undefined);
+			dbMocks.translation.mockToArray.mockResolvedValue([]);
 
 			const result = await getTranslation('nonexistent');
 
@@ -130,7 +139,7 @@ describe('Translations Integration Tests', () => {
 
 	describe('upsertTranslation', () => {
 		it('should insert new translation when key does not exist', async () => {
-			dbMocks.translation.mockFirst.mockResolvedValue(undefined);
+			dbMocks.translation.mockToArray.mockResolvedValue([]);
 			dbMocks.translation.mockPut.mockResolvedValue(1);
 
 			const result = await upsertTranslation({ key: 'welcome', context: 'login' });
@@ -138,13 +147,14 @@ describe('Translations Integration Tests', () => {
 			expect(result).toBe(1);
 			expect(dbMocks.translation.mockPut).toHaveBeenCalledWith({
 				key: 'welcome',
+				namespace: undefined,
 				context: 'login'
 			});
 		});
 
 		it('should update existing translation when key exists', async () => {
 			const existing = { id: 1, key: 'welcome', context: 'old' };
-			dbMocks.translation.mockFirst.mockResolvedValue(existing);
+			dbMocks.translation.mockToArray.mockResolvedValue([existing]);
 			dbMocks.translation.mockPut.mockResolvedValue(1);
 
 			const result = await upsertTranslation({ key: 'welcome', context: 'new' });
@@ -153,19 +163,21 @@ describe('Translations Integration Tests', () => {
 			expect(dbMocks.translation.mockPut).toHaveBeenCalledWith({
 				id: 1,
 				key: 'welcome',
+				namespace: undefined,
 				context: 'new'
 			});
 		});
 
 		it('should handle translation with null context', async () => {
-			dbMocks.translation.mockFirst.mockResolvedValue(undefined);
+			dbMocks.translation.mockToArray.mockResolvedValue([]);
 			dbMocks.translation.mockPut.mockResolvedValue(1);
 
 			await upsertTranslation({ key: 'simple' });
 
 			expect(dbMocks.translation.mockPut).toHaveBeenCalledWith({
 				key: 'simple',
-				context: null
+				namespace: undefined,
+				context: undefined
 			});
 		});
 
@@ -347,7 +359,7 @@ describe('Translations Integration Tests', () => {
 
 	describe('Integration Scenarios', () => {
 		it('should handle complete translation workflow', async () => {
-			dbMocks.translation.mockFirst.mockResolvedValue(undefined);
+			dbMocks.translation.mockToArray.mockResolvedValue([]);
 			dbMocks.translation.mockPut.mockResolvedValue(1);
 			dbMocks.translationvalue.mockFirst.mockResolvedValue(undefined);
 			dbMocks.translationvalue.mockPut.mockResolvedValue(1);
@@ -374,7 +386,7 @@ describe('Translations Integration Tests', () => {
 		});
 
 		it('should handle multiple languages for same translation', async () => {
-			dbMocks.translation.mockFirst.mockResolvedValue(undefined);
+			dbMocks.translation.mockToArray.mockResolvedValue([]);
 			dbMocks.translation.mockPut.mockResolvedValue(1);
 			dbMocks.translationvalue.mockFirst.mockResolvedValue(undefined);
 			dbMocks.translationvalue.mockPut.mockResolvedValue(1);

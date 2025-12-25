@@ -157,7 +157,7 @@ export default function TokenList() {
 				<table>
 					<thead>
 						<tr>
-							<th><T>Name</T></th>
+							<th><T ns="token">Name</T></th>
 							<th><T>Scopes</T></th>
 							<th style="width:300px;"><T>Actions</T></th>
 						</tr>

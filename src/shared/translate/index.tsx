@@ -21,10 +21,11 @@ import isDev from '@/isDev'
 import { useMutation } from '@/api'
 import { SUPPORTED_LANGUAGES } from '@/config/languages'
 
-function TRemote({ lang, children, ctx, onFetched }: {
+function TRemote({ lang, children, ctx, ns, onFetched }: {
 	lang: string,
 	children: string,
 	ctx?: string,
+	ns?: string,
 	onFetched?: () => void
 }) {
 	const [translation, setTranslation] = useState<TranslationData | null>(null)
@@ -37,9 +38,9 @@ function TRemote({ lang, children, ctx, onFetched }: {
 
 		const fetchTranslation = async () => {
 			try {
-				console.log(`[TRemote] Fetching translation for "${children}", lang=${lang}, ctx=${ctx}`);
-				const trans = await fetchRemoteTranslation(children, lang, ctx);
-				console.log(`[TRemote] Received translation for "${children}":`, trans);
+				console.log(`[TRemote] Fetching translation for "${children}", lang=${lang}, ctx=${ctx}, ns=${ns}`);
+				const trans = await fetchRemoteTranslation(children, lang, ctx, ns);
+				console.log(`[TRemote] Received translation for "${children}" (ns: ${ns}):`, trans);
 				if (!cancelled) {
 					setTranslation(trans);
 					setFetched(true);
@@ -59,7 +60,7 @@ function TRemote({ lang, children, ctx, onFetched }: {
 		return () => {
 			cancelled = true;
 		};
-	}, [children, ctx, fetched, lang]);
+	}, [children, ctx, ns, fetched, lang]);
 
 	if (!fetched || !translation) return <>{children}</>
 
@@ -71,9 +72,10 @@ function TRemote({ lang, children, ctx, onFetched }: {
 interface TProps {
   children: string;
   ctx?: string;
+  ns?: string;
 }
 
-export default function T({ children, ctx }: TProps) {
+export default function T({ children, ctx, ns }: TProps) {
 	let user = useLiveQuery(() => getUser(), [], null)
 	const lang = getUserLanguage(user, SUPPORTED_LANGUAGES);
 	const [shouldShowRemote, setShouldShowRemote] = useState(false);
@@ -84,13 +86,14 @@ export default function T({ children, ctx }: TProps) {
 	const inputRef = useRef<HTMLInputElement>(null);
 	const devMode = isDev();
 
-	console.log(`[T] Rendering "${children}", lang=${lang}, ctx=${ctx}`);
+	console.log(`[T] Rendering "${children}", lang=${lang}, ctx=${ctx}, ns=${ns}`);
 
 	const [updateTranslationMutation] = useMutation(`
-		mutation updateTranslationValue($key: String!, $lang: String!, $value: String!) {
-			updateTranslationValue(key: $key, lang: $lang, value: $value) {
+		mutation updateTranslationValue($key: String!, $lang: String!, $value: String!, $namespace: String) {
+			updateTranslationValue(key: $key, lang: $lang, value: $value, namespace: $namespace) {
 				id
 				key
+				namespace
 				values
 			}
 		}
@@ -98,8 +101,8 @@ export default function T({ children, ctx }: TProps) {
 
 
 	let translationData = useLiveQuery(async () => {
-		const trans = await getTranslation(children);
-		console.log(`[T] Translation lookup for "${children}":`, trans);
+		const trans = await getTranslation(children, ns);
+		console.log(`[T] Translation lookup for "${children}" (ns: ${ns}):`, trans);
 
 		if (!trans) {
 			console.log(`[T] No translation record in IndexedDB for "${children}", will fetch from network`);
@@ -112,7 +115,7 @@ export default function T({ children, ctx }: TProps) {
 			console.log(`[T] ✅ Using cached translation for "${children}"`);
 		}
 		return { exists: true, value };
-	}, [children, lang], null);
+	}, [children, lang, ns], null);
 
 	const translation = translationData?.value || null;
 	const translationExists = translationData?.exists ?? false;
@@ -164,13 +167,14 @@ export default function T({ children, ctx }: TProps) {
 		setIsSaving(true);
 
 		try {
-			const trans = await getTranslation(children);
+			const trans = await getTranslation(children, ns);
 			const translationId = trans?.id;
 
 			await updateTranslationMutation({
 				key: children,
 				lang: lang,
-				value: editValue
+				value: editValue,
+				namespace: ns || null
 			});
 
 			if (translationId) {
@@ -244,10 +248,11 @@ export default function T({ children, ctx }: TProps) {
 	}
 
 	if (shouldShowRemote && !hasAttemptedFetch) {
-		console.log(`[T] Fetching remote translation for "${children}"`);
+		console.log(`[T] Fetching remote translation for "${children}" (ns: ${ns})`);
 		return <TRemote
 			lang={lang}
 			ctx={ctx}
+			ns={ns}
 			onFetched={handleFetched}
 		>{children}</TRemote>
 	}
@@ -257,7 +262,7 @@ export default function T({ children, ctx }: TProps) {
 }
 
 
-export function useTranslation(key: string, ctx?: string) {
+export function useTranslation(key: string, ctx?: string, ns?: string) {
 	const [translatedText, setTranslatedText] = useState(key);
 	const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
 
@@ -265,16 +270,16 @@ export function useTranslation(key: string, ctx?: string) {
 	const lang = getUserLanguage(user, SUPPORTED_LANGUAGES);
 
 	let cachedTranslation = useLiveQuery(async () => {
-		const translation = await getTranslation(key);
+		const translation = await getTranslation(key, ns);
 		if (!translation) return null;
 
 		const value = await getTranslationValue(translation.id, lang);
 		return { translationId: translation.id, value };
-	}, [key, lang], null);
+	}, [key, lang, ns], null);
 
 	useEffect(() => {
 		setHasAttemptedFetch(false);
-	}, [key, lang]);
+	}, [key, lang, ns]);
 
 	useEffect(() => {
 		if (cachedTranslation?.value) {
@@ -287,7 +292,7 @@ export function useTranslation(key: string, ctx?: string) {
 
 			let cancelled = false;
 
-			fetchTranslationWithRemote(key, lang, ctx)
+			fetchTranslationWithRemote(key, lang, ctx, ns)
 				.then(text => {
 					if (!cancelled) {
 						setTranslatedText(text);
@@ -303,12 +308,12 @@ export function useTranslation(key: string, ctx?: string) {
 				cancelled = true;
 			};
 		}
-	}, [cachedTranslation, key, lang, ctx, hasAttemptedFetch]);
+	}, [cachedTranslation, key, lang, ctx, ns, hasAttemptedFetch]);
 
 	return translatedText;
 }
 
-export function usePlural(count: number, key: string) {
+export function usePlural(count: number, key: string, ns?: string) {
 	const [translatedText, setTranslatedText] = useState(key);
 	const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
 
@@ -317,16 +322,16 @@ export function usePlural(count: number, key: string) {
 	const pluralForm = getPluralForm(count, lang);
 
 	let cachedPlural = useLiveQuery(async () => {
-		const translation = await getTranslation(key);
+		const translation = await getTranslation(key, ns);
 		if (!translation) return null;
 
 		const pluralData = await getPluralForms(translation.id, lang);
 		return { translationId: translation.id, pluralData };
-	}, [key, lang], null);
+	}, [key, lang, ns], null);
 
 	useEffect(() => {
 		setHasAttemptedFetch(false);
-	}, [key, lang]);
+	}, [key, lang, ns]);
 
 	useEffect(() => {
 		if (cachedPlural?.pluralData?.[pluralForm]) {
@@ -339,7 +344,7 @@ export function usePlural(count: number, key: string) {
 
 			let cancelled = false;
 
-			fetchPluralWithRemote(key, lang, pluralForm)
+			fetchPluralWithRemote(key, lang, pluralForm, ns)
 				.then(text => {
 					if (!cancelled) {
 						setTranslatedText(text);
@@ -355,7 +360,7 @@ export function usePlural(count: number, key: string) {
 				cancelled = true;
 			};
 		}
-	}, [cachedPlural, key, lang, pluralForm, hasAttemptedFetch]);
+	}, [cachedPlural, key, lang, pluralForm, ns, hasAttemptedFetch]);
 
 	return translatedText;
 }

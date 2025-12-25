@@ -6,6 +6,7 @@ const getTranslationsQuery = gql`query getTranslations($inputs: [TranslationInpu
         __typename
         id
         key
+        namespace
         context
         values
         plurals
@@ -26,10 +27,17 @@ class NewTranslationBatcher {
   private timer: ReturnType<typeof setTimeout> | null = null
   private batchDelay: number = 150
 
-  async request(key: string, isPlural: boolean = false, context?: string): Promise<any> {
-    console.log(`[Batcher] Request queued: key="${key}", isPlural=${isPlural}, context="${context}"`);
+  async request(key: string, isPlural: boolean = false, context?: string, namespace?: string): Promise<any> {
+    console.log(`[Batcher] Request queued: key="${key}", isPlural=${isPlural}, context="${context}", namespace="${namespace}"`);
+
+    if (namespace) {
+      console.log(`[Batcher] ✅ Namespace IS set: "${namespace}"`);
+    } else {
+      console.log(`[Batcher] ⚠️ Namespace NOT set (undefined/null)`);
+    }
+
     return new Promise((resolve, reject) => {
-      this.queue.push({key, context, isPlural, resolve, reject})
+      this.queue.push({key, context, namespace, isPlural, resolve, reject})
 
       if (this.timer) {
         clearTimeout(this.timer)
@@ -48,12 +56,30 @@ class NewTranslationBatcher {
 
     console.log(`[Batcher] Flushing batch of ${batch.length} requests`);
 
+    // Log namespace status for each request
+    batch.forEach((req, i) => {
+      if (req.namespace) {
+        console.log(`[Batcher] Request ${i}: "${req.key}" HAS namespace="${req.namespace}"`);
+      } else {
+        console.log(`[Batcher] Request ${i}: "${req.key}" NO namespace`);
+      }
+    });
+
     try {
       const uniqueRequests = this.deduplicateRequests(batch)
-      const inputs = uniqueRequests.map(req => ({
-        key: req.key,
-        context: req.context || null
-      }))
+      const inputs = uniqueRequests.map(req => {
+        const input: any = {
+          key: req.key,
+          context: req.context || null
+        }
+
+        // Only include namespace if it's actually set
+        if (req.namespace) {
+          input.namespace = req.namespace
+        }
+
+        return input
+      })
 
       console.log(`[Batcher] Fetching translations for inputs:`, inputs);
       const result = await apiClient.query(getTranslationsQuery, {inputs}).toPromise()
@@ -84,6 +110,7 @@ class NewTranslationBatcher {
 			await upsertTranslation({
 				id: translationId,
 				key: requestKey,
+				namespace: trans.namespace,
 				context: trans.context
 			})
 
@@ -159,7 +186,7 @@ class NewTranslationBatcher {
     const seen = new Map<string, TranslationRequest>()
 
     for (const req of requests) {
-      const key = `${req.key}|${req.isPlural}`
+      const key = `${req.key}|${req.namespace || ''}|${req.isPlural}`
       if (!seen.has(key)) {
         seen.set(key, req)
       }

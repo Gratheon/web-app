@@ -101,6 +101,7 @@ export default function FrameSideDrawing({
 					resizes={file.resizes}
 					detectedQueenCups={liveFrameSideFile.detectedQueenCups}
 					detectedBees={liveFrameSideFile.detectedBees}
+					detectedDrones={liveFrameSideFile.detectedDrones}
 					detectedCells={liveFrameSideFile.detectedCells}
 					detectedVarroa={liveFrameSideFile.detectedVarroa}
 					strokeHistory={liveFrameSideFile.strokeHistory}

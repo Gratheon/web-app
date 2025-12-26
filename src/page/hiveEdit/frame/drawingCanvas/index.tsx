@@ -319,6 +319,7 @@ interface DrawingCanvasProps {
 	strokeHistory: DrawingLine[];
 	detectedQueenCups?: any[];
 	detectedBees?: any[];
+	detectedDrones?: any[];
 	detectedCells?: any[];
 	detectedVarroa?: any[];
 	onStrokeHistoryUpdate: (history: DrawingLine[] | undefined) => void;
@@ -332,6 +333,7 @@ export default function DrawingCanvas({
 	strokeHistory = [],
 	detectedQueenCups = [],
 	detectedBees = [],
+	detectedDrones = [],
 	detectedCells = [],
 	detectedVarroa = [],
 	onStrokeHistoryUpdate,
@@ -348,7 +350,15 @@ export default function DrawingCanvas({
 	const [showVarroa, setShowVarroaVisibility] = useState(true);
 	const [version, setVersion] = useState(0);
 	const [isAiQueenVisible, setIsAiQueenVisible] = useState(true);
-	const [currentLineWidth, setCurrentLineWidth] = useState(0); // Track line width for drawing updates
+	const [currentLineWidth, setCurrentLineWidth] = useState(0);
+
+	const allDetectedBees = React.useMemo(() => {
+		const combined = [...(detectedBees || [])];
+		if (detectedDrones && detectedDrones.length > 0) {
+			combined.push(...detectedDrones);
+		}
+		return combined;
+	}, [detectedBees, detectedDrones]); // Track line width for drawing updates
 
 	const getThumbnailUrl = useCallback(() => {
 		let bestUrl = imageUrl;
@@ -388,10 +398,10 @@ export default function DrawingCanvas({
 
 		drawCanvasLayers({
 			canvas, ctx, strokeHistory, showBees, showDrones, isAiQueenVisible,
-			detectedBees, showCells, detectedCells, showQueenCups, detectedQueenCups,
+			detectedBees: allDetectedBees, showCells, detectedCells, showQueenCups, detectedQueenCups,
 			showVarroa, detectedVarroa
 		});
-	}, [strokeHistory, showBees, showDrones, isAiQueenVisible, detectedBees, showCells, detectedCells, showQueenCups, detectedQueenCups, showVarroa, detectedVarroa]);
+	}, [strokeHistory, showBees, showDrones, isAiQueenVisible, allDetectedBees, showCells, detectedCells, showQueenCups, detectedQueenCups, showVarroa, detectedVarroa]);
 
 
 	// Setup Canvas and Image

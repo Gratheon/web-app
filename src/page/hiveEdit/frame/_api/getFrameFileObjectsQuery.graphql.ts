@@ -22,6 +22,8 @@ export default gql`
 			strokeHistory
 			
 			detectedBees
+			detectedDrones
+			isDroneDetectionComplete
 			detectedVarroa
 			varroaCount
 			

@@ -81,6 +81,7 @@ const baseFile: FrameSideFile = {
     hiveId: 10,
     strokeHistory: [],
     detectedBees: [],
+    detectedDrones: [],
     detectedCells: [],
     detectedQueenCups: [],
     detectedVarroa: [],

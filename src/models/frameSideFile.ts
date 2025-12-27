@@ -4,8 +4,8 @@ import { getFile } from './files'
 import { getFileResizes } from './fileResize'
 
 export type FrameSideFile = {
-    id?: number // same as frameSideId, just for indexing
-    hiveId?: any // internal
+    id?: number
+    hiveId?: any
     fileId: number
     frameSideId: number
 
@@ -47,6 +47,10 @@ export async function getFrameSideFile({ frameSideId }: { frameSideId: number })
             // Ensure arrays exist
             if (!row.detectedBees) {
                 row.detectedBees = []
+            }
+
+            if (!row.detectedDrones) {
+                row.detectedDrones = []
             }
 
             if (!row.detectedCells) {

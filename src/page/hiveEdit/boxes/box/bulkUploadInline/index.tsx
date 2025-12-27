@@ -220,21 +220,22 @@ export default function BulkUploadInline({ hiveId, boxId, apiaryId, frames, onCo
 
 				uploadContext.updateImageProgress(i, 90)
 
-				await updateFrameSideFile({
-					id: +frameSide.frameSideId,
-					fileId: +uploadData.id,
-					frameSideId: +frameSide.frameSideId,
-					strokeHistory: [],
-					detectedBees: [],
-					detectedCells: [],
-					detectedQueenCups: [],
-					detectedVarroa: [],
-					counts: [],
-					detectedQueenCount: 0,
-					detectedWorkerBeeCount: 0,
-					detectedDroneCount: 0,
-					varroaCount: 0
-				})
+			await updateFrameSideFile({
+				id: +frameSide.frameSideId,
+				fileId: +uploadData.id,
+				frameSideId: +frameSide.frameSideId,
+				strokeHistory: [],
+				detectedBees: [],
+				detectedDrones: [],
+				detectedCells: [],
+				detectedQueenCups: [],
+				detectedVarroa: [],
+				counts: [],
+				detectedQueenCount: 0,
+				detectedWorkerBeeCount: 0,
+				detectedDroneCount: 0,
+				varroaCount: 0
+			})
 
 				uploadContext.markImageComplete(i, frameSide.frameSideId)
 				metrics.trackFramePhotoUploaded()

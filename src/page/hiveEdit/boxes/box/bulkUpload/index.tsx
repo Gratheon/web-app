@@ -216,21 +216,22 @@ export default function BulkUpload({ hiveId, frames, onComplete }: BulkUploadPro
 				updatedImages[i] = { ...image, uploadProgress: 90 }
 				setImages([...updatedImages])
 
-				await updateFrameSideFile({
-					id: +frameSide.frameSideId,
-					fileId: +uploadData.id,
-					frameSideId: +frameSide.frameSideId,
-					strokeHistory: [],
-					detectedBees: [],
-					detectedCells: [],
-					detectedQueenCups: [],
-					detectedVarroa: [],
-					counts: [],
-					detectedQueenCount: 0,
-					detectedWorkerBeeCount: 0,
-					detectedDroneCount: 0,
-					varroaCount: 0
-				})
+			await updateFrameSideFile({
+				id: +frameSide.frameSideId,
+				fileId: +uploadData.id,
+				frameSideId: +frameSide.frameSideId,
+				strokeHistory: [],
+				detectedBees: [],
+				detectedDrones: [],
+				detectedCells: [],
+				detectedQueenCups: [],
+				detectedVarroa: [],
+				counts: [],
+				detectedQueenCount: 0,
+				detectedWorkerBeeCount: 0,
+				detectedDroneCount: 0,
+				varroaCount: 0
+			})
 
 				updatedImages[i] = { ...image, uploadProgress: 100, uploaded: true, frameSideId: frameSide.frameSideId }
 				setImages([...updatedImages])

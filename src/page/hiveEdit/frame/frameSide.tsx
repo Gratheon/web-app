@@ -85,21 +85,22 @@ export default function FrameSide({
 			hiveID: hiveId
 		})
 
-		await updateFrameSideFile({
-			id: +frameSideId,
-			fileId: +data.id,
-			frameSideId: +frameSideId,
-			strokeHistory: [],
-			detectedBees: [],
-			detectedCells: [],
-			detectedQueenCups: [],
-			detectedVarroa: [],
-			counts: [],
-			detectedQueenCount: 0,
-			detectedWorkerBeeCount: 0,
-			detectedDroneCount: 0,
-			varroaCount: 0
-		});
+	await updateFrameSideFile({
+		id: +frameSideId,
+		fileId: +data.id,
+		frameSideId: +frameSideId,
+		strokeHistory: [],
+		detectedBees: [],
+		detectedDrones: [],
+		detectedCells: [],
+		detectedQueenCups: [],
+		detectedVarroa: [],
+		counts: [],
+		detectedQueenCount: 0,
+		detectedWorkerBeeCount: 0,
+		detectedDroneCount: 0,
+		varroaCount: 0
+	});
 
 		metrics.trackFramePhotoUploaded()
 	}

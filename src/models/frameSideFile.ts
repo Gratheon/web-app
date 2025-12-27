@@ -11,6 +11,7 @@ export type FrameSideFile = {
 
     strokeHistory: any
     detectedBees: any
+    detectedDrones: any
     detectedCells: any
     detectedQueenCups: any
     detectedVarroa: any

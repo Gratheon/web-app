@@ -6,10 +6,6 @@ import { useEffect } from 'preact/hooks'
 
 import { apiClient } from './api'
 import Page from './page'
-import Paywall from './page/paywall'
-import { isLoggedIn } from './user'
-import isDev from './isDev'
-
 import initErrorReporting from './error_reporter'
 import GlobalErrorHandler from './error_handler'
 import { syncGraphqlSchemaToIndexDB } from './models/db'
@@ -18,10 +14,10 @@ import { UploadProvider } from './contexts/UploadContext'
 import { getUser } from './models/user'
 import { getUserLanguage } from './models/translationService'
 import { SUPPORTED_LANGUAGES } from './config/languages'
+import metrics from './metrics'
 
 initErrorReporting()
 
-// create index db schema out of graphql schema
 syncGraphqlSchemaToIndexDB(schemaObject)
 
 export default function App() {
@@ -38,6 +34,12 @@ export default function App() {
 		}
 	}, [lang])
 
+	useEffect(() => {
+		if (user?.id) {
+			metrics.setUser(user)
+		}
+	}, [user])
+
 	return (
 		<GlobalErrorHandler>
 			<Provider value={apiClient}>
@@ -48,7 +50,6 @@ export default function App() {
 					titleTemplate="Gratheon.com - %s"
 					defaultTitle="Gratheon"
 					titleAttributes={{ itemprop: 'name' }}
-					// base={{ target: '_blank', href: 'https://app.gratheon.com/' }}
 					meta={[
 						{
 							name: 'description',
@@ -58,30 +59,13 @@ export default function App() {
 					]}
 					link={[
 						{ rel: 'canonical', href: 'https://app.gratheon.com/' },
-						// { rel: 'apple-touch-icon', href: 'http://mysite.com/img/apple-touch-icon-57x57.png' },
-						// { rel: 'apple-touch-icon', sizes: '72x72', href: 'http://mysite.com/img/apple-touch-icon-72x72.png' }
 					]}
-					script={
-						[
-							// { src: 'http://include.com/pathtojs.js', type: 'text/javascript' },
-							// { type: 'application/ld+json', innerHTML: `{ "@context": "http://schema.org" }` }
-						]
-					}
-					noscript={
-						[
-							// { innerHTML: `<link rel="stylesheet" type="text/css" href="foo.css" />` }
-						]
-					}
-					style={
-						[
-							// { type: 'text/css', cssText: 'body {background-color: blue;} p {font-size: 12px;}' }
-						]
-					}
-					// onChangeClientState={(newState) => console.log(newState)}
+					script={[]}
+					noscript={[]}
+					style={[]}
 				/>
 
 				<BrowserRouter>
-					<Paywall isLoggedIn={isLoggedIn()} />
 					<Page />
 				</BrowserRouter>
 				</UploadProvider>
@@ -89,3 +73,4 @@ export default function App() {
 		</GlobalErrorHandler>
 	)
 }
+

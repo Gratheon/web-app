@@ -261,6 +261,14 @@ type Invoice {
   url: URL
 }
 
+type BillingHistoryEvent {
+  id: ID!
+  eventType: String!
+  billingPlan: String
+  details: String
+  createdAt: DateTime!
+}
+
 scalar JSON
 
 type Locale {
@@ -321,7 +329,7 @@ type Mutation {
   generateShareToken(name: String!, scopes: JSON!, sourceUrl: URL!): ShareToken
   validateApiToken(token: String): ValidateTokenResult
   updateUser(user: UserUpdateInput!): UpdateUserResult
-  createCheckoutSession: URL
+  createCheckoutSession(plan: String, cycle: String): URL
   cancelSubscription: CancelSubscriptionResult
   deleteUserSelf: Error
   revokeApiToken(token: String!): Error
@@ -369,6 +377,7 @@ type Query {
   inspections(hiveId: ID!, limit: Int): [Inspection]
   user: User
   invoices: [Invoice]
+  billingHistory: [BillingHistoryEvent]
   apiTokens: [APIToken]
   shareTokens: [ShareToken]
   translate(en: String, key: String, tc: String): Locale

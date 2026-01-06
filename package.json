@@ -41,7 +41,7 @@
 		"lightweight-charts-react-components": "1.4.0",
 		"lodash": "4.17.21",
 		"md5": "2.3.0",
-		"posthog-js": "1.242.2",
+		"posthog-js": "1.298.0",
 		"preact": "^10.23.1",
 		"preact-router": "3.2.1",
 		"proj4": "2.12.0",

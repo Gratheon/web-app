@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import T, { useTranslation as t } from '@/shared/translate'
 import ChartContainer from '@/shared/charts/ChartContainer'
 import { formatMetricData } from '@/shared/charts/formatters'
+import InfoIcon from '@/shared/infoIcon'
 
 const red = 'rgba(255,211,174,0.42)'
 const green = 'rgba(126,207,36,0.83)'
@@ -45,9 +46,30 @@ export default function TemperatureChart({ temperatureData, chartRefs, syncChart
 
 	if (!temperatureData || temperatureData.code || sortedTemperatureData.length === 0) {
 		return (
-			<p style="color:#bbb">
-				<T>Hive temperature was not reported this week.</T>
-			</p>
+			<div style={{
+				padding: '16px',
+				background: '#f9f9f9',
+				borderRadius: '8px',
+				border: '1px solid #e0e0e0'
+			}}>
+				<p style={{ margin: 0, color: '#666', display: 'flex', alignItems: 'center' }}>
+					<span style={{ marginRight: '8px' }}>🌡️</span>
+					<strong><T>Hive temperature was not reported this week.</T></strong>
+					<InfoIcon>
+						<p style={{ margin: '0 0 8px 0' }}>
+							<strong><T>To start tracking hive temperature:</T></strong>
+						</p>
+						<ol style={{ margin: '0 0 12px 16px', paddingLeft: 0 }}>
+							<li><T>Set up IoT temperature sensors inside your hive</T></li>
+							<li><T>Send data via our REST API</T></li>
+							<li><T>View the documentation at</T> <a href="https://gratheon.com/docs/API/REST" target="_blank" rel="noopener noreferrer">gratheon.com/docs/API/REST</a></li>
+						</ol>
+						<p style={{ margin: 0, fontSize: '13px', color: '#555' }}>
+							💡 <em><T>Tip: Temperature monitoring helps ensure optimal brood development (ideal range: 33-36°C) and detect ventilation issues.</T></em>
+						</p>
+					</InfoIcon>
+				</p>
+			</div>
 		)
 	}
 

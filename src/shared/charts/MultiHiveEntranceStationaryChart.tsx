@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import T, { useTranslation as t, usePlural } from '@/shared/translate'
 import ChartContainer from './ChartContainer'
 import { gql, useQuery } from '@/api'
+import InfoIcon from '@/shared/infoIcon'
 
 const ALERT_RULES_QUERY = gql`
 	query alertRules($metricType: String!) {
@@ -103,9 +104,31 @@ export default function MultiHiveEntranceStationaryChart({ entranceDataByHive, c
 
 	if (!hasData) {
 		return (
-			<p style={{ color: '#bbb' }}>
-				<T>Stationary bees data not available for selected hives.</T>
-			</p>
+			<div style={{
+				padding: '16px',
+				background: '#f9f9f9',
+				borderRadius: '8px',
+				border: '1px solid #e0e0e0'
+			}}>
+				<p style={{ margin: 0, color: '#666', display: 'flex', alignItems: 'center' }}>
+					<span style={{ marginRight: '8px' }}>🐌</span>
+					<strong><T>Stationary bees data not available for selected hives.</T></strong>
+					<InfoIcon>
+						<p style={{ margin: '0 0 8px 0' }}>
+							<strong><T>To start tracking stationary bees:</T></strong>
+						</p>
+						<ol style={{ margin: '0 0 12px 16px', paddingLeft: 0 }}>
+							<li><T>Set up video monitoring at hive entrance</T></li>
+							<li><T>Track bees with minimal movement (guards, orientation)</T></li>
+							<li><T>Send stationary bee metrics via our REST API</T></li>
+							<li><T>View the documentation at</T> <a href="https://gratheon.com/docs/API/REST" target="_blank" rel="noopener noreferrer">gratheon.com/docs/API/REST</a></li>
+						</ol>
+						<p style={{ margin: 0, fontSize: '13px', color: '#555' }}>
+							💡 <em><T>Tip: Stationary bees include guard bees and young bees on orientation flights, indicating colony defense and new forager development.</T></em>
+						</p>
+					</InfoIcon>
+				</p>
+			</div>
 		)
 	}
 

@@ -67,7 +67,7 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 					)}
 					<div className={`plan-card ${currentPlan === 'free' ? 'current' : ''}`}>
 						<div className="plan-header plan-header-free">
-							<h3 className="plan-name"><T>Hobbyist</T></h3>
+							<h3 className="plan-name"><T>Free</T></h3>
 							<div className="plan-description">
 								<T>Perfect for beginners</T>
 							</div>

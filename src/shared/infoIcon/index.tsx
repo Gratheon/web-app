@@ -47,7 +47,7 @@ export default function InfoIcon({ children, size = 16 }: InfoIconProps) {
 						border: '1px solid #ddd',
 						borderRadius: '8px',
 						boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-						zIndex: 1000,
+						zIndex: 10000,
 						minWidth: '300px',
 						maxWidth: '400px',
 						fontSize: '14px',

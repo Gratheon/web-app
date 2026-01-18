@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 interface InfoIconProps {
 	children: React.ReactNode
@@ -7,13 +7,37 @@ interface InfoIconProps {
 
 export default function InfoIcon({ children, size = 16 }: InfoIconProps) {
 	const [showTooltip, setShowTooltip] = useState(false)
+	const tooltipRef = useRef<HTMLDivElement>(null)
+	const iconRef = useRef<HTMLSpanElement>(null)
+
+	useEffect(() => {
+		if (!showTooltip) return
+
+		const handleClickOutside = (event: MouseEvent) => {
+			if (
+				tooltipRef.current &&
+				iconRef.current &&
+				!tooltipRef.current.contains(event.target as Node) &&
+				!iconRef.current.contains(event.target as Node)
+			) {
+				setShowTooltip(false)
+			}
+		}
+
+		document.addEventListener('mousedown', handleClickOutside)
+		return () => {
+			document.removeEventListener('mousedown', handleClickOutside)
+		}
+	}, [showTooltip])
 
 	return (
 		<span style={{ position: 'relative', display: 'inline-block', marginLeft: '8px' }}>
 			<span
-				onClick={() => setShowTooltip(!showTooltip)}
-				onMouseEnter={() => setShowTooltip(true)}
-				onMouseLeave={() => setShowTooltip(false)}
+				ref={iconRef}
+				onClick={(e) => {
+					e.stopPropagation()
+					setShowTooltip(!showTooltip)
+				}}
 				style={{
 					display: 'inline-flex',
 					alignItems: 'center',
@@ -36,6 +60,7 @@ export default function InfoIcon({ children, size = 16 }: InfoIconProps) {
 
 			{showTooltip && (
 				<div
+					ref={tooltipRef}
 					style={{
 						position: 'absolute',
 						top: '100%',

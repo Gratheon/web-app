@@ -97,10 +97,6 @@
   color: #ffffff;
 }
 
-.plan-card.current .plan-header-free {
-  border: 2px solid #999;
-}
-
 .plan-card.current .plan-header-starter {
   border-color: #FFD900;
 }

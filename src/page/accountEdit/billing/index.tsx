@@ -61,7 +61,7 @@ export default function Billing({ user }) {
 
 	const getEventIcon = (eventType: string) => {
 		switch (eventType) {
-			case 'registration': return '👤'
+			case 'registration': return '🧑‍🚀'
 			case 'subscription_created': return '✅'
 			case 'subscription_cancelled': return '❌'
 			case 'subscription_expired': return '⏰'
@@ -136,7 +136,7 @@ export default function Billing({ user }) {
 							<div
 								style={{
 									position: 'absolute',
-									left: '-0.6rem',
+									left: '-1.6rem',
 									top: '0.2rem',
 									width: '2rem',
 									height: '2rem',

@@ -138,6 +138,7 @@ export default function AccountEdit() {
 							<input
 								name="email"
 								id="email"
+								className={style.inputEmail}
 								disabled={true}
 								value={user.email}
 							/>

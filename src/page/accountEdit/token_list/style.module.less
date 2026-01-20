@@ -7,15 +7,116 @@
 		background-color: @color-gray-bg;
 		padding: 2px 10px;
 		border-radius: 3px;
-		font-family: Consolas, Monospace;
+		font-family: Consolas, 'Courier New', monospace;
 		margin: 0;
 		word-wrap: break-word;
 		height: 28px;
 		box-sizing: border-box;
+		overflow-x: auto;
+		max-width: 100%;
+	}
+
+	.buttons {
+		white-space: nowrap;
 	}
 }
 
-// ipad and desktop
+.tokenContainer {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
+	flex: 1;
+}
+
+.scopesCell {
+	max-width: 150px;
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+}
+
+@media @mobile {
+	.apiToken {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		padding: 10px 0;
+		border-bottom: 1px solid @color-gray-bg;
+
+		td {
+			display: block;
+			width: 100% !important;
+			min-width: unset !important;
+		}
+
+		.tokenContainer {
+			flex-direction: column;
+			align-items: stretch;
+		}
+
+		.token {
+			width: 100%;
+			overflow-x: auto;
+			white-space: nowrap;
+		}
+
+		.buttons {
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+			width: 100%;
+
+			button {
+				width: 100%;
+			}
+		}
+	}
+
+	.scopesCell {
+		max-width: 100%;
+		font-size: 13px;
+	}
+
+	.sharedLinksTable {
+		display: block;
+		width: 100%;
+
+		thead {
+			display: none;
+		}
+
+		tbody {
+			display: block;
+		}
+
+		tr {
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+			padding: 10px 0;
+			border-bottom: 1px solid @color-gray-bg;
+
+			&:last-child {
+				border-bottom: none;
+			}
+		}
+
+		td {
+			display: block;
+			width: 100%;
+
+			&:before {
+				content: attr(data-label);
+				font-weight: bold;
+				display: block;
+				margin-bottom: 4px;
+				color: @color-gray-breadcrumbs-text;
+				font-size: 12px;
+			}
+		}
+	}
+}
+
 @media @desktop {
 	.apiToken {
 		padding: 5px;

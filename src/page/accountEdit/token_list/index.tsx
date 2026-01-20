@@ -127,12 +127,14 @@ export default function TokenList() {
 						<tbody>
 							{tokens.map((token) => (
 								<tr key={token.id} className={style.apiToken}>
-									<td style="min-width:200px; display:flex;">
-										<div className={style.token}>
-											{hiddenTokens.includes(token.id) ? '*'.repeat(token.token.length) : token.token}
-										</div>
+									<td>
+										<div className={style.tokenContainer}>
+											<div className={style.token}>
+												{hiddenTokens.includes(token.id) ? '*'.repeat(token.token.length) : token.token}
+											</div>
 
-										<CopyButton size='small' data={token.token} />
+											<CopyButton size='small' data={token.token} />
+										</div>
 									</td>
 									<td className={style.buttons}>
 										<Button size='small' onClick={() => toggleToken(token.id)}><T>Toggle</T></Button>
@@ -154,22 +156,24 @@ export default function TokenList() {
 				<h3><T>Shared links</T></h3>
 				<p><T>You can share access to hive inspections with other people. This list shows list of such shared tokens</T></p>
 
-				<table>
+				<table className={style.sharedLinksTable}>
 					<thead>
 						<tr>
 							<th><T ns="token">Name</T></th>
 							<th><T>Scopes</T></th>
-							<th style="width:300px;"><T>Actions</T></th>
+							<th><T>Actions</T></th>
 						</tr>
 					</thead>
 					<tbody>
 						{shareTokens.map((token) => (
 							<tr key={token.id} className={style.apiToken}>
-								<td>
+								<td data-label="Name">
 									{token.name}
 								</td>
-								<td>{Array.isArray(token.scopes) ? token.scopes.join(', ') : String(token.scopes)}</td>
-								<td className={style.buttons}>
+								<td data-label="Scopes" className={style.scopesCell}>
+									{Array.isArray(token.scopes) ? token.scopes.join(', ') : String(token.scopes)}
+								</td>
+								<td data-label="Actions" className={style.buttons}>
 									<CopyButton size='small' data={token.targetUrl} />
 									<Button
 										size='small'

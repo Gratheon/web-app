@@ -44,7 +44,7 @@
 		"posthog-js": "1.242.2",
 		"preact": "^10.23.1",
 		"preact-router": "3.2.1",
-		"proj4": "2.12.0",
+		"proj4": "2.20.2",
 		"qrcode": "1.5.4",
 		"qrcode.react": "4.2.0",
 		"react": "18.3.1",

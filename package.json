@@ -35,7 +35,7 @@
 		"dexie-react-hooks": "1.1.7",
 		"graphql": "16.9.0",
 		"graphql-ws": "5.11.3",
-		"hls.js": "1.4.14",
+		"hls.js": "1.6.15",
 		"leaflet": "1.9.3",
 		"lightweight-charts": "5.0.9",
 		"lightweight-charts-react-components": "1.4.0",

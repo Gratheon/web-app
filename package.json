@@ -39,7 +39,7 @@
 		"leaflet": "1.9.3",
 		"lightweight-charts": "5.0.9",
 		"lightweight-charts-react-components": "1.4.0",
-		"lodash": "4.17.21",
+		"lodash": "4.17.23",
 		"md5": "2.3.0",
 		"posthog-js": "1.242.2",
 		"preact": "^10.23.1",

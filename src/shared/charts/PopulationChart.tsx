@@ -57,19 +57,43 @@ export default function PopulationChart({ inspectionsByHive, showIdealCurve, cha
 		const seriesData: Record<string, { data: any[], hiveName: string, markers: any[] }> = {}
 
 		Object.entries(inspectionsByHive).forEach(([hiveId, insList]) => {
-			const data = insList
+			const rawData = insList
 				.filter(ins => ins.population && ins.population > 0)
 				.map(ins => ({
 					time: Math.floor(ins.date.getTime() / 1000) as any,
 					value: ins.population
 				}))
 
-			if (data.length > 0) {
+			if (rawData.length === 0) return
+
+			const uniqueData = []
+			const seenTimes = new Set()
+
+			for (const d of rawData) {
+				if (!seenTimes.has(d.time)) {
+					seenTimes.add(d.time)
+					uniqueData.push(d)
+				}
+			}
+
+			if (uniqueData.length > 0) {
+				uniqueData.sort((a, b) => a.time - b.time)
+
+				for (let i = 1; i < uniqueData.length; i++) {
+					if (uniqueData[i].time <= uniqueData[i-1].time) {
+						console.error('[PopulationChart] Data not properly sorted or has duplicates:', {
+							index: i,
+							current: uniqueData[i],
+							previous: uniqueData[i-1]
+						})
+					}
+				}
+
 				const colors = ['#1976d2', '#9c27b0', '#f57c00', '#00897b', '#e91e63']
 				const colorIndex = Object.keys(seriesData).length % colors.length
 				const color = colors[colorIndex]
 
-				const markers = data.map(d => ({
+				const markers = uniqueData.map(d => ({
 					time: d.time,
 					position: 'inBar' as const,
 					color: color,
@@ -77,7 +101,7 @@ export default function PopulationChart({ inspectionsByHive, showIdealCurve, cha
 				}))
 
 				seriesData[hiveId] = {
-					data,
+					data: uniqueData,
 					hiveName: insList[0]?.hiveName || `${hiveLabel} ${hiveId}`,
 					markers
 				}

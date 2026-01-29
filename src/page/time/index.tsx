@@ -281,6 +281,21 @@ export default function TimeView() {
 					code
 				}
 			}
+			hive_${hive.id}_population: populationMetrics(hiveId: "${hive.id}", days: $days) {
+				... on PopulationMetricsList {
+					metrics {
+						t
+						beeCount
+						droneCount
+						varroaMiteCount
+						inspectionId
+					}
+				}
+				... on TelemetryError {
+					message
+					code
+				}
+			}
 		`).join('\n')
 
 		return gql`
@@ -338,17 +353,53 @@ export default function TimeView() {
 	}, [activeHives], [])
 
 	const inspectionsByHive = useMemo(() => {
-		if (!inspections) return {}
+		if (!inspections && !telemetryData) return {}
 		const grouped: Record<string, any[]> = {}
-		inspections.forEach(ins => {
-			if (!grouped[ins.hiveId]) grouped[ins.hiveId] = []
-			grouped[ins.hiveId].push(ins)
-		})
+
+		if (inspections) {
+			inspections.forEach(ins => {
+				if (!grouped[ins.hiveId]) grouped[ins.hiveId] = []
+				grouped[ins.hiveId].push(ins)
+			})
+		}
+
+		if (telemetryData && activeHives) {
+			activeHives.forEach(hive => {
+				const populationData = telemetryData[`hive_${hive.id}_population`]
+				if (populationData?.metrics) {
+					if (!grouped[hive.id]) grouped[hive.id] = []
+
+					populationData.metrics.forEach(metric => {
+						grouped[hive.id].push({
+							hiveId: hive.id,
+							hiveName: hive.hiveNumber ? `#${hive.hiveNumber}` : hive.id,
+							date: new Date(metric.t),
+							population: metric.beeCount,
+							inspectionId: metric.inspectionId
+						})
+					})
+				}
+			})
+		}
+
 		Object.keys(grouped).forEach(hiveId => {
 			grouped[hiveId].sort((a, b) => a.date.getTime() - b.date.getTime())
+
+			const deduped = []
+			const seenTimestamps = new Set()
+
+			grouped[hiveId].forEach(item => {
+				const timestamp = item.date.getTime()
+				if (!seenTimestamps.has(timestamp)) {
+					seenTimestamps.add(timestamp)
+					deduped.push(item)
+				}
+			})
+
+			grouped[hiveId] = deduped
 		})
 		return grouped
-	}, [inspections])
+	}, [inspections, telemetryData, activeHives])
 
 	const { weightDataByHive, temperatureDataByHive, entranceDataByHive } = useMemo(() => {
 		if (!telemetryData || !activeHives) return { weightDataByHive: {}, temperatureDataByHive: {}, entranceDataByHive: {} }
@@ -376,7 +427,7 @@ export default function TimeView() {
 		return { weightDataByHive, temperatureDataByHive, entranceDataByHive }
 	}, [telemetryData, activeHives, hiveLabel])
 
-	if (!allHives || !inspections) return <Loader stroke="black" size={0}/>
+	if (!allHives) return <Loader stroke="black" size={0}/>
 
 	if (allHives.length === 0) {
 		return (

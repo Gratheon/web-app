@@ -113,7 +113,6 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 	const onCreateInspection = useMemo(
 		() =>
 			debounce(async function (v) {
-				if (isCollapsed) return;
 				setCreatingInspection(true)
 
 				let hive = await getHive(+hiveId)
@@ -162,7 +161,7 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 					/>
 				)
 			}, 1000),
-		[isCollapsed]
+		[hiveId]
 	)
 
 	if (!hive) {

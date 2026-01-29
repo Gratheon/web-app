@@ -20,7 +20,13 @@ import BeeCounter from '@/shared/beeCounter'
 import MessageSuccess from '@/shared/messageSuccess'
 import VisualFormSubmit from '@/shared/visualForm/submit'
 
-import { updateHive, getHive, isCollapsed, isEditable, isMerged } from '@/models/hive'
+import {
+	updateHive,
+	getHive,
+	isCollapsed,
+	isEditable,
+	isMerged,
+} from '@/models/hive'
 import { getBoxes } from '@/models/boxes'
 import { getFamilyByHive, getAllFamiliesByHive } from '@/models/family'
 import {
@@ -53,14 +59,11 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 	const [joinModalOpen, setJoinModalOpen] = useState(false) // Add state for collapse modal
 
 	// Model functions now handle invalid IDs
-	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId]);
-	let boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId]);
+	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId])
+	let boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId])
 	let families = useLiveQuery(() => {
-		console.log('HiveTopInfo (view mode): querying families for hive', hiveId)
 		return getAllFamiliesByHive(+hiveId)
-	}, [hiveId]);
-
-	console.log('HiveTopInfo (view mode): families loaded:', families)
+	}, [hiveId])
 
 	if (!families) {
 		families = []
@@ -76,9 +79,9 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 				const { getFrames } = await import('@/models/frames')
 				const boxFrames = await getFrames({ boxId: b.id })
 				if (boxFrames) {
-					const framesWithBoxId = boxFrames.map(f => ({
+					const framesWithBoxId = boxFrames.map((f) => ({
 						...f,
-						boxId: b.id
+						boxId: b.id,
 					}))
 					allFrames.push(...framesWithBoxId)
 				}
@@ -89,8 +92,8 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 		[]
 	)
 
-	const collapsed = hive ? isCollapsed(hive) : false;
-	const editableHive = hive ? isEditable(hive) : false; // Expose for UI
+	const collapsed = hive ? isCollapsed(hive) : false
+	const editableHive = hive ? isEditable(hive) : false // Expose for UI
 
 	let [mutateInspection, { error: errorInspection }] =
 		useMutation(`	mutation addInspection($inspection: InspectionInput!) {
@@ -169,14 +172,39 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 	}
 
 	const SplitIcon = () => (
-		<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 4px">
-			<path d="M8 2L8 6M8 6L6 4M8 6L10 4M8 10L8 14M8 10L6 12M8 10L10 12M3 8L6 8M10 8L13 8" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round"/>
+		<svg
+			width="16"
+			height="16"
+			viewBox="0 0 16 16"
+			fill="currentColor"
+			style="margin-right: 4px"
+		>
+			<path
+				d="M8 2L8 6M8 6L6 4M8 6L10 4M8 10L8 14M8 10L6 12M8 10L10 12M3 8L6 8M10 8L13 8"
+				stroke="currentColor"
+				fill="none"
+				stroke-width="1.5"
+				stroke-linecap="round"
+			/>
 		</svg>
 	)
 
 	const JoinIcon = () => (
-		<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 4px">
-			<path d="M2 6L5 8L2 10M14 6L11 8L14 10M5 8L11 8" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+		<svg
+			width="16"
+			height="16"
+			viewBox="0 0 16 16"
+			fill="currentColor"
+			style="margin-right: 4px"
+		>
+			<path
+				d="M2 6L5 8L2 10M14 6L11 8L14 10M5 8L11 8"
+				stroke="currentColor"
+				fill="none"
+				stroke-width="1.5"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+			/>
 		</svg>
 	)
 
@@ -218,14 +246,28 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 								title="Split colony"
 								onClick={() => setSplitModalOpen(true)}
 							>
-								<SplitIcon /> <T ctx={"An operation on a bee colony by separating it into two or more parts. This is done to prevent swarming, expand the apiary, or create nucleus colonies."}>Split Colony</T>
+								<SplitIcon />{' '}
+								<T
+									ctx={
+										'An operation on a bee colony by separating it into two or more parts. This is done to prevent swarming, expand the apiary, or create nucleus colonies.'
+									}
+								>
+									Split Colony
+								</T>
 							</Button>
 
 							<Button
 								title="Join colonies"
 								onClick={() => setJoinModalOpen(true)}
 							>
-								<JoinIcon /> <T ctx={"Joining two bee colonies involves physically combining two separate colonies into one. This is done to strengthen a weak colony, manage queen genetics, or consolidate resources."}>Combine Colonies</T>
+								<JoinIcon />{' '}
+								<T
+									ctx={
+										'Joining two bee colonies involves physically combining two separate colonies into one. This is done to strengthen a weak colony, manage queen genetics, or consolidate resources.'
+									}
+								>
+									Combine Colonies
+								</T>
 							</Button>
 
 							<Button
@@ -237,14 +279,20 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 
 							{hive && !isCollapsed(hive) && (
 								<Button onClick={() => setShowCollapseModal(true)}>
-									<SkullIcon size={16} /> <T ctx={"Marking bee colony as dead due to varroa mite infestation or other unknown causes"}>Mark as Collapsed</T>
+									<SkullIcon size={16} />{' '}
+									<T
+										ctx={
+											'Marking bee colony as dead due to varroa mite infestation or other unknown causes'
+										}
+									>
+										Mark as Collapsed
+									</T>
 								</Button>
 							)}
 							<DeactivateButton hiveId={hive.id} />
 						</PopupButton>
 					</PopupButtonGroup>
 				)}
-
 
 				{!isEditable(hive) && (isCollapsed(hive) || isMerged(hive)) && (
 					<DeactivateButton hiveId={hive.id} />
@@ -270,20 +318,26 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 				)}
 
 				{isEditable(hive) && (
-					<Button
-						title="Split colony"
-						onClick={() => setSplitModalOpen(true)}
-					>
-						<SplitIcon /> <span><T ctx={"An operation on a bee colony by separating it into two or more parts. This is done to prevent swarming, expand the apiary, or create nucleus colonies."}>Split Colony</T></span>
+					<Button title="Split colony" onClick={() => setSplitModalOpen(true)}>
+						<SplitIcon />{' '}
+						<span>
+							<T
+								ctx={
+									'An operation on a bee colony by separating it into two or more parts. This is done to prevent swarming, expand the apiary, or create nucleus colonies.'
+								}
+							>
+								Split Colony
+							</T>
+						</span>
 					</Button>
 				)}
 
 				{isEditable(hive) && (
-					<Button
-						title="Join colonies"
-						onClick={() => setJoinModalOpen(true)}
-					>
-						<JoinIcon /> <span><T>Join Colony</T></span>
+					<Button title="Join colonies" onClick={() => setJoinModalOpen(true)}>
+						<JoinIcon />{' '}
+						<span>
+							<T>Join Colony</T>
+						</span>
 					</Button>
 				)}
 
@@ -314,14 +368,20 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 
 							{hive && !isCollapsed(hive) && (
 								<Button onClick={() => setShowCollapseModal(true)}>
-									<SkullIcon size={16} /> <T ctx={"Marking bee colony as dead due to varroa mite infestation or other unknown causes"}>Mark as Collapsed</T>
+									<SkullIcon size={16} />{' '}
+									<T
+										ctx={
+											'Marking bee colony as dead due to varroa mite infestation or other unknown causes'
+										}
+									>
+										Mark as Collapsed
+									</T>
 								</Button>
 							)}
 							<DeactivateButton hiveId={hive.id} />
 						</PopupButton>
 					</PopupButtonGroup>
 				)}
-
 
 				{!isEditable(hive) && (isCollapsed(hive) || isMerged(hive)) && (
 					<DeactivateButton hiveId={hive.id} />
@@ -351,7 +411,11 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 						<div className={styles.name_race_wrap}>
 							<div className={styles.wrap4}>
 								<h1 style="flex-grow:1; cursor: pointer" onClick={goToHiveView}>
-									{hive.hiveNumber ? `Hive #${hive.hiveNumber}` : <T>Hive without number</T>}
+									{hive.hiveNumber ? (
+										`Hive #${hive.hiveNumber}`
+									) : (
+										<T>Hive without number</T>
+									)}
 								</h1>
 							</div>
 
@@ -367,11 +431,14 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 									<div className={styles.collapsedLabel}>
 										{hive.collapse_date && (
 											<>
-												<DateFormat datetime={hive.collapse_date} />
-												{' '}
+												<DateFormat datetime={hive.collapse_date} />{' '}
 											</>
 										)}
-										<SkullIcon size={14} color="#b22222" style={{ marginRight: 4 }} />
+										<SkullIcon
+											size={14}
+											color="#b22222"
+											style={{ marginRight: 4 }}
+										/>
 										<T>Collapsed</T>
 									</div>
 								)}
@@ -379,14 +446,19 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 
 							{hive.notes && <p>{hive.notes}</p>}
 							{hive && isCollapsed(hive) && hive.collapse_cause && (
-								<>	<T>Collapse cause</T>: {hive.collapse_cause}</>
+								<>
+									{' '}
+									<T>Collapse cause</T>: {hive.collapse_cause}
+								</>
 							)}
 
 							{hive.parentHive && (
 								<div className={styles.splitLineage}>
 									<T>Split from</T>:{' '}
 									<a href={`/apiaries/${apiaryId}/hives/${hive.parentHive.id}`}>
-										{hive.parentHive.hiveNumber ? `Hive #${hive.parentHive.hiveNumber}` : `Hive ${hive.parentHive.id}`}
+										{hive.parentHive.hiveNumber
+											? `Hive #${hive.parentHive.hiveNumber}`
+											: `Hive ${hive.parentHive.id}`}
 									</a>
 									{hive.splitDate && (
 										<>
@@ -404,7 +476,9 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 										<span key={child.id}>
 											{idx > 0 && ', '}
 											<a href={`/apiaries/${apiaryId}/hives/${child.id}`}>
-												{child.hiveNumber ? `Hive #${child.hiveNumber}` : `Hive ${child.id}`}
+												{child.hiveNumber
+													? `Hive #${child.hiveNumber}`
+													: `Hive ${child.id}`}
 											</a>
 											{child.splitDate && (
 												<>
@@ -417,40 +491,46 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 								</div>
 							)}
 
-						{hive.mergedIntoHive && (
-							<div className={styles.splitLineage}>
-								<T>Merged into</T>:{' '}
-								<a href={`/apiaries/${apiaryId}/hives/${hive.mergedIntoHive.id}`}>
-									{hive.mergedIntoHive.hiveNumber ? `Hive #${hive.mergedIntoHive.hiveNumber}` : `Hive ${hive.mergedIntoHive.id}`}
-								</a>
-								{hive.mergeDate && (
-									<>
-										{' '}
-										<T>on</T> <DateFormat datetime={hive.mergeDate} />
-									</>
-								)}
-							</div>
-						)}
+							{hive.mergedIntoHive && (
+								<div className={styles.splitLineage}>
+									<T>Merged into</T>:{' '}
+									<a
+										href={`/apiaries/${apiaryId}/hives/${hive.mergedIntoHive.id}`}
+									>
+										{hive.mergedIntoHive.hiveNumber
+											? `Hive #${hive.mergedIntoHive.hiveNumber}`
+											: `Hive ${hive.mergedIntoHive.id}`}
+									</a>
+									{hive.mergeDate && (
+										<>
+											{' '}
+											<T>on</T> <DateFormat datetime={hive.mergeDate} />
+										</>
+									)}
+								</div>
+							)}
 
-						{hive.mergedFromHives && hive.mergedFromHives.length > 0 && (
-							<div className={styles.splitLineage}>
-								<T>Merged from</T>:{' '}
-								{hive.mergedFromHives.map((merged, idx) => (
-									<span key={merged.id}>
-										{idx > 0 && ', '}
-										<a href={`/apiaries/${apiaryId}/hives/${merged.id}`}>
-											{merged.hiveNumber ? `Hive #${merged.hiveNumber}` : `Hive ${merged.id}`}
-										</a>
-										{merged.mergeDate && (
-											<>
-												{' '}
-												(<DateFormat datetime={merged.mergeDate} />)
-											</>
-										)}
-									</span>
-								))}
-							</div>
-						)}
+							{hive.mergedFromHives && hive.mergedFromHives.length > 0 && (
+								<div className={styles.splitLineage}>
+									<T>Merged from</T>:{' '}
+									{hive.mergedFromHives.map((merged, idx) => (
+										<span key={merged.id}>
+											{idx > 0 && ', '}
+											<a href={`/apiaries/${apiaryId}/hives/${merged.id}`}>
+												{merged.hiveNumber
+													? `Hive #${merged.hiveNumber}`
+													: `Hive ${merged.id}`}
+											</a>
+											{merged.mergeDate && (
+												<>
+													{' '}
+													(<DateFormat datetime={merged.mergeDate} />)
+												</>
+											)}
+										</span>
+									))}
+								</div>
+							)}
 						</div>
 
 						<div className={styles.button_wrap1}>{buttonsDesktop}</div>
@@ -465,8 +545,8 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 						hiveId={hiveId}
 						onClose={() => setShowCollapseModal(false)}
 						onSuccess={() => {
-							setShowCollapseModal(false);
-							setShowCollapseSuccess(true);
+							setShowCollapseModal(false)
+							setShowCollapseSuccess(true)
 						}}
 					/>
 				)}
@@ -517,7 +597,7 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 				}
 
 				// Calculate logo size and position (e.g., 20% of QR size)
-				const logoSize = qrSize * 0.20
+				const logoSize = qrSize * 0.2
 				const logoX = (qrSize - logoSize) / 2
 				const logoY = (qrSize - logoSize) / 2
 
@@ -538,12 +618,13 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 				document.body.appendChild(link)
 				link.click()
 				document.body.removeChild(link)
-				console.debug(`Generated QR sticker with logo for hive ${hiveId} with URL: ${url}`)
+				console.debug(
+					`Generated QR sticker with logo for hive ${hiveId} with URL: ${url}`
+				)
 			}
 			logo.onerror = (err) => {
 				console.error('Failed to load logo image', err)
 			}
-
 		} catch (err) {
 			console.error('Failed to generate QR code', err)
 		}

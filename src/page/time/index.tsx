@@ -386,12 +386,14 @@ export default function TimeView() {
 			grouped[hiveId].sort((a, b) => a.date.getTime() - b.date.getTime())
 
 			const deduped = []
-			const seenTimestamps = new Set()
+			const seenKeys = new Set()
 
 			grouped[hiveId].forEach(item => {
-				const timestamp = item.date.getTime()
-				if (!seenTimestamps.has(timestamp)) {
-					seenTimestamps.add(timestamp)
+				// Create a unique key using timestamp + population + inspectionId
+				// This allows multiple data points at the same timestamp if they have different values
+				const dedupKey = `${item.date.getTime()}_${item.population}_${item.inspectionId || 'none'}`
+				if (!seenKeys.has(dedupKey)) {
+					seenKeys.add(dedupKey)
 					deduped.push(item)
 				}
 			})

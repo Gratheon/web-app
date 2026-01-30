@@ -10,6 +10,8 @@ interface PopulationChartProps {
 	showIdealCurve: boolean
 	chartRefs: React.MutableRefObject<any[]>
 	syncCharts: (sourceChart: any) => void
+	timeFrom?: Date
+	timeTo?: Date
 }
 
 const idealPopulationCurve = [
@@ -20,9 +22,13 @@ const idealPopulationCurve = [
 	{ month: 11, value: 12000 }
 ]
 
-function interpolateIdealCurve(curve: { month: number; value: number }[]) {
+function interpolateIdealCurve(curve: { month: number; value: number }[], timeFrom?: Date, timeTo?: Date) {
 	const result = []
 	const year = new Date().getFullYear()
+
+	// If no time range specified, default to full year
+	const fromTimestamp = timeFrom ? Math.floor(timeFrom.getTime() / 1000) : 0
+	const toTimestamp = timeTo ? Math.floor(timeTo.getTime() / 1000) : Number.MAX_SAFE_INTEGER
 
 	for (let i = 0; i < curve.length - 1; i++) {
 		const start = curve[i]
@@ -36,11 +42,14 @@ function interpolateIdealCurve(curve: { month: number; value: number }[]) {
 			const date = new Date(year, 0, 1 + start.month * 30 + day)
 			const timestamp = Math.floor(date.getTime() / 1000)
 
-			if (result.length === 0 || result[result.length - 1].time !== timestamp) {
-				result.push({
-					time: timestamp as any,
-					value: Math.round(value)
-				})
+			// Only include points within the selected time range
+			if (timestamp >= fromTimestamp && timestamp <= toTimestamp) {
+				if (result.length === 0 || result[result.length - 1].time !== timestamp) {
+					result.push({
+						time: timestamp as any,
+						value: Math.round(value)
+					})
+				}
 			}
 		}
 	}
@@ -48,11 +57,11 @@ function interpolateIdealCurve(curve: { month: number; value: number }[]) {
 	return result
 }
 
-export default function PopulationChart({ inspectionsByHive, showIdealCurve, chartRefs, syncCharts }: PopulationChartProps) {
+export default function PopulationChart({ inspectionsByHive, showIdealCurve, chartRefs, syncCharts, timeFrom, timeTo }: PopulationChartProps) {
 	const hiveLabel = t('Hive')
 
 	const { idealData, seriesData, tableData } = useMemo(() => {
-		const idealData = interpolateIdealCurve(idealPopulationCurve)
+		const idealData = interpolateIdealCurve(idealPopulationCurve, timeFrom, timeTo)
 
 		const seriesData: Record<string, { data: any[], hiveName: string, markers: any[] }> = {}
 
@@ -114,7 +123,7 @@ export default function PopulationChart({ inspectionsByHive, showIdealCurve, cha
 		})
 
 		return { idealData, seriesData, tableData }
-	}, [inspectionsByHive, hiveLabel])
+	}, [inspectionsByHive, hiveLabel, timeFrom, timeTo])
 
 	if (Object.keys(seriesData).length === 0) {
 		return (

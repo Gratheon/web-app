@@ -504,6 +504,8 @@ export default function TimeView() {
 								showIdealCurve={showIdealCurve}
 								chartRefs={chartRefs}
 								syncCharts={syncCharts}
+								timeFrom={new Date(timeFrom)}
+								timeTo={new Date(timeTo)}
 							/>
 						</div>
 					)}

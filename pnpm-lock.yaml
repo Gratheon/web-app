@@ -72,11 +72,11 @@ importers:
         specifier: 1.242.2
         version: 1.242.2
       preact:
-        specifier: ^10.23.1
-        version: 10.26.6
+        specifier: ^10.28.3
+        version: 10.28.3
       preact-router:
         specifier: 3.2.1
-        version: 3.2.1(preact@10.26.6)
+        version: 3.2.1(preact@10.28.3)
       proj4:
         specifier: 2.12.0
         version: 2.12.0
@@ -128,7 +128,7 @@ importers:
         version: 1.46.0
       '@preact/preset-vite':
         specifier: ^2.9.0
-        version: 2.10.1(@babel/core@7.27.1)(preact@10.26.6)(vite@5.4.19(@types/node@22.3.0)(less@4.2.0)(terser@5.39.0))
+        version: 2.10.1(@babel/core@7.27.1)(preact@10.28.3)(vite@5.4.19(@types/node@22.3.0)(less@4.2.0)(terser@5.39.0))
       '@tauri-apps/cli':
         specifier: 2.4.1
         version: 2.4.1
@@ -188,7 +188,7 @@ importers:
         version: 1.0.2
       preact-iso:
         specifier: ^2.6.3
-        version: 2.9.1(preact-render-to-string@6.5.13(preact@10.26.6))(preact@10.26.6)
+        version: 2.9.1(preact-render-to-string@6.5.13(preact@10.28.3))(preact@10.28.3)
       prettier:
         specifier: 2.8.8
         version: 2.8.8
@@ -2468,7 +2468,7 @@ packages:
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
-    deprecated: Glob versions prior to v9 are no longer supported
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   globals@11.12.0:
     resolution: {integrity: sha512-WOBp/EEGUiIsJSp7wcv/y6MO+lV9UoncWqxuFfm8eBwzWNgyfBd6Gz+IeKQ9jCmyhoH99g15M3T+QaVHFjizVA==}
@@ -3282,8 +3282,8 @@ packages:
     peerDependencies:
       preact: '>=10'
 
-  preact@10.26.6:
-    resolution: {integrity: sha512-5SRRBinwpwkaD+OqlBDeITlRgvd8I8QlxHJw9AxSdMNV6O+LodN9nUyYGpSF7sadHjs6RzeFShMexC6DbtWr9g==}
+  preact@10.28.3:
+    resolution: {integrity: sha512-tCmoRkPQLpBeWzpmbhryairGnhW9tKV6c6gr/w+RhoRoKEJwsjzipwp//1oCpGPOchvSLaAPlpcJi9MwMmoPyA==}
 
   prettier@2.8.8:
     resolution: {integrity: sha512-tdN8qQGvNjw4CHbY+XXk0JgCXn9QiF21a55rBe5LJAU+kDyC4WQn4+awm2Xfk2lQMk5fKup9XgzTZtGkjBdP9Q==}
@@ -5220,12 +5220,12 @@ snapshots:
 
   '@polka/url@1.0.0-next.29': {}
 
-  '@preact/preset-vite@2.10.1(@babel/core@7.27.1)(preact@10.26.6)(vite@5.4.19(@types/node@22.3.0)(less@4.2.0)(terser@5.39.0))':
+  '@preact/preset-vite@2.10.1(@babel/core@7.27.1)(preact@10.28.3)(vite@5.4.19(@types/node@22.3.0)(less@4.2.0)(terser@5.39.0))':
     dependencies:
       '@babel/core': 7.27.1
       '@babel/plugin-transform-react-jsx': 7.27.1(@babel/core@7.27.1)
       '@babel/plugin-transform-react-jsx-development': 7.27.1(@babel/core@7.27.1)
-      '@prefresh/vite': 2.4.7(preact@10.26.6)(vite@5.4.19(@types/node@22.3.0)(less@4.2.0)(terser@5.39.0))
+      '@prefresh/vite': 2.4.7(preact@10.28.3)(vite@5.4.19(@types/node@22.3.0)(less@4.2.0)(terser@5.39.0))
       '@rollup/pluginutils': 4.2.1
       babel-plugin-transform-hook-names: 1.0.2(@babel/core@7.27.1)
       debug: 4.4.0(supports-color@9.4.0)
@@ -5238,20 +5238,20 @@ snapshots:
 
   '@prefresh/babel-plugin@0.5.1': {}
 
-  '@prefresh/core@1.5.3(preact@10.26.6)':
+  '@prefresh/core@1.5.3(preact@10.28.3)':
     dependencies:
-      preact: 10.26.6
+      preact: 10.28.3
 
   '@prefresh/utils@1.2.0': {}
 
-  '@prefresh/vite@2.4.7(preact@10.26.6)(vite@5.4.19(@types/node@22.3.0)(less@4.2.0)(terser@5.39.0))':
+  '@prefresh/vite@2.4.7(preact@10.28.3)(vite@5.4.19(@types/node@22.3.0)(less@4.2.0)(terser@5.39.0))':
     dependencies:
       '@babel/core': 7.27.1
       '@prefresh/babel-plugin': 0.5.1
-      '@prefresh/core': 1.5.3(preact@10.26.6)
+      '@prefresh/core': 1.5.3(preact@10.28.3)
       '@prefresh/utils': 1.2.0
       '@rollup/pluginutils': 4.2.1
-      preact: 10.26.6
+      preact: 10.28.3
       vite: 5.4.19(@types/node@22.3.0)(less@4.2.0)(terser@5.39.0)
     transitivePeerDependencies:
       - supports-color
@@ -7487,23 +7487,23 @@ snapshots:
     dependencies:
       core-js: 3.42.0
       fflate: 0.4.8
-      preact: 10.26.6
+      preact: 10.28.3
       web-vitals: 4.2.4
 
-  preact-iso@2.9.1(preact-render-to-string@6.5.13(preact@10.26.6))(preact@10.26.6):
+  preact-iso@2.9.1(preact-render-to-string@6.5.13(preact@10.28.3))(preact@10.28.3):
     dependencies:
-      preact: 10.26.6
-      preact-render-to-string: 6.5.13(preact@10.26.6)
+      preact: 10.28.3
+      preact-render-to-string: 6.5.13(preact@10.28.3)
 
-  preact-render-to-string@6.5.13(preact@10.26.6):
+  preact-render-to-string@6.5.13(preact@10.28.3):
     dependencies:
-      preact: 10.26.6
+      preact: 10.28.3
 
-  preact-router@3.2.1(preact@10.26.6):
+  preact-router@3.2.1(preact@10.28.3):
     dependencies:
-      preact: 10.26.6
+      preact: 10.28.3
 
-  preact@10.26.6: {}
+  preact@10.28.3: {}
 
   prettier@2.8.8: {}
 

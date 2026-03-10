@@ -33,7 +33,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Match .nvmrc if possible
+          node-version: '22' # Satisfies package.json engines (>=22 <26)
           cache: 'pnpm' # Add caching for pnpm
 
       - uses: actions/cache@v3

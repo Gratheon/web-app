@@ -24,6 +24,11 @@ let uri = gatewayUri()
 
 
 let lastNetworkError = null
+const apolloClientHeaders: Record<string, string> = {
+	'apollographql-client-name': 'web-app',
+	'apollographql-client-version':
+		import.meta.env.VITE_APP_VERSION || import.meta.env.MODE || 'dev',
+}
 
 const graphqlWsClient = createClient({
 	url: subscriptionUri(),
@@ -77,14 +82,20 @@ const apiClient = createUrqlClient({
 	fetchOptions: () => {
 		const shareToken = getShareToken();
 		const regularToken = getToken();
-		let headers = {};
+		let headers: Record<string, string> = { ...apolloClientHeaders };
 
 		if (shareToken) {
 			console.debug("Using X-Share-Token header for HTTP request");
-			headers = { 'X-Share-Token': shareToken };
+			headers = {
+				...headers,
+				'X-Share-Token': shareToken,
+			};
 		} else if (regularToken) {
 			console.debug("Using token header for HTTP request");
-			headers = { 'token': regularToken };
+			headers = {
+				...headers,
+				'token': regularToken,
+			};
 		} else {
 			console.debug("No token available for HTTP request headers");
 		}

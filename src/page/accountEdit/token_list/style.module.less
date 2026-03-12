@@ -1,6 +1,26 @@
 @import '../../../layout.module.less';
 @import '../../../colors.module.less';
 
+.tokenSectionHeader {
+	display: flex;
+	gap: 12px;
+	align-items: flex-start;
+}
+
+.tokenSectionDescription {
+	flex-grow: 1;
+	min-width: 0;
+}
+
+.apiTokensTable {
+	width: 100%;
+	table-layout: fixed;
+
+	td {
+		min-width: 0;
+	}
+}
+
 .apiToken {
 
 	.token {
@@ -12,12 +32,17 @@
 		word-wrap: break-word;
 		height: 28px;
 		box-sizing: border-box;
-		overflow-x: auto;
+		overflow: hidden;
 		max-width: 100%;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.buttons {
 		white-space: nowrap;
+		display: flex;
+		gap: 6px;
+		align-items: center;
 	}
 }
 
@@ -35,7 +60,33 @@
 	overflow-wrap: break-word;
 }
 
+.scopeSummary {
+	cursor: help;
+}
+
+.sharedLinksTable {
+	width: 100%;
+	table-layout: fixed;
+
+	th,
+	td {
+		text-align: left;
+		vertical-align: top;
+		padding: 8px 6px;
+	}
+
+	th:last-child,
+	td:last-child {
+		width: 1%;
+		white-space: nowrap;
+	}
+}
+
 @media @mobile {
+	.tokenSectionHeader {
+		flex-direction: column;
+	}
+
 	.apiToken {
 		display: flex;
 		flex-direction: column;
@@ -52,22 +103,43 @@
 		.tokenContainer {
 			flex-direction: column;
 			align-items: stretch;
+
+			button {
+				align-self: flex-start;
+				width: auto;
+				height: 34px;
+				padding: 0 12px;
+				font-size: 14px;
+				line-height: 1.2;
+			}
 		}
 
 		.token {
 			width: 100%;
-			overflow-x: auto;
-			white-space: nowrap;
+			height: auto;
+			max-height: 3.4em;
+			font-size: 12px;
+			line-height: 1.35;
+			white-space: normal;
+			overflow-wrap: anywhere;
+			word-break: break-word;
 		}
 
 		.buttons {
 			display: flex;
-			flex-direction: column;
-			gap: 8px;
-			width: 100%;
+			flex-direction: row;
+			flex-wrap: wrap;
+			gap: 6px;
+			width: auto;
+			align-items: center;
+			white-space: normal;
 
 			button {
-				width: 100%;
+				width: auto;
+				height: 34px;
+				padding: 0 12px;
+				font-size: 14px;
+				line-height: 1.2;
 			}
 		}
 	}
@@ -104,6 +176,7 @@
 		td {
 			display: block;
 			width: 100%;
+			min-width: 0;
 
 			&:before {
 				content: attr(data-label);
@@ -112,6 +185,10 @@
 				margin-bottom: 4px;
 				color: @color-gray-breadcrumbs-text;
 				font-size: 12px;
+			}
+
+			&[data-label='Actions']:before {
+				display: none;
 			}
 		}
 	}

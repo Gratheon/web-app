@@ -33,15 +33,17 @@ const graphqlWsClient = createClient({
 
 	// Dynamically set connection params based on available token
 	connectionParams: () => {
-		const shareToken = getShareToken();
-		if (shareToken) {
-			console.debug("Using shareToken for WebSocket connection");
-			return { shareToken: shareToken };
-		}
 		const regularToken = getToken();
 		if (regularToken) {
 			console.debug("Using regular token for WebSocket connection");
 			return { token: regularToken };
+		}
+		const shareToken = getShareToken();
+		if (shareToken) {
+			// event-stream-filter currently authenticates only with `connectionParams.token`
+			// and does not accept share tokens for websocket subscriptions.
+			console.debug("Share token found, but no regular token available for WebSocket connection");
+			return {};
 		}
 		console.debug("No token available for WebSocket connection");
 		return {}; // No token

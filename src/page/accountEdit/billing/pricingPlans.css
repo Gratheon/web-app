@@ -17,6 +17,15 @@
   align-items: center;
 }
 
+.plan-indicator-slot {
+  height: 56px;
+  width: 100%;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 @media (max-width: 1200px) {
   .plans-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -61,18 +70,11 @@
   font-weight: 600;
   white-space: nowrap;
   box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
-    border: 1px solid rgba(9, 66, 9, 0.3);
-  margin-bottom: 1rem;
+  border: 1px solid rgba(9, 66, 9, 0.3);
   text-align: center;
-  height: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.plan-spacer {
-  height: 32px;
-  margin-bottom: 0.75rem;
 }
 
 .plan-header {
@@ -238,4 +240,3 @@
   background: #2f8b0b;
   color: white;
 }
-

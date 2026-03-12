@@ -58,6 +58,8 @@ export default function Billing({ user }) {
 	}
 
 	const dateLangOptions = { locale: loadedDateLocales[user.lang] }
+	const billingHistory = historyData?.billingHistory || []
+	const shouldShowTimelineConnector = billingHistory.length > 1
 
 	const getEventIcon = (eventType: string) => {
 		switch (eventType) {
@@ -115,16 +117,18 @@ export default function Billing({ user }) {
 
 				<h4 style={{ marginTop: '2rem', marginBottom: '1rem' }}><T>Billing History</T></h4>
 				<div style={{ position: 'relative', paddingLeft: '2rem' }}>
-					<div style={{
-						position: 'absolute',
-						left: '1.4rem',
-						top: 0,
-						bottom: 0,
-						width: '2px',
-						background: 'linear-gradient(to bottom, #2196F3, #e0e0e0)'
-					}} />
+					{shouldShowTimelineConnector && (
+						<div style={{
+							position: 'absolute',
+							left: '1.4rem',
+							top: 0,
+							bottom: 0,
+							width: '2px',
+							background: 'linear-gradient(to bottom, #2196F3, #e0e0e0)'
+						}} />
+					)}
 
-					{historyData?.billingHistory?.map((event, index) => (
+					{billingHistory.map((event) => (
 						<div
 							key={event.id}
 							style={{
@@ -188,7 +192,7 @@ export default function Billing({ user }) {
 						</div>
 					))}
 
-					{(!historyData?.billingHistory || historyData.billingHistory.length === 0) && (
+					{billingHistory.length === 0 && (
 						<div style={{ textAlign: 'center', color: '#999', padding: '2rem' }}>
 							<T>No billing history yet</T>
 						</div>
@@ -205,5 +209,3 @@ export default function Billing({ user }) {
 		</div>
 	)
 }
-
-

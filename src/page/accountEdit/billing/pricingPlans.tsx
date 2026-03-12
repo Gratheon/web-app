@@ -58,13 +58,13 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 
 			<div className="plans-grid">
 				<div className="plan-card-wrapper">
-					{currentPlan === 'free' ? (
-						<div className="current-plan-arrow">
-							<T>Current plan</T> ↓
-						</div>
-					) : (
-						<div className="plan-spacer"></div>
-					)}
+					<div className="plan-indicator-slot">
+						{currentPlan === 'free' && (
+							<div className="current-plan-arrow">
+								<T>Current plan</T> ↓
+							</div>
+						)}
+					</div>
 					<div className={`plan-card ${currentPlan === 'free' ? 'current' : ''}`}>
 						<div className="plan-header plan-header-free">
 							<h3 className="plan-name"><T>Free</T></h3>
@@ -82,11 +82,13 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 				</div>
 
 				<div className="plan-card-wrapper">
-					{currentPlan === 'starter' && (
-						<div className="current-plan-arrow">
-							<T>Current plan</T> ↓
-						</div>
-					)}
+					<div className="plan-indicator-slot">
+						{currentPlan === 'starter' && (
+							<div className="current-plan-arrow">
+								<T>Current plan</T> ↓
+							</div>
+						)}
+					</div>
 					<div className={`plan-card ${currentPlan === 'starter' ? 'current' : ''}`}>
 						<div className="plan-header plan-header-starter">
 							<h3 className="plan-name">{BILLING_TIERS.starter.name}</h3>
@@ -128,13 +130,13 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 				</div>
 
 				<div className="plan-card-wrapper">
-					{currentPlan === 'professional' ? (
-						<div className="current-plan-arrow">
-							<T>Current plan</T> ↓
-						</div>
-					) : (
-						<div className="plan-spacer"></div>
-					)}
+					<div className="plan-indicator-slot">
+						{currentPlan === 'professional' && (
+							<div className="current-plan-arrow">
+								<T>Current plan</T> ↓
+							</div>
+						)}
+					</div>
 					<div className={`plan-card ${currentPlan === 'professional' ? 'current' : ''}`}>
 						<div className="plan-header plan-header-professional">
 							<h3 className="plan-name">{BILLING_TIERS.professional.name}</h3>
@@ -178,4 +180,3 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 		</div>
 	)
 }
-

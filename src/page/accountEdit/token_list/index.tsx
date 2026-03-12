@@ -38,6 +38,78 @@ mutation generateApiToken {
 	}
 }`
 
+function formatScopeValue(value: unknown): string {
+	if (value === null || value === undefined) {
+		return 'null'
+	}
+
+	if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+		return String(value)
+	}
+
+	try {
+		return JSON.stringify(value)
+	} catch {
+		return '[unserializable]'
+	}
+}
+
+function summarizeScopes(scopes: unknown): { summary: string, technical: string } {
+	const technical = formatScopeValue(scopes)
+
+	if (scopes === null || scopes === undefined) {
+		return { summary: 'None', technical }
+	}
+
+	if (Array.isArray(scopes)) {
+		const plainItems = scopes.filter((item) => typeof item === 'string') as string[]
+		if (plainItems.length === scopes.length) {
+			return { summary: plainItems.join(', '), technical }
+		}
+		return { summary: scopes.map((item) => formatScopeValue(item)).join(', '), technical }
+	}
+
+	if (typeof scopes === 'object') {
+		const scopeObject = scopes as Record<string, unknown>
+		const allowedQueries = scopeObject.allowedQueries
+
+		if (Array.isArray(allowedQueries)) {
+			const querySummaries = allowedQueries
+				.map((query) => {
+					if (!query || typeof query !== 'object') {
+						return null
+					}
+
+					const q = query as Record<string, unknown>
+					const queryName = typeof q.queryName === 'string' ? q.queryName : 'query'
+					const requiredArgs = q.requiredArgs
+
+					if (!requiredArgs || typeof requiredArgs !== 'object' || Array.isArray(requiredArgs)) {
+						return queryName
+					}
+
+					const args = Object.entries(requiredArgs as Record<string, unknown>)
+						.map(([key, value]) => `${key}: ${formatScopeValue(value)}`)
+						.join(', ')
+
+					return args ? `${queryName} (${args})` : queryName
+				})
+				.filter(Boolean)
+
+			if (querySummaries.length > 0) {
+				return { summary: querySummaries.join('; '), technical }
+			}
+		}
+
+		const keys = Object.keys(scopeObject)
+		if (keys.length > 0) {
+			return { summary: keys.join(', '), technical }
+		}
+	}
+
+	return { summary: technical, technical }
+}
+
 
 export default function TokenList() {
 	let [generateToken, { error: generationError }] = useMutation(GENERATE_TOKEN_MUTATION)
@@ -105,8 +177,8 @@ export default function TokenList() {
 			<Card>
 				<h3><T>API tokens</T></h3>
 
-				<div style="display:flex;">
-					<p style="flex-grow:1;">
+				<div className={style.tokenSectionHeader}>
+					<p className={style.tokenSectionDescription}>
 						<T>API tokens are used to authenticate your requests to our API. You can create multiple tokens to use in different applications.</T>
 						<br />
 						<a href="https://gratheon.com/docs/API">API documentation</a>
@@ -123,7 +195,7 @@ export default function TokenList() {
 				<ErrorMsg error={error || generationError || revokeShareTokenError || revokeApiTokenError} />
 
 				{tokens && tokens.length > 0 &&
-					<table>
+					<table className={style.apiTokensTable}>
 						<tbody>
 							{tokens.map((token) => (
 								<tr key={token.id} className={style.apiToken}>
@@ -165,24 +237,30 @@ export default function TokenList() {
 						</tr>
 					</thead>
 					<tbody>
-						{shareTokens.map((token) => (
-							<tr key={token.id} className={style.apiToken}>
-								<td data-label="Name">
-									{token.name}
-								</td>
-								<td data-label="Scopes" className={style.scopesCell}>
-									{Array.isArray(token.scopes) ? token.scopes.join(', ') : String(token.scopes)}
-								</td>
-								<td data-label="Actions" className={style.buttons}>
-									<CopyButton size='small' data={token.targetUrl} />
-									<Button
-										size='small'
-										color='red'
-										loading={revokingShareToken.includes(token.token)}
-										onClick={() => onRevokeShareToken(token.token)}><T>Revoke</T></Button>
-								</td>
-							</tr>
-						))}
+						{shareTokens.map((token) => {
+							const scopeInfo = summarizeScopes(token.scopes)
+
+							return (
+								<tr key={token.id} className={style.apiToken}>
+									<td data-label="Name">
+										{token.name}
+									</td>
+									<td data-label="Scopes" className={style.scopesCell}>
+										<span className={style.scopeSummary} title={scopeInfo.technical}>
+											{scopeInfo.summary}
+										</span>
+									</td>
+									<td data-label="Actions" className={style.buttons}>
+										<CopyButton size='small' data={token.targetUrl} />
+										<Button
+											size='small'
+											color='red'
+											loading={revokingShareToken.includes(token.token)}
+											onClick={() => onRevokeShareToken(token.token)}><T>Revoke</T></Button>
+									</td>
+								</tr>
+							)
+						})}
 
 					</tbody>
 

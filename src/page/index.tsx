@@ -43,10 +43,12 @@ function PageWithMenu({children}) {
 	return <div className={styles.pageShell}>
 		<Menu isLoggedIn={isLoggedIn()}/>
 		<MinimizedUploadProgress />
-		<div className={styles.content}>
-			{children}
+		<div className={styles.mainColumn}>
+			<div className={styles.content}>
+				{children}
+			</div>
+			<Footer/>
 		</div>
-		<Footer/>
 	</div>
 }
 
@@ -125,7 +127,9 @@ export default function Page() {
 
 			<Route path="/insights" element={<LoggedInPage><Grafana /></LoggedInPage>} />
 
-			<Route path="/alert-config" element={<LoggedInPage><AlertConfig /></LoggedInPage>} />
+			<Route path="/alert-config" element={<LoggedInPage><AlertConfig section="history" /></LoggedInPage>} />
+			<Route path="/alert-config/channels" element={<LoggedInPage><AlertConfig section="channels" /></LoggedInPage>} />
+			<Route path="/alert-config/rules" element={<LoggedInPage><AlertConfig section="rules" /></LoggedInPage>} />
 		</Routes>
 	)
 }

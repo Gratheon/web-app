@@ -37,6 +37,40 @@
 	display: flex;
 }
 
+.subMenu {
+	list-style: none;
+	margin: 6px 0 0;
+	padding: 0 0 0 12px;
+}
+
+.subMenuLink {
+	color: #555;
+	font-size: 0.92rem;
+}
+
+.menuItemContent {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.menuItemIcon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 18px;
+	height: 18px;
+	color: #8a8f98;
+}
+
+.menuItemLabel {
+	display: inline-block;
+}
+
+a.active .menuItemIcon {
+	color: #5f6670;
+}
+
 .mobileHeader,
 .mobileBottomMenu {
 	display: none;
@@ -207,5 +241,51 @@
 		a:last-child {
 			border-bottom: none;
 		}
+	}
+}
+
+@media @tabletAndUp {
+	#menu.desktopMenu {
+		flex-direction: column;
+		align-items: stretch;
+		width: 200px;
+		min-width: 200px;
+		border-right: 1px solid @color-gray-border;
+		border-bottom: none;
+		position: fixed;
+		left: 0;
+		top: 0;
+		bottom: 0;
+		overflow-y: auto;
+		z-index: 1000;
+	}
+
+	#menu.desktopMenu .menuSection {
+		flex-direction: column;
+		flex-wrap: nowrap;
+		padding: 10px 0;
+		margin: 0;
+	}
+
+	#menu.desktopMenu .menuSection li {
+		width: 100%;
+		flex-grow: 0;
+		padding: 4px 14px;
+		text-align: left;
+	}
+
+	#menu.desktopMenu .menuSection li a {
+		display: block;
+		width: 100%;
+		padding: 8px 10px;
+		border-radius: 6px;
+	}
+
+	#menu.desktopMenu .menuSection li .subMenu li {
+		padding: 2px 0;
+	}
+
+	#menu.desktopMenu .menuSection li .subMenu li a {
+		padding: 4px 10px;
 	}
 }

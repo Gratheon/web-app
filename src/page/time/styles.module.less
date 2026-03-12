@@ -6,47 +6,37 @@
   overflow: hidden;
 }
 
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.pageTitle {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 .contentWrapper {
   display: flex;
   flex-direction: column;
   gap: 16px;
-
-  @media (min-width: 1024px) {
-    flex-direction: row;
-    align-items: stretch;
-    gap: 24px;
-  }
 }
 
-.sidebar {
+.filtersHeader {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
-  width: 100%;
-
-  @media (min-width: 1024px) {
-    width: 320px;
-    flex-shrink: 0;
-    position: sticky;
-    top: 16px;
-  }
+  justify-content: flex-end;
+  margin-left: auto;
 }
 
-.filterColumn {
-  display: none;
-
-  @media (min-width: 1024px) {
-    display: flex;
-    align-items: stretch;
-    gap: 0;
-    flex-shrink: 0;
-  }
-}
-
-.filterToggleMobile {
+.filterToggleButton {
   appearance: none;
   -webkit-appearance: none;
-  align-self: flex-start;
   border: 1px solid #d0d7de;
   background: #fff;
   border-radius: 8px;
@@ -74,43 +64,21 @@
   }
 }
 
-.filterToggleDesktop {
-  display: none;
+.filtersGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
 
-  @media (min-width: 1024px) {
-    display: flex;
-    align-self: stretch;
-    justify-content: flex-start;
-    align-items: center;
-    width: 18px;
-    min-width: 18px;
-    border: 1px solid #d0d7de;
-    border-radius: 8px;
-    background: #fff;
-    color: #4a5560;
-    cursor: pointer;
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-    font-weight: 600;
-    letter-spacing: 0.2px;
-    padding: 30px 1px 8px;
-    user-select: none;
+.filterCard {
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 12px;
+}
 
-    &:hover {
-      background: #f5f7f9;
-      color: #2f3b45;
-    }
-
-    &:active {
-      background: #eef2f6;
-      color: #2f3b45;
-    }
-
-    &:focus-visible {
-      outline: 2px solid #7aa7d9;
-      outline-offset: 2px;
-    }
-  }
+.filterBlock {
+  min-width: 0;
 }
 
 .chartsContainer {
@@ -178,13 +146,6 @@
     margin-bottom: 4px;
     font-weight: 500;
   }
-}
-
-h2 {
-  margin: 0;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
 }
 
 input {

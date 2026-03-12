@@ -18,6 +18,7 @@ import MultiHiveEntranceDetectedChart from '@/shared/charts/MultiHiveEntranceDet
 import MultiHiveEntranceStationaryChart from '@/shared/charts/MultiHiveEntranceStationaryChart'
 import MultiHiveEntranceInteractionsChart from '@/shared/charts/MultiHiveEntranceInteractionsChart'
 import InfoIcon from '@/shared/infoIcon'
+import Button from '@/shared/button'
 import TimeRangeSelector from './components/TimeRangeSelector'
 import HiveSelector from './components/HiveSelector'
 import ChartToggles from './components/ChartToggles'
@@ -99,10 +100,6 @@ export default function TimeView() {
 	const [showIdealCurve, setShowIdealCurve] = useState(() =>
 		loadFromLocalStorage(LS_KEYS.SHOW_IDEAL_CURVE, true)
 	)
-	const [isDesktop, setIsDesktop] = useState(() => {
-		if (typeof window === 'undefined') return true
-		return window.innerWidth >= 1024
-	})
 	const [filtersExpanded, setFiltersExpanded] = useState(() =>
 		loadFromLocalStorage(LS_KEYS.FILTERS_EXPANDED, defaultFiltersExpanded())
 	)
@@ -154,12 +151,6 @@ export default function TimeView() {
 	useEffect(() => {
 		saveToLocalStorage(LS_KEYS.FILTERS_EXPANDED, filtersExpanded)
 	}, [filtersExpanded])
-
-	useEffect(() => {
-		const handleResize = () => setIsDesktop(window.innerWidth >= 1024)
-		window.addEventListener('resize', handleResize)
-		return () => window.removeEventListener('resize', handleResize)
-	}, [])
 
 	const allHives = useLiveQuery(async () => {
 		let localHives = await getHives()
@@ -545,108 +536,97 @@ export default function TimeView() {
 
 	return (
 		<div className={styles.pageContainer}>
-			<h2>
-				<T>Multi-Hive Analytics</T>
-				<InfoIcon>
-					<p style={{ margin: '0 0 8px 0' }}>
-						<strong><T>About this view:</T></strong>
-					</p>
-					<p style={{ margin: '0 0 8px 0' }}>
-						<T>Compare metrics across multiple hives over time to identify trends and anomalies.</T>
-					</p>
-					<p style={{ margin: 0 }}>
-						<T>Look for correlations between weight drops and swarming, temperature extremes and bee activity, or entrance patterns and colony health. Use the table view (📋) on each chart to export data for deeper analysis.</T>
-					</p>
-				</InfoIcon>
-			</h2>
+			<div className={styles.headerRow}>
+				<h2 className={styles.pageTitle}>
+					<T>Multi-Hive Analytics</T>
+					<InfoIcon>
+						<p style={{ margin: '0 0 8px 0' }}>
+							<strong><T>About this view:</T></strong>
+						</p>
+						<p style={{ margin: '0 0 8px 0' }}>
+							<T>Compare metrics across multiple hives over time to identify trends and anomalies.</T>
+						</p>
+						<p style={{ margin: 0 }}>
+							<T>Look for correlations between weight drops and swarming, temperature extremes and bee activity, or entrance patterns and colony health. Use the table view (📋) on each chart to export data for deeper analysis.</T>
+						</p>
+					</InfoIcon>
+				</h2>
+				<div className={styles.filtersHeader}>
+					<Button
+						color="white"
+						onClick={() => setFiltersExpanded(prev => !prev)}
+					>
+						{filtersExpanded ? <T>Hide Filters</T> : <T>Show Filters</T>}
+					</Button>
+				</div>
+			</div>
 
 			<div className={styles.contentWrapper}>
-				{!isDesktop && (
-					<>
-						<button
-							type="button"
-							className={styles.filterToggleMobile}
-							onClick={() => setFiltersExpanded(prev => !prev)}
-						>
-							{filtersExpanded ? <T>Hide Filters</T> : <T>Show Filters</T>}
-						</button>
-
-						{filtersExpanded && (
-							<aside className={styles.sidebar}>
-								<TimeRangeSelector
-									value={timeRangeDays}
-									onChange={setTimeRangeDays}
-								/>
-
-								<ApiarySelector
-									apiaries={gqlData?.apiaries || []}
-									selectedApiaryId={selectedApiaryId}
-									onSelectApiary={setSelectedApiaryId}
-								/>
-
-								<HiveSelector
-									hives={hives}
-									selectedHiveIds={selectedHiveIds}
-									onToggleHive={toggleHive}
-								/>
-
-								<ChartToggles
-									enabledCharts={enabledCharts}
-									showIdealCurve={showIdealCurve}
-									onToggleChart={toggleChart}
-									onToggleIdealCurve={setShowIdealCurve}
-								/>
-							</aside>
-						)}
-					</>
-				)}
-
-				{isDesktop && (
-					<div className={styles.filterColumn}>
-						{filtersExpanded && (
-							<aside className={styles.sidebar}>
-								<TimeRangeSelector
-									value={timeRangeDays}
-									onChange={setTimeRangeDays}
-								/>
-
-								<ApiarySelector
-									apiaries={gqlData?.apiaries || []}
-									selectedApiaryId={selectedApiaryId}
-									onSelectApiary={setSelectedApiaryId}
-								/>
-
-								<HiveSelector
-									hives={hives}
-									selectedHiveIds={selectedHiveIds}
-									onToggleHive={toggleHive}
-								/>
-
-								<ChartToggles
-									enabledCharts={enabledCharts}
-									showIdealCurve={showIdealCurve}
-									onToggleChart={toggleChart}
-									onToggleIdealCurve={setShowIdealCurve}
-								/>
-							</aside>
-						)}
-
-						<div
-							role="button"
-							tabIndex={0}
-							aria-expanded={filtersExpanded}
-							className={styles.filterToggleDesktop}
-							onClick={() => setFiltersExpanded(prev => !prev)}
-							onKeyDown={(e) => {
-								if (e.key === 'Enter' || e.key === ' ') {
-									e.preventDefault()
-									setFiltersExpanded(prev => !prev)
-								}
-							}}
-						>
-							{filtersExpanded ? <T>Hide Filters</T> : <T>Show Filters</T>}
+				{filtersExpanded && (
+					<aside className={styles.filtersGrid}>
+						<div className={styles.filterCard}>
+							<TimeRangeSelector
+								value={timeRangeDays}
+								onChange={setTimeRangeDays}
+							/>
 						</div>
-					</div>
+
+						<div className={styles.filterBlock}>
+							<ApiarySelector
+								apiaries={gqlData?.apiaries || []}
+								selectedApiaryId={selectedApiaryId}
+								onSelectApiary={setSelectedApiaryId}
+							/>
+						</div>
+
+						<div className={styles.filterBlock}>
+							<HiveSelector
+								hives={hives}
+								selectedHiveIds={selectedHiveIds}
+								onToggleHive={toggleHive}
+							/>
+						</div>
+
+						<div className={styles.filterBlock}>
+							<ChartToggles
+								group="population"
+								enabledCharts={enabledCharts}
+								showIdealCurve={showIdealCurve}
+								onToggleChart={toggleChart}
+								onToggleIdealCurve={setShowIdealCurve}
+							/>
+						</div>
+
+						<div className={styles.filterBlock}>
+							<ChartToggles
+								group="scales"
+								enabledCharts={enabledCharts}
+								showIdealCurve={showIdealCurve}
+								onToggleChart={toggleChart}
+								onToggleIdealCurve={setShowIdealCurve}
+							/>
+						</div>
+
+						<div className={styles.filterBlock}>
+							<ChartToggles
+								group="entrance"
+								enabledCharts={enabledCharts}
+								showIdealCurve={showIdealCurve}
+								onToggleChart={toggleChart}
+								onToggleIdealCurve={setShowIdealCurve}
+							/>
+						</div>
+
+						<div className={styles.filterBlock}>
+							<ChartToggles
+								group="weather"
+								enabledCharts={enabledCharts}
+								showIdealCurve={showIdealCurve}
+								onToggleChart={toggleChart}
+								onToggleIdealCurve={setShowIdealCurve}
+							/>
+						</div>
+					</aside>
 				)}
 
 				<main className={styles.chartsContainer}>

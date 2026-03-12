@@ -12,6 +12,16 @@ import DateTimeFormat from '@/shared/dateTimeFormat'
 import { Tab, TabBar } from '@/shared/tab'
 import imageURL from '@/assets/bear.webp'
 
+type AlertConfigSection = 'history' | 'channels' | 'rules'
+
+const ALERTS_SERVICE_LIVENESS_QUERY = gql`
+	query alertsServiceLiveness {
+		alertChannels {
+			id
+		}
+	}
+`;
+
 const ALERT_CHANNELS_QUERY = gql`
 	query alertChannels {
 		alertChannels {
@@ -127,9 +137,10 @@ function getChartTypeFromMetricType(metricType: string | null | undefined): stri
 	return metricTypeMap[metricType] || null;
 }
 
-export default function AlertConfig() {
+export default function AlertConfig({ section = 'history' }: { section?: AlertConfigSection }) {
 	const { confirm, ConfirmDialog } = useConfirm()
-	const { data, reexecuteQuery } = useQuery(ALERT_CHANNELS_QUERY);
+	const { data: alertsServiceLiveness, error: alertsServiceError } = useQuery(ALERTS_SERVICE_LIVENESS_QUERY);
+	const { data, error: pageQueryError, reexecuteQuery } = useQuery(ALERT_CHANNELS_QUERY);
 	const [setAlertChannel, { error: mutationError }] = useMutation(SET_ALERT_CHANNEL_MUTATION);
 	const [deleteAlertChannel] = useMutation(DELETE_ALERT_CHANNEL_MUTATION);
 	const [createAlertRule] = useMutation(CREATE_ALERT_RULE_MUTATION);
@@ -154,9 +165,6 @@ export default function AlertConfig() {
 		});
 		return map;
 	}, [apiaries]);
-
-	const [activePanel, setActivePanel] = useState<'channels' | 'rules' | null>(null);
-	const [hasInitializedPanel, setHasInitializedPanel] = useState(false);
 
 	const [selectedChannel, setSelectedChannel] = useState('SMS');
 	const [channelConfig, setChannelConfig] = useState({
@@ -193,16 +201,6 @@ export default function AlertConfig() {
 			});
 		}
 	}, [selectedChannel, channels]);
-
-	React.useEffect(() => {
-		if (!data || hasInitializedPanel) return;
-		setActivePanel(channels.length === 0 ? 'channels' : null);
-		setHasInitializedPanel(true);
-	}, [data, channels.length, hasInitializedPanel]);
-
-	function togglePanel(panel: 'channels' | 'rules') {
-		setActivePanel((prev) => (prev === panel ? null : panel));
-	}
 
 	function onConfigChange(e) {
 		const { name, value, type, checked } = e.target;
@@ -244,8 +242,36 @@ export default function AlertConfig() {
 		reexecuteQuery();
 	}
 
-	if (!data) {
+	if (!alertsServiceLiveness && !alertsServiceError) {
 		return <Loader />;
+	}
+
+	if (alertsServiceError) {
+		return (
+			<PagePaddedCentered>
+				<ErrorMsg error={alertsServiceError} />
+				<div className={styles.serviceErrorInfo}>
+					<p>
+						<T>Alerts service is currently unavailable.</T>
+					</p>
+					<p>
+						<T>Configuring alert channels and listing alerts is temporarily not possible.</T>
+					</p>
+				</div>
+			</PagePaddedCentered>
+		);
+	}
+
+	if (!data && !pageQueryError) {
+		return <Loader />;
+	}
+
+	if (!data && pageQueryError) {
+		return (
+			<PagePaddedCentered>
+				<ErrorMsg error={pageQueryError} />
+			</PagePaddedCentered>
+		);
 	}
 
 	const existingChannel = channels.find(ch => ch.channelType === selectedChannel);
@@ -253,28 +279,15 @@ export default function AlertConfig() {
 	return (
 		<PagePaddedCentered>
 			{showSuccess && <MessageSuccess title={<T>Saved!</T>} message={<T>Alert channel settings saved successfully.</T>} />}
-			<ErrorMsg error={mutationError || null} />
-
-			<div className={styles.panelToggleRow}>
-				<Button
-					color={activePanel === 'channels' ? 'green' : 'black'}
-					onClick={() => togglePanel('channels')}
-				>
-					<T>Configure Channels</T>
-				</Button>
-				<Button
-					color={activePanel === 'rules' ? 'green' : 'black'}
-					onClick={() => togglePanel('rules')}
-				>
-					<T>Configure Rules</T>
-				</Button>
-			</div>
+			<ErrorMsg error={pageQueryError || mutationError || null} />
 
 			<div>
-
-				{activePanel === 'channels' && (
+				{section === 'channels' && (
 					<>
 						<div className={styles.panelSection}>
+						<p className={styles.sectionTitle}>
+							<T>Configure Alert Channels</T>
+						</p>
 						<p style={{ color: '#666', margin: '16px 0' }}>
 							<T>Configure how you want to receive alerts. You can enable multiple channels.</T>
 						</p>
@@ -390,8 +403,11 @@ export default function AlertConfig() {
 					</>
 				)}
 
-				{activePanel === 'rules' && (
+				{section === 'rules' && (
 					<div className={styles.panelSection}>
+						<p className={styles.sectionTitle}>
+							<T>Configure Alert Rules</T>
+						</p>
 						<p style={{ color: '#666', marginBottom: '16px' }}>
 							<T>Alert rules define when you should be notified about specific conditions in your hives.</T>
 						</p>
@@ -506,7 +522,8 @@ export default function AlertConfig() {
 					</div>
 				)}
 
-				<div className={styles.panelSection}>
+				{section === 'history' && (
+					<div className={styles.panelSection}>
 					<p className={styles.sectionTitle}>
 						<T>Alert History</T>
 					</p>
@@ -554,6 +571,7 @@ export default function AlertConfig() {
 						</div>
 					)}
 				</div>
+				)}
 			</div>
 			{ConfirmDialog}
 		</PagePaddedCentered>

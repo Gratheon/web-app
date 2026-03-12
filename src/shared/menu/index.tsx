@@ -1,5 +1,5 @@
 // @ts-nocheck
-import {NavLink} from 'react-router-dom'
+import {NavLink, useLocation} from 'react-router-dom'
 
 import Header from '@/shared/header'
 import {logout} from '@/user'
@@ -7,13 +7,11 @@ import {getAppUri} from '@/uri'
 import T from '@/shared/translate'
 import Avatar from '@/shared/avatar'
 import styles from './styles.module.less'
-import BellIcon from "@/icons/bell";
 import HiveIcon from '@/icons/hive'
-import Alerts from "@/shared/menu/alerts";
 import {useState} from "react";
-import {gql} from "urql";
-import {useQuery} from "@/api";
-import Loader from "@/shared/loader";
+import CryptoJS from 'crypto-js'
+import * as userModel from '@/models/user'
+import { TAWKTO_TOKEN } from '@/config'
 
 const MOBILE_NAV_ICON_SIZE = 24
 
@@ -23,13 +21,76 @@ async function onLogoutClick() {
     window.location.href = getAppUri() + '/account/authenticate/'
 }
 
-function openSupportChat() {
-    if (window?.Tawk_API?.maximize) {
-        window.Tawk_API.maximize()
+function generateHmac(message: string, secret: string) {
+    return CryptoJS.HmacSHA256(message, secret).toString(CryptoJS.enc.Hex)
+}
+
+async function openSupportChat() {
+    const tawkApi = window?.Tawk_API
+
+    if (tawkApi?.maximize) {
+        tawkApi.maximize()
         return
     }
 
-    window.location.href = 'https://gratheon.com'
+    if (!tawkApi) {
+        window.location.href = 'https://gratheon.com'
+        return
+    }
+
+    const userInfo = await userModel.getUser()
+    if (!userInfo?.email) {
+        window.location.href = 'https://gratheon.com'
+        return
+    }
+
+    const hash = await generateHmac(`${userInfo.email}`, TAWKTO_TOKEN)
+
+    //@ts-ignore
+    tawkApi.onLoad = async function () {
+        //@ts-ignore
+        tawkApi.login(
+            {
+                hash,
+                email: userInfo.email,
+                name: `${userInfo.first_name} ${userInfo.last_name}`,
+                userId: `${userInfo.id}`,
+            },
+            console.error
+        )
+
+        //@ts-ignore
+        tawkApi.setAttributes(
+            {
+                hash,
+                email: userInfo.email,
+                name: `${userInfo.first_name} ${userInfo.last_name}`,
+            },
+            console.error
+        )
+
+        if (userInfo?.billingPlan) {
+            //@ts-ignore
+            tawkApi.addTags([userInfo.billingPlan], console.error)
+        }
+    }
+
+    //@ts-ignore
+    tawkApi.language = 'en'
+
+    if (typeof tawkApi.start === 'function') {
+        //@ts-ignore
+        tawkApi.start({
+            message: 'Hi, how can we help you today?',
+        })
+    }
+
+    if (typeof tawkApi.maximize === 'function') {
+        //@ts-ignore
+        tawkApi.maximize()
+    } else {
+        window.location.href = 'https://gratheon.com'
+    }
 }
 
 function HamburgerIcon({ size = MOBILE_NAV_ICON_SIZE }) {
@@ -76,16 +137,27 @@ function BearFaceIcon({ size = MOBILE_NAV_ICON_SIZE }) {
     )
 }
 
-
-const ALERT_LIST_QUERY = gql`
-{
-    alerts {
-        id
-        text
-        date_added
-    }
+function SupportIcon({ size = MOBILE_NAV_ICON_SIZE }) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 9.5C6 6.46 8.46 4 11.5 4H12.5C15.54 4 18 6.46 18 9.5V11.5C18 12.33 17.33 13 16.5 13H15V10.5C15 9.67 14.33 9 13.5 9H10.5C9.67 9 9 9.67 9 10.5V13H7.5C6.67 13 6 12.33 6 11.5V9.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+            <path d="M12 13V15.5C12 17.43 10.43 19 8.5 19H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            <rect x="5.5" y="8.5" width="2.5" height="6" rx="1.2" stroke="currentColor" stroke-width="1.8" />
+            <rect x="16" y="8.5" width="2.5" height="6" rx="1.2" stroke="currentColor" stroke-width="1.8" />
+        </svg>
+    )
 }
-`
+
+function LogoutIcon({ size = MOBILE_NAV_ICON_SIZE }) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 4H6.5C5.67 4 5 4.67 5 5.5V18.5C5 19.33 5.67 20 6.5 20H10" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            <path d="M13 16L17 12L13 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M9 12H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+    )
+}
+
 
 const navClassName = ({isActive}) => (isActive ? styles.active : '')
 const mobileNavClassName = ({isActive}) =>
@@ -122,18 +194,10 @@ const Menu = ({isLoggedIn = false}) => {
 
 
 
-    let [isVisible, setVisible] = useState(false)
     let [isMoreVisible, setMoreVisible] = useState(false)
+    const location = useLocation()
 
-
-    let { loading, error, data, reexecuteQuery } = useQuery(ALERT_LIST_QUERY)
-
-    if (loading) {
-        return <Loader stroke="black" size={0}/>
-    }
-
-    let alerts = data.alerts
-    const hasAlerts = alerts && alerts.length > 0
+    const isAlertsSection = location.pathname === '/alert-config' || location.pathname.startsWith('/alert-config/')
 
 
     return (
@@ -146,35 +210,61 @@ const Menu = ({isLoggedIn = false}) => {
                         <NavLink
                             className={navClassName}
                             to="/apiaries">
-                            <T>Hives</T>
+                            <span className={styles.menuItemContent}>
+                                <span className={styles.menuItemIcon}><HiveIcon size={18} /></span>
+                                <span className={styles.menuItemLabel}><T>Hives</T></span>
+                            </span>
                         </NavLink>
                     </li>
                     <li>
                         <NavLink
                             className={navClassName}
                             to="/time">
-                            <T>Insights</T>
+                            <span className={styles.menuItemContent}>
+                                <span className={styles.menuItemIcon}><LightBulbIcon size={18} /></span>
+                                <span className={styles.menuItemLabel}><T>Insights</T></span>
+                            </span>
                         </NavLink>
                     </li>
                     <li>
                         <NavLink
-                            className={navClassName}
+                            className={() => (isAlertsSection ? styles.active : '')}
                             to="/alert-config">
-                            <T>Alerts</T>
+                            <span className={styles.menuItemContent}>
+                                <span className={styles.menuItemIcon}><BearFaceIcon size={18} /></span>
+                                <span className={styles.menuItemLabel}><T>Alerts</T></span>
+                            </span>
                         </NavLink>
+                        {isAlertsSection && (
+                            <ul className={styles.subMenu}>
+                                <li>
+                                    <NavLink
+                                        className={({isActive}) =>
+                                            isActive ? `${styles.subMenuLink} ${styles.active}` : styles.subMenuLink
+                                        }
+                                        to="/alert-config/channels"
+                                    >
+                                        <T>Channels</T>
+                                    </NavLink>
+                                </li>
+                                <li>
+                                    <NavLink
+                                        className={({isActive}) =>
+                                            isActive ? `${styles.subMenuLink} ${styles.active}` : styles.subMenuLink
+                                        }
+                                        to="/alert-config/rules"
+                                    >
+                                        <T>Rules</T>
+                                    </NavLink>
+                                </li>
+                            </ul>
+                        )}
                     </li>
 
                 </ul>
                 <div style="flex-grow:1"></div>
 
                 <ul className={styles.menuSection}>
-                    <li>
-                        <BellIcon size={20}
-                                  color={hasAlerts ? "#ffd900" : "#ddd"}
-                                  stroke={hasAlerts ? "black" : "#bbb"}
-                                  onClick={() => setVisible(!isVisible)}/>
-                    </li>
-
                     <li>
                         <NavLink
                             className={navClassName}
@@ -185,10 +275,28 @@ const Menu = ({isLoggedIn = false}) => {
                             </div>
                         </NavLink>
                     </li>
+
+                    <li>
+                        <a
+                            href="#"
+                            onClick={(event) => {
+                                event.preventDefault()
+                                openSupportChat()
+                            }}
+                        >
+                            <span className={styles.menuItemContent}>
+                                <span className={styles.menuItemIcon}><SupportIcon size={18} /></span>
+                                <span className={styles.menuItemLabel}><T>Support</T></span>
+                            </span>
+                        </a>
+                    </li>
                     
                     <li>
                         <a href="#" onClick={onLogoutClick}>
-                            <T>Log out</T>
+                            <span className={styles.menuItemContent}>
+                                <span className={styles.menuItemIcon}><LogoutIcon size={18} /></span>
+                                <span className={styles.menuItemLabel}><T>Log out</T></span>
+                            </span>
                         </a>
                     </li>
                 </ul>
@@ -205,7 +313,6 @@ const Menu = ({isLoggedIn = false}) => {
                             className={mobileNavClassName}
                             to="/apiaries"
                             onClick={() => {
-                                setVisible(false)
                                 setMoreVisible(false)
                             }}
                         >
@@ -218,7 +325,6 @@ const Menu = ({isLoggedIn = false}) => {
                             className={mobileNavClassName}
                             to="/time"
                             onClick={() => {
-                                setVisible(false)
                                 setMoreVisible(false)
                             }}
                         >
@@ -231,7 +337,6 @@ const Menu = ({isLoggedIn = false}) => {
                             className={mobileNavClassName}
                             to="/alert-config"
                             onClick={() => {
-                                setVisible(false)
                                 setMoreVisible(false)
                             }}
                         >
@@ -241,31 +346,9 @@ const Menu = ({isLoggedIn = false}) => {
                     </li>
                     <li>
                         <button
-                            className={utilityButtonClassName(isVisible)}
-                            onClick={() => {
-                                setVisible(!isVisible)
-                                setMoreVisible(false)
-                            }}
-                            type="button"
-                            aria-label="Notifications"
-                        >
-                            <span className={styles.navIcon}>
-                                <BellIcon
-                                size={MOBILE_NAV_ICON_SIZE}
-                                color={isVisible ? "#ffb000" : (hasAlerts ? "#ffd900" : "transparent")}
-                                stroke={isVisible ? "#2b2200" : (hasAlerts ? "#222" : "#777")}
-                                strokeWidth={2.3}
-                            />
-                            </span>
-                            <span className={styles.navLabel}><T>Notifications</T></span>
-                        </button>
-                    </li>
-                    <li>
-                        <button
                             className={utilityButtonClassName(isMoreVisible)}
                             onClick={() => {
                                 setMoreVisible(!isMoreVisible)
-                                setVisible(false)
                             }}
                             type="button"
                             aria-label="More"
@@ -277,14 +360,12 @@ const Menu = ({isLoggedIn = false}) => {
                 </ul>
             </nav>
 
-            {isVisible && <Alerts alerts={alerts} error={error} onClose={() => setVisible(false)} />}
             {isMoreVisible && (
                 <div className={styles.mobileMoreMenu}>
                     <NavLink
                         to="/account"
                         onClick={() => {
                             setMoreVisible(false)
-                            setVisible(false)
                         }}
                     >
                         <T>Account</T>

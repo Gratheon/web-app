@@ -3,9 +3,11 @@
 
 .tab {
 	display: inline;
+	flex: 0 0 auto;
 	padding: 8px 15px;
 	cursor: pointer;
 	color: #333;
+	white-space: nowrap;
 
 	&.active {
 		background: @color-green;
@@ -49,6 +51,22 @@
 	background-color: transparent;
 	border: none;
 	margin-bottom: 0;
+}
+
+@media @mobile {
+	.tabBar,
+	.tabBarRounded {
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		overflow-y: hidden;
+		-webkit-overflow-scrolling: touch;
+		-ms-overflow-style: none;
+		scrollbar-width: none;
+
+		&::-webkit-scrollbar {
+			display: none;
+		}
+	}
 }
 
 .tabRoundedStyle {

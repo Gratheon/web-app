@@ -5,6 +5,8 @@ export type Apiary = {
 	name?: string
 	lat?: string
 	lng?: string
+	photoUrl?: string
+	photoFileId?: number
 }
 
 const TABLE_NAME = 'apiary'
@@ -38,14 +40,20 @@ export async function updateApiary({
 	id,
 	name,
 	lat,
-	lng
+	lng,
+	photoUrl,
+	photoFileId
 }: Apiary) {
 	try {
+		const existing = await db[TABLE_NAME].get(id)
 		await db[TABLE_NAME].put({
+			...existing,
 			id,
 			name,
 			lat,
-			lng
+			lng,
+			photoUrl,
+			photoFileId
 		})
 	} catch (e) {
 		console.error("failed to update apiary", e)

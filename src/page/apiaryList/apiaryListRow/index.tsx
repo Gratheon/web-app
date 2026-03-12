@@ -189,7 +189,7 @@ export default function apiaryListRow({ apiary, user, sortBy, sortOrder, onSortC
 	return (
 		<div className={styles.apiary}>
 			<div className={styles.apiaryHead}>
-				<h2><Link href={`/apiaries/edit/${apiary.id}`}>{apiary.name ? apiary.name : '...'}</Link></h2>
+				<h2><Link href={`/apiaries/${apiary.id}`}>{apiary.name ? apiary.name : '...'}</Link></h2>
 
 				<div className={styles.buttons}>
 					{listType == 'table' && apiary.hives.length > 0 && <Button onClick={() => {

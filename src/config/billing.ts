@@ -4,10 +4,20 @@ export const BILLING_TIERS = {
 		color: '#f0f0f0',
 		textColor: '#666'
 	},
-	starter: {
-		name: 'Starter',
+	hobbyist: {
+		name: 'Hobbyist',
 		color: '#FFD900',
 		textColor: '#000',
+		monthly: {
+			price: 5,
+			currency: 'EUR',
+			stripePrice: 'price_hobbyist_monthly'
+		}
+	},
+	starter: {
+		name: 'Starter',
+		color: '#2f8b0b',
+		textColor: '#fff',
 		monthly: {
 			price: 22,
 			currency: 'EUR',
@@ -23,7 +33,7 @@ export const BILLING_TIERS = {
 	},
 	professional: {
 		name: 'Professional',
-		color: '#2f8b0b',
+		color: '#0248ff',
 		textColor: '#fff',
 		monthly: {
 			price: 55,
@@ -58,4 +68,3 @@ export const BILLING_TIERS = {
 		}
 	}
 }
-

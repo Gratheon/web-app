@@ -1,0 +1,114 @@
+.page {
+	padding: 20px;
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
+}
+
+.hero {
+	position: relative;
+	overflow: hidden;
+	border-radius: 18px;
+	min-height: 260px;
+	background: linear-gradient(135deg, #f2d16c 0%, #b78b3f 100%);
+	color: #fff;
+}
+
+.heroImage {
+	width: 100%;
+	height: 320px;
+	object-fit: cover;
+	display: block;
+}
+
+.heroOverlay {
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(180deg, rgba(0, 0, 0, 0.12) 0%, rgba(0, 0, 0, 0.62) 100%);
+	display: flex;
+	align-items: flex-end;
+}
+
+.heroContent {
+	width: 100%;
+	padding: 18px 20px;
+	display: flex;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.heroText h1 {
+	margin: 0;
+	font-size: 32px;
+	line-height: 1.1;
+}
+
+.heroMeta {
+	margin-top: 8px;
+	font-size: 14px;
+	opacity: 0.9;
+}
+
+.cards {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 12px;
+}
+
+.statCard {
+	background: #f8f6f0;
+	border: 1px solid #e7dec7;
+	border-radius: 12px;
+	padding: 12px 14px;
+}
+
+.statLabel {
+	font-size: 12px;
+	color: #7a6e55;
+}
+
+.statValue {
+	font-size: 22px;
+	font-weight: 700;
+	color: #352f24;
+}
+
+.layout {
+	display: grid;
+	grid-template-columns: 1.4fr 1fr;
+	gap: 16px;
+}
+
+.panel {
+	background: #fff;
+	border: 1px solid #e5e5e5;
+	border-radius: 12px;
+	overflow: hidden;
+}
+
+.panelHead {
+	padding: 12px 14px;
+	font-weight: 600;
+	border-bottom: 1px solid #efefef;
+}
+
+.mapFrame {
+	width: 100%;
+	height: 320px;
+	border: 0;
+}
+
+@media (max-width: 980px) {
+	.cards {
+		grid-template-columns: 1fr;
+	}
+
+	.layout {
+		grid-template-columns: 1fr;
+	}
+
+	.heroText h1 {
+		font-size: 26px;
+	}
+}

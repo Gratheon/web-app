@@ -1,11 +1,11 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useNavigate } from 'react-router'
 import { useLiveQuery } from 'dexie-react-hooks'
 import proj4 from 'proj4'
 
 import { getApiary, updateApiary } from '@/models/apiary'
-import { gql, useMutation, useQuery } from '@/api'
+import { gql, useMutation, useQuery, useUploadMutation } from '@/api'
 import { useConfirm } from '@/hooks/useConfirm'
 import VisualForm from '@/shared/visualForm'
 import Loader from '@/shared/loader'
@@ -22,6 +22,7 @@ import LocationMarker from '@/icons/locationMarker'
 
 import Plants from './plants'
 import HivePlacement from './hivePlacement'
+import { updateFile } from '@/models/files'
 
 
 // coordinate conversion for PRIA
@@ -66,6 +67,10 @@ export default function ApiaryEditForm() {
 	let [name, setName] = useState('')
 	let [lat, setLat] = useState(0)
 	let [lng, setLng] = useState(0)
+	let [photoUrl, setPhotoUrl] = useState<string | null>(null)
+	let [photoFileId, setPhotoFileId] = useState<number | null>(null)
+	let [uploadingPhoto, setUploadingPhoto] = useState(false)
+	let [photoUploadError, setPhotoUploadError] = useState<Error | null>(null)
 
 	const initialTab = tab && TAB_MAPPING[tab] !== undefined ? TAB_MAPPING[tab] : 2
 	let [mapTab, setMapTab] = useState(initialTab)
@@ -137,14 +142,29 @@ export default function ApiaryEditForm() {
 			}
 		}
 	`)
+	const [uploadFileMutation] = useUploadMutation(gql`
+		mutation uploadApiaryPhoto($file: Upload!) {
+			uploadFrameSide(file: $file) {
+				id
+				url
+				resizes {
+					id
+					url
+					max_dimension_px
+				}
+			}
+		}
+	`)
 
-	// only initial load should set values, otherwise use state
-	if (apiary && name == '') {
-		setName(apiary.name)
+	useEffect(() => {
+		if (!apiary) return
 
+		setName(apiary.name || '')
 		if (apiary.lat && !isNaN(+apiary.lat)) setLat(+apiary.lat)
 		if (apiary.lng && !isNaN(+apiary.lng)) setLng(+apiary.lng)
-	}
+		setPhotoUrl(apiary.photoUrl || null)
+		setPhotoFileId(apiary.photoFileId || null)
+	}, [apiary?.id])
 
 	if (!apiary) {
 		return <Loader />
@@ -188,8 +208,55 @@ export default function ApiaryEditForm() {
 			name,
 			lat: `${lat}`,
 			lng: `${lng}`,
+			photoUrl: photoUrl || undefined,
+			photoFileId: photoFileId || undefined,
 		})
 		setSaving(false);
+	}
+
+	async function onPhotoUpload(event: React.ChangeEvent<HTMLInputElement>) {
+		const target = event.target as HTMLInputElement
+		const file = target.files?.[0]
+		setPhotoUploadError(null)
+		if (!file) return
+
+		if (!file.type.startsWith('image/')) {
+			setPhotoUploadError(new Error('Unsupported file type. Please upload an image.'))
+			return
+		}
+
+		setUploadingPhoto(true)
+		try {
+			const uploadFile = uploadFileMutation as (payload: any) => Promise<any>
+			const result = await uploadFile({ file })
+			const uploadData = result?.data?.uploadFrameSide
+			if (!uploadData?.url || !uploadData?.id) {
+				throw new Error('Failed to upload image')
+			}
+
+			setPhotoUrl(uploadData.url)
+			setPhotoFileId(+uploadData.id)
+
+			await updateFile({
+				id: +uploadData.id,
+				url: uploadData.url,
+				resizes: uploadData.resizes || [],
+			})
+
+			await updateApiary({
+				id: +id,
+				name,
+				lat: `${lat}`,
+				lng: `${lng}`,
+				photoUrl: uploadData.url,
+				photoFileId: +uploadData.id,
+			})
+		} catch (uploadError) {
+			setPhotoUploadError(uploadError instanceof Error ? uploadError : new Error('Failed to upload image'))
+		} finally {
+			setUploadingPhoto(false)
+			target.value = ''
+		}
 	}
 
 	function onNameChange(e) {
@@ -238,6 +305,25 @@ export default function ApiaryEditForm() {
 					</div>
 					</div>
 				</VisualForm>
+
+				<div style={{ marginTop: 16, border: '1px solid #e5e5e5', borderRadius: 12, padding: 12 }}>
+					<div style={{ fontWeight: 600, marginBottom: 8 }}><T>Apiary photo</T></div>
+					{photoUrl && (
+						<img
+							src={photoUrl}
+							alt={name || 'Apiary photo'}
+							style={{ width: '100%', maxHeight: 260, objectFit: 'cover', borderRadius: 10, marginBottom: 8 }}
+						/>
+					)}
+					<input
+						type="file"
+						accept="image/*"
+						onChange={onPhotoUpload}
+						disabled={uploadingPhoto}
+					/>
+					{uploadingPhoto && <div style={{ marginTop: 8 }}><T>Uploading photo...</T></div>}
+					{photoUploadError && <ErrorMsg error={photoUploadError} />}
+				</div>
 			</div>
 			<TabBar>
         <Tab isSelected={mapTab == 2} onClick={() => changeTab(2)}><T>Hive Placement</T></Tab>

@@ -448,7 +448,7 @@ type User {
   hasSubscription: Boolean
   isSubscriptionExpired: Boolean
 
-  # Billing plan: free, base, pro
+  # Billing plan: free, hobbyist, starter, professional, addon, enterprise
   billingPlan: String
 }
 

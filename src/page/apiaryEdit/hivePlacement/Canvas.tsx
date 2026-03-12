@@ -29,6 +29,7 @@ interface CanvasProps {
 	isDraggingHeight: boolean
 	isPanning: boolean
 	panOffset: { x: number; y: number }
+	readOnly?: boolean
 	isMobile?: boolean
 	labels: CanvasLabels
 	onClick: (x: number, y: number) => void
@@ -57,6 +58,7 @@ export default function Canvas({
 	isDraggingHeight,
 	isPanning,
 	panOffset,
+	readOnly = false,
 	isMobile = false,
 	labels,
 	onClick,
@@ -312,6 +314,9 @@ export default function Canvas({
 	}
 
 	const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+		if (readOnly) {
+			return
+		}
 		const canvas = canvasRef.current
 		if (!canvas) return
 
@@ -342,6 +347,9 @@ export default function Canvas({
 	}
 
 	const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+		if (readOnly) {
+			return
+		}
 		const canvas = canvasRef.current
 		if (!canvas) return
 
@@ -372,6 +380,9 @@ export default function Canvas({
 	}
 
 	const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+		if (readOnly) {
+			return
+		}
 		const canvas = canvasRef.current
 		if (!canvas) return
 
@@ -398,6 +409,9 @@ export default function Canvas({
 	}
 
 	const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
+		if (readOnly) {
+			return
+		}
 		e.preventDefault()
 		const canvas = canvasRef.current
 		if (!canvas) return
@@ -411,6 +425,9 @@ export default function Canvas({
 	}
 
 	const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
+		if (readOnly) {
+			return
+		}
 		e.preventDefault()
 		const canvas = canvasRef.current
 		if (!canvas) return
@@ -424,14 +441,20 @@ export default function Canvas({
 	}
 
 	const handleTouchEnd = (e: React.TouchEvent<HTMLCanvasElement>) => {
-		e.preventDefault()
+		if (!readOnly) {
+			e.preventDefault()
+		}
 		setIsDraggingSun(false)
-		onMouseUp()
+		if (!readOnly) {
+			onMouseUp()
+		}
 	}
 
 	const handleMouseUp = () => {
 		setIsDraggingSun(false)
-		onMouseUp()
+		if (!readOnly) {
+			onMouseUp()
+		}
 	}
 
 	return (
@@ -453,6 +476,7 @@ export default function Canvas({
 				borderTop: '2px solid #ccc',
 				borderBottom: '2px solid #ccc',
 				cursor: isDraggingSun ? 'grabbing' :
+					readOnly ? 'default' :
 					isPanning ? 'move' :
 					addingObstacle ? 'crosshair' :
 					(isDragging || isDraggingRotation || isDraggingObstacle) ? 'grabbing' :
@@ -462,9 +486,8 @@ export default function Canvas({
 				display: 'block',
 				width: '100%',
 				height: 'auto',
-				touchAction: 'none'
+				touchAction: readOnly ? 'auto' : 'none'
 			}}
 		/>
 	)
 }
-

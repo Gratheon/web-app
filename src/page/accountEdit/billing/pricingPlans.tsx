@@ -46,7 +46,8 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 
 	const getPlanStatus = (planName: string) => {
 		if (currentPlan === 'addon') return 'current'
-		if (currentPlan === 'free' && planName === 'starter') return 'upgrade'
+		if (currentPlan === 'free' && planName === 'hobbyist') return 'upgrade'
+		if (currentPlan === 'hobbyist' && planName === 'starter') return 'upgrade'
 		if (currentPlan === 'starter' && planName === 'professional') return 'upgrade'
 		return 'available'
 	}
@@ -56,8 +57,8 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 			{error && <MessageError error={error} />}
 			{sessionError && <MessageError error={sessionError} />}
 
-			<div className="plans-grid">
-				<div className="plan-card-wrapper">
+				<div className="plans-grid">
+					<div className="plan-card-wrapper">
 					<div className="plan-indicator-slot">
 						{currentPlan === 'free' && (
 							<div className="current-plan-arrow">
@@ -79,12 +80,49 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 							</div>
 						</div>
 					</div>
-				</div>
+					</div>
 
-				<div className="plan-card-wrapper">
-					<div className="plan-indicator-slot">
-						{currentPlan === 'starter' && (
-							<div className="current-plan-arrow">
+					<div className="plan-card-wrapper">
+						<div className="plan-indicator-slot">
+							{currentPlan === 'hobbyist' && (
+								<div className="current-plan-arrow">
+									<T>Current plan</T> ↓
+								</div>
+							)}
+						</div>
+						<div className={`plan-card ${currentPlan === 'hobbyist' ? 'current' : ''}`}>
+							<div className="plan-header plan-header-hobbyist">
+								<h3 className="plan-name">{BILLING_TIERS.hobbyist.name}</h3>
+								<div className="plan-description">
+									<T>For taking the notes</T>
+								</div>
+							</div>
+
+							<div className="plan-body">
+								<div className="plan-pricing-options">
+									<div className="price-row">
+										<div className="price-info">
+											<span className="price-amount">€{BILLING_TIERS.hobbyist.monthly.price}</span>
+											<span className="price-period">/<T>month</T></span>
+										</div>
+										<Button
+											onClick={() => handlePlanSelect('hobbyist', 'monthly')}
+										>
+											<T>Buy</T>
+										</Button>
+									</div>
+									<div className="price-note" style={{ textAlign: 'center', marginTop: '-0.2rem' }}>
+										☕ <T>About the price of a cup of coffee</T>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div className="plan-card-wrapper">
+						<div className="plan-indicator-slot">
+							{currentPlan === 'starter' && (
+								<div className="current-plan-arrow">
 								<T>Current plan</T> ↓
 							</div>
 						)}

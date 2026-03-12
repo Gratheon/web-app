@@ -19,6 +19,7 @@ interface Props {
 	hives: Hive[]
 	selectedHiveId?: string | null
 	onHiveSelect?: (hiveId: string | null) => void
+	readOnly?: boolean
 }
 
 const isMobile = () => {
@@ -29,7 +30,7 @@ const isMobile = () => {
 	)
 }
 
-export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveSelect }: Props) {
+export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveSelect, readOnly = false }: Props) {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [canvasWidth, setCanvasWidth] = useState(800)
 	const [placements, setPlacements] = useState<Map<string, HivePlacementType>>(new Map())
@@ -95,10 +96,10 @@ export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveS
 	}, [selectedHiveId])
 
 	useEffect(() => {
-		if (onHiveSelect) {
+		if (onHiveSelect && !readOnly) {
 			onHiveSelect(selectedHive)
 		}
-	}, [selectedHive])
+	}, [selectedHive, readOnly])
 
 	useEffect(() => {
 		const updateCanvasWidth = () => {
@@ -180,6 +181,23 @@ export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveS
 	}, [autoRotate])
 
 	const handleCanvasClick = (x: number, y: number) => {
+		if (readOnly) {
+			for (const hive of hives) {
+				const placement = placements.get(hive.id)
+				if (!placement) continue
+
+				const dist = Math.sqrt((x - placement.x) ** 2 + (y - placement.y) ** 2)
+				if (dist <= HIVE_SIZE / 2 + 5) {
+					setSelectedHive(hive.id)
+					setSelectedObstacle(null)
+					return
+				}
+			}
+
+			setSelectedHive(null)
+			return
+		}
+
 		if (addingObstacle) {
 			const objectHeight = addingObstacle === 'CIRCLE' ? 150 : 100
 			const obstacleForMutation = {
@@ -238,6 +256,8 @@ export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveS
 	}
 
 	const handleCanvasMouseDown = (x: number, y: number, e?: any) => {
+		if (readOnly) return
+
 		if (e && (e.button === 1 || e.button === 2 || e.shiftKey)) {
 			setIsPanning(true)
 			setLastPanPoint({ x, y })
@@ -362,6 +382,8 @@ export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveS
 	}
 
 	const handleCanvasMouseMove = (x: number, y: number) => {
+		if (readOnly) return
+
 		if (isPanning) {
 			const dx = x - lastPanPoint.x
 			const dy = y - lastPanPoint.y
@@ -447,6 +469,8 @@ export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveS
 	}
 
 	const handleCanvasMouseUp = () => {
+		if (readOnly) return
+
 		if ((isDraggingObstacle || isResizingObstacle || isDraggingObstacleRotation || isDraggingHeight) && selectedObstacle) {
 			const obs = obstacles.find(o => o.id === selectedObstacle)
 			if (obs) {
@@ -540,7 +564,11 @@ export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveS
 	return (
 		<div ref={containerRef} style={mobileStyles.container(isMobileDevice)}>
 			<div style={mobileStyles.header(isMobileDevice)}>
-				<p style={mobileStyles.description(isMobileDevice)}><T>Position your hives optimally considering sun movement, shadows, and flight patterns</T></p>
+				<p style={mobileStyles.description(isMobileDevice)}>
+					{readOnly
+						? <T>Hive placement overview</T>
+						: <T>Position your hives optimally considering sun movement, shadows, and flight patterns</T>}
+				</p>
 			</div>
 
 			{isMobileDevice && showHiveList && (
@@ -618,6 +646,7 @@ export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveS
 					isDraggingHeight={isDraggingHeight}
 					isPanning={isPanning}
 					panOffset={panOffset}
+					readOnly={readOnly}
 					isMobile={isMobileDevice}
 					labels={labels}
 					onClick={handleCanvasClick}
@@ -661,20 +690,21 @@ export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveS
 				</div>
 			)}
 
-			<Toolbar
-				addingObstacle={addingObstacle}
-				selectedHive={selectedHive}
-				selectedObstacle={selectedObstacle}
-				isMobile={isMobileDevice}
-				showHiveList={showHiveList}
-				onAddObstacle={handleAddObstacle}
-				onRotateHive={rotateHive}
-				onDeleteObstacle={handleDeleteObstacle}
-				onToggleHiveList={() => setShowHiveList(!showHiveList)}
-			/>
+			{!readOnly && (
+				<Toolbar
+					addingObstacle={addingObstacle}
+					selectedHive={selectedHive}
+					selectedObstacle={selectedObstacle}
+					isMobile={isMobileDevice}
+					showHiveList={showHiveList}
+					onAddObstacle={handleAddObstacle}
+					onRotateHive={rotateHive}
+					onDeleteObstacle={handleDeleteObstacle}
+					onToggleHiveList={() => setShowHiveList(!showHiveList)}
+				/>
+			)}
 
-			{!isMobileDevice && <Tips />}
+			{!isMobileDevice && !readOnly && <Tips />}
 		</div>
 	)
 }
-

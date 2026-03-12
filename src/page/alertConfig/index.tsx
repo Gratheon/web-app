@@ -436,7 +436,7 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 										: null;
 
 									const apiaryViewUrl = apiary
-										? `/apiaries/edit/${apiary.id}`
+										? `/apiaries/${apiary.id}`
 										: null;
 
 									return (

@@ -10,6 +10,7 @@ import styles from './index.module.less'
 
 import ApiaryCreate from './apiaryCreate'
 import ApiaryEditForm from './apiaryEdit'
+import ApiaryView from './apiaryView'
 import ApiaryList from './apiaryList'
 import HiveCreateForm from './hiveCreate'
 import HiveEditView from './hiveEdit'
@@ -93,6 +94,7 @@ export default function Page() {
 			<Route path="/time" element={<LoggedInPage><TimeView /></LoggedInPage>} />
 
 			<Route path="/apiaries/create" element={<LoggedInPage><ApiaryCreate /></LoggedInPage>} />
+			<Route path="/apiaries/:id" element={<LoggedInPage><ApiaryView /></LoggedInPage>} />
 			<Route path="/apiaries/edit/:id/:tab?/:hiveId?" element={<LoggedInPage><ApiaryEditForm /></LoggedInPage>} />
 			<Route path="/" element={<LoggedInPage><ApiaryList /></LoggedInPage>} />
 			<Route path="/apiaries/" element={<LoggedInPage><ApiaryList /></LoggedInPage>} />

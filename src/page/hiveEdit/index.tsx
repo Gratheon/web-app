@@ -256,7 +256,7 @@ function composeBreadCrumbs(
 					«{apiary.name}» <T>apiary</T>
 				</>
 			),
-			uri: `/apiaries/edit/${apiaryId}`,
+			uri: `/apiaries/${apiaryId}`,
 		}
 	}
 

@@ -6,7 +6,7 @@
 
 .plans-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 2rem;
   margin: 0 auto;
 }
@@ -90,29 +90,42 @@
 }
 
 .plan-header-starter {
+  background-color: #2f8b0b;
+  color: #ffffff;
+}
+
+.plan-header-hobbyist {
   background-color: #FFD900;
   color: #000000;
 }
 
 .plan-header-professional {
-  background-color: #2f8b0b;
+  background-color: #0248ff;
   color: #ffffff;
 }
 
 .plan-card.current .plan-header-starter {
-  border-color: #FFD900;
+  border-color: #2f8b0b;
 }
 
 .plan-card:has(.plan-header-starter) {
+  border-color: #2f8b0b;
+}
+
+.plan-card.current:has(.plan-header-hobbyist) {
+  border-color: #FFD900;
+}
+
+.plan-card:has(.plan-header-hobbyist) {
   border-color: #FFD900;
 }
 
 .plan-card.current:has(.plan-header-professional) {
-  border-color: #2f8b0b;
+  border-color: #0248ff;
 }
 
 .plan-card:has(.plan-header-professional) {
-  border-color: #2f8b0b;
+  border-color: #0248ff;
 }
 
 .plan-name {
@@ -126,6 +139,10 @@
 }
 
 .plan-header-starter .plan-name {
+  color: #ffffff;
+}
+
+.plan-header-hobbyist .plan-name {
   color: #000000;
 }
 
@@ -143,6 +160,11 @@
 }
 
 .plan-header-starter .plan-description {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+.plan-header-hobbyist .plan-description {
   color: rgba(0, 0, 0, 0.8);
   font-weight: 500;
 }
@@ -234,6 +256,16 @@
   font-weight: 600;
   margin-top: 0.3rem;
   width: fit-content;
+}
+
+.plan-card:has(.plan-header-starter) .savings-badge {
+  background: #2f8b0b;
+  color: #fff;
+}
+
+.plan-card:has(.plan-header-professional) .savings-badge {
+  background: #0248ff;
+  color: #fff;
 }
 
 .plan-card:has(.plan-header-professional) .savings-badge {

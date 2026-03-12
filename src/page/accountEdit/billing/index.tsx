@@ -182,8 +182,10 @@ export default function Billing({ user }) {
 											padding: '0.2rem 0.5rem',
 											borderRadius: '4px',
 											background: event.billingPlan === 'free' ? '#f0f0f0' :
-												event.billingPlan === 'starter' ? '#FFD900' : '#2f8b0b',
-											color: event.billingPlan === 'professional' ? '#fff' : '#000',
+												event.billingPlan === 'hobbyist' ? '#FFD900' :
+												event.billingPlan === 'starter' ? '#2f8b0b' : '#0248ff',
+											color: event.billingPlan === 'professional' ? '#fff' :
+												event.billingPlan === 'starter' ? '#fff' : '#000',
 											fontWeight: 600
 										}}>{event.billingPlan}</span>
 									</div>

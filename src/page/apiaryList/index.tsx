@@ -13,12 +13,97 @@ import ApiaryListRow from './apiaryListRow'
 import ApiariesPlaceholder from './apiariesPlaceholder'
 import PagePaddedCentered from '@/shared/pagePaddedCentered/index'
 
+const TABLE_VISIBLE_COLUMNS_KEY = 'apiaryList.tableVisibleColumns'
+const TABLE_SORT_KEY = 'apiaryList.tableSort'
+const DEFAULT_VISIBLE_COLUMNS = [
+	'HIVE_NUMBER',
+	'QUEEN',
+	'BEE_COUNT',
+	'STATUS',
+	'LAST_TREATMENT',
+	'LAST_INSPECTION',
+]
+const DEFAULT_SORT_BY = 'HIVE_NUMBER'
+const DEFAULT_SORT_ORDER = 'ASC'
+const ALLOWED_SORT_COLUMNS = [
+	'HIVE_NUMBER',
+	'QUEEN',
+	'BEE_COUNT',
+	'STATUS',
+	'LAST_TREATMENT',
+	'LAST_INSPECTION',
+	'QUEEN_YEAR',
+	'QUEEN_RACE',
+]
+const ALLOWED_SORT_ORDERS = ['ASC', 'DESC']
 
 export default function ApiaryList(props) {
 	let user = useLiveQuery(() => getUser(), [], null)
 
-	const [hiveSortBy, setHiveSortBy] = React.useState('HIVE_NUMBER')
-	const [hiveSortOrder, setHiveSortOrder] = React.useState('ASC')
+	const [hiveSortBy, setHiveSortBy] = React.useState(() => {
+		if (typeof window === 'undefined') {
+			return DEFAULT_SORT_BY
+		}
+
+		try {
+			const raw = localStorage.getItem(TABLE_SORT_KEY)
+			if (!raw) {
+				return DEFAULT_SORT_BY
+			}
+
+			const parsed = JSON.parse(raw)
+			if (parsed?.sortBy && ALLOWED_SORT_COLUMNS.includes(parsed.sortBy)) {
+				return parsed.sortBy
+			}
+		} catch (error) {
+			console.error('Failed to parse table sort config', error)
+		}
+
+		return DEFAULT_SORT_BY
+	})
+	const [hiveSortOrder, setHiveSortOrder] = React.useState(() => {
+		if (typeof window === 'undefined') {
+			return DEFAULT_SORT_ORDER
+		}
+
+		try {
+			const raw = localStorage.getItem(TABLE_SORT_KEY)
+			if (!raw) {
+				return DEFAULT_SORT_ORDER
+			}
+
+			const parsed = JSON.parse(raw)
+			if (parsed?.sortOrder && ALLOWED_SORT_ORDERS.includes(parsed.sortOrder)) {
+				return parsed.sortOrder
+			}
+		} catch (error) {
+			console.error('Failed to parse table sort config', error)
+		}
+
+		return DEFAULT_SORT_ORDER
+	})
+	const [visibleColumns, setVisibleColumns] = React.useState(() => {
+		if (typeof window === 'undefined') {
+			return DEFAULT_VISIBLE_COLUMNS
+		}
+
+		try {
+			const raw = localStorage.getItem(TABLE_VISIBLE_COLUMNS_KEY)
+			if (!raw) {
+				return DEFAULT_VISIBLE_COLUMNS
+			}
+
+			const parsed = JSON.parse(raw)
+			if (!Array.isArray(parsed) || parsed.length === 0) {
+				return DEFAULT_VISIBLE_COLUMNS
+			}
+
+			return parsed
+		} catch (error) {
+			console.error('Failed to parse table visible columns config', error)
+			return DEFAULT_VISIBLE_COLUMNS
+		}
+	})
 
 	const handleHiveSortChange = React.useCallback((sortBy) => {
 		if (hiveSortBy === sortBy) {
@@ -30,13 +115,47 @@ export default function ApiaryList(props) {
 		setHiveSortOrder('ASC')
 	}, [hiveSortBy])
 
+	const toggleVisibleColumn = React.useCallback((columnKey) => {
+		setVisibleColumns((prev) => {
+			const isVisible = prev.includes(columnKey)
+			if (isVisible && prev.length === 1) {
+				return prev
+			}
+
+			if (isVisible) {
+				return prev.filter(column => column !== columnKey)
+			}
+
+			return [...prev, columnKey]
+		})
+	}, [])
+
+	React.useEffect(() => {
+		if (typeof window === 'undefined') {
+			return
+		}
+
+		localStorage.setItem(TABLE_VISIBLE_COLUMNS_KEY, JSON.stringify(visibleColumns))
+	}, [visibleColumns])
+
+	React.useEffect(() => {
+		if (typeof window === 'undefined') {
+			return
+		}
+
+		localStorage.setItem(TABLE_SORT_KEY, JSON.stringify({
+			sortBy: hiveSortBy,
+			sortOrder: hiveSortOrder,
+		}))
+	}, [hiveSortBy, hiveSortOrder])
+
 	const { loading, error, data, errorNetwork } = useQuery(gql`
-		query apiaries($hiveSortBy: HiveSortBy, $hiveSortOrder: SortOrder) {
+		query apiaries {
 			apiaries {
 				id
 				name
 
-				hives(sortBy: $hiveSortBy, sortOrder: $hiveSortOrder) {
+				hives {
 					id
 					hiveNumber
 					beeCount
@@ -49,6 +168,8 @@ export default function ApiaryList(props) {
 						id
 						name
 						age
+						race
+						added
 						lastTreatment
 					}
 
@@ -61,12 +182,7 @@ export default function ApiaryList(props) {
 				}
 			}
 		}
-	`, {
-		variables: {
-			hiveSortBy,
-			hiveSortOrder,
-		},
-	})
+	`)
 
 	if (loading) {
 		return <Loader />
@@ -88,6 +204,8 @@ export default function ApiaryList(props) {
 						sortBy={hiveSortBy}
 						sortOrder={hiveSortOrder}
 						onSortChange={handleHiveSortChange}
+						visibleColumns={visibleColumns}
+						onToggleColumn={toggleVisibleColumn}
 					/>
 				))}
 

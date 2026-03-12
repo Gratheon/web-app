@@ -3,9 +3,13 @@
 table {
 	th {
 		//text-align: left;
-		padding: 2px 10px;
-		color: #aaaaaa;
+		padding: 1px 8px;
+		color: #8f8f8f;
 		border-bottom: 1px solid #eeeeee;
+		font-weight: 300;
+		font-size: 12px;
+		line-height: 1.2;
+		white-space: nowrap;
 	}
 
 	td {
@@ -21,13 +25,106 @@ table {
 
 }
 
-.sortButton {
-	background: transparent;
-	border: none;
-	color: inherit;
-	font: inherit;
-	padding: 0;
+.sortableHeader {
 	cursor: pointer;
+	user-select: none;
+	transition: color 0.15s ease;
+
+	&:hover {
+		color: #777777;
+	}
+
+	&:focus-visible {
+		outline: 1px solid #cfcfcf;
+		outline-offset: -1px;
+	}
+}
+
+.columnPickerCell {
+	width: 28px;
+	padding-left: 4px;
+	padding-right: 4px;
+}
+
+.columnPicker {
+	position: relative;
+}
+
+.columnPickerButton {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 20px;
+	height: 20px;
+	padding: 0;
+	border: 1px solid #d6d6d6;
+	border-radius: 3px;
+	background: #ffffff;
+	color: #8a8a8a;
+	cursor: pointer;
+	line-height: 1;
+
+	&:hover {
+		color: #666666;
+		border-color: #c5c5c5;
+	}
+
+	&:focus-visible {
+		outline: 1px solid #cfcfcf;
+		outline-offset: 1px;
+	}
+}
+
+.columnPickerPopup {
+	position: absolute;
+	top: 24px;
+	left: 0;
+	min-width: 170px;
+	padding: 8px 10px;
+	background: #ffffff;
+	border: 1px solid #e5e5e5;
+	border-radius: 4px;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+	z-index: 20;
+}
+
+.columnCheckbox {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 12px;
+	color: #666666;
+	padding: 3px 0;
+	cursor: pointer;
+
+	input {
+		margin: 0;
+	}
+}
+
+.statusPill {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 999px;
+	font-size: 11px;
+	line-height: 1.2;
+	text-transform: capitalize;
+	font-weight: 500;
+}
+
+.statusPillGreen {
+	background: #e8f7ee;
+	color: #1f7a3b;
+}
+
+.statusPillYellow {
+	background: #fff8e1;
+	color: #8c6b00;
+}
+
+.statusPillRed {
+	background: #fdecea;
+	color: #a12622;
 }
 
 .newHive{

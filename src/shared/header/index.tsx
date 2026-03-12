@@ -8,7 +8,7 @@ import styles from './index.module.less'
 export default function Header() {
 	if (isLoggedIn()) {
 		return (
-			<nav id={styles.header}>
+			<nav className={styles.header}>
 				<a href="/apiaries">
 					<img src={logoURL} />
 				</a>
@@ -16,7 +16,7 @@ export default function Header() {
 		)
 	} else {
 		return (
-			<nav id={styles.header}>
+			<nav className={styles.header}>
 				<a href="/account/authenticate">
 					<img src={logoURL} />
 				</a>

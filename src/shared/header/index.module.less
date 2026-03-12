@@ -1,4 +1,6 @@
-#header {
+@import '@/layout.module.less';
+
+.header {
 	background: white;
 	border-right: 1px solid #e1e1e1;
 
@@ -6,5 +8,11 @@
 		width: 55px;
 		margin: 0 auto;
 		display: block;
+	}
+}
+
+@media @mobile {
+	.header {
+		border-right: none;
 	}
 }

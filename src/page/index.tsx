@@ -5,6 +5,7 @@ import Menu from '../shared/menu';
 import Footer from '../shared/footer';
 import MinimizedUploadProgress from '../shared/minimizedUploadProgress';
 import { isLoggedIn } from '../user';
+import styles from './index.module.less'
 
 import ApiaryCreate from './apiaryCreate'
 import ApiaryEditForm from './apiaryEdit'
@@ -39,10 +40,10 @@ function LoggedInPage({ children }) {
 }
 
 function PageWithMenu({children}) {
-	return <div style={{display: 'flex', flexDirection: 'column', height: "100%"}}>
+	return <div className={styles.pageShell}>
 		<Menu isLoggedIn={isLoggedIn()}/>
 		<MinimizedUploadProgress />
-		<div style={{flex: 1}}>
+		<div className={styles.content}>
 			{children}
 		</div>
 		<Footer/>

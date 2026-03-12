@@ -1,0 +1,17 @@
+@import '../layout.module.less';
+
+.pageShell {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+.content {
+	flex: 1;
+}
+
+@media @mobile {
+	.content {
+		padding-bottom: 86px;
+	}
+}

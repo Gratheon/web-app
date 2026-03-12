@@ -20,6 +20,17 @@
     }
 }
 
+@media @mobile {
+  .alertDropdownContainer {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    bottom: calc(66px + env(safe-area-inset-bottom));
+    z-index: 1200;
+    max-height: 50vh;
+  }
+}
+
 .alertDropdownContainer {
   display: flex;
   flex-direction: column;

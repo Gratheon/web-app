@@ -6,7 +6,8 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { getHives, bulkUpsertHives } from '@/models/hive'
 import { listInspections } from '@/models/inspections'
 import { useQuery, gql } from '@/api'
-import imageURL from '@/assets/flower.png'
+import imageURL from '@/assets/bear.webp'
+import thinkerImageURL from '@/assets/thinker.webp'
 import { useChartSync } from '@/shared/charts/useChartSync'
 import PopulationChart from '@/shared/charts/PopulationChart'
 import MultiHiveWeightChart from '@/shared/charts/MultiHiveWeightChart'
@@ -28,7 +29,8 @@ const LS_KEYS = {
 	SELECTED_APIARY: 'timeView.selectedApiaryId',
 	SELECTED_HIVES: 'timeView.selectedHiveIds',
 	ENABLED_CHARTS: 'timeView.enabledCharts',
-	SHOW_IDEAL_CURVE: 'timeView.showIdealCurve'
+	SHOW_IDEAL_CURVE: 'timeView.showIdealCurve',
+	FILTERS_EXPANDED: 'timeView.filtersExpanded'
 }
 
 const loadFromLocalStorage = <T,>(key: string, defaultValue: T): T => {
@@ -77,6 +79,11 @@ export default function TimeView() {
 	const scrollHandledRef = useRef(false)
 	const hiveLabel = t('Hive')
 
+	const defaultFiltersExpanded = () => {
+		if (typeof window === 'undefined') return true
+		return window.innerWidth >= 1024
+	}
+
 	const urlHiveId = searchParams.get('hiveId')
 	const urlApiaryId = searchParams.get('apiaryId')
 	const urlChartType = searchParams.get('chartType')
@@ -91,6 +98,13 @@ export default function TimeView() {
 	const [timeRangeDays, setTimeRangeDays] = useState(90)
 	const [showIdealCurve, setShowIdealCurve] = useState(() =>
 		loadFromLocalStorage(LS_KEYS.SHOW_IDEAL_CURVE, true)
+	)
+	const [isDesktop, setIsDesktop] = useState(() => {
+		if (typeof window === 'undefined') return true
+		return window.innerWidth >= 1024
+	})
+	const [filtersExpanded, setFiltersExpanded] = useState(() =>
+		loadFromLocalStorage(LS_KEYS.FILTERS_EXPANDED, defaultFiltersExpanded())
 	)
 	const [enabledCharts, setEnabledCharts] = useState(() =>
 		loadFromLocalStorage(LS_KEYS.ENABLED_CHARTS, {
@@ -136,6 +150,16 @@ export default function TimeView() {
 	useEffect(() => {
 		saveToLocalStorage(LS_KEYS.SHOW_IDEAL_CURVE, showIdealCurve)
 	}, [showIdealCurve])
+
+	useEffect(() => {
+		saveToLocalStorage(LS_KEYS.FILTERS_EXPANDED, filtersExpanded)
+	}, [filtersExpanded])
+
+	useEffect(() => {
+		const handleResize = () => setIsDesktop(window.innerWidth >= 1024)
+		window.addEventListener('resize', handleResize)
+		return () => window.removeEventListener('resize', handleResize)
+	}, [])
 
 	const allHives = useLiveQuery(async () => {
 		let localHives = await getHives()
@@ -429,6 +453,73 @@ export default function TimeView() {
 		return { weightDataByHive, temperatureDataByHive, entranceDataByHive }
 	}, [telemetryData, activeHives, hiveLabel])
 
+	const chartDataAvailability = useMemo(() => {
+		const hasPopulationData = Object.values(inspectionsByHive).some((entries: any[]) =>
+			entries.some(entry => entry.population && entry.population > 0)
+		)
+
+		const hasWeightData = Object.values(weightDataByHive).some((hiveData: any) =>
+			!hiveData?.data?.code && Array.isArray(hiveData?.data?.metrics) && hiveData.data.metrics.length > 0
+		)
+
+		const hasTemperatureData = Object.values(temperatureDataByHive).some((hiveData: any) =>
+			!hiveData?.data?.code && Array.isArray(hiveData?.data?.metrics) && hiveData.data.metrics.length > 0
+		)
+
+		const hasEntranceData = Object.values(entranceDataByHive).some((hiveData: any) =>
+			Array.isArray(hiveData?.data?.metrics) &&
+			hiveData.data.metrics.some((m: any) => (m.beesIn ?? 0) > 0)
+		)
+
+		const hasEntranceSpeedData = Object.values(entranceDataByHive).some((hiveData: any) =>
+			Array.isArray(hiveData?.data?.metrics) &&
+			hiveData.data.metrics.some((m: any) => (m.avgSpeed ?? 0) > 0 || (m.p95Speed ?? 0) > 0)
+		)
+
+		const hasEntranceDetectedData = Object.values(entranceDataByHive).some((hiveData: any) =>
+			Array.isArray(hiveData?.data?.metrics) &&
+			hiveData.data.metrics.some((m: any) => (m.detectedBees ?? 0) > 0)
+		)
+
+		const hasEntranceStationaryData = Object.values(entranceDataByHive).some((hiveData: any) =>
+			Array.isArray(hiveData?.data?.metrics) &&
+			hiveData.data.metrics.some((m: any) => (m.stationaryBees ?? 0) > 0)
+		)
+
+		const hasEntranceInteractionsData = Object.values(entranceDataByHive).some((hiveData: any) =>
+			Array.isArray(hiveData?.data?.metrics) &&
+			hiveData.data.metrics.some((m: any) => (m.beeInteractions ?? 0) > 0)
+		)
+
+		return {
+			population: hasPopulationData,
+			weight: hasWeightData,
+			temperature: hasTemperatureData,
+			entrance: hasEntranceData,
+			entranceSpeed: hasEntranceSpeedData,
+			entranceDetected: hasEntranceDetectedData,
+			entranceStationary: hasEntranceStationaryData,
+			entranceInteractions: hasEntranceInteractionsData
+		}
+	}, [inspectionsByHive, weightDataByHive, temperatureDataByHive, entranceDataByHive])
+
+	const missingSelectedCharts = useMemo(() => {
+		const chartDefinitions = [
+			{ key: 'population', label: t('Colony Population') },
+			{ key: 'weight', label: t('Hive Weight Comparison') },
+			{ key: 'temperature', label: t('Hive Temperature Comparison') },
+			{ key: 'entrance', label: t('Hive Entrance Activity Comparison') },
+			{ key: 'entranceSpeed', label: t('Bee Speed Comparison') },
+			{ key: 'entranceDetected', label: t('Detected Bees Comparison') },
+			{ key: 'entranceStationary', label: t('Stationary Bees Comparison') },
+			{ key: 'entranceInteractions', label: t('Bee Interactions Comparison') }
+		]
+
+		return chartDefinitions
+			.filter(chart => enabledCharts[chart.key] && !chartDataAvailability[chart.key])
+			.map(chart => chart.label)
+	}, [enabledCharts, chartDataAvailability])
+
 	if (!allHives) return <Loader stroke="black" size={0}/>
 
 	if (allHives.length === 0) {
@@ -436,7 +527,7 @@ export default function TimeView() {
 			<div className={styles.emptyState}>
 				<h2><T>Colony Lifecycle</T></h2>
 				<p><T>This view shows how colonies develop over time. Add an apiary with a hive to see first data here.</T></p>
-				<img src={imageURL} alt="Flower illustration" />
+				<img src={imageURL} alt="Bear and honey illustration" />
 			</div>
 		)
 	}
@@ -470,34 +561,121 @@ export default function TimeView() {
 			</h2>
 
 			<div className={styles.contentWrapper}>
-				<aside className={styles.sidebar}>
-					<ApiarySelector
-						apiaries={gqlData?.apiaries || []}
-						selectedApiaryId={selectedApiaryId}
-						onSelectApiary={setSelectedApiaryId}
-					/>
+				{!isDesktop && (
+					<>
+						<button
+							type="button"
+							className={styles.filterToggleMobile}
+							onClick={() => setFiltersExpanded(prev => !prev)}
+						>
+							{filtersExpanded ? <T>Hide Filters</T> : <T>Show Filters</T>}
+						</button>
 
-					<TimeRangeSelector
-						value={timeRangeDays}
-						onChange={setTimeRangeDays}
-					/>
+						{filtersExpanded && (
+							<aside className={styles.sidebar}>
+								<TimeRangeSelector
+									value={timeRangeDays}
+									onChange={setTimeRangeDays}
+								/>
 
-					<HiveSelector
-						hives={hives}
-						selectedHiveIds={selectedHiveIds}
-						onToggleHive={toggleHive}
-					/>
+								<ApiarySelector
+									apiaries={gqlData?.apiaries || []}
+									selectedApiaryId={selectedApiaryId}
+									onSelectApiary={setSelectedApiaryId}
+								/>
 
-					<ChartToggles
-						enabledCharts={enabledCharts}
-						showIdealCurve={showIdealCurve}
-						onToggleChart={toggleChart}
-						onToggleIdealCurve={setShowIdealCurve}
-					/>
-				</aside>
+								<HiveSelector
+									hives={hives}
+									selectedHiveIds={selectedHiveIds}
+									onToggleHive={toggleHive}
+								/>
+
+								<ChartToggles
+									enabledCharts={enabledCharts}
+									showIdealCurve={showIdealCurve}
+									onToggleChart={toggleChart}
+									onToggleIdealCurve={setShowIdealCurve}
+								/>
+							</aside>
+						)}
+					</>
+				)}
+
+				{isDesktop && (
+					<div className={styles.filterColumn}>
+						{filtersExpanded && (
+							<aside className={styles.sidebar}>
+								<TimeRangeSelector
+									value={timeRangeDays}
+									onChange={setTimeRangeDays}
+								/>
+
+								<ApiarySelector
+									apiaries={gqlData?.apiaries || []}
+									selectedApiaryId={selectedApiaryId}
+									onSelectApiary={setSelectedApiaryId}
+								/>
+
+								<HiveSelector
+									hives={hives}
+									selectedHiveIds={selectedHiveIds}
+									onToggleHive={toggleHive}
+								/>
+
+								<ChartToggles
+									enabledCharts={enabledCharts}
+									showIdealCurve={showIdealCurve}
+									onToggleChart={toggleChart}
+									onToggleIdealCurve={setShowIdealCurve}
+								/>
+							</aside>
+						)}
+
+						<div
+							role="button"
+							tabIndex={0}
+							aria-expanded={filtersExpanded}
+							className={styles.filterToggleDesktop}
+							onClick={() => setFiltersExpanded(prev => !prev)}
+							onKeyDown={(e) => {
+								if (e.key === 'Enter' || e.key === ' ') {
+									e.preventDefault()
+									setFiltersExpanded(prev => !prev)
+								}
+							}}
+						>
+							{filtersExpanded ? <T>Hide Filters</T> : <T>Show Filters</T>}
+						</div>
+					</div>
+				)}
 
 				<main className={styles.chartsContainer}>
-					{enabledCharts.population && (
+					{missingSelectedCharts.length > 0 && (
+						<div className={styles.groupedNoDataPlaceholder}>
+							<img src={thinkerImageURL} alt="Thinker placeholder" />
+							<p className={styles.groupedNoDataTitle}>
+								<strong><T>No data available for selected charts.</T></strong>
+								<InfoIcon>
+									<p style={{ margin: '0 0 8px 0' }}>
+										<strong><T>How to get data here:</T></strong>
+									</p>
+									<ol style={{ margin: '0 0 12px 16px', paddingLeft: 0 }}>
+										<li><T>For population charts: add inspections and fill in bee count</T></li>
+										<li><T>For telemetry charts: connect sensors/cameras and send metrics via API</T></li>
+										<li><T>Documentation:</T> <a href="https://gratheon.com/docs/API/REST" target="_blank" rel="noopener noreferrer">gratheon.com/docs/API/REST</a></li>
+									</ol>
+								</InfoIcon>
+							</p>
+							<p className={styles.groupedNoDataSubtitle}><T>Currently missing data for:</T></p>
+							<ul className={styles.groupedNoDataList}>
+								{missingSelectedCharts.map(chartName => (
+									<li key={chartName}>{chartName}</li>
+								))}
+							</ul>
+						</div>
+					)}
+
+					{enabledCharts.population && chartDataAvailability.population && (
 						<div data-chart-type="population">
 							<PopulationChart
 								inspectionsByHive={inspectionsByHive}
@@ -510,7 +688,7 @@ export default function TimeView() {
 						</div>
 					)}
 
-					{enabledCharts.weight && (
+					{enabledCharts.weight && chartDataAvailability.weight && (
 						<div data-chart-type="weight">
 							<MultiHiveWeightChart
 								weightDataByHive={weightDataByHive}
@@ -521,7 +699,7 @@ export default function TimeView() {
 						</div>
 					)}
 
-					{enabledCharts.temperature && (
+					{enabledCharts.temperature && chartDataAvailability.temperature && (
 						<div data-chart-type="temperature">
 							<MultiHiveTemperatureChart
 								temperatureDataByHive={temperatureDataByHive}
@@ -532,7 +710,7 @@ export default function TimeView() {
 						</div>
 					)}
 
-					{enabledCharts.entrance && (
+					{enabledCharts.entrance && chartDataAvailability.entrance && (
 						<div data-chart-type="entrance">
 							<MultiHiveEntranceChart
 								entranceDataByHive={entranceDataByHive}
@@ -542,7 +720,7 @@ export default function TimeView() {
 						</div>
 					)}
 
-					{enabledCharts.entranceSpeed && (
+					{enabledCharts.entranceSpeed && chartDataAvailability.entranceSpeed && (
 						<div data-chart-type="entranceSpeed">
 							<MultiHiveEntranceSpeedChart
 								entranceDataByHive={entranceDataByHive}
@@ -552,7 +730,7 @@ export default function TimeView() {
 						</div>
 					)}
 
-					{enabledCharts.entranceDetected && (
+					{enabledCharts.entranceDetected && chartDataAvailability.entranceDetected && (
 						<div data-chart-type="entranceDetected">
 							<MultiHiveEntranceDetectedChart
 								entranceDataByHive={entranceDataByHive}
@@ -562,7 +740,7 @@ export default function TimeView() {
 						</div>
 					)}
 
-					{enabledCharts.entranceStationary && (
+					{enabledCharts.entranceStationary && chartDataAvailability.entranceStationary && (
 						<div data-chart-type="entranceStationary">
 							<MultiHiveEntranceStationaryChart
 								entranceDataByHive={entranceDataByHive}
@@ -572,7 +750,7 @@ export default function TimeView() {
 						</div>
 					)}
 
-					{enabledCharts.entranceInteractions && (
+					{enabledCharts.entranceInteractions && chartDataAvailability.entranceInteractions && (
 						<div data-chart-type="entranceInteractions">
 							<MultiHiveEntranceInteractionsChart
 								entranceDataByHive={entranceDataByHive}
@@ -599,6 +777,7 @@ export default function TimeView() {
 							}}
 						/>
 					)}
+
 				</main>
 			</div>
 		</div>

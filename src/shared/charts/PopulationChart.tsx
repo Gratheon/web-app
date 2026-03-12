@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import T, { useTranslation as t, usePlural } from '@/shared/translate'
 import ChartContainer from './ChartContainer'
 import InfoIcon from '@/shared/infoIcon'
+import thinkerImageURL from '@/assets/thinker.webp'
 
 interface PopulationChartProps {
 	inspectionsByHive: Record<string, Array<{ date: Date; population?: number; hiveName: string }>>
@@ -131,9 +132,15 @@ export default function PopulationChart({ inspectionsByHive, showIdealCurve, cha
 				padding: '16px',
 				background: '#f9f9f9',
 				borderRadius: '8px',
-				border: '1px solid #e0e0e0'
+				border: '1px solid #e0e0e0',
+				textAlign: 'center'
 			}}>
-				<p style={{ margin: 0, color: '#666', display: 'flex', alignItems: 'center' }}>
+				<img
+					src={thinkerImageURL}
+					alt="Thinker placeholder"
+					style={{ width: '140px', height: '140px', objectFit: 'contain', marginBottom: '8px' }}
+				/>
+				<p style={{ margin: 0, color: '#666', display: 'inline-flex', alignItems: 'center' }}>
 					<strong><T>No population data available.</T></strong>
 					<InfoIcon>
 						<p style={{ margin: '0 0 8px 0' }}>

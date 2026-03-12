@@ -8,9 +8,9 @@ import T from '@/shared/translate'
 import styles from './styles.module.less'
 import MessageSuccess from '@/shared/messageSuccess'
 import PagePaddedCentered from '@/shared/pagePaddedCentered'
-import Card from '@/shared/pagePaddedCentered/card'
 import DateTimeFormat from '@/shared/dateTimeFormat'
 import { Tab, TabBar } from '@/shared/tab'
+import imageURL from '@/assets/bear.webp'
 
 const ALERT_CHANNELS_QUERY = gql`
 	query alertChannels {
@@ -155,8 +155,8 @@ export default function AlertConfig() {
 		return map;
 	}, [apiaries]);
 
-	const hasEnabledChannels = channels.some(ch => ch.enabled);
-	const [activeTab, setActiveTab] = useState(hasEnabledChannels ? 'history' : 'channels');
+	const [activePanel, setActivePanel] = useState<'channels' | 'rules' | null>(null);
+	const [hasInitializedPanel, setHasInitializedPanel] = useState(false);
 
 	const [selectedChannel, setSelectedChannel] = useState('SMS');
 	const [channelConfig, setChannelConfig] = useState({
@@ -193,6 +193,16 @@ export default function AlertConfig() {
 			});
 		}
 	}, [selectedChannel, channels]);
+
+	React.useEffect(() => {
+		if (!data || hasInitializedPanel) return;
+		setActivePanel(channels.length === 0 ? 'channels' : null);
+		setHasInitializedPanel(true);
+	}, [data, channels.length, hasInitializedPanel]);
+
+	function togglePanel(panel: 'channels' | 'rules') {
+		setActivePanel((prev) => (prev === panel ? null : panel));
+	}
 
 	function onConfigChange(e) {
 		const { name, value, type, checked } = e.target;
@@ -245,35 +255,39 @@ export default function AlertConfig() {
 			{showSuccess && <MessageSuccess title={<T>Saved!</T>} message={<T>Alert channel settings saved successfully.</T>} />}
 			<ErrorMsg error={mutationError || null} />
 
-			<TabBar variant="rounded">
-				<Tab variant="rounded" isSelected={activeTab === 'channels'} onClick={() => setActiveTab('channels')}>
-					⚙️ <T>Alert Channels</T>
-				</Tab>
-				<Tab variant="rounded" isSelected={activeTab === 'rules'} onClick={() => setActiveTab('rules')}>
-					📋 <T>Alert Rules</T>
-				</Tab>
-				<Tab variant="rounded" isSelected={activeTab === 'history'} onClick={() => setActiveTab('history')}>
-					📜 <T>Alert History</T>
-				</Tab>
-			</TabBar>
+			<div className={styles.panelToggleRow}>
+				<Button
+					color={activePanel === 'channels' ? 'green' : 'black'}
+					onClick={() => togglePanel('channels')}
+				>
+					<T>Configure Channels</T>
+				</Button>
+				<Button
+					color={activePanel === 'rules' ? 'green' : 'black'}
+					onClick={() => togglePanel('rules')}
+				>
+					<T>Configure Rules</T>
+				</Button>
+			</div>
 
-			<Card style={{ borderTop: '1px solid #d0d0d0' }}>
+			<div>
 
-				{activeTab === 'channels' && (
+				{activePanel === 'channels' && (
 					<>
+						<div className={styles.panelSection}>
 						<p style={{ color: '#666', margin: '16px 0' }}>
 							<T>Configure how you want to receive alerts. You can enable multiple channels.</T>
 						</p>
 
 						<TabBar>
 							<Tab isSelected={selectedChannel === 'SMS'} onClick={() => setSelectedChannel('SMS')}>
-								📱 SMS
+								SMS
 							</Tab>
 							<Tab isSelected={selectedChannel === 'EMAIL'} onClick={() => setSelectedChannel('EMAIL')}>
-								📧 Email
+								Email
 							</Tab>
 							<Tab isSelected={selectedChannel === 'TELEGRAM'} onClick={() => setSelectedChannel('TELEGRAM')}>
-								💬 Telegram
+								Telegram
 							</Tab>
 						</TabBar>
 
@@ -372,53 +386,12 @@ export default function AlertConfig() {
 						)}
 					</div>
 				</form>
+						</div>
 					</>
 				)}
 
-				{activeTab === 'history' && (
-					<div style={{ padding: '16px' }}>
-						{alerts.length === 0 ? (
-							<p style={{ color: '#999' }}><T>No alerts yet</T></p>
-						) : (
-							<div className={styles.alertList}>
-								{alerts.map((alert) => {
-									const chartType = getChartTypeFromMetricType(alert.metricType);
-									const timeViewUrl = alert.hiveId && chartType
-										? `/time?hiveId=${alert.hiveId}&chartType=${chartType}&scrollTo=${chartType}`
-										: null;
-
-									return (
-										<div key={alert.id} className={styles.alertItem}>
-											<div className={styles.alertContent}>
-												<div className={styles.alertText}>{alert.text}</div>
-												{alert.hiveId && (
-													<div className={styles.alertMeta}>
-														Hive: {alert.hiveId} | {alert.metricType}: {alert.metricValue}
-														{timeViewUrl && (
-															<>
-																{' | '}
-																<a href={timeViewUrl} className={styles.viewChartLink}>
-																	<T>View Chart</T> →
-																</a>
-															</>
-														)}
-													</div>
-												)}
-											</div>
-											<div className={styles.alertTime}>
-												<DateTimeFormat datetime={alert.date_added} />
-												{alert.delivered && <span style={{ color: 'green', marginLeft: '8px' }}>✓</span>}
-											</div>
-										</div>
-									);
-								})}
-							</div>
-						)}
-					</div>
-				)}
-
-				{activeTab === 'rules' && (
-					<div style={{ padding: '16px' }}>
+				{activePanel === 'rules' && (
+					<div className={styles.panelSection}>
 						<p style={{ color: '#666', marginBottom: '16px' }}>
 							<T>Alert rules define when you should be notified about specific conditions in your hives.</T>
 						</p>
@@ -532,7 +505,56 @@ export default function AlertConfig() {
 						)}
 					</div>
 				)}
-			</Card>
+
+				<div className={styles.panelSection}>
+					<p className={styles.sectionTitle}>
+						<T>Alert History</T>
+					</p>
+					{alerts.length === 0 ? (
+						<div className={styles.historyPlaceholder}>
+							<p><T>No alerts yet</T></p>
+							<p className={styles.placeholderHint}>
+								<T>Triggered alerts from your hives will appear here.</T>
+							</p>
+							<img className={styles.placeholderImage} src={imageURL} alt="Bear and honey illustration" />
+						</div>
+					) : (
+						<div className={styles.alertList}>
+							{alerts.map((alert) => {
+								const chartType = getChartTypeFromMetricType(alert.metricType);
+								const timeViewUrl = alert.hiveId && chartType
+									? `/time?hiveId=${alert.hiveId}&chartType=${chartType}&scrollTo=${chartType}`
+									: null;
+
+								return (
+									<div key={alert.id} className={styles.alertItem}>
+										<div className={styles.alertContent}>
+											<div className={styles.alertText}>{alert.text}</div>
+											{alert.hiveId && (
+												<div className={styles.alertMeta}>
+													Hive: {alert.hiveId} | {alert.metricType}: {alert.metricValue}
+													{timeViewUrl && (
+														<>
+															{' | '}
+															<a href={timeViewUrl} className={styles.viewChartLink}>
+																<T>View Chart</T> →
+															</a>
+														</>
+													)}
+												</div>
+											)}
+										</div>
+										<div className={styles.alertTime}>
+											<DateTimeFormat datetime={alert.date_added} />
+											{alert.delivered && <span style={{ color: 'green', marginLeft: '8px' }}>✓</span>}
+										</div>
+									</div>
+								);
+							})}
+						</div>
+					)}
+				</div>
+			</div>
 			{ConfirmDialog}
 		</PagePaddedCentered>
 	);

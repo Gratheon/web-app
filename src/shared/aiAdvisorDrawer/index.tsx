@@ -14,6 +14,7 @@ import { listInspections } from '@/models/inspections'
 
 import beekeeperURL from '@/assets/beekeeper.png'
 import styles from './styles.module.less'
+import AIAdvisorBillingNotice from '@/shared/aiAdvisorBillingNotice'
 
 type ChatMessage = {
 	id: string
@@ -21,6 +22,11 @@ type ChatMessage = {
 	text?: string
 	html?: string
 	loading?: boolean
+}
+
+function canUseAIAdvisor(plan?: string | null) {
+	const normalized = String(plan || '').toLowerCase()
+	return normalized === 'starter' || normalized === 'professional' || normalized === 'enterprise'
 }
 
 const METRICS_QUERY = gql`
@@ -90,6 +96,7 @@ export default function AIAdvisorDrawer() {
 	const navigate = useNavigate()
 	const runRef = useRef(0)
 	const [messages, setMessages] = useState<ChatMessage[]>([])
+	const [billingLocked, setBillingLocked] = useState(false)
 	const [generateAdvice] = useMutation(GENERATE_ADVICE_MUTATION)
 
 	const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search])
@@ -119,6 +126,7 @@ export default function AIAdvisorDrawer() {
 
 		const runId = Date.now()
 		runRef.current = runId
+		setBillingLocked(false)
 		setMessages([
 			{
 				id: buildId('intro'),
@@ -141,6 +149,15 @@ export default function AIAdvisorDrawer() {
 				])
 
 				if (runRef.current !== runId) return
+
+					if (!canUseAIAdvisor(user?.billingPlan)) {
+						updateMessage(hiveStepId, {
+							text: 'AI Advisor access requires Starter plan or higher.',
+							loading: false,
+						})
+						setBillingLocked(true)
+						return
+				}
 
 				const framesByBox = {}
 				for (let i in boxes) {
@@ -276,6 +293,7 @@ export default function AIAdvisorDrawer() {
 				</button>
 			</div>
 			<div className={styles.body}>
+				{billingLocked && <AIAdvisorBillingNotice compact />}
 				{messages.map((message) => {
 					const roleClass =
 						message.role === 'assistant'

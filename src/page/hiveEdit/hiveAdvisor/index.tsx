@@ -5,6 +5,7 @@ import Button from '@/shared/button'
 import Loader from '@/shared/loader'
 import ErrorMsg from '@/shared/messageError'
 import T from '@/shared/translate'
+import AIAdvisorBillingNotice from '@/shared/aiAdvisorBillingNotice'
 
 import { getUser } from '@/models/user'
 import { getHive } from '@/models/hive'
@@ -25,6 +26,11 @@ type HiveAdvisorProps = {
 	showAnalyzeButton?: boolean
 }
 
+function canUseAIAdvisor(plan?: string | null) {
+	const normalized = String(plan || '').toLowerCase()
+	return normalized === 'starter' || normalized === 'professional' || normalized === 'enterprise'
+}
+
 export default function HiveAdvisor({
 	hiveId,
 	apiary,
@@ -33,6 +39,7 @@ export default function HiveAdvisor({
 	showAnalyzeButton = true,
 }: HiveAdvisorProps) {
 	const [saving, setSaving] = useState(false)
+	const [billingLocked, setBillingLocked] = useState(false)
 	const hasAutoAnalyzedRef = useRef(false)
 	const numericHiveId = +hiveId
 
@@ -57,8 +64,13 @@ export default function HiveAdvisor({
 
 	const runAnalysis = useCallback(async () => {
 		setSaving(true)
+		setBillingLocked(false)
 		try {
 			const user = await getUser()
+			if (!canUseAIAdvisor(user?.billingPlan)) {
+				setBillingLocked(true)
+				return
+			}
 			const family = await getFamilyByHive(numericHiveId)
 			const currentHive = await getHive(numericHiveId)
 			const boxes = await getBoxes({ hiveId: numericHiveId })
@@ -118,6 +130,7 @@ export default function HiveAdvisor({
 	return (
 		<>
 			<ErrorMsg error={errorGet || mutateError} />
+			{billingLocked && <AIAdvisorBillingNotice />}
 
 			<div className={`${style.wrap} ${!showAnalyzeButton ? style.readOnlyWrap : ''}`}>
 				{showLoader && <Loader />}

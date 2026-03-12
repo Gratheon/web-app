@@ -16,13 +16,27 @@ import PagePaddedCentered from '@/shared/pagePaddedCentered/index'
 
 export default function ApiaryList(props) {
 	let user = useLiveQuery(() => getUser(), [], null)
+
+	const [hiveSortBy, setHiveSortBy] = React.useState('HIVE_NUMBER')
+	const [hiveSortOrder, setHiveSortOrder] = React.useState('ASC')
+
+	const handleHiveSortChange = React.useCallback((sortBy) => {
+		if (hiveSortBy === sortBy) {
+			setHiveSortOrder(prev => (prev === 'ASC' ? 'DESC' : 'ASC'))
+			return
+		}
+
+		setHiveSortBy(sortBy)
+		setHiveSortOrder('ASC')
+	}, [hiveSortBy])
+
 	const { loading, error, data, errorNetwork } = useQuery(gql`
-		{
+		query apiaries($hiveSortBy: HiveSortBy, $hiveSortOrder: SortOrder) {
 			apiaries {
 				id
 				name
 
-				hives {
+				hives(sortBy: $hiveSortBy, sortOrder: $hiveSortOrder) {
 					id
 					hiveNumber
 					beeCount
@@ -47,7 +61,12 @@ export default function ApiaryList(props) {
 				}
 			}
 		}
-	`)
+	`, {
+		variables: {
+			hiveSortBy,
+			hiveSortOrder,
+		},
+	})
 
 	if (loading) {
 		return <Loader />
@@ -62,7 +81,14 @@ export default function ApiaryList(props) {
 
 			{apiaries &&
 				apiaries.map((apiary, i) => (
-					<ApiaryListRow key={i} apiary={apiary} user={user} />
+					<ApiaryListRow
+						key={i}
+						apiary={apiary}
+						user={user}
+						sortBy={hiveSortBy}
+						sortOrder={hiveSortOrder}
+						onSortChange={handleHiveSortChange}
+					/>
 				))}
 
 			<div style="text-align:center; margin: 15px 0;">

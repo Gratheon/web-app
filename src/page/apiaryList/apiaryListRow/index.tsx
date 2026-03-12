@@ -15,9 +15,16 @@ import ListIcon from '../../../icons/listIcon.tsx'
 import TableIcon from '../../../icons/tableIcon.tsx'
 import DateTimeAgo from '../../../shared/dateTimeAgo'
 
-export default function apiaryListRow({ apiary, user }) {
+export default function apiaryListRow({ apiary, user, sortBy, sortOrder, onSortChange }) {
 
 	const [listType, setListType] = React.useState(localStorage.getItem('apiaryListType.' + apiary.id) || 'list')
+	const renderSortArrow = (column) => {
+		if (sortBy !== column) {
+			return ''
+		}
+
+		return sortOrder === 'ASC' ? '↑' : '↓'
+	}
 
 	return (
 		<div className={styles.apiary}>
@@ -68,12 +75,32 @@ export default function apiaryListRow({ apiary, user }) {
 						<thead>
 							<tr>
 								<th></th>
-								<th><T ctx="table header - hive number">Hive #</T></th>
+								<th>
+									<button className={styles.sortButton} type="button" onClick={() => onSortChange('HIVE_NUMBER')}>
+										<T ctx="table header - hive number">Hive #</T> {renderSortArrow('HIVE_NUMBER')}
+									</button>
+								</th>
 								<th><T ctx="table header - queen name">Queen</T></th>
-								<th><T ctx="table header of beekeeping app, start with uppercase latter">Bee count</T></th>
-								<th><T ctx="table header of beekeeping app, this is a bee colony information, start with uppercase latter">Colony status</T></th>
-								<th><T ctx="table header of beekeeping app, this column is about anti-varroa mite treatment, in amount of days, start with uppercase latter">Last treatment</T></th>
-								<th><T ctx="table header of beekeeping app, this column is about time when hive was checked, in amount of days, start with uppercase latter">Last inspection</T></th>
+								<th>
+									<button className={styles.sortButton} type="button" onClick={() => onSortChange('BEE_COUNT')}>
+										<T ctx="table header of beekeeping app, start with uppercase latter">Bee count</T> {renderSortArrow('BEE_COUNT')}
+									</button>
+								</th>
+								<th>
+									<button className={styles.sortButton} type="button" onClick={() => onSortChange('STATUS')}>
+										<T ctx="table header of beekeeping app, this is a bee colony information, start with uppercase latter">Colony status</T> {renderSortArrow('STATUS')}
+									</button>
+								</th>
+								<th>
+									<button className={styles.sortButton} type="button" onClick={() => onSortChange('LAST_TREATMENT')}>
+										<T ctx="table header of beekeeping app, this column is about anti-varroa mite treatment, in amount of days, start with uppercase latter">Last treatment</T> {renderSortArrow('LAST_TREATMENT')}
+									</button>
+								</th>
+								<th>
+									<button className={styles.sortButton} type="button" onClick={() => onSortChange('LAST_INSPECTION')}>
+										<T ctx="table header of beekeeping app, this column is about time when hive was checked, in amount of days, start with uppercase latter">Last inspection</T> {renderSortArrow('LAST_INSPECTION')}
+									</button>
+								</th>
 							</tr>
 						</thead>
 						<tbody>

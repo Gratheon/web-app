@@ -10,7 +10,7 @@ import PricingPlans from './pricingPlans'
 
 import { de, et, fr, pl, ru, tr } from 'date-fns/locale'
 import CreditCard from '@/icons/creditCard'
-import Card from '@/shared/pagePaddedCentered/card'
+import styles from './style.module.less'
 
 const loadedDateLocales = { de, et, fr, pl, ru, tr }
 
@@ -89,7 +89,7 @@ export default function Billing({ user }) {
 
 	return (
 		<div>
-			<Card>
+			<section className={styles.section}>
 				{stripeStatus === 'success' && (
 					<MessageSuccess title={<T>Payment completed</T>} />
 				)}
@@ -198,14 +198,14 @@ export default function Billing({ user }) {
 						</div>
 					)}
 				</div>
-			</Card>
+			</section>
 
-			<Card>
+			<section className={styles.section}>
 				<h3><T>Choose Your Plan</T></h3>
 				<PricingPlans
 					currentPlan={user.billingPlan || 'free'}
 				/>
-			</Card>
+			</section>
 		</div>
 	)
 }

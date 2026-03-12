@@ -1,5 +1,5 @@
 // @ts-nocheck
-import {NavLink, useLocation} from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 
 import Header from '@/shared/header'
 import {logout} from '@/user'
@@ -8,12 +8,15 @@ import T from '@/shared/translate'
 import Avatar from '@/shared/avatar'
 import styles from './styles.module.less'
 import HiveIcon from '@/icons/hive'
-import {useState} from "react";
+import { useState } from 'react'
 import CryptoJS from 'crypto-js'
 import * as userModel from '@/models/user'
 import { TAWKTO_TOKEN } from '@/config'
+import CreditCard from '@/icons/creditCard'
+import KeyIcon from '@/icons/key'
 
 const MOBILE_NAV_ICON_SIZE = 24
+const AI_ADVISOR_CONTEXT_KEY = 'ai-advisor-last-hive-context'
 
 async function onLogoutClick() {
     await logout()
@@ -137,6 +140,20 @@ function BearFaceIcon({ size = MOBILE_NAV_ICON_SIZE }) {
     )
 }
 
+function AIAdvisorIcon({ size = MOBILE_NAV_ICON_SIZE }) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="6" y="5.5" width="12" height="11" rx="3" stroke="currentColor" stroke-width="2" />
+            <path d="M9.5 19H14.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            <circle cx="10" cy="11" r="1.1" fill="currentColor" />
+            <circle cx="14" cy="11" r="1.1" fill="currentColor" />
+            <path d="M10.2 14.1C10.9 14.6 11.4 14.8 12 14.8C12.6 14.8 13.1 14.6 13.8 14.1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+            <path d="M9 5.5V4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            <path d="M15 5.5V4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+    )
+}
+
 function SupportIcon({ size = MOBILE_NAV_ICON_SIZE }) {
     return (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -164,6 +181,35 @@ const mobileNavClassName = ({isActive}) =>
     isActive ? `${styles.mobileNavLink} ${styles.active}` : styles.mobileNavLink
 const utilityButtonClassName = (isSelected) =>
     isSelected ? `${styles.utilityButton} ${styles.utilityButtonSelected}` : styles.utilityButton
+
+function getCurrentHiveContext(pathname: string) {
+    const matches = pathname.match(/^\/apiaries\/(\d+)\/hives\/(\d+)(?:\/|$)/)
+    if (!matches) {
+        return null
+    }
+
+    return {
+        apiaryId: +matches[1],
+        hiveId: +matches[2],
+    }
+}
+
+function getStoredHiveContext() {
+    try {
+        const value = localStorage.getItem(AI_ADVISOR_CONTEXT_KEY)
+        if (!value) return null
+
+        const parsed = JSON.parse(value)
+        if (!parsed?.apiaryId || !parsed?.hiveId) return null
+
+        return {
+            apiaryId: +parsed.apiaryId,
+            hiveId: +parsed.hiveId,
+        }
+    } catch {
+        return null
+    }
+}
 
 const Menu = ({isLoggedIn = false}) => {
     if (!isLoggedIn) {
@@ -198,6 +244,32 @@ const Menu = ({isLoggedIn = false}) => {
     const location = useLocation()
 
     const isAlertsSection = location.pathname === '/alert-config' || location.pathname.startsWith('/alert-config/')
+    const currentHiveContext = getCurrentHiveContext(location.pathname)
+    const isHiveAdvisorOpen = new URLSearchParams(location.search).get('aiAdvisor') === '1'
+    const isAIAdvisorSection =
+        location.pathname === '/ai-advisor' ||
+        location.pathname.startsWith('/ai-advisor/') ||
+        (!!currentHiveContext && isHiveAdvisorOpen)
+    const storedHiveContext = getStoredHiveContext()
+    const hiveContextForAdvisor = currentHiveContext || storedHiveContext
+    const aiAdvisorPath = (() => {
+        if (currentHiveContext) {
+            const nextParams = new URLSearchParams(location.search)
+            nextParams.set('aiAdvisor', '1')
+            const search = nextParams.toString()
+            return `${location.pathname}${search ? `?${search}` : ''}`
+        }
+
+        if (hiveContextForAdvisor) {
+            return `/ai-advisor?apiaryId=${hiveContextForAdvisor.apiaryId}&hiveId=${hiveContextForAdvisor.hiveId}`
+        }
+
+        return '/ai-advisor'
+    })()
+
+    if (currentHiveContext) {
+        localStorage.setItem(AI_ADVISOR_CONTEXT_KEY, JSON.stringify(currentHiveContext))
+    }
 
 
     return (
@@ -267,12 +339,44 @@ const Menu = ({isLoggedIn = false}) => {
                 <ul className={styles.menuSection}>
                     <li>
                         <NavLink
+                            end
                             className={navClassName}
                             to="/account">
                             <div style="display:flex;">
                                 <Avatar style="margin-right:5px;"/>
                                 <T>Account</T>
                             </div>
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink
+                            className={() => (isAIAdvisorSection ? styles.active : '')}
+                            to={aiAdvisorPath}
+                        >
+                            <span className={styles.menuItemContent}>
+                                <span className={styles.menuItemIcon}><AIAdvisorIcon size={18} /></span>
+                                <span className={styles.menuItemLabel}><T>AI Advisor</T></span>
+                            </span>
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink
+                            className={navClassName}
+                            to="/account/billing">
+                            <span className={styles.menuItemContent}>
+                                <span className={styles.menuItemIcon}><CreditCard size={18} /></span>
+                                <span className={styles.menuItemLabel}><T>Billing</T></span>
+                            </span>
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink
+                            className={navClassName}
+                            to="/account/tokens">
+                            <span className={styles.menuItemContent}>
+                                <span className={styles.menuItemIcon}><KeyIcon size={18} /></span>
+                                <span className={styles.menuItemLabel}><T>API tokens</T></span>
+                            </span>
                         </NavLink>
                     </li>
 
@@ -363,12 +467,36 @@ const Menu = ({isLoggedIn = false}) => {
             {isMoreVisible && (
                 <div className={styles.mobileMoreMenu}>
                     <NavLink
+                        to={aiAdvisorPath}
+                        onClick={() => {
+                            setMoreVisible(false)
+                        }}
+                    >
+                        <T>AI Advisor</T>
+                    </NavLink>
+                    <NavLink
                         to="/account"
                         onClick={() => {
                             setMoreVisible(false)
                         }}
                     >
                         <T>Account</T>
+                    </NavLink>
+                    <NavLink
+                        to="/account/billing"
+                        onClick={() => {
+                            setMoreVisible(false)
+                        }}
+                    >
+                        <T>Billing</T>
+                    </NavLink>
+                    <NavLink
+                        to="/account/tokens"
+                        onClick={() => {
+                            setMoreVisible(false)
+                        }}
+                    >
+                        <T>API tokens</T>
                     </NavLink>
                     <a href="https://gratheon.com/terms" onClick={() => setMoreVisible(false)}>
                         <T ctx="link in page footer">Terms of Use</T>

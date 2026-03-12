@@ -4,10 +4,24 @@ export const schemaSDL = `
 type Apiary {
   id: ID!
   name: String
-  hives: [Hive]
+  hives(sortBy: HiveSortBy, sortOrder: SortOrder): [Hive]
   location: String
   lat: String
   lng: String
+}
+
+enum HiveSortBy {
+  HIVE_NUMBER
+  BEE_COUNT
+  LAST_TREATMENT
+  LAST_INSPECTION
+  STATUS
+  ADDED
+}
+
+enum SortOrder {
+  ASC
+  DESC
 }
 
 input ApiaryInput {

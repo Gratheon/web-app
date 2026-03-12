@@ -9,7 +9,6 @@ import KeyIcon from '@/icons/key.tsx';
 
 import style from './style.module.less'
 import CopyButton from '@/shared/copyButton';
-import Card from '@/shared/pagePaddedCentered/card';
 
 const TOKEN_QUERY = gql`
 {
@@ -174,7 +173,7 @@ export default function TokenList() {
 
 	return (
 		<>
-			<Card>
+			<section className={style.section}>
 				<h3><T>API tokens</T></h3>
 
 				<div className={style.tokenSectionHeader}>
@@ -195,77 +194,66 @@ export default function TokenList() {
 				<ErrorMsg error={error || generationError || revokeShareTokenError || revokeApiTokenError} />
 
 				{tokens && tokens.length > 0 &&
-					<table className={style.apiTokensTable}>
-						<tbody>
-							{tokens.map((token) => (
-								<tr key={token.id} className={style.apiToken}>
-									<td>
-										<div className={style.tokenContainer}>
-											<div className={style.token}>
-												{hiddenTokens.includes(token.id) ? '*'.repeat(token.token.length) : token.token}
-											</div>
+					<div className={style.list}>
+						{tokens.map((token) => (
+							<div key={token.id} className={style.row}>
+								<div className={style.tokenContainer}>
+									<div className={style.token}>
+										{hiddenTokens.includes(token.id) ? '*'.repeat(token.token.length) : token.token}
+									</div>
 
-											<CopyButton size='small' data={token.token} />
-										</div>
-									</td>
-									<td className={style.buttons}>
-										<Button size='small' onClick={() => toggleToken(token.id)}><T>Toggle</T></Button>
-										
-										<Button
-											size='small'
-											color='red'
-											loading={revokingApiToken.includes(token.token)}
-											onClick={() => onRevokeApiToken(token.token)}><T>Revoke</T></Button>
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
+									<CopyButton size='small' data={token.token} />
+								</div>
+								<div className={style.buttons}>
+									<Button size='small' onClick={() => toggleToken(token.id)}><T>Toggle</T></Button>
+
+									<Button
+										size='small'
+										color='red'
+										loading={revokingApiToken.includes(token.token)}
+										onClick={() => onRevokeApiToken(token.token)}><T>Revoke</T></Button>
+								</div>
+							</div>
+						))}
+					</div>
 				}
-			</Card>
+			</section>
 
-			{shareTokens && shareTokens.length > 0 && <Card>
+			{shareTokens && shareTokens.length > 0 && <section className={style.section}>
 				<h3><T>Shared links</T></h3>
 				<p><T>You can share access to hive inspections with other people. This list shows list of such shared tokens</T></p>
 
-				<table className={style.sharedLinksTable}>
-					<thead>
-						<tr>
-							<th><T ns="token">Name</T></th>
-							<th><T>Scopes</T></th>
-							<th><T>Actions</T></th>
-						</tr>
-					</thead>
-					<tbody>
-						{shareTokens.map((token) => {
-							const scopeInfo = summarizeScopes(token.scopes)
+				<div className={`${style.list} ${style.stripedRows}`}>
+					{shareTokens.map((token) => {
+						const scopeInfo = summarizeScopes(token.scopes)
 
-							return (
-								<tr key={token.id} className={style.apiToken}>
-									<td data-label="Name">
-										{token.name}
-									</td>
-									<td data-label="Scopes" className={style.scopesCell}>
-										<span className={style.scopeSummary} title={scopeInfo.technical}>
-											{scopeInfo.summary}
-										</span>
-									</td>
-									<td data-label="Actions" className={style.buttons}>
-										<CopyButton size='small' data={token.targetUrl} />
-										<Button
-											size='small'
-											color='red'
-											loading={revokingShareToken.includes(token.token)}
-											onClick={() => onRevokeShareToken(token.token)}><T>Revoke</T></Button>
-									</td>
-								</tr>
-							)
-						})}
-
-					</tbody>
-
-				</table>
-			</Card>
+						return (
+							<div key={token.id} className={style.row}>
+								<div className={style.linkNameWrap}>
+									<span>{token.name}</span>
+									<details className={style.scopeDetails}>
+										<summary className={style.scopeTrigger} title="View scope details">
+											i
+										</summary>
+										<div className={style.scopePopover}>
+											<div className={style.scopePopoverTitle}><T>Access scope</T></div>
+											<div className={style.scopePopoverBody}>{scopeInfo.technical}</div>
+										</div>
+									</details>
+								</div>
+								<div className={style.buttons}>
+									<CopyButton size='small' data={token.targetUrl} />
+									<Button
+										size='small'
+										color='red'
+										loading={revokingShareToken.includes(token.token)}
+										onClick={() => onRevokeShareToken(token.token)}><T>Revoke</T></Button>
+								</div>
+							</div>
+						)
+					})}
+				</div>
+			</section>
 			}
 		</>
 	);

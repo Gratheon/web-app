@@ -4,6 +4,7 @@ import { Routes, Route, useNavigate } from 'react-router';
 import Menu from '../shared/menu';
 import Footer from '../shared/footer';
 import MinimizedUploadProgress from '../shared/minimizedUploadProgress';
+import AIAdvisorDrawer from '../shared/aiAdvisorDrawer'
 import { isLoggedIn } from '../user';
 import styles from './index.module.less'
 
@@ -13,12 +14,15 @@ import ApiaryList from './apiaryList'
 import HiveCreateForm from './hiveCreate'
 import HiveEditView from './hiveEdit'
 import AccountEdit from './accountEdit'
+import AccountBilling from './accountBilling'
+import AccountTokens from './accountTokens'
 import AccountAuth from './accountAuth'
 import AccountRegister from './accountRegister'
 import Grafana from './grafana'
 import InspectionShare from "./inspectionShare";
 import AlertConfig from './alertConfig';
 import TimeView from './time';
+import AIAdvisorPage from './aiAdvisor'
 
 function LoggedInPage({ children }) {
 	const navigate = useNavigate()
@@ -43,6 +47,7 @@ function PageWithMenu({children}) {
 	return <div className={styles.pageShell}>
 		<Menu isLoggedIn={isLoggedIn()}/>
 		<MinimizedUploadProgress />
+		<AIAdvisorDrawer />
 		<div className={styles.mainColumn}>
 			<div className={styles.content}>
 				{children}
@@ -98,7 +103,7 @@ export default function Page() {
 			<Route path="/apiaries/:apiaryId/hives/:hiveId/treatments/" element={<LoggedInPage><HiveEditView /></LoggedInPage>} />
 			<Route path="/apiaries/:apiaryId/hives/:hiveId/inspections/" element={<LoggedInPage><HiveEditView /></LoggedInPage>} />
 			<Route path="/apiaries/:apiaryId/hives/:hiveId/metrics/" element={<LoggedInPage><HiveEditView /></LoggedInPage>} />
-			<Route path="/apiaries/:apiaryId/hives/:hiveId/advisor/" element={<LoggedInPage><HiveEditView /></LoggedInPage>} />
+			<Route path="/ai-advisor" element={<LoggedInPage><AIAdvisorPage /></LoggedInPage>} />
 
 			<Route
 				path="/apiaries/:apiaryId/hives/:hiveId/box/:boxId"
@@ -123,7 +128,10 @@ export default function Page() {
 				element={<InspectionShare />} />
 
 			<Route path="/account" element={<LoggedInPage><AccountEdit /></LoggedInPage>} />
-			<Route path="/account/:stripeStatus" element={<LoggedInPage><AccountEdit /></LoggedInPage>} />
+			<Route path="/account/billing" element={<LoggedInPage><AccountBilling /></LoggedInPage>} />
+			<Route path="/account/billing/:stripeStatus" element={<LoggedInPage><AccountBilling /></LoggedInPage>} />
+			<Route path="/account/tokens" element={<LoggedInPage><AccountTokens /></LoggedInPage>} />
+			<Route path="/account/:stripeStatus" element={<LoggedInPage><AccountBilling /></LoggedInPage>} />
 
 			<Route path="/insights" element={<LoggedInPage><Grafana /></LoggedInPage>} />
 

@@ -1,6 +1,10 @@
 @import '../../../layout.module.less';
 @import '../../../colors.module.less';
 
+.section {
+	margin-bottom: 18px;
+}
+
 .tokenSectionHeader {
 	display: flex;
 	gap: 12px;
@@ -12,38 +16,53 @@
 	min-width: 0;
 }
 
-.apiTokensTable {
-	width: 100%;
-	table-layout: fixed;
+.list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
 
-	td {
-		min-width: 0;
+.row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	gap: 10px;
+	align-items: start;
+	background: #fff;
+	padding: 10px 12px;
+	border-radius: 8px;
+}
+
+.stripedRows {
+	.row:nth-child(odd) {
+		background: #fff;
+	}
+
+	.row:nth-child(even) {
+		background: #f7f7f7;
 	}
 }
 
-.apiToken {
+.token {
+	background-color: @color-gray-bg;
+	padding: 2px 10px;
+	border-radius: 3px;
+	font-family: Consolas, 'Courier New', monospace;
+	margin: 0;
+	word-wrap: break-word;
+	height: 28px;
+	box-sizing: border-box;
+	overflow: hidden;
+	max-width: 100%;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
 
-	.token {
-		background-color: @color-gray-bg;
-		padding: 2px 10px;
-		border-radius: 3px;
-		font-family: Consolas, 'Courier New', monospace;
-		margin: 0;
-		word-wrap: break-word;
-		height: 28px;
-		box-sizing: border-box;
-		overflow: hidden;
-		max-width: 100%;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	.buttons {
-		white-space: nowrap;
-		display: flex;
-		gap: 6px;
-		align-items: center;
-	}
+.buttons {
+	white-space: normal;
+	display: flex;
+	gap: 6px;
+	align-items: center;
+	flex-wrap: wrap;
 }
 
 .tokenContainer {
@@ -54,148 +73,121 @@
 	flex: 1;
 }
 
-.scopesCell {
-	max-width: 150px;
-	word-wrap: break-word;
-	overflow-wrap: break-word;
+.linkNameWrap {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
 }
 
-.scopeSummary {
-	cursor: help;
+.scopeDetails {
+	position: relative;
+	display: inline-block;
 }
 
-.sharedLinksTable {
-	width: 100%;
-	table-layout: fixed;
+.scopeTrigger {
+	list-style: none;
+	cursor: pointer;
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	border: 1px solid #b9b9b9;
+	color: #666;
+	font-size: 12px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 700;
+	background: #fff;
+	line-height: 1;
 
-	th,
-	td {
-		text-align: left;
-		vertical-align: top;
-		padding: 8px 6px;
+	&::-webkit-details-marker {
+		display: none;
 	}
-
-	th:last-child,
-	td:last-child {
-		width: 1%;
-		white-space: nowrap;
-	}
 }
+
+.scopePopover {
+	position: absolute;
+	top: calc(100% + 8px);
+	left: 0;
+	z-index: 20;
+	min-width: 220px;
+	max-width: min(420px, 70vw);
+	background: #fff;
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	padding: 8px 10px;
+	box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.scopePopoverTitle {
+	font-size: 12px;
+	font-weight: 600;
+	color: #444;
+	margin-bottom: 4px;
+}
+
+.scopePopoverBody {
+	font-size: 12px;
+	color: #555;
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}
+
 
 @media @mobile {
 	.tokenSectionHeader {
 		flex-direction: column;
 	}
 
-	.apiToken {
-		display: flex;
+	.row {
+		grid-template-columns: 1fr;
+	}
+
+	.tokenContainer {
 		flex-direction: column;
-		gap: 8px;
-		padding: 10px 0;
-		border-bottom: 1px solid @color-gray-bg;
+		align-items: stretch;
 
-		td {
-			display: block;
-			width: 100% !important;
-			min-width: unset !important;
-		}
-
-		.tokenContainer {
-			flex-direction: column;
-			align-items: stretch;
-
-			button {
-				align-self: flex-start;
-				width: auto;
-				height: 34px;
-				padding: 0 12px;
-				font-size: 14px;
-				line-height: 1.2;
-			}
-		}
-
-		.token {
-			width: 100%;
-			height: auto;
-			max-height: 3.4em;
-			font-size: 12px;
-			line-height: 1.35;
-			white-space: normal;
-			overflow-wrap: anywhere;
-			word-break: break-word;
-		}
-
-		.buttons {
-			display: flex;
-			flex-direction: row;
-			flex-wrap: wrap;
-			gap: 6px;
+		button {
+			align-self: flex-start;
 			width: auto;
-			align-items: center;
-			white-space: normal;
-
-			button {
-				width: auto;
-				height: 34px;
-				padding: 0 12px;
-				font-size: 14px;
-				line-height: 1.2;
-			}
+			height: 34px;
+			padding: 0 12px;
+			font-size: 14px;
+			line-height: 1.2;
 		}
 	}
 
-	.scopesCell {
-		max-width: 100%;
-		font-size: 13px;
-	}
-
-	.sharedLinksTable {
-		display: block;
+	.token {
 		width: 100%;
+		height: auto;
+		max-height: 3.4em;
+		font-size: 12px;
+		line-height: 1.35;
+		white-space: normal;
+		overflow-wrap: anywhere;
+		word-break: break-word;
+	}
 
-		thead {
-			display: none;
-		}
+	.buttons {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		gap: 6px;
+		width: auto;
+		align-items: center;
+		white-space: normal;
 
-		tbody {
-			display: block;
-		}
-
-		tr {
-			display: flex;
-			flex-direction: column;
-			gap: 8px;
-			padding: 10px 0;
-			border-bottom: 1px solid @color-gray-bg;
-
-			&:last-child {
-				border-bottom: none;
-			}
-		}
-
-		td {
-			display: block;
-			width: 100%;
-			min-width: 0;
-
-			&:before {
-				content: attr(data-label);
-				font-weight: bold;
-				display: block;
-				margin-bottom: 4px;
-				color: @color-gray-breadcrumbs-text;
-				font-size: 12px;
-			}
-
-			&[data-label='Actions']:before {
-				display: none;
-			}
+		button {
+			width: auto;
+			height: 34px;
+			padding: 0 12px;
+			font-size: 14px;
+			line-height: 1.2;
 		}
 	}
-}
 
-@media @desktop {
-	.apiToken {
-		padding: 5px;
+	.scopePopover {
+		max-width: min(320px, 88vw);
 	}
 }

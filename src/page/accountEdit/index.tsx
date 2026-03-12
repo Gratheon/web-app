@@ -10,9 +10,6 @@ import type { User } from '@/models/user'
 import { getUser, updateUser } from '@/models/user'
 import T from '@/shared/translate'
 
-import TokenList from './token_list'
-import Billing from './billing'
-import Invoices from './invoices'
 import style from './style.module.less'
 import PagePaddedCentered from '@/shared/pagePaddedCentered'
 import DangerZone from './danger_zone'
@@ -167,9 +164,6 @@ export default function AccountEdit() {
 				</div>
 			</Card>
 
-			<Billing user={userStored} />
-			<Invoices />
-			<TokenList />
 			<DangerZone />
 		</PagePaddedCentered>
 	)

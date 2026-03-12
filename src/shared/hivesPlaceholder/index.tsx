@@ -12,9 +12,8 @@ export default function () {
 				color: 'gray',
 			}}
 		>
-			<p><T>No hives here yet</T></p>
-			
 			<img height="64" src={imageURL} />
+			<p><T>No hives here yet</T></p>
 		</div>
 	)
 }

@@ -528,14 +528,14 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 						<T>Alert History</T>
 					</p>
 					{alerts.length === 0 ? (
-						<div className={styles.historyPlaceholder}>
-							<p><T>No alerts yet</T></p>
-							<p className={styles.placeholderHint}>
-								<T>Triggered alerts from your hives will appear here.</T>
-							</p>
-							<img className={styles.placeholderImage} src={imageURL} alt="Bear and honey illustration" />
-						</div>
-					) : (
+							<div className={styles.historyPlaceholder}>
+								<img className={styles.placeholderImage} src={imageURL} alt="Bear and honey illustration" />
+								<p><T>No alerts yet</T></p>
+								<p className={styles.placeholderHint}>
+									<T>Triggered alerts from your hives will appear here.</T>
+								</p>
+							</div>
+						) : (
 						<div className={styles.alertList}>
 							{alerts.map((alert) => {
 								const chartType = getChartTypeFromMetricType(alert.metricType);

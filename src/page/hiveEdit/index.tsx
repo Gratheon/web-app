@@ -19,7 +19,6 @@ import Frame from '@/page/hiveEdit/frame'
 import GateBox from '@/page/hiveEdit/gateBox/GateBox.tsx'
 import BottomBox from '@/page/hiveEdit/bottomBox/BottomBox.tsx'
 import MessageNotFound from '@/shared/messageNotFound'
-import HiveAdvisor from '@/page/hiveEdit/hiveAdvisor'
 import BreadCrumbs from '@/shared/breadcrumbs'
 import T from '@/shared/translate'
 import MessageSuccess from '@/shared/messageSuccess'
@@ -57,8 +56,6 @@ export default function HiveEditForm() {
 			setMapTab('inspections')
 		} else if (location.pathname.includes('/metrics')) {
 			setMapTab('metrics')
-		} else if (location.pathname.includes('/advisor')) {
-			setMapTab('advisor')
 		} else {
 			setMapTab('structure')
 		}
@@ -178,14 +175,6 @@ export default function HiveEditForm() {
 						<T>Metrics</T>
 					</NavLink>
 				</Tab>
-				<Tab isSelected={mapTab === 'advisor'}>
-					<NavLink
-						to={`/apiaries/${apiaryId}/hives/${hiveId}/advisor`}
-						className={({ isActive }) => (isActive ? styles.active : '')}
-					>
-						<T>Advisor</T>
-					</NavLink>
-				</Tab>
 			</TabBar>
 
 			<div className={styles.boxesFrameWrap}>
@@ -213,9 +202,6 @@ export default function HiveEditForm() {
 						<InspectionList breadcrumbs={breadcrumbs} />
 					)}
 					{mapTab === 'metrics' && <HiveWeightGraph hiveId={hiveId} />}
-					{mapTab === 'advisor' && (
-						<HiveAdvisor apiary={apiary} hive={hive} hiveId={hiveId} />
-					)}
 
 					{mapTab === 'structure' && (
 						<div>

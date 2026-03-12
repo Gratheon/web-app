@@ -1,6 +1,6 @@
 import T from '../../../shared/translate'
 import React from 'react'
-import imageURL from '@/assets/bear.webp'
+import imageURL from '@/assets/flower.png'
 
 export default function () {
 	return (
@@ -12,9 +12,8 @@ export default function () {
 				color: 'gray',
 			}}
 		>
+			<img height="100" src={imageURL} alt="Flower illustration" />
 			<p><T>No apiaries here yet</T></p>
-
-			<img height="200" src={imageURL} alt="Bear and honey illustration" />
 		</div>
 	)
 }

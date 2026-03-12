@@ -1,112 +1,158 @@
-import {useState} from "react";
+import { useCallback, useEffect, useRef, useState } from 'react'
 
-import {gql, useMutation, useQuery} from "@/api";
-import Button from "@/shared/button";
-import Loader from "@/shared/loader";
-import ErrorMsg from "@/shared/messageError";
-import T from "@/shared/translate";
+import { gql, useMutation, useQuery } from '@/api'
+import Button from '@/shared/button'
+import Loader from '@/shared/loader'
+import ErrorMsg from '@/shared/messageError'
+import T from '@/shared/translate'
 
-import {getUser} from "@/models/user";
-import {getHive} from "@/models/hive";
-import {getBoxes} from "@/models/boxes";
-import {getFamilyByHive} from "@/models/family";
-import {getFrames} from "@/models/frames";
-import {getFrameSideCells} from "@/models/frameSideCells";
-import {getFrameSideFile} from "@/models/frameSideFile";
+import { getUser } from '@/models/user'
+import { getHive } from '@/models/hive'
+import { getBoxes } from '@/models/boxes'
+import { getFamilyByHive } from '@/models/family'
+import { getFrames } from '@/models/frames'
+import { getFrameSideCells } from '@/models/frameSideCells'
+import { getFrameSideFile } from '@/models/frameSideFile'
 
-import style from "./style.module.less"
-import beekeeperURL from "@/assets/beekeeper.png"
+import style from './style.module.less'
+import beekeeperURL from '@/assets/beekeeper.png'
 
-export default function HiveAdvisor({hiveId, apiary, hive}) {
-    let [saving, setSaving] = useState(false);
-    let {loading, error: errorGet, data: existingAdvice} = useQuery(gql`
-		query apiary($hiveID: ID!) {
-			getExistingHiveAdvice(hiveID: $hiveID)
-		}`, {variables: {hiveID: +hiveId}})
-
-    let [generateAdvice, {error: mutateError, data: generatedAdvice}] = useMutation(gql`
-mutation generateHiveAdvice($hiveID: ID, $adviceContext: JSON, $langCode: String){
-	generateHiveAdvice(hiveID: $hiveID, adviceContext: $adviceContext, langCode: $langCode)
+type HiveAdvisorProps = {
+	hiveId: string | number
+	apiary: any
+	hive: any
+	autoAnalyze?: boolean
+	showAnalyzeButton?: boolean
 }
-`)
 
-    let showLoader = (loading || saving)
-    return <>
-        <ErrorMsg error={errorGet || mutateError}/>
+export default function HiveAdvisor({
+	hiveId,
+	apiary,
+	hive,
+	autoAnalyze = false,
+	showAnalyzeButton = true,
+}: HiveAdvisorProps) {
+	const [saving, setSaving] = useState(false)
+	const hasAutoAnalyzedRef = useRef(false)
+	const numericHiveId = +hiveId
 
-        <div className={style.wrap}>
-            {showLoader && <Loader/>}
+	const {
+		loading,
+		error: errorGet,
+		data: existingAdvice,
+	} = useQuery(
+		gql`
+			query apiary($hiveID: ID!) {
+				getExistingHiveAdvice(hiveID: $hiveID)
+			}
+		`,
+		{ variables: { hiveID: numericHiveId } }
+	)
 
-            <Button 
-            
-            style="margin: 0 auto;"
+	const [generateAdvice, { error: mutateError, data: generatedAdvice }] = useMutation(gql`
+		mutation generateHiveAdvice($hiveID: ID, $adviceContext: JSON, $langCode: String) {
+			generateHiveAdvice(hiveID: $hiveID, adviceContext: $adviceContext, langCode: $langCode)
+		}
+	`)
 
-            onClick={async () => {
-                    setSaving(true)
+	const runAnalysis = useCallback(async () => {
+		setSaving(true)
+		try {
+			const user = await getUser()
+			const family = await getFamilyByHive(numericHiveId)
+			const currentHive = await getHive(numericHiveId)
+			const boxes = await getBoxes({ hiveId: numericHiveId })
+			const adviceContext = {
+				apiary,
+				hive: currentHive || hive,
+				family,
+				boxes,
+				frames: {},
+			}
 
-                    const user = await getUser();
-                    const family = await getFamilyByHive(+hiveId);
-                    const hive = await getHive(+hiveId);
-                    const boxes = await getBoxes({hiveId: +hiveId})
-                    let adviceContext = {
-                        apiary,
-                        hive,
-                        family,
-                        boxes,
-                        frames: {}
-                    }
-                    for (let i in boxes) {
-                        let frames = Object.assign({}, await getFrames({boxId: +boxes[i].id}))
-                        delete boxes[i].color
+			for (let i in boxes) {
+				const frames = Object.assign({}, await getFrames({ boxId: +boxes[i].id }))
+				delete boxes[i].color
 
-                        for (let j in frames) {
-                            if (!frames[j].leftSide || !frames[j].rightSide) continue
+				for (let j in frames) {
+					if (!frames[j].leftSide || !frames[j].rightSide) continue
 
-                            frames[j].leftSide.cells = await getFrameSideCells(+frames[j].leftId)
-                            frames[j].rightSide.cells = await getFrameSideCells(+frames[j].rightId)
+					frames[j].leftSide.cells = await getFrameSideCells(+frames[j].leftId)
+					frames[j].rightSide.cells = await getFrameSideCells(+frames[j].rightId)
+					const leftSide = frames[j].leftSide as any
+					const rightSide = frames[j].rightSide as any
 
-                            let leftFile = await getFrameSideFile({frameSideId: +frames[j].leftId})
+					const leftFile = await getFrameSideFile({ frameSideId: +frames[j].leftId })
+					leftSide.detectedQueenCupsCount = leftFile?.detectedQueenCups?.length || 0
+					leftSide.isQueenDetected = leftFile?.queenDetected || false
 
-                            //@ts-ignore
-                            frames[j].leftSide.detectedQueenCupsCount = leftFile?.detectedQueenCups.length;
-                            //@ts-ignore
-                            frames[j].leftSide.isQueenDetected = leftFile?.queenDetected;
+					const rightFile = await getFrameSideFile({ frameSideId: +frames[j].rightId })
+					rightSide.detectedQueenCupsCount = rightFile?.detectedQueenCups?.length || 0
+					rightSide.isQueenDetected = rightFile?.queenDetected || false
+				}
 
-                            let rightFile = await getFrameSideFile({frameSideId: +frames[j].rightId})
+				adviceContext.frames[boxes[i].id] = frames
+			}
 
-                            //@ts-ignore
-                            frames[j].leftSide.detectedQueenCupsCount = rightFile?.detectedQueenCups.length;
-                            //@ts-ignore
-                            frames[j].leftSide.isQueenDetected = rightFile?.queenDetected;
-                        }
+			await generateAdvice({
+				hiveID: numericHiveId,
+				langCode: user?.lang,
+				adviceContext,
+			})
+		} finally {
+			setSaving(false)
+		}
+	}, [apiary, generateAdvice, hive, numericHiveId])
 
-                        adviceContext['frames'][boxes[i].id] = frames
-                    }
+	useEffect(() => {
+		if (!autoAnalyze || hasAutoAnalyzedRef.current) {
+			return
+		}
 
-                    await generateAdvice({
-                        hiveID: hiveId,
-                        langCode: user.lang,
-                        adviceContext
-                    })
-                    setSaving(false)
+		hasAutoAnalyzedRef.current = true
+		runAnalysis()
+	}, [autoAnalyze, runAnalysis])
 
-                }}>
-                    <img src={beekeeperURL} style="width:20px; height: 20px;margin-right: 2px;"/>
-                    <T>Analyze with AI</T></Button>
+	const showLoader = loading || saving
 
-            <div style={`text-align:center;${existingAdvice?.getExistingHiveAdvice ? '' : 'margin-top:50px;'}`}>
-                {!showLoader && (generatedAdvice?.generateHiveAdvice || existingAdvice?.getExistingHiveAdvice) &&
-                    <div className={style.message}>
+	return (
+		<>
+			<ErrorMsg error={errorGet || mutateError} />
 
-                    {!generatedAdvice && existingAdvice && existingAdvice?.getExistingHiveAdvice &&
-                        <div dangerouslySetInnerHTML={{__html: existingAdvice.getExistingHiveAdvice}}/>}
+			<div className={`${style.wrap} ${!showAnalyzeButton ? style.readOnlyWrap : ''}`}>
+				{showLoader && <Loader />}
 
-                    {generatedAdvice && generatedAdvice?.generateHiveAdvice &&
-                        <div dangerouslySetInnerHTML={{__html: generatedAdvice.generateHiveAdvice}}/>}
-                    </div>
-                }
-            </div>
+				{showAnalyzeButton && (
+					<Button
+						style="margin: 0 auto;"
+						onClick={runAnalysis}
+					>
+						<img src={beekeeperURL} style="width:20px; height: 20px;margin-right: 2px;" />
+						<T>Analyze with AI</T>
+					</Button>
+				)}
 
-        </div>
-    </>
+				<div
+					style={`text-align:center;${existingAdvice?.getExistingHiveAdvice ? '' : 'margin-top:50px;'}`}
+				>
+					{!showLoader &&
+						(generatedAdvice?.generateHiveAdvice || existingAdvice?.getExistingHiveAdvice) && (
+							<div className={style.message}>
+								{!generatedAdvice && existingAdvice?.getExistingHiveAdvice && (
+									<div
+										dangerouslySetInnerHTML={{ __html: existingAdvice.getExistingHiveAdvice }}
+									/>
+								)}
+
+								{generatedAdvice?.generateHiveAdvice && (
+									<div
+										dangerouslySetInnerHTML={{ __html: generatedAdvice.generateHiveAdvice }}
+									/>
+								)}
+							</div>
+						)}
+				</div>
+			</div>
+		</>
+	)
 }

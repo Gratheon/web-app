@@ -1,5 +1,9 @@
 @import '../../colors.module.less';
 
+:global([data-sidebar-collapsed='true']) & .breadcrumbs {
+	padding-left: 50px;
+}
+
 .breadcrumbs {
 	display: flex;
 	font-size: 12px;
@@ -9,12 +13,12 @@
 	border-bottom: 1px solid @color-gray-breadcrumbs-border;
 	justify-content: space-between;
 
-	svg{
+	svg {
 		position: relative;
-		top:2px;
+		top: 2px;
 		margin-right: 5px;
 	}
-	
+
 	a {
 		color: black;
 	}
@@ -23,3 +27,4 @@
 .active {
 	font-weight: bold;
 }
+

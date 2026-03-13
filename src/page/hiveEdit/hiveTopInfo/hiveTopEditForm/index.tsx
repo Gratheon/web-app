@@ -74,6 +74,17 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 	let [cloneFramesForInspection, { error: errorInspection2 }] = useMutation(`mutation cloneFramesForInspection($frameSideIDs: [ID], $inspectionId: ID!) {
 		cloneFramesForInspection(frameSideIDs: $frameSideIDs, inspectionId: $inspectionId)
 	}`)
+	let [moveQueenToWarehouse, { error: errorMoveQueenToWarehouse }] = useMutation(`
+		mutation moveQueenToWarehouse($hiveId: ID!, $familyId: ID!) {
+			moveQueenToWarehouse(hiveId: $hiveId, familyId: $familyId) {
+				id
+				name
+				race
+				added
+				color
+			}
+		}
+	`)
 
 	let [noteInput, setNoteInput] = useState('')
 
@@ -335,8 +346,33 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 	}
 
 	const handleWarehouseDrop = async (familyId: number) => {
-		console.log('Move queen to warehouse:', familyId)
-		await handleRemoveQueen(familyId)
+		try {
+			await moveQueenToWarehouse({
+				hiveId: String(hiveId),
+				familyId: String(familyId),
+			})
+
+			const familiesInHive = await getAllFamiliesByHive(+hiveId)
+			const movedFamily = familiesInHive.find(f => f.id === familyId)
+			if (movedFamily) {
+				delete movedFamily.hiveId
+				await updateFamily(movedFamily)
+			}
+
+			const remainingFamilies = await getAllFamiliesByHive(+hiveId)
+			if (remainingFamilies.length === 0) {
+				const hive = await getHive(+hiveId)
+				await mutateHive({
+					hive: {
+						id: hive.id,
+						notes: hive.notes,
+						family: null,
+					},
+				})
+			}
+		} catch (err) {
+			console.error('Failed to move queen to warehouse:', err)
+		}
 	}
 
 	if (!hive) {
@@ -350,7 +386,7 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 				onDrop={handleWarehouseDrop}
 			/>
 
-			<ErrorMessage error={errorColor || errorHive} />
+			<ErrorMessage error={errorColor || errorHive || errorMoveQueenToWarehouse} />
 			{okMsg}
 
 			<div className={styles.form}>

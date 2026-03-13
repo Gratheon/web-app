@@ -43,6 +43,40 @@ export default function HiveEditForm() {
 	let [error, onError] = useState(null)
 	const navigate = useNavigate()
 
+	useEffect(() => {
+		const isTypingTarget = (target) => {
+			if (!target) return false
+			const tagName = String(target.tagName || '').toLowerCase()
+			return (
+				target.isContentEditable ||
+				tagName === 'input' ||
+				tagName === 'textarea' ||
+				tagName === 'select'
+			)
+		}
+
+		const isModalTarget = (target) => {
+			if (!target || typeof target.closest !== 'function') return false
+			return Boolean(target.closest('[class*="modalOverlay"], [class*="modalContent"]'))
+		}
+
+		const onKeyDown = (event: KeyboardEvent) => {
+			if (event.defaultPrevented) return
+			if (event.ctrlKey || event.metaKey || event.altKey) return
+			if (event.repeat) return
+			if (event.key !== 'Backspace') return
+			if (!apiaryId) return
+			if (isTypingTarget(event.target)) return
+			if (isModalTarget(event.target)) return
+
+			event.preventDefault()
+			navigate(`/apiaries/${apiaryId}`, { replace: true })
+		}
+
+		document.addEventListener('keydown', onKeyDown, true)
+		return () => document.removeEventListener('keydown', onKeyDown, true)
+	}, [apiaryId, navigate])
+
 	// fetch url segments
 	const isInspectionListView =
 		apiaryId && hiveId && !window.location.pathname.includes('inspections/')

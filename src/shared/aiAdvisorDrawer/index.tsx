@@ -111,6 +111,7 @@ function getViewContext(pathname: string): ViewContext {
 			shortcuts: [
 				{ keys: 'Shift + ?', action: 'Open AI Advisor' },
 				{ keys: 'Esc', action: 'Close AI Advisor drawer' },
+				{ keys: 'Backspace', action: 'Go to hive list view' },
 				{ keys: 'E', action: 'Edit hive main info' },
 				{ keys: 'Tab / Shift + Tab', action: 'Move focus across controls' },
 				{ keys: 'Enter', action: 'Confirm focused dialog action' },

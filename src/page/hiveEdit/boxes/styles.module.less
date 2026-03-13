@@ -12,21 +12,17 @@
 }
 
 .hiveButtons {
-	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
 	gap: 8px;
 	padding-bottom: @mobilePadPx;
-	align-items: stretch;
 	width: 100%;
-	max-width: 100%;
-	min-width: 0;
-	overflow: hidden;
 }
 
 .actionButton {
-	width: 100%;
+	width: min(100%, 240px);
 	max-width: 100%;
-	min-width: 0;
 	box-sizing: border-box;
 	margin: 0 !important;
 	height: auto !important;
@@ -45,7 +41,7 @@
 }
 
 .removeButton {
-	grid-column: 1 / -1;
+	width: min(100%, 240px);
 }
 
 .removeBoxActions {
@@ -80,15 +76,5 @@
 @media @mobile {
 	.keyHint {
 		display: none;
-	}
-
-	.hiveButtons {
-		grid-template-columns: 1fr;
-	}
-}
-
-@media @desktop {
-	.hiveButtons {
-		grid-template-columns: repeat(3, minmax(0, 1fr));
 	}
 }

@@ -14,7 +14,6 @@ import * as userModel from '@/models/user'
 import { TAWKTO_TOKEN } from '@/config'
 import CreditCard from '@/icons/creditCard'
 import KeyIcon from '@/icons/key'
-import GateIcon from '@/icons/gate'
 
 const MOBILE_NAV_ICON_SIZE = 24
 const AI_ADVISOR_CONTEXT_KEY = 'ai-advisor-last-hive-context'
@@ -165,6 +164,17 @@ function WarehouseIcon({ size = MOBILE_NAV_ICON_SIZE }) {
     )
 }
 
+function DeviceSignalIcon({ size = MOBILE_NAV_ICON_SIZE }) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4.5" y="7" width="10" height="12" rx="2.2" stroke="currentColor" stroke-width="2" />
+            <circle cx="9.5" cy="16" r="1.1" fill="currentColor" />
+            <path d="M17 9.2C18.6 10.8 18.6 13.4 17 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            <path d="M19.6 6.6C22.6 9.6 22.6 14.4 19.6 17.4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+    )
+}
+
 function SupportIcon({ size = MOBILE_NAV_ICON_SIZE }) {
     return (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -256,6 +266,7 @@ const Menu = ({isLoggedIn = false}) => {
     const navigate = useNavigate()
 
     const isAlertsSection = location.pathname === '/alert-config' || location.pathname.startsWith('/alert-config/')
+    const isWarehouseSection = location.pathname === '/warehouse' || location.pathname.startsWith('/warehouse/')
     const currentHiveContext = getCurrentHiveContext(location.pathname)
     const isHiveAdvisorOpen = new URLSearchParams(location.search).get('aiAdvisor') === '1'
     const isAIAdvisorSection =
@@ -335,13 +346,27 @@ const Menu = ({isLoggedIn = false}) => {
                                 <span className={styles.menuItemLabel}><T>Warehouse</T></span>
                             </span>
                         </NavLink>
+                        {isWarehouseSection && (
+                            <ul className={styles.subMenu}>
+                                <li>
+                                    <NavLink
+                                        className={({isActive}) =>
+                                            isActive ? `${styles.subMenuLink} ${styles.active}` : styles.subMenuLink
+                                        }
+                                        to="/warehouse/queens"
+                                    >
+                                        <T>Queens</T>
+                                    </NavLink>
+                                </li>
+                            </ul>
+                        )}
                     </li>
                     <li>
                         <NavLink
                             className={navClassName}
                             to="/devices">
                             <span className={styles.menuItemContent}>
-                                <span className={styles.menuItemIcon}><GateIcon size={18} /></span>
+                                <span className={styles.menuItemIcon}><DeviceSignalIcon size={18} /></span>
                                 <span className={styles.menuItemLabel}><T>Devices</T></span>
                             </span>
                         </NavLink>
@@ -539,6 +564,14 @@ const Menu = ({isLoggedIn = false}) => {
                         }}
                     >
                         <T>Warehouse</T>
+                    </NavLink>
+                    <NavLink
+                        to="/warehouse/queens"
+                        onClick={() => {
+                            setMoreVisible(false)
+                        }}
+                    >
+                        <T>Warehouse Queens</T>
                     </NavLink>
                     <NavLink
                         to="/devices"

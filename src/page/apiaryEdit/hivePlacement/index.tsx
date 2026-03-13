@@ -182,19 +182,10 @@ export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveS
 
 	const handleCanvasClick = (x: number, y: number) => {
 		if (readOnly) {
-			for (const hive of hives) {
-				const placement = placements.get(hive.id)
-				if (!placement) continue
-
-				const dist = Math.sqrt((x - placement.x) ** 2 + (y - placement.y) ** 2)
-				if (dist <= HIVE_SIZE / 2 + 5) {
-					setSelectedHive(hive.id)
-					setSelectedObstacle(null)
-					return
-				}
+			const clickedHiveId = findHiveIdAtPoint(x, y)
+			if (clickedHiveId) {
+				window.location.href = `/apiaries/${apiaryId}/hives/${clickedHiveId}`
 			}
-
-			setSelectedHive(null)
 			return
 		}
 
@@ -544,6 +535,20 @@ export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveS
 		setAutoRotate(!autoRotate)
 	}
 
+	const findHiveIdAtPoint = (x: number, y: number) => {
+		for (const hive of hives) {
+			const placement = placements.get(hive.id)
+			if (!placement) continue
+
+			const dist = Math.sqrt((x - placement.x) ** 2 + (y - placement.y) ** 2)
+			if (dist <= HIVE_SIZE / 2 + 5) {
+				return hive.id
+			}
+		}
+
+		return null
+	}
+
 	if (loading) return <Loader />
 	if (error) return <ErrorMsg error={error} />
 
@@ -649,6 +654,8 @@ export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveS
 					readOnly={readOnly}
 					isMobile={isMobileDevice}
 					labels={labels}
+					allowReadOnlyClick={readOnly}
+					readOnlyHitTest={(x, y) => !!findHiveIdAtPoint(x, y)}
 					onClick={handleCanvasClick}
 					onMouseDown={handleCanvasMouseDown}
 					onMouseMove={handleCanvasMouseMove}

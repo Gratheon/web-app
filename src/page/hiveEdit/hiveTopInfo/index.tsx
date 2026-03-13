@@ -19,6 +19,7 @@ import { InspectionSnapshot } from '@/models/inspections'
 import BeeCounter from '@/shared/beeCounter'
 import MessageSuccess from '@/shared/messageSuccess'
 import VisualFormSubmit from '@/shared/visualForm/submit'
+import Modal from '@/shared/modal'
 
 import {
 	updateHive,
@@ -55,6 +56,9 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 	let [creatingInspection, setCreatingInspection] = useState(false)
 	let [okMsg, setOkMsg] = useState(null)
 	let [showCollapseSuccess, setShowCollapseSuccess] = useState(false)
+	const [showQRModal, setShowQRModal] = useState(false)
+	const [qrStickerDataUrl, setQrStickerDataUrl] = useState<string | null>(null)
+	const [isGeneratingQR, setIsGeneratingQR] = useState(false)
 	let navigate = useNavigate()
 	const [showCollapseModal, setShowCollapseModal] = useState(false)
 	const [splitModalOpen, setSplitModalOpen] = useState(false)
@@ -114,17 +118,19 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 			if (event.ctrlKey || event.metaKey || event.altKey) return
 			if (isTypingTarget(event.target)) return
 			if (String(event.key || '').toLowerCase() !== 'e') return
-			if (!hive || editable || !isEditable(hive) || isCollapsed(hive)) return
+			if (!hive || !isEditable(hive) || isCollapsed(hive)) return
 
 			event.preventDefault()
-			setEditable(true)
+			navigate(`/apiaries/${apiaryId}/hives/${hiveId}/edit`, {
+				replace: true,
+			})
 		}
 
 		document.addEventListener('keydown', onKeyDown, true)
 		return () => {
 			document.removeEventListener('keydown', onKeyDown, true)
 		}
-	}, [editable, hive])
+	}, [apiaryId, hive, hiveId, navigate])
 
 	let [mutateInspection, { error: errorInspection }] =
 		useMutation(`	mutation addInspection($inspection: InspectionInput!) {
@@ -257,16 +263,9 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 								</Button>
 							)}
 							{!editable && hive && !isCollapsed(hive) && (
-								<Button onClick={() => setEditable(!editable)}>
+								<Button onClick={() => navigate(`/apiaries/${apiaryId}/hives/${hiveId}/edit`)}>
 									<T ctx="this is a button to allow editing by displaying a form">
 									Edit
-								</T>
-							</Button>
-						)}
-						{editable && hive && editableHive && (
-							<Button color="green" onClick={() => setEditable(!editable)}>
-								<T ctx="this is a button to compete editing of a form, but it is not doing any saving because saving is done automatically, this just switches form to view mode">
-									Complete
 								</T>
 							</Button>
 						)}
@@ -299,13 +298,6 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 										>
 											Combine Colonies
 										</T>
-									</Button>
-
-									<Button
-										title="Generate QR sticker for this hive"
-										onClick={onGenerateQR}
-									>
-										<QrCodeIcon size={16} /> <T>Generate QR sticker</T>
 									</Button>
 
 									{hive && !isCollapsed(hive) && (
@@ -351,16 +343,9 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 								</Button>
 							)}
 							{!editable && hive && !isCollapsed(hive) && (
-								<Button onClick={() => setEditable(!editable)}>
+								<Button onClick={() => navigate(`/apiaries/${apiaryId}/hives/${hiveId}/edit`)}>
 									<T ctx="this is a button to allow editing by displaying a form">
 									Edit
-								</T>
-							</Button>
-						)}
-						{editable && hive && editableHive && (
-							<Button color="green" onClick={() => setEditable(!editable)}>
-								<T ctx="this is a button to compete editing of a form, but it is not doing any saving because saving is done automatically, this just switches form to view mode">
-									Complete
 								</T>
 							</Button>
 						)}
@@ -386,13 +371,6 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 										onClick={() => setJoinModalOpen(true)}
 									>
 										<JoinIcon /> <T>Join Colony</T>
-									</Button>
-
-									<Button
-										title="Generate QR sticker for this hive"
-										onClick={onGenerateQR}
-									>
-										<QrCodeIcon size={16} /> <T>Generate QR sticker</T>
 									</Button>
 
 									{hive && !isCollapsed(hive) && (
@@ -441,15 +419,26 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 						</div>
 
 							<div className={styles.name_race_wrap}>
+								<div className={styles.hiveTitleRow}>
+									<h1 className={styles.hiveTitle} onClick={goToHiveView}>
+										{hive.hiveNumber ? (
+											`Hive #${hive.hiveNumber}`
+										) : (
+											<T>Hive without number</T>
+										)}
+									</h1>
+									<button
+										type="button"
+										className={styles.hiveTitleQrButton}
+										title="Generate QR sticker for this hive"
+										aria-label="Generate QR sticker for this hive"
+										onClick={onGenerateQR}
+									>
+										<QrCodeIcon size={16} />
+									</button>
+								</div>
 								<div className={styles.wrap4}>
 									<div className={styles.titleQueenWrap}>
-										<h1 style="flex-grow:1; cursor: pointer" onClick={goToHiveView}>
-											{hive.hiveNumber ? (
-												`Hive #${hive.hiveNumber}`
-											) : (
-												<T>Hive without number</T>
-											)}
-										</h1>
 											<div id={styles.queenSection}>
 												<QueenSlot
 													families={families}
@@ -602,6 +591,35 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 					hiveId={hiveId}
 					apiaryId={apiaryId}
 				/>
+
+				{showQRModal && (
+					<Modal
+						title={<T>Hive QR sticker</T>}
+						onClose={() => setShowQRModal(false)}
+						className={styles.qrModal}
+					>
+						<div className={styles.qrModalBody}>
+							{isGeneratingQR && <Loader />}
+							{!isGeneratingQR && qrStickerDataUrl && (
+								<>
+									<img
+										src={qrStickerDataUrl}
+										alt="Hive QR sticker"
+										className={styles.qrPreview}
+									/>
+									<Button onClick={downloadQrSticker}>
+										<T>Download sticker</T>
+									</Button>
+								</>
+							)}
+							{!isGeneratingQR && !qrStickerDataUrl && (
+								<p className={styles.qrErrorText}>
+									<T>Failed to generate QR sticker.</T>
+								</p>
+							)}
+						</div>
+					</Modal>
+				)}
 			</>
 		)
 	}
@@ -612,6 +630,10 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 
 	async function onGenerateQR() {
 		try {
+			setShowQRModal(true)
+			setIsGeneratingQR(true)
+			setQrStickerDataUrl(null)
+
 			const url = window.location.href
 			const canvas = document.createElement('canvas')
 			const qrSize = 1000 // Increased size
@@ -623,47 +645,52 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 				margin: 1, // Add a small margin
 			})
 
-			// Load logo image
-			const logo = new Image()
-			logo.src = logoUrl
-			logo.onload = () => {
-				const ctx = canvas.getContext('2d')
-				if (!ctx) {
-					console.error('Could not get canvas context')
-					return
-				}
-
-				// Calculate logo size and position (e.g., 20% of QR size)
-				const logoSize = qrSize * 0.2
-				const logoX = (qrSize - logoSize) / 2
-				const logoY = (qrSize - logoSize) / 2
-
-				// Optional: Draw a white background behind the logo for better contrast/scannability
-				ctx.fillStyle = '#FFFFFF'
-				ctx.fillRect(logoX - 5, logoY - 5, logoSize + 10, logoSize + 10) // Slightly larger white square
-
-				// Draw logo
-				ctx.drawImage(logo, logoX, logoY, logoSize, logoSize)
-
-				// Convert canvas to data URL
-				const qrDataURL = canvas.toDataURL('image/png')
-
-				// Trigger download
-				const link = document.createElement('a')
-				link.href = qrDataURL
-				link.download = `hive-${hiveId}-qr-sticker.png`
-				document.body.appendChild(link)
-				link.click()
-				document.body.removeChild(link)
-				console.debug(
-					`Generated QR sticker with logo for hive ${hiveId} with URL: ${url}`
-				)
+			const logo = await loadImage(logoUrl)
+			const ctx = canvas.getContext('2d')
+			if (!ctx) {
+				throw new Error('Could not get canvas context')
 			}
-			logo.onerror = (err) => {
-				console.error('Failed to load logo image', err)
-			}
+
+			// Calculate logo size and position (e.g., 20% of QR size)
+			const logoSize = qrSize * 0.2
+			const logoX = (qrSize - logoSize) / 2
+			const logoY = (qrSize - logoSize) / 2
+
+			// Draw a white background behind the logo for better contrast/scannability
+			ctx.fillStyle = '#FFFFFF'
+			ctx.fillRect(logoX - 5, logoY - 5, logoSize + 10, logoSize + 10)
+
+			// Draw logo
+			ctx.drawImage(logo, logoX, logoY, logoSize, logoSize)
+
+			// Convert canvas to data URL for preview/download in modal
+			const qrDataURL = canvas.toDataURL('image/png')
+			setQrStickerDataUrl(qrDataURL)
+			console.debug(`Generated QR sticker with logo for hive ${hiveId} with URL: ${url}`)
 		} catch (err) {
 			console.error('Failed to generate QR code', err)
+		} finally {
+			setIsGeneratingQR(false)
 		}
+	}
+
+	function downloadQrSticker() {
+		if (!qrStickerDataUrl) return
+
+		const link = document.createElement('a')
+		link.href = qrStickerDataUrl
+		link.download = `hive-${hiveId}-qr-sticker.png`
+		document.body.appendChild(link)
+		link.click()
+		document.body.removeChild(link)
+	}
+
+	function loadImage(src: string): Promise<HTMLImageElement> {
+		return new Promise((resolve, reject) => {
+			const image = new Image()
+			image.onload = () => resolve(image)
+			image.onerror = reject
+			image.src = src
+		})
 	}
 }

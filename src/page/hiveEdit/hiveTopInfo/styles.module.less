@@ -33,7 +33,7 @@
 	margin-left: -10px;
 	margin-right: -10px;
 	margin-bottom: 16px;
-	padding: 56px 0 28px;
+	padding: 56px 0 20px;
 	box-sizing: border-box;
 	position: relative;
 	overflow: hidden;
@@ -41,7 +41,7 @@
 
 	@media @tabletAndUp {
 		padding-top: 64px;
-		padding-bottom: 34px;
+		padding-bottom: 20px;
 	}
 
 	& > * {
@@ -81,10 +81,6 @@
 	min-width: 0;
 }
 
-.titleQueenWrap h1 {
-	margin: 0 0 8px;
-}
-
 .desktopMiniMapWrap {
 	display: flex;
 	justify-content: center;
@@ -93,20 +89,64 @@
 
 	@media @tabletAndUp {
 		display: block;
-		margin-top: 0;
+		margin-top: -80px;
 	}
 }
 
 .name_race_wrap {
 	width: 100%;
 	padding: @mobilePadPx;
+	padding-top: 10px;
 
 	@media @tabletAndUp {
 		padding: @tabletPadPx;
+		padding-top: 10px;
 	}
 
 	@media @desktop {
 		padding: @desktopPadPx;
+		padding-top: 10px;
+	}
+}
+
+.hiveTitleRow {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	margin: 0 0 12px;
+}
+
+.hiveTitle {
+	margin: 0;
+	text-align: center;
+	cursor: pointer;
+}
+
+.hiveTitleQrButton {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	border: 1px solid #d0d7de;
+	border-radius: 6px;
+	background: #fff;
+	color: #4a5568;
+	cursor: pointer;
+	padding: 0;
+	transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+
+	&:hover {
+		background: #111827;
+		border-color: #111827;
+		color: #ffffff;
+	}
+
+	&:focus-visible {
+		background: #111827;
+		border-color: #111827;
+		color: #ffffff;
 	}
 }
 
@@ -190,4 +230,30 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
+}
+
+.qrModal {
+	max-width: 560px;
+	width: calc(100% - 24px);
+}
+
+.qrModalBody {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 14px;
+	padding: 8px 0 4px;
+}
+
+.qrPreview {
+	width: min(360px, 100%);
+	height: auto;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	background: #fff;
+}
+
+.qrErrorText {
+	margin: 0;
+	color: #b22222;
 }

@@ -71,7 +71,14 @@
 .group {
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
+	gap: 1px;
+}
+
+.groupItems {
+	padding-left: 8px;
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
 }
 
 .groupTitle {
@@ -80,10 +87,47 @@
 	color: #444;
 }
 
+.queenSection {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+	margin-bottom: 8px;
+}
+
+.queenEmpty {
+	background: #fff;
+	border-radius: 8px;
+	padding: 6px 8px;
+	font-size: 13px;
+	color: #666;
+}
+
+.queenList {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+}
+
+.queenRow {
+	background: #fff;
+	border-radius: 8px;
+	padding: 6px 8px;
+}
+
+.queenTitle {
+	font-weight: 600;
+}
+
+.queenMeta {
+	font-size: 12px;
+	color: #666;
+	margin-top: 2px;
+}
+
 .row {
 	background: #fff;
 	border-radius: 8px;
-	padding: 12px;
+	padding: 2px;
 	display: grid;
 	grid-template-columns: minmax(200px, 1fr) auto;
 	gap: 10px;

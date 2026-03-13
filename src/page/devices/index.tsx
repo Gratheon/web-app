@@ -124,8 +124,6 @@ export default function DevicesPage() {
 			<ErrorMsg error={error || deactivateError} />
 
 			<section className={styles.section}>
-				<h3><T>Device list</T></h3>
-
 				{devices.length === 0 && <DevicesPlaceholder />}
 
 				{devices.length > 0 && (

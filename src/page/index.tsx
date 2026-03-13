@@ -14,6 +14,7 @@ import ApiaryView from './apiaryView'
 import ApiaryList from './apiaryList'
 import HiveCreateForm from './hiveCreate'
 import HiveEditView from './hiveEdit'
+import HiveGeneralEditPage from './hiveGeneralEdit'
 import AccountEdit from './accountEdit'
 import AccountBilling from './accountBilling'
 import AccountTokens from './accountTokens'
@@ -30,6 +31,7 @@ import DeviceViewPage from './deviceView'
 import DeviceEditPage from './deviceEdit'
 import WarehousePage from './warehouse'
 import WarehouseItemViewPage from './warehouse/itemView'
+import WarehouseQueensPage from './warehouse/queens'
 
 function LoggedInPage({ children }) {
 	const navigate = useNavigate()
@@ -103,6 +105,7 @@ export default function Page() {
 			<Route path="/devices/:id/edit" element={<LoggedInPage><DeviceEditPage /></LoggedInPage>} />
 			<Route path="/devices/:id" element={<LoggedInPage><DeviceViewPage /></LoggedInPage>} />
 			<Route path="/warehouse" element={<LoggedInPage><WarehousePage /></LoggedInPage>} />
+			<Route path="/warehouse/queens" element={<LoggedInPage><WarehouseQueensPage /></LoggedInPage>} />
 			<Route path="/warehouse/:moduleType" element={<LoggedInPage><WarehouseItemViewPage /></LoggedInPage>} />
 
 			<Route path="/apiaries/create" element={<LoggedInPage><ApiaryCreate /></LoggedInPage>} />
@@ -113,6 +116,7 @@ export default function Page() {
 
 			<Route path="/apiaries/:id/hives/add" element={<LoggedInPage><HiveCreateForm /></LoggedInPage>} />
 
+			<Route path="/apiaries/:apiaryId/hives/:hiveId/edit" element={<LoggedInPage><HiveGeneralEditPage /></LoggedInPage>} />
 			<Route path="/apiaries/:apiaryId/hives/:hiveId" element={<LoggedInPage><HiveEditView /></LoggedInPage>} />
 			<Route path="/apiaries/:apiaryId/hives/:hiveId/treatments/" element={<LoggedInPage><HiveEditView /></LoggedInPage>} />
 			<Route path="/apiaries/:apiaryId/hives/:hiveId/inspections/" element={<LoggedInPage><HiveEditView /></LoggedInPage>} />

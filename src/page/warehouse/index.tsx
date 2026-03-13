@@ -227,66 +227,68 @@ export default function WarehousePage() {
 				{GROUPS.map((group) => (
 					<section className={styles.group} key={group.id}>
 						<h3 className={styles.groupTitle}><T>{group.title}</T></h3>
-						{group.items.map((module) => {
-							const count = counts[module.id] || 0
-							return (
-								<div className={styles.row} key={module.id}>
-									<div className={styles.itemInfo}>
-										<Link to={`/warehouse/${module.id}`} className={styles.itemTitleLink}>
-											<span className={styles.itemTitle}><T>{module.label}</T></span>
-										</Link>
-										<div className={styles.itemDescription}><T>{module.description}</T></div>
-									</div>
-
-									<div className={styles.controls}>
-										<div className={styles.squareStack} title={`${Math.min(count, MAX_VISUAL_SQUARES)} / ${count}`}>
-											{Array.from({
-												length: Math.min(count, MAX_VISUAL_SQUARES),
-											}).map((_, index) => (
-												<span
-													key={`${module.id}-sq-${index}`}
-													className={styles.square}
-													style={getSquareStyle(index)}
-												></span>
-											))}
+						<div className={styles.groupItems}>
+							{group.items.map((module) => {
+								const count = counts[module.id] || 0
+								return (
+									<div className={styles.row} key={module.id}>
+										<div className={styles.itemInfo}>
+											<Link to={`/warehouse/${module.id}`} className={styles.itemTitleLink}>
+												<span className={styles.itemTitle}><T>{module.label}</T></span>
+											</Link>
+											<div className={styles.itemDescription}><T>{module.description}</T></div>
 										</div>
-										<Button
-											size="small"
-											title="Decrease"
-											onClick={() => updateCount(module.id, -1)}
-											disabled={count <= 0 || savingModule === module.id}
-										>
-											-
-										</Button>
-										<input
-											className={styles.countInput}
-											type="number"
-											min={0}
-											step={1}
-											inputMode="numeric"
-											value={inputs[module.id] ?? String(count)}
-											disabled={savingModule === module.id}
-											onInput={(event: any) => onInputChange(module.id, event.target.value)}
-											onBlur={() => onInputCommit(module.id)}
-											onKeyDown={(event: any) => {
-												if (event.key === 'Enter') {
-													event.currentTarget.blur()
-												}
-											}}
-										/>
-										<Button
-											size="small"
-											color="green"
-											title="Increase"
-											disabled={savingModule === module.id}
-											onClick={() => updateCount(module.id, 1)}
-										>
-											+
-										</Button>
+
+										<div className={styles.controls}>
+											<div className={styles.squareStack} title={`${Math.min(count, MAX_VISUAL_SQUARES)} / ${count}`}>
+												{Array.from({
+													length: Math.min(count, MAX_VISUAL_SQUARES),
+												}).map((_, index) => (
+													<span
+														key={`${module.id}-sq-${index}`}
+														className={styles.square}
+														style={getSquareStyle(index)}
+													></span>
+												))}
+											</div>
+											<Button
+												size="small"
+												title="Decrease"
+												onClick={() => updateCount(module.id, -1)}
+												disabled={count <= 0 || savingModule === module.id}
+											>
+												-
+											</Button>
+											<input
+												className={styles.countInput}
+												type="number"
+												min={0}
+												step={1}
+												inputMode="numeric"
+												value={inputs[module.id] ?? String(count)}
+												disabled={savingModule === module.id}
+												onInput={(event: any) => onInputChange(module.id, event.target.value)}
+												onBlur={() => onInputCommit(module.id)}
+												onKeyDown={(event: any) => {
+													if (event.key === 'Enter') {
+														event.currentTarget.blur()
+													}
+												}}
+											/>
+											<Button
+												size="small"
+												color="green"
+												title="Increase"
+												disabled={savingModule === module.id}
+												onClick={() => updateCount(module.id, 1)}
+											>
+												+
+											</Button>
+										</div>
 									</div>
-								</div>
-							)
-						})}
+								)
+							})}
+						</div>
 					</section>
 				))}
 			</div>

@@ -62,10 +62,10 @@ interface QueenSlotProps {
 	editable: boolean
 	onAddQueen: () => void
 	onRemoveQueen: (familyId: number) => void
+	onEmptySlotClick?: () => void
 	onUpdateQueen?: (familyId: number, name: string, race: string, year: string, color?: string) => void
 	onDragStart?: (familyId: number) => void
 	onDragEnd?: () => void
-	showAddButton?: boolean
 }
 
 export default function QueenSlot({
@@ -73,10 +73,10 @@ export default function QueenSlot({
 	editable,
 	onAddQueen,
 	onRemoveQueen,
+	onEmptySlotClick,
 	onUpdateQueen,
 	onDragStart,
-	onDragEnd,
-	showAddButton = false
+	onDragEnd
 }: QueenSlotProps) {
 	const { confirm, ConfirmDialog } = useConfirm()
 	const [draggingId, setDraggingId] = useState<number | null>(null)
@@ -122,10 +122,12 @@ export default function QueenSlot({
 	}
 
 	if (!families || families.length === 0) {
+		const emptySlotClickHandler = editable ? onAddQueen : onEmptySlotClick
 		return (
 			<div
 				className={`${styles.queenSlot} ${styles.empty} ${editable ? styles.editable : ''}`}
-				onClick={editable ? onAddQueen : undefined}
+				onClick={emptySlotClickHandler}
+				style={emptySlotClickHandler ? { cursor: 'pointer' } : undefined}
 			>
 				<div className={styles.emptyText}>
 					{editable ? (
@@ -330,22 +332,6 @@ export default function QueenSlot({
 					</div>
 				))}
 				</div>
-
-				{showAddButton && (
-					<Button
-						type="button"
-						className={styles.addAnotherButton}
-						onClick={(e) => {
-							e.preventDefault()
-							e.stopPropagation()
-							onAddQueen()
-						}}
-						title="Add another queen"
-					>
-						<PlusIcon size={14} />
-						<span><T>Add</T></span>
-					</Button>
-				)}
 			</div>
 			{ConfirmDialog}
 		</div>

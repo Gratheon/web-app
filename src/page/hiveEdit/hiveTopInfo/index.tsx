@@ -51,7 +51,7 @@ import JoinColonyModal from '@/page/hiveEdit/JoinColonyModal'
 import DateFormat from '@/shared/dateFormat'
 import HivePlacementMiniMap from './HivePlacementMiniMap'
 
-export default function HiveEditDetails({ apiaryId, hiveId }) {
+export default function HiveEditDetails({ apiaryId, hiveId, onTopMessageChange }) {
 	let [editable, setEditable] = useState(false)
 	let [creatingInspection, setCreatingInspection] = useState(false)
 	let [okMsg, setOkMsg] = useState(null)
@@ -203,6 +203,35 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 			}, 1000),
 		[hiveId]
 	)
+
+	useEffect(() => {
+		if (typeof onTopMessageChange !== 'function') return
+
+		if (okMsg) {
+			onTopMessageChange(okMsg)
+			return
+		}
+
+		if (showCollapseSuccess) {
+			onTopMessageChange(
+				<MessageSuccess
+					title={<T>Sorry for your loss</T>}
+					message={<T>This hive is now marked as collapsed.</T>}
+				/>
+			)
+			return
+		}
+
+		onTopMessageChange(null)
+	}, [okMsg, onTopMessageChange, showCollapseSuccess])
+
+	useEffect(() => {
+		return () => {
+			if (typeof onTopMessageChange === 'function') {
+				onTopMessageChange(null)
+			}
+		}
+	}, [onTopMessageChange])
 
 	if (!hive) {
 		return <Loader />
@@ -402,14 +431,6 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 		return (
 			<>
 				<div style="padding: 0 10px;">
-					{okMsg}
-					{showCollapseSuccess && (
-						<MessageSuccess
-							title={<T>Sorry for your loss</T>}
-							message={<T>This hive is now marked as collapsed.</T>}
-						/>
-					)}
-
 					<div className={styles.spotlight_wrap}>
 						<div className={styles.spotlight_icon}>
 							<div className={styles.icon_wrap}>
@@ -444,8 +465,9 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 													families={families}
 													editable={false}
 													onAddQueen={() => {}}
-												onRemoveQueen={() => {}}
-											/>
+													onRemoveQueen={() => {}}
+													onEmptySlotClick={() => navigate(`/apiaries/${apiaryId}/hives/${hiveId}/edit`)}
+												/>
 
 											{hive && isCollapsed(hive) && (
 												<div className={styles.collapsedLabel}>
@@ -464,13 +486,13 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 												)}
 											</div>
 											<HiveStatistics hiveId={hiveId} />
+											{hive.notes && <p className={styles.hiveNotes}>{hive.notes}</p>}
 										</div>
 										<div className={styles.desktopMiniMapWrap}>
 											<HivePlacementMiniMap apiaryId={apiaryId} selectedHiveId={hiveId} />
 										</div>
 									</div>
 
-							{hive.notes && <p>{hive.notes}</p>}
 							{hive && isCollapsed(hive) && hive.collapse_cause && (
 								<>
 									{' '}

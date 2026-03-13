@@ -24,6 +24,18 @@ const RANDOM_QUEEN_NAME_QUERY = gql`
 	}
 `
 
+const WAREHOUSE_QUEENS_QUERY = gql`
+	query WarehouseQueensForAdd {
+		warehouseQueens {
+			id
+			name
+			race
+			added
+			color
+		}
+	}
+`
+
 const colors = [
 	'#fefee3',
 	'#ffba08',
@@ -68,19 +80,39 @@ const colors = [
 	'#AB149E',
 ]
 
+type ModalMode = 'create' | 'warehouse'
+
+type WarehouseQueen = {
+	id: string
+	name?: string | null
+	race?: string | null
+	added?: string | null
+	color?: string | null
+}
+
 interface AddQueenModalProps {
 	hiveId: number
+	mode?: ModalMode
+	allowModeSwitch?: boolean
 	onClose: () => void
 	onSuccess: () => void
 }
 
-export default function AddQueenModal({ hiveId, onClose, onSuccess }: AddQueenModalProps) {
+export default function AddQueenModal({
+	hiveId,
+	mode: initialMode = 'create',
+	allowModeSwitch = true,
+	onClose,
+	onSuccess
+}: AddQueenModalProps) {
 	const currentYear = new Date().getFullYear().toString()
+	const [mode, setMode] = useState<ModalMode>(initialMode)
 	const [name, setName] = useState('')
 	const [race, setRace] = useState('')
 	const [year, setYear] = useState(currentYear)
 	const [customColor, setCustomColor] = useState<string | null>(null)
 	const [showColorPicker, setShowColorPicker] = useState(false)
+	const [selectedWarehouseQueenId, setSelectedWarehouseQueenId] = useState('')
 	const [error, setError] = useState<string | null>(null)
 	const [lang, setLang] = useState('en')
 
@@ -104,17 +136,43 @@ export default function AddQueenModal({ hiveId, onClose, onSuccess }: AddQueenMo
 		{ variables: { language: lang } }
 	)
 
+	const { data: warehouseData, loading: warehouseLoading } = useQuery(WAREHOUSE_QUEENS_QUERY)
+	const warehouseQueens: WarehouseQueen[] = warehouseData?.warehouseQueens || []
+	const hasWarehouseQueens = warehouseQueens.length > 0
+
 	useEffect(() => {
 		if (randomNameData?.randomHiveName && !randomNameLoading) {
 			setName(randomNameData.randomHiveName)
 		}
 	}, [randomNameData, randomNameLoading])
 
+	useEffect(() => {
+		if (!allowModeSwitch) {
+			setMode(initialMode)
+		}
+	}, [allowModeSwitch, initialMode])
+
+	useEffect(() => {
+		if (allowModeSwitch && !warehouseLoading && !hasWarehouseQueens && mode === 'warehouse') {
+			setMode('create')
+		}
+		if (hasWarehouseQueens && !selectedWarehouseQueenId) {
+			setSelectedWarehouseQueenId(warehouseQueens[0].id)
+		}
+	}, [
+		allowModeSwitch,
+		hasWarehouseQueens,
+		mode,
+		selectedWarehouseQueenId,
+		warehouseLoading,
+		warehouseQueens
+	])
+
 	const handleRefreshName = useCallback(() => {
 		reexecuteRandomNameQuery({ requestPolicy: 'network-only' })
 	}, [reexecuteRandomNameQuery])
 
-	const [addQueenMutation, { error: mutationError, loading }] = useMutation(`
+	const [addQueenMutation, { error: mutationError, loading: createLoading }] = useMutation(`
 		mutation addQueenToHive($hiveId: ID!, $queen: FamilyInput!) {
 			addQueenToHive(hiveId: $hiveId, queen: $queen) {
 				id
@@ -127,20 +185,64 @@ export default function AddQueenModal({ hiveId, onClose, onSuccess }: AddQueenMo
 		}
 	`)
 
+	const [assignQueenFromWarehouseMutation, { error: assignMutationError, loading: assignLoading }] = useMutation(`
+		mutation assignQueenFromWarehouse($hiveId: ID!, $familyId: ID!) {
+			assignQueenFromWarehouse(hiveId: $hiveId, familyId: $familyId) {
+				id
+				__typename
+				name
+				race
+				added
+				color
+			}
+		}
+	`)
+
+	const selectedWarehouseQueen = warehouseQueens.find((queen) => queen.id === selectedWarehouseQueenId)
+
 	const handleSubmit = async () => {
 		setError(null)
 
-		if (!race.trim()) {
-			setError('Please provide the queen race.')
-			return
-		}
-
-		if (!year || year.length !== 4) {
-			setError('Please provide a valid year (4 digits).')
-			return
-		}
-
 		try {
+			if (mode === 'warehouse') {
+				if (!selectedWarehouseQueenId) {
+					setError('Please select a queen from warehouse.')
+					return
+				}
+
+				const result = await assignQueenFromWarehouseMutation({
+					hiveId: hiveId.toString(),
+					familyId: selectedWarehouseQueenId,
+				})
+
+				if (result.data?.assignQueenFromWarehouse) {
+					const family = {
+						id: +result.data.assignQueenFromWarehouse.id,
+						hiveId: hiveId,
+						name: result.data.assignQueenFromWarehouse.name,
+						race: result.data.assignQueenFromWarehouse.race,
+						added: result.data.assignQueenFromWarehouse.added,
+						color: result.data.assignQueenFromWarehouse.color,
+					}
+					await updateFamily(family)
+					await new Promise(resolve => setTimeout(resolve, 100))
+					onSuccess()
+					return
+				}
+
+				throw new Error('Failed to assign queen from warehouse')
+			}
+
+			if (!race.trim()) {
+				setError('Please provide the queen race.')
+				return
+			}
+
+			if (!year || year.length !== 4) {
+				setError('Please provide a valid year (4 digits).')
+				return
+			}
+
 			const result = await addQueenMutation({
 				hiveId: hiveId.toString(),
 				queen: {
@@ -151,8 +253,6 @@ export default function AddQueenModal({ hiveId, onClose, onSuccess }: AddQueenMo
 				},
 			})
 
-			console.log('AddQueenModal: mutation result:', result)
-
 			if (result.data?.addQueenToHive) {
 				const family = {
 					id: +result.data.addQueenToHive.id,
@@ -162,17 +262,13 @@ export default function AddQueenModal({ hiveId, onClose, onSuccess }: AddQueenMo
 					added: result.data.addQueenToHive.added,
 					color: result.data.addQueenToHive.color,
 				}
-				console.log('AddQueenModal: saving family to local DB:', family)
 				await updateFamily(family)
-				console.log('AddQueenModal: family saved successfully')
-
 				await new Promise(resolve => setTimeout(resolve, 100))
-			} else {
-				console.error('AddQueenModal: no family data in response:', result)
-				throw new Error('Failed to create queen - no family data returned')
+				onSuccess()
+				return
 			}
 
-			onSuccess()
+			throw new Error('Failed to create queen - no family data returned')
 		} catch (err) {
 			console.error('AddQueenModal: error adding queen:', err)
 			setError(err.message || 'Failed to add queen')
@@ -182,98 +278,152 @@ export default function AddQueenModal({ hiveId, onClose, onSuccess }: AddQueenMo
 	return (
 		<Modal title={<T>Add Queen</T>} onClose={onClose}>
 			<div className={styles.modalContent}>
-				<MessageError error={error || mutationError} />
+				<MessageError error={error || mutationError || assignMutationError} />
 
-				<div className={styles.nameInputWrapper}>
-					<div style="flex: 1;">
-						<label className={inputStyles.label}><T>Queen Name</T></label>
-						<input
-							className={inputStyles.input}
-							type="text"
-							value={name}
-							onChange={(e: h.JSX.TargetedEvent<HTMLInputElement, Event>) => setName((e.target as HTMLInputElement).value)}
-							autoFocus
-							placeholder="Enter queen name"
-						/>
-					</div>
-					<Button
-						type="button"
-						onClick={handleRefreshName}
-						disabled={randomNameLoading}
-						style={{
-							marginTop: '24px',
-							height: '40px',
-							minWidth: '40px',
-							padding: '0 12px',
-						}}
-						title="Get new name suggestion"
-					>
-						<RefreshIcon />
-					</Button>
-				</div>
-
-				<label className={inputStyles.label}><T>Race</T></label>
-				<input
-					className={inputStyles.input}
-					type="text"
-					value={race}
-					onChange={(e: h.JSX.TargetedEvent<HTMLInputElement, Event>) => setRace((e.target as HTMLInputElement).value)}
-					placeholder="e.g. Carniolan, Italian, etc."
-				/>
-
-				<div className={styles.yearInputWrapper}>
-					<div>
-						<label className={inputStyles.label}><T>Year</T></label>
-						<input
-							className={inputStyles.input}
-							type="text"
-							value={year}
-							maxLength={4}
-							onChange={(e: h.JSX.TargetedEvent<HTMLInputElement, Event>) => {
-								setYear((e.target as HTMLInputElement).value)
-								setCustomColor(null)
-							}}
-						/>
-					</div>
-					<div className={styles.colorPickerWrapper}>
-						<div
-							className={styles.colorPreview}
-							onClick={(e) => {
-								e.stopPropagation()
-								setShowColorPicker(!showColorPicker)
-							}}
+				{allowModeSwitch && hasWarehouseQueens && (
+					<div className={styles.modeSwitch}>
+						<Button
+							type="button"
+							onClick={() => setMode('create')}
+							className={`${styles.modeButton} ${mode === 'create' ? styles.activeMode : ''}`}
 						>
-							<QueenColor year={year} color={customColor} useRelative={false} />
-						</div>
-						{showColorPicker && (
-							<>
-								<div
-									className={styles.colorPickerOverlay}
-									onClick={() => setShowColorPicker(false)}
+							<T>Create New Queen</T>
+						</Button>
+						<Button
+							type="button"
+							onClick={() => setMode('warehouse')}
+							className={`${styles.modeButton} ${mode === 'warehouse' ? styles.activeMode : ''}`}
+						>
+							<T>Add From Warehouse</T>
+						</Button>
+					</div>
+				)}
+
+				{mode === 'warehouse' ? (
+					<div className={styles.warehouseSelectWrap}>
+						<label className={inputStyles.label}><T>Select Queen</T></label>
+						<select
+							className={inputStyles.input}
+							value={selectedWarehouseQueenId}
+							onChange={(e: h.JSX.TargetedEvent<HTMLSelectElement, Event>) =>
+								setSelectedWarehouseQueenId((e.target as HTMLSelectElement).value)
+							}
+							disabled={warehouseLoading}
+						>
+							{warehouseQueens.map((queen) => (
+								<option key={queen.id} value={queen.id}>
+									{queen.name || `#${queen.id}`} {queen.added ? `(${queen.added})` : ''}
+								</option>
+							))}
+						</select>
+
+						{selectedWarehouseQueen && (
+							<div className={styles.warehousePreview}>
+								<QueenColor
+									year={selectedWarehouseQueen.added || currentYear}
+									color={selectedWarehouseQueen.color || null}
 								/>
-								<div className={styles.colorPickerPopup}>
-									<GithubPicker
-										width={212}
-										colors={colors}
-										onChangeComplete={(c: any) => {
-											setCustomColor(c.hex)
-											setShowColorPicker(false)
-										}}
-										color={customColor || getQueenColorFromYear(year)}
-									/>
+								<div>
+									<div>{selectedWarehouseQueen.name || <T>Unnamed Queen</T>}</div>
+									<div className={styles.previewMeta}>{selectedWarehouseQueen.added || '-'}</div>
+									<div className={styles.previewMeta}>{selectedWarehouseQueen.race || <T>Race unknown</T>}</div>
 								</div>
-							</>
+							</div>
 						)}
 					</div>
-				</div>
+				) : (
+					<>
+						<div className={styles.nameInputWrapper}>
+							<div style="flex: 1;">
+								<label className={inputStyles.label}><T>Queen Name</T></label>
+								<input
+									className={inputStyles.input}
+									type="text"
+									value={name}
+									onChange={(e: h.JSX.TargetedEvent<HTMLInputElement, Event>) => setName((e.target as HTMLInputElement).value)}
+									autoFocus
+									placeholder="Enter queen name"
+								/>
+							</div>
+							<Button
+								type="button"
+								onClick={handleRefreshName}
+								disabled={randomNameLoading}
+								style={{
+									marginTop: '24px',
+									height: '40px',
+									minWidth: '40px',
+									padding: '0 12px',
+								}}
+								title="Get new name suggestion"
+							>
+								<RefreshIcon />
+							</Button>
+						</div>
+
+						<label className={inputStyles.label}><T>Race</T></label>
+						<input
+							className={inputStyles.input}
+							type="text"
+							value={race}
+							onChange={(e: h.JSX.TargetedEvent<HTMLInputElement, Event>) => setRace((e.target as HTMLInputElement).value)}
+							placeholder="e.g. Carniolan, Italian, etc."
+						/>
+
+						<div className={styles.yearInputWrapper}>
+							<div>
+								<label className={inputStyles.label}><T>Year</T></label>
+								<input
+									className={inputStyles.input}
+									type="text"
+									value={year}
+									maxLength={4}
+									onChange={(e: h.JSX.TargetedEvent<HTMLInputElement, Event>) => {
+										setYear((e.target as HTMLInputElement).value)
+										setCustomColor(null)
+									}}
+								/>
+							</div>
+							<div className={styles.colorPickerWrapper}>
+								<div
+									className={styles.colorPreview}
+									onClick={(e) => {
+										e.stopPropagation()
+										setShowColorPicker(!showColorPicker)
+									}}
+								>
+									<QueenColor year={year} color={customColor} />
+								</div>
+								{showColorPicker && (
+									<>
+										<div
+											className={styles.colorPickerOverlay}
+											onClick={() => setShowColorPicker(false)}
+										/>
+										<div className={styles.colorPickerPopup}>
+											<GithubPicker
+												width={212}
+												colors={colors}
+												onChangeComplete={(c: any) => {
+													setCustomColor(c.hex)
+													setShowColorPicker(false)
+												}}
+												color={customColor || getQueenColorFromYear(year)}
+											/>
+										</div>
+									</>
+								)}
+							</div>
+						</div>
+					</>
+				)}
 
 				<div className={styles.buttonContainer}>
-					<Button onClick={handleSubmit} loading={loading} color="green">
-						<T>Add Queen</T>
+					<Button onClick={handleSubmit} loading={createLoading || assignLoading} color="green">
+						{mode === 'warehouse' ? <T>Add From Warehouse</T> : <T>Add Queen</T>}
 					</Button>
 				</div>
 			</div>
 		</Modal>
 	)
 }
-

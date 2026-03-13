@@ -37,6 +37,7 @@ import CollapseHiveModal from './CollapseHiveModal'; // Import the modal compone
 export default function HiveEditForm() {
 	const { state } = useLocation()
 	const [displayMode, setDisplayMode] = useState('list')
+	const [topNotice, setTopNotice] = useState(null)
 	const location = useLocation()
 
 	let { apiaryId, hiveId, boxId, frameId, frameSideId } = useParams()
@@ -169,9 +170,11 @@ export default function HiveEditForm() {
 				/>
 			)}
 
+			{topNotice}
+
 			<BreadCrumbs items={breadcrumbs} className={styles.breadcrumbsSky} />
 
-			<HiveEditDetails apiaryId={apiaryId} hiveId={hiveId} />
+			<HiveEditDetails apiaryId={apiaryId} hiveId={hiveId} onTopMessageChange={setTopNotice} />
 
 			<div className={styles.tabsWrap}>
 				<TabBar>

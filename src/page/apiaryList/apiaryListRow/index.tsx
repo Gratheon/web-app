@@ -14,6 +14,7 @@ import Link from '../../../shared/link'
 import ListIcon from '../../../icons/listIcon.tsx'
 import TableIcon from '../../../icons/tableIcon.tsx'
 import DateTimeAgo from '../../../shared/dateTimeAgo'
+import { sortHives } from '../hiveSort'
 
 const COLUMN_CONFIG = [
 	{
@@ -66,11 +67,22 @@ const COLUMN_CONFIG = [
 	},
 ]
 
-export default function apiaryListRow({ apiary, user, sortBy, sortOrder, onSortChange, visibleColumns, onToggleColumn }) {
+export default function apiaryListRow({
+	apiary,
+	user,
+	sortBy,
+	sortOrder,
+	onSortChange,
+	visibleColumns,
+	onToggleColumn,
+	selectedHiveApiaryId,
+	selectedHiveId,
+	onSelectHive,
+	onNavigateAcrossApiaries,
+}) {
 
 	const [listType, setListType] = React.useState(localStorage.getItem('apiaryListType.' + apiary.id) || 'list')
 	const [columnsPopupOpen, setColumnsPopupOpen] = React.useState(false)
-	const [selectedHiveId, setSelectedHiveId] = React.useState(null)
 	const columnsPopupRef = React.useRef(null)
 	const rowRef = React.useRef(null)
 	const listItemRefs = React.useRef({})
@@ -114,60 +126,12 @@ export default function apiaryListRow({ apiary, user, sortBy, sortOrder, onSortC
 		return styles.statusPillYellow
 	}
 
-	const getSortValue = (hive, column) => {
-		switch (column) {
-		case 'HIVE_NUMBER':
-			return hive?.hiveNumber ?? null
-		case 'QUEEN':
-			return hive?.family?.name || hive?.name || ''
-		case 'BEE_COUNT':
-			return hive?.beeCount ?? null
-		case 'STATUS':
-			return hive?.status ?? ''
-		case 'LAST_TREATMENT':
-			return hive?.family?.lastTreatment ? new Date(hive.family.lastTreatment).getTime() : null
-		case 'LAST_INSPECTION':
-			return hive?.lastInspection ? new Date(hive.lastInspection).getTime() : null
-		case 'QUEEN_YEAR':
-			return hive?.family?.added ? Number.parseInt(hive.family.added, 10) : null
-		case 'QUEEN_RACE':
-			return hive?.family?.race ?? ''
-		default:
-			return null
-		}
-	}
-
 	const sortedHives = React.useMemo(() => {
 		if (!apiary?.hives) {
 			return []
 		}
 
-		const sorted = [...apiary.hives]
-		sorted.sort((hiveA, hiveB) => {
-			const aValue = getSortValue(hiveA, sortBy)
-			const bValue = getSortValue(hiveB, sortBy)
-			const hasA = aValue !== null && aValue !== undefined && aValue !== ''
-			const hasB = bValue !== null && bValue !== undefined && bValue !== ''
-
-			if (!hasA && !hasB) {
-				return 0
-			}
-			if (!hasA) {
-				return 1
-			}
-			if (!hasB) {
-				return -1
-			}
-
-			if (typeof aValue === 'number' && typeof bValue === 'number') {
-				return sortOrder === 'ASC' ? aValue - bValue : bValue - aValue
-			}
-
-			const compareValue = String(aValue).localeCompare(String(bValue), undefined, { sensitivity: 'base' })
-			return sortOrder === 'ASC' ? compareValue : -compareValue
-		})
-
-		return sorted
+		return sortHives(apiary.hives, sortBy, sortOrder)
 	}, [apiary?.hives, sortBy, sortOrder])
 
 	const renderSortableHeader = (column, translationContext, label) => (
@@ -206,7 +170,7 @@ export default function apiaryListRow({ apiary, user, sortBy, sortOrder, onSortC
 
 	const focusHive = React.useCallback((hive) => {
 		if (!hive) return
-		setSelectedHiveId(hive.id)
+		onSelectHive(apiary.id, hive.id)
 
 		const item = getItemByHiveId(hive.id)
 		if (!item) return
@@ -217,7 +181,7 @@ export default function apiaryListRow({ apiary, user, sortBy, sortOrder, onSortC
 		}
 
 		item.scrollIntoView({ block: 'nearest', inline: 'nearest' })
-	}, [getItemByHiveId])
+	}, [apiary.id, getItemByHiveId, onSelectHive])
 
 	const findNextListHive = React.useCallback((hives, currentIndex, direction) => {
 		if (currentIndex < 0 || currentIndex >= hives.length) {
@@ -286,6 +250,13 @@ export default function apiaryListRow({ apiary, user, sortBy, sortOrder, onSortC
 		return best?.hive || hives[currentIndex]
 	}, [getItemByHiveId])
 
+	const moveToAdjacentApiary = React.useCallback((direction) => {
+		onNavigateAcrossApiaries?.({
+			apiaryId: apiary.id,
+			direction,
+		})
+	}, [apiary.id, onNavigateAcrossApiaries])
+
 	const onRowKeyDown = React.useCallback((event) => {
 		if (columnsPopupOpen && columnsPopupRef.current?.contains(event.target)) {
 			return
@@ -311,7 +282,10 @@ export default function apiaryListRow({ apiary, user, sortBy, sortOrder, onSortC
 
 		event.preventDefault()
 
-		let currentIndex = sortedHives.findIndex((hive) => hive.id === selectedHiveId)
+		let currentIndex =
+			selectedHiveApiaryId === apiary.id
+				? sortedHives.findIndex((hive) => hive.id === selectedHiveId)
+				: -1
 		if (currentIndex === -1) {
 			if (key === 'ArrowUp' || key === 'ArrowLeft') {
 				focusHive(sortedHives[sortedHives.length - 1])
@@ -322,6 +296,15 @@ export default function apiaryListRow({ apiary, user, sortBy, sortOrder, onSortC
 		}
 
 		if (listType === 'table') {
+			if (key === 'ArrowUp' && currentIndex === 0) {
+				moveToAdjacentApiary('prev')
+				return
+			}
+			if (key === 'ArrowDown' && currentIndex === sortedHives.length - 1) {
+				moveToAdjacentApiary('next')
+				return
+			}
+
 			const nextIndex = key === 'ArrowUp'
 				? Math.max(0, currentIndex - 1)
 				: Math.min(sortedHives.length - 1, currentIndex + 1)
@@ -338,10 +321,19 @@ export default function apiaryListRow({ apiary, user, sortBy, sortOrder, onSortC
 
 			const nextHive = findNextListHive(sortedHives, currentIndex, direction)
 			if (nextHive) {
+				if (nextHive.id === sortedHives[currentIndex]?.id) {
+					if (direction === 'up' || direction === 'left') {
+						moveToAdjacentApiary('prev')
+					} else {
+						moveToAdjacentApiary('next')
+					}
+					return
+				}
+
 				focusHive(nextHive)
 			}
 		}
-	}, [columnsPopupOpen, listType, sortedHives, selectedHiveId, focusHive, findNextListHive])
+	}, [apiary.id, columnsPopupOpen, findNextListHive, focusHive, listType, moveToAdjacentApiary, selectedHiveApiaryId, selectedHiveId, sortedHives])
 
 	React.useEffect(() => {
 		const handleGlobalKeyDown = (event) => {
@@ -365,23 +357,13 @@ export default function apiaryListRow({ apiary, user, sortBy, sortOrder, onSortC
 		}
 	}, [onRowKeyDown])
 
-	React.useEffect(() => {
-		if (!sortedHives?.length) {
-			setSelectedHiveId(null)
-			return
-		}
-
-		if (!selectedHiveId || !sortedHives.some((hive) => hive.id === selectedHiveId)) {
-			setSelectedHiveId(sortedHives[0].id)
-		}
-	}, [selectedHiveId, sortedHives, listType])
-
 	return (
 		<div
 			className={styles.apiary}
 			ref={rowRef}
 			tabIndex={0}
 			data-apiary-keyboard-row="1"
+			data-apiary-row-id={apiary.id}
 		>
 			<div className={styles.apiaryHead}>
 				<h2><Link href={`/apiaries/${apiary.id}`}>{apiary.name ? apiary.name : '...'}</Link></h2>
@@ -414,7 +396,10 @@ export default function apiaryListRow({ apiary, user, sortBy, sortOrder, onSortC
 					sortedHives.map((hive, i) => (
 						<div
 							key={i}
-							className={`${styles.hive} ${hive.status === 'collapsed' ? styles.collapsedHive : ''} ${hive.status === 'merged' ? styles.mergedHive : ''} ${selectedHiveId === hive.id ? styles.selectedHive : ''}`}
+							className={`${styles.hive} ${hive.status === 'collapsed' ? styles.collapsedHive : ''} ${hive.status === 'merged' ? styles.mergedHive : ''} ${selectedHiveApiaryId === apiary.id && selectedHiveId === hive.id ? styles.selectedHive : ''}`}
+							data-hive-item="1"
+							data-apiary-id={apiary.id}
+							data-hive-id={hive.id}
 							ref={(element) => {
 								if (element) {
 									listItemRefs.current[hive.id] = element
@@ -422,8 +407,8 @@ export default function apiaryListRow({ apiary, user, sortBy, sortOrder, onSortC
 									delete listItemRefs.current[hive.id]
 								}
 							}}
-							onMouseEnter={() => setSelectedHiveId(hive.id)}
-							onClick={() => setSelectedHiveId(hive.id)}
+							onMouseEnter={() => onSelectHive(apiary.id, hive.id)}
+							onClick={() => onSelectHive(apiary.id, hive.id)}
 						>
 							<NavLink to={`/apiaries/${apiary.id}/hives/${hive.id}`}>
 								<Hive boxes={hive.boxes} size={60} />
@@ -482,7 +467,10 @@ export default function apiaryListRow({ apiary, user, sortBy, sortOrder, onSortC
 								sortedHives.map((hive, i) => (
 									<tr
 										key={i}
-										className={selectedHiveId === hive.id ? styles.selectedHiveRow : ''}
+										className={selectedHiveApiaryId === apiary.id && selectedHiveId === hive.id ? styles.selectedHiveRow : ''}
+										data-hive-item="1"
+										data-apiary-id={apiary.id}
+										data-hive-id={hive.id}
 										ref={(element) => {
 											if (element) {
 												listItemRefs.current[hive.id] = element
@@ -490,8 +478,8 @@ export default function apiaryListRow({ apiary, user, sortBy, sortOrder, onSortC
 												delete listItemRefs.current[hive.id]
 											}
 										}}
-										onMouseEnter={() => setSelectedHiveId(hive.id)}
-										onClick={() => setSelectedHiveId(hive.id)}
+										onMouseEnter={() => onSelectHive(apiary.id, hive.id)}
+										onClick={() => onSelectHive(apiary.id, hive.id)}
 									>
 										<td>
 											<NavLink to={`/apiaries/${apiary.id}/hives/${hive.id}`}>

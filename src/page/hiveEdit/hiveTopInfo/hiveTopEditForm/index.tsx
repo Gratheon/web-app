@@ -22,6 +22,7 @@ import T, { useTranslation as t } from '@/shared/translate'
 import VisualForm from '@/shared/visualForm'
 import HiveIcon from '@/shared/hive'
 import Loader from '@/shared/loader'
+import Button from '@/shared/button'
 import ErrorMessage from '@/shared/messageError'
 import BeeCounter from '@/shared/beeCounter'
 import MessageSuccess from '@/shared/messageSuccess'
@@ -31,7 +32,7 @@ import styles from './styles.module.less'
 export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 	let [creatingInspection, setCreatingInspection] = useState(false)
 	let [okMsg, setOkMsg] = useState(null)
-	let [showAddQueenModal, setShowAddQueenModal] = useState(false)
+	let [addQueenModalMode, setAddQueenModalMode] = useState<'create' | 'warehouse' | null>(null)
 	let [isDraggingQueen, setIsDraggingQueen] = useState(false)
 	let [hiveNumberError, setHiveNumberError] = useState(null)
 
@@ -287,8 +288,12 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 		[]
 	)
 
-	const handleAddQueen = () => {
-		setShowAddQueenModal(true)
+	const handleAddNewQueen = () => {
+		setAddQueenModalMode('create')
+	}
+
+	const handleAddQueenFromWarehouse = () => {
+		setAddQueenModalMode('warehouse')
 	}
 
 	const handleUpdateQueen = async (familyId: number, name: string, race: string, year: string, color?: string) => {
@@ -389,11 +394,12 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 			<ErrorMessage error={errorColor || errorHive || errorMoveQueenToWarehouse} />
 			{okMsg}
 
+			<div className={styles.iconBlock}>
+				<HiveIcon onColorChange={onColorChange} boxes={boxes} editable={true} />
+				<BeeCounter count={hive.beeCount} />
+			</div>
+
 			<div className={styles.form}>
-				<div style="padding-right:10px;">
-					<HiveIcon onColorChange={onColorChange} boxes={boxes} editable={true} />
-					<BeeCounter count={hive.beeCount} />
-				</div>
 				<div>
 					<VisualForm>
 						<div>
@@ -441,16 +447,25 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 							<label htmlFor="queen">
 								{families.length > 1 ? <T>Queens</T> : <T>Queen</T>}
 							</label>
-							<QueenSlot
-								families={families}
-								editable={true}
-								onAddQueen={handleAddQueen}
-								onRemoveQueen={handleRemoveQueen}
-								onUpdateQueen={handleUpdateQueen}
-								onDragStart={() => setIsDraggingQueen(true)}
-								onDragEnd={() => setIsDraggingQueen(false)}
-								showAddButton={families.length > 0}
-							/>
+							<div className={styles.queenContent}>
+								<QueenSlot
+									families={families}
+									editable={true}
+									onAddQueen={handleAddNewQueen}
+									onRemoveQueen={handleRemoveQueen}
+									onUpdateQueen={handleUpdateQueen}
+									onDragStart={() => setIsDraggingQueen(true)}
+									onDragEnd={() => setIsDraggingQueen(false)}
+								/>
+								<div className={styles.queenActionButtons}>
+									<Button type="button" size="small" color="green" onClick={handleAddNewQueen}>
+										<T>Introduce New Queen</T>
+									</Button>
+									<Button type="button" size="small" onClick={handleAddQueenFromWarehouse}>
+										<T>Add From Warehouse</T>
+									</Button>
+								</div>
+							</div>
 						</div>
 
 						<div>
@@ -458,18 +473,12 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 								<T>Notes</T>
 							</label>
 
-							<div>
-								<textarea
-									className={styles.notes}
-									style={{
-										marginTop: 3,
-										background: noteInput ? '#EEE' : 'white',
-										minHeight: noteInput ? 40 : 20,
-										width: `calc(100% - 20px)`
-									}}
-									name="notes"
-									placeholder={t('Notes')}
-									id="notes"
+								<div>
+									<textarea
+										className={styles.notes}
+										name="notes"
+										placeholder={t('Notes')}
+										id="notes"
 									value={noteInput}
 									onChange={onNotesChange}
 								/>
@@ -477,17 +486,21 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 						</div>
 					</VisualForm>
 
-					{buttons}
+					<div className={styles.buttons}>
+						{buttons}
+					</div>
 
 				</div>
 			</div>
 
-			{showAddQueenModal && (
+			{addQueenModalMode && (
 				<AddQueenModal
 					hiveId={+hiveId}
-					onClose={() => setShowAddQueenModal(false)}
+					mode={addQueenModalMode}
+					allowModeSwitch={false}
+					onClose={() => setAddQueenModalMode(null)}
 					onSuccess={() => {
-						setShowAddQueenModal(false)
+						setAddQueenModalMode(null)
 						setOkMsg(
 							<MessageSuccess
 								title={<T>Queen Added</T>}

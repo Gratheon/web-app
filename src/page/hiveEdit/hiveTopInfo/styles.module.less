@@ -15,6 +15,53 @@
 	}
 }
 
+.spotlight_wrap {
+	width: 100%;
+	padding: 0;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.spotlight_icon {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	width: calc(100% + 20px);
+	margin-left: -10px;
+	margin-right: -10px;
+	margin-bottom: 16px;
+	padding: 56px 0 28px;
+	box-sizing: border-box;
+	position: relative;
+	overflow: hidden;
+	background: linear-gradient(180deg, #8fd1ff 0%, #bde5ff 58%, #e8f6ff 100%);
+
+	@media @tabletAndUp {
+		padding-top: 64px;
+		padding-bottom: 34px;
+	}
+
+	& > * {
+		position: relative;
+		z-index: 2;
+	}
+
+	&::after {
+		content: '';
+		position: absolute;
+		left: -8%;
+		right: -8%;
+		bottom: -50px;
+		height: 120px;
+		background: #ffffff;
+		border-radius: 50% 50% 0 0;
+		z-index: 1;
+	}
+}
+
 .icon_wrap {
 	padding: @mobilePadPx;
 }
@@ -29,6 +76,28 @@
 .name_race_wrap {
 	width: 100%;
 	padding: @mobilePadPx;
+
+	@media @tabletAndUp {
+		padding: @tabletPadPx;
+	}
+
+	@media @desktop {
+		padding: @desktopPadPx;
+	}
+}
+
+.statistics_wrap {
+	width: 100%;
+	padding: @mobilePadPx;
+	box-sizing: border-box;
+
+	@media @tabletAndUp {
+		padding: @tabletPadPx;
+	}
+
+	@media @desktop {
+		padding: @desktopPadPx;
+	}
 }
 
 #raceYear {
@@ -75,4 +144,3 @@
 		}
 	}
 }
-

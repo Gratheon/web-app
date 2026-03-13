@@ -25,7 +25,6 @@ import MessageSuccess from '@/shared/messageSuccess'
 import HiveIcon from '@/icons/hive.tsx'
 import HiveButtons from '@/page/hiveEdit/boxes/hiveButtons.tsx'
 import HiveWeightGraph from '@/page/hiveEdit/hiveWeightGraph'
-import HiveStatistics from '@/page/hiveEdit/hiveStatistics'
 
 import styles from '@/page/hiveEdit/styles.module.less'
 import Treatments from '@/page/hiveEdit/treatments'
@@ -136,7 +135,7 @@ export default function HiveEditForm() {
 				/>
 			)}
 
-			<BreadCrumbs items={breadcrumbs} />
+			<BreadCrumbs items={breadcrumbs} className={styles.breadcrumbsSky} />
 
 			<HiveEditDetails apiaryId={apiaryId} hiveId={hiveId} />
 
@@ -205,8 +204,6 @@ export default function HiveEditForm() {
 
 					{mapTab === 'structure' && (
 						<div>
-							{!boxId && !frameId && <HiveStatistics hiveId={hiveId} />}
-
 							{box && box.type === boxTypes.GATE && <GateBox boxId={boxId} />}
 							<Frame
 								box={box}

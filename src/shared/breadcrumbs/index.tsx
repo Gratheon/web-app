@@ -2,9 +2,9 @@ import React from 'react'
 import styles from './index.module.less'
 import { NavLink } from 'react-router-dom'
 
-export default function BreadCrumbs({ items, children = null }) {
+export default function BreadCrumbs({ items, children = null, className = '' }) {
 	return (
-		<div className={styles.breadcrumbs}>
+		<div className={`${styles.breadcrumbs} ${className}`.trim()}>
 			<div>
 				{items.map((breadcrumb, i) => {
 					return (

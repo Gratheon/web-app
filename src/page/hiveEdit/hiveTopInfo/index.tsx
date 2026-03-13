@@ -39,6 +39,7 @@ import { deleteFilesByFrameSideIDs } from '@/models/frameSideFile'
 
 import DeactivateButton from '@/page/hiveEdit/deleteButton'
 import QueenSlot from '@/page/hiveEdit/hiveTopInfo/QueenSlot'
+import HiveStatistics from '@/page/hiveEdit/hiveStatistics'
 import styles from '@/page/hiveEdit/hiveTopInfo/styles.module.less'
 import logoUrl from '@/assets/logo-v7.png'
 
@@ -402,9 +403,11 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 						/>
 					)}
 
-					<div className={styles.horizontal_wrap}>
-						<div className={styles.icon_wrap}>
-							<HiveIcon boxes={boxes} />
+					<div className={styles.spotlight_wrap}>
+						<div className={styles.spotlight_icon}>
+							<div className={styles.icon_wrap}>
+								<HiveIcon boxes={boxes} />
+							</div>
 							<BeeCounter count={hive.beeCount} />
 						</div>
 
@@ -531,6 +534,10 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 									))}
 								</div>
 							)}
+						</div>
+
+						<div className={styles.statistics_wrap}>
+							<HiveStatistics hiveId={hiveId} />
 						</div>
 
 						<div className={styles.button_wrap1}>{buttonsDesktop}</div>

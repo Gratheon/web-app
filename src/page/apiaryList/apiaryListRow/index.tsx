@@ -70,7 +70,10 @@ export default function apiaryListRow({ apiary, user, sortBy, sortOrder, onSortC
 
 	const [listType, setListType] = React.useState(localStorage.getItem('apiaryListType.' + apiary.id) || 'list')
 	const [columnsPopupOpen, setColumnsPopupOpen] = React.useState(false)
+	const [selectedHiveId, setSelectedHiveId] = React.useState(null)
 	const columnsPopupRef = React.useRef(null)
+	const rowRef = React.useRef(null)
+	const listItemRefs = React.useRef({})
 
 	React.useEffect(() => {
 		const handleClickOutside = (event) => {
@@ -186,8 +189,200 @@ export default function apiaryListRow({ apiary, user, sortBy, sortOrder, onSortC
 		</th>
 	)
 
+	const isTypingTarget = (target) => {
+		if (!target) return false
+		const tagName = String(target.tagName || '').toLowerCase()
+		return (
+			target.isContentEditable ||
+			tagName === 'input' ||
+			tagName === 'textarea' ||
+			tagName === 'select'
+		)
+	}
+
+	const getItemByHiveId = React.useCallback((hiveId) => {
+		return listItemRefs.current[hiveId] || null
+	}, [])
+
+	const focusHive = React.useCallback((hive) => {
+		if (!hive) return
+		setSelectedHiveId(hive.id)
+
+		const item = getItemByHiveId(hive.id)
+		if (!item) return
+
+		const link = item.querySelector('a')
+		if (link) {
+			link.focus()
+		}
+
+		item.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+	}, [getItemByHiveId])
+
+	const findNextListHive = React.useCallback((hives, currentIndex, direction) => {
+		if (currentIndex < 0 || currentIndex >= hives.length) {
+			return null
+		}
+
+		if (direction === 'left') {
+			return hives[Math.max(0, currentIndex - 1)]
+		}
+
+		if (direction === 'right') {
+			return hives[Math.min(hives.length - 1, currentIndex + 1)]
+		}
+
+		const positioned = hives
+			.map((hive, index) => {
+				const element = getItemByHiveId(hive.id)
+				if (!element) return null
+				const rect = element.getBoundingClientRect()
+				return {
+					hive,
+					index,
+					left: rect.left,
+					top: rect.top,
+					centerX: rect.left + rect.width / 2,
+				}
+			})
+			.filter(Boolean)
+
+		const current = positioned.find((entry) => entry.index === currentIndex)
+		if (!current) return hives[currentIndex]
+
+		const tolerance = 8
+		const rows = []
+		for (const entry of positioned) {
+			const lastRow = rows[rows.length - 1]
+			if (!lastRow || Math.abs(lastRow.top - entry.top) > tolerance) {
+				rows.push({ top: entry.top, items: [entry] })
+			} else {
+				lastRow.items.push(entry)
+			}
+		}
+
+		let rowIndex = -1
+		for (let i = 0; i < rows.length; i += 1) {
+			if (rows[i].items.some((item) => item.index === currentIndex)) {
+				rowIndex = i
+				break
+			}
+		}
+		if (rowIndex === -1) return hives[currentIndex]
+
+		const nextRowIndex = direction === 'up' ? rowIndex - 1 : rowIndex + 1
+		if (nextRowIndex < 0 || nextRowIndex >= rows.length) {
+			return hives[currentIndex]
+		}
+
+		const targetRowItems = rows[nextRowIndex].items
+		let best = targetRowItems[0]
+		for (const candidate of targetRowItems) {
+			if (Math.abs(candidate.centerX - current.centerX) < Math.abs(best.centerX - current.centerX)) {
+				best = candidate
+			}
+		}
+
+		return best?.hive || hives[currentIndex]
+	}, [getItemByHiveId])
+
+	const onRowKeyDown = React.useCallback((event) => {
+		if (columnsPopupOpen && columnsPopupRef.current?.contains(event.target)) {
+			return
+		}
+
+		if (isTypingTarget(event.target)) {
+			return
+		}
+
+		const key = event.key
+		const canNavigateTable = listType === 'table' && (key === 'ArrowUp' || key === 'ArrowDown')
+		const canNavigateList =
+			listType === 'list' &&
+			(key === 'ArrowUp' || key === 'ArrowDown' || key === 'ArrowLeft' || key === 'ArrowRight')
+
+		if (!canNavigateTable && !canNavigateList) {
+			return
+		}
+
+		if (!sortedHives?.length) {
+			return
+		}
+
+		event.preventDefault()
+
+		let currentIndex = sortedHives.findIndex((hive) => hive.id === selectedHiveId)
+		if (currentIndex === -1) {
+			if (key === 'ArrowUp' || key === 'ArrowLeft') {
+				focusHive(sortedHives[sortedHives.length - 1])
+			} else {
+				focusHive(sortedHives[0])
+			}
+			return
+		}
+
+		if (listType === 'table') {
+			const nextIndex = key === 'ArrowUp'
+				? Math.max(0, currentIndex - 1)
+				: Math.min(sortedHives.length - 1, currentIndex + 1)
+			focusHive(sortedHives[nextIndex])
+			return
+		}
+
+		if (listType === 'list') {
+			const direction =
+				key === 'ArrowUp' ? 'up'
+					: key === 'ArrowDown' ? 'down'
+						: key === 'ArrowLeft' ? 'left'
+							: 'right'
+
+			const nextHive = findNextListHive(sortedHives, currentIndex, direction)
+			if (nextHive) {
+				focusHive(nextHive)
+			}
+		}
+	}, [columnsPopupOpen, listType, sortedHives, selectedHiveId, focusHive, findNextListHive])
+
+	React.useEffect(() => {
+		const handleGlobalKeyDown = (event) => {
+			const activeElement = document.activeElement
+			if (!rowRef.current || !activeElement) {
+				return
+			}
+
+			const isInsideApiaryBlock =
+				activeElement === rowRef.current || rowRef.current.contains(activeElement)
+			if (!isInsideApiaryBlock) {
+				return
+			}
+
+			onRowKeyDown(event)
+		}
+
+		document.addEventListener('keydown', handleGlobalKeyDown, true)
+		return () => {
+			document.removeEventListener('keydown', handleGlobalKeyDown, true)
+		}
+	}, [onRowKeyDown])
+
+	React.useEffect(() => {
+		if (!sortedHives?.length) {
+			setSelectedHiveId(null)
+			return
+		}
+
+		if (!selectedHiveId || !sortedHives.some((hive) => hive.id === selectedHiveId)) {
+			setSelectedHiveId(sortedHives[0].id)
+		}
+	}, [selectedHiveId, sortedHives, listType])
+
 	return (
-		<div className={styles.apiary}>
+		<div
+			className={styles.apiary}
+			ref={rowRef}
+			tabIndex={0}
+			data-apiary-keyboard-row="1"
+		>
 			<div className={styles.apiaryHead}>
 				<h2><Link href={`/apiaries/${apiary.id}`}>{apiary.name ? apiary.name : '...'}</Link></h2>
 
@@ -215,9 +410,21 @@ export default function apiaryListRow({ apiary, user, sortBy, sortOrder, onSortC
 
 			<div className={styles.hives}>
 				{apiary.hives && apiary.hives.length == 0 && <HivesPlaceholder />}
-				{listType == 'list' && apiary.hives &&
-					apiary.hives.map((hive, i) => (
-						<div key={i} className={`${styles.hive} ${hive.status === 'collapsed' ? styles.collapsedHive : ''} ${hive.status === 'merged' ? styles.mergedHive : ''}`}>
+				{listType == 'list' && sortedHives &&
+					sortedHives.map((hive, i) => (
+						<div
+							key={i}
+							className={`${styles.hive} ${hive.status === 'collapsed' ? styles.collapsedHive : ''} ${hive.status === 'merged' ? styles.mergedHive : ''} ${selectedHiveId === hive.id ? styles.selectedHive : ''}`}
+							ref={(element) => {
+								if (element) {
+									listItemRefs.current[hive.id] = element
+								} else {
+									delete listItemRefs.current[hive.id]
+								}
+							}}
+							onMouseEnter={() => setSelectedHiveId(hive.id)}
+							onClick={() => setSelectedHiveId(hive.id)}
+						>
 							<NavLink to={`/apiaries/${apiary.id}/hives/${hive.id}`}>
 								<Hive boxes={hive.boxes} size={60} />
 								<div className={styles.title}>
@@ -273,7 +480,19 @@ export default function apiaryListRow({ apiary, user, sortBy, sortOrder, onSortC
 						<tbody>
 							{sortedHives &&
 								sortedHives.map((hive, i) => (
-									<tr key={i}>
+									<tr
+										key={i}
+										className={selectedHiveId === hive.id ? styles.selectedHiveRow : ''}
+										ref={(element) => {
+											if (element) {
+												listItemRefs.current[hive.id] = element
+											} else {
+												delete listItemRefs.current[hive.id]
+											}
+										}}
+										onMouseEnter={() => setSelectedHiveId(hive.id)}
+										onClick={() => setSelectedHiveId(hive.id)}
+									>
 										<td>
 											<NavLink to={`/apiaries/${apiary.id}/hives/${hive.id}`}>
 												<Hive boxes={hive.boxes} size={20} />

@@ -40,6 +40,62 @@ const ALLOWED_SORT_ORDERS = ['ASC', 'DESC']
 export default function ApiaryList(props) {
 	let user = useLiveQuery(() => getUser(), [], null)
 
+	React.useEffect(() => {
+		const isTypingTarget = (target) => {
+			if (!target) return false
+			const tagName = String(target.tagName || '').toLowerCase()
+			return (
+				target.isContentEditable ||
+				tagName === 'input' ||
+				tagName === 'textarea' ||
+				tagName === 'select'
+			)
+		}
+
+		const onKeyDown = (event) => {
+			if (isTypingTarget(event.target)) {
+				return
+			}
+
+			const isArrowKey =
+				event.key === 'ArrowUp' ||
+				event.key === 'ArrowDown' ||
+				event.key === 'ArrowLeft' ||
+				event.key === 'ArrowRight'
+
+			if (!isArrowKey) {
+				return
+			}
+
+			const activeElement = document.activeElement
+			const activeRow = activeElement?.closest?.('[data-apiary-keyboard-row="1"]')
+			if (activeRow) {
+				return
+			}
+
+			const firstRow = document.querySelector('[data-apiary-keyboard-row="1"]') as HTMLElement | null
+			if (!firstRow) {
+				return
+			}
+
+			event.preventDefault()
+			firstRow.focus()
+
+			const replayEvent = new KeyboardEvent('keydown', {
+				key: event.key,
+				code: event.code,
+				location: event.location,
+				repeat: event.repeat,
+				bubbles: true,
+				cancelable: true,
+			})
+			document.dispatchEvent(replayEvent)
+		}
+
+		document.addEventListener('keydown', onKeyDown, true)
+		return () => document.removeEventListener('keydown', onKeyDown, true)
+	}, [])
+
 	const [hiveSortBy, setHiveSortBy] = React.useState(() => {
 		if (typeof window === 'undefined') {
 			return DEFAULT_SORT_BY

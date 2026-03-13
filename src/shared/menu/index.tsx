@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 
 import Header from '@/shared/header'
 import {logout} from '@/user'
@@ -8,7 +8,7 @@ import T from '@/shared/translate'
 import Avatar from '@/shared/avatar'
 import styles from './styles.module.less'
 import HiveIcon from '@/icons/hive'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import CryptoJS from 'crypto-js'
 import * as userModel from '@/models/user'
 import { TAWKTO_TOKEN } from '@/config'
@@ -253,6 +253,7 @@ const Menu = ({isLoggedIn = false}) => {
 
     let [isMoreVisible, setMoreVisible] = useState(false)
     const location = useLocation()
+    const navigate = useNavigate()
 
     const isAlertsSection = location.pathname === '/alert-config' || location.pathname.startsWith('/alert-config/')
     const currentHiveContext = getCurrentHiveContext(location.pathname)
@@ -260,27 +261,53 @@ const Menu = ({isLoggedIn = false}) => {
     const isAIAdvisorSection =
         location.pathname === '/ai-advisor' ||
         location.pathname.startsWith('/ai-advisor/') ||
-        (!!currentHiveContext && isHiveAdvisorOpen)
-    const storedHiveContext = getStoredHiveContext()
-    const hiveContextForAdvisor = currentHiveContext || storedHiveContext
+        isHiveAdvisorOpen
     const aiAdvisorPath = (() => {
-        if (currentHiveContext) {
-            const nextParams = new URLSearchParams(location.search)
-            nextParams.set('aiAdvisor', '1')
-            const search = nextParams.toString()
-            return `${location.pathname}${search ? `?${search}` : ''}`
-        }
-
-        if (hiveContextForAdvisor) {
-            return `/ai-advisor?apiaryId=${hiveContextForAdvisor.apiaryId}&hiveId=${hiveContextForAdvisor.hiveId}`
-        }
-
-        return '/ai-advisor'
+        const nextParams = new URLSearchParams(location.search)
+        nextParams.set('aiAdvisor', '1')
+        const search = nextParams.toString()
+        return `${location.pathname}${search ? `?${search}` : ''}`
     })()
 
     if (currentHiveContext) {
         localStorage.setItem(AI_ADVISOR_CONTEXT_KEY, JSON.stringify(currentHiveContext))
     }
+
+    useEffect(() => {
+        const isTypingTarget = (target) => {
+            if (!target) return false
+            const tagName = String(target.tagName || '').toLowerCase()
+            return (
+                target.isContentEditable ||
+                tagName === 'input' ||
+                tagName === 'textarea' ||
+                tagName === 'select'
+            )
+        }
+
+        const onKeyDown = (event) => {
+            if (isTypingTarget(event.target)) {
+                return
+            }
+
+            const isShortcut = event.shiftKey && (event.key === '?' || event.key === '/')
+            if (!isShortcut) {
+                return
+            }
+
+            if (isAIAdvisorSection) {
+                return
+            }
+
+            event.preventDefault()
+            navigate(aiAdvisorPath, { replace: true })
+        }
+
+        document.addEventListener('keydown', onKeyDown, true)
+        return () => {
+            document.removeEventListener('keydown', onKeyDown, true)
+        }
+    }, [aiAdvisorPath, isAIAdvisorSection, navigate])
 
 
     return (

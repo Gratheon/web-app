@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'preact/hooks'
+import { useEffect, useMemo, useState } from 'preact/hooks'
 import debounce from 'lodash/debounce'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate } from 'react-router-dom'
@@ -95,6 +95,35 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 
 	const collapsed = hive ? isCollapsed(hive) : false
 	const editableHive = hive ? isEditable(hive) : false // Expose for UI
+
+	useEffect(() => {
+		const isTypingTarget = (target) => {
+			if (!target) return false
+			const tagName = String(target.tagName || '').toLowerCase()
+			return (
+				target.isContentEditable ||
+				tagName === 'input' ||
+				tagName === 'textarea' ||
+				tagName === 'select'
+			)
+		}
+
+		const onKeyDown = (event: KeyboardEvent) => {
+			if (event.defaultPrevented) return
+			if (event.ctrlKey || event.metaKey || event.altKey) return
+			if (isTypingTarget(event.target)) return
+			if (String(event.key || '').toLowerCase() !== 'e') return
+			if (!hive || editable || !isEditable(hive) || isCollapsed(hive)) return
+
+			event.preventDefault()
+			setEditable(true)
+		}
+
+		document.addEventListener('keydown', onKeyDown, true)
+		return () => {
+			document.removeEventListener('keydown', onKeyDown, true)
+		}
+	}, [editable, hive])
 
 	let [mutateInspection, { error: errorInspection }] =
 		useMutation(`	mutation addInspection($inspection: InspectionInput!) {
@@ -212,7 +241,7 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 	let buttons = (
 		<div>
 			<VisualFormSubmit>
-				{isEditable(hive) && (
+				{isEditable(hive) && !editable && (
 					<Button
 						loading={creatingInspection}
 						onClick={onCreateInspection}
@@ -235,63 +264,65 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 							</Button>
 						)}
 						{editable && hive && editableHive && (
-							<Button onClick={() => setEditable(!editable)}>
+							<Button color="green" onClick={() => setEditable(!editable)}>
 								<T ctx="this is a button to compete editing of a form, but it is not doing any saving because saving is done automatically, this just switches form to view mode">
 									Complete
 								</T>
 							</Button>
 						)}
 
-						<PopupButton align="right">
-							<Button
-								title="Split colony"
-								onClick={() => setSplitModalOpen(true)}
-							>
-								<SplitIcon />{' '}
-								<T
-									ctx={
-										'An operation on a bee colony by separating it into two or more parts. This is done to prevent swarming, expand the apiary, or create nucleus colonies.'
-									}
-								>
-									Split Colony
-								</T>
-							</Button>
-
-							<Button
-								title="Join colonies"
-								onClick={() => setJoinModalOpen(true)}
-							>
-								<JoinIcon />{' '}
-								<T
-									ctx={
-										'Joining two bee colonies involves physically combining two separate colonies into one. This is done to strengthen a weak colony, manage queen genetics, or consolidate resources.'
-									}
-								>
-									Combine Colonies
-								</T>
-							</Button>
-
-							<Button
-								title="Generate QR sticker for this hive"
-								onClick={onGenerateQR}
-							>
-								<QrCodeIcon size={16} /> <T>Generate QR sticker</T>
-							</Button>
-
-							{hive && !isCollapsed(hive) && (
-								<Button onClick={() => setShowCollapseModal(true)}>
-									<SkullIcon size={16} />{' '}
-									<T
-										ctx={
-											'Marking bee colony as dead due to varroa mite infestation or other unknown causes'
-										}
+							{!editable && (
+								<PopupButton align="right">
+									<Button
+										title="Split colony"
+										onClick={() => setSplitModalOpen(true)}
 									>
-										Mark as Collapsed
-									</T>
-								</Button>
+										<SplitIcon />{' '}
+										<T
+											ctx={
+												'An operation on a bee colony by separating it into two or more parts. This is done to prevent swarming, expand the apiary, or create nucleus colonies.'
+											}
+										>
+											Split Colony
+										</T>
+									</Button>
+
+									<Button
+										title="Join colonies"
+										onClick={() => setJoinModalOpen(true)}
+									>
+										<JoinIcon />{' '}
+										<T
+											ctx={
+												'Joining two bee colonies involves physically combining two separate colonies into one. This is done to strengthen a weak colony, manage queen genetics, or consolidate resources.'
+											}
+										>
+											Combine Colonies
+										</T>
+									</Button>
+
+									<Button
+										title="Generate QR sticker for this hive"
+										onClick={onGenerateQR}
+									>
+										<QrCodeIcon size={16} /> <T>Generate QR sticker</T>
+									</Button>
+
+									{hive && !isCollapsed(hive) && (
+										<Button onClick={() => setShowCollapseModal(true)}>
+											<SkullIcon size={16} />{' '}
+											<T
+												ctx={
+													'Marking bee colony as dead due to varroa mite infestation or other unknown causes'
+												}
+											>
+												Mark as Collapsed
+											</T>
+										</Button>
+									)}
+									<DeactivateButton hiveId={hive.id} />
+								</PopupButton>
 							)}
-							<DeactivateButton hiveId={hive.id} />
-						</PopupButton>
 					</PopupButtonGroup>
 				)}
 
@@ -305,7 +336,7 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 	let buttonsDesktop = (
 		<div>
 			<VisualFormSubmit>
-				{isEditable(hive) && (
+				{isEditable(hive) && !editable && (
 					<Button
 						loading={creatingInspection}
 						onClick={onCreateInspection}
@@ -328,56 +359,58 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 							</Button>
 						)}
 						{editable && hive && editableHive && (
-							<Button onClick={() => setEditable(!editable)}>
+							<Button color="green" onClick={() => setEditable(!editable)}>
 								<T ctx="this is a button to compete editing of a form, but it is not doing any saving because saving is done automatically, this just switches form to view mode">
 									Complete
 								</T>
 							</Button>
 						)}
 
-						<PopupButton align="right">
-							<Button
-								title="Split colony"
-								onClick={() => setSplitModalOpen(true)}
-							>
-								<SplitIcon />{' '}
-								<T
-									ctx={
-										'An operation on a bee colony by separating it into two or more parts. This is done to prevent swarming, expand the apiary, or create nucleus colonies.'
-									}
-								>
-									Split Colony
-								</T>
-							</Button>
-
-							<Button
-								title="Join colonies"
-								onClick={() => setJoinModalOpen(true)}
-							>
-								<JoinIcon /> <T>Join Colony</T>
-							</Button>
-
-							<Button
-								title="Generate QR sticker for this hive"
-								onClick={onGenerateQR}
-							>
-								<QrCodeIcon size={16} /> <T>Generate QR sticker</T>
-							</Button>
-
-							{hive && !isCollapsed(hive) && (
-								<Button onClick={() => setShowCollapseModal(true)}>
-									<SkullIcon size={16} />{' '}
-									<T
-										ctx={
-											'Marking bee colony as dead due to varroa mite infestation or other unknown causes'
-										}
+							{!editable && (
+								<PopupButton align="right">
+									<Button
+										title="Split colony"
+										onClick={() => setSplitModalOpen(true)}
 									>
-										Mark as Collapsed
-									</T>
-								</Button>
+										<SplitIcon />{' '}
+										<T
+											ctx={
+												'An operation on a bee colony by separating it into two or more parts. This is done to prevent swarming, expand the apiary, or create nucleus colonies.'
+											}
+										>
+											Split Colony
+										</T>
+									</Button>
+
+									<Button
+										title="Join colonies"
+										onClick={() => setJoinModalOpen(true)}
+									>
+										<JoinIcon /> <T>Join Colony</T>
+									</Button>
+
+									<Button
+										title="Generate QR sticker for this hive"
+										onClick={onGenerateQR}
+									>
+										<QrCodeIcon size={16} /> <T>Generate QR sticker</T>
+									</Button>
+
+									{hive && !isCollapsed(hive) && (
+										<Button onClick={() => setShowCollapseModal(true)}>
+											<SkullIcon size={16} />{' '}
+											<T
+												ctx={
+													'Marking bee colony as dead due to varroa mite infestation or other unknown causes'
+												}
+											>
+												Mark as Collapsed
+											</T>
+										</Button>
+									)}
+									<DeactivateButton hiveId={hive.id} />
+								</PopupButton>
 							)}
-							<DeactivateButton hiveId={hive.id} />
-						</PopupButton>
 					</PopupButtonGroup>
 				)}
 

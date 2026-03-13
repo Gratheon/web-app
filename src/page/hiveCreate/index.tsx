@@ -96,6 +96,9 @@ function createDefaultBoxes(hiveType: string, boxCount: number) {
 	initialBoxes.push({
 		type: boxTypes.ROOF
 	})
+	initialBoxes.push({
+		type: boxTypes.BOTTOM
+	})
 	return initialBoxes
 }
 

@@ -24,6 +24,15 @@ type ChatMessage = {
 	loading?: boolean
 }
 
+type ViewContext = {
+	name: string
+	description: string
+	shortcuts: Array<{
+		keys: string
+		action: string
+	}>
+}
+
 function canUseAIAdvisor(plan?: string | null) {
 	const normalized = String(plan || '').toLowerCase()
 	return normalized === 'starter' || normalized === 'professional' || normalized === 'enterprise'
@@ -91,6 +100,55 @@ function getHiveContext(pathname: string) {
 	}
 }
 
+function getViewContext(pathname: string): ViewContext {
+	const isHiveDetailView = /^\/apiaries\/\d+\/hives\/\d+(?:\/|$)/.test(pathname)
+	const isHiveListView = pathname === '/' || pathname === '/apiaries' || pathname === '/apiaries/'
+
+	if (isHiveDetailView) {
+		return {
+			name: 'Hive detail view',
+			description: 'Detailed hive workflow with sections, frames, inspections, and metrics.',
+			shortcuts: [
+				{ keys: 'Shift + ?', action: 'Open AI Advisor' },
+				{ keys: 'Esc', action: 'Close AI Advisor drawer' },
+				{ keys: 'E', action: 'Edit hive main info' },
+				{ keys: 'Tab / Shift + Tab', action: 'Move focus across controls' },
+				{ keys: 'Enter', action: 'Confirm focused dialog action' },
+			],
+		}
+	}
+
+	if (isHiveListView) {
+		return {
+			name: 'Hive list view',
+			description: 'Apiary overview with list and table hive navigation modes.',
+			shortcuts: [
+				{ keys: 'Shift + ?', action: 'Open AI Advisor' },
+				{ keys: 'Esc', action: 'Close AI Advisor drawer' },
+				{ keys: 'Tab / Shift + Tab', action: 'Move focus across page controls' },
+				{ keys: 'Arrow keys', action: 'Move hive focus in list/table view' },
+			],
+		}
+	}
+
+	return {
+		name: 'Current view',
+		description: 'Page-level context and shortcuts are available here.',
+		shortcuts: [
+			{ keys: 'Shift + ?', action: 'Open AI Advisor' },
+			{ keys: 'Esc', action: 'Close AI Advisor drawer' },
+			{ keys: 'Tab / Shift + Tab', action: 'Move focus across page controls' },
+		],
+	}
+}
+
+function renderShortcutsHtml(shortcuts: ViewContext['shortcuts']) {
+	const items = shortcuts
+		.map((item) => `<li><strong>${item.keys}</strong> - ${item.action}</li>`)
+		.join('')
+	return `<div><strong>Keyboard shortcuts:</strong><ul>${items}</ul></div>`
+}
+
 export default function AIAdvisorDrawer() {
 	const location = useLocation()
 	const navigate = useNavigate()
@@ -102,7 +160,8 @@ export default function AIAdvisorDrawer() {
 	const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search])
 	const isOpen = searchParams.get('aiAdvisor') === '1'
 	const hiveContext = useMemo(() => getHiveContext(location.pathname), [location.pathname])
-	const shouldRender = isOpen && !!hiveContext
+	const viewContext = useMemo(() => getViewContext(location.pathname), [location.pathname])
+	const shouldRender = isOpen
 
 	function closeDrawer() {
 		const nextParams = new URLSearchParams(location.search)
@@ -120,7 +179,7 @@ export default function AIAdvisorDrawer() {
 	}
 
 	useEffect(() => {
-		if (!shouldRender || !hiveContext) {
+		if (!shouldRender) {
 			return
 		}
 
@@ -129,19 +188,40 @@ export default function AIAdvisorDrawer() {
 		setBillingLocked(false)
 		setMessages([
 			{
-				id: buildId('intro'),
-				role: 'assistant',
-				text: 'I will analyze this hive context and prepare a status summary with next-step recommendations.',
+				id: buildId('view'),
+				role: 'system',
+				html: `<div><strong>Current view:</strong> ${viewContext.name}<br/>${viewContext.description}</div>`,
+			},
+			{
+				id: buildId('shortcuts'),
+				role: 'system',
+				html: renderShortcutsHtml(viewContext.shortcuts),
 			},
 		])
 
 		const run = async () => {
 			try {
+				const user = await getUser()
+				if (runRef.current !== runId) return
+
+				if (!canUseAIAdvisor(user?.billingPlan)) {
+					setBillingLocked(true)
+					return
+				}
+
+				if (!hiveContext) {
+					addMessage({
+						id: buildId('context'),
+						role: 'system',
+						text: 'Open a hive detail page to run hive-specific AI analysis.',
+					})
+					return
+				}
+
 				const hiveStepId = buildId('step')
 				addMessage({ id: hiveStepId, role: 'system', text: 'Loading hive information...', loading: true })
 
-				const [user, apiary, hive, family, boxes] = await Promise.all([
-					getUser(),
+				const [apiary, hive, family, boxes] = await Promise.all([
 					getApiary(hiveContext.apiaryId),
 					getHive(hiveContext.hiveId),
 					getFamilyByHive(hiveContext.hiveId),
@@ -149,15 +229,6 @@ export default function AIAdvisorDrawer() {
 				])
 
 				if (runRef.current !== runId) return
-
-					if (!canUseAIAdvisor(user?.billingPlan)) {
-						updateMessage(hiveStepId, {
-							text: 'AI Advisor access requires Starter plan or higher.',
-							loading: false,
-						})
-						setBillingLocked(true)
-						return
-				}
 
 				const framesByBox = {}
 				for (let i in boxes) {
@@ -271,10 +342,25 @@ export default function AIAdvisorDrawer() {
 
 		run()
 
-		return () => {
-			runRef.current = 0
+			return () => {
+				runRef.current = 0
+			}
+		}, [hiveContext, shouldRender, viewContext, generateAdvice])
+
+	useEffect(() => {
+		if (!shouldRender) {
+			return
 		}
-	}, [hiveContext, shouldRender])
+
+		const onKeyDown = (event: KeyboardEvent) => {
+			if (event.key !== 'Escape') return
+			event.preventDefault()
+			closeDrawer()
+		}
+
+		document.addEventListener('keydown', onKeyDown, true)
+		return () => document.removeEventListener('keydown', onKeyDown, true)
+	}, [shouldRender, location.pathname, location.search])
 
 	if (!shouldRender) {
 		return null
@@ -286,14 +372,13 @@ export default function AIAdvisorDrawer() {
 				<img className={styles.avatar} src={beekeeperURL} alt="AI Advisor avatar" />
 				<div className={styles.headerText}>
 					<h3 className={styles.title}>AI Advisor</h3>
-					<p className={styles.subtitle}>Hive-aware analysis in progress</p>
-				</div>
+					<p className={styles.subtitle}>{viewContext.name}</p>
+					</div>
 				<button className={styles.closeBtn} type="button" onClick={closeDrawer} aria-label="Close AI Advisor">
 					×
 				</button>
 			</div>
 			<div className={styles.body}>
-				{billingLocked && <AIAdvisorBillingNotice compact />}
 				{messages.map((message) => {
 					const roleClass =
 						message.role === 'assistant'
@@ -318,8 +403,9 @@ export default function AIAdvisorDrawer() {
 								</div>
 							)}
 						</div>
-					)
-				})}
+						)
+					})}
+				{billingLocked && <AIAdvisorBillingNotice compact />}
 			</div>
 		</div>
 	)

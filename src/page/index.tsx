@@ -26,6 +26,7 @@ import TimeView from './time';
 import AIAdvisorPage from './aiAdvisor'
 import DevicesPage from './devices'
 import DevicesCreatePage from './devicesCreate'
+import DeviceViewPage from './deviceView'
 import WarehousePage from './warehouse'
 
 function LoggedInPage({ children }) {
@@ -97,6 +98,7 @@ export default function Page() {
 			<Route path="/time" element={<LoggedInPage><TimeView /></LoggedInPage>} />
 			<Route path="/devices" element={<LoggedInPage><DevicesPage /></LoggedInPage>} />
 			<Route path="/devices/add" element={<LoggedInPage><DevicesCreatePage /></LoggedInPage>} />
+			<Route path="/devices/:id" element={<LoggedInPage><DeviceViewPage /></LoggedInPage>} />
 			<Route path="/warehouse" element={<LoggedInPage><WarehousePage /></LoggedInPage>} />
 
 			<Route path="/apiaries/create" element={<LoggedInPage><ApiaryCreate /></LoggedInPage>} />

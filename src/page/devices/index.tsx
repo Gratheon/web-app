@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react'
 
 import { gql, useMutation, useQuery } from '@/api'
 import Button from '@/shared/button'
-import CopyButton from '@/shared/copyButton'
 import DevicesPlaceholder from '@/shared/devicesPlaceholder'
 import ErrorMsg from '@/shared/messageError'
 import Loader from '@/shared/loader'
@@ -63,33 +62,8 @@ mutation generateApiToken {
 
 type DeviceType = 'IOT_SENSOR' | 'VIDEO_CAMERA'
 
-const IOT_DOCS_URL = 'https://gratheon.com/docs/beehive-sensors/'
-const IOT_REPO_URL = 'https://github.com/Gratheon/beehive-sensors/'
-const VIDEO_DOCS_URL = 'https://gratheon.com/docs/entrance-observer/'
-const VIDEO_PRODUCT_URL = 'https://gratheon.com/about/products/entrance_observer/'
-const VIDEO_REPO_URL = 'https://github.com/Gratheon/entrance-observer/'
-
-function getTypeLinks(type: DeviceType) {
-	if (type === 'VIDEO_CAMERA') {
-		return [
-			{ href: VIDEO_DOCS_URL, label: 'Entrance Observer docs' },
-			{ href: VIDEO_PRODUCT_URL, label: 'Entrance Observer product page' },
-			{ href: VIDEO_REPO_URL, label: 'Entrance Observer code' },
-		]
-	}
-
-	return [
-		{ href: IOT_DOCS_URL, label: 'IoT sensor docs' },
-		{ href: IOT_REPO_URL, label: 'Beehive sensors code' },
-	]
-}
-
 function formatDeviceType(type: DeviceType) {
 	return type === 'VIDEO_CAMERA' ? 'Video camera' : 'IoT sensor'
-}
-
-function formatTokenValue(token: string | null | undefined) {
-	return token || 'Not set'
 }
 
 export default function DevicesPage() {
@@ -229,24 +203,27 @@ export default function DevicesPage() {
 					<div className={styles.list}>
 						{devices.map((device: any) => {
 							const isEditing = editingId === device.id
+							const hiveLabel = device.hiveId ? (hiveOptionById.get(device.hiveId) || `Hive ${device.hiveId}`) : '—'
+							const boxLabel = device.boxId ? (boxOptionById.get(device.boxId) || `Section ${device.boxId}`) : '—'
 							return (
 								<div key={device.id} className={styles.row}>
 									{!isEditing && (
 										<>
 											<div className={styles.deviceInfo}>
-												<div><strong>{device.name}</strong></div>
-												<div className={styles.meta}>{formatDeviceType(device.type)}</div>
-												{device.hiveId && <div className={styles.meta}><T>Linked hive</T>: {hiveOptionById.get(device.hiveId) || `Hive ${device.hiveId}`}</div>}
-												{device.boxId && <div className={styles.meta}><T>Linked section</T>: {boxOptionById.get(device.boxId) || `Section ${device.boxId}`}</div>}
-												<div className={styles.typeLinks}>
-													{getTypeLinks(device.type).map((link) => (
-														<a key={link.href} href={link.href} target="_blank" rel="noreferrer">{link.label}</a>
-													))}
+												<div>
+													<a className={styles.deviceNameLink} href={`/devices/${device.id}`}>
+														<strong>{device.name}</strong>
+													</a>
 												</div>
+												<div className={styles.meta}>{formatDeviceType(device.type)}</div>
 											</div>
-											<div className={styles.tokenWrap}>
-												<div className={styles.token}>{formatTokenValue(device.apiToken)}</div>
-												{device.apiToken && <CopyButton size="small" data={device.apiToken} />}
+											<div className={styles.dataColumn}>
+												<div className={styles.columnTitle}><T>Hive</T></div>
+												<div className={styles.columnValue}>{hiveLabel}</div>
+											</div>
+											<div className={styles.dataColumn}>
+												<div className={styles.columnTitle}><T>Section</T></div>
+												<div className={styles.columnValue}>{boxLabel}</div>
 											</div>
 											<div className={styles.buttons}>
 												<Button size="small" onClick={() => startEdit(device)}><T>Edit</T></Button>
@@ -275,11 +252,6 @@ export default function DevicesPage() {
 												<Button size="small" loading={generatingEditToken} onClick={handleGenerateEditToken}><T>Generate token</T></Button>
 												<Button size="small" color="green" loading={updating} onClick={handleUpdate}><T>Save</T></Button>
 												<Button size="small" onClick={() => setEditingId(null)}><T>Cancel</T></Button>
-											</div>
-											<div className={styles.typeLinks}>
-												{getTypeLinks(editingForm.type).map((link) => (
-													<a key={link.href} href={link.href} target="_blank" rel="noreferrer">{link.label}</a>
-												))}
 											</div>
 										</>
 									)}

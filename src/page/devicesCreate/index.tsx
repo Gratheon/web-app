@@ -8,7 +8,6 @@ import Loader from '@/shared/loader'
 import T from '@/shared/translate'
 import VisualForm from '@/shared/visualForm'
 import PagePaddedCentered from '@/shared/pagePaddedCentered'
-import Card from '@/shared/pagePaddedCentered/card'
 
 import styles from './styles.module.less'
 
@@ -41,6 +40,14 @@ mutation addDevice($device: DeviceInput!) {
 }
 `
 
+const UPDATE_DEVICE_MUTATION = gql`
+mutation updateDevice($id: ID!, $device: DeviceUpdateInput!) {
+	updateDevice(id: $id, device: $device) {
+		id
+	}
+}
+`
+
 const GENERATE_TOKEN_MUTATION = gql`
 mutation generateApiToken {
 	generateApiToken {
@@ -51,40 +58,19 @@ mutation generateApiToken {
 
 type DeviceType = 'IOT_SENSOR' | 'VIDEO_CAMERA'
 
-const IOT_DOCS_URL = 'https://gratheon.com/docs/beehive-sensors/'
-const IOT_REPO_URL = 'https://github.com/Gratheon/beehive-sensors/'
-const VIDEO_DOCS_URL = 'https://gratheon.com/docs/entrance-observer/'
-const VIDEO_PRODUCT_URL = 'https://gratheon.com/about/products/entrance_observer/'
-const VIDEO_REPO_URL = 'https://github.com/Gratheon/entrance-observer/'
-
-function getTypeLinks(type: DeviceType) {
-	if (type === 'VIDEO_CAMERA') {
-		return [
-			{ href: VIDEO_DOCS_URL, label: 'Entrance Observer docs' },
-			{ href: VIDEO_PRODUCT_URL, label: 'Entrance Observer product page' },
-			{ href: VIDEO_REPO_URL, label: 'Entrance Observer code' },
-		]
-	}
-
-	return [
-		{ href: IOT_DOCS_URL, label: 'IoT sensor docs' },
-		{ href: IOT_REPO_URL, label: 'Beehive sensors code' },
-	]
-}
-
 export default function DevicesCreatePage() {
 	const navigate = useNavigate()
 	const [form, setForm] = useState({
 		name: '',
 		type: 'IOT_SENSOR' as DeviceType,
-		apiToken: '',
 		hiveId: '',
 		boxId: '',
 	})
 	const [creating, setCreating] = useState(false)
-	const [generating, setGenerating] = useState(false)
+	const [creatingMessage, setCreatingMessage] = useState('')
 
 	const [addDevice, { error: addError }] = useMutation(ADD_DEVICE_MUTATION)
+	const [updateDevice, { error: updateError }] = useMutation(UPDATE_DEVICE_MUTATION)
 	const [generateToken, { error: generateError }] = useMutation(GENERATE_TOKEN_MUTATION)
 	const { loading, error, data } = useQuery(QUERY)
 
@@ -127,24 +113,31 @@ export default function DevicesCreatePage() {
 			device: {
 				name: form.name.trim(),
 				type: form.type,
-				apiToken: form.apiToken.trim() ? form.apiToken.trim() : null,
+				apiToken: null,
 				hiveId: form.hiveId || '',
 				boxId: form.boxId || '',
 			},
 		})
-		setCreating(false)
-		if (result?.data?.addDevice?.id) {
-			navigate('/devices', { replace: true })
+		const deviceID = result?.data?.addDevice?.id
+		if (!deviceID) {
+			setCreating(false)
+			return
 		}
-	}
 
-	async function handleGenerateToken() {
-		setGenerating(true)
-		const result = await generateToken()
-		setGenerating(false)
-		const token = result?.data?.generateApiToken?.token || ''
-		if (!token) return
-		setForm((prev) => ({ ...prev, apiToken: token }))
+		setCreatingMessage('Generating API token...')
+		const tokenResult = await generateToken()
+		const token = tokenResult?.data?.generateApiToken?.token || ''
+		if (token) {
+			await updateDevice({
+				id: deviceID,
+				device: {
+					apiToken: token,
+				},
+			})
+		}
+
+		setCreating(false)
+		navigate(`/devices/${deviceID}`, { replace: true })
 	}
 
 	if (loading) return <Loader />
@@ -152,22 +145,23 @@ export default function DevicesCreatePage() {
 	return (
 		<PagePaddedCentered>
 			<h1><T>Add device</T></h1>
-			{error || addError || generateError ? <ErrorMsg error={error || addError || generateError} /> : null}
-			<Card>
-				<div style={{ padding: 20 }}>
+			{error || addError || updateError || generateError ? <ErrorMsg error={error || addError || updateError || generateError} /> : null}
+			<div className={styles.formContainer}>
 					<VisualForm
 						onSubmit={handleCreate}
 						submit={
 							<div className={styles.actions}>
 								<Button type="button" onClick={() => navigate('/devices', { replace: true })}><T>Cancel</T></Button>
-								<Button type="submit" color="green" loading={creating}><T>Create</T></Button>
+								<Button type="submit" color="green" loading={creating}>
+									{creatingMessage || <T>Create</T>}
+								</Button>
 							</div>
 						}
 					>
 						<div className={styles.formField}>
 							<label className={styles.formLabel}><T>Device name</T></label>
 							<input
-								className={styles.flexInput}
+								className={`${styles.flexInput} ${styles.nameInput}`}
 								placeholder="Device name"
 								value={form.name}
 								onInput={(e: any) => setForm({ ...form, name: e.target.value })}
@@ -177,28 +171,25 @@ export default function DevicesCreatePage() {
 
 						<div className={styles.formField}>
 							<label className={styles.formLabel}><T>Type</T></label>
-							<select
-								className={styles.flexInput}
-								value={form.type}
-								onInput={(e: any) => setForm({ ...form, type: e.target.value as DeviceType })}
-							>
-								<option value="IOT_SENSOR">IoT sensor</option>
-								<option value="VIDEO_CAMERA">Video camera</option>
-							</select>
-						</div>
-
-						<div className={styles.formField}>
-							<label className={styles.formLabel}><T>API token</T></label>
-							<div className={styles.flexRow}>
-								<input
-									className={styles.flexInput}
-									placeholder="API token"
-									value={form.apiToken}
-									onInput={(e: any) => setForm({ ...form, apiToken: e.target.value })}
-								/>
-								<Button type="button" size="small" loading={generating} onClick={handleGenerateToken}>
-									<T>Generate token</T>
-								</Button>
+							<div className={styles.radioGroup}>
+								<label>
+									<input
+										type="radio"
+										value="IOT_SENSOR"
+										checked={form.type === 'IOT_SENSOR'}
+										onChange={(e: any) => setForm({ ...form, type: e.target.value as DeviceType })}
+									/>
+									<T>IoT sensor</T>
+								</label>
+								<label>
+									<input
+										type="radio"
+										value="VIDEO_CAMERA"
+										checked={form.type === 'VIDEO_CAMERA'}
+										onChange={(e: any) => setForm({ ...form, type: e.target.value as DeviceType })}
+									/>
+									<T>Video camera</T>
+								</label>
 							</div>
 						</div>
 
@@ -231,17 +222,8 @@ export default function DevicesCreatePage() {
 							</select>
 						</div>
 
-						<div className={styles.formField}>
-							<label className={styles.formLabel}><T>Setup docs</T></label>
-							<div className={styles.typeLinks}>
-								{getTypeLinks(form.type).map((link) => (
-									<a key={link.href} href={link.href} target="_blank" rel="noreferrer">{link.label}</a>
-								))}
-							</div>
-						</div>
 					</VisualForm>
-				</div>
-			</Card>
+			</div>
 		</PagePaddedCentered>
 	)
 }

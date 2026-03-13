@@ -16,6 +16,7 @@ import Map from '@/shared/map'
 import Weather from '@/shared/weather'
 import MessageNotFound from '@/shared/messageNotFound'
 import DeleteIcon from '@/icons/deleteIcon'
+import UploadIcon from '@/icons/uploadIcon'
 import T from '@/shared/translate'
 import { Tab, TabBar } from '@/shared/tab'
 import LocationMarker from '@/icons/locationMarker'
@@ -23,6 +24,8 @@ import LocationMarker from '@/icons/locationMarker'
 import Plants from './plants'
 import HivePlacement from './hivePlacement'
 import { updateFile } from '@/models/files'
+import DragAndDrop from '../hiveEdit/frame/uploadFile/dragDrop'
+import styles from './style.module.less'
 
 
 // coordinate conversion for PRIA
@@ -143,8 +146,8 @@ export default function ApiaryEditForm() {
 		}
 	`)
 	const [uploadFileMutation] = useUploadMutation(gql`
-		mutation uploadApiaryPhoto($file: Upload!, $apiaryId: ID!) {
-			uploadApiaryPhoto(file: $file, apiaryId: $apiaryId) {
+		mutation uploadFrameSide($file: Upload!) {
+			uploadFrameSide(file: $file) {
 				id
 				url
 				resizes {
@@ -214,11 +217,8 @@ export default function ApiaryEditForm() {
 		setSaving(false);
 	}
 
-	async function onPhotoUpload(event: React.ChangeEvent<HTMLInputElement>) {
-		const target = event.target as HTMLInputElement
-		const file = target.files?.[0]
+	async function processPhotoUpload(file: File) {
 		setPhotoUploadError(null)
-		if (!file) return
 
 		if (!file.type.startsWith('image/')) {
 			setPhotoUploadError(new Error('Unsupported file type. Please upload an image.'))
@@ -228,8 +228,8 @@ export default function ApiaryEditForm() {
 		setUploadingPhoto(true)
 		try {
 			const uploadFile = uploadFileMutation as (payload: any) => Promise<any>
-			const result = await uploadFile({ file, apiaryId: id })
-			const uploadData = result?.data?.uploadApiaryPhoto
+			const result = await uploadFile({ file })
+			const uploadData = result?.data?.uploadFrameSide
 			if (!uploadData?.url || !uploadData?.id) {
 				throw new Error('Failed to upload image')
 			}
@@ -255,8 +255,21 @@ export default function ApiaryEditForm() {
 			setPhotoUploadError(uploadError instanceof Error ? uploadError : new Error('Failed to upload image'))
 		} finally {
 			setUploadingPhoto(false)
-			target.value = ''
 		}
+	}
+
+	async function onPhotoUpload(event: React.ChangeEvent<HTMLInputElement>) {
+		const target = event.target as HTMLInputElement
+		const file = target.files?.[0]
+		if (file) {
+			await processPhotoUpload(file)
+		}
+		target.value = ''
+	}
+
+	async function onPhotoDrop(files: FileList) {
+		if (!files?.length) return
+		await processPhotoUpload(files[0])
 	}
 
 	function onNameChange(e) {
@@ -315,12 +328,25 @@ export default function ApiaryEditForm() {
 							style={{ width: '100%', maxHeight: 260, objectFit: 'cover', borderRadius: 10, marginBottom: 8 }}
 						/>
 					)}
-					<input
-						type="file"
-						accept="image/*"
-						onChange={onPhotoUpload}
-						disabled={uploadingPhoto}
-					/>
+					<DragAndDrop handleDrop={onPhotoDrop}>
+						<div className={styles.dropArea}>
+							<input
+								type="file"
+								className={styles.inputfile}
+								id="apiary-photo-file"
+								accept="image/*"
+								onChange={onPhotoUpload}
+								disabled={uploadingPhoto}
+							/>
+							<label htmlFor="apiary-photo-file" className={styles.fileUploadLabel}>
+								<UploadIcon />
+								<T>Upload apiary photo</T>
+							</label>
+							<div className={styles.uploadHint}>
+								<T>Drag and drop an image here or click to select</T>
+							</div>
+						</div>
+					</DragAndDrop>
 					{uploadingPhoto && <div style={{ marginTop: 8 }}><T>Uploading photo...</T></div>}
 					{photoUploadError && <ErrorMsg error={photoUploadError} />}
 				</div>

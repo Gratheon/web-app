@@ -224,6 +224,7 @@ const [removingBox, setRemovingBox] = useState(false);
 				<Button
 					className={styles.actionButton}
 					loading={adding}
+					color="white"
 					title="Add bottom board"
 					onClick={() => onBoxAdd(boxTypes.BOTTOM)}
 				>
@@ -232,6 +233,7 @@ const [removingBox, setRemovingBox] = useState(false);
 				<Button
 					className={styles.actionButton}
 					loading={adding}
+					color="white"
 					title="Add ventilation"
 					onClick={() => onBoxAdd(boxTypes.VENTILATION)}
 				>
@@ -240,6 +242,7 @@ const [removingBox, setRemovingBox] = useState(false);
 				<Button
 					className={styles.actionButton}
 					loading={adding}
+					color="white"
 					title="Add queen excluder"
 					onClick={() => onBoxAdd(boxTypes.QUEEN_EXCLUDER)}
 				>
@@ -248,6 +251,7 @@ const [removingBox, setRemovingBox] = useState(false);
 				<Button
 					className={styles.actionButton}
 					loading={adding}
+					color="white"
 					title="Add feeder"
 					onClick={() => onBoxAdd(boxTypes.HORIZONTAL_FEEDER)}
 				>
@@ -256,6 +260,7 @@ const [removingBox, setRemovingBox] = useState(false);
 				<Button
 					className={styles.actionButton}
 					loading={adding}
+					color="white"
 					title="Add roof"
 					onClick={() => onBoxAdd(boxTypes.ROOF)}
 				>

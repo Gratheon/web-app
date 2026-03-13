@@ -319,30 +319,6 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 				)}
 
 				{isEditable(hive) && (
-					<Button title="Split colony" onClick={() => setSplitModalOpen(true)}>
-						<SplitIcon />{' '}
-						<span>
-							<T
-								ctx={
-									'An operation on a bee colony by separating it into two or more parts. This is done to prevent swarming, expand the apiary, or create nucleus colonies.'
-								}
-							>
-								Split Colony
-							</T>
-						</span>
-					</Button>
-				)}
-
-				{isEditable(hive) && (
-					<Button title="Join colonies" onClick={() => setJoinModalOpen(true)}>
-						<JoinIcon />{' '}
-						<span>
-							<T>Join Colony</T>
-						</span>
-					</Button>
-				)}
-
-				{isEditable(hive) && (
 					<PopupButtonGroup>
 						{!editable && hive && !isCollapsed(hive) && (
 							<Button onClick={() => setEditable(!editable)}>
@@ -360,6 +336,27 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 						)}
 
 						<PopupButton align="right">
+							<Button
+								title="Split colony"
+								onClick={() => setSplitModalOpen(true)}
+							>
+								<SplitIcon />{' '}
+								<T
+									ctx={
+										'An operation on a bee colony by separating it into two or more parts. This is done to prevent swarming, expand the apiary, or create nucleus colonies.'
+									}
+								>
+									Split Colony
+								</T>
+							</Button>
+
+							<Button
+								title="Join colonies"
+								onClick={() => setJoinModalOpen(true)}
+							>
+								<JoinIcon /> <T>Join Colony</T>
+							</Button>
+
 							<Button
 								title="Generate QR sticker for this hive"
 								onClick={onGenerateQR}

@@ -231,7 +231,7 @@ export default function apiaryListRow({ apiary, user, sortBy, sortOrder, onSortC
 					))}
 
 				{listType == 'table' && apiary.hives.length > 0 &&
-					<table>
+					<table className={styles.hivesTable}>
 						<thead>
 							<tr>
 								<th className={styles.columnPickerCell}>

@@ -48,6 +48,7 @@ import CollapseHiveModal from '@/page/hiveEdit/CollapseHiveModal'
 import SplitHiveModal from '@/page/hiveEdit/SplitHiveModal'
 import JoinColonyModal from '@/page/hiveEdit/JoinColonyModal'
 import DateFormat from '@/shared/dateFormat'
+import HivePlacementMiniMap from './HivePlacementMiniMap'
 
 export default function HiveEditDetails({ apiaryId, hiveId }) {
 	let [editable, setEditable] = useState(false)
@@ -238,27 +239,26 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 		</svg>
 	)
 
-	let buttons = (
-		<div>
-			<VisualFormSubmit>
-				{isEditable(hive) && !editable && (
-					<Button
-						loading={creatingInspection}
-						onClick={onCreateInspection}
-						color="green"
-					>
-						<InspectionIcon />
-						<T ctx="This is a button that adds new beehive inspection as a snapshot of current beehive state">
-							Create Inspection
-						</T>
-					</Button>
-				)}
-
-				{isEditable(hive) && (
-					<PopupButtonGroup>
-						{!editable && hive && !isCollapsed(hive) && (
-							<Button onClick={() => setEditable(!editable)}>
-								<T ctx="this is a button to allow editing by displaying a form">
+		let buttons = (
+			<div>
+				<VisualFormSubmit>
+					{isEditable(hive) && (
+						<PopupButtonGroup>
+							{!editable && (
+								<Button
+									loading={creatingInspection}
+									onClick={onCreateInspection}
+									color="green"
+								>
+									<InspectionIcon />
+									<T ctx="This is a button that adds new beehive inspection as a snapshot of current beehive state">
+										Create Inspection
+									</T>
+								</Button>
+							)}
+							{!editable && hive && !isCollapsed(hive) && (
+								<Button onClick={() => setEditable(!editable)}>
+									<T ctx="this is a button to allow editing by displaying a form">
 									Edit
 								</T>
 							</Button>
@@ -333,27 +333,26 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 		</div>
 	)
 
-	let buttonsDesktop = (
-		<div>
-			<VisualFormSubmit>
-				{isEditable(hive) && !editable && (
-					<Button
-						loading={creatingInspection}
-						onClick={onCreateInspection}
-						color="green"
-					>
-						<InspectionIcon />
-						<T ctx="This is a button that adds new beehive inspection as a snapshot of current beehive state">
-							Create Inspection
-						</T>
-					</Button>
-				)}
-
-				{isEditable(hive) && (
-					<PopupButtonGroup>
-						{!editable && hive && !isCollapsed(hive) && (
-							<Button onClick={() => setEditable(!editable)}>
-								<T ctx="this is a button to allow editing by displaying a form">
+		let buttonsDesktop = (
+			<div>
+				<VisualFormSubmit>
+					{isEditable(hive) && (
+						<PopupButtonGroup>
+							{!editable && (
+								<Button
+									loading={creatingInspection}
+									onClick={onCreateInspection}
+									color="green"
+								>
+									<InspectionIcon />
+									<T ctx="This is a button that adds new beehive inspection as a snapshot of current beehive state">
+										Create Inspection
+									</T>
+								</Button>
+							)}
+							{!editable && hive && !isCollapsed(hive) && (
+								<Button onClick={() => setEditable(!editable)}>
+									<T ctx="this is a button to allow editing by displaying a form">
 									Edit
 								</T>
 							</Button>
@@ -441,41 +440,46 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 							<BeeCounter count={hive.beeCount} />
 						</div>
 
-						<div className={styles.name_race_wrap}>
-							<div className={styles.wrap4}>
-								<h1 style="flex-grow:1; cursor: pointer" onClick={goToHiveView}>
-									{hive.hiveNumber ? (
-										`Hive #${hive.hiveNumber}`
-									) : (
-										<T>Hive without number</T>
-									)}
-								</h1>
-							</div>
+							<div className={styles.name_race_wrap}>
+								<div className={styles.wrap4}>
+									<div className={styles.titleQueenWrap}>
+										<h1 style="flex-grow:1; cursor: pointer" onClick={goToHiveView}>
+											{hive.hiveNumber ? (
+												`Hive #${hive.hiveNumber}`
+											) : (
+												<T>Hive without number</T>
+											)}
+										</h1>
+											<div id={styles.queenSection}>
+												<QueenSlot
+													families={families}
+													editable={false}
+													onAddQueen={() => {}}
+												onRemoveQueen={() => {}}
+											/>
 
-							<div id={styles.queenSection}>
-								<QueenSlot
-									families={families}
-									editable={false}
-									onAddQueen={() => {}}
-									onRemoveQueen={() => {}}
-								/>
-
-								{hive && isCollapsed(hive) && (
-									<div className={styles.collapsedLabel}>
-										{hive.collapse_date && (
-											<>
-												<DateFormat datetime={hive.collapse_date} />{' '}
-											</>
-										)}
-										<SkullIcon
-											size={14}
-											color="#b22222"
-											style={{ marginRight: 4 }}
-										/>
-										<T>Collapsed</T>
+											{hive && isCollapsed(hive) && (
+												<div className={styles.collapsedLabel}>
+													{hive.collapse_date && (
+														<>
+															<DateFormat datetime={hive.collapse_date} />{' '}
+														</>
+													)}
+													<SkullIcon
+														size={14}
+														color="#b22222"
+														style={{ marginRight: 4 }}
+													/>
+													<T>Collapsed</T>
+													</div>
+												)}
+											</div>
+											<HiveStatistics hiveId={hiveId} />
+										</div>
+										<div className={styles.desktopMiniMapWrap}>
+											<HivePlacementMiniMap apiaryId={apiaryId} selectedHiveId={hiveId} />
+										</div>
 									</div>
-								)}
-							</div>
 
 							{hive.notes && <p>{hive.notes}</p>}
 							{hive && isCollapsed(hive) && hive.collapse_cause && (
@@ -566,12 +570,8 @@ export default function HiveEditDetails({ apiaryId, hiveId }) {
 							)}
 						</div>
 
-						<div className={styles.statistics_wrap}>
-							<HiveStatistics hiveId={hiveId} />
+							<div className={styles.button_wrap1}>{buttonsDesktop}</div>
 						</div>
-
-						<div className={styles.button_wrap1}>{buttonsDesktop}</div>
-					</div>
 
 					<div className={styles.button_wrap2}>{buttons}</div>
 				</div>

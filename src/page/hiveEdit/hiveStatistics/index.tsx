@@ -27,24 +27,54 @@ export default function HiveStatistics({ hiveId }: HiveStatisticsProps) {
 		return null
 	}
 
+	const workerBeeCount = stats.workerBeeCount || 0
+	const droneCount = stats.droneCount || 0
+	const varroaCount = stats.varroaCount || 0
+	const maxValue = Math.max(workerBeeCount, droneCount, varroaCount, 1)
+
+	const statItems = [
+		{
+			id: 'worker',
+			label: <T>Worker Bees</T>,
+			value: workerBeeCount,
+			colorClass: styles.workerBar,
+		},
+		{
+			id: 'drone',
+			label: <T>Drone Bees</T>,
+			value: droneCount,
+			colorClass: styles.droneBar,
+		},
+		{
+			id: 'varroa',
+			label: <T>Varroa Mites</T>,
+			value: varroaCount,
+			colorClass: styles.varroaBar,
+		},
+	]
+	const visibleStatItems = statItems.filter((item) => item.value > 0)
+
+	if (visibleStatItems.length === 0) {
+		return null
+	}
+
 	return (
 		<div className={styles.container}>
-			<h3 className={styles.title}><T>Hive Statistics</T></h3>
-			<div className={styles.statsGrid}>
-				<div className={styles.statItem}>
-					<div className={styles.statLabel}><T>Worker Bees</T></div>
-					<div className={styles.statValue}>{stats.workerBeeCount || 0}</div>
-				</div>
-				<div className={styles.statItem}>
-					<div className={styles.statLabel}><T>Drone Bees</T></div>
-					<div className={styles.statValue}>{stats.droneCount || 0}</div>
-				</div>
-				<div className={styles.statItem}>
-					<div className={styles.statLabel}><T>Varroa Mites</T></div>
-					<div className={styles.statValue}>{stats.varroaCount || 0}</div>
-				</div>
+			<div className={styles.statsList}>
+				{visibleStatItems.map((item) => (
+					<div className={styles.statBlock} key={item.id}>
+						<div className={styles.statLabel}>{item.label}</div>
+						<div className={styles.statTrack}>
+							<div
+								className={`${styles.statFill} ${item.colorClass}`}
+								style={{ width: `${(item.value / maxValue) * 100}%` }}
+							>
+								<span className={styles.statValue}>{item.value}</span>
+							</div>
+						</div>
+					</div>
+				))}
 			</div>
 		</div>
 	)
 }
-

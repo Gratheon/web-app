@@ -13,6 +13,7 @@ interface CanvasLabels {
 
 interface CanvasProps {
 	canvasWidth: number
+	canvasHeight?: number
 	placements: Map<string, HivePlacement>
 	obstacles: Obstacle[]
 	hives: Hive[]
@@ -29,8 +30,15 @@ interface CanvasProps {
 	isDraggingHeight: boolean
 	isPanning: boolean
 	panOffset: { x: number; y: number }
+	focusPoint?: { x: number; y: number } | null
+	zoomScale?: number
 	readOnly?: boolean
+	allowReadOnlyClick?: boolean
+	readOnlyHitTest?: (x: number, y: number) => boolean
 	isMobile?: boolean
+	showCompass?: boolean
+	flightLineLength?: number
+	showSelectionHandles?: boolean
 	labels: CanvasLabels
 	onClick: (x: number, y: number) => void
 	onMouseDown: (x: number, y: number, e?: any) => void
@@ -42,6 +50,7 @@ interface CanvasProps {
 
 export default function Canvas({
 	canvasWidth,
+	canvasHeight = CANVAS_HEIGHT,
 	placements,
 	obstacles,
 	hives,
@@ -58,8 +67,15 @@ export default function Canvas({
 	isDraggingHeight,
 	isPanning,
 	panOffset,
+	focusPoint = null,
+	zoomScale,
 	readOnly = false,
+	allowReadOnlyClick = false,
+	readOnlyHitTest,
 	isMobile = false,
+	showCompass = true,
+	flightLineLength = 60,
+	showSelectionHandles = true,
 	labels,
 	onClick,
 	onMouseDown,
@@ -71,10 +87,11 @@ export default function Canvas({
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 	const handleSize = isMobile ? 12 : 8
 	const [isDraggingSun, setIsDraggingSun] = useState(false)
+	const [isReadOnlyHoverInteractive, setIsReadOnlyHoverInteractive] = useState(false)
 
 	useEffect(() => {
 		drawCanvas()
-	}, [placements, obstacles, sunAngle, selectedHive, selectedObstacle, hives.length, canvasWidth, panOffset, labels])
+	}, [placements, obstacles, sunAngle, selectedHive, selectedObstacle, hives.length, canvasWidth, canvasHeight, panOffset, labels, focusPoint, zoomScale, showCompass])
 
 	const drawCanvas = () => {
 		const canvas = canvasRef.current
@@ -83,13 +100,19 @@ export default function Canvas({
 		const ctx = canvas.getContext('2d')
 		if (!ctx) return
 
-		ctx.clearRect(0, 0, canvasWidth, CANVAS_HEIGHT)
+		ctx.clearRect(0, 0, canvasWidth, canvasHeight)
 
 		ctx.fillStyle = '#e8f5e9'
-		ctx.fillRect(0, 0, canvasWidth, CANVAS_HEIGHT)
+		ctx.fillRect(0, 0, canvasWidth, canvasHeight)
 
 		ctx.save()
-		ctx.translate(panOffset.x, panOffset.y)
+		if (focusPoint && zoomScale && zoomScale > 0) {
+			ctx.translate(canvasWidth / 2, canvasHeight / 2)
+			ctx.scale(zoomScale, zoomScale)
+			ctx.translate(-focusPoint.x, -focusPoint.y)
+		} else {
+			ctx.translate(panOffset.x, panOffset.y)
+		}
 
 		calculateShadow(ctx, obstacles, placements, hives, sunAngle)
 		drawObstacles(ctx)
@@ -97,7 +120,9 @@ export default function Canvas({
 
 		ctx.restore()
 
-		drawCompass(ctx)
+		if (showCompass) {
+			drawCompass(ctx)
+		}
 	}
 
 	const drawCompass = (ctx: CanvasRenderingContext2D) => {
@@ -271,7 +296,6 @@ export default function Canvas({
 				ctx.shadowBlur = 0
 			}
 
-			const flightLineLength = 60
 			ctx.strokeStyle = isSelected ? '#2196F3' : '#1976D2'
 			ctx.lineWidth = 2
 			ctx.setLineDash([4, 4])
@@ -291,7 +315,7 @@ export default function Canvas({
 
 			ctx.restore()
 
-			if (isSelected) {
+			if (isSelected && showSelectionHandles) {
 				const rotHandleDistance = HIVE_SIZE / 2 + 20
 				const rotHandleAngle = (placement.rotation || 0) * (Math.PI / 180)
 				const rotHandleX = placement.x + rotHandleDistance * Math.sin(rotHandleAngle)
@@ -314,7 +338,7 @@ export default function Canvas({
 	}
 
 	const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-		if (readOnly) {
+		if (readOnly && !allowReadOnlyClick) {
 			return
 		}
 		const canvas = canvasRef.current
@@ -323,6 +347,19 @@ export default function Canvas({
 		const rect = canvas.getBoundingClientRect()
 		const xRaw = e.clientX - rect.left
 		const yRaw = e.clientY - rect.top
+
+		if (readOnly && allowReadOnlyClick) {
+			let x = xRaw - panOffset.x
+			let y = yRaw - panOffset.y
+
+			if (focusPoint && zoomScale && zoomScale > 0) {
+				x = (xRaw - canvasWidth / 2) / zoomScale + focusPoint.x
+				y = (yRaw - canvasHeight / 2) / zoomScale + focusPoint.y
+			}
+
+			onClick(x, y)
+			return
+		}
 
 		if (!addingObstacle) {
 			const compassX = canvasWidth - 60
@@ -381,6 +418,24 @@ export default function Canvas({
 
 	const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
 		if (readOnly) {
+			if (allowReadOnlyClick && readOnlyHitTest) {
+				const canvas = canvasRef.current
+				if (!canvas) return
+
+				const rect = canvas.getBoundingClientRect()
+				const xRaw = e.clientX - rect.left
+				const yRaw = e.clientY - rect.top
+
+				let x = xRaw - panOffset.x
+				let y = yRaw - panOffset.y
+
+				if (focusPoint && zoomScale && zoomScale > 0) {
+					x = (xRaw - canvasWidth / 2) / zoomScale + focusPoint.x
+					y = (yRaw - canvasHeight / 2) / zoomScale + focusPoint.y
+				}
+
+				setIsReadOnlyHoverInteractive(readOnlyHitTest(x, y))
+			}
 			return
 		}
 		const canvas = canvasRef.current
@@ -457,27 +512,35 @@ export default function Canvas({
 		}
 	}
 
+	const handleMouseLeave = () => {
+		setIsDraggingSun(false)
+		setIsReadOnlyHoverInteractive(false)
+		if (!readOnly) {
+			onMouseUp()
+		}
+	}
+
 	return (
 		<canvas
 			ref={canvasRef}
 			width={canvasWidth}
-			height={CANVAS_HEIGHT}
+			height={canvasHeight}
 			onClick={handleCanvasClick}
-			onMouseDown={handleCanvasMouseDown}
-			onMouseMove={handleCanvasMouseMove}
-			onMouseUp={handleMouseUp}
-			onMouseLeave={handleMouseUp}
+				onMouseDown={handleCanvasMouseDown}
+				onMouseMove={handleCanvasMouseMove}
+				onMouseUp={handleMouseUp}
+				onMouseLeave={handleMouseLeave}
 			onContextMenu={(e) => e.preventDefault()}
 			onTouchStart={handleTouchStart}
 			onTouchMove={handleTouchMove}
 			onTouchEnd={handleTouchEnd}
 			onTouchCancel={handleTouchEnd}
 			style={{
-				borderTop: '2px solid #ccc',
-				borderBottom: '2px solid #ccc',
-				cursor: isDraggingSun ? 'grabbing' :
-					readOnly ? 'default' :
-					isPanning ? 'move' :
+					borderTop: '2px solid #ccc',
+					borderBottom: '2px solid #ccc',
+					cursor: isDraggingSun ? 'grabbing' :
+						readOnly ? ((allowReadOnlyClick && isReadOnlyHoverInteractive) ? 'pointer' : 'default') :
+						isPanning ? 'move' :
 					addingObstacle ? 'crosshair' :
 					(isDragging || isDraggingRotation || isDraggingObstacle) ? 'grabbing' :
 					(isResizingObstacle || isDraggingObstacleRotation) ? 'nwse-resize' :

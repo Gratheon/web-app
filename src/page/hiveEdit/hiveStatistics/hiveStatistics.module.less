@@ -1,48 +1,66 @@
 .container {
-	background: #fff;
-	border: 1px solid #e0e0e0;
-	border-radius: 8px;
-	padding: 16px;
-	margin-bottom: 16px;
+	margin: 0 0 14px;
 }
 
 .title {
-	margin: 0 0 12px 0;
-	font-size: 18px;
+	margin: 0 0 6px;
+	font-size: 14px;
 	font-weight: 600;
-	color: #333;
+	color: #4f5b53;
 }
 
-.statsGrid {
-	display: grid;
-	grid-template-columns: repeat(3, 1fr);
-	gap: 16px;
+.statsList {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
 }
 
-.statItem {
-	text-align: center;
-	padding: 12px;
-	background: #f9f9f9;
-	border-radius: 6px;
-	border: 1px solid #eee;
+.statBlock {
+	display: flex;
+	align-items: center;
+	gap: 10px;
 }
 
 .statLabel {
-	font-size: 14px;
-	color: #666;
-	margin-bottom: 8px;
+	flex: 0 0 110px;
+	font-size: 13px;
+	color: #5f6f65;
+}
+
+.statTrack {
+	position: relative;
+	flex: 1 1 auto;
+	height: 26px;
+	border-radius: 999px;
+	background: #eef3ef;
+	overflow: hidden;
+}
+
+.statFill {
+	height: 100%;
+	min-width: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 999px;
 }
 
 .statValue {
-	font-size: 24px;
+	font-size: 13px;
 	font-weight: 700;
-	color: #333;
+	color: #ffffff;
+	line-height: 1;
+	white-space: nowrap;
 }
 
-@media (max-width: 768px) {
-	.statsGrid {
-		grid-template-columns: 1fr;
-		gap: 12px;
-	}
+.workerBar {
+	background: #4caf50;
 }
 
+.droneBar {
+	background: #2196f3;
+}
+
+.varroaBar {
+	background: #ef5350;
+}

@@ -139,42 +139,44 @@ export default function HiveEditForm() {
 
 			<HiveEditDetails apiaryId={apiaryId} hiveId={hiveId} />
 
-			<TabBar>
-				<Tab isSelected={mapTab === 'structure'}>
-					<NavLink
-						to={`/apiaries/${apiaryId}/hives/${hiveId}`}
-						className={({ isActive }) => (isActive ? styles.active : '')}
-					>
-						<T>Structure</T>
-					</NavLink>
-				</Tab>
-				<Tab isSelected={mapTab === 'treatments'}>
-					<NavLink
-						to={`/apiaries/${apiaryId}/hives/${hiveId}/treatments`}
-						className={({ isActive }) => (isActive ? styles.active : '')}
-					>
-						<T>Treatments</T>
-					</NavLink>
-				</Tab>
+			<div className={styles.tabsWrap}>
+				<TabBar>
+					<Tab isSelected={mapTab === 'structure'}>
+						<NavLink
+							to={`/apiaries/${apiaryId}/hives/${hiveId}`}
+							className={({ isActive }) => (isActive ? styles.active : '')}
+						>
+							<T>Structure</T>
+						</NavLink>
+					</Tab>
+					<Tab isSelected={mapTab === 'treatments'}>
+						<NavLink
+							to={`/apiaries/${apiaryId}/hives/${hiveId}/treatments`}
+							className={({ isActive }) => (isActive ? styles.active : '')}
+						>
+							<T>Treatments</T>
+						</NavLink>
+					</Tab>
 
-				<Tab isSelected={mapTab === 'inspections'}>
-					<NavLink
-						className={({ isActive }) => (isActive ? styles.active : '')}
-						to={`/apiaries/${apiaryId}/hives/${hiveId}/inspections`}
-					>
-						<T>Inspections</T> ({hive.inspectionCount})
-					</NavLink>
-				</Tab>
+					<Tab isSelected={mapTab === 'inspections'}>
+						<NavLink
+							className={({ isActive }) => (isActive ? styles.active : '')}
+							to={`/apiaries/${apiaryId}/hives/${hiveId}/inspections`}
+						>
+							<T>Inspections</T> ({hive.inspectionCount})
+						</NavLink>
+					</Tab>
 
-				<Tab isSelected={mapTab === 'metrics'}>
-					<NavLink
-						to={`/apiaries/${apiaryId}/hives/${hiveId}/metrics`}
-						className={({ isActive }) => (isActive ? styles.active : '')}
-					>
-						<T>Metrics</T>
-					</NavLink>
-				</Tab>
-			</TabBar>
+					<Tab isSelected={mapTab === 'metrics'}>
+						<NavLink
+							to={`/apiaries/${apiaryId}/hives/${hiveId}/metrics`}
+							className={({ isActive }) => (isActive ? styles.active : '')}
+						>
+							<T>Metrics</T>
+						</NavLink>
+					</Tab>
+				</TabBar>
+			</div>
 
 			<div className={styles.boxesFrameWrap}>
 				{mapTab === 'structure' && (

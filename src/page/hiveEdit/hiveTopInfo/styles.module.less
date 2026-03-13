@@ -70,6 +70,30 @@
 	@media @tabletAndUp {
 		display: flex;
 		width: 100%;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 16px;
+	}
+}
+
+.titleQueenWrap {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.titleQueenWrap h1 {
+	margin: 0 0 8px;
+}
+
+.desktopMiniMapWrap {
+	display: flex;
+	justify-content: center;
+	flex-shrink: 0;
+	margin-top: 10px;
+
+	@media @tabletAndUp {
+		display: block;
+		margin-top: 0;
 	}
 }
 
@@ -86,18 +110,8 @@
 	}
 }
 
-.statistics_wrap {
-	width: 100%;
-	padding: @mobilePadPx;
-	box-sizing: border-box;
-
-	@media @tabletAndUp {
-		padding: @tabletPadPx;
-	}
-
-	@media @desktop {
-		padding: @desktopPadPx;
-	}
+#queenSection {
+	margin-bottom: 10px;
 }
 
 #raceYear {
@@ -113,8 +127,17 @@
 .button_wrap2 {
 	display: none;
 	@media @mobile {
-		display: block;
+		display: flex;
+		justify-content: center;
+		margin-top: 22px;
+		padding-top: 8px;
+		text-align: center;
 	}
+}
+
+.button_wrap2 > div {
+	display: flex;
+	justify-content: center;
 }
 
 .collapsedLabel {
@@ -143,4 +166,28 @@
 			text-decoration: underline;
 		}
 	}
+}
+
+.miniMapCircle {
+	width: min(340px, 100%);
+	aspect-ratio: 1 / 1;
+	height: auto;
+	overflow: hidden;
+	border: 2px solid #d7dfd9;
+	border-radius: 50%;
+	background: #ffffff;
+	box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+.miniMapCircle canvas {
+	border: 0 !important;
+}
+
+.miniMapLoader {
+	width: min(340px, 100%);
+	aspect-ratio: 1 / 1;
+	height: auto;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }

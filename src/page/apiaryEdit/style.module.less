@@ -58,3 +58,29 @@
 	outline: 1px dotted #000;
 	outline: -webkit-focus-ring-color auto 5px;
 }
+
+.previewContainer {
+	position: relative;
+}
+
+.previewLocked {
+	overflow: hidden;
+}
+
+.previewOverlay {
+	position: absolute;
+	inset: 0;
+	background: rgba(235, 235, 235, 0.65);
+	backdrop-filter: grayscale(0.3);
+	cursor: not-allowed;
+	z-index: 1;
+}
+
+.previewOverlayNotice {
+	position: absolute;
+	z-index: 2;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: min(460px, calc(100% - 24px));
+}

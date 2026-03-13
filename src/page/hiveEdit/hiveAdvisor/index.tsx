@@ -6,6 +6,7 @@ import Loader from '@/shared/loader'
 import ErrorMsg from '@/shared/messageError'
 import T from '@/shared/translate'
 import AIAdvisorBillingNotice from '@/shared/aiAdvisorBillingNotice'
+import { isBillingTierAtLeast } from '@/shared/billingTier'
 
 import { getUser } from '@/models/user'
 import { getHive } from '@/models/hive'
@@ -27,8 +28,7 @@ type HiveAdvisorProps = {
 }
 
 function canUseAIAdvisor(plan?: string | null) {
-	const normalized = String(plan || '').toLowerCase()
-	return normalized === 'starter' || normalized === 'professional' || normalized === 'enterprise'
+	return isBillingTierAtLeast(plan, 'starter')
 }
 
 export default function HiveAdvisor({

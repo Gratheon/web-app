@@ -7,9 +7,12 @@ import T from '@/shared/translate'
 import ErrorMsg from '@/shared/messageError'
 import HiveIcon from '@/shared/hive'
 import BeeCounter from '@/shared/beeCounter'
+import BillingUpgradeNotice from '@/shared/billingUpgradeNotice'
+import { isBillingTierLessThan } from '@/shared/billingTier'
 import { getHive } from '@/models/hive'
 import { getBoxes } from '@/models/boxes'
 import { getFamilyByHive } from '@/models/family'
+import { getUser } from '@/models/user'
 import styles from './JoinColonyModal.module.less'
 
 interface JoinColonyModalProps {
@@ -55,6 +58,7 @@ export default function JoinColonyModal({
 	const [selectedTargetHiveId, setSelectedTargetHiveId] = useState<string | null>(null)
 	const [mergeType, setMergeType] = useState<string>('both_queens')
 	const [error, setError] = useState<Error | null>(null)
+	const [billingPlan, setBillingPlan] = useState<string | null>(null)
 
 	const currentHive = useLiveQuery(() => getHive(+hiveId), [hiveId], null)
 	const currentBoxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId], [])
@@ -65,6 +69,7 @@ export default function JoinColonyModal({
 	})
 
 	const [joinHivesMutation, { loading }] = useMutation(JOIN_HIVES_MUTATION)
+	const isJoinLocked = isBillingTierLessThan(billingPlan, 'hobbyist')
 
 	const otherHives =
 		apiaryData?.apiary?.hives?.filter((h: any) => h.id !== hiveId && h.boxCount > 0) || []
@@ -137,11 +142,20 @@ export default function JoinColonyModal({
 		setMergeType(types[nextIndex])
 	}
 
+	useEffect(() => {
+		if (!isOpen) return
+
+		getUser()
+			.then((user) => setBillingPlan(user?.billingPlan || 'free'))
+			.catch(() => setBillingPlan('free'))
+	}, [isOpen])
+
 	if (!isOpen) return null
 
 	return (
 		<Modal onClose={handleClose} title={<T>Join Colonies</T>} className={styles.modal}>
 			<div className={styles.content}>
+				<div className={`${styles.previewContainer} ${isJoinLocked ? styles.previewLocked : ''}`}>
 				<p>
 					<T>Select a target hive to merge this colony into</T>
 				</p>
@@ -242,16 +256,28 @@ export default function JoinColonyModal({
 					)}
 				</div>
 
+				{isJoinLocked && <div className={styles.previewOverlay} />}
+				{isJoinLocked && (
+					<div className={styles.previewOverlayNotice}>
+						<BillingUpgradeNotice
+							compact
+							title={<T>Join Colonies requires Hobbyist plan or higher.</T>}
+						/>
+					</div>
+				)}
+				</div>
+
 				<div className={styles.buttonContainer}>
 					<Button onClick={handleClose}>
-						<T>Cancel</T>
+						{isJoinLocked ? <T>Close</T> : <T>Cancel</T>}
 					</Button>
-					<Button onClick={handleJoin} loading={loading} disabled={!selectedTargetHiveId}>
-						<T>Join Colonies</T>
-					</Button>
+					{!isJoinLocked && (
+						<Button onClick={handleJoin} loading={loading} disabled={!selectedTargetHiveId}>
+							<T>Join Colonies</T>
+						</Button>
+					)}
 				</div>
 			</div>
 		</Modal>
 	)
 }
-

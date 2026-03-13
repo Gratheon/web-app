@@ -20,10 +20,13 @@ import UploadIcon from '@/icons/uploadIcon'
 import T from '@/shared/translate'
 import { Tab, TabBar } from '@/shared/tab'
 import LocationMarker from '@/icons/locationMarker'
+import BillingUpgradeNotice from '@/shared/billingUpgradeNotice'
+import { isBillingTierLessThan } from '@/shared/billingTier'
 
 import Plants from './plants'
 import HivePlacement from './hivePlacement'
 import { updateFile } from '@/models/files'
+import { getUser } from '@/models/user'
 import DragAndDrop from '../hiveEdit/frame/uploadFile/dragDrop'
 import styles from './style.module.less'
 
@@ -96,6 +99,8 @@ export default function ApiaryEditForm() {
 	}
 
 	let apiary = useLiveQuery(() => getApiary(+id), [id]);
+	const user = useLiveQuery(() => getUser(), [], null)
+	const isHivePlacementLocked = isBillingTierLessThan(user?.billingPlan, 'hobbyist')
 
 	let {
 		loading: loadingGet,
@@ -428,12 +433,24 @@ export default function ApiaryEditForm() {
 
 				{mapTab == 1 && satellite_map}
 				{mapTab == 2 && apiaryGet?.apiary?.hives && (
-					<HivePlacement
-						apiaryId={id}
-						hives={apiaryGet.apiary.hives}
-						selectedHiveId={hiveId || null}
-						onHiveSelect={onHiveSelect}
-					/>
+					<div className={`${styles.previewContainer} ${isHivePlacementLocked ? styles.previewLocked : ''}`}>
+						<HivePlacement
+							apiaryId={id}
+							hives={apiaryGet.apiary.hives}
+							selectedHiveId={hiveId || null}
+							onHiveSelect={onHiveSelect}
+							interactionLocked={isHivePlacementLocked}
+						/>
+						{isHivePlacementLocked && <div className={styles.previewOverlay} />}
+						{isHivePlacementLocked && (
+							<div className={styles.previewOverlayNotice}>
+								<BillingUpgradeNotice
+									compact
+									title={<T>Hive Placement requires Hobbyist plan or higher.</T>}
+								/>
+							</div>
+						)}
+					</div>
 				)}
 				{mapTab == 3 && moisture_map}
 

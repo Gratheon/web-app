@@ -28,6 +28,7 @@ import {
 	isEditable,
 	isMerged,
 } from '@/models/hive'
+import { getUser } from '@/models/user'
 import { getBoxes } from '@/models/boxes'
 import { getFamilyByHive, getAllFamiliesByHive } from '@/models/family'
 import {
@@ -49,6 +50,7 @@ import CollapseHiveModal from '@/page/hiveEdit/CollapseHiveModal'
 import SplitHiveModal from '@/page/hiveEdit/SplitHiveModal'
 import JoinColonyModal from '@/page/hiveEdit/JoinColonyModal'
 import DateFormat from '@/shared/dateFormat'
+import { isBillingTierLessThan } from '@/shared/billingTier'
 import HivePlacementMiniMap from './HivePlacementMiniMap'
 
 export default function HiveEditDetails({ apiaryId, hiveId, onTopMessageChange }) {
@@ -66,6 +68,8 @@ export default function HiveEditDetails({ apiaryId, hiveId, onTopMessageChange }
 
 	// Model functions now handle invalid IDs
 	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId])
+	const user = useLiveQuery(() => getUser(), [], null)
+	const isHiveMiniMapLocked = isBillingTierLessThan(user?.billingPlan, 'hobbyist')
 	let boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId])
 	let families = useLiveQuery(() => {
 		return getAllFamiliesByHive(+hiveId)
@@ -488,9 +492,11 @@ export default function HiveEditDetails({ apiaryId, hiveId, onTopMessageChange }
 											<HiveStatistics hiveId={hiveId} />
 											{hive.notes && <p className={styles.hiveNotes}>{hive.notes}</p>}
 										</div>
-										<div className={styles.desktopMiniMapWrap}>
-											<HivePlacementMiniMap apiaryId={apiaryId} selectedHiveId={hiveId} />
-										</div>
+										{!isHiveMiniMapLocked && (
+											<div className={styles.desktopMiniMapWrap}>
+												<HivePlacementMiniMap apiaryId={apiaryId} selectedHiveId={hiveId} />
+											</div>
+										)}
 									</div>
 
 							{hive && isCollapsed(hive) && hive.collapse_cause && (

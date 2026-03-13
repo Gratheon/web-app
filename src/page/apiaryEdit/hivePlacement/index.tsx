@@ -20,6 +20,7 @@ interface Props {
 	selectedHiveId?: string | null
 	onHiveSelect?: (hiveId: string | null) => void
 	readOnly?: boolean
+	interactionLocked?: boolean
 }
 
 const isMobile = () => {
@@ -30,7 +31,14 @@ const isMobile = () => {
 	)
 }
 
-export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveSelect, readOnly = false }: Props) {
+export default function HivePlacement({
+	apiaryId,
+	hives,
+	selectedHiveId,
+	onHiveSelect,
+	readOnly = false,
+	interactionLocked = false,
+}: Props) {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [canvasWidth, setCanvasWidth] = useState(800)
 	const [placements, setPlacements] = useState<Map<string, HivePlacementType>>(new Map())
@@ -72,6 +80,7 @@ export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveS
 	}), [compassN, compassS, compassE, compassW, labelBuilding, labelTree])
 
 	const handleRadius = isMobileDevice ? 16 : 8
+	const isInteractionLocked = !readOnly && interactionLocked
 
 	const { data, loading, error } = useQuery(GET_HIVE_PLACEMENTS, { variables: { apiaryId } })
 
@@ -181,6 +190,8 @@ export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveS
 	}, [autoRotate])
 
 	const handleCanvasClick = (x: number, y: number) => {
+		if (isInteractionLocked) return
+
 		if (readOnly) {
 			const clickedHiveId = findHiveIdAtPoint(x, y)
 			if (clickedHiveId) {
@@ -247,6 +258,7 @@ export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveS
 	}
 
 	const handleCanvasMouseDown = (x: number, y: number, e?: any) => {
+		if (isInteractionLocked) return
 		if (readOnly) return
 
 		if (e && (e.button === 1 || e.button === 2 || e.shiftKey)) {
@@ -373,6 +385,7 @@ export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveS
 	}
 
 	const handleCanvasMouseMove = (x: number, y: number) => {
+		if (isInteractionLocked) return
 		if (readOnly) return
 
 		if (isPanning) {
@@ -460,6 +473,7 @@ export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveS
 	}
 
 	const handleCanvasMouseUp = () => {
+		if (isInteractionLocked) return
 		if (readOnly) return
 
 		if ((isDraggingObstacle || isResizingObstacle || isDraggingObstacleRotation || isDraggingHeight) && selectedObstacle) {
@@ -503,6 +517,7 @@ export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveS
 	}
 
 	const rotateHive = (direction: number) => {
+		if (isInteractionLocked) return
 		if (!selectedHive) return
 		const placement = placements.get(selectedHive)
 		if (placement) {
@@ -520,6 +535,7 @@ export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveS
 	}
 
 	const handleDeleteObstacle = () => {
+		if (isInteractionLocked) return
 		if (!selectedObstacle) return
 		deleteObstacleMutation({ id: selectedObstacle }).then(() => {
 			setObstacles(obstacles.filter((o) => o.id !== selectedObstacle))
@@ -528,6 +544,7 @@ export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveS
 	}
 
 	const handleAddObstacle = (type: 'CIRCLE' | 'RECTANGLE') => {
+		if (isInteractionLocked) return
 		setAddingObstacle(addingObstacle === type ? null : type)
 	}
 
@@ -704,6 +721,7 @@ export default function HivePlacement({ apiaryId, hives, selectedHiveId, onHiveS
 					selectedObstacle={selectedObstacle}
 					isMobile={isMobileDevice}
 					showHiveList={showHiveList}
+					isTierLocked={isInteractionLocked}
 					onAddObstacle={handleAddObstacle}
 					onRotateHive={rotateHive}
 					onDeleteObstacle={handleDeleteObstacle}

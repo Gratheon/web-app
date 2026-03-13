@@ -7,6 +7,7 @@ interface ToolbarProps {
 	selectedObstacle: string | null
 	isMobile: boolean
 	showHiveList: boolean
+	isTierLocked?: boolean
 	onAddObstacle: (type: 'CIRCLE' | 'RECTANGLE') => void
 	onRotateHive: (direction: number) => void
 	onDeleteObstacle: () => void
@@ -19,6 +20,7 @@ export default function Toolbar({
 	selectedObstacle,
 	isMobile,
 	showHiveList,
+	isTierLocked = false,
 	onAddObstacle,
 	onRotateHive,
 	onDeleteObstacle,
@@ -49,6 +51,7 @@ export default function Toolbar({
 				<Button
 					onClick={() => onAddObstacle('CIRCLE')}
 					color={addingObstacle === 'CIRCLE' ? 'green' : undefined}
+					disabled={isTierLocked}
 					style={{
 						fontSize: isMobile ? '14px' : undefined,
 						padding: isMobile ? '10px 12px' : undefined
@@ -59,6 +62,7 @@ export default function Toolbar({
 				<Button
 					onClick={() => onAddObstacle('RECTANGLE')}
 					color={addingObstacle === 'RECTANGLE' ? 'green' : undefined}
+					disabled={isTierLocked}
 					style={{
 						fontSize: isMobile ? '14px' : undefined,
 						padding: isMobile ? '10px 12px' : undefined
@@ -70,6 +74,7 @@ export default function Toolbar({
 					<>
 						<Button
 							onClick={() => onRotateHive(-15)}
+							disabled={isTierLocked}
 							style={{
 								fontSize: isMobile ? '14px' : undefined,
 								padding: isMobile ? '10px 12px' : undefined
@@ -79,6 +84,7 @@ export default function Toolbar({
 						</Button>
 						<Button
 							onClick={() => onRotateHive(15)}
+							disabled={isTierLocked}
 							style={{
 								fontSize: isMobile ? '14px' : undefined,
 								padding: isMobile ? '10px 12px' : undefined
@@ -92,6 +98,7 @@ export default function Toolbar({
 					<Button
 						onClick={onDeleteObstacle}
 						color="red"
+						disabled={isTierLocked}
 						style={{
 							fontSize: isMobile ? '14px' : undefined,
 							padding: isMobile ? '10px 12px' : undefined
@@ -104,4 +111,3 @@ export default function Toolbar({
 		</>
 	)
 }
-

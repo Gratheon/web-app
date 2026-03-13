@@ -9,8 +9,11 @@ import ErrorMsg from '@/shared/messageError'
 import MessageNotFound from '@/shared/messageNotFound'
 import Button from '@/shared/button'
 import T from '@/shared/translate'
+import BillingUpgradeNotice from '@/shared/billingUpgradeNotice'
+import { isBillingTierLessThan } from '@/shared/billingTier'
 
 import HivePlacement from '@/page/apiaryEdit/hivePlacement'
+import { getUser } from '@/models/user'
 import styles from './index.module.less'
 
 type WeatherSnapshot = {
@@ -182,6 +185,8 @@ function buildMapEmbedUrl(lat: number, lng: number) {
 export default function ApiaryView() {
 	const { id } = useParams()
 	const apiary = useLiveQuery(() => getApiary(+id), [id], null)
+	const user = useLiveQuery(() => getUser(), [], null)
+	const isHivePlacementLocked = isBillingTierLessThan(user?.billingPlan, 'hobbyist')
 	const [weather, setWeather] = useState<WeatherSnapshot>({
 		temperature: null,
 		windSpeed: null,
@@ -325,7 +330,18 @@ export default function ApiaryView() {
 			<section className={styles.layout}>
 				<div className={styles.panel}>
 					<div className={styles.panelHead}><T>Hive placement</T></div>
-					<HivePlacement apiaryId={id} hives={hives} readOnly />
+					<div className={`${styles.previewContainer} ${isHivePlacementLocked ? styles.previewLocked : ''}`}>
+						<HivePlacement apiaryId={id} hives={hives} readOnly />
+						{isHivePlacementLocked && <div className={styles.previewOverlay} />}
+						{isHivePlacementLocked && (
+							<div className={styles.previewOverlayNotice}>
+								<BillingUpgradeNotice
+									compact
+									title={<T>Hive Placement requires Hobbyist plan or higher.</T>}
+								/>
+							</div>
+						)}
+					</div>
 				</div>
 				<div className={styles.panel}>
 					<div className={styles.panelHead}><T>Map</T></div>

@@ -16,6 +16,7 @@ import beekeeperURL from '@/assets/beekeeper.png'
 import styles from './styles.module.less'
 import AIAdvisorBillingNotice from '@/shared/aiAdvisorBillingNotice'
 import T, { useTranslation as t } from '@/shared/translate'
+import { isBillingTierAtLeast } from '@/shared/billingTier'
 
 type ChatMessage = {
 	id: string
@@ -52,8 +53,7 @@ type DrawerTranslations = {
 }
 
 function canUseAIAdvisor(plan?: string | null) {
-	const normalized = String(plan || '').toLowerCase()
-	return normalized === 'starter' || normalized === 'professional' || normalized === 'enterprise'
+	return isBillingTierAtLeast(plan, 'starter')
 }
 
 const METRICS_QUERY = gql`

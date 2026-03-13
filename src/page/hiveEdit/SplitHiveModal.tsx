@@ -8,6 +8,8 @@ import Modal from '@/shared/modal'
 import T, { useTranslation as t } from '@/shared/translate'
 import ErrorMsg from '@/shared/messageError'
 import FramePreview from '@/shared/framePreview'
+import BillingUpgradeNotice from '@/shared/billingUpgradeNotice'
+import { isBillingTierLessThan } from '@/shared/billingTier'
 import RefreshIcon from '@/icons/RefreshIcon'
 import { getUser } from '@/models/user'
 import { SUPPORTED_LANGUAGES } from '@/config/languages'
@@ -57,6 +59,7 @@ export default function SplitHiveModal({
 	const navigate = useNavigate()
 
 	const user = useLiveQuery(() => getUser(), [], null)
+	const isSplitLocked = isBillingTierLessThan(user?.billingPlan, 'hobbyist')
 	const boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId], [])
 
 	useEffect(() => {
@@ -210,6 +213,7 @@ export default function SplitHiveModal({
 	return (
 		<Modal onClose={handleClose} title={<T>Split Colony</T>} className={styles.wideModal}>
 			<div className={styles.content}>
+				<div className={`${styles.previewContainer} ${isSplitLocked ? styles.previewLocked : ''}`}>
 				<p>
 					<T>Select up to 10 frames to move to a new hive</T>
 				</p>
@@ -319,21 +323,33 @@ export default function SplitHiveModal({
 					</div>
 				</div>
 
+				{isSplitLocked && <div className={styles.previewOverlay} />}
+				{isSplitLocked && (
+					<div className={styles.previewOverlayNotice}>
+						<BillingUpgradeNotice
+							compact
+							title={<T>Split Colony requires Hobbyist plan or higher.</T>}
+						/>
+					</div>
+				)}
+				</div>
+
 				<div className={styles.actions}>
 					<Button onClick={handleClose} disabled={loading}>
-						<T>Cancel</T>
+						{isSplitLocked ? <T>Close</T> : <T>Cancel</T>}
 					</Button>
-					<Button
-						color="primary"
-						onClick={handleSplit}
-						loading={loading}
-						disabled={selectedFrameIds.size === 0 || (queenAction === 'new_queen' && !newHiveName.trim())}
-					>
-						<T>Split Colony</T>
-					</Button>
+					{!isSplitLocked && (
+						<Button
+							color="primary"
+							onClick={handleSplit}
+							loading={loading}
+							disabled={selectedFrameIds.size === 0 || (queenAction === 'new_queen' && !newHiveName.trim())}
+						>
+							<T>Split Colony</T>
+						</Button>
+					)}
 				</div>
 			</div>
 		</Modal>
 	)
 }
-

@@ -1,7 +1,6 @@
 import { useNavigate } from 'react-router'
 
 import { useMutation } from '@/api'
-import { useConfirm } from '@/hooks/useConfirm'
 import Button from '@/shared/button'
 import {
 	boxTypes,
@@ -16,7 +15,7 @@ import AddSuperIcon from '@/icons/addSuper'
 import GateIcon from '@/icons/gate'
 import ErrorMessage from '@/shared/messageError'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import metrics from '@/metrics'
 import styles from './styles.module.less'
 import { PopupButton, PopupButtonGroup } from '@/shared/popupButton'
@@ -27,6 +26,23 @@ import BulkUploadInline from './box/bulkUploadInline/index'
 import { getFrames } from '@/models/frames'
 import { enrichFramesWithSides } from '@/models/frameSide'
 import { enrichFramesWithSideFiles } from '@/models/frameSideFile'
+import { useWarehouseAutoAdjust } from '@/hooks/useWarehouseAutoAdjust'
+import Modal from '@/shared/modal'
+
+const WAREHOUSE_BY_BOX_TYPE = {
+	[boxTypes.DEEP]: 'DEEP',
+	[boxTypes.SUPER]: 'SUPER',
+	[boxTypes.BOTTOM]: 'BOTTOM',
+	[boxTypes.QUEEN_EXCLUDER]: 'QUEEN_EXCLUDER',
+	[boxTypes.HORIZONTAL_FEEDER]: 'HORIZONTAL_FEEDER',
+}
+
+const WAREHOUSE_BY_FRAME_TYPE = {
+	FOUNDATION: 'FRAME_FOUNDATION',
+	EMPTY_COMB: 'FRAME_EMPTY_COMB',
+	PARTITION: 'FRAME_PARTITION',
+	FEEDER: 'FRAME_FEEDER',
+}
 
 
 export default function HiveButtons({
@@ -36,9 +52,10 @@ export default function HiveButtons({
 	frameId
 }) {
 	let navigate = useNavigate()
-	const { confirm, ConfirmDialog } = useConfirm()
 	const [adding, setAdding] = useState(false)
 	const [errorRemove, setErrorRemove] = useState(false)
+	const [removeBoxDialogVisible, setRemoveBoxDialogVisible] = useState(false)
+	const { decreaseWarehouseForType, increaseWarehouseForType, increaseWarehouseForTypeBy } = useWarehouseAutoAdjust()
 	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId]);
 
 	const frames = useLiveQuery(
@@ -68,32 +85,69 @@ let [removeBoxMutation] = useMutation(`mutation deactivateBox($id: ID!) {
 }
 `)
 
-	const [removingBox, setRemovingBox] = useState(false);
-	async function onBoxRemove(id: number) {
-		const confirmed = await confirm(
-			'Are you sure you want to remove this box?',
-			{ confirmText: 'Remove', isDangerous: true }
-		)
+const [removingBox, setRemovingBox] = useState(false);
 
-		if (confirmed) {
-			setRemovingBox(true)
-			const { error } = await removeBoxMutation({ id })
+	useEffect(() => {
+		if (!removeBoxDialogVisible) return
 
-			if (error) {
-				setErrorRemove(error)
+		const onKeyDown = async (event: KeyboardEvent) => {
+			if (event.key === 'Escape') {
+				event.preventDefault()
+				setRemoveBoxDialogVisible(false)
 				return
 			}
 
-			await removeBox(id)
-			setRemovingBox(false)
-			
-			metrics.trackBoxRemoved()
-			navigate(`/apiaries/${apiaryId}/hives/${hiveId}/`, {
-				replace: true,
-			})
+			if (event.key === 'Enter') {
+				event.preventDefault()
+				if (!box?.id) return
+				await onBoxRemoveChoice('warehouse', +box.id)
+			}
 		}
-	}
 
+		document.addEventListener('keydown', onKeyDown)
+		return () => {
+			document.removeEventListener('keydown', onKeyDown)
+		}
+	}, [removeBoxDialogVisible, box?.id])
+
+	async function onBoxRemoveChoice(mode: 'trash' | 'warehouse', id: number) {
+		setRemoveBoxDialogVisible(false)
+		setRemovingBox(true)
+		const { error } = await removeBoxMutation({ id })
+
+		if (error) {
+			setErrorRemove(error)
+			setRemovingBox(false)
+			return
+		}
+
+		const removedBoxType = box?.type
+		const boxFrames = (await getFrames({ boxId: id })) || []
+
+		await removeBox(id)
+
+		if (mode === 'warehouse') {
+			await increaseWarehouseForType(WAREHOUSE_BY_BOX_TYPE[removedBoxType])
+
+			const frameTypeCounts = boxFrames.reduce<Record<string, number>>((acc, frame) => {
+				const key = WAREHOUSE_BY_FRAME_TYPE[frame?.type]
+				if (!key) return acc
+				acc[key] = (acc[key] || 0) + 1
+				return acc
+			}, {})
+
+			for (const moduleType of Object.keys(frameTypeCounts)) {
+				await increaseWarehouseForTypeBy(moduleType, frameTypeCounts[moduleType])
+			}
+		}
+
+		setRemovingBox(false)
+
+		metrics.trackBoxRemoved()
+		navigate(`/apiaries/${apiaryId}/hives/${hiveId}/`, {
+			replace: true,
+		})
+	}
 	async function onBoxAdd(type) {
 		setAdding(true)
 		let position = (await maxBoxPosition(+hiveId)) + 1
@@ -114,6 +168,7 @@ let [removeBoxMutation] = useMutation(`mutation deactivateBox($id: ID!) {
 			position,
 			type,
 		})
+		await decreaseWarehouseForType(WAREHOUSE_BY_BOX_TYPE[type])
 
 		setAdding(false)
 
@@ -195,9 +250,7 @@ let [removeBoxMutation] = useMutation(`mutation deactivateBox($id: ID!) {
         <Button
             color="red"
             loading={removingBox}
-            onClick={async () => {
-              await onBoxRemove(+box.id)
-            }}
+            onClick={() => setRemoveBoxDialogVisible(true)}
         ><DeleteIcon /> <T>Remove box</T></Button>
 			</div>
 
@@ -210,7 +263,39 @@ let [removeBoxMutation] = useMutation(`mutation deactivateBox($id: ID!) {
 					onComplete={() => {}}
 				/>
 			)}
-			{ConfirmDialog}
+			{removeBoxDialogVisible && (
+				<Modal
+					title={<T>Remove box</T>}
+					onClose={() => setRemoveBoxDialogVisible(false)}
+				>
+					<div style={{ marginBottom: '12px' }}>
+						<T>Are you sure you want to remove this box?</T>
+					</div>
+					<div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+						<Button color="gray" onClick={() => setRemoveBoxDialogVisible(false)}>
+							<T>Cancel</T>
+						</Button>
+						<Button
+							color="red"
+							onClick={async () => {
+								if (!box?.id) return
+								await onBoxRemoveChoice('trash', +box.id)
+							}}
+						>
+							<T>To trash</T>
+						</Button>
+						<Button
+							color="green"
+							onClick={async () => {
+								if (!box?.id) return
+								await onBoxRemoveChoice('warehouse', +box.id)
+							}}
+						>
+							<T>To warehouse</T>
+						</Button>
+					</div>
+				</Modal>
+			)}
 		</>
 	)
 }

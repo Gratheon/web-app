@@ -18,6 +18,13 @@ const TOKEN_QUERY = gql`
 		token
 	}
 
+	devices {
+		id
+		name
+		type
+		apiToken
+	}
+
 	shareTokens {
 		__typename
 		id
@@ -157,7 +164,13 @@ export default function TokenList() {
 	}
 
 	let tokens = data?.apiTokens
+	const devices = data?.devices || []
 	const shareTokens = data?.shareTokens
+	const deviceByToken = new Map(
+		devices
+			.filter((device) => !!device.apiToken)
+			.map((device) => [device.apiToken, device])
+	)
 
 	const initialHiddenTokens: number[] = tokens && tokens.map((token) => token?.id);
 	const [hiddenTokens, setHiddenTokens] = useState<number[]>(initialHiddenTokens);
@@ -195,11 +208,21 @@ export default function TokenList() {
 
 				{tokens && tokens.length > 0 &&
 					<div className={style.list}>
-						{tokens.map((token) => (
-							<div key={token.id} className={style.row}>
+						{tokens.map((token) => {
+							const linkedDevice: any = deviceByToken.get(token.token)
+
+							return (
+							<div key={token.id} className={`${style.row} ${linkedDevice ? style.deviceTokenRow : ''}`}>
 								<div className={style.tokenContainer}>
-									<div className={style.token}>
-										{hiddenTokens.includes(token.id) ? '*'.repeat(token.token.length) : token.token}
+									<div className={style.tokenWrap}>
+										<div className={style.token}>
+											{hiddenTokens.includes(token.id) ? '*'.repeat(token.token.length) : token.token}
+										</div>
+										{linkedDevice && (
+											<a className={style.deviceBadge} href="/devices">
+												<T>Device</T>: {linkedDevice.name}
+											</a>
+										)}
 									</div>
 
 									<CopyButton size='small' data={token.token} />
@@ -214,7 +237,7 @@ export default function TokenList() {
 										onClick={() => onRevokeApiToken(token.token)}><T>Revoke</T></Button>
 								</div>
 							</div>
-						))}
+						)})}
 					</div>
 				}
 			</section>

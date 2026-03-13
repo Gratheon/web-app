@@ -24,6 +24,9 @@ import InspectionShare from "./inspectionShare";
 import AlertConfig from './alertConfig';
 import TimeView from './time';
 import AIAdvisorPage from './aiAdvisor'
+import DevicesPage from './devices'
+import DevicesCreatePage from './devicesCreate'
+import WarehousePage from './warehouse'
 
 function LoggedInPage({ children }) {
 	const navigate = useNavigate()
@@ -92,6 +95,9 @@ export default function Page() {
 			<Route path="/account/register" element={<LoggedOutPage><AccountRegister /></LoggedOutPage>} />
 
 			<Route path="/time" element={<LoggedInPage><TimeView /></LoggedInPage>} />
+			<Route path="/devices" element={<LoggedInPage><DevicesPage /></LoggedInPage>} />
+			<Route path="/devices/add" element={<LoggedInPage><DevicesCreatePage /></LoggedInPage>} />
+			<Route path="/warehouse" element={<LoggedInPage><WarehousePage /></LoggedInPage>} />
 
 			<Route path="/apiaries/create" element={<LoggedInPage><ApiaryCreate /></LoggedInPage>} />
 			<Route path="/apiaries/:id" element={<LoggedInPage><ApiaryView /></LoggedInPage>} />

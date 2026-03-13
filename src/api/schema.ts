@@ -308,6 +308,7 @@ type Mutation {
   ): Boolean
   generateHiveAdvice(hiveID: ID, adviceContext: JSON, langCode: String): String
   uploadFrameSide(file: Upload!): File
+  uploadApiaryPhoto(file: Upload!, apiaryId: ID!): File
   addFileToFrameSide(frameSideId: ID!, fileId: ID!, hiveId: ID!): Boolean
   filesStrokeEditMutation(files: [FilesUpdateInput]): Boolean
   updateFrameSideQueenPresense(frameSideId: ID!, isPresent: Boolean!): Boolean!

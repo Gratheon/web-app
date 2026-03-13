@@ -1,0 +1,52 @@
+.formField {
+	margin-bottom: 15px;
+	display: flex;
+	flex-direction: column;
+}
+
+.formLabel {
+	display: block;
+	margin-bottom: 5px;
+}
+
+.flexRow {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.flexInput {
+	flex: 1;
+}
+
+.actions {
+	display: flex;
+	gap: 8px;
+	justify-content: flex-end;
+}
+
+.typeLinks {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+
+	a {
+		font-size: 12px;
+		text-decoration: none;
+	}
+}
+
+@media (min-width: 768px) {
+	.formField {
+		flex-direction: row;
+		align-items: center;
+	}
+
+	.formLabel {
+		margin-bottom: 0;
+		margin-right: 10px;
+		min-width: 140px;
+		text-align: right;
+		flex-shrink: 0;
+	}
+}

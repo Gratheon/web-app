@@ -14,6 +14,7 @@ import * as userModel from '@/models/user'
 import { TAWKTO_TOKEN } from '@/config'
 import CreditCard from '@/icons/creditCard'
 import KeyIcon from '@/icons/key'
+import GateIcon from '@/icons/gate'
 
 const MOBILE_NAV_ICON_SIZE = 24
 const AI_ADVISOR_CONTEXT_KEY = 'ai-advisor-last-hive-context'
@@ -154,6 +155,16 @@ function AIAdvisorIcon({ size = MOBILE_NAV_ICON_SIZE }) {
     )
 }
 
+function WarehouseIcon({ size = MOBILE_NAV_ICON_SIZE }) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 10.5L12 6L20 10.5V18.5C20 19.05 19.55 19.5 19 19.5H5C4.45 19.5 4 19.05 4 18.5V10.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+            <path d="M4 10.5L12 15L20 10.5" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+            <path d="M12 15V19.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+    )
+}
+
 function SupportIcon({ size = MOBILE_NAV_ICON_SIZE }) {
     return (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -285,6 +296,26 @@ const Menu = ({isLoggedIn = false}) => {
                             <span className={styles.menuItemContent}>
                                 <span className={styles.menuItemIcon}><HiveIcon size={18} /></span>
                                 <span className={styles.menuItemLabel}><T>Hives</T></span>
+                            </span>
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink
+                            className={navClassName}
+                            to="/warehouse">
+                            <span className={styles.menuItemContent}>
+                                <span className={styles.menuItemIcon}><WarehouseIcon size={18} /></span>
+                                <span className={styles.menuItemLabel}><T>Warehouse</T></span>
+                            </span>
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink
+                            className={navClassName}
+                            to="/devices">
+                            <span className={styles.menuItemContent}>
+                                <span className={styles.menuItemIcon}><GateIcon size={18} /></span>
+                                <span className={styles.menuItemLabel}><T>Devices</T></span>
                             </span>
                         </NavLink>
                     </li>
@@ -473,6 +504,22 @@ const Menu = ({isLoggedIn = false}) => {
                         }}
                     >
                         <T>AI Advisor</T>
+                    </NavLink>
+                    <NavLink
+                        to="/warehouse"
+                        onClick={() => {
+                            setMoreVisible(false)
+                        }}
+                    >
+                        <T>Warehouse</T>
+                    </NavLink>
+                    <NavLink
+                        to="/devices"
+                        onClick={() => {
+                            setMoreVisible(false)
+                        }}
+                    >
+                        <T>Devices</T>
                     </NavLink>
                     <NavLink
                         to="/account"

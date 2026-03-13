@@ -17,6 +17,14 @@ import FeederIcon from '@/icons/feederIcon.tsx'
 import PartitionIcon from '@/icons/partitionIcon.tsx'
 import Button from '@/shared/button'
 import { PopupButton, PopupButtonGroup } from '@/shared/popupButton'
+import { useWarehouseAutoAdjust } from '@/hooks/useWarehouseAutoAdjust'
+
+const WAREHOUSE_BY_FRAME_TYPE = {
+	[frameTypes.FOUNDATION]: 'FRAME_FOUNDATION',
+	[frameTypes.EMPTY_COMB]: 'FRAME_EMPTY_COMB',
+	[frameTypes.PARTITION]: 'FRAME_PARTITION',
+	[frameTypes.FEEDER]: 'FRAME_FEEDER',
+}
 
 export default function FrameButtons({ box, onError }) {
 	let [addFrameMutation] =
@@ -36,6 +44,7 @@ export default function FrameButtons({ box, onError }) {
 	`)
 
 	const [addingFrame, setAdding] = useState(false)
+	const { decreaseWarehouseForType } = useWarehouseAutoAdjust()
 
 	async function onFrameAdd(boxId, type) {
 		setAdding(true)
@@ -54,6 +63,7 @@ export default function FrameButtons({ box, onError }) {
 			leftId: +data.addFrame.leftSide?.id,
 			rightId: +data.addFrame.rightSide?.id,
 		})
+		await decreaseWarehouseForType(WAREHOUSE_BY_FRAME_TYPE[type])
 
 		metrics.trackFrameAdded()
 		setAdding(false)

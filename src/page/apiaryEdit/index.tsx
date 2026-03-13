@@ -143,8 +143,8 @@ export default function ApiaryEditForm() {
 		}
 	`)
 	const [uploadFileMutation] = useUploadMutation(gql`
-		mutation uploadApiaryPhoto($file: Upload!) {
-			uploadFrameSide(file: $file) {
+		mutation uploadApiaryPhoto($file: Upload!, $apiaryId: ID!) {
+			uploadApiaryPhoto(file: $file, apiaryId: $apiaryId) {
 				id
 				url
 				resizes {
@@ -228,8 +228,8 @@ export default function ApiaryEditForm() {
 		setUploadingPhoto(true)
 		try {
 			const uploadFile = uploadFileMutation as (payload: any) => Promise<any>
-			const result = await uploadFile({ file })
-			const uploadData = result?.data?.uploadFrameSide
+			const result = await uploadFile({ file, apiaryId: id })
+			const uploadData = result?.data?.uploadApiaryPhoto
 			if (!uploadData?.url || !uploadData?.id) {
 				throw new Error('Failed to upload image')
 			}

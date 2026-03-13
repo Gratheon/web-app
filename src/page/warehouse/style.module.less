@@ -1,0 +1,163 @@
+.page {
+	padding: 10px 20px;
+}
+
+.description {
+	margin-top: 0;
+	color: #666;
+	max-width: 900px;
+}
+
+.topSetting {
+	margin: 8px 0 14px;
+}
+
+.switchRow {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	cursor: pointer;
+}
+
+.switchInput {
+	position: absolute;
+	opacity: 0;
+	width: 1px;
+	height: 1px;
+	pointer-events: none;
+}
+
+.switchTrack {
+	width: 44px;
+	height: 26px;
+	border-radius: 13px;
+	background: #d7d7dc;
+	position: relative;
+	transition: background-color 0.2s ease;
+	flex-shrink: 0;
+}
+
+.switchThumb {
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	background: #fff;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+	transition: left 0.2s ease;
+}
+
+.switchInput:checked + .switchTrack {
+	background: #34c759;
+}
+
+.switchInput:checked + .switchTrack .switchThumb {
+	left: 20px;
+}
+
+.switchLabel {
+	font-size: 13px;
+	color: #444;
+}
+
+.list {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+.group {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.groupTitle {
+	margin: 0;
+	font-size: 15px;
+	color: #444;
+}
+
+.row {
+	background: #fff;
+	border-radius: 8px;
+	padding: 12px;
+	display: grid;
+	grid-template-columns: minmax(200px, 1fr) auto;
+	gap: 10px;
+	align-items: center;
+}
+
+.itemInfo {
+	min-width: 0;
+}
+
+.itemTitle {
+	font-weight: 600;
+}
+
+.itemDescription {
+	font-size: 12px;
+	color: #666;
+	margin-top: 4px;
+}
+
+.controls {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.squareStack {
+	width: 64px;
+	height: 52px;
+	position: relative;
+	overflow: hidden;
+}
+
+.square {
+	width: 3px;
+	height: 3px;
+	background: #22a447;
+	position: absolute;
+	animation: fallIn 0.38s cubic-bezier(.2, .9, .3, 1.2) both;
+}
+
+@keyframes fallIn {
+	0% {
+		transform: translateY(-18px);
+		opacity: 0;
+	}
+	70% {
+		transform: translateY(2px);
+		opacity: 1;
+	}
+	100% {
+		transform: translateY(0);
+		opacity: 1;
+	}
+}
+
+.countInput {
+	width: 72px;
+	height: 32px;
+	border: 1px solid #d8d8d8;
+	border-radius: 6px;
+	font-weight: 600;
+	background: #fafafa;
+	padding: 0 8px;
+	text-align: center;
+	box-sizing: border-box;
+}
+
+@media (max-width: 720px) {
+	.row {
+		grid-template-columns: 1fr;
+	}
+
+	.controls {
+		justify-content: flex-start;
+	}
+}

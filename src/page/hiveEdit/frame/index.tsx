@@ -3,7 +3,6 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate } from 'react-router-dom'
 
 import { gql, useMutation, useQuery, useSubscription } from '@/api'
-import { useConfirm } from '@/hooks/useConfirm'
 
 import { getFrame, removeFrame } from '@/models/frames.ts'
 import { FrameSide as FrameSideType, getFrameSide, upsertFrameSide } from '@/models/frameSide.ts'
@@ -24,6 +23,15 @@ import FrameSide from './frameSide.tsx'
 import BoxFrame from '../boxes/box/boxFrame'
 import BeeCounter from '@/shared/beeCounter/index.tsx'
 import VarroaIcon from '@/icons/varroa.tsx'
+import Modal from '@/shared/modal'
+import { useWarehouseAutoAdjust } from '@/hooks/useWarehouseAutoAdjust'
+
+const WAREHOUSE_BY_FRAME_TYPE = {
+	FOUNDATION: 'FRAME_FOUNDATION',
+	EMPTY_COMB: 'FRAME_EMPTY_COMB',
+	PARTITION: 'FRAME_PARTITION',
+	FEEDER: 'FRAME_FEEDER',
+}
 
 export default function Frame({
 	apiaryId,
@@ -39,8 +47,9 @@ export default function Frame({
 		return
 	}
 
-	const { confirm, ConfirmDialog } = useConfirm()
 	let [frameRemoving, setFrameRemoving] = useState<boolean>(false)
+	const [removeFrameDialogVisible, setRemoveFrameDialogVisible] = useState(false)
+	const { increaseWarehouseForType } = useWarehouseAutoAdjust()
 	// Local state for the queen checkbox
 	const [isQueenChecked, setIsQueenChecked] = useState<boolean | undefined>(undefined);
 	// Model functions now handle invalid IDs
@@ -127,24 +136,45 @@ export default function Frame({
 	}
 	`)
 
-	async function onFrameRemove() {
-		const confirmed = await confirm(
-			'Are you sure you want to remove this frame?',
-			{ confirmText: 'Remove', isDangerous: true }
-		)
+	useEffect(() => {
+		if (!removeFrameDialogVisible) return
 
-		if (confirmed) {
-			setFrameRemoving(true)
-			await removeFrame(frameId, boxId)
-			await removeFrameMutation({
-				id: frameId,
-			})
+		const onKeyDown = async (event: KeyboardEvent) => {
+			if (event.key === 'Escape') {
+				event.preventDefault()
+				setRemoveFrameDialogVisible(false)
+				return
+			}
 
-			setFrameRemoving(false)
-			navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`, {
-				replace: true,
-			})
+			if (event.key === 'Enter') {
+				event.preventDefault()
+				await onFrameRemoveChoice('warehouse')
+			}
 		}
+
+		document.addEventListener('keydown', onKeyDown)
+		return () => {
+			document.removeEventListener('keydown', onKeyDown)
+		}
+	}, [removeFrameDialogVisible])
+
+	async function onFrameRemoveChoice(mode: 'trash' | 'warehouse') {
+		setRemoveFrameDialogVisible(false)
+		setFrameRemoving(true)
+
+		if (mode === 'warehouse') {
+			await increaseWarehouseForType(WAREHOUSE_BY_FRAME_TYPE[frame.type])
+		}
+
+		await removeFrame(frameId, boxId)
+		await removeFrameMutation({
+			id: frameId,
+		})
+
+		setFrameRemoving(false)
+		navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`, {
+			replace: true,
+		})
 	}
 
 	// Queen confirmation button logic moved from QueenButton component
@@ -288,7 +318,7 @@ export default function Frame({
 							</Button>
 						)}
 
-					<Button color="red" title="Remove frame" onClick={async () => await onFrameRemove()}>
+					<Button color="red" title="Remove frame" onClick={() => setRemoveFrameDialogVisible(true)}>
 						<DeleteIcon />
 						<span>
 							<T>Remove frame</T>
@@ -305,7 +335,27 @@ export default function Frame({
 
 				{extraButtons}
 			</div>
-			{ConfirmDialog}
+			{removeFrameDialogVisible && (
+				<Modal
+					title={<T>Remove frame</T>}
+					onClose={() => setRemoveFrameDialogVisible(false)}
+				>
+					<div style={{ marginBottom: '12px' }}>
+						<T>Are you sure you want to remove this frame?</T>
+					</div>
+					<div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+						<Button color="gray" onClick={() => setRemoveFrameDialogVisible(false)}>
+							<T>Cancel</T>
+						</Button>
+						<Button color="red" onClick={async () => await onFrameRemoveChoice('trash')}>
+							<T>To trash</T>
+						</Button>
+						<Button color="green" onClick={async () => await onFrameRemoveChoice('warehouse')}>
+							<T>To warehouse</T>
+						</Button>
+					</div>
+				</Modal>
+			)}
 		</div>
 	)
 }

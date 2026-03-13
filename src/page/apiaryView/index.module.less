@@ -61,6 +61,47 @@
 	border: 1px solid #e7dec7;
 	border-radius: 12px;
 	padding: 12px 14px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.statCard:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 10px 24px rgba(45, 40, 31, 0.12);
+}
+
+.goodCard {
+	background: linear-gradient(160deg, #f3f8e9 0%, #e5f5c7 100%);
+	border-color: #c6e19c;
+}
+
+.warnCard {
+	background: linear-gradient(160deg, #fff9e5 0%, #ffe8bc 100%);
+	border-color: #f0cc85;
+}
+
+.badCard {
+	background: linear-gradient(160deg, #fff0ec 0%, #ffd8cd 100%);
+	border-color: #efab95;
+}
+
+.coldCard {
+	background: linear-gradient(160deg, #eef6ff 0%, #d5e9ff 100%);
+	border-color: #9fc3ee;
+}
+
+.neutralCard {
+	background: linear-gradient(160deg, #f4f4f4 0%, #ececec 100%);
+	border-color: #dadada;
+}
+
+.statTop {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
 }
 
 .statLabel {
@@ -68,10 +109,67 @@
 	color: #7a6e55;
 }
 
+.statIcon {
+	width: 28px;
+	height: 28px;
+	border-radius: 999px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(255, 255, 255, 0.55);
+	color: #3f3a30;
+	border: 1px solid rgba(63, 58, 48, 0.18);
+}
+
+.statIcon svg {
+	width: 18px;
+	height: 18px;
+}
+
 .statValue {
 	font-size: 22px;
 	font-weight: 700;
 	color: #352f24;
+}
+
+.statTag {
+	align-self: flex-start;
+	padding: 3px 8px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.02em;
+}
+
+.goodTag {
+	background: #dff3c1;
+	color: #27542d;
+}
+
+.warnTag {
+	background: #ffe3ad;
+	color: #7a4b00;
+}
+
+.badTag {
+	background: #ffc9bc;
+	color: #7a1f15;
+}
+
+.coldTag {
+	background: #d7eafe;
+	color: #12457a;
+}
+
+.neutralTag {
+	background: #e8e8e8;
+	color: #5a5a5a;
+}
+
+.statHint {
+	font-size: 12px;
+	line-height: 1.35;
+	color: #594f3d;
 }
 
 .layout {

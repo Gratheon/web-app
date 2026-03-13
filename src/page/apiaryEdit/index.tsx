@@ -73,6 +73,7 @@ export default function ApiaryEditForm() {
 	let [photoUrl, setPhotoUrl] = useState<string | null>(null)
 	let [photoFileId, setPhotoFileId] = useState<number | null>(null)
 	let [uploadingPhoto, setUploadingPhoto] = useState(false)
+	let [deletingPhoto, setDeletingPhoto] = useState(false)
 	let [photoUploadError, setPhotoUploadError] = useState<Error | null>(null)
 
 	const initialTab = tab && TAB_MAPPING[tab] !== undefined ? TAB_MAPPING[tab] : 2
@@ -258,6 +259,40 @@ export default function ApiaryEditForm() {
 		}
 	}
 
+	async function onDeletePhoto() {
+		if (!photoUrl && !photoFileId) {
+			return
+		}
+
+		const confirmed = await confirm(
+			'Are you sure you want to delete this apiary photo?',
+			{ confirmText: 'Delete photo', isDangerous: true }
+		)
+
+		if (!confirmed) {
+			return
+		}
+
+		setPhotoUploadError(null)
+		setDeletingPhoto(true)
+		try {
+			setPhotoUrl(null)
+			setPhotoFileId(null)
+			await updateApiary({
+				id: +id,
+				name,
+				lat: `${lat}`,
+				lng: `${lng}`,
+				photoUrl: undefined,
+				photoFileId: undefined,
+			})
+		} catch (deleteError) {
+			setPhotoUploadError(deleteError instanceof Error ? deleteError : new Error('Failed to delete image'))
+		} finally {
+			setDeletingPhoto(false)
+		}
+	}
+
 	async function onPhotoUpload(event: React.ChangeEvent<HTMLInputElement>) {
 		const target = event.target as HTMLInputElement
 		const file = target.files?.[0]
@@ -319,28 +354,38 @@ export default function ApiaryEditForm() {
 					</div>
 				</VisualForm>
 
-				<div style={{ marginTop: 16, border: '1px solid #e5e5e5', borderRadius: 12, padding: 12 }}>
-					<div style={{ fontWeight: 600, marginBottom: 8 }}><T>Apiary photo</T></div>
-					{photoUrl && (
-						<img
-							src={photoUrl}
-							alt={name || 'Apiary photo'}
-							style={{ width: '100%', maxHeight: 260, objectFit: 'cover', borderRadius: 10, marginBottom: 8 }}
-						/>
-					)}
-					<DragAndDrop handleDrop={onPhotoDrop}>
-						<div className={styles.dropArea}>
+					<div style={{ marginTop: 16, border: '1px solid #e5e5e5', borderRadius: 12, padding: 12 }}>
+						<div style={{ fontWeight: 600, marginBottom: 8 }}><T>Apiary photo</T></div>
+						{photoUrl && (
+							<div style={{ position: 'relative', marginBottom: 8 }}>
+								<img
+									src={photoUrl}
+									alt={name || 'Apiary photo'}
+									style={{ width: '100%', maxHeight: 260, objectFit: 'cover', borderRadius: 10 }}
+								/>
+								<Button
+									color="red"
+									onClick={onDeletePhoto}
+									loading={deletingPhoto}
+									style={{ position: 'absolute', top: 8, right: 8, zIndex: 1 }}
+								>
+									<DeleteIcon /><span><T>Delete photo</T></span>
+								</Button>
+							</div>
+						)}
+						<DragAndDrop handleDrop={onPhotoDrop}>
+							<div className={`${styles.dropArea} ${photoUrl ? styles.dropAreaCompact : ''}`}>
 							<input
 								type="file"
 								className={styles.inputfile}
 								id="apiary-photo-file"
 								accept="image/*"
 								onChange={onPhotoUpload}
-								disabled={uploadingPhoto}
+								disabled={uploadingPhoto || deletingPhoto}
 							/>
 							<label htmlFor="apiary-photo-file" className={styles.fileUploadLabel}>
 								<UploadIcon />
-								<T>Upload apiary photo</T>
+								{photoUrl ? <T>Replace apiary photo</T> : <T>Upload apiary photo</T>}
 							</label>
 							<div className={styles.uploadHint}>
 								<T>Drag and drop an image here or click to select</T>
@@ -348,6 +393,7 @@ export default function ApiaryEditForm() {
 						</div>
 					</DragAndDrop>
 					{uploadingPhoto && <div style={{ marginTop: 8 }}><T>Uploading photo...</T></div>}
+					{deletingPhoto && <div style={{ marginTop: 8 }}><T>Deleting photo...</T></div>}
 					{photoUploadError && <ErrorMsg error={photoUploadError} />}
 				</div>
 			</div>

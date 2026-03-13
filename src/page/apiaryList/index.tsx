@@ -128,6 +128,14 @@ export default function ApiaryList(props) {
 						added
 						lastTreatment
 					}
+					families{
+						id
+						name
+						age
+						race
+						added
+						lastTreatment
+					}
 
 					boxes {
 						id

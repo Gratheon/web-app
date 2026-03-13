@@ -15,6 +15,7 @@ import ListIcon from '../../../icons/listIcon.tsx'
 import TableIcon from '../../../icons/tableIcon.tsx'
 import DateTimeAgo from '../../../shared/dateTimeAgo'
 import { sortHives } from '../hiveSort'
+import { getColonyStatusLabel, getHiveFamilies } from '../hivePresentation'
 
 const COLUMN_CONFIG = [
 	{
@@ -124,6 +125,41 @@ export default function apiaryListRow({
 		}
 
 		return styles.statusPillYellow
+	}
+
+	const getQueenCellValue = (hive) => {
+		const families = getHiveFamilies(hive)
+		if (!families.length) {
+			return hive?.name || '-'
+		}
+
+		return families
+			.map((family) => family?.name || 'Unnamed')
+			.join(', ')
+	}
+
+	const getQueenYearCellValue = (hive) => {
+		const families = getHiveFamilies(hive)
+		if (!families.length) {
+			return '-'
+		}
+
+		return families
+			.map((family) => family?.added)
+			.filter(Boolean)
+			.join(', ') || '-'
+	}
+
+	const getQueenRaceCellValue = (hive) => {
+		const families = getHiveFamilies(hive)
+		if (!families.length) {
+			return '-'
+		}
+
+		return families
+			.map((family) => family?.race)
+			.filter(Boolean)
+			.join(', ') || '-'
 	}
 
 	const sortedHives = React.useMemo(() => {
@@ -414,7 +450,7 @@ export default function apiaryListRow({
 								<Hive boxes={hive.boxes} size={60} />
 								<div className={styles.title}>
 									{hive.hiveNumber && <span>#{hive.hiveNumber} </span>}
-									{hive?.family?.name || hive.name || 'Unnamed'}
+									{getHiveFamilies(hive)[0]?.name || hive.name || 'Unnamed'}
 								</div>
 							</NavLink>
 
@@ -481,6 +517,13 @@ export default function apiaryListRow({
 										onMouseEnter={() => onSelectHive(apiary.id, hive.id)}
 										onClick={() => onSelectHive(apiary.id, hive.id)}
 									>
+										{(() => {
+											const displayStatus = getColonyStatusLabel(hive)
+											const families = getHiveFamilies(hive)
+											const primaryFamily = families[0]
+
+											return (
+												<>
 										<td>
 											<NavLink to={`/apiaries/${apiary.id}/hives/${hive.id}`}>
 												<Hive boxes={hive.boxes} size={20} />
@@ -495,15 +538,15 @@ export default function apiaryListRow({
 										{visibleColumns.includes('QUEEN') && (
 											<td>
 												<NavLink className={styles.title} to={`/apiaries/${apiary.id}/hives/${hive.id}`}>
-													{hive?.family?.name || hive.name || '-'}
+													{getQueenCellValue(hive)}
 												</NavLink>
 											</td>
 										)}
 										{visibleColumns.includes('QUEEN_YEAR') && (
-											<td>{hive?.family?.added || '-'}</td>
+											<td>{getQueenYearCellValue(hive)}</td>
 										)}
 										{visibleColumns.includes('QUEEN_RACE') && (
-											<td>{hive?.family?.race || '-'}</td>
+											<td>{getQueenRaceCellValue(hive)}</td>
 										)}
 										{visibleColumns.includes('BEE_COUNT') && (
 											<td>
@@ -512,15 +555,15 @@ export default function apiaryListRow({
 										)}
 										{visibleColumns.includes('STATUS') && (
 											<td>
-												{hive.status
-													? <span className={`${styles.statusPill} ${getStatusPillClassName(hive.status)}`}>{hive.status}</span>
+												{displayStatus
+													? <span className={`${styles.statusPill} ${getStatusPillClassName(displayStatus)}`}>{displayStatus}</span>
 													: '-'}
 											</td>
 										)}
 										{visibleColumns.includes('LAST_TREATMENT') && (
 											<td>
-												{hive?.family?.lastTreatment
-													? <DateTimeAgo dateString={hive?.family?.lastTreatment} lang={user.lang} />
+												{primaryFamily?.lastTreatment
+													? <DateTimeAgo dateString={primaryFamily.lastTreatment} lang={user.lang} />
 													: '-'}
 											</td>
 										)}
@@ -531,6 +574,9 @@ export default function apiaryListRow({
 													: '-'}
 											</td>
 										)}
+												</>
+											)
+										})()}
 									</tr>
 								))}
 						</tbody>

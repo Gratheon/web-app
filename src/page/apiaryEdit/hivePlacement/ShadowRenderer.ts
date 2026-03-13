@@ -1,6 +1,7 @@
 import { Obstacle, HivePlacement, Hive, HIVE_SIZE } from './types'
 
 const DEFAULT_OBSTACLE_HEIGHT = 150
+type Point = { x: number; y: number }
 
 export const calculateShadow = (
 	ctx: CanvasRenderingContext2D,
@@ -115,63 +116,12 @@ const drawRectangleShadow = (
 		{ x: -obs.width / 2, y: obs.height / 2 }
 	]
 
-	const rotatedCorners = corners.map(c => ({
+	const rotatedCorners: Point[] = corners.map(c => ({
 		x: obs.x + c.x * Math.cos(rotRad) - c.y * Math.sin(rotRad),
 		y: obs.y + c.x * Math.sin(rotRad) + c.y * Math.cos(rotRad)
 	}))
 
-	const litEdges: number[] = []
-	for (let i = 0; i < rotatedCorners.length; i++) {
-		const p1 = rotatedCorners[i]
-		const p2 = rotatedCorners[(i + 1) % rotatedCorners.length]
-		const edgeDx = p2.x - p1.x
-		const edgeDy = p2.y - p1.y
-		const normalX = -edgeDy
-		const normalY = edgeDx
-		const dot = normalX * sunDirX + normalY * sunDirY
-
-		if (dot > 0) {
-			litEdges.push(i)
-		}
-	}
-
-	if (litEdges.length >= 2) {
-		const silhouettePoints: { x: number; y: number }[] = []
-
-		let minIdx = Math.min(...litEdges)
-		let maxIdx = Math.max(...litEdges)
-
-		if (maxIdx - minIdx === litEdges.length - 1) {
-			for (let i = minIdx; i <= maxIdx + 1; i++) {
-				silhouettePoints.push(rotatedCorners[i % rotatedCorners.length])
-			}
-		} else {
-			for (let i = maxIdx; i < rotatedCorners.length + minIdx + 1; i++) {
-				silhouettePoints.push(rotatedCorners[i % rotatedCorners.length])
-			}
-		}
-
-		ctx.fillStyle = 'rgba(0, 0, 0, 0.25)'
-		ctx.beginPath()
-
-		silhouettePoints.forEach((p, i) => {
-			if (i === 0) {
-				ctx.moveTo(p.x, p.y)
-			} else {
-				ctx.lineTo(p.x, p.y)
-			}
-		})
-
-		for (let i = silhouettePoints.length - 1; i >= 0; i--) {
-			const p = silhouettePoints[i]
-			const shadowX = p.x - sunDirX * shadowLength
-			const shadowY = p.y - sunDirY * shadowLength
-			ctx.lineTo(shadowX, shadowY)
-		}
-
-		ctx.closePath()
-		ctx.fill()
-	}
+	drawConvexShadow(ctx, rotatedCorners, sunDirX, sunDirY, shadowLength, 'rgba(0, 0, 0, 0.25)')
 }
 
 const drawHiveShadow = (
@@ -189,61 +139,71 @@ const drawHiveShadow = (
 		{ x: -HIVE_SIZE / 2, y: HIVE_SIZE / 2 }
 	]
 
-	const rotatedCorners = corners.map(c => ({
+	const rotatedCorners: Point[] = corners.map(c => ({
 		x: placement.x + c.x * Math.cos(rotRad) - c.y * Math.sin(rotRad),
 		y: placement.y + c.x * Math.sin(rotRad) + c.y * Math.cos(rotRad)
 	}))
 
-	const litEdges: number[] = []
-	for (let i = 0; i < rotatedCorners.length; i++) {
-		const p1 = rotatedCorners[i]
-		const p2 = rotatedCorners[(i + 1) % rotatedCorners.length]
-		const edgeDx = p2.x - p1.x
-		const edgeDy = p2.y - p1.y
-		const normalX = -edgeDy
-		const normalY = edgeDx
-		const dot = normalX * sunDirX + normalY * sunDirY
-
-		if (dot > 0) {
-			litEdges.push(i)
-		}
-	}
-
-	if (litEdges.length >= 2) {
-		const silhouettePoints: { x: number; y: number }[] = []
-		let minIdx = Math.min(...litEdges)
-		let maxIdx = Math.max(...litEdges)
-
-		if (maxIdx - minIdx === litEdges.length - 1) {
-			for (let i = minIdx; i <= maxIdx + 1; i++) {
-				silhouettePoints.push(rotatedCorners[i % rotatedCorners.length])
-			}
-		} else {
-			for (let i = maxIdx; i < rotatedCorners.length + minIdx + 1; i++) {
-				silhouettePoints.push(rotatedCorners[i % rotatedCorners.length])
-			}
-		}
-
-		ctx.fillStyle = 'rgba(0, 0, 0, 0.2)'
-		ctx.beginPath()
-
-		silhouettePoints.forEach((p, i) => {
-			if (i === 0) {
-				ctx.moveTo(p.x, p.y)
-			} else {
-				ctx.lineTo(p.x, p.y)
-			}
-		})
-
-		for (let i = silhouettePoints.length - 1; i >= 0; i--) {
-			const p = silhouettePoints[i]
-			const shadowX = p.x - sunDirX * shadowLength
-			const shadowY = p.y - sunDirY * shadowLength
-			ctx.lineTo(shadowX, shadowY)
-		}
-
-		ctx.closePath()
-		ctx.fill()
-	}
+	drawConvexShadow(ctx, rotatedCorners, sunDirX, sunDirY, shadowLength, 'rgba(0, 0, 0, 0.2)')
 }
 
+const drawConvexShadow = (
+	ctx: CanvasRenderingContext2D,
+	basePoints: Point[],
+	sunDirX: number,
+	sunDirY: number,
+	shadowLength: number,
+	fillStyle: string
+) => {
+	if (basePoints.length < 3) return
+
+	const projectedPoints: Point[] = basePoints.map(p => ({
+		x: p.x - sunDirX * shadowLength,
+		y: p.y - sunDirY * shadowLength
+	}))
+
+	const hull = convexHull([...basePoints, ...projectedPoints])
+	if (hull.length < 3) return
+
+	ctx.fillStyle = fillStyle
+	ctx.beginPath()
+	ctx.moveTo(hull[0].x, hull[0].y)
+	for (let i = 1; i < hull.length; i++) {
+		ctx.lineTo(hull[i].x, hull[i].y)
+	}
+	ctx.closePath()
+	ctx.fill()
+}
+
+const convexHull = (points: Point[]): Point[] => {
+	if (points.length <= 1) return points
+
+	const sorted = [...points].sort((a, b) => {
+		if (a.x === b.x) return a.y - b.y
+		return a.x - b.x
+	})
+
+	const cross = (o: Point, a: Point, b: Point) =>
+		(a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)
+
+	const lower: Point[] = []
+	for (const p of sorted) {
+		while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) {
+			lower.pop()
+		}
+		lower.push(p)
+	}
+
+	const upper: Point[] = []
+	for (let i = sorted.length - 1; i >= 0; i--) {
+		const p = sorted[i]
+		while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) {
+			upper.pop()
+		}
+		upper.push(p)
+	}
+
+	lower.pop()
+	upper.pop()
+	return [...lower, ...upper]
+}

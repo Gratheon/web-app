@@ -1,5 +1,9 @@
+@import '@/layout.module.less';
+
 .page {
-	padding: 10px 20px;
+	padding: 0 30px;
+	max-width: @maxTabletWidthPx;
+	margin: 0 auto;
 }
 
 .description {
@@ -12,6 +16,14 @@
 	justify-content: space-between;
 	align-items: flex-start;
 	gap: 12px;
+
+	h2 {
+		padding: 10px 0;
+	}
+}
+
+:global([data-sidebar-collapsed='true']) .topBar h2 {
+	padding: 10px 30px;
 }
 
 .topBarAction {

@@ -7,16 +7,13 @@ import Modal from '@/shared/modal'
 import Button from '@/shared/button'
 import MessageError from '@/shared/messageError'
 import QueenColor from '@/page/hiveEdit/hiveTopInfo/queenColor'
+import QueenColorPicker from '@/shared/queenColorPicker'
 import { updateFamily } from '@/models/family'
 import { getUser } from '@/models/user'
 import { SUPPORTED_LANGUAGES } from '@/config/languages'
-import { getQueenColorFromYear } from '@/page/hiveEdit/hiveTopInfo/queenColor/utils'
 import RefreshIcon from '@/icons/RefreshIcon'
 import styles from './AddQueenModal.module.less'
 import inputStyles from '@/shared/input/styles.module.less'
-
-//@ts-ignore
-import GithubPicker from 'react-color/es/Github'
 
 const RANDOM_QUEEN_NAME_QUERY = gql`
 	query RandomHiveName($language: String) {
@@ -35,50 +32,6 @@ const WAREHOUSE_QUEENS_QUERY = gql`
 		}
 	}
 `
-
-const colors = [
-	'#fefee3',
-	'#ffba08',
-	'#f94144',
-	'#38b000',
-	'#0466c8',
-	'#4D4D4D',
-	'#999999',
-	'#FFFFFF',
-	'#F44E3B',
-	'#FE9200',
-	'#FCDC00',
-	'#DBDF00',
-	'#A4DD00',
-	'#68CCCA',
-	'#73D8FF',
-	'#AEA1FF',
-	'#FDA1FF',
-	'#333333',
-	'#808080',
-	'#cccccc',
-	'#D33115',
-	'#E27300',
-	'#FCC400',
-	'#B0BC00',
-	'#68BC00',
-	'#16A5A5',
-	'#009CE0',
-	'#7B64FF',
-	'#FA28FF',
-	'#000000',
-	'#666666',
-	'#B3B3B3',
-	'#9F0500',
-	'#C45100',
-	'#FB9E00',
-	'#808900',
-	'#194D33',
-	'#0C797D',
-	'#0062B1',
-	'#653294',
-	'#AB149E',
-]
 
 type ModalMode = 'create' | 'warehouse'
 
@@ -111,7 +64,6 @@ export default function AddQueenModal({
 	const [race, setRace] = useState('')
 	const [year, setYear] = useState(currentYear)
 	const [customColor, setCustomColor] = useState<string | null>(null)
-	const [showColorPicker, setShowColorPicker] = useState(false)
 	const [selectedWarehouseQueenId, setSelectedWarehouseQueenId] = useState('')
 	const [error, setError] = useState<string | null>(null)
 	const [lang, setLang] = useState('en')
@@ -385,34 +337,11 @@ export default function AddQueenModal({
 								/>
 							</div>
 							<div className={styles.colorPickerWrapper}>
-								<div
-									className={styles.colorPreview}
-									onClick={(e) => {
-										e.stopPropagation()
-										setShowColorPicker(!showColorPicker)
-									}}
-								>
-									<QueenColor year={year} color={customColor} />
-								</div>
-								{showColorPicker && (
-									<>
-										<div
-											className={styles.colorPickerOverlay}
-											onClick={() => setShowColorPicker(false)}
-										/>
-										<div className={styles.colorPickerPopup}>
-											<GithubPicker
-												width={212}
-												colors={colors}
-												onChangeComplete={(c: any) => {
-													setCustomColor(c.hex)
-													setShowColorPicker(false)
-												}}
-												color={customColor || getQueenColorFromYear(year)}
-											/>
-										</div>
-									</>
-								)}
+								<QueenColorPicker
+									year={year}
+									color={customColor}
+									onColorChange={(value: string) => setCustomColor(value)}
+								/>
 							</div>
 						</div>
 					</>

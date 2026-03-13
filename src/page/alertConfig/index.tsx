@@ -4,10 +4,9 @@ import { useConfirm } from '@/hooks/useConfirm'
 import Loader from '@/shared/loader'
 import ErrorMsg from '@/shared/messageError'
 import Button from '@/shared/button'
-import T from '@/shared/translate'
+import T, { useTranslation as t } from '@/shared/translate'
 import styles from './styles.module.less'
 import MessageSuccess from '@/shared/messageSuccess'
-import PagePaddedCentered from '@/shared/pagePaddedCentered'
 import DateTimeFormat from '@/shared/dateTimeFormat'
 import { Tab, TabBar } from '@/shared/tab'
 import imageURL from '@/assets/bear.webp'
@@ -177,6 +176,28 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 	});
 	const [saving, setSaving] = useState(false);
 	const [showSuccess, setShowSuccess] = useState(false);
+	const inText = t('in')
+	const forText = t('for')
+	const minText = t('min')
+	const hiveIdText = t('Hive ID')
+	const allHivesInText = t('All hives in')
+	const allHivesText = t('All hives')
+	const enabledText = t('Enabled')
+	const disabledText = t('Disabled')
+	const deleteRulePrompt = t('Delete this alert rule?')
+	const deleteText = t('Delete')
+	const deleteRuleTitle = t('Delete rule')
+	const bearHoneyIllustrationAlt = t('Bear and honey illustration')
+	const hiveLabel = t('Hive')
+	const smsLabel = t('SMS')
+	const emailLabel = t('Email')
+	const telegramLabel = t('Telegram')
+	const deleteSmsAlertChannelPrompt = t('Delete SMS alert channel?')
+	const deleteEmailAlertChannelPrompt = t('Delete Email alert channel?')
+	const deleteTelegramAlertChannelPrompt = t('Delete Telegram alert channel?')
+	const enableSmsAlertsText = t('Enable SMS Alerts')
+	const enableEmailAlertsText = t('Enable Email Alerts')
+	const enableTelegramAlertsText = t('Enable Telegram Alerts')
 
 
 	React.useEffect(() => {
@@ -232,9 +253,16 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 	}
 
 	async function onDelete() {
+		const deleteChannelPrompt =
+			selectedChannel === 'SMS'
+				? deleteSmsAlertChannelPrompt
+				: selectedChannel === 'EMAIL'
+					? deleteEmailAlertChannelPrompt
+					: deleteTelegramAlertChannelPrompt
+
 		const confirmed = await confirm(
-			`Delete ${selectedChannel} alert channel?`,
-			{ confirmText: 'Delete', isDangerous: true }
+			deleteChannelPrompt,
+			{ confirmText: deleteText, isDangerous: true }
 		)
 
 		if (!confirmed) return;
@@ -248,7 +276,7 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 
 	if (alertsServiceError) {
 		return (
-			<PagePaddedCentered>
+			<div className={styles.page}>
 				<ErrorMsg error={alertsServiceError} />
 				<div className={styles.serviceErrorInfo}>
 					<p>
@@ -258,7 +286,7 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 						<T>Configuring alert channels and listing alerts is temporarily not possible.</T>
 					</p>
 				</div>
-			</PagePaddedCentered>
+			</div>
 		);
 	}
 
@@ -268,16 +296,22 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 
 	if (!data && pageQueryError) {
 		return (
-			<PagePaddedCentered>
+			<div className={styles.page}>
 				<ErrorMsg error={pageQueryError} />
-			</PagePaddedCentered>
+			</div>
 		);
 	}
 
 	const existingChannel = channels.find(ch => ch.channelType === selectedChannel);
+	const enableChannelAlertsLabel =
+		selectedChannel === 'SMS'
+			? enableSmsAlertsText
+			: selectedChannel === 'EMAIL'
+				? enableEmailAlertsText
+				: enableTelegramAlertsText
 
 	return (
-		<PagePaddedCentered>
+		<div className={styles.page}>
 			{showSuccess && <MessageSuccess title={<T>Saved!</T>} message={<T>Alert channel settings saved successfully.</T>} />}
 			<ErrorMsg error={pageQueryError || mutationError || null} />
 
@@ -285,22 +319,22 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 				{section === 'channels' && (
 					<>
 						<div className={styles.panelSection}>
-						<p className={styles.sectionTitle}>
+						<h2 className={styles.sectionTitle}>
 							<T>Configure Alert Channels</T>
-						</p>
+						</h2>
 						<p style={{ color: '#666', margin: '16px 0' }}>
 							<T>Configure how you want to receive alerts. You can enable multiple channels.</T>
 						</p>
 
 						<TabBar>
 							<Tab isSelected={selectedChannel === 'SMS'} onClick={() => setSelectedChannel('SMS')}>
-								SMS
+								{smsLabel}
 							</Tab>
 							<Tab isSelected={selectedChannel === 'EMAIL'} onClick={() => setSelectedChannel('EMAIL')}>
-								Email
+								{emailLabel}
 							</Tab>
 							<Tab isSelected={selectedChannel === 'TELEGRAM'} onClick={() => setSelectedChannel('TELEGRAM')}>
-								Telegram
+								{telegramLabel}
 							</Tab>
 						</TabBar>
 
@@ -384,7 +418,7 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 							onChange={onConfigChange}
 						/>
 						<label htmlFor="enabled" className={styles.configLabel} style={{ fontWeight: 500 }}>
-							<T>{`Enable ${selectedChannel} Alerts`}</T>
+							{enableChannelAlertsLabel}
 						</label>
 					</div>
 
@@ -405,9 +439,9 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 
 				{section === 'rules' && (
 					<div className={styles.panelSection}>
-						<p className={styles.sectionTitle}>
+						<h2 className={styles.sectionTitle}>
 							<T>Configure Alert Rules</T>
-						</p>
+						</h2>
 						<p style={{ color: '#666', marginBottom: '16px' }}>
 							<T>Alert rules define when you should be notified about specific conditions in your hives.</T>
 						</p>
@@ -442,7 +476,7 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 									return (
 										<div key={rule.id} className={styles.alertItem}>
 											<div className={styles.alertContent}>
-												<div className={styles.alertText}>
+									<div className={styles.alertText}>
 													<strong>{rule.metricType}</strong>
 													{' '}
 													{rule.conditionType === 'GREATER_THAN' && '>'}
@@ -450,7 +484,7 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 													{rule.conditionType === 'EQUALS' && '='}
 													{' '}
 													{rule.thresholdValue}
-													{rule.durationMinutes > 0 && ` for ${rule.durationMinutes} min`}
+													{rule.durationMinutes > 0 && ` ${forText} ${rule.durationMinutes} ${minText}`}
 												</div>
 												<div className={styles.alertMeta}>
 													{rule.hiveId ? (
@@ -459,7 +493,9 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 																<a href={hiveViewUrl} className={styles.viewChartLink}>
 																	{hiveInfo.name}
 																</a>
-																{' in '}
+																{' '}
+																{inText}
+																{' '}
 																{apiary && apiaryViewUrl ? (
 																	<a href={apiaryViewUrl} className={styles.viewChartLink}>
 																		{apiary.name}
@@ -469,21 +505,22 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 																)}
 															</>
 														) : (
-															<>Hive ID: {rule.hiveId}</>
+															<>{hiveIdText}: {rule.hiveId}</>
 														)
 													) : apiary && apiaryViewUrl ? (
 														<>
-															All hives in{' '}
+															{allHivesInText}
+															{' '}
 															<a href={apiaryViewUrl} className={styles.viewChartLink}>
 																{apiary.name}
 															</a>
 														</>
 													) : (
-														<>All hives</>
+														<>{allHivesText}</>
 													)}
 													{' | '}
 													<span style={{ color: rule.enabled ? 'green' : 'red' }}>
-														{rule.enabled ? '✓ Enabled' : '✗ Disabled'}
+														{rule.enabled ? `✓ ${enabledText}` : `✗ ${disabledText}`}
 													</span>
 													{timeViewUrl && (
 														<>
@@ -500,8 +537,8 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 													className={styles.deleteRuleBtn}
 													onClick={async () => {
 														const confirmed = await confirm(
-															'Delete this alert rule?',
-															{ confirmText: 'Delete', isDangerous: true }
+															deleteRulePrompt,
+															{ confirmText: deleteText, isDangerous: true }
 														)
 
 														if (confirmed) {
@@ -509,7 +546,7 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 															reexecuteQuery();
 														}
 													}}
-													title="Delete rule"
+													title={deleteRuleTitle}
 												>
 													🗑️
 												</button>
@@ -524,12 +561,12 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 
 				{section === 'history' && (
 					<div className={styles.panelSection}>
-					<p className={styles.sectionTitle}>
+					<h2 className={styles.sectionTitle}>
 						<T>Alert History</T>
-					</p>
+					</h2>
 					{alerts.length === 0 ? (
 							<div className={styles.historyPlaceholder}>
-								<img className={styles.placeholderImage} src={imageURL} alt="Bear and honey illustration" />
+								<img className={styles.placeholderImage} src={imageURL} alt={bearHoneyIllustrationAlt} />
 								<p><T>No alerts yet</T></p>
 								<p className={styles.placeholderHint}>
 									<T>Triggered alerts from your hives will appear here.</T>
@@ -549,7 +586,7 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 											<div className={styles.alertText}>{alert.text}</div>
 											{alert.hiveId && (
 												<div className={styles.alertMeta}>
-													Hive: {alert.hiveId} | {alert.metricType}: {alert.metricValue}
+													{hiveLabel}: {alert.hiveId} | {alert.metricType}: {alert.metricValue}
 													{timeViewUrl && (
 														<>
 															{' | '}
@@ -574,6 +611,6 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 				)}
 			</div>
 			{ConfirmDialog}
-		</PagePaddedCentered>
+		</div>
 	);
 } 

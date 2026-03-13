@@ -95,7 +95,7 @@ export default function Billing({ user }) {
 				)}
 				{stripeStatus === 'cancel' && <MessageError error={<T>Payment was cancelled</T>} />}
 
-				<h3><T ctx="this is a headline for billing form">Billing</T></h3>
+				<h2><T ctx="this is a headline for billing form">Billing</T></h2>
 				{errorCancel && <MessageError error={errorCancel} />}
 
 				<div style={{ display: 'flex', marginBottom: '2rem', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -203,7 +203,7 @@ export default function Billing({ user }) {
 			</section>
 
 			<section className={styles.section}>
-				<h3><T>Choose Your Plan</T></h3>
+				<h2><T>Choose Your Plan</T></h2>
 				<PricingPlans
 					currentPlan={user.billingPlan || 'free'}
 				/>

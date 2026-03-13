@@ -176,7 +176,7 @@ export default function TokenList() {
 	return (
 		<>
 			<section className={style.section}>
-				<h3><T>API tokens</T></h3>
+				<h2><T>API tokens</T></h2>
 
 				<div className={style.tokenSectionHeader}>
 					<p className={style.tokenSectionDescription}>
@@ -228,7 +228,7 @@ export default function TokenList() {
 			</section>
 
 			{shareTokens && shareTokens.length > 0 && <section className={style.section}>
-				<h3><T>Shared links</T></h3>
+				<h2><T>Shared links</T></h2>
 				<p><T>You can share access to hive inspections with other people. This list shows list of such shared tokens</T></p>
 
 				<div className={`${style.list} ${style.stripedRows}`}>

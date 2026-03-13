@@ -1,7 +1,10 @@
+@import '@/layout.module.less';
+
 .pageContainer {
   width: 100%;
-  max-width: 100%;
-  padding: 0 16px 80px 16px;
+  max-width: @maxTabletWidthPx;
+  padding: 0 30px 80px 30px;
+  margin: 0 auto;
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -17,9 +20,14 @@
 
 .pageTitle {
   margin: 0;
+  padding: 10px 0;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
+}
+
+:global([data-sidebar-collapsed='true']) .pageTitle {
+  padding: 10px 30px;
 }
 
 .contentWrapper {

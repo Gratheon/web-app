@@ -1,11 +1,16 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import { gql, useQuery } from '@/api'
+import { gql, useMutation, useQuery } from '@/api'
+import Button from '@/shared/button'
 import ErrorMsg from '@/shared/messageError'
 import Loader from '@/shared/loader'
+import Modal from '@/shared/modal'
 import T from '@/shared/translate'
+import queenImageURL from '@/assets/queen.webp'
 import { getQueenColorFromYear } from '@/page/hiveEdit/hiveTopInfo/queenColor/utils'
+import QueenColorPicker from '@/shared/queenColorPicker'
+import inputStyles from '@/shared/input/styles.module.less'
 import styles from './queens.module.less'
 
 type WarehouseQueen = {
@@ -45,8 +50,36 @@ const WAREHOUSE_QUEENS_QUERY = gql`
 }
 `
 
+const DELETE_WAREHOUSE_QUEEN_MUTATION = gql`
+mutation deleteWarehouseQueen($familyId: ID!) {
+	deleteWarehouseQueen(familyId: $familyId)
+}
+`
+
+const ADD_WAREHOUSE_QUEEN_MUTATION = gql`
+mutation addWarehouseQueen($queen: FamilyInput!) {
+	addWarehouseQueen(queen: $queen) {
+		id
+		name
+		race
+		added
+		color
+	}
+}
+`
+
 export default function WarehouseQueensPage() {
-	const { data, loading, error } = useQuery(WAREHOUSE_QUEENS_QUERY)
+	const { data, loading, error, reexecuteQuery } = useQuery(WAREHOUSE_QUEENS_QUERY)
+	const [deleteWarehouseQueen] = useMutation(DELETE_WAREHOUSE_QUEEN_MUTATION)
+	const [addWarehouseQueen] = useMutation(ADD_WAREHOUSE_QUEEN_MUTATION)
+	const [deletingId, setDeletingId] = useState<string | null>(null)
+	const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+	const [isCreating, setIsCreating] = useState(false)
+	const [createError, setCreateError] = useState<string | null>(null)
+	const [newQueenName, setNewQueenName] = useState('')
+	const [newQueenRace, setNewQueenRace] = useState('')
+	const [newQueenYear, setNewQueenYear] = useState(new Date().getFullYear().toString())
+	const [newQueenColor, setNewQueenColor] = useState('')
 	const [sortBy, setSortBy] = useState<SortColumn>('YEAR')
 	const [sortOrder, setSortOrder] = useState<SortOrder>('DESC')
 
@@ -74,6 +107,62 @@ export default function WarehouseQueensPage() {
 
 		setSortBy(nextSortBy)
 		setSortOrder('ASC')
+	}
+
+	async function onDeleteQueen(queen: WarehouseQueen) {
+		if (!window.confirm('Delete this queen from warehouse?')) return
+
+		setDeletingId(queen.id)
+		const result = await deleteWarehouseQueen({
+			familyId: queen.id,
+		})
+		setDeletingId(null)
+
+		if (result?.data?.deleteWarehouseQueen) {
+			reexecuteQuery({ requestPolicy: 'network-only' })
+		}
+	}
+
+	function openCreateModal() {
+		setCreateError(null)
+		setNewQueenName('')
+		setNewQueenRace('')
+		setNewQueenYear(new Date().getFullYear().toString())
+		setNewQueenColor('')
+		setIsCreateModalOpen(true)
+	}
+
+	async function onCreateQueen() {
+		setCreateError(null)
+		const race = newQueenRace.trim()
+		const added = newQueenYear.trim()
+		if (!race) {
+			setCreateError('Please provide the queen race.')
+			return
+		}
+		if (!/^\d{4}$/.test(added)) {
+			setCreateError('Please provide a valid year (4 digits).')
+			return
+		}
+
+		setIsCreating(true)
+		const result = await addWarehouseQueen({
+			queen: {
+				name: newQueenName.trim() || null,
+				race,
+				added,
+				color: newQueenColor || null,
+			},
+		})
+		setIsCreating(false)
+
+		if (result?.data?.addWarehouseQueen?.id) {
+			setIsCreateModalOpen(false)
+			reexecuteQuery({ requestPolicy: 'network-only' })
+			return
+		}
+
+		setCreateError('Failed to add queen to warehouse.')
 	}
 
 	const sortedQueens = useMemo(() => {
@@ -141,14 +230,22 @@ export default function WarehouseQueensPage() {
 
 	return (
 		<div className={styles.page}>
-			<h2><T>Warehouse Queens</T></h2>
+			<div className={styles.headerRow}>
+				<h2><T>Warehouse Queens</T></h2>
+				<Button color="green" size="small" onClick={openCreateModal}>
+					<T>Add Queen</T>
+				</Button>
+			</div>
 			<p className={styles.description}>
 				<T>Queens stored in warehouse and not assigned to any hive.</T>
 			</p>
 			<ErrorMsg error={error} />
 
 				{sortedQueens.length === 0 && !error ? (
-					<div className={styles.empty}><T>No queens stored in warehouse.</T></div>
+					<div className={styles.empty}>
+						<img src={queenImageURL} alt="Queen placeholder" className={styles.emptyImage} />
+						<T>No queens stored in warehouse.</T>
+					</div>
 				) : null}
 
 				{sortedQueens.length === 0 && !!error ? (
@@ -170,6 +267,7 @@ export default function WarehouseQueensPage() {
 									<th className={styles.sortable} onClick={() => onSort('YEAR')}><T>Year</T>{sortArrow('YEAR')}</th>
 									<th className={styles.sortable} onClick={() => onSort('RACE')}><T>Race</T>{sortArrow('RACE')}</th>
 									<th><T>Last hive</T></th>
+									<th className={styles.actionsColumn}><T>Actions</T></th>
 								</tr>
 							</thead>
 							<tbody>
@@ -198,6 +296,16 @@ export default function WarehouseQueensPage() {
 													'-'
 												)}
 											</td>
+											<td className={styles.actionsColumn}>
+												<Button
+													size="small"
+													color="red"
+													loading={deletingId === queen.id}
+													onClick={() => onDeleteQueen(queen)}
+												>
+													<T>Delete</T>
+												</Button>
+											</td>
 										</tr>
 									)
 								})}
@@ -205,6 +313,59 @@ export default function WarehouseQueensPage() {
 						</table>
 					</div>
 				) : null}
+
+			{isCreateModalOpen ? (
+				<Modal title={<T>Add Queen</T>} onClose={() => setIsCreateModalOpen(false)}>
+					<div className={styles.modalContent}>
+						<ErrorMsg error={createError} />
+
+						<label className={inputStyles.label}><T>Queen Name</T></label>
+						<input
+							className={inputStyles.input}
+							type="text"
+							value={newQueenName}
+							onChange={(e: any) => setNewQueenName(e.target.value)}
+							placeholder="Enter queen name"
+							autoFocus
+						/>
+
+						<label className={inputStyles.label}><T>Race</T></label>
+						<input
+							className={inputStyles.input}
+							type="text"
+							value={newQueenRace}
+							onChange={(e: any) => setNewQueenRace(e.target.value)}
+							placeholder="e.g. Carniolan, Italian, etc."
+						/>
+
+						<label className={inputStyles.label}><T>Year</T></label>
+						<input
+							className={inputStyles.input}
+							type="text"
+							maxLength={4}
+							value={newQueenYear}
+							onChange={(e: any) => setNewQueenYear(e.target.value)}
+							placeholder="YYYY"
+						/>
+
+						<label className={inputStyles.label}><T>Color (optional)</T></label>
+						<QueenColorPicker
+							year={newQueenYear}
+							color={newQueenColor || null}
+							onColorChange={(value: string) => setNewQueenColor(value)}
+						/>
+
+						<div className={styles.modalActions}>
+							<Button size="small" onClick={() => setIsCreateModalOpen(false)}>
+								<T>Cancel</T>
+							</Button>
+							<Button size="small" color="green" onClick={onCreateQueen} loading={isCreating}>
+								<T>Add to Warehouse</T>
+							</Button>
+						</div>
+					</div>
+				</Modal>
+			) : null}
 			</div>
 	)
 }

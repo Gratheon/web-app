@@ -37,6 +37,13 @@
 	display: flex;
 }
 
+.expandedLogoHeader {
+	img {
+		width: 138px;
+		margin: 10px auto;
+	}
+}
+
 .subMenu {
 	list-style: none;
 	margin: 6px 0 0;
@@ -83,6 +90,22 @@ a.active .menuItemIcon {
 
 .mobileMoreMenu {
 	display: none;
+}
+
+.collapsedLogoTrigger {
+	display: none;
+}
+
+.collapsedLogoHeader {
+	border-right: none !important;
+	border: 1px solid @color-gray-border;
+	border-radius: 0 0 10px 0;
+	overflow: hidden;
+	box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+
+	img {
+		width: 40px;
+	}
 }
 
 // ipad and desktop
@@ -247,6 +270,10 @@ a.active .menuItemIcon {
 			border-bottom: none;
 		}
 	}
+
+	.collapsedLogoTrigger {
+		display: none !important;
+	}
 }
 
 @media @tabletAndUp {
@@ -302,5 +329,15 @@ a.active .menuItemIcon {
 
 	#menu.desktopMenu .menuSection li .subMenu li a {
 		padding: 4px 10px;
+	}
+
+	.collapsedLogoTrigger {
+		display: block;
+		position: fixed;
+		left: 0;
+		top: 0;
+		z-index: 1050;
+		margin: 0;
+		padding: 0;
 	}
 }

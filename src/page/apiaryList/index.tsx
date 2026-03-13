@@ -11,8 +11,8 @@ import T from '../../shared/translate'
 
 import ApiaryListRow from './apiaryListRow'
 import ApiariesPlaceholder from './apiariesPlaceholder'
-import PagePaddedCentered from '@/shared/pagePaddedCentered/index'
 import { sortHives } from './hiveSort'
+import styles from './style.module.less'
 
 const TABLE_VISIBLE_COLUMNS_KEY = 'apiaryList.tableVisibleColumns'
 const TABLE_SORT_KEY = 'apiaryList.tableSort'
@@ -365,7 +365,7 @@ export default function ApiaryList(props) {
 	}
 
 	return (
-		<PagePaddedCentered>
+		<div className={styles.page}>
 			<ErrorMsg error={error || errorNetwork} borderRadius={0} />
 			{apiaries !== null && apiaries?.length === 0 && <ApiariesPlaceholder />}
 
@@ -392,6 +392,6 @@ export default function ApiaryList(props) {
 					color={apiaries && apiaries.length === 0 ? 'green' : 'white'}
 					href="/apiaries/create"><T ctx="its a button">Setup new apiary</T></Button>
 			</div>
-		</PagePaddedCentered>
+		</div>
 	)
 }

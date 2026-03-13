@@ -53,8 +53,17 @@ function LoggedInPage({ children }) {
 }
 
 function PageWithMenu({children}) {
-	return <div className={styles.pageShell}>
-		<Menu isLoggedIn={isLoggedIn()}/>
+	const [isSidebarCollapsed, setSidebarCollapsed] = React.useState(false)
+
+	return <div
+		className={isSidebarCollapsed ? `${styles.pageShell} ${styles.pageShellCollapsed}` : styles.pageShell}
+		data-sidebar-collapsed={isSidebarCollapsed ? 'true' : 'false'}
+	>
+		<Menu
+			isLoggedIn={isLoggedIn()}
+			isSidebarCollapsed={isSidebarCollapsed}
+			onSidebarToggle={() => setSidebarCollapsed((collapsed) => !collapsed)}
+		/>
 		<MinimizedUploadProgress />
 		<AIAdvisorDrawer />
 		<div className={styles.mainColumn}>

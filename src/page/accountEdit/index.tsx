@@ -102,6 +102,7 @@ export default function AccountEdit() {
 
 	return (
 		<PagePaddedCentered>
+			<h2><T>Account</T></h2>
 			<ErrorMsg error={error} />
 			<Card>
 				<div className={style.flexRow}>

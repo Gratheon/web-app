@@ -15,6 +15,7 @@ import { listInspections } from '@/models/inspections'
 import beekeeperURL from '@/assets/beekeeper.png'
 import styles from './styles.module.less'
 import AIAdvisorBillingNotice from '@/shared/aiAdvisorBillingNotice'
+import T, { useTranslation as t } from '@/shared/translate'
 
 type ChatMessage = {
 	id: string
@@ -31,6 +32,23 @@ type ViewContext = {
 		keys: string
 		action: string
 	}>
+}
+
+type DrawerTranslations = {
+	hiveDetailViewName: string
+	hiveDetailViewDescription: string
+	hiveListViewName: string
+	hiveListViewDescription: string
+	currentViewName: string
+	currentViewDescription: string
+	shortcutsActionOpenAdvisor: string
+	shortcutsActionCloseDrawer: string
+	shortcutsActionGoToHiveList: string
+	shortcutsActionEditHiveMainInfo: string
+	shortcutsActionMoveFocusAcrossControls: string
+	shortcutsActionConfirmFocusedDialogAction: string
+	shortcutsActionMoveFocusAcrossPageControls: string
+	shortcutsActionMoveHiveFocusInListTable: string
 }
 
 function canUseAIAdvisor(plan?: string | null) {
@@ -100,57 +118,88 @@ function getHiveContext(pathname: string) {
 	}
 }
 
-function getViewContext(pathname: string): ViewContext {
+function getViewContext(pathname: string, labels: DrawerTranslations): ViewContext {
 	const isHiveDetailView = /^\/apiaries\/\d+\/hives\/\d+(?:\/|$)/.test(pathname)
 	const isHiveListView = pathname === '/' || pathname === '/apiaries' || pathname === '/apiaries/'
 
 	if (isHiveDetailView) {
 		return {
-			name: 'Hive detail view',
-			description: 'Detailed hive workflow with sections, frames, inspections, and metrics.',
+			name: labels.hiveDetailViewName,
+			description: labels.hiveDetailViewDescription,
 			shortcuts: [
-				{ keys: 'Shift + ?', action: 'Open AI Advisor' },
-				{ keys: 'Esc', action: 'Close AI Advisor drawer' },
-				{ keys: 'Backspace', action: 'Go to hive list view' },
-				{ keys: 'E', action: 'Edit hive main info' },
-				{ keys: 'Tab / Shift + Tab', action: 'Move focus across controls' },
-				{ keys: 'Enter', action: 'Confirm focused dialog action' },
+				{ keys: 'Shift + ?', action: labels.shortcutsActionOpenAdvisor },
+				{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
+				{ keys: 'Backspace', action: labels.shortcutsActionGoToHiveList },
+				{ keys: 'E', action: labels.shortcutsActionEditHiveMainInfo },
+				{ keys: 'Tab / Shift + Tab', action: labels.shortcutsActionMoveFocusAcrossControls },
+				{ keys: 'Enter', action: labels.shortcutsActionConfirmFocusedDialogAction },
 			],
 		}
 	}
 
 	if (isHiveListView) {
 		return {
-			name: 'Hive list view',
-			description: 'Apiary overview with list and table hive navigation modes.',
+			name: labels.hiveListViewName,
+			description: labels.hiveListViewDescription,
 			shortcuts: [
-				{ keys: 'Shift + ?', action: 'Open AI Advisor' },
-				{ keys: 'Esc', action: 'Close AI Advisor drawer' },
-				{ keys: 'Tab / Shift + Tab', action: 'Move focus across page controls' },
-				{ keys: 'Arrow keys', action: 'Move hive focus in list/table view' },
+				{ keys: 'Shift + ?', action: labels.shortcutsActionOpenAdvisor },
+				{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
+				{ keys: 'Tab / Shift + Tab', action: labels.shortcutsActionMoveFocusAcrossPageControls },
+				{ keys: 'Arrow keys', action: labels.shortcutsActionMoveHiveFocusInListTable },
 			],
 		}
 	}
 
 	return {
-		name: 'Current view',
-		description: 'Page-level context and shortcuts are available here.',
+		name: labels.currentViewName,
+		description: labels.currentViewDescription,
 		shortcuts: [
-			{ keys: 'Shift + ?', action: 'Open AI Advisor' },
-			{ keys: 'Esc', action: 'Close AI Advisor drawer' },
-			{ keys: 'Tab / Shift + Tab', action: 'Move focus across page controls' },
+			{ keys: 'Shift + ?', action: labels.shortcutsActionOpenAdvisor },
+			{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
+			{ keys: 'Tab / Shift + Tab', action: labels.shortcutsActionMoveFocusAcrossPageControls },
 		],
 	}
 }
 
-function renderShortcutsHtml(shortcuts: ViewContext['shortcuts']) {
+function renderShortcutsHtml(shortcuts: ViewContext['shortcuts'], keyboardShortcutsLabel: string) {
 	const items = shortcuts
 		.map((item) => `<li><strong>${item.keys}</strong> - ${item.action}</li>`)
 		.join('')
-	return `<div><strong>Keyboard shortcuts:</strong><ul>${items}</ul></div>`
+	return `<div><strong>${keyboardShortcutsLabel}:</strong><ul>${items}</ul></div>`
 }
 
 export default function AIAdvisorDrawer() {
+	const currentViewLabel = t('Current view')
+	const keyboardShortcutsLabel = t('Keyboard shortcuts')
+	const hiveDetailViewName = t('Hive detail view')
+	const hiveDetailViewDescription = t('Detailed hive workflow with sections, frames, inspections, and metrics.')
+	const hiveListViewName = t('Hive list view')
+	const hiveListViewDescription = t('Apiary overview with list and table hive navigation modes.')
+	const currentViewName = t('Current view')
+	const currentViewDescription = t('Page-level context and shortcuts are available here.')
+	const shortcutsActionOpenAdvisor = t('Open AI Advisor')
+	const shortcutsActionCloseDrawer = t('Close AI Advisor drawer')
+	const shortcutsActionGoToHiveList = t('Go to hive list view')
+	const shortcutsActionEditHiveMainInfo = t('Edit hive main info')
+	const shortcutsActionMoveFocusAcrossControls = t('Move focus across controls')
+	const shortcutsActionConfirmFocusedDialogAction = t('Confirm focused dialog action')
+	const shortcutsActionMoveFocusAcrossPageControls = t('Move focus across page controls')
+	const shortcutsActionMoveHiveFocusInListTable = t('Move hive focus in list/table view')
+	const openHiveDetailMessage = t('Open a hive detail page to run hive-specific AI analysis.')
+	const loadingHiveInfoMessage = t('Loading hive information...')
+	const loadedHiveInfoMessage = t('Loaded hive information')
+	const boxesLabel = t('boxes')
+	const loadingPastInspectionsMessage = t('Loading past inspections...')
+	const loadedPastInspectionsMessage = t('Loaded past inspections')
+	const loadingMetricsMessage = t('Loading metrics...')
+	const loadedRecentTelemetryMetricsMessage = t('Loaded recent telemetry metrics.')
+	const sendingContextMessage = t('Sending context to AI Advisor for summarization...')
+	const summaryGeneratedMessage = t('Summary generated.')
+	const summaryUnavailableMessage = t('AI Advisor did not return a summary yet. Backend endpoint may still be unavailable.')
+	const failedAdvisoryMessage = t('Failed to complete AI advisory run. Please try again in a moment.')
+	const closeAiAdvisorLabel = t('Close AI Advisor')
+	const aiAdvisorAvatarAlt = t('AI Advisor avatar')
+
 	const location = useLocation()
 	const navigate = useNavigate()
 	const runRef = useRef(0)
@@ -161,7 +210,42 @@ export default function AIAdvisorDrawer() {
 	const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search])
 	const isOpen = searchParams.get('aiAdvisor') === '1'
 	const hiveContext = useMemo(() => getHiveContext(location.pathname), [location.pathname])
-	const viewContext = useMemo(() => getViewContext(location.pathname), [location.pathname])
+	const viewContext = useMemo(
+		() =>
+			getViewContext(location.pathname, {
+				hiveDetailViewName,
+				hiveDetailViewDescription,
+				hiveListViewName,
+				hiveListViewDescription,
+				currentViewName,
+				currentViewDescription,
+				shortcutsActionOpenAdvisor,
+				shortcutsActionCloseDrawer,
+				shortcutsActionGoToHiveList,
+				shortcutsActionEditHiveMainInfo,
+				shortcutsActionMoveFocusAcrossControls,
+				shortcutsActionConfirmFocusedDialogAction,
+				shortcutsActionMoveFocusAcrossPageControls,
+				shortcutsActionMoveHiveFocusInListTable,
+			}),
+		[
+			location.pathname,
+			hiveDetailViewName,
+			hiveDetailViewDescription,
+			hiveListViewName,
+			hiveListViewDescription,
+			currentViewName,
+			currentViewDescription,
+			shortcutsActionOpenAdvisor,
+			shortcutsActionCloseDrawer,
+			shortcutsActionGoToHiveList,
+			shortcutsActionEditHiveMainInfo,
+			shortcutsActionMoveFocusAcrossControls,
+			shortcutsActionConfirmFocusedDialogAction,
+			shortcutsActionMoveFocusAcrossPageControls,
+			shortcutsActionMoveHiveFocusInListTable,
+		]
+	)
 	const shouldRender = isOpen
 
 	function closeDrawer() {
@@ -191,12 +275,12 @@ export default function AIAdvisorDrawer() {
 			{
 				id: buildId('view'),
 				role: 'system',
-				html: `<div><strong>Current view:</strong> ${viewContext.name}<br/>${viewContext.description}</div>`,
+				html: `<div><strong>${currentViewLabel}:</strong> ${viewContext.name}<br/>${viewContext.description}</div>`,
 			},
 			{
 				id: buildId('shortcuts'),
 				role: 'system',
-				html: renderShortcutsHtml(viewContext.shortcuts),
+				html: renderShortcutsHtml(viewContext.shortcuts, keyboardShortcutsLabel),
 			},
 		])
 
@@ -214,13 +298,13 @@ export default function AIAdvisorDrawer() {
 					addMessage({
 						id: buildId('context'),
 						role: 'system',
-						text: 'Open a hive detail page to run hive-specific AI analysis.',
+						text: openHiveDetailMessage,
 					})
 					return
 				}
 
 				const hiveStepId = buildId('step')
-				addMessage({ id: hiveStepId, role: 'system', text: 'Loading hive information...', loading: true })
+				addMessage({ id: hiveStepId, role: 'system', text: loadingHiveInfoMessage, loading: true })
 
 				const [apiary, hive, family, boxes] = await Promise.all([
 					getApiary(hiveContext.apiaryId),
@@ -257,22 +341,22 @@ export default function AIAdvisorDrawer() {
 				}
 
 				updateMessage(hiveStepId, {
-					text: `Loaded hive information (${boxes.length} boxes).`,
+					text: `${loadedHiveInfoMessage} (${boxes.length} ${boxesLabel}).`,
 					loading: false,
 				})
 
 				const inspectionsStepId = buildId('step')
-				addMessage({ id: inspectionsStepId, role: 'system', text: 'Loading past inspections...', loading: true })
+				addMessage({ id: inspectionsStepId, role: 'system', text: loadingPastInspectionsMessage, loading: true })
 				const inspections = await listInspections(hiveContext.hiveId)
 
 				if (runRef.current !== runId) return
 				updateMessage(inspectionsStepId, {
-					text: `Loaded past inspections (${inspections.length}).`,
+					text: `${loadedPastInspectionsMessage} (${inspections.length}).`,
 					loading: false,
 				})
 
 				const metricsStepId = buildId('step')
-				addMessage({ id: metricsStepId, role: 'system', text: 'Loading metrics...', loading: true })
+				addMessage({ id: metricsStepId, role: 'system', text: loadingMetricsMessage, loading: true })
 
 				const now = new Date()
 				const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
@@ -287,7 +371,7 @@ export default function AIAdvisorDrawer() {
 
 				if (runRef.current !== runId) return
 				updateMessage(metricsStepId, {
-					text: 'Loaded recent telemetry metrics.',
+					text: loadedRecentTelemetryMetricsMessage,
 					loading: false,
 				})
 
@@ -295,7 +379,7 @@ export default function AIAdvisorDrawer() {
 				addMessage({
 					id: summarizeStepId,
 					role: 'system',
-					text: 'Sending context to AI Advisor for summarization...',
+					text: sendingContextMessage,
 					loading: true,
 				})
 
@@ -317,7 +401,7 @@ export default function AIAdvisorDrawer() {
 
 				if (runRef.current !== runId) return
 				updateMessage(summarizeStepId, {
-					text: 'Summary generated.',
+					text: summaryGeneratedMessage,
 					loading: false,
 				})
 
@@ -328,7 +412,7 @@ export default function AIAdvisorDrawer() {
 					addMessage({
 						id: buildId('reply'),
 						role: 'error',
-						text: 'AI Advisor did not return a summary yet. Backend endpoint may still be unavailable.',
+						text: summaryUnavailableMessage,
 					})
 				}
 			} catch (error) {
@@ -336,7 +420,7 @@ export default function AIAdvisorDrawer() {
 				addMessage({
 					id: buildId('error'),
 					role: 'error',
-					text: 'Failed to complete AI advisory run. Please try again in a moment.',
+					text: failedAdvisoryMessage,
 				})
 			}
 		}
@@ -346,7 +430,26 @@ export default function AIAdvisorDrawer() {
 			return () => {
 				runRef.current = 0
 			}
-		}, [hiveContext, shouldRender, viewContext, generateAdvice])
+		}, [
+			hiveContext,
+			shouldRender,
+			viewContext,
+			generateAdvice,
+			currentViewLabel,
+			keyboardShortcutsLabel,
+			openHiveDetailMessage,
+			loadingHiveInfoMessage,
+			loadedHiveInfoMessage,
+			boxesLabel,
+			loadingPastInspectionsMessage,
+			loadedPastInspectionsMessage,
+			loadingMetricsMessage,
+			loadedRecentTelemetryMetricsMessage,
+			sendingContextMessage,
+			summaryGeneratedMessage,
+			summaryUnavailableMessage,
+			failedAdvisoryMessage,
+		])
 
 	useEffect(() => {
 		if (!shouldRender) {
@@ -370,12 +473,12 @@ export default function AIAdvisorDrawer() {
 	return (
 		<div className={styles.drawer}>
 			<div className={styles.header}>
-				<img className={styles.avatar} src={beekeeperURL} alt="AI Advisor avatar" />
+				<img className={styles.avatar} src={beekeeperURL} alt={aiAdvisorAvatarAlt} />
 				<div className={styles.headerText}>
-					<h3 className={styles.title}>AI Advisor</h3>
+					<h3 className={styles.title}><T>AI Advisor</T></h3>
 					<p className={styles.subtitle}>{viewContext.name}</p>
 					</div>
-				<button className={styles.closeBtn} type="button" onClick={closeDrawer} aria-label="Close AI Advisor">
+				<button className={styles.closeBtn} type="button" onClick={closeDrawer} aria-label={closeAiAdvisorLabel}>
 					×
 				</button>
 			</div>

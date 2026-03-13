@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import T from '@/shared/translate'
 
 import styles from './styles.module.less'
 
@@ -24,9 +25,11 @@ export default function AIAdvisorBillingNotice({ compact = false }: AIAdvisorBil
 				<HoneyJarIcon />
 			</div>
 			<div className={styles.textWrap}>
-				<div className={styles.title}>AI Advisor requires Starter plan or higher.</div>
+				<div className={styles.title}>
+					<T>AI Advisor requires Starter plan or higher.</T>
+				</div>
 				<NavLink className={styles.link} to="/account/billing">
-					Upgrade in Billing to continue
+					<T>Upgrade in Billing to continue</T>
 				</NavLink>
 			</div>
 		</div>

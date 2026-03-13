@@ -1,3 +1,15 @@
+@import '@/layout.module.less';
+
 .page {
-	padding: 10px 20px;
+	padding: 0 30px;
+	max-width: @maxTabletWidthPx;
+	margin: 0 auto;
+
+	h2 {
+		padding: 10px 0;
+	}
+}
+
+:global([data-sidebar-collapsed='true']) .page h2 {
+	padding: 10px 30px;
 }

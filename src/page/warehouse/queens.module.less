@@ -1,5 +1,25 @@
+@import '@/layout.module.less';
+
 .page {
-	padding: 10px 20px;
+	padding: 0 30px;
+	max-width: @maxTabletWidthPx;
+	margin: 0 auto;
+}
+
+.headerRow {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+
+	h2 {
+		padding: 10px 0;
+	}
+}
+
+:global([data-sidebar-collapsed='true']) .headerRow h2 {
+	padding: 10px 30px;
 }
 
 .description {
@@ -14,6 +34,17 @@
 	padding: 10px 12px;
 	color: #666;
 	font-size: 13px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+	text-align: center;
+}
+
+.emptyImage {
+	width: min(300px, 100%);
+	height: auto;
+	object-fit: contain;
 }
 
 .hint {
@@ -64,6 +95,10 @@
 	padding-right: 8px !important;
 }
 
+.actionsColumn {
+	width: 110px;
+}
+
 .colorCell {
 	display: inline-flex;
 	align-items: center;
@@ -86,4 +121,17 @@
 
 .hiveLink:hover {
 	text-decoration: underline;
+}
+
+.modalContent {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.modalActions {
+	margin-top: 14px;
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
 }

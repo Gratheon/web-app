@@ -1,0 +1,35 @@
+.wrapper {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+}
+
+.preview {
+	cursor: pointer;
+	margin-bottom: 8px;
+	display: flex;
+	align-items: center;
+	user-select: none;
+
+	&:hover {
+		opacity: 0.8;
+	}
+}
+
+.overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 999;
+	cursor: default;
+}
+
+.popup {
+	position: absolute;
+	top: 60px;
+	left: 0;
+	z-index: 1000;
+	cursor: default;
+}

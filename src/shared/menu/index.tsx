@@ -14,6 +14,7 @@ import * as userModel from '@/models/user'
 import { TAWKTO_TOKEN } from '@/config'
 import CreditCard from '@/icons/creditCard'
 import KeyIcon from '@/icons/key'
+import wideLogoURL from '@/assets/logo_v7w.svg'
 
 const MOBILE_NAV_ICON_SIZE = 24
 const AI_ADVISOR_CONTEXT_KEY = 'ai-advisor-last-hive-context'
@@ -232,7 +233,7 @@ function getStoredHiveContext() {
     }
 }
 
-const Menu = ({isLoggedIn = false}) => {
+const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle = () => {}}) => {
     if (!isLoggedIn) {
         return (
             <nav id={styles.menu}>
@@ -321,12 +322,22 @@ const Menu = ({isLoggedIn = false}) => {
     }, [aiAdvisorPath, isAIAdvisorSection, navigate])
 
 
+    const onDesktopLogoClick = (event) => {
+        event.preventDefault()
+        onSidebarToggle()
+    }
+
     return (
         <>
-            <nav id={styles.menu} className={styles.desktopMenu}>
-                <Header/>
+            {!isSidebarCollapsed && (
+                <nav id={styles.menu} className={styles.desktopMenu}>
+                    <Header
+                        onLogoClick={onDesktopLogoClick}
+                        logoSrc={wideLogoURL}
+                        className={styles.expandedLogoHeader}
+                    />
 
-                <ul className={styles.menuSection}>
+                    <ul className={styles.menuSection}>
                     <li>
                         <NavLink
                             className={navClassName}
@@ -416,10 +427,10 @@ const Menu = ({isLoggedIn = false}) => {
                         )}
                     </li>
 
-                </ul>
-                <div style="flex-grow:1"></div>
+                    </ul>
+                    <div style="flex-grow:1"></div>
 
-                <ul className={styles.menuSection}>
+                    <ul className={styles.menuSection}>
                     <li>
                         <NavLink
                             end
@@ -486,8 +497,18 @@ const Menu = ({isLoggedIn = false}) => {
                             </span>
                         </a>
                     </li>
-                </ul>
-            </nav>
+                    </ul>
+                </nav>
+            )}
+
+            {isSidebarCollapsed && (
+                <div className={styles.collapsedLogoTrigger}>
+                    <Header
+                        onLogoClick={onDesktopLogoClick}
+                        className={styles.collapsedLogoHeader}
+                    />
+                </div>
+            )}
 
             <div className={styles.mobileHeader}>
                 <Header />

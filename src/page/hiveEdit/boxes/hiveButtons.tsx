@@ -18,7 +18,6 @@ import ErrorMessage from '@/shared/messageError'
 import { useEffect, useState } from 'react'
 import metrics from '@/metrics'
 import styles from './styles.module.less'
-import { PopupButton, PopupButtonGroup } from '@/shared/popupButton'
 import DeleteIcon from '@/icons/deleteIcon'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { getHive, isEditable } from '@/models/hive'
@@ -32,6 +31,8 @@ import Modal from '@/shared/modal'
 const WAREHOUSE_BY_BOX_TYPE = {
 	[boxTypes.DEEP]: 'DEEP',
 	[boxTypes.SUPER]: 'SUPER',
+	[boxTypes.LARGE_HORIZONTAL_SECTION]: 'LARGE_HORIZONTAL_SECTION',
+	[boxTypes.ROOF]: 'ROOF',
 	[boxTypes.BOTTOM]: 'BOTTOM',
 	[boxTypes.QUEEN_EXCLUDER]: 'QUEEN_EXCLUDER',
 	[boxTypes.HORIZONTAL_FEEDER]: 'HORIZONTAL_FEEDER',
@@ -182,7 +183,11 @@ const [removingBox, setRemovingBox] = useState(false);
 		return null
 	}
 
-	const showBulkUpload = box && (box.type === boxTypes.DEEP || box.type === boxTypes.SUPER) && frames && frames.length > 0 && !frameId
+	const showBulkUpload = box && (
+		box.type === boxTypes.DEEP ||
+		box.type === boxTypes.SUPER ||
+		box.type === boxTypes.LARGE_HORIZONTAL_SECTION
+	) && frames && frames.length > 0 && !frameId
 
 	return (
 		<>
@@ -191,6 +196,7 @@ const [removingBox, setRemovingBox] = useState(false);
 			<div className={styles.hiveButtons}>
 
 				<Button
+					className={styles.actionButton}
 					title="Add box on top"
 					loading={adding}
 					color='black'
@@ -199,15 +205,15 @@ const [removingBox, setRemovingBox] = useState(false);
 					<AddBoxIcon /><span><T ctx="this is a button to add new section of beehive, a deep box that is intended for brood frames">Add deep</T></span>
 				</Button>
         <Button
+						className={styles.actionButton}
             loading={adding}
             title="Add super on top"
             onClick={() => onBoxAdd(boxTypes.SUPER)}
         >
           <AddSuperIcon /><span><T ctx="this is a button to add new section of beehive, a super box that is intended for honey frames">Add super</T></span>
         </Button>
-
-
         <Button
+						className={styles.actionButton}
             loading={adding}
             title="Add entrance"
             onClick={() => onBoxAdd(boxTypes.GATE)}
@@ -215,39 +221,51 @@ const [removingBox, setRemovingBox] = useState(false);
           <GateIcon /><span><T ctx="this is a button to add new section of beehive, specifically holes, an entrance">Add entrance</T></span>
         </Button>
 
-				<PopupButtonGroup>
-          <Button
-              loading={adding}
-              title="Add bottom board"
-              onClick={() => onBoxAdd(boxTypes.BOTTOM)}
-          ><span><T ctx="this is a button to add bottom board of beehive with slideable white panel for varroa mite counting">Add bottom</T></span>
-          </Button>
-
-					<PopupButton>
-						<Button
-							loading={adding}
-							title="Add ventilation"
-							onClick={() => onBoxAdd(boxTypes.VENTILATION)}
-						><span><T ctx="this is a button to add tiny part of beehive, specifically holes on top for ventilation">Add inner lid</T></span>
-						</Button>
-						<Button
-							loading={adding}
-							title="Add queen excluder"
-							onClick={() => onBoxAdd(boxTypes.QUEEN_EXCLUDER)}
-						><span><T ctx="this is a button to add tiny part of beehive, a horizontal layer that prevents queen bee from moving through this">Add queen excluder</T></span>
-						</Button>
-						<Button
-							loading={adding}
-							title="Add feeder"
-							onClick={() => onBoxAdd(boxTypes.HORIZONTAL_FEEDER)}
-						><span><T ctx="this is a button to add tiny part of beehive, a horizontal box where sugar syrup can be poured to feed bees">Add feeder</T></span>
-						</Button>
-					</PopupButton>
-				</PopupButtonGroup>
+				<Button
+					className={styles.actionButton}
+					loading={adding}
+					title="Add bottom board"
+					onClick={() => onBoxAdd(boxTypes.BOTTOM)}
+				>
+					<span><T ctx="this is a button to add bottom board of beehive with slideable white panel for varroa mite counting">Add bottom</T></span>
+				</Button>
+				<Button
+					className={styles.actionButton}
+					loading={adding}
+					title="Add ventilation"
+					onClick={() => onBoxAdd(boxTypes.VENTILATION)}
+				>
+					<span><T ctx="this is a button to add tiny part of beehive, specifically holes on top for ventilation">Add inner lid</T></span>
+				</Button>
+				<Button
+					className={styles.actionButton}
+					loading={adding}
+					title="Add queen excluder"
+					onClick={() => onBoxAdd(boxTypes.QUEEN_EXCLUDER)}
+				>
+					<span><T ctx="this is a button to add tiny part of beehive, a horizontal layer that prevents queen bee from moving through this">Add queen excluder</T></span>
+				</Button>
+				<Button
+					className={styles.actionButton}
+					loading={adding}
+					title="Add feeder"
+					onClick={() => onBoxAdd(boxTypes.HORIZONTAL_FEEDER)}
+				>
+					<span><T ctx="this is a button to add tiny part of beehive, a horizontal box where sugar syrup can be poured to feed bees">Add feeder</T></span>
+				</Button>
+				<Button
+					className={styles.actionButton}
+					loading={adding}
+					title="Add roof"
+					onClick={() => onBoxAdd(boxTypes.ROOF)}
+				>
+					<span><T ctx="this is a button to add top cover module of a hive, a roof that protects from weather">Add roof</T></span>
+				</Button>
 
 
 
         <Button
+					className={`${styles.actionButton} ${styles.removeButton}`}
             color="red"
             loading={removingBox}
             onClick={() => setRemoveBoxDialogVisible(true)}

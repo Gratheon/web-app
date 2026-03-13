@@ -78,21 +78,32 @@ const RANDOM_HIVE_NAME_QUERY = gql`
     }
 `
 
+function createDefaultBoxes(hiveType: string, boxCount: number) {
+	const primaryBoxType = hiveType === 'horizontal'
+		? boxTypes.LARGE_HORIZONTAL_SECTION
+		: boxTypes.DEEP
+
+	const initialBoxes = []
+	for (let i = 0; i < boxCount; i++) {
+		initialBoxes.push({
+			color: `${defaultBoxColor}`,
+			type: primaryBoxType,
+		})
+	}
+	initialBoxes.push({
+		type: boxTypes.GATE
+	})
+	initialBoxes.push({
+		type: boxTypes.ROOF
+	})
+	return initialBoxes
+}
+
 export default function HiveCreateForm() {
     let { id } = useParams()
     let [hiveType, setHiveType] = useState('vertical')
     let [boxCount, setBoxCount] = useState(1)
-    let defaultBoxes = []
-    for (let i = 0; i < boxCount; i++) {
-        defaultBoxes.push({
-            color: `${defaultBoxColor}`,
-        })
-    }
-    defaultBoxes.push({
-        type: boxTypes.GATE
-    })
-
-    const [boxes, setBoxes] = useState(defaultBoxes)
+    const [boxes, setBoxes] = useState(createDefaultBoxes('vertical', boxCount))
 
     let navigate = useNavigate()
     let [frameCount, setFrameCount] = useState(10)
@@ -102,21 +113,13 @@ export default function HiveCreateForm() {
     let [hiveNumber, setHiveNumber] = useState<number | undefined>(undefined)
     const [lang, setLang] = useState('en')
     const [showColorPicker, setShowColorPicker] = useState(false)
+    const [submitError, setSubmitError] = useState<any>(null)
     let user = useLiveQuery(() => getUser(), [], null)
 
     const updateHiveDimensions = (newBoxCount, newFrameCount) => {
         setBoxCount(newBoxCount);
         setFrameCount(newFrameCount);
-        const updatedBoxes = [];
-        for (let i = 0; i < newBoxCount; i++) {
-            updatedBoxes.push({
-                color: `${defaultBoxColor}`,
-            });
-        }
-        updatedBoxes.push({
-            type: boxTypes.GATE
-        });
-        setBoxes(updatedBoxes);
+        setBoxes(createDefaultBoxes(hiveType, newBoxCount));
     };
 
     // Determine language code
@@ -165,6 +168,7 @@ export default function HiveCreateForm() {
 				$frameCount: Int!
 				$apiaryId: ID!
 				$colors: [String]
+				$initialBoxType: BoxType
 			) {
 				addHive(
 					hive: {
@@ -174,6 +178,7 @@ export default function HiveCreateForm() {
 						hiveNumber: $hiveNumber
 						boxCount: $boxCount
 						frameCount: $frameCount
+						initialBoxType: $initialBoxType
 						apiaryId: $apiaryId
 						colors: $colors
 					}
@@ -191,14 +196,19 @@ export default function HiveCreateForm() {
         const newHiveType = event.target.value;
         setHiveType(newHiveType);
         if (newHiveType === 'vertical') {
-            updateHiveDimensions(1, 10);
+            setBoxCount(1);
+            setFrameCount(10);
+            setBoxes(createDefaultBoxes(newHiveType, 1));
         } else if (newHiveType === 'horizontal') {
-            updateHiveDimensions(1, 20);
+            setBoxCount(1);
+            setFrameCount(20);
+            setBoxes(createDefaultBoxes(newHiveType, 1));
         }
     };
 
     async function onSubmit(e) {
         e.preventDefault()
+        setSubmitError(null)
 
         const result = await addHive({
             apiaryId: id,
@@ -208,10 +218,16 @@ export default function HiveCreateForm() {
             hiveNumber: hiveNumber || undefined,
             boxCount,
             frameCount,
+            initialBoxType: hiveType === 'horizontal' ? boxTypes.LARGE_HORIZONTAL_SECTION : boxTypes.DEEP,
             colors: boxes.map((b: Box) => {
                 return b.color
             }),
         })
+
+        if (result?.error || !result?.data?.addHive?.id) {
+            setSubmitError(result?.error || new Error('Failed to create hive'))
+            return
+        }
 
         navigate(`/apiaries/${id}/hives/${result.data.addHive.id}`, {
             replace: true, state: {
@@ -225,6 +241,7 @@ export default function HiveCreateForm() {
         <PagePaddedCentered>
             <h1><T>New Hive</T></h1>
             {error && <ErrorMsg error={error} />}
+            {submitError && <ErrorMsg error={submitError} />}
             <Card>
                 <div style={{ padding: 20 }}>
                     <div style={{ textAlign: 'center', marginBottom: 20 }}>

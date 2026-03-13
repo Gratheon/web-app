@@ -10,6 +10,7 @@ import Ventilation from '@/page/hiveEdit/boxes/ventilation'
 import QueenExcluder from '@/page/hiveEdit/boxes/queenExcluder'
 import FeederHorizontal from '@/page/hiveEdit/boxes/feederHorizontal'
 import Bottom from '@/page/hiveEdit/boxes/bottom'
+import Roof from '@/page/hiveEdit/boxes/roof'
 import T from '@/shared/translate'
 import Button from '@/shared/button'
 import ListIcon from '@/icons/listIcon.tsx'
@@ -51,7 +52,7 @@ export default function HiveBoxes({
 				}}
 			>
 				<div className={styles.box + ` boxOuterClick `}>
-					{(box.type == boxTypes.DEEP || box.type == boxTypes.SUPER) && (
+					{(box.type == boxTypes.DEEP || box.type == boxTypes.SUPER || box.type === boxTypes.LARGE_HORIZONTAL_SECTION) && (
 						<Box
 							box={box}
 							boxId={+boxId}
@@ -80,6 +81,9 @@ export default function HiveBoxes({
 				)}
 				{box.type === boxTypes.BOTTOM && (
 					<Bottom selected={+boxId === box.id} />
+				)}
+				{box.type === boxTypes.ROOF && (
+					<Roof selected={+boxId === box.id} />
 				)}
 				</div>
 
@@ -126,7 +130,8 @@ export default function HiveBoxes({
 
 					{currentBoxSelected &&
 						(currentBoxSelected?.type == boxTypes.DEEP ||
-							currentBoxSelected?.type == boxTypes.SUPER) && (
+							currentBoxSelected?.type == boxTypes.SUPER ||
+							currentBoxSelected?.type === boxTypes.LARGE_HORIZONTAL_SECTION) && (
 							<div style="display:flex; align-items:right;">
 								<FrameButtons box={currentBoxSelected} onError={onError} />
 

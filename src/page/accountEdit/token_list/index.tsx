@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import ErrorMsg from '@/shared/messageError'
 import Button from '@/shared/button';
@@ -9,6 +9,7 @@ import KeyIcon from '@/icons/key.tsx';
 
 import style from './style.module.less'
 import CopyButton from '@/shared/copyButton';
+import MaskedToken from '@/shared/maskedToken'
 
 const TOKEN_QUERY = gql`
 {
@@ -148,8 +149,7 @@ export default function TokenList() {
 
 	async function onGenerateToken() {
 		setGenerating(true);
-		const result = await generateToken()
-		hiddenTokens.push(result.data.generateApiToken.id)
+		await generateToken()
 		setGenerating(false);
 		reexecuteQuery();
 	}
@@ -171,17 +171,6 @@ export default function TokenList() {
 			.filter((device) => !!device.apiToken)
 			.map((device) => [device.apiToken, device])
 	)
-
-	const initialHiddenTokens: number[] = tokens && tokens.map((token) => token?.id);
-	const [hiddenTokens, setHiddenTokens] = useState<number[]>(initialHiddenTokens);
-
-	const toggleToken = (id: number) => {
-		if (hiddenTokens.includes(id)) {
-			setHiddenTokens(hiddenTokens.filter((tokenID) => tokenID !== id));
-		} else {
-			setHiddenTokens([...hiddenTokens, id]);
-		}
-	};
 
 
 	return (
@@ -215,9 +204,7 @@ export default function TokenList() {
 							<div key={token.id} className={`${style.row} ${linkedDevice ? style.deviceTokenRow : ''}`}>
 								<div className={style.tokenContainer}>
 									<div className={style.tokenWrap}>
-										<div className={style.token}>
-											{hiddenTokens.includes(token.id) ? '*'.repeat(token.token.length) : token.token}
-										</div>
+										<MaskedToken token={token.token} tokenClassName={style.token} />
 										{linkedDevice && (
 											<a className={style.deviceBadge} href="/devices">
 												<T>Device</T>: {linkedDevice.name}
@@ -228,8 +215,6 @@ export default function TokenList() {
 									<CopyButton size='small' data={token.token} />
 								</div>
 								<div className={style.buttons}>
-									<Button size='small' onClick={() => toggleToken(token.id)}><T>Toggle</T></Button>
-
 									<Button
 										size='small'
 										color='red'

@@ -12,6 +12,50 @@
 }
 
 .hiveButtons {
-	display: flex;
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 8px;
 	padding-bottom: @mobilePadPx;
+	align-items: stretch;
+	width: 100%;
+	max-width: 100%;
+	min-width: 0;
+	overflow: hidden;
+}
+
+.actionButton {
+	width: 100%;
+	max-width: 100%;
+	min-width: 0;
+	box-sizing: border-box;
+	margin: 0 !important;
+	height: auto !important;
+	min-height: 40px;
+	padding-top: 8px !important;
+	padding-bottom: 8px !important;
+	white-space: normal !important;
+	line-height: 1.2;
+	overflow-wrap: anywhere;
+	word-break: break-word;
+
+	span {
+		white-space: normal;
+		overflow-wrap: anywhere;
+	}
+}
+
+.removeButton {
+	grid-column: 1 / -1;
+}
+
+@media @mobile {
+	.hiveButtons {
+		grid-template-columns: 1fr;
+	}
+}
+
+@media @desktop {
+	.hiveButtons {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
 }

@@ -16,6 +16,8 @@ let boxes: Box[] = [] // db.get('boxes')
 export const boxTypes = {
 	DEEP: 'DEEP',
 	SUPER: 'SUPER',
+	ROOF: 'ROOF',
+	LARGE_HORIZONTAL_SECTION: 'LARGE_HORIZONTAL_SECTION',
 	GATE: 'GATE',
 	VENTILATION: 'VENTILATION',
 	QUEEN_EXCLUDER: 'QUEEN_EXCLUDER',

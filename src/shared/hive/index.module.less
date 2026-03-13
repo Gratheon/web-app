@@ -15,6 +15,11 @@
 			background: #ffc848;
 		}
 
+		.largeHorizontalSection {
+			border-radius: 0 0 6px 6px;
+			position: relative;
+		}
+
 		.box:last-child {
 			border-radius: 0 0 3px 3px;
 		}
@@ -38,5 +43,19 @@
 		background: #494949;
 		margin: 0px auto 0px;
 		border-radius: 1px 1px 0 0;
+	}
+
+	.horizontalFrames {
+		width: calc(100% - 8px);
+		height: 4px;
+		margin: -8px auto 4px;
+		background-image: repeating-linear-gradient(
+			to right,
+			rgba(45, 35, 0, 0.75) 0,
+			rgba(45, 35, 0, 0.75) 1px,
+			transparent 1px,
+			transparent 6px
+		);
+		opacity: 0.9;
 	}
 }

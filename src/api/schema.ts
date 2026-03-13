@@ -57,10 +57,13 @@ input BoxInput {
 enum BoxType {
   DEEP
   SUPER
+  ROOF
+  LARGE_HORIZONTAL_SECTION
   GATE
   VENTILATION
   QUEEN_EXCLUDER
   HORIZONTAL_FEEDER
+  BOTTOM
 }
 
 union CancelSubscriptionResult = User | Error

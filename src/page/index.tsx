@@ -27,7 +27,9 @@ import AIAdvisorPage from './aiAdvisor'
 import DevicesPage from './devices'
 import DevicesCreatePage from './devicesCreate'
 import DeviceViewPage from './deviceView'
+import DeviceEditPage from './deviceEdit'
 import WarehousePage from './warehouse'
+import WarehouseItemViewPage from './warehouse/itemView'
 
 function LoggedInPage({ children }) {
 	const navigate = useNavigate()
@@ -98,8 +100,10 @@ export default function Page() {
 			<Route path="/time" element={<LoggedInPage><TimeView /></LoggedInPage>} />
 			<Route path="/devices" element={<LoggedInPage><DevicesPage /></LoggedInPage>} />
 			<Route path="/devices/add" element={<LoggedInPage><DevicesCreatePage /></LoggedInPage>} />
+			<Route path="/devices/:id/edit" element={<LoggedInPage><DeviceEditPage /></LoggedInPage>} />
 			<Route path="/devices/:id" element={<LoggedInPage><DeviceViewPage /></LoggedInPage>} />
 			<Route path="/warehouse" element={<LoggedInPage><WarehousePage /></LoggedInPage>} />
+			<Route path="/warehouse/:moduleType" element={<LoggedInPage><WarehouseItemViewPage /></LoggedInPage>} />
 
 			<Route path="/apiaries/create" element={<LoggedInPage><ApiaryCreate /></LoggedInPage>} />
 			<Route path="/apiaries/:id" element={<LoggedInPage><ApiaryView /></LoggedInPage>} />

@@ -1,84 +1,13 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 
 import { gql, useMutation, useQuery } from '@/api'
 import Button from '@/shared/button'
 import ErrorMsg from '@/shared/messageError'
 import Loader from '@/shared/loader'
 import T from '@/shared/translate'
+import { GROUPS, MODULES } from './modules'
 import styles from './style.module.less'
-
-const GROUPS = [
-	{
-		id: 'HIVE_SECTIONS',
-		title: 'Hive sections',
-		items: [
-			{
-				id: 'DEEP',
-				label: 'Deep sections',
-				description: 'Big hive sections used for brood and core colony space.',
-			},
-			{
-				id: 'SUPER',
-				label: 'Super sections',
-				description: 'Smaller sections usually used for honey storage.',
-			},
-		],
-	},
-	{
-		id: 'HIVE_PARTS',
-		title: 'Hive parts',
-		items: [
-			{
-				id: 'ROOF',
-				label: 'Roofs',
-				description: 'Top covers that protect the hive from rain and wind.',
-			},
-			{
-				id: 'HORIZONTAL_FEEDER',
-				label: 'Feeders',
-				description: 'Feeders used to provide syrup or supplements to colonies.',
-			},
-			{
-				id: 'QUEEN_EXCLUDER',
-				label: 'Queen excluders',
-				description: 'Grids that keep the queen out of selected sections.',
-			},
-			{
-				id: 'BOTTOM',
-				label: 'Hive bottoms',
-				description: 'Bottom boards used as the base of the hive.',
-			},
-		],
-	},
-	{
-		id: 'FRAMES',
-		title: 'Frame types',
-		items: [
-			{
-				id: 'FRAME_FOUNDATION',
-				label: 'Foundation frames',
-				description: 'Frames with wax or plastic foundation sheets.',
-			},
-			{
-				id: 'FRAME_EMPTY_COMB',
-				label: 'Empty comb frames',
-				description: 'Drawn comb frames ready for brood or honey use.',
-			},
-			{
-				id: 'FRAME_PARTITION',
-				label: 'Partition frames',
-				description: 'Divider frames used to reduce colony space.',
-			},
-			{
-				id: 'FRAME_FEEDER',
-				label: 'Feeder frames',
-				description: 'In-frame feeders used for syrup feeding.',
-			},
-		],
-	},
-]
-
-const MODULES = GROUPS.flatMap((group) => group.items)
 
 type WarehouseCounts = Record<string, number>
 
@@ -102,6 +31,7 @@ mutation setWarehouseModuleCount($moduleType: WarehouseModuleType!, $count: Int!
 	}
 }
 `
+
 const SET_WAREHOUSE_AUTO_UPDATE_MUTATION = gql`
 mutation setWarehouseAutoUpdateFromHives($enabled: Boolean!) {
 	setWarehouseAutoUpdateFromHives(enabled: $enabled) {
@@ -109,6 +39,7 @@ mutation setWarehouseAutoUpdateFromHives($enabled: Boolean!) {
 	}
 }
 `
+
 const MAX_VISUAL_SQUARES = 100
 const SQUARE_PITCH = 5
 const SQUARE_COLUMNS = 12
@@ -208,16 +139,14 @@ export default function WarehousePage() {
 			return
 		}
 
-		if (!result?.data?.setWarehouseModuleCount) {
-			setCounts((prev) => ({
-				...prev,
-				[moduleId]: previousValue,
-			}))
-			setInputs((prev) => ({
-				...prev,
-				[moduleId]: String(previousValue),
-			}))
-		}
+		setCounts((prev) => ({
+			...prev,
+			[moduleId]: previousValue,
+		}))
+		setInputs((prev) => ({
+			...prev,
+			[moduleId]: String(previousValue),
+		}))
 	}
 
 	async function updateCount(moduleId: string, delta: number) {
@@ -272,9 +201,7 @@ export default function WarehousePage() {
 		<div className={styles.page}>
 			<h2><T>Warehouse</T></h2>
 			<p className={styles.description}>
-				<T>
-					Track available hive modules with simple count operations.
-				</T>
+				<T>Track available hive modules with simple count operations.</T>
 			</p>
 			<ErrorMsg error={error || mutationError || settingsMutationError} />
 
@@ -302,11 +229,12 @@ export default function WarehousePage() {
 						<h3 className={styles.groupTitle}><T>{group.title}</T></h3>
 						{group.items.map((module) => {
 							const count = counts[module.id] || 0
-
 							return (
 								<div className={styles.row} key={module.id}>
 									<div className={styles.itemInfo}>
-										<div className={styles.itemTitle}><T>{module.label}</T></div>
+										<Link to={`/warehouse/${module.id}`} className={styles.itemTitleLink}>
+											<span className={styles.itemTitle}><T>{module.label}</T></span>
+										</Link>
 										<div className={styles.itemDescription}><T>{module.description}</T></div>
 									</div>
 

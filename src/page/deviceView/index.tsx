@@ -6,6 +6,7 @@ import Button from '@/shared/button'
 import CopyButton from '@/shared/copyButton'
 import ErrorMsg from '@/shared/messageError'
 import Loader from '@/shared/loader'
+import MaskedToken from '@/shared/maskedToken'
 import T from '@/shared/translate'
 import PagePaddedCentered from '@/shared/pagePaddedCentered'
 
@@ -96,13 +97,23 @@ export default function DeviceViewPage() {
 					<h1>{device.name}</h1>
 					<div className={styles.meta}>{device.type === 'VIDEO_CAMERA' ? 'Video camera' : 'IoT sensor'}</div>
 				</div>
+				<div className={styles.headerActions}>
+					<Button href={`/devices/${device.id}/edit`}>
+						<T>Manage</T>
+					</Button>
+					{device.boxId && hiveContext ? (
+						<Button color="green" href={`/apiaries/${hiveContext.apiaryId}/hives/${hiveContext.hiveId}/box/${device.boxId}`}>
+							<T>Open linked section</T>{hiveContext.box ? ` (#${hiveContext.box.position + 1})` : ''}
+						</Button>
+					) : null}
+				</div>
 			</div>
 
 			<section className={styles.section}>
 				<h3><T>API token</T></h3>
 				{device.apiToken ? (
 					<div className={styles.tokenRow}>
-						<div className={styles.token}>{device.apiToken}</div>
+						<MaskedToken token={device.apiToken} />
 						<CopyButton data={device.apiToken} />
 					</div>
 				) : (
@@ -118,27 +129,6 @@ export default function DeviceViewPage() {
 					))}
 				</div>
 			</section>
-
-			{device.hiveId && (
-				<section className={styles.section}>
-					<h3><T>Linked locations</T></h3>
-					<div className={styles.links}>
-						{hiveContext ? (
-							<Button size="small" href={`/apiaries/${hiveContext.apiaryId}/hives/${hiveContext.hiveId}`}>
-								<T>Open linked hive</T>{hiveContext.hiveNumber ? ` (Hive #${hiveContext.hiveNumber})` : ''}
-							</Button>
-						) : (
-							<span><T>Linked hive</T>: {device.hiveId}</span>
-						)}
-
-						{device.boxId && hiveContext ? (
-							<Button size="small" href={`/apiaries/${hiveContext.apiaryId}/hives/${hiveContext.hiveId}/box/${device.boxId}`}>
-								<T>Open linked section</T>{hiveContext.box ? ` (#${hiveContext.box.position + 1})` : ''}
-							</Button>
-						) : null}
-					</div>
-				</section>
-			)}
 		</PagePaddedCentered>
 	)
 }

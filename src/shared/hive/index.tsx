@@ -62,8 +62,18 @@ export default function HiveIcon({
 	//@ts-ignore
 	const forceUpdate = React.useCallback(() => updateState({}), [])
 
+	const hasLargeHorizontalSection = boxes.some(
+		(box: any) => box?.type === 'LARGE_HORIZONTAL_SECTION'
+	)
+	const hasRoof = boxes.some(
+		(box: any) => box?.type === 'ROOF'
+	)
+
 	let hiveStyle = {
 		width: `${size}px`,
+	}
+	if (hasLargeHorizontalSection) {
+		hiveStyle.width = `${Math.round(size * 1.9)}px`
 	}
 
 	const legsStyle = {
@@ -80,12 +90,19 @@ export default function HiveIcon({
 		boxes.forEach((box: any, i: number) => {
 			if (!box) return
 
+			if (box.type === 'ROOF') {
+				return
+			}
+
 			const boxStyle = {
 				backgroundColor: box.color,
 				paddingTop: `${size / 2}px`,
 			}
 
-			if (box.type === 'GATE') {
+			if (box.type === 'LARGE_HORIZONTAL_SECTION') {
+				boxStyle.paddingTop = `${size / 1.8}px`
+			}
+			else if (box.type === 'GATE') {
 				boxStyle.paddingTop = `${size / 10}px`
 			}
 			else if (box.type === 'VENTILATION' || box.type === 'QUEEN_EXCLUDER' || box.type === 'BOTTOM') {
@@ -109,7 +126,7 @@ export default function HiveIcon({
 					style={{
 						...boxStyle,
 					}}
-					className={styles.box}
+					className={`${styles.box} ${box.type === 'LARGE_HORIZONTAL_SECTION' ? styles.largeHorizontalSection : ''}`}
 				>
 					{editable && colorPickerVisibleAt === i && (
 						<GithubPicker
@@ -131,13 +148,16 @@ export default function HiveIcon({
 					{box.type === 'VENTILATION' &&
 						<div className={styles.ventilation}></div>
 					}
+					{box.type === 'LARGE_HORIZONTAL_SECTION' && (
+						<div className={styles.horizontalFrames}></div>
+					)}
 				</div>
 			)
 		})
 	}
 	return (
 		<div className={styles.hive} style={hiveStyle}>
-			<div className={styles.roof} style={roofStyle}></div>
+			{hasRoof && <div className={styles.roof} style={roofStyle}></div>}
 			<div className={styles.boxes}>{visualBoxes}</div>
 			<div className={styles.legs} style={legsStyle}></div>
 		</div>

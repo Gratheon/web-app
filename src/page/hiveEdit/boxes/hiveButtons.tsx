@@ -5,7 +5,7 @@ import Button from '@/shared/button'
 import {
 	boxTypes,
 	addBox,
-	maxBoxPosition,
+	getBoxes,
 	removeBox
 } from '@/models/boxes'
 import T from '@/shared/translate'
@@ -50,7 +50,8 @@ export default function HiveButtons({
 	apiaryId,
 	hiveId,
 	box,
-	frameId
+	frameId,
+	mode = 'all',
 }) {
 	let navigate = useNavigate()
 	const [adding, setAdding] = useState(false)
@@ -153,9 +154,15 @@ const [removingBox, setRemovingBox] = useState(false);
 			replace: true,
 		})
 	}
-	async function onBoxAdd(type) {
+	async function onBoxAdd(type, placement: 'top' | 'bottom' = 'top') {
 		setAdding(true)
-		let position = (await maxBoxPosition(+hiveId)) + 1
+		const hiveBoxes = await getBoxes({ hiveId: +hiveId })
+		const positions = hiveBoxes.map((hiveBox) => hiveBox.position)
+		const maxPosition = positions.length > 0 ? Math.max(...positions) : 0
+		const minPosition = positions.length > 0 ? Math.min(...positions) : 0
+		const position = placement === 'bottom'
+			? minPosition - 1
+			: maxPosition + 1
 
 		const {
 			data: {
@@ -187,19 +194,24 @@ const [removingBox, setRemovingBox] = useState(false);
 		return null
 	}
 
-	const showBulkUpload = box && (
+	const showBulkUpload = mode !== 'removeOnly' && box && (
 		box.type === boxTypes.DEEP ||
 		box.type === boxTypes.SUPER ||
 		box.type === boxTypes.LARGE_HORIZONTAL_SECTION
 	) && frames && frames.length > 0 && !frameId
-	const showAddSectionButtons = !box?.id
+	const showAddSectionButtons = mode !== 'removeOnly' && !box?.id
+	const showRemoveButton = mode !== 'nonRemove' && box?.id
+	const buttonGroupClassName = mode === 'removeOnly'
+		? `${styles.hiveButtons} ${styles.removeOnlyGroup}`
+		: styles.hiveButtons
 
 	return (
 		<>
 			<ErrorMessage error={errorAdd || errorRemove} />
 
-			<div className={styles.hiveButtons}>
-				{showAddSectionButtons && (
+			{(showAddSectionButtons || showRemoveButton) && (
+				<div className={buttonGroupClassName}>
+					{showAddSectionButtons && (
 					<>
 						<Button
 							className={styles.actionButton}
@@ -267,21 +279,22 @@ const [removingBox, setRemovingBox] = useState(false);
 							loading={adding}
 							color="white"
 							title="Add bottom board"
-							onClick={() => onBoxAdd(boxTypes.BOTTOM)}
+							onClick={() => onBoxAdd(boxTypes.BOTTOM, 'bottom')}
 						>
 							<span><T ctx="this is a button to add bottom board of beehive with slideable white panel for varroa mite counting">Add bottom</T></span>
 						</Button>
 					</>
-				)}
-				{box?.id && (
-					<Button
-						className={`${styles.actionButton} ${styles.removeButton}`}
-						color="red"
-						loading={removingBox}
-						onClick={() => setRemoveBoxDialogVisible(true)}
-					><DeleteIcon /> <T>Remove box</T></Button>
-				)}
-			</div>
+					)}
+					{showRemoveButton && (
+						<Button
+							className={`${styles.actionButton} ${styles.removeButton} ${styles.removeButtonOutline}`}
+							color="white"
+							loading={removingBox}
+							onClick={() => setRemoveBoxDialogVisible(true)}
+						><DeleteIcon /> <T>Remove box</T></Button>
+					)}
+				</div>
+			)}
 
 			{showBulkUpload && (
 				<BulkUploadInline

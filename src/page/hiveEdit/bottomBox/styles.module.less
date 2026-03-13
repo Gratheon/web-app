@@ -9,24 +9,45 @@
 	margin-top: 15px;
 }
 
-.uploadLabel {
-	display: inline-flex;
-	align-items: center;
-	gap: 10px;
-	padding: 12px 24px;
-	background: #4CAF50;
-	color: white;
-	border-radius: 4px;
-	cursor: pointer;
-	transition: background 0.3s;
-}
-
-.uploadLabel:hover {
-	background: #45a049;
-}
-
 .fileInput {
 	display: none;
+}
+
+.dropZone {
+	border: 2px dashed #ccc;
+	border-radius: 8px;
+	padding: 40px;
+	text-align: center;
+	cursor: pointer;
+	transition: all 0.2s;
+	min-height: 150px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	&:hover {
+		border-color: #666;
+		background: #fafafa;
+	}
+}
+
+.dropZoneContent {
+	pointer-events: none;
+
+	p {
+		margin: 8px 0;
+		font-size: 16px;
+		color: #333;
+	}
+}
+
+.uploadButtonWrap {
+	pointer-events: auto;
+}
+
+.dropZoneHint {
+	font-size: 12px !important;
+	color: #666 !important;
 }
 
 .existingImages {
@@ -93,3 +114,27 @@
 	}
 }
 
+.previewContainer {
+	position: relative;
+}
+
+.previewLocked {
+	overflow: hidden;
+}
+
+.previewOverlay {
+	position: absolute;
+	inset: 0;
+	background: rgba(235, 235, 235, 0.35);
+	cursor: not-allowed;
+	z-index: 1;
+}
+
+.previewOverlayNotice {
+	position: absolute;
+	z-index: 2;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: min(460px, calc(100% - 24px));
+}

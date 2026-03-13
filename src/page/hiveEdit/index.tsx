@@ -229,6 +229,9 @@ export default function HiveEditForm() {
 							setDisplayMode={setDisplayMode}
 							editable={isEditable(hive)}
 						/>
+						<div className={styles.boxActionsUnderSections}>
+							<HiveButtons apiaryId={apiaryId} hiveId={hiveId} box={box} frameId={frameId} mode="removeOnly" />
+						</div>
 					</div>
 				)}
 
@@ -255,7 +258,7 @@ export default function HiveEditForm() {
 								extraButtons={null}
 							/>
 
-							<HiveButtons apiaryId={apiaryId} hiveId={hiveId} box={box} frameId={frameId} />
+							<HiveButtons apiaryId={apiaryId} hiveId={hiveId} box={box} frameId={frameId} mode="nonRemove" />
 
 							{box && box.type === boxTypes.BOTTOM && <BottomBox boxId={boxId} hiveId={hiveId} />}
 

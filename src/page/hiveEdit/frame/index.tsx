@@ -140,23 +140,27 @@ export default function Frame({
 		if (!removeFrameDialogVisible) return
 
 		const onKeyDown = async (event: KeyboardEvent) => {
+			if (frameRemoving) return
+
 			if (event.key === 'Escape') {
 				event.preventDefault()
+				event.stopPropagation()
 				setRemoveFrameDialogVisible(false)
 				return
 			}
 
 			if (event.key === 'Enter') {
 				event.preventDefault()
+				event.stopPropagation()
 				await onFrameRemoveChoice('warehouse')
 			}
 		}
 
-		document.addEventListener('keydown', onKeyDown)
+		document.addEventListener('keydown', onKeyDown, true)
 		return () => {
-			document.removeEventListener('keydown', onKeyDown)
+			document.removeEventListener('keydown', onKeyDown, true)
 		}
-	}, [removeFrameDialogVisible])
+	}, [removeFrameDialogVisible, frameRemoving])
 
 	async function onFrameRemoveChoice(mode: 'trash' | 'warehouse') {
 		setRemoveFrameDialogVisible(false)
@@ -343,16 +347,24 @@ export default function Frame({
 					<div style={{ marginBottom: '12px' }}>
 						<T>Are you sure you want to remove this frame?</T>
 					</div>
-					<div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-						<Button color="gray" onClick={() => setRemoveFrameDialogVisible(false)}>
-							<T>Cancel</T>
-						</Button>
-						<Button color="red" onClick={async () => await onFrameRemoveChoice('trash')}>
-							<T>To trash</T>
-						</Button>
-						<Button color="green" onClick={async () => await onFrameRemoveChoice('warehouse')}>
-							<T>To warehouse</T>
-						</Button>
+					<div className={styles.removeFrameActions}>
+						<div className={styles.actionWithHint}>
+							<Button color="gray" onClick={() => setRemoveFrameDialogVisible(false)}>
+								<T>Cancel</T>
+							</Button>
+							<div className={styles.keyHint}>Esc</div>
+						</div>
+						<div className={styles.actionWithHint}>
+							<Button color="red" onClick={async () => await onFrameRemoveChoice('trash')}>
+								<T>To trash</T>
+							</Button>
+						</div>
+						<div className={styles.actionWithHint}>
+							<Button color="green" onClick={async () => await onFrameRemoveChoice('warehouse')}>
+								<T>To warehouse</T>
+							</Button>
+							<div className={styles.keyHint}>Enter</div>
+						</div>
 					</div>
 				</Modal>
 			)}

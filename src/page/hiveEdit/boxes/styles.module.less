@@ -48,7 +48,40 @@
 	grid-column: 1 / -1;
 }
 
+.removeBoxActions {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+}
+
+.actionWithHint {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+}
+
+.keyHint {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 1px 6px;
+	min-height: 16px;
+	border-radius: 5px;
+	background: #efefef;
+	border: 1px solid #d3d3d3;
+	color: #555;
+	font-size: 10px;
+	font-weight: 600;
+	line-height: 1;
+}
+
 @media @mobile {
+	.keyHint {
+		display: none;
+	}
+
 	.hiveButtons {
 		grid-template-columns: 1fr;
 	}

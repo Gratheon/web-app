@@ -92,24 +92,28 @@ const [removingBox, setRemovingBox] = useState(false);
 		if (!removeBoxDialogVisible) return
 
 		const onKeyDown = async (event: KeyboardEvent) => {
+			if (removingBox) return
+
 			if (event.key === 'Escape') {
 				event.preventDefault()
+				event.stopPropagation()
 				setRemoveBoxDialogVisible(false)
 				return
 			}
 
 			if (event.key === 'Enter') {
 				event.preventDefault()
+				event.stopPropagation()
 				if (!box?.id) return
 				await onBoxRemoveChoice('warehouse', +box.id)
 			}
 		}
 
-		document.addEventListener('keydown', onKeyDown)
+		document.addEventListener('keydown', onKeyDown, true)
 		return () => {
-			document.removeEventListener('keydown', onKeyDown)
+			document.removeEventListener('keydown', onKeyDown, true)
 		}
-	}, [removeBoxDialogVisible, box?.id])
+	}, [removeBoxDialogVisible, box?.id, removingBox])
 
 	async function onBoxRemoveChoice(mode: 'trash' | 'warehouse', id: number) {
 		setRemoveBoxDialogVisible(false)
@@ -294,28 +298,36 @@ const [removingBox, setRemovingBox] = useState(false);
 					<div style={{ marginBottom: '12px' }}>
 						<T>Are you sure you want to remove this box?</T>
 					</div>
-					<div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-						<Button color="gray" onClick={() => setRemoveBoxDialogVisible(false)}>
-							<T>Cancel</T>
-						</Button>
-						<Button
-							color="red"
-							onClick={async () => {
-								if (!box?.id) return
-								await onBoxRemoveChoice('trash', +box.id)
-							}}
-						>
-							<T>To trash</T>
-						</Button>
-						<Button
-							color="green"
-							onClick={async () => {
-								if (!box?.id) return
-								await onBoxRemoveChoice('warehouse', +box.id)
-							}}
-						>
-							<T>To warehouse</T>
-						</Button>
+					<div className={styles.removeBoxActions}>
+						<div className={styles.actionWithHint}>
+							<Button color="gray" onClick={() => setRemoveBoxDialogVisible(false)}>
+								<T>Cancel</T>
+							</Button>
+							<div className={styles.keyHint}>Esc</div>
+						</div>
+						<div className={styles.actionWithHint}>
+							<Button
+								color="red"
+								onClick={async () => {
+									if (!box?.id) return
+									await onBoxRemoveChoice('trash', +box.id)
+								}}
+							>
+								<T>To trash</T>
+							</Button>
+						</div>
+						<div className={styles.actionWithHint}>
+							<Button
+								color="green"
+								onClick={async () => {
+									if (!box?.id) return
+									await onBoxRemoveChoice('warehouse', +box.id)
+								}}
+							>
+								<T>To warehouse</T>
+							</Button>
+							<div className={styles.keyHint}>Enter</div>
+						</div>
 					</div>
 				</Modal>
 			)}

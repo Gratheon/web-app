@@ -32,6 +32,8 @@ import DeviceEditPage from './deviceEdit'
 import WarehousePage from './warehouse'
 import WarehouseItemViewPage from './warehouse/itemView'
 import WarehouseQueensPage from './warehouse/queens'
+import ProfessionalTierGate from '@/shared/professionalTierGate'
+import HobbyistTierGate from '@/shared/hobbyistTierGate'
 
 function LoggedInPage({ children }) {
 	const navigate = useNavigate()
@@ -108,14 +110,14 @@ export default function Page() {
 			<Route path="/account/authenticate" element={<LoggedOutPage><AccountAuth /></LoggedOutPage>} />
 			<Route path="/account/register" element={<LoggedOutPage><AccountRegister /></LoggedOutPage>} />
 
-			<Route path="/time" element={<LoggedInPage><TimeView /></LoggedInPage>} />
-			<Route path="/devices" element={<LoggedInPage><DevicesPage /></LoggedInPage>} />
-			<Route path="/devices/add" element={<LoggedInPage><DevicesCreatePage /></LoggedInPage>} />
-			<Route path="/devices/:id/edit" element={<LoggedInPage><DeviceEditPage /></LoggedInPage>} />
-			<Route path="/devices/:id" element={<LoggedInPage><DeviceViewPage /></LoggedInPage>} />
-			<Route path="/warehouse" element={<LoggedInPage><WarehousePage /></LoggedInPage>} />
-			<Route path="/warehouse/queens" element={<LoggedInPage><WarehouseQueensPage /></LoggedInPage>} />
-			<Route path="/warehouse/:moduleType" element={<LoggedInPage><WarehouseItemViewPage /></LoggedInPage>} />
+			<Route path="/time" element={<LoggedInPage><ProfessionalTierGate blockWheel><TimeView /></ProfessionalTierGate></LoggedInPage>} />
+			<Route path="/devices" element={<LoggedInPage><ProfessionalTierGate><DevicesPage /></ProfessionalTierGate></LoggedInPage>} />
+			<Route path="/devices/add" element={<LoggedInPage><ProfessionalTierGate><DevicesCreatePage /></ProfessionalTierGate></LoggedInPage>} />
+			<Route path="/devices/:id/edit" element={<LoggedInPage><ProfessionalTierGate><DeviceEditPage /></ProfessionalTierGate></LoggedInPage>} />
+			<Route path="/devices/:id" element={<LoggedInPage><ProfessionalTierGate><DeviceViewPage /></ProfessionalTierGate></LoggedInPage>} />
+			<Route path="/warehouse" element={<LoggedInPage><HobbyistTierGate><WarehousePage /></HobbyistTierGate></LoggedInPage>} />
+			<Route path="/warehouse/queens" element={<LoggedInPage><HobbyistTierGate><WarehouseQueensPage /></HobbyistTierGate></LoggedInPage>} />
+			<Route path="/warehouse/:moduleType" element={<LoggedInPage><HobbyistTierGate><WarehouseItemViewPage /></HobbyistTierGate></LoggedInPage>} />
 
 			<Route path="/apiaries/create" element={<LoggedInPage><ApiaryCreate /></LoggedInPage>} />
 			<Route path="/apiaries/:id" element={<LoggedInPage><ApiaryView /></LoggedInPage>} />
@@ -162,9 +164,9 @@ export default function Page() {
 
 			<Route path="/insights" element={<LoggedInPage><Grafana /></LoggedInPage>} />
 
-			<Route path="/alert-config" element={<LoggedInPage><AlertConfig section="history" /></LoggedInPage>} />
-			<Route path="/alert-config/channels" element={<LoggedInPage><AlertConfig section="channels" /></LoggedInPage>} />
-			<Route path="/alert-config/rules" element={<LoggedInPage><AlertConfig section="rules" /></LoggedInPage>} />
+			<Route path="/alert-config" element={<LoggedInPage><ProfessionalTierGate><AlertConfig section="history" /></ProfessionalTierGate></LoggedInPage>} />
+			<Route path="/alert-config/channels" element={<LoggedInPage><ProfessionalTierGate><AlertConfig section="channels" /></ProfessionalTierGate></LoggedInPage>} />
+			<Route path="/alert-config/rules" element={<LoggedInPage><ProfessionalTierGate><AlertConfig section="rules" /></ProfessionalTierGate></LoggedInPage>} />
 		</Routes>
 	)
 }

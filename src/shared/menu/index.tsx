@@ -165,6 +165,18 @@ function WarehouseIcon({ size = MOBILE_NAV_ICON_SIZE }) {
     )
 }
 
+function QueensIcon({ size = MOBILE_NAV_ICON_SIZE }) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 18.5H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            <path d="M6.5 18.5L8.5 9.5L12 13L15.5 9.5L17.5 18.5" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+            <circle cx="8.5" cy="7.5" r="1.5" stroke="currentColor" stroke-width="2" />
+            <circle cx="12" cy="5.5" r="1.5" stroke="currentColor" stroke-width="2" />
+            <circle cx="15.5" cy="7.5" r="1.5" stroke="currentColor" stroke-width="2" />
+        </svg>
+    )
+}
+
 function DeviceSignalIcon({ size = MOBILE_NAV_ICON_SIZE }) {
     return (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -531,6 +543,30 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                     <li>
                         <NavLink
                             className={mobileNavClassName}
+                            to="/warehouse"
+                            onClick={() => {
+                                setMoreVisible(false)
+                            }}
+                        >
+                            <span className={styles.navIcon}><WarehouseIcon size={MOBILE_NAV_ICON_SIZE} /></span>
+                            <span className={styles.navLabel}><T>Warehouse</T></span>
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink
+                            className={mobileNavClassName}
+                            to="/warehouse/queens"
+                            onClick={() => {
+                                setMoreVisible(false)
+                            }}
+                        >
+                            <span className={styles.navIcon}><QueensIcon size={MOBILE_NAV_ICON_SIZE} /></span>
+                            <span className={styles.navLabel}><T>Queens</T></span>
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink
+                            className={mobileNavClassName}
                             to="/time"
                             onClick={() => {
                                 setMoreVisible(false)
@@ -538,18 +574,6 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                         >
                             <span className={styles.navIcon}><LightBulbIcon size={MOBILE_NAV_ICON_SIZE} /></span>
                             <span className={styles.navLabel}><T>Insights</T></span>
-                        </NavLink>
-                    </li>
-                    <li>
-                        <NavLink
-                            className={mobileNavClassName}
-                            to="/alert-config"
-                            onClick={() => {
-                                setMoreVisible(false)
-                            }}
-                        >
-                            <span className={styles.navIcon}><BearFaceIcon size={MOBILE_NAV_ICON_SIZE} /></span>
-                            <span className={styles.navLabel}><T>Alerts</T></span>
                         </NavLink>
                     </li>
                     <li>
@@ -577,6 +601,14 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                         }}
                     >
                         <T>AI Advisor</T>
+                    </NavLink>
+                    <NavLink
+                        to="/alert-config"
+                        onClick={() => {
+                            setMoreVisible(false)
+                        }}
+                    >
+                        <T>Alerts</T>
                     </NavLink>
                     <NavLink
                         to="/warehouse"

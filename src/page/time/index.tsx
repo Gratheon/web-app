@@ -6,6 +6,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { getHives, bulkUpsertHives } from '@/models/hive'
 import { listInspections } from '@/models/inspections'
 import { useQuery, gql } from '@/api'
+import { getUser } from '@/models/user'
 import imageURL from '@/assets/bear.webp'
 import thinkerImageURL from '@/assets/thinker.webp'
 import { useChartSync } from '@/shared/charts/useChartSync'
@@ -25,6 +26,7 @@ import ChartToggles from './components/ChartToggles'
 import WeatherSection from './components/WeatherSection'
 import ApiarySelector from './components/ApiarySelector'
 import T, { useTranslation as t } from '@/shared/translate'
+import { isBillingTierLessThan } from '@/shared/billingTier'
 
 const LS_KEYS = {
 	SELECTED_APIARY: 'timeView.selectedApiaryId',
@@ -74,11 +76,77 @@ const HIVES_QUERY = gql`
 	}
 `
 
+function buildMockTelemetryData(activeHives: any[], timeRangeDays: number) {
+	if (!activeHives?.length) return null
+
+	const now = new Date()
+	const points = Math.max(12, Math.min(36, Math.floor(timeRangeDays / 3)))
+	const dayStep = Math.max(1, Math.floor(timeRangeDays / points))
+	const data: Record<string, any> = {}
+
+	activeHives.forEach((hive, hiveIndex) => {
+		const weightMetrics = []
+		const entranceMetrics = []
+		const populationMetrics = []
+
+		for (let i = points; i >= 0; i--) {
+			const date = new Date(now.getTime() - i * dayStep * 24 * 60 * 60 * 1000)
+			const ts = date.toISOString()
+			const trend = (points - i) / Math.max(1, points)
+
+			const beesIn = Math.round(120 + hiveIndex * 24 + trend * 80 + Math.sin(i / 2) * 18)
+			const beesOut = Math.round(110 + hiveIndex * 21 + trend * 72 + Math.cos(i / 3) * 16)
+			const netFlow = beesIn - beesOut
+			const avgSpeed = Math.max(1.2, 3.2 + Math.sin(i / 4) * 0.7 + hiveIndex * 0.2)
+			const p95Speed = Math.max(avgSpeed + 0.8, avgSpeed * 1.45)
+			const detectedBees = Math.max(40, beesIn + beesOut + hiveIndex * 15)
+			const stationaryBees = Math.max(8, Math.round(detectedBees * 0.18))
+			const beeInteractions = Math.max(4, Math.round(detectedBees * 0.06))
+
+			weightMetrics.push({
+				t: ts,
+				v: Math.round((28 + hiveIndex * 2.6 + trend * 6 + Math.sin(i / 3) * 1.4) * 100) / 100,
+			})
+
+			entranceMetrics.push({
+				time: ts,
+				beesIn,
+				beesOut,
+				netFlow,
+				avgSpeed: Math.round(avgSpeed * 100) / 100,
+				p95Speed: Math.round(p95Speed * 100) / 100,
+				stationaryBees,
+				detectedBees,
+				beeInteractions,
+			})
+
+			if (i % Math.max(1, Math.floor(points / 8)) === 0) {
+				populationMetrics.push({
+					t: ts,
+					beeCount: Math.round(14000 + hiveIndex * 1800 + trend * 12000 + Math.sin(i / 2) * 900),
+					droneCount: Math.round(400 + hiveIndex * 80 + trend * 300),
+					varroaMiteCount: Math.max(0, Math.round(8 + hiveIndex * 2 + Math.cos(i / 3) * 3)),
+					inspectionId: `mock-${hive.id}-${i}`,
+				})
+			}
+		}
+
+		data[`hive_${hive.id}_weight`] = { metrics: weightMetrics }
+		data[`hive_${hive.id}_temp`] = { metrics: [] }
+		data[`hive_${hive.id}_entrance`] = { metrics: entranceMetrics }
+		data[`hive_${hive.id}_population`] = { metrics: populationMetrics }
+	})
+
+	return data
+}
+
 export default function TimeView() {
 	const [searchParams, setSearchParams] = useSearchParams()
 	const { chartRefs, syncCharts } = useChartSync()
 	const scrollHandledRef = useRef(false)
 	const hiveLabel = t('Hive')
+	const user = useLiveQuery(() => getUser(), [], null)
+	const isPaywalled = isBillingTierLessThan(user?.billingPlan, 'professional')
 
 	const defaultFiltersExpanded = () => {
 		if (typeof window === 'undefined') return true
@@ -123,6 +191,20 @@ export default function TimeView() {
 			pollution: true
 		})
 	)
+	const effectiveEnabledCharts = useMemo(() => {
+		if (!isPaywalled) return enabledCharts
+		return {
+			...enabledCharts,
+			weather: false,
+			weatherTemperature: false,
+			wind: false,
+			rain: false,
+			solarRadiation: false,
+			cloudCover: false,
+			pollen: false,
+			pollution: false,
+		}
+	}, [enabledCharts, isPaywalled])
 
 	const { data: gqlData } = useQuery(HIVES_QUERY, {})
 
@@ -151,6 +233,11 @@ export default function TimeView() {
 	useEffect(() => {
 		saveToLocalStorage(LS_KEYS.FILTERS_EXPANDED, filtersExpanded)
 	}, [filtersExpanded])
+
+	useEffect(() => {
+		if (!isPaywalled) return
+		setFiltersExpanded(false)
+	}, [isPaywalled])
 
 	const allHives = useLiveQuery(async () => {
 		let localHives = await getHives()
@@ -203,15 +290,15 @@ export default function TimeView() {
 	}, [urlApiaryId, selectedApiaryId])
 
 	useEffect(() => {
-		if (urlChartType && enabledCharts.hasOwnProperty(urlChartType)) {
-			if (!enabledCharts[urlChartType]) {
+		if (urlChartType && effectiveEnabledCharts.hasOwnProperty(urlChartType)) {
+			if (!effectiveEnabledCharts[urlChartType]) {
 				setEnabledCharts(prev => ({ ...prev, [urlChartType]: true }))
 			}
 		}
-	}, [urlChartType, enabledCharts])
+	}, [urlChartType, effectiveEnabledCharts])
 
 	useEffect(() => {
-		if (urlScrollTo && !scrollHandledRef.current && enabledCharts[urlScrollTo]) {
+		if (urlScrollTo && !scrollHandledRef.current && effectiveEnabledCharts[urlScrollTo]) {
 			const timer = setTimeout(() => {
 				const chartElement = document.querySelector(`[data-chart-type="${urlScrollTo}"]`)
 				if (chartElement) {
@@ -226,7 +313,7 @@ export default function TimeView() {
 
 			return () => clearTimeout(timer)
 		}
-	}, [urlScrollTo, enabledCharts, searchParams, setSearchParams])
+	}, [urlScrollTo, effectiveEnabledCharts, searchParams, setSearchParams])
 
 	const selectedApiary = useMemo(() => {
 		if (!selectedApiaryId || !gqlData?.apiaries) return null
@@ -332,7 +419,7 @@ export default function TimeView() {
 	}, [timeRangeDays])
 
 	const { data: telemetryData } = useQuery(telemetryQueryString || HIVES_QUERY, {
-		skip: !telemetryQueryString,
+		skip: !telemetryQueryString || isPaywalled,
 		variables: {
 			days: timeRangeDays,
 			temperatureTimeRangeMin,
@@ -340,8 +427,14 @@ export default function TimeView() {
 			timeTo
 		}
 	})
+	const mockTelemetryData = useMemo(
+		() => (isPaywalled ? buildMockTelemetryData(activeHives, timeRangeDays) : null),
+		[isPaywalled, activeHives, timeRangeDays]
+	)
+	const effectiveTelemetryData = isPaywalled ? mockTelemetryData : telemetryData
 
 	const inspections = useLiveQuery(async () => {
+		if (isPaywalled) return []
 		if (!activeHives || activeHives.length === 0) return []
 		const allInspections = []
 		for (const hive of activeHives) {
@@ -365,10 +458,10 @@ export default function TimeView() {
 			}))
 		}
 		return allInspections
-	}, [activeHives], [])
+	}, [activeHives, isPaywalled], [])
 
 	const inspectionsByHive = useMemo(() => {
-		if (!inspections && !telemetryData) return {}
+		if (!inspections && !effectiveTelemetryData) return {}
 		const grouped: Record<string, any[]> = {}
 
 		if (inspections) {
@@ -378,9 +471,9 @@ export default function TimeView() {
 			})
 		}
 
-		if (telemetryData && activeHives) {
+		if (effectiveTelemetryData && activeHives) {
 			activeHives.forEach(hive => {
-				const populationData = telemetryData[`hive_${hive.id}_population`]
+				const populationData = effectiveTelemetryData[`hive_${hive.id}_population`]
 				if (populationData?.metrics) {
 					if (!grouped[hive.id]) grouped[hive.id] = []
 
@@ -416,10 +509,10 @@ export default function TimeView() {
 			grouped[hiveId] = deduped
 		})
 		return grouped
-	}, [inspections, telemetryData, activeHives])
+	}, [inspections, effectiveTelemetryData, activeHives])
 
 	const { weightDataByHive, temperatureDataByHive, entranceDataByHive } = useMemo(() => {
-		if (!telemetryData || !activeHives) return { weightDataByHive: {}, temperatureDataByHive: {}, entranceDataByHive: {} }
+		if (!effectiveTelemetryData || !activeHives) return { weightDataByHive: {}, temperatureDataByHive: {}, entranceDataByHive: {} }
 
 		const weightDataByHive = {}
 		const temperatureDataByHive = {}
@@ -429,20 +522,20 @@ export default function TimeView() {
 			const displayName = hive.hiveNumber ? `${hiveLabel} #${hive.hiveNumber}` : `${hiveLabel} ${hive.id}`
 			weightDataByHive[hive.id] = {
 				hiveName: displayName,
-				data: telemetryData[`hive_${hive.id}_weight`] || {}
+				data: effectiveTelemetryData[`hive_${hive.id}_weight`] || {}
 			}
 			temperatureDataByHive[hive.id] = {
 				hiveName: displayName,
-				data: telemetryData[`hive_${hive.id}_temp`] || {}
+				data: effectiveTelemetryData[`hive_${hive.id}_temp`] || {}
 			}
 			entranceDataByHive[hive.id] = {
 				hiveName: displayName,
-				data: telemetryData[`hive_${hive.id}_entrance`] || {}
+				data: effectiveTelemetryData[`hive_${hive.id}_entrance`] || {}
 			}
 		})
 
 		return { weightDataByHive, temperatureDataByHive, entranceDataByHive }
-	}, [telemetryData, activeHives, hiveLabel])
+	}, [effectiveTelemetryData, activeHives, hiveLabel])
 
 	const chartDataAvailability = useMemo(() => {
 		const hasPopulationData = Object.values(inspectionsByHive).some((entries: any[]) =>
@@ -507,9 +600,9 @@ export default function TimeView() {
 		]
 
 		return chartDefinitions
-			.filter(chart => enabledCharts[chart.key] && !chartDataAvailability[chart.key])
+			.filter(chart => effectiveEnabledCharts[chart.key] && !chartDataAvailability[chart.key])
 			.map(chart => chart.label)
-	}, [enabledCharts, chartDataAvailability])
+	}, [effectiveEnabledCharts, chartDataAvailability])
 
 	if (!allHives) return <Loader stroke="black" size={0}/>
 
@@ -590,7 +683,7 @@ export default function TimeView() {
 						<div className={styles.filterBlock}>
 							<ChartToggles
 								group="population"
-								enabledCharts={enabledCharts}
+								enabledCharts={effectiveEnabledCharts}
 								showIdealCurve={showIdealCurve}
 								onToggleChart={toggleChart}
 								onToggleIdealCurve={setShowIdealCurve}
@@ -600,7 +693,7 @@ export default function TimeView() {
 						<div className={styles.filterBlock}>
 							<ChartToggles
 								group="scales"
-								enabledCharts={enabledCharts}
+								enabledCharts={effectiveEnabledCharts}
 								showIdealCurve={showIdealCurve}
 								onToggleChart={toggleChart}
 								onToggleIdealCurve={setShowIdealCurve}
@@ -610,22 +703,24 @@ export default function TimeView() {
 						<div className={styles.filterBlock}>
 							<ChartToggles
 								group="entrance"
-								enabledCharts={enabledCharts}
+								enabledCharts={effectiveEnabledCharts}
 								showIdealCurve={showIdealCurve}
 								onToggleChart={toggleChart}
 								onToggleIdealCurve={setShowIdealCurve}
 							/>
 						</div>
 
-						<div className={styles.filterBlock}>
-							<ChartToggles
-								group="weather"
-								enabledCharts={enabledCharts}
-								showIdealCurve={showIdealCurve}
-								onToggleChart={toggleChart}
-								onToggleIdealCurve={setShowIdealCurve}
-							/>
-						</div>
+						{!isPaywalled && (
+							<div className={styles.filterBlock}>
+								<ChartToggles
+									group="weather"
+									enabledCharts={effectiveEnabledCharts}
+									showIdealCurve={showIdealCurve}
+									onToggleChart={toggleChart}
+									onToggleIdealCurve={setShowIdealCurve}
+								/>
+							</div>
+						)}
 					</aside>
 				)}
 
@@ -655,7 +750,7 @@ export default function TimeView() {
 						</div>
 					)}
 
-					{enabledCharts.population && chartDataAvailability.population && (
+					{effectiveEnabledCharts.population && chartDataAvailability.population && (
 						<div data-chart-type="population">
 							<PopulationChart
 								inspectionsByHive={inspectionsByHive}
@@ -668,7 +763,7 @@ export default function TimeView() {
 						</div>
 					)}
 
-					{enabledCharts.weight && chartDataAvailability.weight && (
+					{effectiveEnabledCharts.weight && chartDataAvailability.weight && (
 						<div data-chart-type="weight">
 							<MultiHiveWeightChart
 								weightDataByHive={weightDataByHive}
@@ -679,7 +774,7 @@ export default function TimeView() {
 						</div>
 					)}
 
-					{enabledCharts.temperature && chartDataAvailability.temperature && (
+					{effectiveEnabledCharts.temperature && chartDataAvailability.temperature && (
 						<div data-chart-type="temperature">
 							<MultiHiveTemperatureChart
 								temperatureDataByHive={temperatureDataByHive}
@@ -690,7 +785,7 @@ export default function TimeView() {
 						</div>
 					)}
 
-					{enabledCharts.entrance && chartDataAvailability.entrance && (
+					{effectiveEnabledCharts.entrance && chartDataAvailability.entrance && (
 						<div data-chart-type="entrance">
 							<MultiHiveEntranceChart
 								entranceDataByHive={entranceDataByHive}
@@ -700,7 +795,7 @@ export default function TimeView() {
 						</div>
 					)}
 
-					{enabledCharts.entranceSpeed && chartDataAvailability.entranceSpeed && (
+					{effectiveEnabledCharts.entranceSpeed && chartDataAvailability.entranceSpeed && (
 						<div data-chart-type="entranceSpeed">
 							<MultiHiveEntranceSpeedChart
 								entranceDataByHive={entranceDataByHive}
@@ -710,7 +805,7 @@ export default function TimeView() {
 						</div>
 					)}
 
-					{enabledCharts.entranceDetected && chartDataAvailability.entranceDetected && (
+					{effectiveEnabledCharts.entranceDetected && chartDataAvailability.entranceDetected && (
 						<div data-chart-type="entranceDetected">
 							<MultiHiveEntranceDetectedChart
 								entranceDataByHive={entranceDataByHive}
@@ -720,7 +815,7 @@ export default function TimeView() {
 						</div>
 					)}
 
-					{enabledCharts.entranceStationary && chartDataAvailability.entranceStationary && (
+					{effectiveEnabledCharts.entranceStationary && chartDataAvailability.entranceStationary && (
 						<div data-chart-type="entranceStationary">
 							<MultiHiveEntranceStationaryChart
 								entranceDataByHive={entranceDataByHive}
@@ -730,7 +825,7 @@ export default function TimeView() {
 						</div>
 					)}
 
-					{enabledCharts.entranceInteractions && chartDataAvailability.entranceInteractions && (
+					{effectiveEnabledCharts.entranceInteractions && chartDataAvailability.entranceInteractions && (
 						<div data-chart-type="entranceInteractions">
 							<MultiHiveEntranceInteractionsChart
 								entranceDataByHive={entranceDataByHive}
@@ -740,20 +835,20 @@ export default function TimeView() {
 						</div>
 					)}
 
-					{enabledCharts.weather && (
+					{effectiveEnabledCharts.weather && (
 						<WeatherSection
 							apiaries={relevantApiaries}
 							days={timeRangeDays}
 							chartRefs={chartRefs}
 							syncCharts={syncCharts}
 							enabledCharts={{
-								temperature: enabledCharts.weatherTemperature,
-								wind: enabledCharts.wind,
-								rain: enabledCharts.rain,
-								solarRadiation: enabledCharts.solarRadiation,
-								cloudCover: enabledCharts.cloudCover,
-								pollen: enabledCharts.pollen,
-								pollution: enabledCharts.pollution
+								temperature: effectiveEnabledCharts.weatherTemperature,
+								wind: effectiveEnabledCharts.wind,
+								rain: effectiveEnabledCharts.rain,
+								solarRadiation: effectiveEnabledCharts.solarRadiation,
+								cloudCover: effectiveEnabledCharts.cloudCover,
+								pollen: effectiveEnabledCharts.pollen,
+								pollution: effectiveEnabledCharts.pollution
 							}}
 						/>
 					)}

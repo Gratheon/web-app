@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
 
 import { gql, useMutation, useQuery } from '@/api'
 import Button from '@/shared/button'
@@ -6,6 +7,8 @@ import DevicesPlaceholder from '@/shared/devicesPlaceholder'
 import ErrorMsg from '@/shared/messageError'
 import Loader from '@/shared/loader'
 import T from '@/shared/translate'
+import { getUser } from '@/models/user'
+import { isBillingTierLessThan } from '@/shared/billingTier'
 
 import styles from './style.module.less'
 
@@ -45,17 +48,40 @@ mutation deactivateDevice($id: ID!) {
 
 type DeviceType = 'IOT_SENSOR' | 'VIDEO_CAMERA'
 
+const PROFESSIONAL_PREVIEW_DEVICES = [
+	{
+		id: 'preview-video-camera',
+		name: 'Video Camera',
+		type: 'VIDEO_CAMERA' as DeviceType,
+		hiveId: null,
+		boxId: null,
+	},
+	{
+		id: 'preview-iot-sensors',
+		name: 'IoT Sensors',
+		type: 'IOT_SENSOR' as DeviceType,
+		hiveId: null,
+		boxId: null,
+	},
+]
+
 function formatDeviceType(type: DeviceType) {
 	return type === 'VIDEO_CAMERA' ? 'Video camera' : 'IoT sensor'
 }
 
 export default function DevicesPage() {
 	const [deletingId, setDeletingId] = useState<string | null>(null)
+	const user = useLiveQuery(() => getUser(), [], null)
+	const isDevicesLocked = isBillingTierLessThan(user?.billingPlan, 'professional')
 
 	const [deactivateDevice, { error: deactivateError }] = useMutation(DEACTIVATE_DEVICE_MUTATION)
 	const { loading, error, data, reexecuteQuery } = useQuery(DEVICES_QUERY)
 
 	const devices = useMemo(() => data?.devices || [], [data?.devices])
+	const displayedDevices = useMemo(
+		() => (isDevicesLocked ? PROFESSIONAL_PREVIEW_DEVICES : devices),
+		[isDevicesLocked, devices]
+	)
 	const hiveOptions = useMemo(() => {
 		const options: Array<{ id: string; label: string }> = []
 		const apiaries = data?.apiaries || []
@@ -98,6 +124,8 @@ export default function DevicesPage() {
 	}, [boxOptionsByHive])
 
 	async function handleDelete(id: string) {
+		if (isDevicesLocked) return
+
 		if (!window.confirm('Delete this device?')) return
 		setDeletingId(id)
 		await deactivateDevice({ id })
@@ -124,11 +152,11 @@ export default function DevicesPage() {
 			<ErrorMsg error={error || deactivateError} />
 
 			<section className={styles.section}>
-				{devices.length === 0 && <DevicesPlaceholder />}
+				{displayedDevices.length === 0 && <DevicesPlaceholder />}
 
-				{devices.length > 0 && (
+				{displayedDevices.length > 0 && (
 					<div className={styles.list}>
-						{devices.map((device: any) => {
+						{displayedDevices.map((device: any) => {
 							const hiveLabel = device.hiveId ? (hiveOptionById.get(device.hiveId) || `Hive ${device.hiveId}`) : '—'
 							const boxLabel = device.boxId ? (boxOptionById.get(device.boxId) || `Section ${device.boxId}`) : '—'
 							return (

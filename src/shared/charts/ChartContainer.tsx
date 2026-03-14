@@ -13,6 +13,7 @@ interface ChartContainerProps {
 	chartRefs?: React.MutableRefObject<any[]>
 	syncCharts?: (sourceChart: any) => void
 	onVisibleTimeRangeChange?: (range: any) => void
+	suspendTimeRangeSync?: boolean
 	chartOptions?: any
 	children: React.ReactNode
 	showTable?: boolean
@@ -36,6 +37,7 @@ export default function ChartContainer({
 	chartRefs,
 	syncCharts,
 	onVisibleTimeRangeChange,
+	suspendTimeRangeSync = false,
 	chartOptions = {},
 	children,
 	showTable = false,
@@ -64,8 +66,13 @@ export default function ChartContainer({
 
 			const handleVisibleTimeRangeChange = () => {
 				if (chartApiRef.current) {
-					syncCharts(chartApiRef.current)
-					onVisibleTimeRangeChange?.(chartApiRef.current.timeScale().getVisibleRange())
+					const range = chartApiRef.current.timeScale().getVisibleRange()
+					if (!suspendTimeRangeSync) {
+						syncCharts(chartApiRef.current)
+						onVisibleTimeRangeChange?.(range)
+					} else {
+						console.debug('[weather-zoom] sync suspended for chart', { title, range })
+					}
 				}
 			}
 
@@ -85,7 +92,7 @@ export default function ChartContainer({
 				}
 			}
 		}
-	}, [chartApiRef.current, chartRefs, syncCharts, onVisibleTimeRangeChange])
+	}, [chartApiRef.current, chartRefs, syncCharts, onVisibleTimeRangeChange, suspendTimeRangeSync])
 
 	const handleChartInit = (chart: any) => {
 		chartApiRef.current = chart

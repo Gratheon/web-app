@@ -9,9 +9,10 @@ type PollutionChartProps = {
 	chartRefs?: React.MutableRefObject<any[]>
 	syncCharts?: (sourceChart: any) => void
 	onVisibleTimeRangeChange?: (range: any) => void
+	suspendTimeRangeSync?: boolean
 }
 
-export default function PollutionChart({ pollutionData, chartRefs, syncCharts, onVisibleTimeRangeChange }: PollutionChartProps) {
+export default function PollutionChart({ pollutionData, chartRefs, syncCharts, onVisibleTimeRangeChange, suspendTimeRangeSync }: PollutionChartProps) {
 	const pm25Data = pollutionData.pm2_5
 		.filter(d => d.value !== null)
 		.map(d => ({
@@ -45,6 +46,7 @@ export default function PollutionChart({ pollutionData, chartRefs, syncCharts, o
 			chartRefs={chartRefs}
 			syncCharts={syncCharts}
 			onVisibleTimeRangeChange={onVisibleTimeRangeChange}
+			suspendTimeRangeSync={suspendTimeRangeSync}
 			chartOptions={{ height: 300 }}
 		>
 			{pm25Data.length > 0 && (

@@ -13,9 +13,10 @@ type PollenChartProps = {
 	chartRefs?: React.MutableRefObject<any[]>
 	syncCharts?: (sourceChart: any) => void
 	onVisibleTimeRangeChange?: (range: any) => void
+	suspendTimeRangeSync?: boolean
 }
 
-export default function PollenChart({ pollenData, chartRefs, syncCharts, onVisibleTimeRangeChange }: PollenChartProps) {
+export default function PollenChart({ pollenData, chartRefs, syncCharts, onVisibleTimeRangeChange, suspendTimeRangeSync }: PollenChartProps) {
 	const transformData = (data: Array<{ time: string; value: number | null }>) =>
 		data
 			.filter(d => d.value !== null && d.value > 0)
@@ -55,6 +56,7 @@ export default function PollenChart({ pollenData, chartRefs, syncCharts, onVisib
 			chartRefs={chartRefs}
 			syncCharts={syncCharts}
 			onVisibleTimeRangeChange={onVisibleTimeRangeChange}
+			suspendTimeRangeSync={suspendTimeRangeSync}
 			chartOptions={{ height: 300 }}
 		>
 			{birchData.length > 0 && (

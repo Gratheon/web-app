@@ -9,9 +9,10 @@ type TemperatureChartProps = {
 	chartRefs?: React.MutableRefObject<any[]>
 	syncCharts?: (sourceChart: any) => void
 	onVisibleTimeRangeChange?: (range: any) => void
+	suspendTimeRangeSync?: boolean
 }
 
-export default function TemperatureChart({ temperatureData, chartRefs, syncCharts, onVisibleTimeRangeChange }: TemperatureChartProps) {
+export default function TemperatureChart({ temperatureData, chartRefs, syncCharts, onVisibleTimeRangeChange, suspendTimeRangeSync }: TemperatureChartProps) {
 	const tempData = temperatureData.temperature_2m
 		.filter(d => d.value !== null)
 		.map(d => ({
@@ -40,6 +41,7 @@ export default function TemperatureChart({ temperatureData, chartRefs, syncChart
 			chartRefs={chartRefs}
 			syncCharts={syncCharts}
 			onVisibleTimeRangeChange={onVisibleTimeRangeChange}
+			suspendTimeRangeSync={suspendTimeRangeSync}
 			chartOptions={{ height: 300 }}
 		>
 			<LineSeries

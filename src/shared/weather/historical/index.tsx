@@ -1,7 +1,7 @@
 import {gql, useQuery} from '@/api'
 import Loading from '@/shared/loader'
 import ErrorMsg from '@/shared/messageError'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo } from 'react'
 import TemperatureChart from './TemperatureChart'
 import WindChart from './WindChart'
 import RainChart from './RainChart'
@@ -140,61 +140,7 @@ export default function HistoricalWeather({lat, lng, days, chartRefs, syncCharts
 			endDate: end.toISOString().split('T')[0],
 		}
 	}, [days])
-	const defaultStepHours = useMemo(() => (days >= 90 ? 3 : days >= 60 ? 2 : 1), [days])
-	const [stepHours, setStepHours] = useState(defaultStepHours)
-	const lastVisibleRangeRef = useRef<any>(null)
-	const pendingRangeRestoreRef = useRef(false)
-	const suppressAdaptiveStepUntilRef = useRef(0)
-
-	useEffect(() => {
-		setStepHours(defaultStepHours)
-	}, [defaultStepHours, lat, lng, startDate, endDate])
-
-	const onVisibleTimeRangeChange = useCallback((range: any) => {
-		lastVisibleRangeRef.current = range
-		if (Date.now() < suppressAdaptiveStepUntilRef.current) return
-
-		const toEpochSeconds = (value: any): number | null => {
-			if (typeof value === 'number') return value
-			if (value && typeof value === 'object' && 'year' in value && 'month' in value && 'day' in value) {
-				const date = new Date(Date.UTC(value.year, value.month - 1, value.day))
-				const epoch = Math.floor(date.getTime() / 1000)
-				return Number.isFinite(epoch) ? epoch : null
-			}
-			return null
-		}
-
-		const from = toEpochSeconds(range?.from)
-		const to = toEpochSeconds(range?.to)
-
-		if (from === null || to === null || to <= from) {
-			if (stepHours !== defaultStepHours) {
-				setStepHours(defaultStepHours)
-			}
-			return
-		}
-
-		const visibleHours = (to - from) / 3600
-		const zoomInThresholdHours = 72
-		const zoomOutThresholdHours = 96
-		let targetStep = stepHours
-
-		if (defaultStepHours > 1) {
-			if (visibleHours <= zoomInThresholdHours) {
-				targetStep = 1
-			} else if (visibleHours >= zoomOutThresholdHours) {
-				targetStep = defaultStepHours
-			}
-		} else {
-			targetStep = 1
-		}
-
-		if (targetStep !== stepHours) {
-			lastVisibleRangeRef.current = range
-			pendingRangeRestoreRef.current = true
-			setStepHours(targetStep)
-		}
-	}, [defaultStepHours, stepHours])
+	const stepHours = 1
 
 	const {loading, error, data} = useQuery(HISTORICAL_WEATHER_QUERY, {
 		variables: {
@@ -212,53 +158,11 @@ export default function HistoricalWeather({lat, lng, days, chartRefs, syncCharts
 			includePollution: enabledCharts.pollution,
 		},
 	})
-	const [lastWeatherData, setLastWeatherData] = useState<any | null>(null)
-
-	useEffect(() => {
-		if (data?.historicalWeatherCompact) {
-			setLastWeatherData(transformCompactToChartData(data.historicalWeatherCompact))
-		}
-	}, [data])
-
 	const weatherData = data?.historicalWeatherCompact
 		? transformCompactToChartData(data.historicalWeatherCompact)
-		: lastWeatherData
+		: null
 
-	useEffect(() => {
-		if (!pendingRangeRestoreRef.current) return
-		const visibleRange = lastVisibleRangeRef.current
-		if (!visibleRange || !chartRefs?.current?.length) {
-			pendingRangeRestoreRef.current = false
-			return
-		}
-		suppressAdaptiveStepUntilRef.current = Date.now() + 1200
-
-		const restoreVisibleRange = () => {
-			if (!chartRefs?.current?.length) return
-			chartRefs.current.forEach((chart: any) => {
-				try {
-					chart?.timeScale?.().setVisibleRange(visibleRange)
-				} catch (e) {
-					console.error('Failed to restore visible range:', e)
-				}
-			})
-		}
-
-		restoreVisibleRange()
-		const t1 = setTimeout(restoreVisibleRange, 0)
-		const t2 = setTimeout(restoreVisibleRange, 60)
-		const t3 = setTimeout(restoreVisibleRange, 180)
-		const t4 = setTimeout(restoreVisibleRange, 420)
-		pendingRangeRestoreRef.current = false
-		return () => {
-			clearTimeout(t1)
-			clearTimeout(t2)
-			clearTimeout(t3)
-			clearTimeout(t4)
-		}
-	}, [weatherData, chartRefs])
-
-	if (loading && !weatherData) {
+	if (loading) {
 		return <Loading/>
 	}
 
@@ -266,7 +170,7 @@ export default function HistoricalWeather({lat, lng, days, chartRefs, syncCharts
 		return <ErrorMsg error={'could not load historical weather data'}/>
 	}
 
-	if (error && !lastWeatherData) {
+	if (error) {
 		return <ErrorMsg error={error}/>
 	}
 
@@ -277,7 +181,6 @@ export default function HistoricalWeather({lat, lng, days, chartRefs, syncCharts
 					temperatureData={weatherData.temperature}
 					chartRefs={chartRefs}
 					syncCharts={syncCharts}
-					onVisibleTimeRangeChange={onVisibleTimeRangeChange}
 				/>
 			)}
 
@@ -286,7 +189,6 @@ export default function HistoricalWeather({lat, lng, days, chartRefs, syncCharts
 					windData={weatherData.wind}
 					chartRefs={chartRefs}
 					syncCharts={syncCharts}
-					onVisibleTimeRangeChange={onVisibleTimeRangeChange}
 				/>
 			)}
 
@@ -295,7 +197,6 @@ export default function HistoricalWeather({lat, lng, days, chartRefs, syncCharts
 					rainData={weatherData.rain}
 					chartRefs={chartRefs}
 					syncCharts={syncCharts}
-					onVisibleTimeRangeChange={onVisibleTimeRangeChange}
 				/>
 			)}
 
@@ -304,7 +205,6 @@ export default function HistoricalWeather({lat, lng, days, chartRefs, syncCharts
 					solarData={weatherData.solarRadiation}
 					chartRefs={chartRefs}
 					syncCharts={syncCharts}
-					onVisibleTimeRangeChange={onVisibleTimeRangeChange}
 				/>
 			)}
 
@@ -313,7 +213,6 @@ export default function HistoricalWeather({lat, lng, days, chartRefs, syncCharts
 					cloudData={weatherData.cloudCover}
 					chartRefs={chartRefs}
 					syncCharts={syncCharts}
-					onVisibleTimeRangeChange={onVisibleTimeRangeChange}
 				/>
 			)}
 
@@ -322,7 +221,6 @@ export default function HistoricalWeather({lat, lng, days, chartRefs, syncCharts
 					pollenData={weatherData.pollen}
 					chartRefs={chartRefs}
 					syncCharts={syncCharts}
-					onVisibleTimeRangeChange={onVisibleTimeRangeChange}
 				/>
 			)}
 
@@ -331,7 +229,6 @@ export default function HistoricalWeather({lat, lng, days, chartRefs, syncCharts
 					pollutionData={weatherData.pollution}
 					chartRefs={chartRefs}
 					syncCharts={syncCharts}
-					onVisibleTimeRangeChange={onVisibleTimeRangeChange}
 				/>
 			)}
 		</>

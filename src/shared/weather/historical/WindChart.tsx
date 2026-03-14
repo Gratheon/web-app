@@ -10,9 +10,10 @@ type WindChartProps = {
 	chartRefs?: React.MutableRefObject<any[]>
 	syncCharts?: (sourceChart: any) => void
 	onVisibleTimeRangeChange?: (range: any) => void
+	suspendTimeRangeSync?: boolean
 }
 
-export default function WindChart({ windData, chartRefs, syncCharts, onVisibleTimeRangeChange }: WindChartProps) {
+export default function WindChart({ windData, chartRefs, syncCharts, onVisibleTimeRangeChange, suspendTimeRangeSync }: WindChartProps) {
 	const windSpeedData = windData.wind_speed_10m
 		.filter(d => d.value !== null)
 		.map(d => ({
@@ -40,6 +41,7 @@ export default function WindChart({ windData, chartRefs, syncCharts, onVisibleTi
 			chartRefs={chartRefs}
 			syncCharts={syncCharts}
 			onVisibleTimeRangeChange={onVisibleTimeRangeChange}
+			suspendTimeRangeSync={suspendTimeRangeSync}
 			chartOptions={{ height: 300 }}
 		>
 			<LineSeries

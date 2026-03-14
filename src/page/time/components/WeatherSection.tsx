@@ -1,6 +1,7 @@
 import HistoricalWeather from '@/shared/weather/historical'
 import style from './WeatherSection.module.less'
 import T from '@/shared/translate'
+import { useChartSync } from '@/shared/charts/useChartSync'
 
 type WeatherSectionProps = {
 	apiaries: Array<{
@@ -10,8 +11,6 @@ type WeatherSectionProps = {
 		lng: string
 	}>
 	days: number
-	chartRefs?: React.MutableRefObject<any[]>
-	syncCharts?: (sourceChart: any) => void
 	enabledCharts: {
 		temperature: boolean
 		wind: boolean
@@ -23,8 +22,9 @@ type WeatherSectionProps = {
 	}
 }
 
-export default function WeatherSection({ apiaries, days, chartRefs, syncCharts, enabledCharts }: WeatherSectionProps) {
+export default function WeatherSection({ apiaries, days, enabledCharts }: WeatherSectionProps) {
 	if (apiaries.length === 0) return null
+	const { chartRefs: weatherChartRefs, syncCharts: syncWeatherCharts } = useChartSync()
 
 	return (
 		<div className={style.weatherSection}>
@@ -35,8 +35,8 @@ export default function WeatherSection({ apiaries, days, chartRefs, syncCharts, 
 						lat={apiary.lat}
 						lng={apiary.lng}
 						days={days}
-						chartRefs={chartRefs}
-						syncCharts={syncCharts}
+						chartRefs={weatherChartRefs}
+						syncCharts={syncWeatherCharts}
 						enabledCharts={enabledCharts}
 					/>
 				</div>
@@ -44,4 +44,3 @@ export default function WeatherSection({ apiaries, days, chartRefs, syncCharts, 
 		</div>
 	)
 }
-

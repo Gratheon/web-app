@@ -11,9 +11,10 @@ type CloudCoverChartProps = {
 	chartRefs?: React.MutableRefObject<any[]>
 	syncCharts?: (sourceChart: any) => void
 	onVisibleTimeRangeChange?: (range: any) => void
+	suspendTimeRangeSync?: boolean
 }
 
-export default function CloudCoverChart({ cloudData, chartRefs, syncCharts, onVisibleTimeRangeChange }: CloudCoverChartProps) {
+export default function CloudCoverChart({ cloudData, chartRefs, syncCharts, onVisibleTimeRangeChange, suspendTimeRangeSync }: CloudCoverChartProps) {
 	const lowData = cloudData.cloud_cover_low
 		.filter(d => d.value !== null)
 		.map(d => ({
@@ -48,6 +49,7 @@ export default function CloudCoverChart({ cloudData, chartRefs, syncCharts, onVi
 			chartRefs={chartRefs}
 			syncCharts={syncCharts}
 			onVisibleTimeRangeChange={onVisibleTimeRangeChange}
+			suspendTimeRangeSync={suspendTimeRangeSync}
 			chartOptions={{ height: 300 }}
 		>
 			<LineSeries

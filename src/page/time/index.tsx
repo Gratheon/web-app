@@ -835,15 +835,13 @@ export default function TimeView() {
 						</div>
 					)}
 
-					{effectiveEnabledCharts.weather && (
-						<WeatherSection
-							apiaries={relevantApiaries}
-							days={timeRangeDays}
-							chartRefs={chartRefs}
-							syncCharts={syncCharts}
-							enabledCharts={{
-								temperature: effectiveEnabledCharts.weatherTemperature,
-								wind: effectiveEnabledCharts.wind,
+						{effectiveEnabledCharts.weather && (
+							<WeatherSection
+								apiaries={relevantApiaries}
+								days={timeRangeDays}
+								enabledCharts={{
+									temperature: effectiveEnabledCharts.weatherTemperature,
+									wind: effectiveEnabledCharts.wind,
 								rain: effectiveEnabledCharts.rain,
 								solarRadiation: effectiveEnabledCharts.solarRadiation,
 								cloudCover: effectiveEnabledCharts.cloudCover,

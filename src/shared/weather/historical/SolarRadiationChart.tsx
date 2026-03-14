@@ -10,9 +10,10 @@ type SolarRadiationChartProps = {
 	chartRefs?: React.MutableRefObject<any[]>
 	syncCharts?: (sourceChart: any) => void
 	onVisibleTimeRangeChange?: (range: any) => void
+	suspendTimeRangeSync?: boolean
 }
 
-export default function SolarRadiationChart({ solarData, chartRefs, syncCharts, onVisibleTimeRangeChange }: SolarRadiationChartProps) {
+export default function SolarRadiationChart({ solarData, chartRefs, syncCharts, onVisibleTimeRangeChange, suspendTimeRangeSync }: SolarRadiationChartProps) {
 	const diffuseData = solarData.diffuse_radiation
 		.filter(d => d.value !== null)
 		.map(d => ({
@@ -40,6 +41,7 @@ export default function SolarRadiationChart({ solarData, chartRefs, syncCharts, 
 			chartRefs={chartRefs}
 			syncCharts={syncCharts}
 			onVisibleTimeRangeChange={onVisibleTimeRangeChange}
+			suspendTimeRangeSync={suspendTimeRangeSync}
 			chartOptions={{ height: 300 }}
 		>
 			<LineSeries

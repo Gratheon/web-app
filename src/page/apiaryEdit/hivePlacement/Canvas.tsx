@@ -37,6 +37,7 @@ interface CanvasProps {
 	readOnlyHitTest?: (x: number, y: number) => boolean
 	isMobile?: boolean
 	showCompass?: boolean
+	showShadows?: boolean
 	flightLineLength?: number
 	showSelectionHandles?: boolean
 	labels: CanvasLabels
@@ -74,6 +75,7 @@ export default function Canvas({
 	readOnlyHitTest,
 	isMobile = false,
 	showCompass = true,
+	showShadows = true,
 	flightLineLength = 60,
 	showSelectionHandles = true,
 	labels,
@@ -91,7 +93,7 @@ export default function Canvas({
 
 	useEffect(() => {
 		drawCanvas()
-	}, [placements, obstacles, sunAngle, selectedHive, selectedObstacle, hives.length, canvasWidth, canvasHeight, panOffset, labels, focusPoint, zoomScale, showCompass])
+	}, [placements, obstacles, sunAngle, selectedHive, selectedObstacle, hives.length, canvasWidth, canvasHeight, panOffset, labels, focusPoint, zoomScale, showCompass, showShadows])
 
 	const drawCanvas = () => {
 		const canvas = canvasRef.current
@@ -114,7 +116,9 @@ export default function Canvas({
 			ctx.translate(panOffset.x, panOffset.y)
 		}
 
-		calculateShadow(ctx, obstacles, placements, hives, sunAngle)
+		if (showShadows) {
+			calculateShadow(ctx, obstacles, placements, hives, sunAngle)
+		}
 		drawObstacles(ctx)
 		drawHives(ctx)
 

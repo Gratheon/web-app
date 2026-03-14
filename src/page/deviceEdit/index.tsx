@@ -9,6 +9,7 @@ import Loader from '@/shared/loader'
 import MaskedToken from '@/shared/maskedToken'
 import PagePaddedCentered from '@/shared/pagePaddedCentered'
 import T from '@/shared/translate'
+import DeviceVideoStream from '@/shared/deviceVideoStream'
 import VisualForm from '@/shared/visualForm'
 
 import styles from './styles.module.less'
@@ -283,6 +284,12 @@ export default function DeviceEditPage() {
 					</div>
 				</VisualForm>
 			</div>
+
+			{form.type === 'VIDEO_CAMERA' && (
+				<div className={styles.streamWrap}>
+					<DeviceVideoStream boxId={form.boxId || null} />
+				</div>
+			)}
 		</PagePaddedCentered>
 	)
 }

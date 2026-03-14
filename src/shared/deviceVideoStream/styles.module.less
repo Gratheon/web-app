@@ -1,0 +1,83 @@
+.panel {
+	padding: 16px;
+	border: 1px solid #dce8f6;
+	border-radius: 12px;
+	background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+}
+
+.description {
+	margin: 10px 0 14px;
+	color: #39465e;
+}
+
+.content {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.form {
+	gap: 8px;
+}
+
+.controlsRow {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+}
+
+.controlsRow label {
+	min-width: 64px;
+	font-weight: 600;
+	color: #233146;
+}
+
+.controlsRow select {
+	min-width: 220px;
+	height: 38px;
+	padding: 0 10px;
+	border: 1px solid #c9d8eb;
+	border-radius: 9px;
+	background: #fff;
+}
+
+.status {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.helper {
+	margin: 0;
+	color: #68758a;
+	font-size: 14px;
+}
+
+.warning {
+	padding: 10px 12px;
+	border-radius: 10px;
+	border: 1px solid #f0cf9c;
+	background: #fff5e8;
+	color: #7a4a07;
+	font-size: 14px;
+}
+
+.preview {
+	width: 100%;
+	max-width: 420px;
+	border-radius: 10px;
+	background: #000;
+}
+
+@media (max-width: 768px) {
+	.controlsRow {
+		align-items: flex-start;
+		flex-direction: column;
+	}
+
+	.controlsRow select {
+		width: 100%;
+		min-width: 0;
+	}
+}

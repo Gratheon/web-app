@@ -359,7 +359,7 @@ export default function HiveEditForm() {
 
 					{mapTab === 'structure' && (
 						<div>
-							{box && box.type === boxTypes.GATE && <GateBox boxId={boxId} />}
+							{box && box.type === boxTypes.GATE && <GateBox boxId={boxId} hiveId={hiveId} />}
 							<Frame
 								box={box}
 								apiaryId={apiaryId}

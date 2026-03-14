@@ -137,6 +137,7 @@ export default function HivePlacementMiniMap({ apiaryId, selectedHiveId }: Props
 				isMobile={false}
 				labels={labels}
 				showCompass={false}
+				showShadows={false}
 				flightLineLength={24}
 				showSelectionHandles={false}
 				focusPoint={{ x: focusPlacement.x, y: focusPlacement.y }}

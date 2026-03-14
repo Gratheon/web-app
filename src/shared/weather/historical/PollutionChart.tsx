@@ -8,9 +8,10 @@ type PollutionChartProps = {
 	}
 	chartRefs?: React.MutableRefObject<any[]>
 	syncCharts?: (sourceChart: any) => void
+	onVisibleTimeRangeChange?: (range: any) => void
 }
 
-export default function PollutionChart({ pollutionData, chartRefs, syncCharts }: PollutionChartProps) {
+export default function PollutionChart({ pollutionData, chartRefs, syncCharts, onVisibleTimeRangeChange }: PollutionChartProps) {
 	const pm25Data = pollutionData.pm2_5
 		.filter(d => d.value !== null)
 		.map(d => ({
@@ -43,6 +44,7 @@ export default function PollutionChart({ pollutionData, chartRefs, syncCharts }:
 			info="Air pollution can affect bee health and navigation. High PM levels may impact foraging."
 			chartRefs={chartRefs}
 			syncCharts={syncCharts}
+			onVisibleTimeRangeChange={onVisibleTimeRangeChange}
 			chartOptions={{ height: 300 }}
 		>
 			{pm25Data.length > 0 && (
@@ -68,4 +70,3 @@ export default function PollutionChart({ pollutionData, chartRefs, syncCharts }:
 		</ChartContainer>
 	)
 }
-

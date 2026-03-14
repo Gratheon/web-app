@@ -30,6 +30,13 @@ let isPanning = false;
 let startPanPosition = { x: 0, y: 0 };
 let initialPanOffset = { x: 0, y: 0 };
 
+function clampCameraOffset(canvas: HTMLCanvasElement) {
+	const minX = canvas.width - canvas.width * globalCameraZoom;
+	const minY = canvas.height - canvas.height * globalCameraZoom;
+	offsetsum.x = Math.min(0, Math.max(minX, offsetsum.x));
+	offsetsum.y = Math.min(0, Math.max(minY, offsetsum.y));
+}
+
 function calculateRelPx(canvas: HTMLCanvasElement) {
 	return canvas.width / 1024;
 }
@@ -240,16 +247,14 @@ function debounce(func: (...args: any[]) => void, timeout = 300) {
 
 function calculateCanvasSize(canvas: HTMLCanvasElement, imgWidth: number, imgHeight: number) {
 	const parentContainer = canvas.parentElement;
-	const canvasParentWidth = parentContainer ? parentContainer.clientWidth : 1024;
-	const boxesWrap = document.getElementById('boxesWrap');
+	const canvasParentWidth = parentContainer
+		? parentContainer.getBoundingClientRect().width
+		: document.documentElement.clientWidth;
 	const isMobileView = document.body.clientWidth < 1200;
 	zoomEnabled = !isMobileView;
 
-	const canvasWidth = isMobileView
-		? document.body.clientWidth
-		: (boxesWrap && parentContainer && !parentContainer.contains(boxesWrap))
-			? Math.max(document.documentElement.clientWidth - boxesWrap.offsetWidth - 40, 0.5 * document.documentElement.clientWidth)
-			: canvasParentWidth;
+	// Size from the actual container width so sidebars/layout toggles are handled automatically.
+	const canvasWidth = Math.max(canvasParentWidth, 1);
 
 	const targetWidth = dpr * Math.floor(canvasWidth);
 	canvas.width = targetWidth;
@@ -403,6 +408,15 @@ export default function DrawingCanvas({
 		});
 	}, [strokeHistory, showBees, showDrones, isAiQueenVisible, allDetectedBees, showCells, detectedCells, showQueenCups, detectedQueenCups, showVarroa, detectedVarroa]);
 
+	useEffect(() => {
+		// Reset camera state when switching frame image to avoid stale zoom/pan jumps.
+		globalCameraZoom = 1;
+		offsetsum = { x: 0, y: 0 };
+		isPanning = false;
+		isMousedown = false;
+		points = [];
+	}, [imageUrl]);
+
 
 	// Setup Canvas and Image
 	useLayoutEffect(() => {
@@ -433,10 +447,22 @@ export default function DrawingCanvas({
 		const handleResize = debounce(() => {
 			initCanvasSize(canvas, ctx);
 			redrawCurrentCanvas();
-		}, 500);
+		}, 150);
 
 		window.addEventListener('resize', handleResize);
-		return () => window.removeEventListener('resize', handleResize);
+
+		const resizeObserver =
+			typeof ResizeObserver !== 'undefined'
+				? new ResizeObserver(() => handleResize())
+				: null;
+		if (resizeObserver && canvas.parentElement) {
+			resizeObserver.observe(canvas.parentElement);
+		}
+
+		return () => {
+			window.removeEventListener('resize', handleResize);
+			resizeObserver?.disconnect();
+		};
 	}, [redrawCurrentCanvas]); // Re-attach resize listener if redraw logic changes
 
 	// Drawing Event Handlers
@@ -530,9 +556,9 @@ export default function DrawingCanvas({
 		const ctx = canvas.getContext('2d');
 		if (!ctx) return;
 
-		const handleScroll = (event: WheelEvent) => {
-			if (isMousedown) return;
-			event.preventDefault();
+			const handleScroll = (event: WheelEvent) => {
+				if (isMousedown) return;
+				event.preventDefault();
 
 			const mousePos = getCanvasRelativePosition(canvas, event);
 			const zoomFactor = event.deltaY > 0 ? 0.9 : 1.1;
@@ -550,13 +576,17 @@ export default function DrawingCanvas({
 			const mouseXInWorldBeforeZoom = (mousePos.x - offsetsum.x) / globalCameraZoom;
 			const mouseYInWorldBeforeZoom = (mousePos.y - offsetsum.y) / globalCameraZoom;
 
-			globalCameraZoom = newZoom;
+				globalCameraZoom = newZoom;
+				if (globalCameraZoom === 1) {
+					offsetsum = { x: 0, y: 0 };
+				}
 
-			offsetsum.x = mousePos.x - mouseXInWorldBeforeZoom * globalCameraZoom;
-			offsetsum.y = mousePos.y - mouseYInWorldBeforeZoom * globalCameraZoom;
+				offsetsum.x = mousePos.x - mouseXInWorldBeforeZoom * globalCameraZoom;
+				offsetsum.y = mousePos.y - mouseYInWorldBeforeZoom * globalCameraZoom;
+				clampCameraOffset(canvas);
 
-			ctx.setTransform(globalCameraZoom, 0, 0, globalCameraZoom, offsetsum.x, offsetsum.y);
-			redrawCurrentCanvas();
+				ctx.setTransform(globalCameraZoom, 0, 0, globalCameraZoom, offsetsum.x, offsetsum.y);
+				redrawCurrentCanvas();
 		};
 
 		const handlePanStart = (e: MouseEvent | TouchEvent) => {
@@ -610,11 +640,12 @@ export default function DrawingCanvas({
 			const scaleX = canvas.width / rect.width;
 			const scaleY = canvas.height / rect.height;
 
-			offsetsum.x = initialPanOffset.x + (totalDx * scaleX);
-			offsetsum.y = initialPanOffset.y + (totalDy * scaleY);
+				offsetsum.x = initialPanOffset.x + (totalDx * scaleX);
+				offsetsum.y = initialPanOffset.y + (totalDy * scaleY);
+				clampCameraOffset(canvas);
 
-			ctx.setTransform(globalCameraZoom, 0, 0, globalCameraZoom, offsetsum.x, offsetsum.y);
-			redrawCurrentCanvas();
+				ctx.setTransform(globalCameraZoom, 0, 0, globalCameraZoom, offsetsum.x, offsetsum.y);
+				redrawCurrentCanvas();
 		};
 
 		const handlePanEnd = () => {
@@ -663,10 +694,32 @@ export default function DrawingCanvas({
 
 
 	const isAnyDetectionLoading =
-		!frameSideFile?.isBeeDetectionComplete ||
+		!(
+			frameSideFile?.isBeeDetectionComplete ||
+			frameSideFile?.isDroneDetectionComplete ||
+			(frameSideFile?.detectedWorkerBeeCount || 0) > 0 ||
+			(frameSideFile?.detectedDroneCount || 0) > 0 ||
+			(detectedBees?.length || 0) > 0 ||
+			(detectedDrones?.length || 0) > 0
+		) ||
 		!frameSideFile?.isCellsDetectionComplete ||
 		!frameSideFile?.isQueenCupsDetectionComplete ||
 		!frameSideFile?.isQueenDetectionComplete; // Added queen detection check
+
+	useEffect(() => {
+		console.debug('[DrawingCanvas] detection flags', {
+			frameSideId: frameSideFile?.frameSideId,
+			isBeeDetectionComplete: frameSideFile?.isBeeDetectionComplete,
+			isDroneDetectionComplete: frameSideFile?.isDroneDetectionComplete,
+			isCellsDetectionComplete: frameSideFile?.isCellsDetectionComplete,
+			isQueenCupsDetectionComplete: frameSideFile?.isQueenCupsDetectionComplete,
+			isQueenDetectionComplete: frameSideFile?.isQueenDetectionComplete,
+			detectedWorkerBeeCount: frameSideFile?.detectedWorkerBeeCount,
+			detectedDroneCount: frameSideFile?.detectedDroneCount,
+			detectedQueenCount: frameSideFile?.detectedQueenCount,
+			isAnyDetectionLoading,
+		});
+	}, [frameSideFile, isAnyDetectionLoading]);
 
 	if (!imageUrl) {
 		return <div><T>Loading image...</T></div>;
@@ -687,10 +740,21 @@ export default function DrawingCanvas({
 					</Button>
 
 					<div className={styles.buttonGrp}>
-						<Button onClick={() => setBeeVisibility(!showBees)}>
-							{frameSideFile?.isBeeDetectionComplete ? <Checkbox on={showBees} /> : <Loader size={0} />}
-							<span><T ctx="toggle worker bees visibility">Worker bees</T></span>
-						</Button>
+							<Button onClick={() => setBeeVisibility(!showBees)}>
+								{
+									(
+										frameSideFile?.isBeeDetectionComplete ||
+										frameSideFile?.isDroneDetectionComplete ||
+										(frameSideFile?.detectedWorkerBeeCount || 0) > 0 ||
+										(frameSideFile?.detectedDroneCount || 0) > 0 ||
+										(detectedBees?.length || 0) > 0 ||
+										(detectedDrones?.length || 0) > 0
+									)
+										? <Checkbox on={showBees} />
+										: <Loader size={0} />
+								}
+								<span><T ctx="toggle worker bees visibility">Worker bees</T></span>
+							</Button>
 
 						{detectedCells && (
 							<Button onClick={() => setCellVisibility(!showCells)}>
@@ -705,10 +769,21 @@ export default function DrawingCanvas({
 							<QueenIcon size={14} color={'white'} />
 						</Button>
 
-						<Button onClick={() => setDroneVisibility(!showDrones)}>
-							{frameSideFile?.isBeeDetectionComplete ? <Checkbox on={showDrones} /> : <Loader size={0} />}
-							<span><T ctx="toggle drones visibility">Drones</T>{frameSideFile?.detectedDroneCount > 0 && ` (${frameSideFile.detectedDroneCount})`}</span>
-						</Button>
+							<Button onClick={() => setDroneVisibility(!showDrones)}>
+								{
+									(
+										frameSideFile?.isBeeDetectionComplete ||
+										frameSideFile?.isDroneDetectionComplete ||
+										(frameSideFile?.detectedWorkerBeeCount || 0) > 0 ||
+										(frameSideFile?.detectedDroneCount || 0) > 0 ||
+										(detectedBees?.length || 0) > 0 ||
+										(detectedDrones?.length || 0) > 0
+									)
+										? <Checkbox on={showDrones} />
+										: <Loader size={0} />
+								}
+								<span><T ctx="toggle drones visibility">Drones</T>{frameSideFile?.detectedDroneCount > 0 && ` (${frameSideFile.detectedDroneCount})`}</span>
+							</Button>
 
 						{detectedQueenCups && (
 							<Button onClick={() => setQueenCupsVisibility(!showQueenCups)}>

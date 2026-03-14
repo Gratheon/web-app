@@ -8,9 +8,10 @@ type RainChartProps = {
 	}
 	chartRefs?: React.MutableRefObject<any[]>
 	syncCharts?: (sourceChart: any) => void
+	onVisibleTimeRangeChange?: (range: any) => void
 }
 
-export default function RainChart({ rainData, chartRefs, syncCharts }: RainChartProps) {
+export default function RainChart({ rainData, chartRefs, syncCharts, onVisibleTimeRangeChange }: RainChartProps) {
 	const formattedData = rainData.rain
 		.filter(d => d.value !== null)
 		.map(d => ({
@@ -28,6 +29,7 @@ export default function RainChart({ rainData, chartRefs, syncCharts }: RainChart
 			info={t('Rain prevents bees from foraging. Extended rainy periods can impact colony nutrition.')}
 			chartRefs={chartRefs}
 			syncCharts={syncCharts}
+			onVisibleTimeRangeChange={onVisibleTimeRangeChange}
 			chartOptions={{ height: 300 }}
 		>
 			<AreaSeries
@@ -42,4 +44,3 @@ export default function RainChart({ rainData, chartRefs, syncCharts }: RainChart
 		</ChartContainer>
 	)
 }
-

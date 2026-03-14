@@ -52,6 +52,8 @@ export default function HiveButtons({
 	box,
 	frameId,
 	mode = 'all',
+	openRemoveDialogSignal = 0,
+	onRemoveDialogSignalConsumed = () => {},
 }) {
 	let navigate = useNavigate()
 	const [adding, setAdding] = useState(false)
@@ -115,6 +117,19 @@ const [removingBox, setRemovingBox] = useState(false);
 			document.removeEventListener('keydown', onKeyDown, true)
 		}
 	}, [removeBoxDialogVisible, box?.id, removingBox])
+
+	useEffect(() => {
+		if (!openRemoveDialogSignal) return
+		if (!box?.id || removingBox || removeBoxDialogVisible) return
+		setRemoveBoxDialogVisible(true)
+		onRemoveDialogSignalConsumed()
+	}, [
+		openRemoveDialogSignal,
+		box?.id,
+		removingBox,
+		removeBoxDialogVisible,
+		onRemoveDialogSignalConsumed,
+	])
 
 	async function onBoxRemoveChoice(mode: 'trash' | 'warehouse', id: number) {
 		setRemoveBoxDialogVisible(false)

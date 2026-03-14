@@ -44,12 +44,17 @@ type DrawerTranslations = {
 	currentViewDescription: string
 	shortcutsActionOpenAdvisor: string
 	shortcutsActionCloseDrawer: string
-	shortcutsActionGoToHiveList: string
+	shortcutsActionGoToApiaryView: string
+	shortcutsActionGoToHiveListView: string
 	shortcutsActionEditHiveMainInfo: string
 	shortcutsActionMoveFocusAcrossControls: string
 	shortcutsActionConfirmFocusedDialogAction: string
 	shortcutsActionMoveFocusAcrossPageControls: string
 	shortcutsActionMoveHiveFocusInListTable: string
+	shortcutsActionSwitchSelectedHiveFrames: string
+	shortcutsActionSwitchSelectedHiveSections: string
+	shortcutsActionDeleteSelectedHiveFrame: string
+	shortcutsActionDeleteSelectedHiveSection: string
 }
 
 function canUseAIAdvisor(plan?: string | null) {
@@ -126,15 +131,20 @@ function getViewContext(pathname: string, labels: DrawerTranslations): ViewConte
 		return {
 			name: labels.hiveDetailViewName,
 			description: labels.hiveDetailViewDescription,
-			shortcuts: [
-				{ keys: 'Shift + ?', action: labels.shortcutsActionOpenAdvisor },
-				{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
-				{ keys: 'Backspace', action: labels.shortcutsActionGoToHiveList },
-				{ keys: 'E', action: labels.shortcutsActionEditHiveMainInfo },
-				{ keys: 'Tab / Shift + Tab', action: labels.shortcutsActionMoveFocusAcrossControls },
-				{ keys: 'Enter', action: labels.shortcutsActionConfirmFocusedDialogAction },
-			],
-		}
+				shortcuts: [
+					{ keys: 'Shift + ?', action: labels.shortcutsActionOpenAdvisor },
+					{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
+					{ keys: 'A', action: labels.shortcutsActionGoToApiaryView },
+					{ keys: 'H', action: labels.shortcutsActionGoToHiveListView },
+					{ keys: 'E', action: labels.shortcutsActionEditHiveMainInfo },
+					{ keys: 'Arrow Left / Arrow Right', action: labels.shortcutsActionSwitchSelectedHiveFrames },
+					{ keys: 'Arrow Up / Arrow Down', action: labels.shortcutsActionSwitchSelectedHiveSections },
+					{ keys: 'Backspace', action: labels.shortcutsActionDeleteSelectedHiveSection },
+					{ keys: 'Del', action: labels.shortcutsActionDeleteSelectedHiveFrame },
+					{ keys: 'Tab / Shift + Tab', action: labels.shortcutsActionMoveFocusAcrossControls },
+					{ keys: 'Enter', action: labels.shortcutsActionConfirmFocusedDialogAction },
+				],
+			}
 	}
 
 	if (isHiveListView) {
@@ -179,12 +189,17 @@ export default function AIAdvisorDrawer() {
 	const currentViewDescription = t('Page-level context and shortcuts are available here.')
 	const shortcutsActionOpenAdvisor = t('Open AI Advisor')
 	const shortcutsActionCloseDrawer = t('Close AI Advisor drawer')
-	const shortcutsActionGoToHiveList = t('Go to hive list view')
+	const shortcutsActionGoToApiaryView = t('Go to apiary view')
+	const shortcutsActionGoToHiveListView = t('Go to hive list view')
 	const shortcutsActionEditHiveMainInfo = t('Edit hive main info')
 	const shortcutsActionMoveFocusAcrossControls = t('Move focus across controls')
 	const shortcutsActionConfirmFocusedDialogAction = t('Confirm focused dialog action')
 	const shortcutsActionMoveFocusAcrossPageControls = t('Move focus across page controls')
 	const shortcutsActionMoveHiveFocusInListTable = t('Move hive focus in list/table view')
+	const shortcutsActionSwitchSelectedHiveFrames = t('Switch selected hive frames')
+	const shortcutsActionSwitchSelectedHiveSections = t('Switch selected hive sections')
+	const shortcutsActionDeleteSelectedHiveFrame = t('Delete selected hive frame')
+	const shortcutsActionDeleteSelectedHiveSection = t('Delete selected hive section')
 	const openHiveDetailMessage = t('Open a hive detail page to run hive-specific AI analysis.')
 	const loadingHiveInfoMessage = t('Loading hive information...')
 	const loadedHiveInfoMessage = t('Loaded hive information')
@@ -217,17 +232,22 @@ export default function AIAdvisorDrawer() {
 				hiveDetailViewDescription,
 				hiveListViewName,
 				hiveListViewDescription,
-				currentViewName,
-				currentViewDescription,
-				shortcutsActionOpenAdvisor,
-				shortcutsActionCloseDrawer,
-				shortcutsActionGoToHiveList,
-				shortcutsActionEditHiveMainInfo,
-				shortcutsActionMoveFocusAcrossControls,
-				shortcutsActionConfirmFocusedDialogAction,
-				shortcutsActionMoveFocusAcrossPageControls,
-				shortcutsActionMoveHiveFocusInListTable,
-			}),
+					currentViewName,
+					currentViewDescription,
+					shortcutsActionOpenAdvisor,
+					shortcutsActionCloseDrawer,
+					shortcutsActionGoToApiaryView,
+					shortcutsActionGoToHiveListView,
+					shortcutsActionEditHiveMainInfo,
+					shortcutsActionMoveFocusAcrossControls,
+					shortcutsActionConfirmFocusedDialogAction,
+					shortcutsActionMoveFocusAcrossPageControls,
+					shortcutsActionMoveHiveFocusInListTable,
+					shortcutsActionSwitchSelectedHiveFrames,
+					shortcutsActionSwitchSelectedHiveSections,
+					shortcutsActionDeleteSelectedHiveFrame,
+					shortcutsActionDeleteSelectedHiveSection,
+				}),
 		[
 			location.pathname,
 			hiveDetailViewName,
@@ -238,12 +258,17 @@ export default function AIAdvisorDrawer() {
 			currentViewDescription,
 			shortcutsActionOpenAdvisor,
 			shortcutsActionCloseDrawer,
-			shortcutsActionGoToHiveList,
+			shortcutsActionGoToApiaryView,
+			shortcutsActionGoToHiveListView,
 			shortcutsActionEditHiveMainInfo,
 			shortcutsActionMoveFocusAcrossControls,
 			shortcutsActionConfirmFocusedDialogAction,
 			shortcutsActionMoveFocusAcrossPageControls,
 			shortcutsActionMoveHiveFocusInListTable,
+			shortcutsActionSwitchSelectedHiveFrames,
+			shortcutsActionSwitchSelectedHiveSections,
+			shortcutsActionDeleteSelectedHiveFrame,
+			shortcutsActionDeleteSelectedHiveSection,
 		]
 	)
 	const shouldRender = isOpen

@@ -42,6 +42,8 @@ export default function Frame({
 
 	box,
 	extraButtons,
+	openRemoveDialogSignal = 0,
+	onRemoveDialogSignalConsumed = () => {},
 }) {
 	if (!frameId) {
 		return
@@ -161,6 +163,19 @@ export default function Frame({
 			document.removeEventListener('keydown', onKeyDown, true)
 		}
 	}, [removeFrameDialogVisible, frameRemoving])
+
+	useEffect(() => {
+		if (!openRemoveDialogSignal) return
+		if (!frameId || frameRemoving || removeFrameDialogVisible) return
+		setRemoveFrameDialogVisible(true)
+		onRemoveDialogSignalConsumed()
+	}, [
+		openRemoveDialogSignal,
+		frameId,
+		frameRemoving,
+		removeFrameDialogVisible,
+		onRemoveDialogSignalConsumed,
+	])
 
 	async function onFrameRemoveChoice(mode: 'trash' | 'warehouse') {
 		setRemoveFrameDialogVisible(false)

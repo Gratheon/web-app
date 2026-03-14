@@ -1,6 +1,6 @@
 //@ts-nocheck
 import {fromPromise, fromValue, mergeMap, pipe} from 'wonka'
-import {execute, TypeInfo, visit, visitWithTypeInfo, print} from 'graphql'
+import {execute, TypeInfo, visit, visitWithTypeInfo} from 'graphql'
 
 import {db} from '@/models/db'
 
@@ -68,7 +68,6 @@ export function offlineIndexDbExchange({
         else {
             if (!bubble.data && bubble.error) {
                 useCacheOnly = true;
-                console.warn('Error detected, using index-db cache', bubble.error);
                 bubble.data = (
                     await execute({
                         schema: schemaObject,
@@ -120,26 +119,13 @@ export function offlineIndexDbExchange({
             })
         )
 
-        // Log the operation details *before* attempting traversal
-        console.log("Processing Operation:", {
-            kind: op.kind,
-            query: print(op.query),
-            variables: op.variables,
-        });
-
         try {
             // Ensure data exists before traversing
             if (data) {
                 await traverseResponse(null, data, typeMap, writeHooks);
             }
         } catch (traversalError) {
-            // Keep the catch block for safety, but the primary log is now above
-            console.error("Error during traversal (Query logged above):", traversalError);
-            // Log the specific FrameSide error again for correlation if needed
-            if (traversalError.message?.startsWith('FAIL: FrameSide frameId missing')) {
-                 console.error("FrameSide hook failed. Associated Operation (details logged above). Error:", traversalError);
-            }
-            // No need to log the full operation again here
+        // Keep traversal failures isolated from the network response.
         }
         return bubble;
     }
@@ -178,7 +164,6 @@ async function traverseResponse(
     path = []
 ) {
     for (const key in response) {
-        // console.log(response)
         if (response.hasOwnProperty(key)) {
             const value = response[key]
 
@@ -187,25 +172,20 @@ async function traverseResponse(
             if (typeof value === 'object' && value !== null) {
                 const newPath = isNaN(key) ? [...path, key] : path
                 const pathString = newPath.join('.')
-                // console.log({pathString})
                 const objType = typeMap[pathString]
 
                 if (objType && !Array.isArray(value)) {
                     const tableName = objType?.ofType ? objType.ofType.name : objType.name
 
-                    // console.log(`using table name ${tableName}`)
-
                     // we reached some object that is no longer mapped onto a schema
                     // must be some JSON, no point to continue
                     if (tableName === 'JSON') {
-                        // console.log(`Skipping JSON column`)
                         continue
                     }
 
-                    if (!tableName) {
-                        console.error(pathString, value, tableName, objType)
-                        return
-                     }
+                        if (!tableName) {
+	                        return
+	                     }
 
                      if (writeHooks?.[tableName]) {
                             // normalize objects, clean them up from nested things
@@ -227,7 +207,6 @@ async function traverseResponse(
 
                          if (cleanedValue) {
                              try {
-                                // console.log(`Calling writeHook for table ${tableName}`)
                                  await writeHooks[tableName](
                                      parent,
                                      cleanedValue,
@@ -239,17 +218,6 @@ async function traverseResponse(
                                 if (e.message?.startsWith('FAIL: FrameSide frameId missing')) {
                                     // Don't log here again, just re-throw for onResult
                                     throw e; // Re-throw the specific FrameSide error
-                                } else {
-                                    // Log other generic errors from write hooks
-                                    console.error('Caught other hook error during traversal.', { // Clarified log message
-                                        error: e,
-                                        path: pathString,
-                                    tableName: tableName,
-                                    parentContext: parent ? { ...parent } : null,
-                                    valueProcessed: cleanedValue,
-                                    });
-                                    // Optionally re-throw other errors if needed
-                                    // throw e;
                                 }
                             } // Closing brace for try block
                         }

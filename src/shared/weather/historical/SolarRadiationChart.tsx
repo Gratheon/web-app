@@ -9,9 +9,10 @@ type SolarRadiationChartProps = {
 	}
 	chartRefs?: React.MutableRefObject<any[]>
 	syncCharts?: (sourceChart: any) => void
+	onVisibleTimeRangeChange?: (range: any) => void
 }
 
-export default function SolarRadiationChart({ solarData, chartRefs, syncCharts }: SolarRadiationChartProps) {
+export default function SolarRadiationChart({ solarData, chartRefs, syncCharts, onVisibleTimeRangeChange }: SolarRadiationChartProps) {
 	const diffuseData = solarData.diffuse_radiation
 		.filter(d => d.value !== null)
 		.map(d => ({
@@ -38,6 +39,7 @@ export default function SolarRadiationChart({ solarData, chartRefs, syncCharts }
 			info={t('Solar radiation affects hive temperature and bee activity. High radiation can lead to overheating.')}
 			chartRefs={chartRefs}
 			syncCharts={syncCharts}
+			onVisibleTimeRangeChange={onVisibleTimeRangeChange}
 			chartOptions={{ height: 300 }}
 		>
 			<LineSeries
@@ -59,4 +61,3 @@ export default function SolarRadiationChart({ solarData, chartRefs, syncCharts }
 		</ChartContainer>
 	)
 }
-

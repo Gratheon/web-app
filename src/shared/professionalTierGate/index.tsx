@@ -2,6 +2,7 @@ import { type ComponentChildren } from 'preact'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import BillingUpgradeNotice from '@/shared/billingUpgradeNotice'
+import Loader from '@/shared/loader'
 import T from '@/shared/translate'
 import { getUser } from '@/models/user'
 import { isBillingTierAtLeast } from '@/shared/billingTier'
@@ -12,7 +13,23 @@ type ProfessionalTierGateProps = {
 }
 
 export default function ProfessionalTierGate({ children, blockWheel = false }: ProfessionalTierGateProps) {
-	const user = useLiveQuery(() => getUser(), [], null)
+	const user = useLiveQuery(() => getUser(), [], undefined)
+
+	if (user === undefined) {
+		return (
+			<div
+				style={{
+					minHeight: '240px',
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'center',
+				}}
+			>
+				<Loader />
+			</div>
+		)
+	}
+
 	const hasAccess = isBillingTierAtLeast(user?.billingPlan, 'professional')
 
 	if (hasAccess) {

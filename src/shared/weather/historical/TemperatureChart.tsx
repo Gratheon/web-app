@@ -8,9 +8,10 @@ type TemperatureChartProps = {
 	}
 	chartRefs?: React.MutableRefObject<any[]>
 	syncCharts?: (sourceChart: any) => void
+	onVisibleTimeRangeChange?: (range: any) => void
 }
 
-export default function TemperatureChart({ temperatureData, chartRefs, syncCharts }: TemperatureChartProps) {
+export default function TemperatureChart({ temperatureData, chartRefs, syncCharts, onVisibleTimeRangeChange }: TemperatureChartProps) {
 	const tempData = temperatureData.temperature_2m
 		.filter(d => d.value !== null)
 		.map(d => ({
@@ -38,6 +39,7 @@ export default function TemperatureChart({ temperatureData, chartRefs, syncChart
 			info={t('Temperature greatly affects bee activity. Bees fly between 10-35°C, with optimal foraging at 18-25°C. Below 10°C or above 38°C bees stay in the hive.')}
 			chartRefs={chartRefs}
 			syncCharts={syncCharts}
+			onVisibleTimeRangeChange={onVisibleTimeRangeChange}
 			chartOptions={{ height: 300 }}
 		>
 			<LineSeries
@@ -92,4 +94,3 @@ export default function TemperatureChart({ temperatureData, chartRefs, syncChart
 		</ChartContainer>
 	)
 }
-

@@ -12,6 +12,7 @@ interface ChartContainerProps {
 	info?: string
 	chartRefs?: React.MutableRefObject<any[]>
 	syncCharts?: (sourceChart: any) => void
+	onVisibleTimeRangeChange?: (range: any) => void
 	chartOptions?: any
 	children: React.ReactNode
 	showTable?: boolean
@@ -34,6 +35,7 @@ export default function ChartContainer({
 	info,
 	chartRefs,
 	syncCharts,
+	onVisibleTimeRangeChange,
 	chartOptions = {},
 	children,
 	showTable = false,
@@ -49,9 +51,12 @@ export default function ChartContainer({
 	selectedApiaryId
 }: ChartContainerProps) {
 	const chartApiRef = useRef(null)
+	const chartWrapperRef = useRef<HTMLDivElement>(null)
 	const [showTableView, setShowTableView] = useState(false)
 	const [showAlertView, setShowAlertView] = useState(false)
 	const [alertCount, setAlertCount] = useState(0)
+
+	const chartHeight = Number(chartOptions?.height) || 300
 
 	useEffect(() => {
 		if (chartApiRef.current && chartRefs && syncCharts) {
@@ -60,6 +65,7 @@ export default function ChartContainer({
 			const handleVisibleTimeRangeChange = () => {
 				if (chartApiRef.current) {
 					syncCharts(chartApiRef.current)
+					onVisibleTimeRangeChange?.(chartApiRef.current.timeScale().getVisibleRange())
 				}
 			}
 
@@ -79,11 +85,34 @@ export default function ChartContainer({
 				}
 			}
 		}
-	}, [chartApiRef.current, chartRefs, syncCharts])
+	}, [chartApiRef.current, chartRefs, syncCharts, onVisibleTimeRangeChange])
 
 	const handleChartInit = (chart: any) => {
 		chartApiRef.current = chart
 	}
+
+	useEffect(() => {
+		const wrapper = chartWrapperRef.current
+		if (!wrapper || typeof ResizeObserver === 'undefined') return
+
+		const handleResize = () => {
+			const chart = chartApiRef.current
+			if (!chart) return
+			const nextWidth = Math.max(1, Math.floor(wrapper.clientWidth))
+			chart.resize(nextWidth, chartHeight)
+		}
+
+		const resizeObserver = new ResizeObserver(() => {
+			handleResize()
+		})
+
+		resizeObserver.observe(wrapper)
+		handleResize()
+
+		return () => {
+			resizeObserver.disconnect()
+		}
+	}, [chartHeight, showTableView])
 
 	const defaultChartOptions = {
 		layout: {
@@ -235,14 +264,14 @@ export default function ChartContainer({
 						maxWidth: '100%',
 						overflow: 'hidden',
 						boxSizing: 'border-box'
-					}}>
+					}} ref={chartWrapperRef}>
 						<Chart
 							onInit={handleChartInit}
 							options={defaultChartOptions}
 							containerProps={{
 								style: {
 									width: '100%',
-									height: `${chartOptions.height || 300}px`,
+									height: `${chartHeight}px`,
 									maxWidth: '100%',
 									boxSizing: 'border-box'
 								}
@@ -265,4 +294,3 @@ export default function ChartContainer({
 		</div>
 	)
 }
-

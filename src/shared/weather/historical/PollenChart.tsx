@@ -12,9 +12,10 @@ type PollenChartProps = {
 	}
 	chartRefs?: React.MutableRefObject<any[]>
 	syncCharts?: (sourceChart: any) => void
+	onVisibleTimeRangeChange?: (range: any) => void
 }
 
-export default function PollenChart({ pollenData, chartRefs, syncCharts }: PollenChartProps) {
+export default function PollenChart({ pollenData, chartRefs, syncCharts, onVisibleTimeRangeChange }: PollenChartProps) {
 	const transformData = (data: Array<{ time: string; value: number | null }>) =>
 		data
 			.filter(d => d.value !== null && d.value > 0)
@@ -53,6 +54,7 @@ export default function PollenChart({ pollenData, chartRefs, syncCharts }: Polle
 			info="Pollen availability is crucial for bee nutrition. Different plants bloom at different times."
 			chartRefs={chartRefs}
 			syncCharts={syncCharts}
+			onVisibleTimeRangeChange={onVisibleTimeRangeChange}
 			chartOptions={{ height: 300 }}
 		>
 			{birchData.length > 0 && (
@@ -118,4 +120,3 @@ export default function PollenChart({ pollenData, chartRefs, syncCharts }: Polle
 		</ChartContainer>
 	)
 }
-

@@ -43,12 +43,51 @@ export default function FrameSide({
 	}, [frameSideFile?.fileId], null);
 
 
-	let { loading: loadingGet } = useQuery(
+	let { loading: loadingGet, reexecuteQuery } = useQuery(
 		FRAME_SIDE_QUERY,
 		{ variables: { frameSideId } }
 	)
 
-	if (loadingGet) {
+	React.useEffect(() => {
+		if (!frameSideFile?.fileId) {
+			return;
+		}
+
+		const isProcessing =
+			!frameSideFile.isBeeDetectionComplete ||
+			!frameSideFile.isCellsDetectionComplete ||
+			!frameSideFile.isQueenCupsDetectionComplete ||
+			!frameSideFile.isQueenDetectionComplete;
+
+		if (!isProcessing) {
+			return;
+		}
+
+		const intervalId = setInterval(() => {
+			console.debug('[FrameSide] polling frame state from backend', {
+				frameSideId,
+				fileId: frameSideFile.fileId,
+				flags: {
+					isBeeDetectionComplete: frameSideFile.isBeeDetectionComplete,
+					isCellsDetectionComplete: frameSideFile.isCellsDetectionComplete,
+					isQueenCupsDetectionComplete: frameSideFile.isQueenCupsDetectionComplete,
+					isQueenDetectionComplete: frameSideFile.isQueenDetectionComplete,
+				},
+			});
+			reexecuteQuery({ requestPolicy: 'network-only' });
+		}, 5000);
+
+		return () => clearInterval(intervalId);
+	}, [
+		frameSideFile?.fileId,
+		frameSideFile?.isBeeDetectionComplete,
+		frameSideFile?.isCellsDetectionComplete,
+		frameSideFile?.isQueenCupsDetectionComplete,
+		frameSideFile?.isQueenDetectionComplete,
+		reexecuteQuery,
+	]);
+
+	if (loadingGet && !frameSideFile) {
 		return <Loading />
 	}
 

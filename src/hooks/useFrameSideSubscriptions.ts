@@ -88,6 +88,14 @@ export function useFrameSideSubscriptions(frameSideId: number | string | null | 
         // Check if fetching is complete and data exists
         if (!beesRes.fetching && beesRes.data?.onFrameSideBeesPartiallyDetected && numericFrameSideId) {
             const updatePayload = beesRes.data.onFrameSideBeesPartiallyDetected;
+            console.debug('[FrameSub][bees] payload received', {
+                frameSideId: numericFrameSideId,
+                deltaLength: Array.isArray(updatePayload.delta) ? updatePayload.delta.length : null,
+                detectedWorkerBeeCount: updatePayload.detectedWorkerBeeCount,
+                detectedDroneCount: updatePayload.detectedDroneCount,
+                detectedQueenCount: updatePayload.detectedQueenCount,
+                isBeeDetectionComplete: updatePayload.isBeeDetectionComplete,
+            });
             // console.log(`useFrameSideSubscriptions: Received Bee Data delta length: ${updatePayload.delta?.length ?? 'N/A'}`); // Removed log
             appendBeeDetectionData(numericFrameSideId, {
                 delta: updatePayload.delta || [],

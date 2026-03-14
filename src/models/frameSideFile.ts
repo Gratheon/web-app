@@ -23,6 +23,7 @@ export type FrameSideFile = {
 
     isQueenDetectionComplete?: boolean
     isBeeDetectionComplete?: boolean
+    isDroneDetectionComplete?: boolean
     isCellsDetectionComplete?: boolean
     isQueenCupsDetectionComplete?: boolean
     isVarroaDetectionComplete?: boolean // Added this line
@@ -86,10 +87,11 @@ export async function updateFrameSideFile(data: FrameSideFile) {
 // Define payload structure for appendBeeDetectionData
 interface BeeDetectionPayload {
     delta: any[];
-    detectedQueenCount: number;
-    detectedWorkerBeeCount: number;
-    detectedDroneCount: number;
-    isBeeDetectionComplete: boolean;
+    detectedQueenCount?: number;
+    detectedWorkerBeeCount?: number;
+    detectedDroneCount?: number;
+    isBeeDetectionComplete?: boolean | null;
+    isDroneDetectionComplete?: boolean | null;
 }
 
 // Helper function to create a unique key for a bee detection
@@ -99,6 +101,17 @@ const getBeeKey = (bee: { x: number; y: number; n: number | string }) => `${bee.
 // New function using modify for atomic updates with deduplication
 export async function appendBeeDetectionData(frameSideId: number, payload: BeeDetectionPayload) {
     try {
+        console.debug('[FrameState][bees] append start', {
+            frameSideId,
+            payload: {
+                deltaLength: Array.isArray(payload.delta) ? payload.delta.length : null,
+                detectedQueenCount: payload.detectedQueenCount,
+                detectedWorkerBeeCount: payload.detectedWorkerBeeCount,
+                detectedDroneCount: payload.detectedDroneCount,
+                isBeeDetectionComplete: payload.isBeeDetectionComplete,
+                isDroneDetectionComplete: payload.isDroneDetectionComplete,
+            },
+        });
         await db[FRAME_SIDE_FILE_TABLE].where({ id: frameSideId }).modify((frameSideFile) => {
             if (!frameSideFile.detectedBees || !Array.isArray(frameSideFile.detectedBees)) {
                 frameSideFile.detectedBees = [];
@@ -120,14 +133,37 @@ export async function appendBeeDetectionData(frameSideId: number, payload: BeeDe
             // Note: Counts might become slightly inaccurate if backend sends duplicates,
             // but the visual representation will be correct.
             // Alternatively, recalculate counts based on the final deduplicated array if needed.
-            frameSideFile.detectedQueenCount = payload.detectedQueenCount;
-            frameSideFile.detectedWorkerBeeCount = payload.detectedWorkerBeeCount;
-            frameSideFile.detectedDroneCount = payload.detectedDroneCount;
-            frameSideFile.isBeeDetectionComplete = payload.isBeeDetectionComplete;
+            if (typeof payload.detectedQueenCount === 'number') {
+                frameSideFile.detectedQueenCount = payload.detectedQueenCount;
+            }
+            if (typeof payload.detectedWorkerBeeCount === 'number') {
+                frameSideFile.detectedWorkerBeeCount = payload.detectedWorkerBeeCount;
+            }
+            if (typeof payload.detectedDroneCount === 'number') {
+                frameSideFile.detectedDroneCount = payload.detectedDroneCount;
+            }
+            // Preserve existing completion state when payload omits the field.
+            if (typeof payload.isBeeDetectionComplete === 'boolean') {
+                frameSideFile.isBeeDetectionComplete = payload.isBeeDetectionComplete;
+            }
+            if (typeof payload.isDroneDetectionComplete === 'boolean') {
+                frameSideFile.isDroneDetectionComplete = payload.isDroneDetectionComplete;
+            }
 
             // console.log(`appendBeeDetectionData (${frameSideId}): After append, final length: ${frameSideFile.detectedBees.length}`); // Removed log
         });
-        console.log("Successfully appended bee data for frameSideId:", frameSideId); // Keep outer log
+        const updated = await db[FRAME_SIDE_FILE_TABLE].get(frameSideId);
+        console.debug('[FrameState][bees] append done', {
+            frameSideId,
+            stored: updated ? {
+                detectedBeesLength: Array.isArray(updated.detectedBees) ? updated.detectedBees.length : null,
+                detectedWorkerBeeCount: updated.detectedWorkerBeeCount,
+                detectedDroneCount: updated.detectedDroneCount,
+                detectedQueenCount: updated.detectedQueenCount,
+                isBeeDetectionComplete: updated.isBeeDetectionComplete,
+                isDroneDetectionComplete: updated.isDroneDetectionComplete,
+            } : null,
+        });
     } catch (e) {
         console.error("Error appending bee detection data:", e, { frameSideId, payload });
         // Optionally re-throw or handle specific Dexie errors (e.g., ModifyError)

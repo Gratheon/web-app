@@ -279,7 +279,6 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
     const navigate = useNavigate()
 
     const isAlertsSection = location.pathname === '/alert-config' || location.pathname.startsWith('/alert-config/')
-    const isWarehouseSection = location.pathname === '/warehouse' || location.pathname.startsWith('/warehouse/')
     const currentHiveContext = getCurrentHiveContext(location.pathname)
     const isHiveAdvisorOpen = new URLSearchParams(location.search).get('aiAdvisor') === '1'
     const isAIAdvisorSection =
@@ -362,6 +361,7 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                     </li>
                     <li>
                         <NavLink
+                            end
                             className={navClassName}
                             to="/warehouse">
                             <span className={styles.menuItemContent}>
@@ -369,20 +369,16 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                                 <span className={styles.menuItemLabel}><T>Warehouse</T></span>
                             </span>
                         </NavLink>
-                        {isWarehouseSection && (
-                            <ul className={styles.subMenu}>
-                                <li>
-                                    <NavLink
-                                        className={({isActive}) =>
-                                            isActive ? `${styles.subMenuLink} ${styles.active}` : styles.subMenuLink
-                                        }
-                                        to="/warehouse/queens"
-                                    >
-                                        <T>Queens</T>
-                                    </NavLink>
-                                </li>
-                            </ul>
-                        )}
+                    </li>
+                    <li>
+                        <NavLink
+                            className={navClassName}
+                            to="/warehouse/queens">
+                            <span className={styles.menuItemContent}>
+                                <span className={styles.menuItemIcon}><QueensIcon size={18} /></span>
+                                <span className={styles.menuItemLabel}><T>Queens</T></span>
+                            </span>
+                        </NavLink>
                     </li>
                     <li>
                         <NavLink
@@ -542,6 +538,7 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                     </li>
                     <li>
                         <NavLink
+                            end
                             className={mobileNavClassName}
                             to="/warehouse"
                             onClick={() => {
@@ -611,6 +608,7 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                         <T>Alerts</T>
                     </NavLink>
                     <NavLink
+                        end
                         to="/warehouse"
                         onClick={() => {
                             setMoreVisible(false)

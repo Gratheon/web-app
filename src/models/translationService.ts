@@ -28,16 +28,13 @@ export async function fetchTranslationForLanguage(
 	lang: string,
 	namespace?: string
 ): Promise<TranslationResult> {
-	console.log(`[translationService] fetchTranslationForLanguage: key="${key}", lang="${lang}", namespace="${namespace}"`);
 	const translation = await getTranslation(key, namespace);
-	console.log(`[translationService] Translation record for "${key}":`, translation);
 
 	if (!translation) {
 		return { value: null, fromCache: false };
 	}
 
 	const value = await getTranslationValue(translation.id, lang);
-	console.log(`[translationService] Translation value for "${key}" (id=${translation.id}, lang=${lang}):`, value);
 
 	if (value) {
 		return { value, fromCache: true };
@@ -135,9 +132,7 @@ export async function fetchRemoteTranslation(
 	namespace?: string
 ): Promise<TranslationData | null> {
 	try {
-		console.log(`[translationService] fetchRemoteTranslation: key="${key}", lang="${lang}", context="${context}", namespace="${namespace}"`);
 		const trans = await newTranslationBatcher.request(key, false, context, namespace);
-		console.log(`[translationService] Remote translation result for "${key}" (namespace: ${namespace}):`, trans);
 		return trans || null;
 	} catch (error) {
 		console.error('[fetchRemoteTranslation] Error:', error);

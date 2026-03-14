@@ -9,9 +9,10 @@ type WindChartProps = {
 	}
 	chartRefs?: React.MutableRefObject<any[]>
 	syncCharts?: (sourceChart: any) => void
+	onVisibleTimeRangeChange?: (range: any) => void
 }
 
-export default function WindChart({ windData, chartRefs, syncCharts }: WindChartProps) {
+export default function WindChart({ windData, chartRefs, syncCharts, onVisibleTimeRangeChange }: WindChartProps) {
 	const windSpeedData = windData.wind_speed_10m
 		.filter(d => d.value !== null)
 		.map(d => ({
@@ -38,6 +39,7 @@ export default function WindChart({ windData, chartRefs, syncCharts }: WindChart
 			info={t('Wind affects bee foraging activity. Strong winds (>10 m/s) can prevent bees from flying.')}
 			chartRefs={chartRefs}
 			syncCharts={syncCharts}
+			onVisibleTimeRangeChange={onVisibleTimeRangeChange}
 			chartOptions={{ height: 300 }}
 		>
 			<LineSeries
@@ -60,4 +62,3 @@ export default function WindChart({ windData, chartRefs, syncCharts }: WindChart
 		</ChartContainer>
 	)
 }
-

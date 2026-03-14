@@ -10,10 +10,11 @@ import HiveEditDetails from '@/page/hiveEdit/hiveTopInfo'
 
 import ErrorMsg from '@/shared/messageError'
 import ErrorGeneral from '@/shared/messageErrorGlobal'
-import { boxTypes, getBox } from '@/models/boxes.ts'
+import { boxTypes, getBox, getBoxes } from '@/models/boxes.ts'
 import { getHive, isCollapsed, isEditable } from '@/models/hive.ts'
 import { getApiary } from '@/models/apiary.ts'
 import Loader from '@/shared/loader'
+import { getFrames } from '@/models/frames.ts'
 
 import Frame from '@/page/hiveEdit/frame'
 import GateBox from '@/page/hiveEdit/gateBox/GateBox.tsx'
@@ -39,6 +40,9 @@ export default function HiveEditForm() {
 	const [displayMode, setDisplayMode] = useState('list')
 	const [topNotice, setTopNotice] = useState(null)
 	const location = useLocation()
+	let [mapTab, setMapTab] = useState('structure')
+	const [openFrameRemoveDialogSignal, setOpenFrameRemoveDialogSignal] = useState(0)
+	const [openBoxRemoveDialogSignal, setOpenBoxRemoveDialogSignal] = useState(0)
 
 	let { apiaryId, hiveId, boxId, frameId, frameSideId } = useParams()
 	let [error, onError] = useState(null)
@@ -65,18 +69,120 @@ export default function HiveEditForm() {
 			if (event.defaultPrevented) return
 			if (event.ctrlKey || event.metaKey || event.altKey) return
 			if (event.repeat) return
-			if (event.key !== 'Backspace') return
-			if (!apiaryId) return
 			if (isTypingTarget(event.target)) return
 			if (isModalTarget(event.target)) return
 
-			event.preventDefault()
-			navigate(`/apiaries/${apiaryId}`, { replace: true })
+			const key = event.key
+
+			if (key.toLowerCase() === 'a') {
+				if (!apiaryId) return
+				event.preventDefault()
+				navigate(`/apiaries/${apiaryId}`, { replace: true })
+				return
+			}
+
+			if (key.toLowerCase() === 'h') {
+				event.preventDefault()
+				navigate('/apiaries', { replace: true })
+				return
+			}
+
+			if (mapTab !== 'structure') return
+
+			if (key === 'Backspace') {
+				event.preventDefault()
+				if (boxId) {
+					setOpenBoxRemoveDialogSignal((v) => v + 1)
+				}
+				return
+			}
+
+			if (key === 'Delete' || key === 'Del') {
+				event.preventDefault()
+				if (frameId) {
+					setOpenFrameRemoveDialogSignal((v) => v + 1)
+				}
+				return
+			}
+
+			if (!apiaryId || !hiveId) return
+
+			if (key === 'ArrowUp' || key === 'ArrowDown') {
+				event.preventDefault()
+				;(async () => {
+					const boxes = await getBoxes({ hiveId: +hiveId })
+					if (!boxes?.length) return
+					const sortedBoxes = [...boxes].sort((a, b) => a.position - b.position)
+					const currentIndex = boxId
+						? sortedBoxes.findIndex((b) => b.id === +boxId)
+						: -1
+
+					let nextIndex = currentIndex
+					if (key === 'ArrowUp') {
+						nextIndex =
+							currentIndex < 0
+								? 0
+								: currentIndex >= sortedBoxes.length - 1
+									? sortedBoxes.length - 1
+									: currentIndex + 1
+					} else {
+						nextIndex = currentIndex <= 0 ? 0 : currentIndex - 1
+					}
+
+					if (nextIndex === currentIndex || nextIndex < 0) return
+					const nextBox = sortedBoxes[nextIndex]
+					navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${nextBox.id}`, {
+						replace: true,
+					})
+				})()
+				return
+			}
+
+			if ((key === 'ArrowLeft' || key === 'ArrowRight') && boxId) {
+				event.preventDefault()
+				;(async () => {
+					const frames = await getFrames({ boxId: +boxId })
+					if (!frames?.length) return
+					const sortedFrames = [...frames].sort((a, b) => a.position - b.position)
+					const currentIndex = frameId
+						? sortedFrames.findIndex((f) => f.id === +frameId)
+						: -1
+
+					let nextIndex = currentIndex
+					if (key === 'ArrowLeft') {
+						nextIndex = currentIndex <= 0 ? 0 : currentIndex - 1
+					} else {
+						nextIndex =
+							currentIndex < 0
+								? 0
+								: currentIndex >= sortedFrames.length - 1
+									? sortedFrames.length - 1
+									: currentIndex + 1
+					}
+
+					if (nextIndex === currentIndex || nextIndex < 0) return
+
+					const nextFrame = sortedFrames[nextIndex]
+					const currentFrame = currentIndex >= 0 ? sortedFrames[currentIndex] : null
+					const shouldStayOnRightSide =
+						Boolean(currentFrame) && +frameSideId === +currentFrame.rightId
+					const nextFrameSideId = shouldStayOnRightSide
+						? nextFrame.rightId || nextFrame.leftId
+						: nextFrame.leftId || nextFrame.rightId
+
+					if (!nextFrameSideId) return
+
+					navigate(
+						`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}/frame/${nextFrame.id}/${nextFrameSideId}`,
+						{ replace: true }
+					)
+				})()
+			}
 		}
 
 		document.addEventListener('keydown', onKeyDown, true)
 		return () => document.removeEventListener('keydown', onKeyDown, true)
-	}, [apiaryId, navigate])
+	}, [apiaryId, boxId, frameId, frameSideId, hiveId, mapTab, navigate])
 
 	// fetch url segments
 	const isInspectionListView =
@@ -95,7 +201,6 @@ export default function HiveEditForm() {
 		}
 	}, [location.pathname])
 
-	let [mapTab, setMapTab] = useState('structure')
 	// Model functions now handle invalid IDs
 	const apiary = useLiveQuery(() => getApiary(+apiaryId), [apiaryId], null);
 	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId], null);
@@ -230,7 +335,15 @@ export default function HiveEditForm() {
 							editable={isEditable(hive)}
 						/>
 						<div className={styles.boxActionsUnderSections}>
-							<HiveButtons apiaryId={apiaryId} hiveId={hiveId} box={box} frameId={frameId} mode="removeOnly" />
+							<HiveButtons
+								apiaryId={apiaryId}
+								hiveId={hiveId}
+								box={box}
+								frameId={frameId}
+								mode="removeOnly"
+								openRemoveDialogSignal={openBoxRemoveDialogSignal}
+								onRemoveDialogSignalConsumed={() => setOpenBoxRemoveDialogSignal(0)}
+							/>
 						</div>
 					</div>
 				)}
@@ -254,8 +367,9 @@ export default function HiveEditForm() {
 								frameId={frameId}
 								hiveId={hiveId}
 								frameSideId={frameSideId}
-								key={frameSideId}
 								extraButtons={null}
+								openRemoveDialogSignal={openFrameRemoveDialogSignal}
+								onRemoveDialogSignalConsumed={() => setOpenFrameRemoveDialogSignal(0)}
 							/>
 
 							<HiveButtons apiaryId={apiaryId} hiveId={hiveId} box={box} frameId={frameId} mode="nonRemove" />

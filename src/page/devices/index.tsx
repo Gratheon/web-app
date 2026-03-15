@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { gql, useMutation, useQuery } from '@/api'
@@ -6,6 +6,7 @@ import Button from '@/shared/button'
 import DevicesPlaceholder from '@/shared/devicesPlaceholder'
 import ErrorMsg from '@/shared/messageError'
 import Loader from '@/shared/loader'
+import Modal from '@/shared/modal'
 import T from '@/shared/translate'
 import { getUser } from '@/models/user'
 import { isBillingTierLessThan } from '@/shared/billingTier'
@@ -71,6 +72,9 @@ function formatDeviceType(type: DeviceType) {
 
 export default function DevicesPage() {
 	const [deletingId, setDeletingId] = useState<string | null>(null)
+	const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null)
+	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+	const [deviceToDeleteId, setDeviceToDeleteId] = useState<string | null>(null)
 	const user = useLiveQuery(() => getUser(), [], null)
 	const isDevicesLocked = isBillingTierLessThan(user?.billingPlan, 'professional')
 
@@ -123,15 +127,104 @@ export default function DevicesPage() {
 		return result
 	}, [boxOptionsByHive])
 
-	async function handleDelete(id: string) {
+	function requestDeleteDevice(id: string) {
 		if (isDevicesLocked) return
+		setDeviceToDeleteId(id)
+		setIsDeleteModalOpen(true)
+	}
 
-		if (!window.confirm('Delete this device?')) return
-		setDeletingId(id)
-		await deactivateDevice({ id })
+	async function handleDeleteConfirm() {
+		if (!deviceToDeleteId) return
+
+		setIsDeleteModalOpen(false)
+		setDeletingId(deviceToDeleteId)
+		await deactivateDevice({ id: deviceToDeleteId })
 		setDeletingId(null)
 		reexecuteQuery()
 	}
+
+	useEffect(() => {
+		if (!displayedDevices.length) {
+			setSelectedDeviceId(null)
+			return
+		}
+
+		if (!selectedDeviceId || !displayedDevices.some((device: any) => device.id === selectedDeviceId)) {
+			setSelectedDeviceId(displayedDevices[0].id)
+		}
+	}, [displayedDevices, selectedDeviceId])
+
+	useEffect(() => {
+		const isTypingTarget = (target: EventTarget | null) => {
+			if (!target || !(target instanceof HTMLElement)) return false
+			const tagName = String(target.tagName || '').toLowerCase()
+			return (
+				target.isContentEditable ||
+				tagName === 'input' ||
+				tagName === 'textarea' ||
+				tagName === 'select'
+			)
+		}
+
+		const onKeyDown = async (event: KeyboardEvent) => {
+			if (isTypingTarget(event.target)) {
+				return
+			}
+
+			if (isDeleteModalOpen) {
+				if (deletingId) return
+
+				if (event.key === 'Escape') {
+					event.preventDefault()
+					event.stopPropagation()
+					setIsDeleteModalOpen(false)
+					return
+				}
+
+				if (event.key === 'Enter') {
+					event.preventDefault()
+					event.stopPropagation()
+					await handleDeleteConfirm()
+				}
+				return
+			}
+
+			if (!displayedDevices.length) return
+
+			if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+				event.preventDefault()
+				event.stopPropagation()
+
+				const currentIndex = displayedDevices.findIndex((device: any) => device.id === selectedDeviceId)
+				if (currentIndex === -1) {
+					setSelectedDeviceId(
+						event.key === 'ArrowUp'
+							? displayedDevices[displayedDevices.length - 1].id
+							: displayedDevices[0].id
+					)
+					return
+				}
+
+				const nextIndex = event.key === 'ArrowUp'
+					? Math.max(0, currentIndex - 1)
+					: Math.min(displayedDevices.length - 1, currentIndex + 1)
+				setSelectedDeviceId(displayedDevices[nextIndex].id)
+				return
+			}
+
+			if (event.key === 'Delete' || event.key === 'Del') {
+				if (!selectedDeviceId) return
+				event.preventDefault()
+				event.stopPropagation()
+				requestDeleteDevice(selectedDeviceId)
+			}
+		}
+
+		document.addEventListener('keydown', onKeyDown, true)
+		return () => {
+			document.removeEventListener('keydown', onKeyDown, true)
+		}
+	}, [deletingId, displayedDevices, isDeleteModalOpen, selectedDeviceId, isDevicesLocked, deviceToDeleteId])
 
 	if (loading) return <Loader />
 
@@ -160,7 +253,12 @@ export default function DevicesPage() {
 							const hiveLabel = device.hiveId ? (hiveOptionById.get(device.hiveId) || `Hive ${device.hiveId}`) : '—'
 							const boxLabel = device.boxId ? (boxOptionById.get(device.boxId) || `Section ${device.boxId}`) : '—'
 							return (
-								<div key={device.id} className={styles.row}>
+								<div
+									key={device.id}
+									className={`${styles.row} ${selectedDeviceId === device.id ? styles.selectedRow : ''}`}
+									onMouseEnter={() => setSelectedDeviceId(device.id)}
+									onClick={() => setSelectedDeviceId(device.id)}
+								>
 									<div className={styles.deviceInfo}>
 										<div>
 											<a className={styles.deviceNameLink} href={`/devices/${device.id}`}>
@@ -179,7 +277,14 @@ export default function DevicesPage() {
 									</div>
 									<div className={styles.buttons}>
 										<Button size="small" href={`/devices/${device.id}/edit`}><T>Edit</T></Button>
-										<Button size="small" color="red" loading={deletingId === device.id} onClick={() => handleDelete(device.id)}><T>Delete</T></Button>
+										<Button
+											size="small"
+											color="red"
+											loading={deletingId === device.id}
+											onClick={() => requestDeleteDevice(device.id)}
+										>
+											<T>Delete</T>
+										</Button>
 									</div>
 								</div>
 							)
@@ -187,6 +292,34 @@ export default function DevicesPage() {
 					</div>
 				)}
 			</section>
+			{isDeleteModalOpen && deviceToDeleteId ? (
+				<Modal title={<T>Delete Device</T>} onClose={() => setIsDeleteModalOpen(false)}>
+					<div className={styles.modalContent}>
+						<div style={{ marginBottom: '12px' }}>
+							<T>Delete this device?</T>
+						</div>
+						<div className={styles.modalActionsWithHints}>
+							<div className={styles.actionWithHint}>
+								<Button size="small" color="gray" onClick={() => setIsDeleteModalOpen(false)}>
+									<T>Cancel</T>
+								</Button>
+								<div className={styles.keyHint}>Esc</div>
+							</div>
+							<div className={styles.actionWithHint}>
+								<Button
+									size="small"
+									color="red"
+									loading={deletingId === deviceToDeleteId}
+									onClick={handleDeleteConfirm}
+								>
+									<T>Delete</T>
+								</Button>
+								<div className={styles.keyHint}>Enter</div>
+							</div>
+						</div>
+					</div>
+				</Modal>
+			) : null}
 		</div>
 	)
 }

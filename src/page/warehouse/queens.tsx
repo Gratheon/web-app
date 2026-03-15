@@ -1,7 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useLiveQuery } from 'dexie-react-hooks'
 
 import { gql, useMutation, useQuery } from '@/api'
+import { getUser } from '@/models/user'
+import { SUPPORTED_LANGUAGES } from '@/config/languages'
+import RefreshIcon from '@/icons/RefreshIcon'
 import Button from '@/shared/button'
 import ErrorMsg from '@/shared/messageError'
 import Loader from '@/shared/loader'
@@ -27,6 +31,12 @@ type WarehouseQueen = {
 
 type SortColumn = 'NAME' | 'YEAR' | 'RACE' | 'COLOR'
 type SortOrder = 'ASC' | 'DESC'
+
+const RANDOM_QUEEN_NAME_QUERY = gql`
+query RandomHiveName($language: String) {
+	randomHiveName(language: $language)
+}
+`
 
 const WAREHOUSE_QUEENS_QUERY = gql`
 {
@@ -69,7 +79,14 @@ mutation addWarehouseQueen($queen: FamilyInput!) {
 `
 
 export default function WarehouseQueensPage() {
+	const user = useLiveQuery(() => getUser(), [], null)
+	const [lang, setLang] = useState('en')
 	const { data, loading, error, reexecuteQuery } = useQuery(WAREHOUSE_QUEENS_QUERY)
+	const {
+		data: randomNameData,
+		loading: randomNameLoading,
+		reexecuteQuery: reexecuteRandomNameQuery,
+	} = useQuery(RANDOM_QUEEN_NAME_QUERY, { variables: { language: lang } })
 	const [deleteWarehouseQueen] = useMutation(DELETE_WAREHOUSE_QUEEN_MUTATION)
 	const [addWarehouseQueen] = useMutation(ADD_WAREHOUSE_QUEEN_MUTATION)
 	const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -82,6 +99,32 @@ export default function WarehouseQueensPage() {
 	const [newQueenColor, setNewQueenColor] = useState('')
 	const [sortBy, setSortBy] = useState<SortColumn>('YEAR')
 	const [sortOrder, setSortOrder] = useState<SortOrder>('DESC')
+	const [selectedQueenId, setSelectedQueenId] = useState<string | null>(null)
+	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+	const [queenToDelete, setQueenToDelete] = useState<WarehouseQueen | null>(null)
+
+	useEffect(() => {
+		let currentLang = 'en'
+		if (user?.lang) {
+			currentLang = user.lang
+		} else if (user === null) {
+			const browserLang = navigator.language.substring(0, 2) as any
+			if (SUPPORTED_LANGUAGES.includes(browserLang)) {
+				currentLang = browserLang
+			}
+		}
+		setLang(currentLang)
+	}, [user])
+
+	useEffect(() => {
+		if (isCreateModalOpen && randomNameData?.randomHiveName && !randomNameLoading) {
+			setNewQueenName(randomNameData.randomHiveName)
+		}
+	}, [isCreateModalOpen, randomNameData, randomNameLoading])
+
+	const handleRefreshName = useCallback(() => {
+		reexecuteRandomNameQuery({ requestPolicy: 'network-only' })
+	}, [reexecuteRandomNameQuery])
 
 	const queens: WarehouseQueen[] = data?.warehouseQueens || []
 	const hiveToApiary = useMemo(() => {
@@ -109,12 +152,18 @@ export default function WarehouseQueensPage() {
 		setSortOrder('ASC')
 	}
 
-	async function onDeleteQueen(queen: WarehouseQueen) {
-		if (!window.confirm('Delete this queen from warehouse?')) return
+	function requestDeleteQueen(queen: WarehouseQueen) {
+		setQueenToDelete(queen)
+		setIsDeleteModalOpen(true)
+	}
 
-		setDeletingId(queen.id)
+	async function onDeleteQueenConfirm() {
+		if (!queenToDelete?.id) return
+
+		setIsDeleteModalOpen(false)
+		setDeletingId(queenToDelete.id)
 		const result = await deleteWarehouseQueen({
-			familyId: queen.id,
+			familyId: queenToDelete.id,
 		})
 		setDeletingId(null)
 
@@ -125,6 +174,7 @@ export default function WarehouseQueensPage() {
 
 	function openCreateModal() {
 		setCreateError(null)
+		handleRefreshName()
 		setNewQueenName('')
 		setNewQueenRace('')
 		setNewQueenYear(new Date().getFullYear().toString())
@@ -134,12 +184,7 @@ export default function WarehouseQueensPage() {
 
 	async function onCreateQueen() {
 		setCreateError(null)
-		const race = newQueenRace.trim()
 		const added = newQueenYear.trim()
-		if (!race) {
-			setCreateError('Please provide the queen race.')
-			return
-		}
 		if (!/^\d{4}$/.test(added)) {
 			setCreateError('Please provide a valid year (4 digits).')
 			return
@@ -149,7 +194,7 @@ export default function WarehouseQueensPage() {
 		const result = await addWarehouseQueen({
 			queen: {
 				name: newQueenName.trim() || null,
-				race,
+				race: newQueenRace.trim() || null,
 				added,
 				color: newQueenColor || null,
 			},
@@ -217,6 +262,97 @@ export default function WarehouseQueensPage() {
 		return entries
 	}, [queens, sortBy, sortOrder])
 
+	useEffect(() => {
+		if (sortedQueens.length === 0) {
+			setSelectedQueenId(null)
+			return
+		}
+
+		if (!selectedQueenId || !sortedQueens.some((queen) => queen.id === selectedQueenId)) {
+			setSelectedQueenId(sortedQueens[0].id)
+		}
+	}, [sortedQueens, selectedQueenId])
+
+	useEffect(() => {
+		const isTypingTarget = (target: EventTarget | null) => {
+			if (!target || !(target instanceof HTMLElement)) return false
+			const tagName = String(target.tagName || '').toLowerCase()
+			return (
+				target.isContentEditable ||
+				tagName === 'input' ||
+				tagName === 'textarea' ||
+				tagName === 'select'
+			)
+		}
+
+		const onKeyDown = async (event: KeyboardEvent) => {
+			if (isTypingTarget(event.target)) {
+				return
+			}
+
+			if (isDeleteModalOpen) {
+				if (deletingId) return
+
+				if (event.key === 'Escape') {
+					event.preventDefault()
+					event.stopPropagation()
+					setIsDeleteModalOpen(false)
+					return
+				}
+
+				if (event.key === 'Enter') {
+					event.preventDefault()
+					event.stopPropagation()
+					await onDeleteQueenConfirm()
+				}
+				return
+			}
+
+			if (isCreateModalOpen) {
+				return
+			}
+
+			if (!sortedQueens.length) {
+				return
+			}
+
+			if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+				event.preventDefault()
+				event.stopPropagation()
+
+				const currentIndex = sortedQueens.findIndex((queen) => queen.id === selectedQueenId)
+				if (currentIndex === -1) {
+					setSelectedQueenId(
+						event.key === 'ArrowUp'
+							? sortedQueens[sortedQueens.length - 1].id
+							: sortedQueens[0].id
+					)
+					return
+				}
+
+				const nextIndex = event.key === 'ArrowUp'
+					? Math.max(0, currentIndex - 1)
+					: Math.min(sortedQueens.length - 1, currentIndex + 1)
+				setSelectedQueenId(sortedQueens[nextIndex].id)
+				return
+			}
+
+			if (event.key === 'Delete' || event.key === 'Del') {
+				if (!selectedQueenId) return
+				const selectedQueen = sortedQueens.find((queen) => queen.id === selectedQueenId)
+				if (!selectedQueen) return
+				event.preventDefault()
+				event.stopPropagation()
+				requestDeleteQueen(selectedQueen)
+			}
+		}
+
+		document.addEventListener('keydown', onKeyDown, true)
+		return () => {
+			document.removeEventListener('keydown', onKeyDown, true)
+		}
+	}, [deletingId, isCreateModalOpen, isDeleteModalOpen, selectedQueenId, sortedQueens, queenToDelete])
+
 	if (loading) {
 		return <Loader />
 	}
@@ -275,7 +411,12 @@ export default function WarehouseQueensPage() {
 										const color = queen.color || getQueenColorFromYear(queen.added || '')
 										const apiaryId = queen.lastHive?.id ? hiveToApiary[String(queen.lastHive.id)] : null
 										return (
-										<tr key={queen.id}>
+										<tr
+											key={queen.id}
+											className={selectedQueenId === queen.id ? styles.selectedRow : ''}
+											onMouseEnter={() => setSelectedQueenId(queen.id)}
+											onClick={() => setSelectedQueenId(queen.id)}
+										>
 											<td className={styles.colorColumn}>
 												<div className={styles.colorCell}>
 													<span className={styles.colorDot} style={{ backgroundColor: color }}></span>
@@ -301,7 +442,7 @@ export default function WarehouseQueensPage() {
 													size="small"
 													color="red"
 													loading={deletingId === queen.id}
-													onClick={() => onDeleteQueen(queen)}
+													onClick={() => requestDeleteQueen(queen)}
 												>
 													<T>Delete</T>
 												</Button>
@@ -314,20 +455,67 @@ export default function WarehouseQueensPage() {
 					</div>
 				) : null}
 
+			{isDeleteModalOpen && queenToDelete ? (
+				<Modal title={<T>Delete Queen</T>} onClose={() => setIsDeleteModalOpen(false)}>
+					<div className={styles.modalContent}>
+						<div style={{ marginBottom: '12px' }}>
+							<T>Delete this queen from warehouse?</T>
+						</div>
+						<div className={styles.modalActionsWithHints}>
+							<div className={styles.actionWithHint}>
+								<Button size="small" color="gray" onClick={() => setIsDeleteModalOpen(false)}>
+									<T>Cancel</T>
+								</Button>
+								<div className={styles.keyHint}>Esc</div>
+							</div>
+							<div className={styles.actionWithHint}>
+								<Button
+									size="small"
+									color="red"
+									loading={deletingId === queenToDelete.id}
+									onClick={onDeleteQueenConfirm}
+								>
+									<T>Delete</T>
+								</Button>
+								<div className={styles.keyHint}>Enter</div>
+							</div>
+						</div>
+					</div>
+				</Modal>
+			) : null}
+
 			{isCreateModalOpen ? (
 				<Modal title={<T>Add Queen</T>} onClose={() => setIsCreateModalOpen(false)}>
 					<div className={styles.modalContent}>
 						<ErrorMsg error={createError} />
 
-						<label className={inputStyles.label}><T>Queen Name</T></label>
-						<input
-							className={inputStyles.input}
-							type="text"
-							value={newQueenName}
-							onChange={(e: any) => setNewQueenName(e.target.value)}
-							placeholder="Enter queen name"
-							autoFocus
-						/>
+						<div className={styles.nameInputWrapper}>
+							<div style={{ flex: 1 }}>
+								<label className={inputStyles.label}><T>Queen Name</T></label>
+								<input
+									className={inputStyles.input}
+									type="text"
+									value={newQueenName}
+									onChange={(e: any) => setNewQueenName(e.target.value)}
+									placeholder="Enter queen name"
+									autoFocus
+								/>
+							</div>
+							<Button
+								type="button"
+								onClick={handleRefreshName}
+								disabled={randomNameLoading}
+								style={{
+									marginTop: '24px',
+									height: '40px',
+									minWidth: '40px',
+									padding: '0 12px',
+								}}
+								title="Get new name suggestion"
+							>
+								<RefreshIcon />
+							</Button>
+						</div>
 
 						<label className={inputStyles.label}><T>Race</T></label>
 						<input

@@ -40,6 +40,10 @@ type DrawerTranslations = {
 	hiveDetailViewDescription: string
 	hiveListViewName: string
 	hiveListViewDescription: string
+	warehouseQueenListViewName: string
+	warehouseQueenListViewDescription: string
+	deviceListViewName: string
+	deviceListViewDescription: string
 	currentViewName: string
 	currentViewDescription: string
 	shortcutsActionOpenAdvisor: string
@@ -53,10 +57,15 @@ type DrawerTranslations = {
 	shortcutsActionConfirmFocusedDialogAction: string
 	shortcutsActionMoveFocusAcrossPageControls: string
 	shortcutsActionMoveHiveFocusInListTable: string
+	shortcutsActionMoveQueenFocusInTable: string
+	shortcutsActionMoveDeviceFocusInList: string
 	shortcutsActionSwitchSelectedHiveFrames: string
 	shortcutsActionSwitchSelectedHiveSections: string
 	shortcutsActionDeleteSelectedHiveFrame: string
 	shortcutsActionDeleteSelectedHiveSection: string
+	shortcutsActionDeleteSelectedWarehouseQueen: string
+	shortcutsActionDeleteSelectedDevice: string
+	shortcutsActionCancelFocusedDialogAction: string
 }
 
 function canUseAIAdvisor(plan?: string | null) {
@@ -128,6 +137,8 @@ function getHiveContext(pathname: string) {
 function getViewContext(pathname: string, labels: DrawerTranslations): ViewContext {
 	const isHiveDetailView = /^\/apiaries\/\d+\/hives\/\d+(?:\/|$)/.test(pathname)
 	const isHiveListView = pathname === '/' || pathname === '/apiaries' || pathname === '/apiaries/'
+	const isWarehouseQueenListView = pathname === '/warehouse/queens' || pathname === '/warehouse/queens/'
+	const isDeviceListView = pathname === '/devices' || pathname === '/devices/'
 
 	if (isHiveDetailView) {
 		return {
@@ -166,6 +177,40 @@ function getViewContext(pathname: string, labels: DrawerTranslations): ViewConte
 		}
 	}
 
+	if (isWarehouseQueenListView) {
+		return {
+			name: labels.warehouseQueenListViewName,
+			description: labels.warehouseQueenListViewDescription,
+			shortcuts: [
+				{ keys: 'Shift + ?', action: labels.shortcutsActionOpenAdvisor },
+				{ keys: 'M', action: labels.shortcutsActionToggleLeftMenu },
+				{ keys: '1-9 / 0', action: labels.shortcutsActionGoToLeftMenuItemByNumber },
+				{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
+				{ keys: 'Arrow Up / Arrow Down', action: labels.shortcutsActionMoveQueenFocusInTable },
+				{ keys: 'Del', action: labels.shortcutsActionDeleteSelectedWarehouseQueen },
+				{ keys: 'Esc', action: labels.shortcutsActionCancelFocusedDialogAction },
+				{ keys: 'Enter', action: labels.shortcutsActionConfirmFocusedDialogAction },
+			],
+		}
+	}
+
+	if (isDeviceListView) {
+		return {
+			name: labels.deviceListViewName,
+			description: labels.deviceListViewDescription,
+			shortcuts: [
+				{ keys: 'Shift + ?', action: labels.shortcutsActionOpenAdvisor },
+				{ keys: 'M', action: labels.shortcutsActionToggleLeftMenu },
+				{ keys: '1-9 / 0', action: labels.shortcutsActionGoToLeftMenuItemByNumber },
+				{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
+				{ keys: 'Arrow Up / Arrow Down', action: labels.shortcutsActionMoveDeviceFocusInList },
+				{ keys: 'Del', action: labels.shortcutsActionDeleteSelectedDevice },
+				{ keys: 'Esc', action: labels.shortcutsActionCancelFocusedDialogAction },
+				{ keys: 'Enter', action: labels.shortcutsActionConfirmFocusedDialogAction },
+			],
+		}
+	}
+
 	return {
 		name: labels.currentViewName,
 		description: labels.currentViewDescription,
@@ -193,6 +238,10 @@ export default function AIAdvisorDrawer() {
 	const hiveDetailViewDescription = t('Detailed hive workflow with sections, frames, inspections, and metrics.')
 	const hiveListViewName = t('Hive list view')
 	const hiveListViewDescription = t('Apiary overview with list and table hive navigation modes.')
+	const warehouseQueenListViewName = t('Warehouse queen list view')
+	const warehouseQueenListViewDescription = t('Warehouse queen table with keyboard row selection and deletion flow.')
+	const deviceListViewName = t('Device list view')
+	const deviceListViewDescription = t('Device list with keyboard row selection and deletion flow.')
 	const currentViewName = t('Current view')
 	const currentViewDescription = t('Page-level context and shortcuts are available here.')
 	const shortcutsActionOpenAdvisor = t('Open AI Advisor')
@@ -204,12 +253,17 @@ export default function AIAdvisorDrawer() {
 	const shortcutsActionEditHiveMainInfo = t('Edit hive main info')
 	const shortcutsActionMoveFocusAcrossControls = t('Move focus across controls')
 	const shortcutsActionConfirmFocusedDialogAction = t('Confirm focused dialog action')
+	const shortcutsActionCancelFocusedDialogAction = t('Cancel focused dialog action')
 	const shortcutsActionMoveFocusAcrossPageControls = t('Move focus across page controls')
 	const shortcutsActionMoveHiveFocusInListTable = t('Move hive focus in list/table view')
+	const shortcutsActionMoveQueenFocusInTable = t('Move queen focus in table view')
+	const shortcutsActionMoveDeviceFocusInList = t('Move device focus in list view')
 	const shortcutsActionSwitchSelectedHiveFrames = t('Switch selected hive frames')
 	const shortcutsActionSwitchSelectedHiveSections = t('Switch selected hive sections')
 	const shortcutsActionDeleteSelectedHiveFrame = t('Delete selected hive frame')
 	const shortcutsActionDeleteSelectedHiveSection = t('Delete selected hive section')
+	const shortcutsActionDeleteSelectedWarehouseQueen = t('Delete selected warehouse queen')
+	const shortcutsActionDeleteSelectedDevice = t('Delete selected device')
 	const openHiveDetailMessage = t('Open a hive detail page to run hive-specific AI analysis.')
 	const loadingHiveInfoMessage = t('Loading hive information...')
 	const loadedHiveInfoMessage = t('Loaded hive information')
@@ -240,10 +294,14 @@ export default function AIAdvisorDrawer() {
 			getViewContext(location.pathname, {
 				hiveDetailViewName,
 				hiveDetailViewDescription,
-				hiveListViewName,
-				hiveListViewDescription,
-					currentViewName,
-					currentViewDescription,
+					hiveListViewName,
+					hiveListViewDescription,
+					warehouseQueenListViewName,
+					warehouseQueenListViewDescription,
+					deviceListViewName,
+					deviceListViewDescription,
+						currentViewName,
+						currentViewDescription,
 					shortcutsActionOpenAdvisor,
 					shortcutsActionToggleLeftMenu,
 					shortcutsActionGoToLeftMenuItemByNumber,
@@ -253,19 +311,28 @@ export default function AIAdvisorDrawer() {
 					shortcutsActionEditHiveMainInfo,
 					shortcutsActionMoveFocusAcrossControls,
 					shortcutsActionConfirmFocusedDialogAction,
-					shortcutsActionMoveFocusAcrossPageControls,
-					shortcutsActionMoveHiveFocusInListTable,
-					shortcutsActionSwitchSelectedHiveFrames,
-					shortcutsActionSwitchSelectedHiveSections,
-					shortcutsActionDeleteSelectedHiveFrame,
-					shortcutsActionDeleteSelectedHiveSection,
-				}),
+					shortcutsActionCancelFocusedDialogAction,
+						shortcutsActionMoveFocusAcrossPageControls,
+						shortcutsActionMoveHiveFocusInListTable,
+						shortcutsActionMoveQueenFocusInTable,
+						shortcutsActionMoveDeviceFocusInList,
+						shortcutsActionSwitchSelectedHiveFrames,
+						shortcutsActionSwitchSelectedHiveSections,
+						shortcutsActionDeleteSelectedHiveFrame,
+						shortcutsActionDeleteSelectedHiveSection,
+						shortcutsActionDeleteSelectedWarehouseQueen,
+						shortcutsActionDeleteSelectedDevice,
+					}),
 		[
 			location.pathname,
 			hiveDetailViewName,
 			hiveDetailViewDescription,
 			hiveListViewName,
 			hiveListViewDescription,
+			warehouseQueenListViewName,
+			warehouseQueenListViewDescription,
+			deviceListViewName,
+			deviceListViewDescription,
 			currentViewName,
 			currentViewDescription,
 			shortcutsActionOpenAdvisor,
@@ -277,12 +344,17 @@ export default function AIAdvisorDrawer() {
 			shortcutsActionEditHiveMainInfo,
 			shortcutsActionMoveFocusAcrossControls,
 			shortcutsActionConfirmFocusedDialogAction,
+			shortcutsActionCancelFocusedDialogAction,
 			shortcutsActionMoveFocusAcrossPageControls,
 			shortcutsActionMoveHiveFocusInListTable,
+			shortcutsActionMoveQueenFocusInTable,
+			shortcutsActionMoveDeviceFocusInList,
 			shortcutsActionSwitchSelectedHiveFrames,
 			shortcutsActionSwitchSelectedHiveSections,
 			shortcutsActionDeleteSelectedHiveFrame,
 			shortcutsActionDeleteSelectedHiveSection,
+			shortcutsActionDeleteSelectedWarehouseQueen,
+			shortcutsActionDeleteSelectedDevice,
 		]
 	)
 	const shouldRender = isOpen

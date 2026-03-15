@@ -77,6 +77,10 @@
 	border-bottom: none;
 }
 
+.table tbody tr.selectedRow td {
+	background: #f3f8ff;
+}
+
 .sortable {
 	cursor: pointer;
 	user-select: none;
@@ -129,9 +133,50 @@
 	gap: 8px;
 }
 
+.nameInputWrapper {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+}
+
 .modalActions {
 	margin-top: 14px;
 	display: flex;
 	justify-content: flex-end;
 	gap: 8px;
+}
+
+.modalActionsWithHints {
+	margin-top: 14px;
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+}
+
+.actionWithHint {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+}
+
+.keyHint {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 1px 6px;
+	min-height: 16px;
+	border-radius: 5px;
+	background: #efefef;
+	border: 1px solid #d3d3d3;
+	color: #555;
+	font-size: 10px;
+	font-weight: 600;
+	line-height: 1;
+}
+
+@media @mobile {
+	.keyHint {
+		display: none;
+	}
 }

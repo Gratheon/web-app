@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 
@@ -20,6 +20,8 @@ type WeatherSnapshot = {
 	temperature: number | null
 	windSpeed: number | null
 	rain: number | null
+	pressure: number | null
+	elevation: number | null
 }
 
 type WeatherTone = 'good' | 'warn' | 'bad' | 'neutral' | 'cold'
@@ -182,17 +184,17 @@ function buildMapEmbedUrl(lat: number, lng: number) {
 	return `https://www.openstreetmap.org/export/embed.html?bbox=${left}%2C${bottom}%2C${right}%2C${top}&layer=mapnik&marker=${lat}%2C${lng}`
 }
 
+const WEATHER_QUERY = gql`
+	query weatherSnapshot($lat: String!, $lng: String!) {
+		weather(lat: $lat, lng: $lng)
+	}
+`
+
 export default function ApiaryView() {
 	const { id } = useParams()
 	const apiary = useLiveQuery(() => getApiary(+id), [id], null)
 	const user = useLiveQuery(() => getUser(), [], null)
 	const isHivePlacementLocked = isBillingTierLessThan(user?.billingPlan, 'hobbyist')
-	const [weather, setWeather] = useState<WeatherSnapshot>({
-		temperature: null,
-		windSpeed: null,
-		rain: null,
-	})
-
 	const {
 		loading,
 		error,
@@ -225,6 +227,38 @@ export default function ApiaryView() {
 	const lng = Number(apiaryFromQuery?.lng || apiary?.lng || 0)
 	const hives = apiaryFromQuery?.hives || []
 	const hivesCount = hives.length
+	const hasCoordinates = !!lat && !!lng && !Number.isNaN(lat) && !Number.isNaN(lng)
+
+	const { data: weatherQueryData } = useQuery(WEATHER_QUERY, {
+		variables: { lat: `${lat}`, lng: `${lng}` },
+	})
+
+	const weather = useMemo<WeatherSnapshot>(() => {
+		if (!hasCoordinates) {
+			return {
+				temperature: null,
+				windSpeed: null,
+				rain: null,
+				pressure: null,
+				elevation: null,
+			}
+		}
+
+		const payload = weatherQueryData?.weather
+		return {
+			temperature: payload?.current_weather?.temperature ?? null,
+			windSpeed: payload?.current_weather?.windspeed ?? null,
+			rain: payload?.current?.precipitation ?? payload?.hourly?.rain?.[0] ?? null,
+			pressure:
+				payload?.current?.surface_pressure
+				?? payload?.current?.pressure_msl
+				?? payload?.hourly?.surface_pressure?.[0]
+				?? payload?.hourly?.pressure_msl?.[0]
+				?? null,
+			elevation: payload?.elevation ?? null,
+		}
+	}, [hasCoordinates, weatherQueryData?.weather])
+
 	const temperatureStatus = classifyTemperature(weather.temperature)
 	const windStatus = classifyWind(weather.windSpeed)
 	const rainStatus = classifyRain(weather.rain)
@@ -232,34 +266,6 @@ export default function ApiaryView() {
 	const mapUrl = useMemo(() => {
 		if (!lat || !lng || Number.isNaN(lat) || Number.isNaN(lng)) return null
 		return buildMapEmbedUrl(lat, lng)
-	}, [lat, lng])
-
-	useEffect(() => {
-		if (!lat || !lng || Number.isNaN(lat) || Number.isNaN(lng)) return
-
-		const controller = new AbortController()
-		const fetchWeather = async () => {
-			try {
-				const response = await fetch(
-					`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,wind_speed_10m,precipitation`,
-					{ signal: controller.signal },
-				)
-				const payload = await response.json()
-				setWeather({
-					temperature: payload?.current?.temperature_2m ?? null,
-					windSpeed: payload?.current?.wind_speed_10m ?? null,
-					rain: payload?.current?.precipitation ?? null,
-				})
-			} catch (e) {
-				if ((e as Error).name !== 'AbortError') {
-					setWeather({ temperature: null, windSpeed: null, rain: null })
-				}
-			}
-		}
-
-		fetchWeather()
-
-		return () => controller.abort()
 	}, [lat, lng])
 
 	if (apiary === null && loading) {
@@ -288,7 +294,11 @@ export default function ApiaryView() {
 					<div className={styles.heroContent}>
 						<div className={styles.heroText}>
 							<h1>{name}</h1>
-							<div className={styles.heroMeta}>{hivesCount} <T>hives</T></div>
+							<div className={styles.heroMeta}>
+								<span>{hivesCount} <T>hives</T></span>
+								{weather.elevation !== null && <span>{formatValue(weather.elevation, ' m')} <T>elevation</T></span>}
+								{weather.pressure !== null && <span>{formatValue(weather.pressure, ' hPa')} <T>pressure</T></span>}
+							</div>
 						</div>
 						<Button color="green" href={`/apiaries/edit/${id}/placement`}>
 							<T>Edit</T>

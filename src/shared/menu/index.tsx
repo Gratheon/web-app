@@ -275,6 +275,7 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
 
 
     let [isMoreVisible, setMoreVisible] = useState(false)
+    let [showShortcutHints, setShowShortcutHints] = useState(false)
     const location = useLocation()
     const navigate = useNavigate()
 
@@ -297,6 +298,12 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
     }
 
     useEffect(() => {
+        if (!isHiveAdvisorOpen) {
+            setShowShortcutHints(false)
+        }
+    }, [isHiveAdvisorOpen])
+
+    useEffect(() => {
         const isTypingTarget = (target) => {
             if (!target) return false
             const tagName = String(target.tagName || '').toLowerCase()
@@ -313,10 +320,54 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                 return
             }
 
-            const isShortcut = event.shiftKey && (event.key === '?' || event.key === '/')
-            if (!isShortcut) {
+            const key = String(event.key || '').toLowerCase()
+
+            if (key === 'escape') {
+                setShowShortcutHints(false)
                 return
             }
+
+            const hasModifier = event.ctrlKey || event.metaKey || event.altKey
+            const isAdvisorShortcut = event.shiftKey && (event.key === '?' || event.key === '/')
+            const isMenuToggleShortcut = !hasModifier && !event.shiftKey && key === 'm'
+            const menuNavigationTarget = (
+                !hasModifier && !event.shiftKey
+                    ? {
+                        '1': '/apiaries',
+                        '2': '/warehouse',
+                        '3': '/warehouse/queens',
+                        '4': '/devices',
+                        '5': '/time',
+                        '6': '/alert-config',
+                        '7': '/account',
+                        '8': aiAdvisorPath,
+                        '9': '/account/billing',
+                        '0': '/account/tokens',
+                    }[key]
+                    : null
+            )
+
+            if (!isAdvisorShortcut && !isMenuToggleShortcut && !menuNavigationTarget) {
+                return
+            }
+
+            if (menuNavigationTarget) {
+                event.preventDefault()
+                navigate(menuNavigationTarget)
+                return
+            }
+
+            if (isMenuToggleShortcut) {
+                event.preventDefault()
+                onSidebarToggle()
+                return
+            }
+
+            if (event.repeat) {
+                return
+            }
+
+            setShowShortcutHints(true)
 
             if (isAIAdvisorSection) {
                 return
@@ -326,11 +377,17 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
             navigate(aiAdvisorPath, { replace: true })
         }
 
+        const onWindowBlur = () => {
+            setShowShortcutHints(false)
+        }
+
         document.addEventListener('keydown', onKeyDown, true)
+        window.addEventListener('blur', onWindowBlur)
         return () => {
             document.removeEventListener('keydown', onKeyDown, true)
+            window.removeEventListener('blur', onWindowBlur)
         }
-    }, [aiAdvisorPath, isAIAdvisorSection, navigate])
+    }, [aiAdvisorPath, isAIAdvisorSection, navigate, onSidebarToggle])
 
 
     const onDesktopLogoClick = (event) => {
@@ -355,7 +412,10 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                             to="/apiaries">
                             <span className={styles.menuItemContent}>
                                 <span className={styles.menuItemIcon}><HiveIcon size={18} /></span>
-                                <span className={styles.menuItemLabel}><T>Hives</T></span>
+                                <span className={styles.menuItemLabel}>
+                                    <span className={styles.menuItemText}><T>Hives</T></span>
+                                    {showShortcutHints && <span className={styles.keyHint}>1</span>}
+                                </span>
                             </span>
                         </NavLink>
                     </li>
@@ -366,7 +426,10 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                             to="/warehouse">
                             <span className={styles.menuItemContent}>
                                 <span className={styles.menuItemIcon}><WarehouseIcon size={18} /></span>
-                                <span className={styles.menuItemLabel}><T>Warehouse</T></span>
+                                <span className={styles.menuItemLabel}>
+                                    <span className={styles.menuItemText}><T>Warehouse</T></span>
+                                    {showShortcutHints && <span className={styles.keyHint}>2</span>}
+                                </span>
                             </span>
                         </NavLink>
                     </li>
@@ -376,7 +439,10 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                             to="/warehouse/queens">
                             <span className={styles.menuItemContent}>
                                 <span className={styles.menuItemIcon}><QueensIcon size={18} /></span>
-                                <span className={styles.menuItemLabel}><T>Queens</T></span>
+                                <span className={styles.menuItemLabel}>
+                                    <span className={styles.menuItemText}><T>Queens</T></span>
+                                    {showShortcutHints && <span className={styles.keyHint}>3</span>}
+                                </span>
                             </span>
                         </NavLink>
                     </li>
@@ -386,7 +452,10 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                             to="/devices">
                             <span className={styles.menuItemContent}>
                                 <span className={styles.menuItemIcon}><DeviceSignalIcon size={18} /></span>
-                                <span className={styles.menuItemLabel}><T>Devices</T></span>
+                                <span className={styles.menuItemLabel}>
+                                    <span className={styles.menuItemText}><T>Devices</T></span>
+                                    {showShortcutHints && <span className={styles.keyHint}>4</span>}
+                                </span>
                             </span>
                         </NavLink>
                     </li>
@@ -396,7 +465,10 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                             to="/time">
                             <span className={styles.menuItemContent}>
                                 <span className={styles.menuItemIcon}><LightBulbIcon size={18} /></span>
-                                <span className={styles.menuItemLabel}><T>Insights</T></span>
+                                <span className={styles.menuItemLabel}>
+                                    <span className={styles.menuItemText}><T>Insights</T></span>
+                                    {showShortcutHints && <span className={styles.keyHint}>5</span>}
+                                </span>
                             </span>
                         </NavLink>
                     </li>
@@ -406,7 +478,10 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                             to="/alert-config">
                             <span className={styles.menuItemContent}>
                                 <span className={styles.menuItemIcon}><BearFaceIcon size={18} /></span>
-                                <span className={styles.menuItemLabel}><T>Alerts</T></span>
+                                <span className={styles.menuItemLabel}>
+                                    <span className={styles.menuItemText}><T>Alerts</T></span>
+                                    {showShortcutHints && <span className={styles.keyHint}>6</span>}
+                                </span>
                             </span>
                         </NavLink>
                         {isAlertsSection && (
@@ -444,9 +519,10 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                             end
                             className={navClassName}
                             to="/account">
-                            <div style="display:flex;">
+                            <div style="display:flex;" className={styles.menuItemLabel}>
                                 <Avatar style="margin-right:5px;"/>
-                                <T>Account</T>
+                                <span className={styles.menuItemText}><T>Account</T></span>
+                                {showShortcutHints && <span className={styles.keyHint}>7</span>}
                             </div>
                         </NavLink>
                     </li>
@@ -457,7 +533,10 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                         >
                             <span className={styles.menuItemContent}>
                                 <span className={styles.menuItemIcon}><AIAdvisorIcon size={18} /></span>
-                                <span className={styles.menuItemLabel}><T>AI Advisor</T></span>
+                                <span className={styles.menuItemLabel}>
+                                    <span className={styles.menuItemText}><T>AI Advisor</T></span>
+                                    {showShortcutHints && <span className={styles.keyHint}>8</span>}
+                                </span>
                             </span>
                         </NavLink>
                     </li>
@@ -467,7 +546,10 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                             to="/account/billing">
                             <span className={styles.menuItemContent}>
                                 <span className={styles.menuItemIcon}><CreditCard size={18} /></span>
-                                <span className={styles.menuItemLabel}><T>Billing</T></span>
+                                <span className={styles.menuItemLabel}>
+                                    <span className={styles.menuItemText}><T>Billing</T></span>
+                                    {showShortcutHints && <span className={styles.keyHint}>9</span>}
+                                </span>
                             </span>
                         </NavLink>
                     </li>
@@ -477,7 +559,10 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                             to="/account/tokens">
                             <span className={styles.menuItemContent}>
                                 <span className={styles.menuItemIcon}><KeyIcon size={18} /></span>
-                                <span className={styles.menuItemLabel}><T>API tokens</T></span>
+                                <span className={styles.menuItemLabel}>
+                                    <span className={styles.menuItemText}><T>API tokens</T></span>
+                                    {showShortcutHints && <span className={styles.keyHint}>0</span>}
+                                </span>
                             </span>
                         </NavLink>
                     </li>

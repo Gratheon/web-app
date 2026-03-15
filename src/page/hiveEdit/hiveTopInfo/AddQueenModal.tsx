@@ -185,21 +185,17 @@ export default function AddQueenModal({
 				throw new Error('Failed to assign queen from warehouse')
 			}
 
-			if (!race.trim()) {
-				setError('Please provide the queen race.')
-				return
-			}
-
 			if (!year || year.length !== 4) {
 				setError('Please provide a valid year (4 digits).')
 				return
 			}
 
+			const trimmedRace = race.trim()
 			const result = await addQueenMutation({
 				hiveId: hiveId.toString(),
 				queen: {
 					name: name.trim() || null,
-					race: race.trim(),
+					race: trimmedRace || null,
 					added: year,
 					color: customColor,
 				},

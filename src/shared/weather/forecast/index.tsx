@@ -1,6 +1,8 @@
 import TemperatureChart from './TemperatureChart'
 import WindChart from './WindChart'
 import RainHumidityChart, { calculateMedian } from './RainHumidityChart'
+import styles from './index.module.less'
+import T from '@/shared/translate'
 
 type ForecastProps = {
     data: any
@@ -16,6 +18,15 @@ export default function Forecast({ data, chartRefs, syncCharts }: ForecastProps)
     if (!data?.weather?.hourly) {
         return null
     }
+
+    const currentRain = data.weather?.current?.precipitation ?? data.weather?.hourly?.rain?.[0] ?? null
+    const currentPressure =
+        data.weather?.current?.surface_pressure
+        ?? data.weather?.current?.pressure_msl
+        ?? data.weather?.hourly?.surface_pressure?.[0]
+        ?? data.weather?.hourly?.pressure_msl?.[0]
+        ?? null
+    const elevation = data.weather?.elevation ?? null
 
     data.weather.hourly.time.map((hour: any, i: number) => {
         const timeStr = new Date(hour).getTime() / 1000
@@ -47,7 +58,22 @@ export default function Forecast({ data, chartRefs, syncCharts }: ForecastProps)
     }))
 
     return (
-        <>
+        <div className={styles.forecastContainer}>
+            <div className={styles.metaRow}>
+                <div className={styles.metaItem}>
+                    <span className={styles.metaLabel}><T>Rain now</T></span>
+                    <span className={styles.metaValue}>{currentRain === null ? '--' : `${Math.round(currentRain * 10) / 10} mm`}</span>
+                </div>
+                <div className={styles.metaItem}>
+                    <span className={styles.metaLabel}><T>Pressure</T></span>
+                    <span className={styles.metaValue}>{currentPressure === null ? '--' : `${Math.round(currentPressure * 10) / 10} hPa`}</span>
+                </div>
+                <div className={styles.metaItem}>
+                    <span className={styles.metaLabel}><T>Elevation</T></span>
+                    <span className={styles.metaValue}>{elevation === null ? '--' : `${Math.round(elevation * 10) / 10} m`}</span>
+                </div>
+            </div>
+
             <TemperatureChart
                 data={formattedData}
                 currentTemperature={data.weather?.current_weather.temperature}
@@ -69,6 +95,6 @@ export default function Forecast({ data, chartRefs, syncCharts }: ForecastProps)
                 chartRefs={chartRefs}
                 syncCharts={syncCharts}
             />
-        </>
+        </div>
     )
 }

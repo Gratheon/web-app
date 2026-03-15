@@ -43,6 +43,8 @@ type DrawerTranslations = {
 	currentViewName: string
 	currentViewDescription: string
 	shortcutsActionOpenAdvisor: string
+	shortcutsActionToggleLeftMenu: string
+	shortcutsActionGoToLeftMenuItemByNumber: string
 	shortcutsActionCloseDrawer: string
 	shortcutsActionGoToApiaryView: string
 	shortcutsActionGoToHiveListView: string
@@ -133,6 +135,8 @@ function getViewContext(pathname: string, labels: DrawerTranslations): ViewConte
 			description: labels.hiveDetailViewDescription,
 				shortcuts: [
 					{ keys: 'Shift + ?', action: labels.shortcutsActionOpenAdvisor },
+					{ keys: 'M', action: labels.shortcutsActionToggleLeftMenu },
+					{ keys: '1-9 / 0', action: labels.shortcutsActionGoToLeftMenuItemByNumber },
 					{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
 					{ keys: 'A', action: labels.shortcutsActionGoToApiaryView },
 					{ keys: 'H', action: labels.shortcutsActionGoToHiveListView },
@@ -153,6 +157,8 @@ function getViewContext(pathname: string, labels: DrawerTranslations): ViewConte
 			description: labels.hiveListViewDescription,
 			shortcuts: [
 				{ keys: 'Shift + ?', action: labels.shortcutsActionOpenAdvisor },
+				{ keys: 'M', action: labels.shortcutsActionToggleLeftMenu },
+				{ keys: '1-9 / 0', action: labels.shortcutsActionGoToLeftMenuItemByNumber },
 				{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
 				{ keys: 'Tab / Shift + Tab', action: labels.shortcutsActionMoveFocusAcrossPageControls },
 				{ keys: 'Arrow keys', action: labels.shortcutsActionMoveHiveFocusInListTable },
@@ -165,6 +171,8 @@ function getViewContext(pathname: string, labels: DrawerTranslations): ViewConte
 		description: labels.currentViewDescription,
 		shortcuts: [
 			{ keys: 'Shift + ?', action: labels.shortcutsActionOpenAdvisor },
+			{ keys: 'M', action: labels.shortcutsActionToggleLeftMenu },
+			{ keys: '1-9 / 0', action: labels.shortcutsActionGoToLeftMenuItemByNumber },
 			{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
 			{ keys: 'Tab / Shift + Tab', action: labels.shortcutsActionMoveFocusAcrossPageControls },
 		],
@@ -188,6 +196,8 @@ export default function AIAdvisorDrawer() {
 	const currentViewName = t('Current view')
 	const currentViewDescription = t('Page-level context and shortcuts are available here.')
 	const shortcutsActionOpenAdvisor = t('Open AI Advisor')
+	const shortcutsActionToggleLeftMenu = t('Toggle left menu')
+	const shortcutsActionGoToLeftMenuItemByNumber = t('Go to left menu item by number')
 	const shortcutsActionCloseDrawer = t('Close AI Advisor drawer')
 	const shortcutsActionGoToApiaryView = t('Go to apiary view')
 	const shortcutsActionGoToHiveListView = t('Go to hive list view')
@@ -235,6 +245,8 @@ export default function AIAdvisorDrawer() {
 					currentViewName,
 					currentViewDescription,
 					shortcutsActionOpenAdvisor,
+					shortcutsActionToggleLeftMenu,
+					shortcutsActionGoToLeftMenuItemByNumber,
 					shortcutsActionCloseDrawer,
 					shortcutsActionGoToApiaryView,
 					shortcutsActionGoToHiveListView,
@@ -257,6 +269,8 @@ export default function AIAdvisorDrawer() {
 			currentViewName,
 			currentViewDescription,
 			shortcutsActionOpenAdvisor,
+			shortcutsActionToggleLeftMenu,
+			shortcutsActionGoToLeftMenuItemByNumber,
 			shortcutsActionCloseDrawer,
 			shortcutsActionGoToApiaryView,
 			shortcutsActionGoToHiveListView,

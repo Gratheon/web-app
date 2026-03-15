@@ -2,6 +2,15 @@ const BILLING_TIER_ORDER = ['free', 'hobbyist', 'starter', 'professional', 'ente
 
 export type BillingTier = (typeof BILLING_TIER_ORDER)[number]
 
+const HIVE_LIMIT_BY_BILLING_TIER: Record<string, number> = {
+	free: 3,
+	hobbyist: 15,
+	starter: 50,
+	professional: 200,
+	addon: 200,
+	enterprise: 200,
+}
+
 const BILLING_TIER_RANK: Record<string, number> = BILLING_TIER_ORDER.reduce(
 	(acc, tier, index) => {
 		acc[tier] = index
@@ -28,4 +37,8 @@ export function isBillingTierAtLeast(plan?: string | null, minTier: BillingTier 
 
 export function isBillingTierLessThan(plan: string | null | undefined, tier: BillingTier): boolean {
 	return compareBillingTier(plan, tier) < 0
+}
+
+export function getHiveLimitForBillingTier(plan?: string | null): number {
+	return HIVE_LIMIT_BY_BILLING_TIER[normalizeBillingTier(plan)] ?? HIVE_LIMIT_BY_BILLING_TIER.free
 }

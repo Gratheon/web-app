@@ -13,10 +13,11 @@ import ErrorMsg from '@/shared/messageError'
 import Button from '@/shared/button'
 import T from '@/shared/translate'
 import RefreshIcon from '@/icons/RefreshIcon' // Import the new icon component
+import BillingUpgradeNotice from '@/shared/billingUpgradeNotice'
+import { getHiveLimitForBillingTier } from '@/shared/billingTier'
 
 import { Box, boxTypes } from '@/models/boxes'
 import PagePaddedCentered from '@/shared/pagePaddedCentered'
-import Card from '@/shared/pagePaddedCentered/card'
 import QueenColor from '@/page/hiveEdit/hiveTopInfo/queenColor'
 import { getQueenColorFromYear } from '@/page/hiveEdit/hiveTopInfo/queenColor/utils'
 
@@ -78,6 +79,17 @@ const RANDOM_HIVE_NAME_QUERY = gql`
     }
 `
 
+const HIVE_CREATION_LIMIT_QUERY = gql`
+	query HiveCreationLimitContext {
+		apiaries {
+			id
+			hives {
+				id
+			}
+		}
+	}
+`
+
 function createDefaultBoxes(hiveType: string, boxCount: number) {
 	const primaryBoxType = hiveType === 'horizontal'
 		? boxTypes.LARGE_HORIZONTAL_SECTION
@@ -117,7 +129,10 @@ export default function HiveCreateForm() {
     const [lang, setLang] = useState('en')
     const [showColorPicker, setShowColorPicker] = useState(false)
     const [submitError, setSubmitError] = useState<any>(null)
+    const [hasHiveLimitBackendError, setHasHiveLimitBackendError] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
     let user = useLiveQuery(() => getUser(), [], null)
+    const { data: hiveLimitData } = useQuery(HIVE_CREATION_LIMIT_QUERY, { requestPolicy: 'network-only' })
 
     const updateHiveDimensions = (newBoxCount, newFrameCount) => {
         setBoxCount(newBoxCount);
@@ -159,8 +174,16 @@ export default function HiveCreateForm() {
         reexecuteRandomNameQuery({ requestPolicy: 'network-only' });
     }, [reexecuteRandomNameQuery]);
 
+    const currentBillingPlan = user?.billingPlan || 'free'
+    const hiveLimit = getHiveLimitForBillingTier(currentBillingPlan)
+    const activeHiveCount = (hiveLimitData?.apiaries || []).reduce((count, apiary) => {
+        return count + (apiary?.hives?.length || 0)
+    }, 0)
+    const isHiveLimitReachedByCount = activeHiveCount >= hiveLimit
+    const isHiveLimitReached = isHiveLimitReachedByCount || hasHiveLimitBackendError
+    const displayedHiveCount = hasHiveLimitBackendError ? hiveLimit : activeHiveCount
 
-    let [addHive, { error, data }] = useMutation(
+    let [addHive] = useMutation(
         gql`
 			mutation addHive(
 				$queenName: String
@@ -211,23 +234,43 @@ export default function HiveCreateForm() {
 
     async function onSubmit(e) {
         e.preventDefault()
+        if (isSubmitting) {
+            return
+        }
         setSubmitError(null)
+        setHasHiveLimitBackendError(false)
+        if (isHiveLimitReached) {
+            setSubmitError('Hive limit reached for your billing plan.')
+            return
+        }
 
-        const result = await addHive({
-            apiaryId: id,
-            queenName: name || undefined,
-            queenYear: queenYear || undefined,
-            queenColor: queenColor || undefined,
-            hiveNumber: hiveNumber || undefined,
-            boxCount,
-            frameCount,
-            initialBoxType: hiveType === 'horizontal' ? boxTypes.LARGE_HORIZONTAL_SECTION : boxTypes.DEEP,
-            colors: boxes.map((b: Box) => {
-                return b.color
-            }),
-        })
+        setIsSubmitting(true)
+        let result
+        try {
+            result = await addHive({
+                apiaryId: id,
+                queenName: name || undefined,
+                queenYear: queenYear || undefined,
+                queenColor: queenColor || undefined,
+                hiveNumber: hiveNumber || undefined,
+                boxCount,
+                frameCount,
+                initialBoxType: hiveType === 'horizontal' ? boxTypes.LARGE_HORIZONTAL_SECTION : boxTypes.DEEP,
+                colors: boxes.map((b: Box) => {
+                    return b.color
+                }),
+            })
+        } finally {
+            setIsSubmitting(false)
+        }
 
         if (result?.error || !result?.data?.addHive?.id) {
+            const errorText = String(result?.error || '')
+            if (errorText.toLowerCase().includes('hive limit reached')) {
+                setHasHiveLimitBackendError(true)
+                setSubmitError('Hive limit reached for your billing plan.')
+                return
+            }
             setSubmitError(result?.error || new Error('Failed to create hive'))
             return
         }
@@ -243,18 +286,33 @@ export default function HiveCreateForm() {
     return (
         <PagePaddedCentered>
             <h1><T>New Hive</T></h1>
-            {error && <ErrorMsg error={error} />}
+            {isHiveLimitReached && (
+                <div style={{ marginBottom: 20 }}>
+                    <BillingUpgradeNotice
+                        title={
+                            <>
+                                <T>
+                                    You reached your hive limit for this billing tier. Please upgrade to create more hives.
+                                </T>{' '}
+                                ({displayedHiveCount}/{hiveLimit})
+                            </>
+                        }
+                    />
+                </div>
+            )}
             {submitError && <ErrorMsg error={submitError} />}
-            <Card>
-                <div style={{ padding: 20 }}>
-                    <div style={{ textAlign: 'center', marginBottom: 20 }}>
-                        <HiveIcon boxes={boxes} editable={true} />
-                    </div>
+            <div style={{ textAlign: 'center', marginBottom: 20 }}>
+                <HiveIcon boxes={boxes} editable={true} />
+            </div>
 
-                    <VisualForm
-                        onSubmit={onSubmit.bind(this)}
-                        submit={<Button type="submit" color="green"><T>Install</T></Button>}>
-                        <div className={styles.formField}>
+            <VisualForm
+                onSubmit={onSubmit.bind(this)}
+                submit={
+                    <Button type="submit" color="green" disabled={isHiveLimitReached || isSubmitting}>
+                        <T>Install</T>
+                    </Button>
+                }>
+                <div className={styles.formField}>
                             <label className={styles.formLabel}><T>Hive Type</T></label>
                             <div>
                                 <label>
@@ -404,9 +462,7 @@ export default function HiveCreateForm() {
                                 step="1"
                             />
                         </div>
-                    </VisualForm>
-                </div>
-            </Card>
+            </VisualForm>
         </PagePaddedCentered>
     )
 }

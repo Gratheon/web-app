@@ -46,8 +46,8 @@ button {
 	}
 
 	&:disabled {
-		background: gray;
 		cursor: not-allowed;
+		opacity: 0.55;
 	}
 
 	&[type='submit'] {
@@ -75,6 +75,10 @@ button {
 
 		&:hover {
 			background: @color-btn-green-hover;
+		}
+
+		&:disabled {
+			background: @color-green;
 		}
 	}
 

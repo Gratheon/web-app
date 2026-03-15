@@ -40,6 +40,10 @@ interface CanvasProps {
 	showShadows?: boolean
 	flightLineLength?: number
 	showSelectionHandles?: boolean
+	windDirection?: number | null
+	windSpeed?: number | null
+	windVisualTone?: 'good' | 'hot' | 'rain' | 'snow' | 'neutral'
+	animateWind?: boolean
 	labels: CanvasLabels
 	onClick: (x: number, y: number) => void
 	onMouseDown: (x: number, y: number, e?: any) => void
@@ -78,6 +82,10 @@ export default function Canvas({
 	showShadows = true,
 	flightLineLength = 60,
 	showSelectionHandles = true,
+	windDirection = null,
+	windSpeed = null,
+	windVisualTone = 'neutral',
+	animateWind = false,
 	labels,
 	onClick,
 	onMouseDown,
@@ -86,16 +94,71 @@ export default function Canvas({
 	onSunAngleChange,
 	onAutoRotateToggle
 }: CanvasProps) {
+	type WindParticle = {
+		lane: number
+		progress: number
+		length: number
+		radius: number
+	}
+
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 	const handleSize = isMobile ? 12 : 8
 	const [isDraggingSun, setIsDraggingSun] = useState(false)
 	const [isReadOnlyHoverInteractive, setIsReadOnlyHoverInteractive] = useState(false)
+	const animationRef = useRef<number | null>(null)
+	const windParticlesRef = useRef<WindParticle[]>([])
+	const shouldShowWind = windDirection !== null && !Number.isNaN(windDirection)
 
 	useEffect(() => {
 		drawCanvas()
-	}, [placements, obstacles, sunAngle, selectedHive, selectedObstacle, hives.length, canvasWidth, canvasHeight, panOffset, labels, focusPoint, zoomScale, showCompass, showShadows])
+	}, [placements, obstacles, sunAngle, selectedHive, selectedObstacle, hives.length, canvasWidth, canvasHeight, panOffset, labels, focusPoint, zoomScale, showCompass, showShadows, windDirection, windSpeed, windVisualTone])
 
-	const drawCanvas = () => {
+	useEffect(() => {
+		if (!animateWind || !shouldShowWind) {
+			if (animationRef.current !== null) {
+				cancelAnimationFrame(animationRef.current)
+				animationRef.current = null
+			}
+			return
+		}
+
+		const animate = (timeMs: number) => {
+			drawCanvas(timeMs)
+			animationRef.current = requestAnimationFrame(animate)
+		}
+
+		animationRef.current = requestAnimationFrame(animate)
+
+		return () => {
+			if (animationRef.current !== null) {
+				cancelAnimationFrame(animationRef.current)
+				animationRef.current = null
+			}
+		}
+	}, [animateWind, shouldShowWind, placements, obstacles, sunAngle, selectedHive, selectedObstacle, hives.length, canvasWidth, canvasHeight, panOffset, labels, focusPoint, zoomScale, showCompass, showShadows, windDirection, windSpeed, windVisualTone])
+
+	useEffect(() => {
+		if (!shouldShowWind) {
+			windParticlesRef.current = []
+			return
+		}
+
+		const particleCount = 40
+		const particles: WindParticle[] = []
+		for (let i = 0; i < particleCount; i++) {
+			particles.push({
+				lane: (Math.random() - 0.5) * 2,
+				progress: Math.random(),
+				length: 8 + Math.random() * 18,
+				radius: windVisualTone === 'snow'
+					? (1.1 + Math.random() * 1.6)
+					: (0.8 + Math.random() * 1.2),
+			})
+		}
+		windParticlesRef.current = particles
+	}, [canvasWidth, canvasHeight, shouldShowWind, windVisualTone])
+
+	const drawCanvas = (timeMs = 0) => {
 		const canvas = canvasRef.current
 		if (!canvas) return
 
@@ -124,9 +187,82 @@ export default function Canvas({
 
 		ctx.restore()
 
+		if (shouldShowWind) {
+			drawWindFlow(ctx, timeMs)
+		}
 		if (showCompass) {
 			drawCompass(ctx)
 		}
+	}
+
+	const getWindColor = () => {
+		switch (windVisualTone) {
+		case 'good':
+			return 'rgba(67, 160, 71, 0.85)'
+		case 'hot':
+			return 'rgba(251, 192, 45, 0.9)'
+		case 'rain':
+			return 'rgba(33, 150, 243, 0.85)'
+		case 'snow':
+			return 'rgba(245, 250, 255, 0.95)'
+		default:
+			return 'rgba(120, 120, 120, 0.72)'
+		}
+	}
+
+	const windVector = () => {
+		const fromDirection = windDirection ?? 0
+		const toDirection = (fromDirection + 180) % 360
+		const rad = toDirection * Math.PI / 180
+		return {
+			x: Math.sin(rad),
+			y: -Math.cos(rad),
+			rotationRad: rad,
+		}
+	}
+
+	const drawWindFlow = (ctx: CanvasRenderingContext2D, timeMs: number) => {
+		const v = windVector()
+		const p = { x: -v.y, y: v.x }
+		const diag = Math.sqrt((canvasWidth * canvasWidth) + (canvasHeight * canvasHeight))
+		const streamLength = diag * 1.35
+		const centerX = canvasWidth / 2
+		const centerY = canvasHeight / 2
+		const particles = windParticlesRef.current
+		const speedMetersPerSecond = Math.max(0, windSpeed ?? 0)
+		const speedPixelsPerSecond = speedMetersPerSecond * 24
+		const phaseSpeed = streamLength > 0 ? speedPixelsPerSecond / streamLength : 0
+		const color = getWindColor()
+
+		ctx.save()
+		ctx.strokeStyle = color
+		ctx.fillStyle = color
+		ctx.lineWidth = 1.4
+		ctx.lineCap = 'round'
+
+		for (const particle of particles) {
+			const lane = particle.lane * diag * 0.58
+			const progress = (particle.progress + (timeMs / 1000) * phaseSpeed) % 1
+			const along = progress * streamLength - streamLength / 2
+			const x = centerX + (v.x * along) + (p.x * lane)
+			const y = centerY + (v.y * along) + (p.y * lane)
+			const tail = particle.length
+			const tailX = x - (v.x * tail)
+			const tailY = y - (v.y * tail)
+
+			if (x < -30 || x > canvasWidth + 30 || y < -30 || y > canvasHeight + 30) continue
+
+			ctx.beginPath()
+			ctx.moveTo(tailX, tailY)
+			ctx.lineTo(x, y)
+			ctx.stroke()
+
+			ctx.beginPath()
+			ctx.arc(x, y, particle.radius, 0, Math.PI * 2)
+			ctx.fill()
+		}
+
+		ctx.restore()
 	}
 
 	const drawCompass = (ctx: CanvasRenderingContext2D) => {

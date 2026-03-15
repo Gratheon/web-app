@@ -21,6 +21,9 @@ interface Props {
 	onHiveSelect?: (hiveId: string | null) => void
 	readOnly?: boolean
 	interactionLocked?: boolean
+	windDirection?: number | null
+	windSpeed?: number | null
+	windVisualTone?: 'good' | 'hot' | 'rain' | 'snow' | 'neutral'
 }
 
 const isMobile = () => {
@@ -38,6 +41,9 @@ export default function HivePlacement({
 	onHiveSelect,
 	readOnly = false,
 	interactionLocked = false,
+	windDirection = null,
+	windSpeed = null,
+	windVisualTone = 'neutral',
 }: Props) {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [canvasWidth, setCanvasWidth] = useState(800)
@@ -679,6 +685,10 @@ export default function HivePlacement({
 					onMouseUp={handleCanvasMouseUp}
 					onSunAngleChange={setSunAngle}
 					onAutoRotateToggle={toggleAutoRotate}
+					windDirection={windDirection}
+					windSpeed={windSpeed}
+					windVisualTone={windVisualTone}
+					animateWind={readOnly}
 				/>
 			</div>
 

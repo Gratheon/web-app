@@ -199,28 +199,35 @@ export default function ApiaryEditForm() {
 		}
 	}
 
-	function onSubmit(e) {
+	async function onSubmit(e) {
 		e.preventDefault()
 
-		setSaving(true);
-		updateApiaryNetwork({
-			id,
-			apiary: {
+		if (!id) return
+
+		setSaving(true)
+		try {
+			await updateApiaryNetwork({
+				id,
+				apiary: {
+					name,
+					lat: `${lat}`,
+					lng: `${lng}`,
+				},
+			})
+
+			await updateApiary({
+				id: +id,
 				name,
 				lat: `${lat}`,
 				lng: `${lng}`,
-			},
-		})
+				photoUrl: photoUrl || undefined,
+				photoFileId: photoFileId || undefined,
+			})
 
-		updateApiary({
-			id: +id,
-			name,
-			lat: `${lat}`,
-			lng: `${lng}`,
-			photoUrl: photoUrl || undefined,
-			photoFileId: photoFileId || undefined,
-		})
-		setSaving(false);
+			navigate(`/apiaries/${id}`, { replace: true })
+		} finally {
+			setSaving(false)
+		}
 	}
 
 	async function processPhotoUpload(file: File) {

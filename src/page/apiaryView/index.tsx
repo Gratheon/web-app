@@ -19,10 +19,13 @@ import styles from './index.module.less'
 type WeatherSnapshot = {
 	temperature: number | null
 	windSpeed: number | null
+	windDirection: number | null
 	rain: number | null
 	pressure: number | null
 	elevation: number | null
 }
+
+type WindVisualTone = 'good' | 'hot' | 'rain' | 'snow' | 'neutral'
 
 type WeatherTone = 'good' | 'warn' | 'bad' | 'neutral' | 'cold'
 
@@ -81,6 +84,28 @@ function classifyRain(value: number | null): WeatherStatus {
 		return { tone: 'warn', label: 'Light rain', hint: 'Flight traffic may slow down.', icon: 'rain' }
 	}
 	return { tone: 'bad', label: 'Rainy', hint: 'Bees often stay inside the hive.', icon: 'storm' }
+}
+
+function getWindVisualTone(weather: WeatherSnapshot): WindVisualTone {
+	const temp = weather.temperature
+	const rain = weather.rain
+
+	if (rain !== null && !Number.isNaN(rain) && rain > 0) {
+		if (temp !== null && !Number.isNaN(temp) && temp <= 0) {
+			return 'snow'
+		}
+		return 'rain'
+	}
+
+	if (temp !== null && !Number.isNaN(temp) && temp > 32) {
+		return 'hot'
+	}
+
+	if (temp !== null && !Number.isNaN(temp) && temp >= 14 && temp <= 32) {
+		return 'good'
+	}
+
+	return 'neutral'
 }
 
 function WeatherIcon({ kind }: { kind: WeatherStatus['icon'] }) {
@@ -238,6 +263,7 @@ export default function ApiaryView() {
 			return {
 				temperature: null,
 				windSpeed: null,
+				windDirection: null,
 				rain: null,
 				pressure: null,
 				elevation: null,
@@ -248,6 +274,11 @@ export default function ApiaryView() {
 		return {
 			temperature: payload?.current_weather?.temperature ?? null,
 			windSpeed: payload?.current_weather?.windspeed ?? null,
+			windDirection:
+				payload?.current_weather?.winddirection
+				?? payload?.current?.wind_direction_10m
+				?? payload?.hourly?.winddirection_10m?.[0]
+				?? null,
 			rain: payload?.current?.precipitation ?? payload?.hourly?.rain?.[0] ?? null,
 			pressure:
 				payload?.current?.surface_pressure
@@ -262,6 +293,7 @@ export default function ApiaryView() {
 	const temperatureStatus = classifyTemperature(weather.temperature)
 	const windStatus = classifyWind(weather.windSpeed)
 	const rainStatus = classifyRain(weather.rain)
+	const windVisualTone = getWindVisualTone(weather)
 
 	const mapUrl = useMemo(() => {
 		if (!lat || !lng || Number.isNaN(lat) || Number.isNaN(lng)) return null
@@ -341,7 +373,14 @@ export default function ApiaryView() {
 				<div className={styles.panel}>
 					<div className={styles.panelHead}><T>Hive placement</T></div>
 					<div className={`${styles.previewContainer} ${isHivePlacementLocked ? styles.previewLocked : ''}`}>
-						<HivePlacement apiaryId={id} hives={hives} readOnly />
+						<HivePlacement
+							apiaryId={id}
+							hives={hives}
+							readOnly
+							windDirection={weather.windDirection}
+							windSpeed={weather.windSpeed}
+							windVisualTone={windVisualTone}
+						/>
 						{isHivePlacementLocked && <div className={styles.previewOverlay} />}
 						{isHivePlacementLocked && (
 							<div className={styles.previewOverlayNotice}>

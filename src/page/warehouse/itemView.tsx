@@ -4,6 +4,7 @@ import { gql, useQuery } from '@/api'
 import ErrorMsg from '@/shared/messageError'
 import Loader from '@/shared/loader'
 import T from '@/shared/translate'
+import { getWarehouseModuleIcon } from './iconMap'
 import { getWarehouseModuleById, isSupportedWarehouseModuleType } from './modules'
 import styles from './style.module.less'
 
@@ -51,11 +52,21 @@ export default function WarehouseItemViewPage() {
 	}
 
 	const stats = isSupportedType ? data?.warehouseModuleStats : null
+	const icon = getWarehouseModuleIcon(module.id, 18)
 
 	return (
 		<div className={styles.page}>
 			<Link to="/warehouse" className={styles.backLink}><T>Back to warehouse</T></Link>
-			<h2 className={styles.itemDetailTitle}><T>{module.label}</T></h2>
+			<h2 className={styles.itemDetailTitle}>
+				<span className={styles.itemTitleRow}>
+					{icon && (
+						<span className={styles.itemIconBadge} aria-hidden="true">
+							<span className={styles.itemIcon}>{icon}</span>
+						</span>
+					)}
+					<span><T>{module.label}</T></span>
+				</span>
+			</h2>
 			<p className={styles.description}><T>{module.description}</T></p>
 			<ErrorMsg error={error} />
 

@@ -6,23 +6,28 @@ export type WarehouseModuleItem = {
 
 export const GROUPS: Array<{ id: string; title: string; items: WarehouseModuleItem[] }> = [
 	{
-		id: 'HIVE_SECTIONS',
-		title: 'Hive sections',
+		id: 'FRAMES',
+		title: 'Frame types',
 		items: [
 			{
-				id: 'DEEP',
-				label: 'Deep sections',
-				description: 'Big hive sections used for brood and core colony space.',
+				id: 'FRAME_FOUNDATION',
+				label: 'Foundation frames',
+				description: 'Frames with wax or plastic foundation sheets.',
 			},
 			{
-				id: 'SUPER',
-				label: 'Super sections',
-				description: 'Smaller sections usually used for honey storage.',
+				id: 'FRAME_EMPTY_COMB',
+				label: 'Empty comb frames',
+				description: 'Drawn comb frames ready for brood or honey use.',
 			},
 			{
-				id: 'LARGE_HORIZONTAL_SECTION',
-				label: 'Large horizontal sections',
-				description: 'Wide horizontal hive sections with high frame capacity.',
+				id: 'FRAME_PARTITION',
+				label: 'Partition frames',
+				description: 'Divider frames used to reduce colony space.',
+			},
+			{
+				id: 'FRAME_FEEDER',
+				label: 'Feeder frames',
+				description: 'In-frame feeders used for syrup feeding.',
 			},
 		],
 	},
@@ -53,28 +58,23 @@ export const GROUPS: Array<{ id: string; title: string; items: WarehouseModuleIt
 		],
 	},
 	{
-		id: 'FRAMES',
-		title: 'Frame types',
+		id: 'HIVE_SECTIONS',
+		title: 'Hive sections',
 		items: [
 			{
-				id: 'FRAME_FOUNDATION',
-				label: 'Foundation frames',
-				description: 'Frames with wax or plastic foundation sheets.',
+				id: 'DEEP',
+				label: 'Deep sections',
+				description: 'Big hive sections used for brood and core colony space.',
 			},
 			{
-				id: 'FRAME_EMPTY_COMB',
-				label: 'Empty comb frames',
-				description: 'Drawn comb frames ready for brood or honey use.',
+				id: 'SUPER',
+				label: 'Super sections',
+				description: 'Smaller sections usually used for honey storage.',
 			},
 			{
-				id: 'FRAME_PARTITION',
-				label: 'Partition frames',
-				description: 'Divider frames used to reduce colony space.',
-			},
-			{
-				id: 'FRAME_FEEDER',
-				label: 'Feeder frames',
-				description: 'In-frame feeders used for syrup feeding.',
+				id: 'LARGE_HORIZONTAL_SECTION',
+				label: 'Horizontal hives',
+				description: 'Long horizontal hive bodies with high frame capacity.',
 			},
 		],
 	},

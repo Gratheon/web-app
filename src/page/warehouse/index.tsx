@@ -7,6 +7,7 @@ import ErrorMsg from '@/shared/messageError'
 import Loader from '@/shared/loader'
 import T from '@/shared/translate'
 import { GROUPS, MODULES } from './modules'
+import { getWarehouseModuleIcon } from './iconMap'
 import styles from './style.module.less'
 
 type WarehouseCounts = Record<string, number>
@@ -230,12 +231,20 @@ export default function WarehousePage() {
 						<div className={styles.groupItems}>
 							{group.items.map((module) => {
 								const count = counts[module.id] || 0
+								const icon = getWarehouseModuleIcon(module.id, 14)
 								return (
 									<div className={styles.row} key={module.id}>
 										<div className={styles.itemInfo}>
-											<Link to={`/warehouse/${module.id}`} className={styles.itemTitleLink}>
-												<span className={styles.itemTitle}><T>{module.label}</T></span>
-											</Link>
+											<div className={styles.itemTitleRow}>
+												{icon && (
+													<span className={styles.itemIconBadge} aria-hidden="true">
+														<span className={styles.itemIcon}>{icon}</span>
+													</span>
+												)}
+												<Link to={`/warehouse/${module.id}`} className={styles.itemTitleLink}>
+													<span className={styles.itemTitle}><T>{module.label}</T></span>
+												</Link>
+											</div>
 											<div className={styles.itemDescription}><T>{module.description}</T></div>
 										</div>
 

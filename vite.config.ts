@@ -11,6 +11,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 const host = process.env.TAURI_DEV_HOST
 
 export default defineConfig({
+	publicDir: 'static',
 	plugins: [
 		svgr(),
 		VitePWA({

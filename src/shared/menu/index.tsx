@@ -280,6 +280,10 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
     const navigate = useNavigate()
 
     const isAlertsSection = location.pathname === '/alert-config' || location.pathname.startsWith('/alert-config/')
+    const isWarehouseQueensSection = location.pathname === '/warehouse/queens' || location.pathname.startsWith('/warehouse/queens/')
+    const isWarehouseSection =
+        (location.pathname === '/warehouse' || location.pathname.startsWith('/warehouse/')) &&
+        !isWarehouseQueensSection
     const currentHiveContext = getCurrentHiveContext(location.pathname)
     const isHiveAdvisorOpen = new URLSearchParams(location.search).get('aiAdvisor') === '1'
     const isAIAdvisorSection =
@@ -421,8 +425,7 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                     </li>
                     <li>
                         <NavLink
-                            end
-                            className={navClassName}
+                            className={() => (isWarehouseSection ? styles.active : '')}
                             to="/warehouse">
                             <span className={styles.menuItemContent}>
                                 <span className={styles.menuItemIcon}><WarehouseIcon size={18} /></span>
@@ -432,10 +435,24 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                                 </span>
                             </span>
                         </NavLink>
+                        {isWarehouseSection && (
+                            <ul className={styles.subMenu}>
+                                <li>
+                                    <NavLink
+                                        className={({isActive}) =>
+                                            isActive ? `${styles.subMenuLink} ${styles.active}` : styles.subMenuLink
+                                        }
+                                        to="/warehouse/box-systems"
+                                    >
+                                        <T>Box systems</T>
+                                    </NavLink>
+                                </li>
+                            </ul>
+                        )}
                     </li>
                     <li>
                         <NavLink
-                            className={navClassName}
+                            className={() => (isWarehouseQueensSection ? styles.active : '')}
                             to="/warehouse/queens">
                             <span className={styles.menuItemContent}>
                                 <span className={styles.menuItemIcon}><QueensIcon size={18} /></span>
@@ -708,6 +725,14 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                         }}
                     >
                         <T>Warehouse Queens</T>
+                    </NavLink>
+                    <NavLink
+                        to="/warehouse/box-systems"
+                        onClick={() => {
+                            setMoreVisible(false)
+                        }}
+                    >
+                        <T>Box systems</T>
                     </NavLink>
                     <NavLink
                         to="/devices"

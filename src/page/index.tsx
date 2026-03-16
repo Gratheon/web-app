@@ -32,6 +32,7 @@ import DeviceEditPage from './deviceEdit'
 import WarehousePage from './warehouse'
 import WarehouseItemViewPage from './warehouse/itemView'
 import WarehouseQueensPage from './warehouse/queens'
+import WarehouseBoxSystemsPage from './warehouse/boxSystems'
 import ProfessionalTierGate from '@/shared/professionalTierGate'
 import HobbyistTierGate from '@/shared/hobbyistTierGate'
 
@@ -117,6 +118,7 @@ export default function Page() {
 			<Route path="/devices/:id" element={<LoggedInPage><ProfessionalTierGate><DeviceViewPage /></ProfessionalTierGate></LoggedInPage>} />
 			<Route path="/warehouse" element={<LoggedInPage><HobbyistTierGate><WarehousePage /></HobbyistTierGate></LoggedInPage>} />
 			<Route path="/warehouse/queens" element={<LoggedInPage><HobbyistTierGate><WarehouseQueensPage /></HobbyistTierGate></LoggedInPage>} />
+			<Route path="/warehouse/box-systems" element={<LoggedInPage><HobbyistTierGate><WarehouseBoxSystemsPage /></HobbyistTierGate></LoggedInPage>} />
 			<Route path="/warehouse/:moduleType" element={<LoggedInPage><HobbyistTierGate><WarehouseItemViewPage /></HobbyistTierGate></LoggedInPage>} />
 
 			<Route path="/apiaries/create" element={<LoggedInPage><ApiaryCreate /></LoggedInPage>} />

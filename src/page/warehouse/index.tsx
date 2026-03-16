@@ -110,32 +110,6 @@ mutation setWarehouseAutoUpdateFromHives($enabled: Boolean!) {
 }
 `
 
-const CREATE_BOX_SYSTEM_MUTATION = gql`
-mutation createBoxSystem($name: String!) {
-	createBoxSystem(name: $name) {
-		id
-		name
-		isDefault
-	}
-}
-`
-
-const RENAME_BOX_SYSTEM_MUTATION = gql`
-mutation renameBoxSystem($id: ID!, $name: String!) {
-	renameBoxSystem(id: $id, name: $name) {
-		id
-		name
-		isDefault
-	}
-}
-`
-
-const DEACTIVATE_BOX_SYSTEM_MUTATION = gql`
-mutation deactivateBoxSystem($id: ID!) {
-	deactivateBoxSystem(id: $id)
-}
-`
-
 const GROUP_LABELS: Record<string, string> = {
 	HIVE_PARTS: 'Hive parts',
 	HIVE_SECTIONS: 'Hive sections',
@@ -216,16 +190,10 @@ export default function WarehousePage() {
 	const [savingItem, setSavingItem] = useState<string | null>(null)
 	const [autoUpdateFromHives, setAutoUpdateFromHives] = useState(true)
 	const [savingAutoUpdate, setSavingAutoUpdate] = useState(false)
-	const [newSystemName, setNewSystemName] = useState('')
-	const [renameInputs, setRenameInputs] = useState<Record<string, string>>({})
-	const [editingSystemId, setEditingSystemId] = useState<string | null>(null)
 
-	const { data, loading, error, reexecuteQuery } = useQuery(WAREHOUSE_QUERY)
+	const { data, loading, error } = useQuery(WAREHOUSE_QUERY)
 	const [setWarehouseInventoryCount, { error: mutationError }] = useMutation(SET_WAREHOUSE_INVENTORY_COUNT_MUTATION)
 	const [setWarehouseAutoUpdate, { error: settingsMutationError }] = useMutation(SET_WAREHOUSE_AUTO_UPDATE_MUTATION)
-	const [createBoxSystem, { error: createSystemError }] = useMutation(CREATE_BOX_SYSTEM_MUTATION)
-	const [renameBoxSystem, { error: renameSystemError }] = useMutation(RENAME_BOX_SYSTEM_MUTATION)
-	const [deactivateBoxSystem, { error: deactivateSystemError }] = useMutation(DEACTIVATE_BOX_SYSTEM_MUTATION)
 
 	const items: WarehouseInventoryItem[] = useMemo(() => data?.warehouseInventory || [], [data?.warehouseInventory])
 	const boxSystems: BoxSystem[] = useMemo(() => data?.boxSystems || [], [data?.boxSystems])
@@ -244,15 +212,6 @@ export default function WarehousePage() {
 			setAutoUpdateFromHives(data.warehouseSettings.autoUpdateFromHives)
 		}
 	}, [items, data?.warehouseSettings?.autoUpdateFromHives])
-
-	useEffect(() => {
-		setRenameInputs(
-			(boxSystems || []).reduce((acc: Record<string, string>, system: any) => {
-				acc[system.id] = system.name
-				return acc
-			}, {})
-		)
-	}, [boxSystems])
 
 	const groups: WarehouseGroup[] = useMemo(() => {
 		const grouped = items.reduce<Record<string, any[]>>((acc, item) => {
@@ -466,105 +425,15 @@ export default function WarehousePage() {
 
 	if (loading && !data?.warehouseInventory) return <Loader />
 
-	async function onCreateSystem(event: any) {
-		event.preventDefault()
-		const trimmed = newSystemName.trim()
-		if (!trimmed) return
-		await createBoxSystem({ name: trimmed })
-		await reexecuteQuery({ requestPolicy: 'network-only' })
-		setNewSystemName('')
-	}
-
-	async function onRenameSystem(id: string) {
-		const name = (renameInputs[id] || '').trim()
-		if (!name) return
-		await renameBoxSystem({ id, name })
-		await reexecuteQuery({ requestPolicy: 'network-only' })
-		setEditingSystemId(null)
-	}
-
-	async function onDeactivateSystem(id: string) {
-		await deactivateBoxSystem({ id })
-		await reexecuteQuery({ requestPolicy: 'network-only' })
-	}
-
 	return (
 		<div className={styles.page}>
 			<h2><T>Warehouse</T></h2>
 			<p className={styles.description}>
 				<T>Track available hive modules with simple count operations.</T>
 			</p>
-			<ErrorMsg error={error || mutationError || settingsMutationError || createSystemError || renameSystemError || deactivateSystemError} />
+			<ErrorMsg error={error || mutationError || settingsMutationError} />
 
-			<section className={styles.detailCard}>
-				<div className={styles.topHivesTitle}><T>Box systems</T></div>
-				<form onSubmit={onCreateSystem} className={styles.systemCreateForm}>
-					<input
-						className={styles.textInput}
-						type="text"
-						placeholder="New system name"
-						value={newSystemName}
-						onInput={(event: any) => setNewSystemName(event.target.value)}
-					/>
-					<Button type="submit" color="green" disabled={!newSystemName.trim()}>
-						<T>Create system</T>
-					</Button>
-				</form>
-					<div className={styles.systemList}>
-						{boxSystems.map((system: any, systemIndex: number) => (
-							<div key={system.id} className={styles.systemRow} style={getSystemThemeStyle(system.id, systemIndex)}>
-								<div className={styles.systemRowMain}>
-									<span className={styles.systemColorDot} aria-hidden="true"></span>
-									<div className={styles.itemTitleRow}>
-										<span className={styles.itemTitle}>{system.name}</span>
-										{system.isDefault ? <span className={styles.defaultBadge}><T>Default</T></span> : null}
-									</div>
-								</div>
-								<div className={styles.systemRowActions}>
-									{editingSystemId === system.id ? (
-										<div className={styles.systemRenameRow}>
-											<input
-												className={styles.textInput}
-												type="text"
-												value={renameInputs[system.id] || ''}
-												onInput={(event: any) =>
-													setRenameInputs((prev) => ({ ...prev, [system.id]: event.target.value }))
-												}
-												onKeyDown={(event: any) => {
-													if (event.key === 'Enter') {
-														event.preventDefault()
-														onRenameSystem(system.id)
-													}
-													if (event.key === 'Escape') {
-														setEditingSystemId(null)
-													}
-												}}
-												autoFocus
-											/>
-											<Button size="small" onClick={() => onRenameSystem(system.id)}>
-												<T>Save</T>
-											</Button>
-											<Button size="small" color="white" onClick={() => setEditingSystemId(null)}>
-												<T>Cancel</T>
-											</Button>
-										</div>
-									) : (
-										<div className={styles.controls}>
-											<Button size="small" disabled={!!system.isDefault} onClick={() => setEditingSystemId(system.id)}>
-												<T>Rename</T>
-											</Button>
-											<Button size="small" color="white" disabled={!!system.isDefault} onClick={() => onDeactivateSystem(system.id)}>
-												<T>Archive</T>
-											</Button>
-										</div>
-									)}
-								</div>
-							</div>
-						))}
-					</div>
-				</section>
-
-			<div className={styles.topSetting}>
+				<div className={styles.topSetting}>
 				<label className={styles.switchRow}>
 					<input
 						className={styles.switchInput}

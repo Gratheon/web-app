@@ -8,6 +8,14 @@ import Loader from '@/shared/loader'
 import PagePaddedCentered from '@/shared/pagePaddedCentered'
 import T from '@/shared/translate'
 import VisualForm from '@/shared/visualForm'
+import {
+	applyFrameSourceToAllBoxTypes,
+	buildFrameSettingLookup,
+	type BoxSystemFrameSetting,
+	FRAME_BOX_TYPE_ORDER,
+	getCurrentFrameProfileSource,
+	hasExplicitOwnFrameMapping,
+} from './boxSystemProfiles'
 import styles from './style.module.less'
 
 type BoxSystem = {
@@ -15,12 +23,6 @@ type BoxSystem = {
 	name: string
 	isDefault: boolean
 	boxProfileSourceSystemId?: string | null
-}
-
-type BoxSystemFrameSetting = {
-	systemId: string
-	boxType: 'DEEP' | 'SUPER' | 'LARGE_HORIZONTAL_SECTION'
-	frameSourceSystemId?: string | null
 }
 
 const BOX_SYSTEM_EDIT_QUERY = gql`
@@ -65,8 +67,6 @@ mutation setBoxSystemFrameSource($systemId: ID!, $boxType: BoxType!, $frameSourc
 }
 `
 
-const FRAME_BOX_TYPE_ORDER: Array<BoxSystemFrameSetting['boxType']> = ['DEEP', 'SUPER', 'LARGE_HORIZONTAL_SECTION']
-
 export default function WarehouseBoxSystemEditPage() {
 	const navigate = useNavigate()
 	const params = useParams()
@@ -87,26 +87,8 @@ export default function WarehouseBoxSystemEditPage() {
 	const boxSystems: BoxSystem[] = useMemo(() => data?.boxSystems || [], [data?.boxSystems])
 	const frameSettings: BoxSystemFrameSetting[] = useMemo(() => data?.boxSystemFrameSettings || [], [data?.boxSystemFrameSettings])
 	const system = useMemo(() => boxSystems.find((item: BoxSystem) => item.id === systemId) || null, [boxSystems, systemId])
-	const frameSettingBySystemAndType = useMemo(() => {
-		return (frameSettings || []).reduce((acc: Record<string, BoxSystemFrameSetting>, setting: BoxSystemFrameSetting) => {
-			acc[`${setting.systemId}:${setting.boxType}`] = setting
-			return acc
-		}, {})
-	}, [frameSettings])
-
-	function getCurrentFrameProfileSource(targetSystemId: string): string {
-		const sources = FRAME_BOX_TYPE_ORDER
-			.map((boxType) => frameSettingBySystemAndType[`${targetSystemId}:${boxType}`])
-			.filter(Boolean)
-			.map((setting) => String(setting!.frameSourceSystemId || targetSystemId))
-
-		if (!sources.length) return targetSystemId
-		const unique = Array.from(new Set(sources))
-		if (unique.length === 1) return unique[0]
-		return '__MIXED__'
-	}
-
-	const currentFrameSource = system ? getCurrentFrameProfileSource(system.id) : ''
+	const frameSettingBySystemAndType = useMemo(() => buildFrameSettingLookup(frameSettings), [frameSettings])
+	const currentFrameSource = system ? getCurrentFrameProfileSource(system.id, frameSettingBySystemAndType) : ''
 	const availableSourceSystems = boxSystems.filter((candidate: BoxSystem) => candidate.id !== systemId)
 	const currentBoxProfileSource = system?.boxProfileSourceSystemId ? String(system.boxProfileSourceSystemId) : null
 	const trimmedNameInput = nameInput.trim()
@@ -126,12 +108,9 @@ export default function WarehouseBoxSystemEditPage() {
 					: ''
 				)
 		)
-	const hasExplicitOwnFrameMapping = !!system && FRAME_BOX_TYPE_ORDER.every((boxType) => {
-		const setting = frameSettingBySystemAndType[`${system.id}:${boxType}`]
-		return String(setting?.frameSourceSystemId || '') === system.id
-	})
+	const hasOwnFrameMapping = !!system && hasExplicitOwnFrameMapping(system.id, frameSettingBySystemAndType)
 	const hasFrameProfileChanged = draftUseOwnFrameProfile
-		? !!system && (currentFrameSource !== system.id || !hasExplicitOwnFrameMapping)
+		? !!system && (currentFrameSource !== system.id || !hasOwnFrameMapping)
 		: !!resolvedDraftFrameSourceSystemId && resolvedDraftFrameSourceSystemId !== currentFrameSource
 	const hasUnsavedChanges = hasNameChanged || hasBoxProfileChanged || hasFrameProfileChanged
 	const isSaveDisabled = !system || system.isDefault || isSaving || !trimmedNameInput || !hasUnsavedChanges
@@ -193,13 +172,11 @@ export default function WarehouseBoxSystemEditPage() {
 			}
 
 			if (hasFrameProfileChanged && resolvedDraftFrameSourceSystemId) {
-				for (const boxType of FRAME_BOX_TYPE_ORDER) {
-					await setBoxSystemFrameSource({
-						systemId: system.id,
-						boxType,
-						frameSourceSystemId: resolvedDraftFrameSourceSystemId,
-					})
-				}
+				await applyFrameSourceToAllBoxTypes(
+					setBoxSystemFrameSource,
+					system.id,
+					resolvedDraftFrameSourceSystemId,
+				)
 			}
 
 			await reexecuteQuery({ requestPolicy: 'network-only' })

@@ -8,6 +8,10 @@ import Loader from '@/shared/loader'
 import PagePaddedCentered from '@/shared/pagePaddedCentered'
 import T from '@/shared/translate'
 import VisualForm from '@/shared/visualForm'
+import {
+	applyFrameSourceToAllBoxTypes,
+	FRAME_BOX_TYPE_ORDER,
+} from './boxSystemProfiles'
 import styles from './style.module.less'
 
 type BoxSystem = {
@@ -52,8 +56,6 @@ mutation setBoxSystemFrameSource($systemId: ID!, $boxType: BoxType!, $frameSourc
 }
 `
 
-const FRAME_BOX_TYPE_ORDER = ['DEEP', 'SUPER', 'LARGE_HORIZONTAL_SECTION'] as const
-
 export default function WarehouseBoxSystemCreatePage() {
 	const navigate = useNavigate()
 	const [name, setName] = useState('')
@@ -94,13 +96,7 @@ export default function WarehouseBoxSystemCreatePage() {
 			}
 
 			if (selectedFrameSource) {
-				for (const boxType of FRAME_BOX_TYPE_ORDER) {
-					await setBoxSystemFrameSource({
-						systemId: createdId,
-						boxType,
-						frameSourceSystemId: selectedFrameSource,
-					})
-				}
+				await applyFrameSourceToAllBoxTypes(setBoxSystemFrameSource, createdId, selectedFrameSource)
 			}
 
 			navigate('/warehouse/box-systems', { replace: true })

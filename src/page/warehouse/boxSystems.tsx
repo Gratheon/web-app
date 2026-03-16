@@ -8,6 +8,10 @@ import Loader from '@/shared/loader'
 import Modal from '@/shared/modal'
 import T from '@/shared/translate'
 import hiveSystemsImageURL from '@/assets/hive-systems.webp'
+import {
+	buildActiveHiveCountBySystemId,
+	pickDefaultReplacementSystem,
+} from './boxSystems.helpers'
 import styles from './style.module.less'
 
 type BoxSystem = {
@@ -73,17 +77,7 @@ export default function WarehouseBoxSystemsPage() {
 
 	const boxSystems: BoxSystem[] = useMemo(() => data?.boxSystems || [], [data?.boxSystems])
 	const hasOnlyDefaultSystem = boxSystems.length === 1 && !!boxSystems[0]?.isDefault
-	const activeHiveCountBySystemId = useMemo(() => {
-		const counts: Record<string, number> = {}
-		for (const apiary of data?.apiaries || []) {
-			for (const hive of apiary?.hives || []) {
-				const sid = hive?.boxSystemId ? String(hive.boxSystemId) : ''
-				if (!sid) continue
-				counts[sid] = (counts[sid] || 0) + 1
-			}
-		}
-		return counts
-	}, [data?.apiaries])
+	const activeHiveCountBySystemId = useMemo(() => buildActiveHiveCountBySystemId(data?.apiaries || []), [data?.apiaries])
 	const archivingSystem = useMemo(
 		() => boxSystems.find((system: BoxSystem) => system.id === archiveSystemId) || null,
 		[boxSystems, archiveSystemId]
@@ -113,10 +107,7 @@ export default function WarehouseBoxSystemsPage() {
 			return
 		}
 
-		const defaultReplacement =
-			boxSystems.find((system: BoxSystem) => system.id !== id && system.isDefault)
-			|| boxSystems.find((system: BoxSystem) => system.id !== id)
-			|| null
+		const defaultReplacement = pickDefaultReplacementSystem(boxSystems, id)
 		setArchiveSystemId(id)
 		setArchiveReplacementSystemId(defaultReplacement?.id || '')
 		setArchiveValidationError(null)

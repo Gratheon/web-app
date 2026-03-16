@@ -444,7 +444,7 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                                         }
                                         to="/warehouse/box-systems"
                                     >
-                                        <T>Box systems</T>
+                                        <T>Hive systems</T>
                                     </NavLink>
                                 </li>
                             </ul>
@@ -732,7 +732,7 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                             setMoreVisible(false)
                         }}
                     >
-                        <T>Box systems</T>
+                        <T>Hive systems</T>
                     </NavLink>
                     <NavLink
                         to="/devices"

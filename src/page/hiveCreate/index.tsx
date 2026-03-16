@@ -403,7 +403,7 @@ export default function HiveCreateForm() {
                                         <span>{selectedBoxSystem.name}{selectedBoxSystem.isDefault ? ' (Default)' : ''}</span>
                                     </span>
                                 ) : (
-                                    <span><T>No box systems</T></span>
+                                    <span><T>No hive systems</T></span>
                                 )}
                                 <span className={styles.boxSystemChevron}>▾</span>
                             </div>

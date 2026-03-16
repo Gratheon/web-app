@@ -5,6 +5,7 @@ import { gql, useMutation, useQuery } from '@/api'
 import Button from '@/shared/button'
 import ErrorMsg from '@/shared/messageError'
 import Loader from '@/shared/loader'
+import Modal from '@/shared/modal'
 import T from '@/shared/translate'
 import styles from './style.module.less'
 
@@ -20,6 +21,14 @@ const BOX_SYSTEMS_QUERY = gql`
 		id
 		name
 		isDefault
+	}
+	apiaries {
+		id
+		hives {
+			id
+			boxSystemId
+			hiveNumber
+		}
 	}
 }
 `
@@ -45,8 +54,8 @@ mutation renameBoxSystem($id: ID!, $name: String!) {
 `
 
 const DEACTIVATE_BOX_SYSTEM_MUTATION = gql`
-mutation deactivateBoxSystem($id: ID!) {
-	deactivateBoxSystem(id: $id)
+mutation deactivateBoxSystem($id: ID!, $replacementSystemId: ID) {
+	deactivateBoxSystem(id: $id, replacementSystemId: $replacementSystemId)
 }
 `
 
@@ -75,12 +84,34 @@ export default function WarehouseBoxSystemsPage() {
 	const [newSystemName, setNewSystemName] = useState('')
 	const [renameInputs, setRenameInputs] = useState<Record<string, string>>({})
 	const [editingSystemId, setEditingSystemId] = useState<string | null>(null)
+	const [archiveSystemId, setArchiveSystemId] = useState<string | null>(null)
+	const [archiveReplacementSystemId, setArchiveReplacementSystemId] = useState<string>('')
+	const [archiveValidationError, setArchiveValidationError] = useState<string | null>(null)
 	const { data, loading, error, reexecuteQuery } = useQuery(BOX_SYSTEMS_QUERY)
 	const [createBoxSystem, { error: createSystemError }] = useMutation(CREATE_BOX_SYSTEM_MUTATION)
 	const [renameBoxSystem, { error: renameSystemError }] = useMutation(RENAME_BOX_SYSTEM_MUTATION)
 	const [deactivateBoxSystem, { error: deactivateSystemError }] = useMutation(DEACTIVATE_BOX_SYSTEM_MUTATION)
 
 	const boxSystems: BoxSystem[] = useMemo(() => data?.boxSystems || [], [data?.boxSystems])
+	const activeHiveCountBySystemId = useMemo(() => {
+		const counts: Record<string, number> = {}
+		for (const apiary of data?.apiaries || []) {
+			for (const hive of apiary?.hives || []) {
+				const sid = hive?.boxSystemId ? String(hive.boxSystemId) : ''
+				if (!sid) continue
+				counts[sid] = (counts[sid] || 0) + 1
+			}
+		}
+		return counts
+	}, [data?.apiaries])
+	const archivingSystem = useMemo(
+		() => boxSystems.find((system: BoxSystem) => system.id === archiveSystemId) || null,
+		[boxSystems, archiveSystemId]
+	)
+	const replacementCandidates = useMemo(() => {
+		return boxSystems.filter((system: BoxSystem) => system.id !== archiveSystemId)
+	}, [boxSystems, archiveSystemId])
+	const hivesUsingArchivingSystem = archiveSystemId ? (activeHiveCountBySystemId[archiveSystemId] || 0) : 0
 
 	useEffect(() => {
 		setRenameInputs(
@@ -109,7 +140,39 @@ export default function WarehouseBoxSystemsPage() {
 	}
 
 	async function onDeactivateSystem(id: string) {
-		await deactivateBoxSystem({ id })
+		const activeHivesUsingSystem = activeHiveCountBySystemId[id] || 0
+		if (activeHivesUsingSystem === 0) {
+			const directResult = await deactivateBoxSystem({ id, replacementSystemId: undefined })
+			if (directResult?.error) return
+			await reexecuteQuery({ requestPolicy: 'network-only' })
+			return
+		}
+
+		const defaultReplacement =
+			boxSystems.find((system: BoxSystem) => system.id !== id && system.isDefault)
+			|| boxSystems.find((system: BoxSystem) => system.id !== id)
+			|| null
+		setArchiveSystemId(id)
+		setArchiveReplacementSystemId(defaultReplacement?.id || '')
+		setArchiveValidationError(null)
+	}
+
+	function closeArchiveModal() {
+		setArchiveSystemId(null)
+		setArchiveReplacementSystemId('')
+		setArchiveValidationError(null)
+	}
+
+	async function onConfirmDeactivateSystem() {
+		if (!archiveSystemId) return
+		if (hivesUsingArchivingSystem > 0 && !archiveReplacementSystemId) {
+			setArchiveValidationError('Please select a replacement hive system.')
+			return
+		}
+		const replacementSystemId = archiveReplacementSystemId || undefined
+		const result = await deactivateBoxSystem({ id: archiveSystemId, replacementSystemId })
+		if (result?.error) return
+		closeArchiveModal()
 		await reexecuteQuery({ requestPolicy: 'network-only' })
 	}
 
@@ -118,9 +181,9 @@ export default function WarehouseBoxSystemsPage() {
 	return (
 		<div className={styles.page}>
 			<Link to="/warehouse" className={styles.backLink}><T>Back to warehouse</T></Link>
-			<h2><T>Box systems</T></h2>
+			<h2><T>Hive systems</T></h2>
 			<p className={styles.description}>
-				<T>Manage available box systems used in warehouse and hive workflows.</T>
+				<T>Manage available hive systems used in warehouse and hive workflows.</T>
 			</p>
 			<ErrorMsg error={error || createSystemError || renameSystemError || deactivateSystemError} />
 
@@ -143,11 +206,14 @@ export default function WarehouseBoxSystemsPage() {
 						<div key={system.id} className={styles.systemRow} style={getSystemThemeStyle(systemIndex)}>
 							<div className={styles.systemRowMain}>
 								<span className={styles.systemColorDot} aria-hidden="true"></span>
-								<div className={styles.itemTitleRow}>
-									<span className={styles.itemTitle}>{system.name}</span>
-									{system.isDefault ? <span className={styles.defaultBadge}><T>Default</T></span> : null}
+									<div className={styles.itemTitleRow}>
+										<span className={styles.itemTitle}>{system.name}</span>
+										{system.isDefault ? <span className={styles.defaultBadge}><T>Default</T></span> : null}
+										<span className={styles.usageBadge}>
+											{activeHiveCountBySystemId[system.id] || 0} <T>hives in use</T>
+										</span>
+									</div>
 								</div>
-							</div>
 							<div className={styles.systemRowActions}>
 								{editingSystemId === system.id ? (
 									<div className={styles.systemRenameRow}>
@@ -191,6 +257,51 @@ export default function WarehouseBoxSystemsPage() {
 					))}
 				</div>
 			</section>
+			{archiveSystemId && archivingSystem ? (
+				<Modal title={<T>Archive Hive System</T>} onClose={closeArchiveModal}>
+					<div className={styles.archiveModalContent}>
+						<p className={styles.archiveModalCopy}>
+							<T>Are you sure you want to archive this hive system?</T>{' '}
+							<strong>{archivingSystem.name}</strong>
+						</p>
+						<p className={styles.archiveModalCopy}>
+							<T>Active hives currently using this system</T>: <strong>{hivesUsingArchivingSystem}</strong>
+						</p>
+						<label className={styles.archiveLabel} htmlFor="archive-replacement-system">
+							<T>Replacement hive system for affected active hives</T>
+						</label>
+						<select
+							id="archive-replacement-system"
+							className={styles.textInput}
+							value={archiveReplacementSystemId}
+							onInput={(event: any) => {
+								setArchiveValidationError(null)
+								setArchiveReplacementSystemId(event.target.value)
+							}}
+						>
+							<option value=""><T>Select replacement system</T></option>
+							{replacementCandidates.map((system: BoxSystem) => (
+								<option key={system.id} value={system.id}>
+									{system.name}{system.isDefault ? ' (Default)' : ''}
+								</option>
+							))}
+						</select>
+						{archiveValidationError ? <p className={styles.archiveError}>{archiveValidationError}</p> : null}
+						<div className={styles.archiveActions}>
+							<Button color="white" onClick={closeArchiveModal}>
+								<T>Cancel</T>
+							</Button>
+							<Button
+								color="green"
+								disabled={hivesUsingArchivingSystem > 0 && !archiveReplacementSystemId}
+								onClick={onConfirmDeactivateSystem}
+							>
+								<T>Archive and reassign</T>
+							</Button>
+						</div>
+					</div>
+				</Modal>
+			) : null}
 		</div>
 	)
 }

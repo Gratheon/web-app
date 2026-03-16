@@ -58,8 +58,8 @@ const COLUMN_CONFIG = [
 	},
 	{
 		key: 'BOX_SYSTEM',
-		label: 'Box system',
-		translationContext: 'table header - hive box system',
+		label: 'Hive system',
+		translationContext: 'table header - hive system',
 		sortable: false,
 	},
 	{

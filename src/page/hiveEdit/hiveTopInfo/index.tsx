@@ -489,7 +489,7 @@ export default function HiveEditDetails({ apiaryId, hiveId, onTopMessageChange }
 									<div className={styles.titleQueenWrap}>
 											<div className={styles.boxSystemMeta}>
 												<span className={styles.boxSystemMetaLabel}>
-													<T>Box system</T>:
+													<T>Hive system</T>:
 												</span>
 												<span className={styles.boxSystemPill}>
 													<span

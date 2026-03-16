@@ -285,6 +285,20 @@
 	font-weight: 600;
 }
 
+.usageBadge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	height: 20px;
+	padding: 0 8px;
+	border-radius: 999px;
+	background: #eef8ef;
+	color: #2c6f2f;
+	font-size: 11px;
+	font-weight: 600;
+}
+
 .systemRenameRow {
 	display: flex;
 	align-items: center;
@@ -547,6 +561,37 @@
 	color: #333;
 	font-weight: 600;
 	white-space: nowrap;
+}
+
+.archiveModalContent {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.archiveModalCopy {
+	margin: 0;
+	font-size: 14px;
+	color: #333;
+}
+
+.archiveLabel {
+	font-size: 13px;
+	font-weight: 600;
+	color: #444;
+}
+
+.archiveError {
+	margin: 0;
+	color: #c43434;
+	font-size: 12px;
+}
+
+.archiveActions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	flex-wrap: wrap;
 }
 
 @media (max-width: 720px) {

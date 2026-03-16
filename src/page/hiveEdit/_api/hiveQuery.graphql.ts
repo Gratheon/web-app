@@ -5,6 +5,7 @@ export default gql`
 		apiary(id: $apiaryId){
 			id
 			name
+			type
 		}
 		boxSystems {
 			id

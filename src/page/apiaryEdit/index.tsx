@@ -30,6 +30,7 @@ import { getUser } from '@/models/user'
 import DragAndDrop from '../hiveEdit/frame/uploadFile/dragDrop'
 import styles from './style.module.less'
 import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
+import { apiaryTypes, normalizeApiaryType, type ApiaryType } from '@/models/apiary'
 
 
 // coordinate conversion for PRIA
@@ -72,6 +73,7 @@ export default function ApiaryEditForm() {
 	let { id, tab, hiveId } = useParams()
 	let [autoLocate, setAutoLocate] = useState(false)
 	let [name, setName] = useState('')
+	let [type, setType] = useState<ApiaryType>(apiaryTypes.STATIC)
 	let [lat, setLat] = useState(0)
 	let [lng, setLng] = useState(0)
 	let [photoUrl, setPhotoUrl] = useState<string | null>(null)
@@ -113,6 +115,7 @@ export default function ApiaryEditForm() {
 			apiary(id: $id) {
 				id
 				name
+				type
 				lat
 				lng
 				hives {
@@ -149,6 +152,7 @@ export default function ApiaryEditForm() {
 		mutation updateApiary($id: ID!, $apiary: ApiaryInput!) {
 			updateApiary(id: $id, apiary: $apiary) {
 				id
+				type
 			}
 		}
 	`)
@@ -170,15 +174,20 @@ export default function ApiaryEditForm() {
 		if (!apiary) return
 
 		setName(apiary.name || '')
+		setType(normalizeApiaryType(apiary.type))
 		if (apiary.lat && !isNaN(+apiary.lat)) setLat(+apiary.lat)
 		if (apiary.lng && !isNaN(+apiary.lng)) setLng(+apiary.lng)
 		setPhotoUrl(apiary.photoUrl || null)
 		setPhotoFileId(apiary.photoFileId || null)
 	}, [apiary?.id])
 
-	if (!apiary) {
-		return <Loader />
-	}
+	const isMobileApiary = normalizeApiaryType(type) === apiaryTypes.MOBILE
+
+	useEffect(() => {
+		if (isMobileApiary && mapTab === 2) {
+			changeTab(0)
+		}
+	}, [isMobileApiary, mapTab])
 
 
 	const [saving, setSaving] = useState(false)
@@ -217,6 +226,7 @@ export default function ApiaryEditForm() {
 				id,
 				apiary: {
 					name,
+					type,
 					lat: nextLat,
 					lng: nextLng,
 				},
@@ -225,6 +235,7 @@ export default function ApiaryEditForm() {
 			await updateApiary({
 				id: +id,
 				name,
+				type,
 				lat: nextLat,
 				lng: nextLng,
 				photoUrl: photoUrl || undefined,
@@ -281,6 +292,7 @@ export default function ApiaryEditForm() {
 			await updateApiary({
 				id: +id,
 				name,
+				type,
 				lat: `${lat}`,
 				lng: `${lng}`,
 				photoUrl: uploadData.url,
@@ -315,6 +327,7 @@ export default function ApiaryEditForm() {
 			await updateApiary({
 				id: +id,
 				name,
+				type,
 				lat: `${lat}`,
 				lng: `${lng}`,
 				photoUrl: undefined,
@@ -376,6 +389,21 @@ export default function ApiaryEditForm() {
 							/>
 						</div>
 					</div>
+					<div>
+						<label htmlFor="type" style="width:120px;"><T>Type</T></label>
+						<div>
+							<select
+								name="type"
+								id="type"
+								style={{ width: '100%' }}
+								value={type}
+								onChange={(e: any) => setType(e.target.value as ApiaryType)}
+							>
+								<option value={apiaryTypes.STATIC}><T>Static apiary</T></option>
+								<option value={apiaryTypes.MOBILE}><T>Mobile apiary</T></option>
+							</select>
+						</div>
+					</div>
 
 
 					<div>
@@ -432,7 +460,7 @@ export default function ApiaryEditForm() {
 				</div>
 			</div>
 			<TabBar>
-        <Tab isSelected={mapTab == 2} onClick={() => changeTab(2)}><T>Hive Placement</T></Tab>
+				{!isMobileApiary && <Tab isSelected={mapTab == 2} onClick={() => changeTab(2)}><T>Hive Placement</T></Tab>}
         <Tab isSelected={mapTab == 0} onClick={() => changeTab(0)}><T>Geo Position</T></Tab>
 				<Tab isSelected={mapTab == 1} onClick={() => changeTab(1)}><T>Satellite</T></Tab>
 				<Tab isSelected={mapTab == 3} onClick={() => changeTab(3)}><T>Moisture</T></Tab>
@@ -461,7 +489,7 @@ export default function ApiaryEditForm() {
 				)}
 
 				{mapTab == 1 && satellite_map}
-				{mapTab == 2 && apiaryGet?.apiary?.hives && (
+				{mapTab == 2 && !isMobileApiary && apiaryGet?.apiary?.hives && (
 					<div className={`${styles.previewContainer} ${isHivePlacementLocked ? styles.previewLocked : ''}`}>
 						<HivePlacement
 							apiaryId={id}

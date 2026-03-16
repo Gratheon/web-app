@@ -68,12 +68,13 @@ export default function HiveIcon({
 	const hasRoof = boxes.some(
 		(box: any) => box?.type === 'ROOF'
 	)
+	const showDetailedNotches = size > 50
+
+	const hiveWidth = hasLargeHorizontalSection ? Math.round(size * 1.9) : size
+	const roofOverhang = Math.max(4, Math.round(hiveWidth * 0.08))
 
 	let hiveStyle = {
-		width: `${size}px`,
-	}
-	if (hasLargeHorizontalSection) {
-		hiveStyle.width = `${Math.round(size * 1.9)}px`
+		width: `${hiveWidth}px`,
 	}
 
 	const legsStyle = {
@@ -82,7 +83,8 @@ export default function HiveIcon({
 		borderRight: `${size / 10}px solid black`,
 	}
 	const roofStyle = {
-		height: `${size / 10}px`,
+		width: `${hiveWidth + roofOverhang * 2}px`,
+		marginLeft: `-${roofOverhang}px`,
 	}
 
 	let visualBoxes: any = []
@@ -140,6 +142,9 @@ export default function HiveIcon({
 							}}
 							color={box.color}
 						/>
+					)}
+					{showDetailedNotches && (box.type === 'DEEP' || box.type === 'SUPER') && (
+						<div className={styles.gripNotch}></div>
 					)}
 
 					{box.type === 'GATE' &&

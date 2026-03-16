@@ -8,9 +8,31 @@ import { gql, useMutation } from '@/api'
 
 import ResourceEditRow from './resourceEditRow'
 
-import { getFrameSideCells, updateFrameStat } from '@/models/frameSideCells.ts'
+import {
+	getFrameSideCells,
+	newFrameSideCells,
+	updateFrameSideCells,
+	updateFrameStat,
+} from '@/models/frameSideCells.ts'
 
 export default function MetricList({ frameSideId }) {
+	const numericFrameSideId = +frameSideId
+
+	const loadOrInitFrameSideCells = useMemo(
+		() =>
+			async function () {
+				let frameSideCells = await getFrameSideCells(numericFrameSideId)
+				if (frameSideCells) {
+					return frameSideCells
+				}
+
+				frameSideCells = newFrameSideCells(numericFrameSideId, undefined)
+				await updateFrameSideCells(frameSideCells)
+				return frameSideCells
+			},
+		[numericFrameSideId]
+	)
+
 	let [frameSideCellsMutate, { error: errorFrameSideCells }] = useMutation(gql`
 		mutation updateFrameSideCells($cells: FrameSideCellsInput!) {
 			updateFrameSideCells(cells: $cells)
@@ -20,7 +42,7 @@ export default function MetricList({ frameSideId }) {
 	const onFrameSideStatChange = useMemo(
 		() =>
 			debounce(async function (key: string, percent: number) {
-				let frameSide2 = await getFrameSideCells(frameSideId)
+				let frameSide2 = await loadOrInitFrameSideCells()
 				frameSide2 = await updateFrameStat(frameSide2, key, percent)
 
 				await frameSideCellsMutate({
@@ -36,14 +58,14 @@ export default function MetricList({ frameSideId }) {
 					},
 				})
 			}, 300),
-		[frameSideId]
+		[loadOrInitFrameSideCells, frameSideCellsMutate]
 	)
 
 	let frameSideCells = useLiveQuery(
-		function () {
-			return getFrameSideCells(frameSideId)
+		async function () {
+			return await loadOrInitFrameSideCells()
 		},
-		[frameSideId],
+		[loadOrInitFrameSideCells],
 		null
 	)
 

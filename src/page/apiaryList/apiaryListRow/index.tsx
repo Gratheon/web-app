@@ -13,9 +13,12 @@ import { NavLink } from 'react-router-dom'
 import Link from '../../../shared/link'
 import ListIcon from '../../../icons/listIcon.tsx'
 import TableIcon from '../../../icons/tableIcon.tsx'
+import StaticTreeIcon from '../../../icons/staticTreeIcon.tsx'
+import MobileTruckIcon from '../../../icons/mobileTruckIcon.tsx'
 import DateTimeAgo from '../../../shared/dateTimeAgo'
 import { sortHives } from '../hiveSort'
 import { getColonyStatusLabel, getHiveFamilies } from '../hivePresentation'
+import { apiaryTypes, normalizeApiaryType } from '@/models/apiary'
 
 const BOX_SYSTEM_COLORS = ['#2f80ed', '#f2994a', '#27ae60', '#eb5757']
 
@@ -89,6 +92,7 @@ export default function apiaryListRow({
 	selectedHiveId,
 	onSelectHive,
 	onNavigateAcrossApiaries,
+	hasMixedApiaryTypes,
 }) {
 
 	const [listType, setListType] = React.useState(localStorage.getItem('apiaryListType.' + apiary.id) || 'list')
@@ -96,6 +100,8 @@ export default function apiaryListRow({
 	const columnsPopupRef = React.useRef(null)
 	const rowRef = React.useRef(null)
 	const listItemRefs = React.useRef({})
+	const apiaryType = normalizeApiaryType(apiary?.type)
+	const isMobileApiary = apiaryType === apiaryTypes.MOBILE
 
 	React.useEffect(() => {
 		const handleClickOutside = (event) => {
@@ -438,7 +444,12 @@ export default function apiaryListRow({
 			data-apiary-row-id={apiary.id}
 		>
 			<div className={styles.apiaryHead}>
-				<h2><Link href={`/apiaries/${apiary.id}`}>{apiary.name ? apiary.name : '...'}</Link></h2>
+				<h2>
+					<span className={styles.apiaryTypeIcon} title={isMobileApiary ? 'Mobile apiary' : 'Static apiary'}>
+						{isMobileApiary ? <MobileTruckIcon /> : <StaticTreeIcon />}
+					</span>
+					<Link href={`/apiaries/${apiary.id}`}>{apiary.name ? apiary.name : '...'}</Link>
+				</h2>
 
 				<div className={styles.buttons}>
 					{listType == 'table' && apiary.hives.length > 0 && <Button onClick={() => {
@@ -637,4 +648,4 @@ export default function apiaryListRow({
 			</div>
 		</div>
 	)
-}
+	}

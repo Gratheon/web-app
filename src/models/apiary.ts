@@ -3,10 +3,22 @@ import { db } from './db'
 export type Apiary = {
 	id: number
 	name?: string
+	type?: ApiaryType
 	lat?: string
 	lng?: string
 	photoUrl?: string
 	photoFileId?: number
+}
+
+export const apiaryTypes = {
+	STATIC: 'STATIC',
+	MOBILE: 'MOBILE',
+} as const
+
+export type ApiaryType = (typeof apiaryTypes)[keyof typeof apiaryTypes]
+
+export function normalizeApiaryType(type?: string | null): ApiaryType {
+	return type === apiaryTypes.MOBILE ? apiaryTypes.MOBILE : apiaryTypes.STATIC
 }
 
 const TABLE_NAME = 'apiary'
@@ -39,6 +51,7 @@ export async function getApiary(id: number): Promise<Apiary | undefined> {
 export async function updateApiary({
 	id,
 	name,
+	type,
 	lat,
 	lng,
 	photoUrl,
@@ -50,6 +63,7 @@ export async function updateApiary({
 			...existing,
 			id,
 			name,
+			type: type ?? existing?.type ?? apiaryTypes.STATIC,
 			lat,
 			lng,
 			photoUrl,

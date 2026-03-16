@@ -60,6 +60,12 @@ export default function Billing({ user }) {
 	const dateLangOptions = { locale: loadedDateLocales[user.lang] }
 	const billingHistory = historyData?.billingHistory || []
 	const shouldShowTimelineConnector = billingHistory.length > 1
+	const trialEndsAt = user.date_expiration ? new Date(user.date_expiration) : null
+	const isProfessionalTrial =
+		user.billingPlan === 'professional' &&
+		!user.hasSubscription &&
+		trialEndsAt &&
+		trialEndsAt > new Date()
 
 	const getEventIcon = (eventType: string) => {
 		switch (eventType) {
@@ -103,6 +109,11 @@ export default function Billing({ user }) {
 						<div style={{ color: '#666', fontSize: '0.9rem' }}>
 							<T>Account created</T>: {format(new Date(user.date_added), 'dd MMMM yyyy', dateLangOptions)}
 						</div>
+						{isProfessionalTrial && (
+							<div style={{ color: '#0248ff', fontSize: '0.9rem', marginTop: '0.4rem', fontWeight: 600 }}>
+								<T>Professional trial active until</T>: {format(trialEndsAt as Date, 'dd MMMM yyyy, HH:mm', dateLangOptions)}
+							</div>
+						)}
 					</div>
 
 					<div>

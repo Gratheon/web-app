@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
-import { getApiary, updateApiary, Apiary } from './apiary'; // Import functions and type
+import { getApiary, updateApiary, Apiary, apiaryTypes } from './apiary'; // Import functions and type
 import { db } from './db'; // Import original db for type info if needed, but we mock it
 
 // --- Mock Dependencies ---
@@ -107,6 +107,7 @@ describe('Apiary Model', () => {
     it('should call db.put with the provided apiary data', async () => {
       // ARRANGE
       const apiaryData: Apiary = { id: 3, name: 'Updated Apiary', lat: '11', lng: '21' };
+      mockedDbApiary.get.mockResolvedValue(undefined);
       mockedDbApiary.put.mockResolvedValue(3);
 
       // ACT
@@ -117,14 +118,18 @@ describe('Apiary Model', () => {
       expect(mockedDbApiary.put).toHaveBeenCalledWith({
           id: apiaryData.id,
           name: apiaryData.name,
+          type: apiaryTypes.STATIC,
           lat: apiaryData.lat,
-          lng: apiaryData.lng
+          lng: apiaryData.lng,
+          photoUrl: undefined,
+          photoFileId: undefined
       });
     });
 
      it('should call db.put correctly even with missing optional fields', async () => {
       // ARRANGE
       const apiaryData: Apiary = { id: 4, name: 'Partial Apiary' }; // lat/lng missing
+      mockedDbApiary.get.mockResolvedValue(undefined);
       mockedDbApiary.put.mockResolvedValue(4);
 
       // ACT
@@ -135,8 +140,11 @@ describe('Apiary Model', () => {
       expect(mockedDbApiary.put).toHaveBeenCalledWith({
           id: apiaryData.id,
           name: apiaryData.name,
+          type: apiaryTypes.STATIC,
           lat: undefined, // Should pass undefined for missing optional fields
-          lng: undefined
+          lng: undefined,
+          photoUrl: undefined,
+          photoFileId: undefined
       });
     });
 
@@ -144,6 +152,7 @@ describe('Apiary Model', () => {
       // ARRANGE
       const apiaryData: Apiary = { id: 5, name: 'Fail Apiary' };
       const mockError = new Error('Database write error');
+      mockedDbApiary.get.mockResolvedValue(undefined);
       mockedDbApiary.put.mockRejectedValue(mockError);
       const consoleErrorSpy = vi.spyOn(console, 'error');
 
@@ -153,8 +162,11 @@ describe('Apiary Model', () => {
       expect(mockedDbApiary.put).toHaveBeenCalledWith({
           id: apiaryData.id,
           name: apiaryData.name,
+          type: apiaryTypes.STATIC,
           lat: undefined,
-          lng: undefined
+          lng: undefined,
+          photoUrl: undefined,
+          photoFileId: undefined
       });
       expect(consoleErrorSpy).toHaveBeenCalledWith("failed to update apiary", mockError);
     });

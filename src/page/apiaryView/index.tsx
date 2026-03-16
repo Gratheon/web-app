@@ -11,6 +11,7 @@ import Button from '@/shared/button'
 import T from '@/shared/translate'
 import BillingUpgradeNotice from '@/shared/billingUpgradeNotice'
 import { isBillingTierLessThan } from '@/shared/billingTier'
+import { apiaryTypes, normalizeApiaryType } from '@/models/apiary'
 
 import HivePlacement from '@/page/apiaryEdit/hivePlacement'
 import { getUser } from '@/models/user'
@@ -230,6 +231,7 @@ export default function ApiaryView() {
 				apiary(id: $id) {
 					id
 					name
+					type
 					lat
 					lng
 					hives {
@@ -248,6 +250,8 @@ export default function ApiaryView() {
 
 	const apiaryFromQuery = data?.apiary
 	const name = apiaryFromQuery?.name || apiary?.name || `Apiary #${id}`
+	const apiaryType = normalizeApiaryType(apiaryFromQuery?.type || apiary?.type)
+	const isMobileApiary = apiaryType === apiaryTypes.MOBILE
 	const lat = Number(apiaryFromQuery?.lat || apiary?.lat || 0)
 	const lng = Number(apiaryFromQuery?.lng || apiary?.lng || 0)
 	const hives = apiaryFromQuery?.hives || []
@@ -328,11 +332,12 @@ export default function ApiaryView() {
 							<h1>{name}</h1>
 							<div className={styles.heroMeta}>
 								<span>{hivesCount} <T>hives</T></span>
+								<span>{isMobileApiary ? <T>Mobile apiary</T> : <T>Static apiary</T>}</span>
 								{weather.elevation !== null && <span>{formatValue(weather.elevation, ' m')} <T>elevation</T></span>}
 								{weather.pressure !== null && <span>{formatValue(weather.pressure, ' hPa')} <T>pressure</T></span>}
 							</div>
 						</div>
-						<Button color="green" href={`/apiaries/edit/${id}/placement`}>
+						<Button color="green" href={`/apiaries/edit/${id}/${isMobileApiary ? 'position' : 'placement'}`}>
 							<T>Edit</T>
 						</Button>
 					</div>
@@ -370,28 +375,30 @@ export default function ApiaryView() {
 			</section>
 
 			<section className={styles.layout}>
-				<div className={styles.panel}>
-					<div className={styles.panelHead}><T>Hive placement</T></div>
-					<div className={`${styles.previewContainer} ${isHivePlacementLocked ? styles.previewLocked : ''}`}>
-						<HivePlacement
-							apiaryId={id}
-							hives={hives}
-							readOnly
-							windDirection={weather.windDirection}
-							windSpeed={weather.windSpeed}
-							windVisualTone={windVisualTone}
-						/>
-						{isHivePlacementLocked && <div className={styles.previewOverlay} />}
-						{isHivePlacementLocked && (
-							<div className={styles.previewOverlayNotice}>
-								<BillingUpgradeNotice
-									compact
-									title={<T>Hive Placement requires Hobbyist plan or higher.</T>}
-								/>
-							</div>
-						)}
+				{!isMobileApiary && (
+					<div className={styles.panel}>
+						<div className={styles.panelHead}><T>Hive placement</T></div>
+						<div className={`${styles.previewContainer} ${isHivePlacementLocked ? styles.previewLocked : ''}`}>
+							<HivePlacement
+								apiaryId={id}
+								hives={hives}
+								readOnly
+								windDirection={weather.windDirection}
+								windSpeed={weather.windSpeed}
+								windVisualTone={windVisualTone}
+							/>
+							{isHivePlacementLocked && <div className={styles.previewOverlay} />}
+							{isHivePlacementLocked && (
+								<div className={styles.previewOverlayNotice}>
+									<BillingUpgradeNotice
+										compact
+										title={<T>Hive Placement requires Hobbyist plan or higher.</T>}
+									/>
+								</div>
+							)}
+						</div>
 					</div>
-				</div>
+				)}
 				<div className={styles.panel}>
 					<div className={styles.panelHead}><T>Map</T></div>
 					{mapUrl ? (

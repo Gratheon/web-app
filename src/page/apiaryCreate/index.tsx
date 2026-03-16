@@ -8,6 +8,7 @@ import ErrorMsg from '@/shared/messageError'
 import Button from '@/shared/button'
 import T, { useTranslation } from '@/shared/translate'
 import metrics from '@/metrics'
+import { apiaryTypes, type ApiaryType } from '@/models/apiary'
 
 import style from './style.module.less'
 import LocationMarker from '@/icons/locationMarker'
@@ -17,6 +18,7 @@ export default function ApiaryEditForm() {
 	let [name, setName] = useState('')
 	let [lat, setLat] = useState(0)
 	let [lng, setLng] = useState(0)
+	let [type, setType] = useState<ApiaryType>(apiaryTypes.STATIC)
 	let [autoLocate, setAutoLocate] = useState(false)
 	let tName = useTranslation('Name')
 
@@ -25,6 +27,7 @@ export default function ApiaryEditForm() {
 			addApiary(apiary: $apiary) {
 				id
 				name
+				type
 				lat
 				lng
 			}
@@ -37,6 +40,7 @@ export default function ApiaryEditForm() {
 		addApiary({
 			apiary: {
 				name,
+				type,
 				lat: `${lat}`,
 				lng: `${lng}`,
 			},
@@ -76,6 +80,19 @@ export default function ApiaryEditForm() {
 							setName(e.target.value)
 						}}
 					/>
+
+					<select
+						name="type"
+						id="type"
+						value={type}
+						style="margin: 0 10px; height: 40px; padding: 0 10px;"
+						onChange={(e: any) => {
+							setType(e.target.value as ApiaryType)
+						}}
+					>
+						<option value={apiaryTypes.STATIC}><T>Static apiary</T></option>
+						<option value={apiaryTypes.MOBILE}><T>Mobile apiary</T></option>
+					</select>
 
 					<Button type="submit" color="green">
 						<T>Create</T>

@@ -53,6 +53,7 @@ import DateFormat from '@/shared/dateFormat'
 import { isBillingTierLessThan } from '@/shared/billingTier'
 import HivePlacementMiniMap from './HivePlacementMiniMap'
 import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
+import { apiaryTypes, normalizeApiaryType } from '@/models/apiary'
 
 const BOX_SYSTEMS_FOR_HIVE_LABEL_QUERY = gql`
 	query HiveTopInfoBoxSystems {
@@ -66,7 +67,7 @@ const BOX_SYSTEMS_FOR_HIVE_LABEL_QUERY = gql`
 
 const BOX_SYSTEM_COLORS = ['#2f80ed', '#f2994a', '#27ae60', '#eb5757']
 
-export default function HiveEditDetails({ apiaryId, hiveId, onTopMessageChange }) {
+export default function HiveEditDetails({ apiaryId, hiveId, apiaryType, onTopMessageChange }) {
 	let [editable, setEditable] = useState(false)
 	let [creatingInspection, setCreatingInspection] = useState(false)
 	let [okMsg, setOkMsg] = useState(null)
@@ -84,6 +85,7 @@ export default function HiveEditDetails({ apiaryId, hiveId, onTopMessageChange }
 	const { data: boxSystemsData } = useQuery(BOX_SYSTEMS_FOR_HIVE_LABEL_QUERY)
 	const user = useLiveQuery(() => getUser(), [], null)
 	const isHiveMiniMapLocked = isBillingTierLessThan(user?.billingPlan, 'hobbyist')
+	const isMobileApiary = normalizeApiaryType(apiaryType) === apiaryTypes.MOBILE
 	let boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId])
 	let families = useLiveQuery(() => {
 		return getAllFamiliesByHive(+hiveId)
@@ -544,7 +546,7 @@ export default function HiveEditDetails({ apiaryId, hiveId, onTopMessageChange }
 											<HiveStatistics hiveId={hiveId} />
 											{hive.notes && <p className={styles.hiveNotes}>{hive.notes}</p>}
 										</div>
-										{!isHiveMiniMapLocked && (
+										{!isHiveMiniMapLocked && !isMobileApiary && (
 											<div className={styles.desktopMiniMapWrap}>
 												<HivePlacementMiniMap apiaryId={apiaryId} selectedHiveId={hiveId} />
 											</div>

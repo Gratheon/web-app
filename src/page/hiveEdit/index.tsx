@@ -286,7 +286,7 @@ export default function HiveEditForm() {
 
 			<BreadCrumbs items={breadcrumbs} className={styles.breadcrumbsSky} />
 
-			<HiveEditDetails apiaryId={apiaryId} hiveId={hiveId} onTopMessageChange={setTopNotice} />
+			<HiveEditDetails apiaryId={apiaryId} hiveId={hiveId} apiaryType={apiary?.type} onTopMessageChange={setTopNotice} />
 
 			<div className={styles.tabsWrap}>
 				<TabBar>

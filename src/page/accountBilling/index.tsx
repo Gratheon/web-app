@@ -14,7 +14,9 @@ const USER_QUERY = gql`
 				id
 				lang
 				date_added
+				date_expiration
 				hasSubscription
+				isSubscriptionExpired
 				billingPlan
 			}
 		}

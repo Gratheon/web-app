@@ -12,6 +12,7 @@ import T from '../../shared/translate'
 import ApiaryListRow from './apiaryListRow'
 import ApiariesPlaceholder from './apiariesPlaceholder'
 import { sortHives } from './hiveSort'
+import { normalizeApiaryType } from '@/models/apiary'
 import styles from './style.module.less'
 
 const TABLE_VISIBLE_COLUMNS_KEY = 'apiaryList.tableVisibleColumns'
@@ -116,6 +117,7 @@ export default function ApiaryList(props) {
 			apiaries {
 				id
 				name
+				type
 
 					hives {
 						id
@@ -156,6 +158,10 @@ export default function ApiaryList(props) {
 	`)
 
 	const apiaries = data?.apiaries || []
+	const hasMixedApiaryTypes = React.useMemo(() => {
+		const distinctTypes = new Set((apiaries || []).map((apiary) => normalizeApiaryType(apiary?.type)))
+		return distinctTypes.size > 1
+	}, [apiaries])
 
 	const sortedHivesByApiary = React.useMemo(() => (
 		apiaries.map((apiary) => ({
@@ -395,9 +401,10 @@ export default function ApiaryList(props) {
 						selectedHiveApiaryId={selectedHive.apiaryId}
 						selectedHiveId={selectedHive.hiveId}
 						onSelectHive={selectHive}
-						onNavigateAcrossApiaries={handleNavigateAcrossApiaries}
-					/>
-				))}
+					onNavigateAcrossApiaries={handleNavigateAcrossApiaries}
+					hasMixedApiaryTypes={hasMixedApiaryTypes}
+				/>
+			))}
 
 			<div style="text-align:center; margin: 15px 0;">
 				<Button 

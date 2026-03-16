@@ -34,7 +34,7 @@
 .timeline::before {
 	content: '';
 	position: absolute;
-	left: 9px;
+	left: 11px;
 	top: 4px;
 	bottom: 4px;
 	width: 2px;
@@ -49,16 +49,80 @@
 
 .dot {
 	position: absolute;
-	left: 3px;
+	left: 2px;
 	top: 50%;
 	transform: translateY(-50%);
-	width: 14px;
-	height: 14px;
+	width: 18px;
+	height: 18px;
 	border-radius: 50%;
 	background: #4d82d7;
 	border: 2px solid #ffffff;
 	box-shadow: 0 0 0 1px #4d82d7;
 	z-index: 2;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+}
+
+.dotIcon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	line-height: 1;
+}
+
+.dotCollapsed {
+	background: #d63b2a;
+	box-shadow: 0 0 0 1px #d63b2a;
+}
+
+.dotTreatment {
+	background: #2c8d68;
+	box-shadow: 0 0 0 1px #2c8d68;
+}
+
+.dotQueen {
+	background: #d4a017;
+	box-shadow: 0 0 0 1px #d4a017;
+}
+
+.dotMoveVertical {
+	background: #2f70c9;
+	box-shadow: 0 0 0 1px #2f70c9;
+}
+
+.dotMoveHorizontal {
+	background: #5e6b85;
+	box-shadow: 0 0 0 1px #5e6b85;
+}
+
+.dotGrowth {
+	background: #3f9e4b;
+	box-shadow: 0 0 0 1px #3f9e4b;
+}
+
+.dotFrameAdd {
+	background: #4e7ecf;
+	box-shadow: 0 0 0 1px #4e7ecf;
+}
+
+.iconPairVertical,
+.iconPairHorizontal {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: #ffffff;
+}
+
+.iconPairVertical {
+	flex-direction: column;
+	gap: 0;
+}
+
+.iconPairHorizontal {
+	flex-direction: row;
+	gap: 0;
 }
 
 .card {
@@ -118,11 +182,11 @@
 
 .branchSideDot {
 	position: absolute;
-	left: -21px;
+	left: -25px;
 	top: 50%;
 	transform: translateY(-50%);
-	width: 14px;
-	height: 14px;
+	width: 18px;
+	height: 18px;
 	border-radius: 50%;
 	background: #4d82d7;
 	border: 2px solid #ffffff;
@@ -136,20 +200,20 @@
 
 .splitLinkStem {
 	position: absolute;
-	left: 9px;
+	left: 11px;
 	top: 50%;
 	width: 2px;
-	height: 26px;
+	height: 30px;
 	background: #8cb2e5;
 	z-index: 1;
 }
 
 .splitLinkCurve {
 	position: absolute;
-	left: -14px;
+	left: -18px;
 	top: 50%;
-	width: 24px;
-	height: 24px;
+	width: 30px;
+	height: 28px;
 	overflow: visible;
 	z-index: 1;
 }
@@ -163,11 +227,11 @@
 
 .mergeSideDot {
 	position: absolute;
-	left: -21px;
+	left: -25px;
 	top: calc(50% + 48px);
 	transform: translateY(-50%);
-	width: 14px;
-	height: 14px;
+	width: 18px;
+	height: 18px;
 	border-radius: 50%;
 	background: #4d82d7;
 	border: 2px solid #ffffff;
@@ -177,9 +241,9 @@
 
 .mergeCurve {
 	position: absolute;
-	left: -14px;
+	left: -18px;
 	top: 50%;
-	width: 24px;
+	width: 30px;
 	height: 48px;
 	overflow: visible;
 	z-index: 1;

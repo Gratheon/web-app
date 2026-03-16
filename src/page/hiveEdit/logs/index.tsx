@@ -5,6 +5,15 @@ import Button from '@/shared/button'
 import DateTimeFormat from '@/shared/dateTimeFormat'
 import T from '@/shared/translate'
 import TrashIcon from '@/icons/trashIcon'
+import SkullIcon from '@/icons/SkullIcon'
+import UpIcon from '@/icons/upIcon'
+import DownIcon from '@/icons/downIcon'
+import LeftChevron from '@/icons/leftChevron'
+import RightChevron from '@/icons/rightChevron'
+import QueenIcon from '@/icons/queenIcon'
+import FramesIcon from '@/icons/framesIcon'
+import FoundationIcon from '@/icons/foundationIcon'
+import EmptyFrameIcon from '@/icons/emptyFrameIcon'
 import {
 	addManualHiveLogEntry,
 	deleteHiveLogEntry,
@@ -23,6 +32,32 @@ type TimelineRow = {
 	splitChild: boolean
 	splitChildLinked: boolean
 	mergeReceive: boolean
+}
+
+function LabVialIcon({ size = 10 }: { size?: number }) {
+	return (
+		<svg width={size} height={size} viewBox="0 0 24 24" aria-hidden>
+			<path
+				d="M9 3h6M10 3v5l-4.7 7.6A4 4 0 0 0 8.7 21h6.6a4 4 0 0 0 3.4-5.4L14 8V3"
+				fill="none"
+				stroke="white"
+				strokeWidth="2"
+				strokeLinecap="round"
+				strokeLinejoin="round"
+			/>
+			<path d="M8 15h8" stroke="white" strokeWidth="2" strokeLinecap="round" />
+		</svg>
+	)
+}
+
+function GrowthIcon({ size = 10 }: { size?: number }) {
+	return (
+		<svg width={size} height={size} viewBox="0 0 24 24" aria-hidden>
+			<path d="M12 20v-7" stroke="white" strokeWidth="2" strokeLinecap="round" />
+			<path d="M12 13c0-3 2.5-5.5 5.5-5.5 0 3-2.5 5.5-5.5 5.5Z" fill="white" />
+			<path d="M12 15c0-2.8-2.2-5-5-5 0 2.8 2.2 5 5 5Z" fill="white" />
+		</svg>
+	)
 }
 
 export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryId: string }) {
@@ -190,6 +225,83 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 		)
 	}
 
+	function getMarker(entry: HiveLogEntry): { className?: string; icon?: any } {
+		const title = (entry.title || '').toLowerCase()
+		const details = (entry.details || '').toLowerCase()
+
+		if (entry.action === 'COLLAPSE' || title.includes('collapsed')) {
+			return {
+				className: styles.dotCollapsed,
+				icon: <SkullIcon size={13} color="white" />,
+			}
+		}
+		if (entry.action === 'TREATMENT') {
+			return {
+				className: styles.dotTreatment,
+				icon: <LabVialIcon size={13} />,
+			}
+		}
+		if (
+			entry.action === 'QUEEN' &&
+			(title.includes('new queen introduced') || title.includes('queen assigned from warehouse'))
+		) {
+			return {
+				className: styles.dotQueen,
+				icon: <QueenIcon size={13} color="#ffffff" />,
+			}
+		}
+		if (
+			entry.action === 'STRUCTURE_MOVE' &&
+			(title.includes('section moved') || title.includes('section') || title.includes('swapped with section'))
+		) {
+			return {
+				className: styles.dotMoveVertical,
+				icon: (
+					<span className={styles.iconPairVertical}>
+						<UpIcon size={9} />
+						<DownIcon size={9} />
+					</span>
+				),
+			}
+		}
+		if (entry.action === 'STRUCTURE_MOVE' && (title.includes('frame rearranged') || title.includes('frame position'))) {
+			return {
+				className: styles.dotMoveHorizontal,
+				icon: (
+					<span className={styles.iconPairHorizontal}>
+						<LeftChevron size={10} />
+						<RightChevron size={10} />
+					</span>
+				),
+			}
+		}
+		if (entry.action === 'STRUCTURE_ADD' && title.includes('section added')) {
+			return {
+				className: styles.dotGrowth,
+				icon: <GrowthIcon size={13} />,
+			}
+		}
+		if (entry.action === 'STRUCTURE_ADD' && title.includes('frame added')) {
+			if (details.includes('foundation')) {
+				return {
+					className: styles.dotFrameAdd,
+					icon: <FoundationIcon size={13} />,
+				}
+			}
+			if (details.includes('void') || details.includes('empty frame')) {
+				return {
+					className: styles.dotFrameAdd,
+					icon: <EmptyFrameIcon size={12} />,
+				}
+			}
+			return {
+				className: styles.dotFrameAdd,
+				icon: <FramesIcon size={13} />,
+			}
+		}
+		return {}
+	}
+
 	return (
 		<div className={styles.logWrap}>
 			<h3 className={styles.heading}>
@@ -215,6 +327,7 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 				<div className={styles.timeline}>
 					{timelineRows.map((row) => {
 						const isEditing = editingId === +row.entry.id
+						const marker = getMarker(row.entry)
 						return (
 							<div
 								className={`${styles.entry} ${row.splitChild ? styles.entryBranchChild : ''} ${row.splitChildLinked ? styles.entryBranchLinked : ''} ${row.mergeReceive ? styles.entryMergeIn : ''}`}
@@ -251,7 +364,9 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 										<span className={styles.mergeSideDot} />
 									</>
 								)}
-								<div className={styles.dot} />
+								<div className={`${styles.dot} ${marker.className || ''}`}>
+									{marker.icon && <span className={styles.dotIcon}>{marker.icon}</span>}
+								</div>
 								<div className={styles.card}>{renderEntryCard(row.entry, isEditing)}</div>
 							</div>
 						)

@@ -89,6 +89,7 @@ export default function WarehouseBoxSystemEditPage() {
 	const system = useMemo(() => boxSystems.find((item: BoxSystem) => item.id === systemId) || null, [boxSystems, systemId])
 	const frameSettingBySystemAndType = useMemo(() => buildFrameSettingLookup(frameSettings), [frameSettings])
 	const currentFrameSource = system ? getCurrentFrameProfileSource(system.id, frameSettingBySystemAndType) : ''
+	const isDefaultSystem = !!system?.isDefault
 	const availableSourceSystems = boxSystems.filter((candidate: BoxSystem) => candidate.id !== systemId)
 	const currentBoxProfileSource = system?.boxProfileSourceSystemId ? String(system.boxProfileSourceSystemId) : null
 	const trimmedNameInput = nameInput.trim()
@@ -110,10 +111,10 @@ export default function WarehouseBoxSystemEditPage() {
 		)
 	const hasOwnFrameMapping = !!system && hasExplicitOwnFrameMapping(system.id, frameSettingBySystemAndType)
 	const hasFrameProfileChanged = draftUseOwnFrameProfile
-		? !!system && (currentFrameSource !== system.id || !hasOwnFrameMapping)
+		? !!system && ((isDefaultSystem ? false : currentFrameSource !== system.id) || !hasOwnFrameMapping)
 		: !!resolvedDraftFrameSourceSystemId && resolvedDraftFrameSourceSystemId !== currentFrameSource
 	const hasUnsavedChanges = hasNameChanged || hasBoxProfileChanged || hasFrameProfileChanged
-	const isSaveDisabled = !system || system.isDefault || isSaving || !trimmedNameInput || !hasUnsavedChanges
+	const isSaveDisabled = !system || isSaving || !trimmedNameInput || !hasUnsavedChanges
 
 	useEffect(() => {
 		if (!system) return
@@ -121,6 +122,11 @@ export default function WarehouseBoxSystemEditPage() {
 		setFormError(null)
 		setDraftUseOwnBoxProfile(!system.boxProfileSourceSystemId)
 		setDraftBoxSourceSystemId(system.boxProfileSourceSystemId ? String(system.boxProfileSourceSystemId) : '')
+		if (system.isDefault) {
+			setDraftUseOwnFrameProfile(true)
+			setDraftFrameSourceSystemId('')
+			return
+		}
 		if (currentFrameSource === system.id) {
 			setDraftUseOwnFrameProfile(true)
 			setDraftFrameSourceSystemId('')
@@ -160,26 +166,40 @@ export default function WarehouseBoxSystemEditPage() {
 
 		setIsSaving(true)
 		try {
+			let targetSystemId = system.id
+
 			if (hasNameChanged) {
-				await renameBoxSystem({ id: system.id, name: trimmed })
+				const renameResult = await renameBoxSystem({ id: system.id, name: trimmed })
+				const renamedSystemId = renameResult?.data?.renameBoxSystem?.id ? String(renameResult.data.renameBoxSystem.id) : ''
+				if (renamedSystemId) {
+					targetSystemId = renamedSystemId
+				}
 			}
 
 			if (hasBoxProfileChanged) {
 				await setBoxSystemBoxProfileSource({
-					systemId: system.id,
+					systemId: targetSystemId,
 					boxSourceSystemId: nextBoxProfileSource || null,
 				})
 			}
 
-			if (hasFrameProfileChanged && resolvedDraftFrameSourceSystemId) {
+			let nextFrameSourceSystemId = resolvedDraftFrameSourceSystemId
+			if (targetSystemId !== system.id && draftUseOwnFrameProfile) {
+				nextFrameSourceSystemId = targetSystemId
+			}
+
+			if (hasFrameProfileChanged && nextFrameSourceSystemId) {
 				await applyFrameSourceToAllBoxTypes(
 					setBoxSystemFrameSource,
-					system.id,
-					resolvedDraftFrameSourceSystemId,
+					targetSystemId,
+					nextFrameSourceSystemId,
 				)
 			}
 
 			await reexecuteQuery({ requestPolicy: 'network-only' })
+			if (targetSystemId !== system.id) {
+				navigate(`/warehouse/box-systems/${targetSystemId}`, { replace: true })
+			}
 		} finally {
 			setIsSaving(false)
 		}
@@ -219,13 +239,13 @@ export default function WarehouseBoxSystemEditPage() {
 								type="text"
 								value={nameInput}
 								onInput={(event: any) => setNameInput(event.target.value)}
-								disabled={system.isDefault || isSaving}
+								disabled={isSaving}
 							/>
 						</div>
 					</div>
 
 					<div className={styles.formField}>
-						<label className={styles.formLabel}><T>Box sizes profile</T></label>
+						<label className={styles.formLabel}><T>Section sizes profile</T></label>
 						<div className={styles.fieldControl}>
 							<label className={styles.switchRow}>
 								<input
@@ -245,7 +265,7 @@ export default function WarehouseBoxSystemEditPage() {
 									<span className={styles.switchThumb}></span>
 								</span>
 									<span className={styles.switchLabel}>
-									{draftUseOwnBoxProfile ? <T>Use own box sizes</T> : <T>Use existing box size system</T>}
+									{draftUseOwnBoxProfile ? <T>Use own section sizes</T> : <T>Use existing section size system</T>}
 								</span>
 							</label>
 							{draftUseOwnBoxProfile ? null : (

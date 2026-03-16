@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import { gql, useMutation, useQuery } from '@/api'
 import Button from '@/shared/button'
@@ -242,7 +242,15 @@ export default function WarehouseBoxSystemsPage() {
 							<div className={styles.systemRowMain}>
 								<span className={styles.systemColorDot} aria-hidden="true"></span>
 									<div className={styles.itemTitleRow}>
-										<span className={styles.itemTitle}>{system.name}</span>
+										<Link
+											className={`${styles.itemTitle} ${styles.itemTitleLink}`}
+											to={`/warehouse/box-systems/${system.id}`}
+											onClick={(event) => {
+												event.stopPropagation()
+											}}
+										>
+											{system.name}
+										</Link>
 										{system.isDefault ? <span className={styles.defaultBadge}><T>Default</T></span> : null}
 										<span className={styles.usageBadge}>
 											{activeHiveCountBySystemId[system.id] || 0} <T>hives in use</T>
@@ -251,12 +259,11 @@ export default function WarehouseBoxSystemsPage() {
 								</div>
 								<div className={styles.systemRowActions}>
 									<div className={styles.controls}>
-										<Button size="small" href={`/warehouse/box-systems/${system.id}`}>
-											<T>Edit</T>
-										</Button>
-										<Button size="small" color="white" disabled={!!system.isDefault} onClick={() => onDeactivateSystem(system.id)}>
-											<T>Archive</T>
-										</Button>
+										{system.isDefault ? null : (
+											<Button className={styles.systemActionButton} size="small" color="red" onClick={() => onDeactivateSystem(system.id)}>
+												<T>Delete</T>
+											</Button>
+										)}
 									</div>
 								</div>
 							</div>
@@ -273,10 +280,10 @@ export default function WarehouseBoxSystemsPage() {
 				) : null}
 			</section>
 			{archiveSystemId && archivingSystem ? (
-				<Modal title={<T>Archive Hive System</T>} onClose={closeArchiveModal}>
+				<Modal title={<T>Delete Hive System</T>} onClose={closeArchiveModal}>
 					<div className={styles.archiveModalContent}>
 						<p className={styles.archiveModalCopy}>
-							<T>Are you sure you want to archive this hive system?</T>{' '}
+							<T>Are you sure you want to delete this hive system?</T>{' '}
 							<strong>{archivingSystem.name}</strong>
 						</p>
 						<p className={styles.archiveModalCopy}>
@@ -307,11 +314,11 @@ export default function WarehouseBoxSystemsPage() {
 								<T>Cancel</T>
 							</Button>
 							<Button
-								color="green"
+								color="red"
 								disabled={hivesUsingArchivingSystem > 0 && !archiveReplacementSystemId}
 								onClick={onConfirmDeactivateSystem}
 							>
-								<T>Archive and reassign</T>
+								<T>Delete and reassign</T>
 							</Button>
 						</div>
 					</div>

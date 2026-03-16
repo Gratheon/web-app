@@ -140,7 +140,7 @@ export default function WarehouseBoxSystemCreatePage() {
 					</div>
 
 					<div className={styles.formField}>
-						<label className={styles.formLabel}><T>Box sizes profile</T></label>
+						<label className={styles.formLabel}><T>Section sizes profile</T></label>
 						<div className={styles.fieldControl}>
 							<label className={styles.switchRow}>
 								<input
@@ -159,7 +159,7 @@ export default function WarehouseBoxSystemCreatePage() {
 									<span className={styles.switchThumb}></span>
 								</span>
 								<span className={styles.switchLabel}>
-									{useOwnBoxProfile ? <T>Use own box sizes</T> : <T>Use existing box size system</T>}
+									{useOwnBoxProfile ? <T>Use own section sizes</T> : <T>Use existing section size system</T>}
 								</span>
 							</label>
 							{!useOwnBoxProfile ? (

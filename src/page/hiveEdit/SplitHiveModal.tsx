@@ -183,16 +183,16 @@ export default function SplitHiveModal({
 				await addHiveLog({
 					hiveId: +hiveId,
 					action: hiveLogActions.LINEAGE,
-					title: 'Hive was split',
-					details: `Created a new hive with ${selectedFrameIds.size} frames.`,
+					title: 'This colony was split and child colony was added to a new hive',
+					details: `Moved ${selectedFrameIds.size} frames to child hive.`,
 					relatedHives: [{ id: newHiveId }],
-					dedupeKey: `split:source:${hiveId}:child:${newHiveId}`,
+					dedupeKey: `lineage:child:${hiveId}:${newHiveId}`,
 				})
 				await addHiveLog({
 					hiveId: newHiveId,
 					action: hiveLogActions.LINEAGE,
-					title: 'Hive created from split',
-					details: `Created from hive ${hiveId} with ${selectedFrameIds.size} frames.`,
+					title: `This hive was created as a split from parent hive ${hiveId}`,
+					details: `Received ${selectedFrameIds.size} frames from the parent hive.`,
 					relatedHives: [{ id: +hiveId }],
 					dedupeKey: `split:child:${newHiveId}:source:${hiveId}`,
 				})

@@ -331,31 +331,6 @@ export async function syncHiveLineageLogs(hive: any): Promise<void> {
 	const hiveId = +hive.id
 	if (!hiveId || !Number.isFinite(hiveId)) return
 
-	if (hive.parentHive?.id) {
-		await addHiveLog({
-			hiveId,
-			action: hiveLogActions.LINEAGE,
-			title: 'Split from another hive',
-			details: hive.splitDate ? `Date: ${hive.splitDate}` : '',
-			dedupeKey: `lineage:split-from:${hiveId}:${hive.parentHive.id}:${hive.splitDate || ''}`,
-			relatedHives: [{ id: +hive.parentHive.id, hiveNumber: hive.parentHive.hiveNumber }],
-		})
-	}
-
-	if (Array.isArray(hive.childHives)) {
-		for (const child of hive.childHives) {
-			if (!child?.id) continue
-			await addHiveLog({
-				hiveId,
-				action: hiveLogActions.LINEAGE,
-				title: 'Split created a child hive',
-				details: child.splitDate ? `Date: ${child.splitDate}` : '',
-				dedupeKey: `lineage:child:${hiveId}:${child.id}:${child.splitDate || ''}`,
-				relatedHives: [{ id: +child.id, hiveNumber: child.hiveNumber }],
-			})
-		}
-	}
-
 	if (hive.mergedIntoHive?.id) {
 		await addHiveLog({
 			hiveId,

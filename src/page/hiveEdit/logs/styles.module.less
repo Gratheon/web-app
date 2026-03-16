@@ -58,6 +58,7 @@
 	background: #4d82d7;
 	border: 2px solid #ffffff;
 	box-shadow: 0 0 0 1px #4d82d7;
+	z-index: 2;
 }
 
 .card {
@@ -113,6 +114,82 @@
 
 .relatedLinks a:hover {
 	text-decoration: underline;
+}
+
+.branchSideDot {
+	position: absolute;
+	left: -21px;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	background: #4d82d7;
+	border: 2px solid #ffffff;
+	box-shadow: 0 0 0 1px #4d82d7;
+	z-index: 2;
+}
+
+.entryBranchChild .dot {
+	opacity: 0;
+}
+
+.splitLinkStem {
+	position: absolute;
+	left: 9px;
+	top: 50%;
+	width: 2px;
+	height: 26px;
+	background: #8cb2e5;
+	z-index: 1;
+}
+
+.splitLinkCurve {
+	position: absolute;
+	left: -14px;
+	top: 50%;
+	width: 24px;
+	height: 24px;
+	overflow: visible;
+	z-index: 1;
+}
+
+.splitLinkCurve path {
+	fill: none;
+	stroke: #8cb2e5;
+	stroke-width: 2;
+	stroke-linecap: round;
+}
+
+.mergeSideDot {
+	position: absolute;
+	left: -21px;
+	top: calc(50% + 48px);
+	transform: translateY(-50%);
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	background: #4d82d7;
+	border: 2px solid #ffffff;
+	box-shadow: 0 0 0 1px #4d82d7;
+	z-index: 2;
+}
+
+.mergeCurve {
+	position: absolute;
+	left: -14px;
+	top: 50%;
+	width: 24px;
+	height: 48px;
+	overflow: visible;
+	z-index: 1;
+}
+
+.mergeCurve path {
+	fill: none;
+	stroke: #8cb2e5;
+	stroke-width: 2;
+	stroke-linecap: round;
 }
 
 .actions {

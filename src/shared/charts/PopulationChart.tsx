@@ -138,6 +138,7 @@ export default function PopulationChart({ inspectionsByHive, showIdealCurve, cha
 				<img
 					src={thinkerImageURL}
 					alt="Thinker placeholder"
+					draggable={false}
 					style={{ width: '140px', height: '140px', objectFit: 'contain', marginBottom: '8px' }}
 				/>
 				<p style={{ margin: 0, color: '#666', display: 'inline-flex', alignItems: 'center' }}>

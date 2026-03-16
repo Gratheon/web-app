@@ -379,7 +379,7 @@ export default function WarehouseQueensPage() {
 
 				{sortedQueens.length === 0 && !error ? (
 					<div className={styles.empty}>
-						<img src={queenImageURL} alt="Queen placeholder" className={styles.emptyImage} />
+						<img src={queenImageURL} alt="Queen placeholder" className={styles.emptyImage} draggable={false} />
 						<T>No queens stored in warehouse.</T>
 					</div>
 				) : null}

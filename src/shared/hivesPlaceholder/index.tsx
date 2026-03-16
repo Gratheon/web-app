@@ -12,7 +12,7 @@ export default function () {
 				color: 'gray',
 			}}
 		>
-			<img height="64" src={imageURL} />
+			<img height="64" src={imageURL} draggable={false} />
 			<p><T>No hives here yet</T></p>
 		</div>
 	)

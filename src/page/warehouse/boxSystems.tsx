@@ -7,6 +7,7 @@ import ErrorMsg from '@/shared/messageError'
 import Loader from '@/shared/loader'
 import Modal from '@/shared/modal'
 import T from '@/shared/translate'
+import hiveSystemsImageURL from '@/assets/hive-systems.webp'
 import styles from './style.module.less'
 
 type BoxSystem = {
@@ -93,6 +94,7 @@ export default function WarehouseBoxSystemsPage() {
 	const [deactivateBoxSystem, { error: deactivateSystemError }] = useMutation(DEACTIVATE_BOX_SYSTEM_MUTATION)
 
 	const boxSystems: BoxSystem[] = useMemo(() => data?.boxSystems || [], [data?.boxSystems])
+	const hasOnlyDefaultSystem = boxSystems.length === 1 && !!boxSystems[0]?.isDefault
 	const activeHiveCountBySystemId = useMemo(() => {
 		const counts: Record<string, number> = {}
 		for (const apiary of data?.apiaries || []) {
@@ -256,6 +258,15 @@ export default function WarehouseBoxSystemsPage() {
 						</div>
 					))}
 				</div>
+
+				{hasOnlyDefaultSystem ? (
+					<>
+						<img src={hiveSystemsImageURL} alt="Single hive system placeholder" className={styles.singleSystemPlaceholderImage} draggable={false} />
+						<p className={styles.singleSystemPlaceholderText}>
+							<T>It's lucky that you have only one system for now.</T>
+						</p>
+					</>
+				) : null}
 			</section>
 			{archiveSystemId && archivingSystem ? (
 				<Modal title={<T>Archive Hive System</T>} onClose={closeArchiveModal}>

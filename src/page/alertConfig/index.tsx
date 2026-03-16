@@ -566,7 +566,7 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 					</h2>
 					{alerts.length === 0 ? (
 							<div className={styles.historyPlaceholder}>
-								<img className={styles.placeholderImage} src={imageURL} alt={bearHoneyIllustrationAlt} />
+								<img className={styles.placeholderImage} src={imageURL} alt={bearHoneyIllustrationAlt} draggable={false} />
 								<p><T>No alerts yet</T></p>
 								<p className={styles.placeholderHint}>
 									<T>Triggered alerts from your hives will appear here.</T>

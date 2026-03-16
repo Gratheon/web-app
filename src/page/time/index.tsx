@@ -611,7 +611,7 @@ export default function TimeView() {
 			<div className={styles.emptyState}>
 				<h2><T>Colony Lifecycle</T></h2>
 				<p><T>This view shows how colonies develop over time. Add an apiary with a hive to see first data here.</T></p>
-				<img src={imageURL} alt="Bear and honey illustration" />
+				<img src={imageURL} alt="Bear and honey illustration" draggable={false} />
 			</div>
 		)
 	}
@@ -727,7 +727,7 @@ export default function TimeView() {
 				<main className={styles.chartsContainer}>
 					{missingSelectedCharts.length > 0 && (
 						<div className={styles.groupedNoDataPlaceholder}>
-							<img src={thinkerImageURL} alt="Thinker placeholder" />
+							<img src={thinkerImageURL} alt="Thinker placeholder" draggable={false} />
 							<p className={styles.groupedNoDataTitle}>
 								<strong><T>No data available for selected charts.</T></strong>
 								<InfoIcon>

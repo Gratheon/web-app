@@ -5,6 +5,7 @@ import ErrorMsg from '@/shared/messageError'
 import Loader from '@/shared/loader'
 import T from '@/shared/translate'
 import { getWarehouseItemIcon } from './iconMap'
+import { stripWarehouseSuffix } from './labels'
 import styles from './style.module.less'
 
 const WAREHOUSE_ITEM_VIEW_QUERY = gql`
@@ -84,7 +85,7 @@ export default function WarehouseItemViewPage() {
 							<span className={styles.itemIcon}>{icon}</span>
 						</span>
 					)}
-					<span>{item.title}</span>
+					<span>{stripWarehouseSuffix(item.title)}</span>
 				</span>
 			</h2>
 			<p className={styles.description}>{item.description}</p>

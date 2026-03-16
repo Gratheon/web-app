@@ -239,6 +239,23 @@
 	gap: 8px;
 }
 
+.singleSystemPlaceholderImage {
+	width: 400px;
+	max-width: 100%;
+	height: auto;
+	border-radius: 8px;
+	margin: 14px auto 0;
+	display: block;
+}
+
+.singleSystemPlaceholderText {
+	margin: 10px auto 0;
+	max-width: 400px;
+	color: #4a5260;
+	font-size: 13px;
+	text-align: center;
+}
+
 .systemRow {
 	background: #fff;
 	border: 1px solid #e8eaf0;
@@ -310,6 +327,10 @@
 	background: #fff;
 	border-radius: 8px;
 	padding: 6px;
+}
+
+.sectionMatrixCard + .sectionMatrixCard {
+	margin-top: 10px;
 }
 
 .matrixTable {
@@ -595,12 +616,77 @@
 }
 
 @media (max-width: 720px) {
+	.page {
+		padding: 0 10px;
+	}
+
+	.page h2 {
+		padding: 6px 0;
+	}
+
+	:global([data-sidebar-collapsed='true']) .page h2 {
+		padding: 6px 0;
+	}
+
+	.description {
+		margin-bottom: 8px;
+	}
+
+	.topSetting {
+		margin: 6px 0 10px;
+	}
+
+	.list {
+		gap: 8px;
+	}
+
+	.groupItems {
+		padding-left: 0;
+	}
+
 	.row {
 		grid-template-columns: 1fr;
+		padding: 6px;
+		gap: 8px;
 	}
 
 	.controls {
 		justify-content: flex-start;
+		gap: 6px;
+	}
+
+	.sectionMatrixCard {
+		padding: 4px;
+	}
+
+	.matrixTable {
+		margin-top: 6px;
+	}
+
+	.matrixHeader,
+	.matrixRow {
+		grid-template-columns: minmax(220px, 1.5fr) repeat(var(--system-column-count, 1), minmax(130px, 1fr));
+	}
+
+	.matrixLabel {
+		min-width: 220px;
+	}
+
+	.matrixHeader .matrixLabel,
+	.matrixSystemHead,
+	.matrixLabelBlock {
+		padding: 6px 8px;
+	}
+
+	.matrixCell,
+	.matrixEmpty {
+		padding: 4px;
+		min-height: 40px;
+	}
+
+	.countInput {
+		width: 52px;
+		height: 30px;
 	}
 
 	.textInput {

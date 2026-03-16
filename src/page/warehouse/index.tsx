@@ -7,6 +7,7 @@ import ErrorMsg from '@/shared/messageError'
 import Loader from '@/shared/loader'
 import T from '@/shared/translate'
 import { getWarehouseItemIcon } from './iconMap'
+import { stripWarehouseSuffix } from './labels'
 import styles from './style.module.less'
 
 type WarehouseInventoryItem = {
@@ -113,9 +114,10 @@ mutation setWarehouseAutoUpdateFromHives($enabled: Boolean!) {
 const GROUP_LABELS: Record<string, string> = {
 	HIVE_PARTS: 'Hive parts',
 	HIVE_SECTIONS: 'Hive sections',
+	HORIZONTAL_HIVES: 'Horizontal hives',
 }
 
-const GROUP_ORDER = ['HIVE_PARTS', 'HIVE_SECTIONS']
+const GROUP_ORDER = ['HIVE_SECTIONS', 'HIVE_PARTS', 'HORIZONTAL_HIVES']
 
 const MAX_VISUAL_SQUARES = 100
 const SQUARE_PITCH = 5
@@ -270,7 +272,7 @@ export default function WarehousePage() {
 		for (const [moduleType, group] of sectionGroupsByType.entries()) {
 			matrixByModuleType.set(moduleType, {
 				id: group.id,
-				label: group.label,
+				label: stripWarehouseSuffix(group.label),
 				description: group.description,
 				sectionItemBySystemId: group.sectionItemBySystemId,
 				standaloneSectionItem: group.standaloneSectionItem,
@@ -283,7 +285,8 @@ export default function WarehousePage() {
 			const framesForSection = childrenBySectionKey[moduleType] || []
 			const rowById = new Map<string, SectionMatrixRow>()
 			for (const frame of framesForSection) {
-				const label = String(frame.frameSpec?.displayName || frame.title || frame.frameSpec?.frameType || '').trim() || 'Unknown frame type'
+				const rawLabel = String(frame.frameSpec?.displayName || frame.title || frame.frameSpec?.frameType || '').trim()
+				const label = stripWarehouseSuffix(rawLabel) || 'Unknown frame type'
 				const rowId = `${moduleType}::${label.toLowerCase()}`
 				if (!rowById.has(rowId)) {
 					rowById.set(rowId, {
@@ -303,6 +306,12 @@ export default function WarehousePage() {
 			}
 		}
 
+		const horizontalMatrix = matrixByModuleType.get('LARGE_HORIZONTAL_SECTION')
+		if (horizontalMatrix) {
+			grouped.HORIZONTAL_HIVES = [horizontalMatrix] as any
+			matrixByModuleType.delete('LARGE_HORIZONTAL_SECTION')
+		}
+
 		grouped.HIVE_SECTIONS = Array.from(matrixByModuleType.values())
 
 		const partSingles: WarehouseInventoryItem[] = []
@@ -317,7 +326,7 @@ export default function WarehousePage() {
 				if (!partRowsByType.has(moduleType)) {
 					partRowsByType.set(moduleType, {
 						id: moduleType,
-						label: part.title,
+						label: stripWarehouseSuffix(part.title),
 						description: part.description,
 						itemsBySystemId: {},
 						iconItem: part,
@@ -458,7 +467,6 @@ export default function WarehousePage() {
 								{group.id === 'HIVE_SECTIONS' ? (
 									group.items.map((matrixItem: SectionMatrix) => {
 										const icon = matrixItem.iconItem ? getWarehouseItemIcon(matrixItem.iconItem, 14) : null
-										const isHorizontalIndependent = matrixItem.id === 'LARGE_HORIZONTAL_SECTION'
 										return (
 											<div key={matrixItem.id} className={styles.sectionMatrixCard}>
 												<div className={styles.row}>
@@ -512,7 +520,7 @@ export default function WarehousePage() {
 													) : null}
 												</div>
 
-												{!isHorizontalIndependent && (Object.keys(matrixItem.sectionItemBySystemId).length > 0 || matrixItem.rows.length > 0) ? (
+												{(Object.keys(matrixItem.sectionItemBySystemId).length > 0 || matrixItem.rows.length > 0) ? (
 													<div className={styles.matrixTable}>
 														<div
 															className={styles.matrixHeader}
@@ -715,62 +723,6 @@ export default function WarehousePage() {
 													</div>
 												) : null}
 
-												{isHorizontalIndependent && matrixItem.rows.length > 0 ? (
-													<div className={styles.groupItems}>
-														{matrixItem.rows.map((frameRow) => {
-															const rowItems = Object.values(frameRow.itemsBySystemId)
-															if (!rowItems.length) return null
-															const count = rowItems.reduce((sum, item) => sum + (counts[item.key] || 0), 0)
-															const iconItem = rowItems[0]
-																return (
-																	<div className={styles.row} key={frameRow.id}>
-																	<div className={styles.itemInfo}>
-																		<div className={styles.itemTitleRow}>
-																			<span className={styles.matrixItemIcon} aria-hidden="true">
-																				{getWarehouseItemIcon(iconItem, 15)}
-																			</span>
-																			<span className={styles.itemTitle}>{frameRow.label}</span>
-																		</div>
-																	</div>
-																	<div className={styles.controls}>
-																		<div className={styles.squareStack} title={`${Math.min(count, MAX_VISUAL_SQUARES)} / ${count}`}>
-																			{Array.from({
-																				length: Math.min(count, MAX_VISUAL_SQUARES),
-																			}).map((_, sqIndex) => (
-																				<span
-																					key={`${frameRow.id}-sq-${sqIndex}`}
-																					className={styles.square}
-																					style={getSquareStyle(sqIndex)}
-																				></span>
-																			))}
-																		</div>
-																		<Button
-																			size="small"
-																			title="Decrease"
-																			onClick={() => updateHorizontalFrameRowCount(rowItems, -1)}
-																			disabled={count <= 0}
-																		>
-																			-
-																		</Button>
-																		<input
-																			className={styles.countInput}
-																			type="text"
-																			value={String(count)}
-																			disabled
-																		/>
-																		<Button
-																			size="small"
-																			title="Increase"
-																			onClick={() => updateHorizontalFrameRowCount(rowItems, 1)}
-																		>
-																			+
-																		</Button>
-																	</div>
-																</div>
-															)
-														})}
-													</div>
-												) : null}
 											</div>
 										)
 									})
@@ -914,7 +866,7 @@ export default function WarehousePage() {
 																	</span>
 																)}
 																<Link to={itemPath} className={styles.itemTitleLink}>
-																	<span className={styles.itemTitle}>{rowItem.title}</span>
+																	<span className={styles.itemTitle}>{stripWarehouseSuffix(rowItem.title)}</span>
 																</Link>
 															</div>
 															<div className={styles.itemDescription}>{rowItem.description}</div>
@@ -969,7 +921,94 @@ export default function WarehousePage() {
 													</div>
 												)
 											})}
-									</>
+										</>
+								) : group.id === 'HORIZONTAL_HIVES' ? (
+									group.items.map((matrixItem: SectionMatrix) => (
+										<div key={matrixItem.id} className={styles.sectionMatrixCard}>
+											<div className={styles.row}>
+												<div className={styles.itemInfo}>
+													<div className={styles.itemTitleRow}>
+														{matrixItem.iconItem ? (
+															<span className={styles.itemIconBadge} aria-hidden="true">
+																<span className={styles.itemIcon}>{getWarehouseItemIcon(matrixItem.iconItem, 14)}</span>
+															</span>
+														) : null}
+														<span className={styles.itemTitle}>{matrixItem.label}</span>
+													</div>
+													<div className={styles.itemDescription}>{matrixItem.description}</div>
+												</div>
+											</div>
+											{matrixItem.rows.length > 0 ? (
+												<div className={styles.matrixTable}>
+													<div
+														className={styles.matrixHeader}
+														style={{ ['--system-column-count' as any]: '1' }}
+													>
+														<div className={styles.matrixLabel}><T>Item</T></div>
+														<div className={styles.matrixSystemHead}><T>Count</T></div>
+													</div>
+													{matrixItem.rows.map((frameRow) => {
+														const rowItems = Object.values(frameRow.itemsBySystemId)
+														if (!rowItems.length) return null
+														const count = rowItems.reduce((sum, item) => sum + (counts[item.key] || 0), 0)
+														const iconItem = rowItems[0]
+														return (
+															<div
+																key={frameRow.id}
+																className={styles.matrixRow}
+																style={{ ['--system-column-count' as any]: '1' }}
+															>
+																<div className={styles.matrixLabel}>
+																	<div className={styles.matrixLabelBlock}>
+																		<span className={styles.matrixLabelContent}>
+																			<span className={styles.matrixItemIcon} aria-hidden="true">
+																				{getWarehouseItemIcon(iconItem, 15)}
+																			</span>
+																			<span>{frameRow.label}</span>
+																		</span>
+																		<div className={styles.squareStack} title={`${Math.min(count, MAX_VISUAL_SQUARES)} / ${count}`}>
+																			{Array.from({
+																				length: Math.min(count, MAX_VISUAL_SQUARES),
+																			}).map((_, sqIndex) => (
+																				<span
+																					key={`${frameRow.id}-sq-${sqIndex}`}
+																					className={styles.square}
+																					style={getSquareStyle(sqIndex)}
+																				></span>
+																			))}
+																		</div>
+																	</div>
+																</div>
+																<div className={styles.matrixCell}>
+																	<Button
+																		size="small"
+																		title="Decrease"
+																		onClick={() => updateHorizontalFrameRowCount(rowItems, -1)}
+																		disabled={count <= 0}
+																	>
+																		-
+																	</Button>
+																	<input
+																		className={styles.countInput}
+																		type="text"
+																		value={String(count)}
+																		disabled
+																	/>
+																	<Button
+																		size="small"
+																		title="Increase"
+																		onClick={() => updateHorizontalFrameRowCount(rowItems, 1)}
+																	>
+																		+
+																	</Button>
+																</div>
+															</div>
+														)
+													})}
+												</div>
+											) : null}
+										</div>
+									))
 								) : (
 									group.items.map((rawItem) => {
 										const rowItem = rawItem as WarehouseInventoryItem
@@ -986,7 +1025,7 @@ export default function WarehousePage() {
 														</span>
 													)}
 													<Link to={itemPath} className={styles.itemTitleLink}>
-														<span className={styles.itemTitle}>{rowItem.title}</span>
+														<span className={styles.itemTitle}>{stripWarehouseSuffix(rowItem.title)}</span>
 													</Link>
 												</div>
 												<div className={styles.itemDescription}>{rowItem.description}</div>

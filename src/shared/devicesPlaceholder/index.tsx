@@ -12,7 +12,7 @@ export default function DevicesPlaceholder() {
 				color: 'gray',
 			}}
 		>
-			<img height="156" src={imageURL} alt="Devices illustration" />
+			<img height="156" src={imageURL} alt="Devices illustration" draggable={false} />
 			<p><T>No devices yet</T></p>
 		</div>
 	)

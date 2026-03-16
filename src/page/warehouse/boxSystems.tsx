@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import { gql, useMutation, useQuery } from '@/api'
 import Button from '@/shared/button'
@@ -34,26 +34,6 @@ const BOX_SYSTEMS_QUERY = gql`
 }
 `
 
-const CREATE_BOX_SYSTEM_MUTATION = gql`
-mutation createBoxSystem($name: String!) {
-	createBoxSystem(name: $name) {
-		id
-		name
-		isDefault
-	}
-}
-`
-
-const RENAME_BOX_SYSTEM_MUTATION = gql`
-mutation renameBoxSystem($id: ID!, $name: String!) {
-	renameBoxSystem(id: $id, name: $name) {
-		id
-		name
-		isDefault
-	}
-}
-`
-
 const DEACTIVATE_BOX_SYSTEM_MUTATION = gql`
 mutation deactivateBoxSystem($id: ID!, $replacementSystemId: ID) {
 	deactivateBoxSystem(id: $id, replacementSystemId: $replacementSystemId)
@@ -66,6 +46,7 @@ const SYSTEM_COLOR_PALETTE = [
 	{ accent: '#27ae60', soft: '#e9f8ef', border: '#9ad8b3' },
 	{ accent: '#eb5757', soft: '#ffecec', border: '#f1a7a7' },
 ]
+
 
 function getSystemPaletteByIndex(index = 0) {
 	return SYSTEM_COLOR_PALETTE[index % SYSTEM_COLOR_PALETTE.length]
@@ -82,15 +63,12 @@ function getSystemThemeStyle(fallbackIndex = 0) {
 }
 
 export default function WarehouseBoxSystemsPage() {
-	const [newSystemName, setNewSystemName] = useState('')
-	const [renameInputs, setRenameInputs] = useState<Record<string, string>>({})
-	const [editingSystemId, setEditingSystemId] = useState<string | null>(null)
+	const navigate = useNavigate()
 	const [archiveSystemId, setArchiveSystemId] = useState<string | null>(null)
 	const [archiveReplacementSystemId, setArchiveReplacementSystemId] = useState<string>('')
 	const [archiveValidationError, setArchiveValidationError] = useState<string | null>(null)
+	const [selectedSystemId, setSelectedSystemId] = useState<string | null>(null)
 	const { data, loading, error, reexecuteQuery } = useQuery(BOX_SYSTEMS_QUERY)
-	const [createBoxSystem, { error: createSystemError }] = useMutation(CREATE_BOX_SYSTEM_MUTATION)
-	const [renameBoxSystem, { error: renameSystemError }] = useMutation(RENAME_BOX_SYSTEM_MUTATION)
 	const [deactivateBoxSystem, { error: deactivateSystemError }] = useMutation(DEACTIVATE_BOX_SYSTEM_MUTATION)
 
 	const boxSystems: BoxSystem[] = useMemo(() => data?.boxSystems || [], [data?.boxSystems])
@@ -116,30 +94,15 @@ export default function WarehouseBoxSystemsPage() {
 	const hivesUsingArchivingSystem = archiveSystemId ? (activeHiveCountBySystemId[archiveSystemId] || 0) : 0
 
 	useEffect(() => {
-		setRenameInputs(
-			(boxSystems || []).reduce((acc: Record<string, string>, system: BoxSystem) => {
-				acc[system.id] = system.name
-				return acc
-			}, {})
-		)
-	}, [boxSystems])
+		if (boxSystems.length === 0) {
+			setSelectedSystemId(null)
+			return
+		}
 
-	async function onCreateSystem(event: any) {
-		event.preventDefault()
-		const trimmed = newSystemName.trim()
-		if (!trimmed) return
-		await createBoxSystem({ name: trimmed })
-		await reexecuteQuery({ requestPolicy: 'network-only' })
-		setNewSystemName('')
-	}
-
-	async function onRenameSystem(id: string) {
-		const name = (renameInputs[id] || '').trim()
-		if (!name) return
-		await renameBoxSystem({ id, name })
-		await reexecuteQuery({ requestPolicy: 'network-only' })
-		setEditingSystemId(null)
-	}
+		if (!selectedSystemId || !boxSystems.some((system: BoxSystem) => system.id === selectedSystemId)) {
+			setSelectedSystemId(boxSystems[0].id)
+		}
+	}, [boxSystems, selectedSystemId])
 
 	async function onDeactivateSystem(id: string) {
 		const activeHivesUsingSystem = activeHiveCountBySystemId[id] || 0
@@ -178,34 +141,113 @@ export default function WarehouseBoxSystemsPage() {
 		await reexecuteQuery({ requestPolicy: 'network-only' })
 	}
 
+	useEffect(() => {
+		const isTypingTarget = (target: EventTarget | null) => {
+			if (!target || !(target instanceof HTMLElement)) return false
+			const tagName = String(target.tagName || '').toLowerCase()
+			return (
+				target.isContentEditable ||
+				tagName === 'input' ||
+				tagName === 'textarea' ||
+				tagName === 'select'
+			)
+		}
+
+		const onKeyDown = async (event: KeyboardEvent) => {
+			if (isTypingTarget(event.target)) {
+				return
+			}
+
+			if (archiveSystemId) {
+				if (event.key === 'Escape') {
+					event.preventDefault()
+					event.stopPropagation()
+					closeArchiveModal()
+					return
+				}
+
+				if (event.key === 'Enter') {
+					event.preventDefault()
+					event.stopPropagation()
+					await onConfirmDeactivateSystem()
+				}
+				return
+			}
+
+			if (!boxSystems.length) return
+
+			if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+				event.preventDefault()
+				event.stopPropagation()
+
+				const currentIndex = boxSystems.findIndex((system: BoxSystem) => system.id === selectedSystemId)
+				if (currentIndex === -1) {
+					setSelectedSystemId(
+						event.key === 'ArrowUp'
+							? boxSystems[boxSystems.length - 1].id
+							: boxSystems[0].id
+					)
+					return
+				}
+
+				const nextIndex = event.key === 'ArrowUp'
+					? Math.max(0, currentIndex - 1)
+					: Math.min(boxSystems.length - 1, currentIndex + 1)
+				setSelectedSystemId(boxSystems[nextIndex].id)
+				return
+			}
+
+			if (event.key === 'Enter') {
+				if (!selectedSystemId) return
+				event.preventDefault()
+				event.stopPropagation()
+				navigate(`/warehouse/box-systems/${selectedSystemId}`, { replace: true })
+				return
+			}
+
+			if (event.key === 'Delete' || event.key === 'Del') {
+				if (!selectedSystemId) return
+				const selectedSystem = boxSystems.find((system: BoxSystem) => system.id === selectedSystemId)
+				if (!selectedSystem || selectedSystem.isDefault) return
+				event.preventDefault()
+				event.stopPropagation()
+				await onDeactivateSystem(selectedSystem.id)
+			}
+		}
+
+		document.addEventListener('keydown', onKeyDown, true)
+		return () => {
+			document.removeEventListener('keydown', onKeyDown, true)
+		}
+	}, [archiveSystemId, boxSystems, selectedSystemId, archiveReplacementSystemId, activeHiveCountBySystemId])
+
 	if (loading && !data?.boxSystems) return <Loader />
 
 	return (
 		<div className={styles.page}>
-			<Link to="/warehouse" className={styles.backLink}><T>Back to warehouse</T></Link>
-			<h2><T>Hive systems</T></h2>
+			<div className={styles.topBar}>
+				<h2><T>Hive systems</T></h2>
+				<div className={styles.topBarAction}>
+					<Button color="green" href="/warehouse/box-systems/create">
+						<T>Create hive system</T>
+					</Button>
+				</div>
+			</div>
 			<p className={styles.description}>
 				<T>Manage available hive systems used in warehouse and hive workflows.</T>
 			</p>
-			<ErrorMsg error={error || createSystemError || renameSystemError || deactivateSystemError} />
+			<ErrorMsg error={error || deactivateSystemError} />
 
 			<section className={styles.detailCard}>
-					<form onSubmit={onCreateSystem} className={styles.systemCreateForm}>
-						<input
-							className={`${styles.textInput} ${styles.systemNameInput}`}
-							type="text"
-							placeholder="Examples: National, Warre, Dadant"
-							value={newSystemName}
-							onInput={(event: any) => setNewSystemName(event.target.value)}
-						/>
-					<Button type="submit" color="green" disabled={!newSystemName.trim()}>
-						<T>Create system</T>
-					</Button>
-				</form>
-
 				<div className={styles.systemList}>
 					{boxSystems.map((system: BoxSystem, systemIndex: number) => (
-						<div key={system.id} className={styles.systemRow} style={getSystemThemeStyle(systemIndex)}>
+						<div
+							key={system.id}
+							className={`${styles.systemRow} ${selectedSystemId === system.id ? styles.systemRowSelected : ''}`}
+							style={getSystemThemeStyle(systemIndex)}
+							onMouseEnter={() => setSelectedSystemId(system.id)}
+							onClick={() => setSelectedSystemId(system.id)}
+						>
 							<div className={styles.systemRowMain}>
 								<span className={styles.systemColorDot} aria-hidden="true"></span>
 									<div className={styles.itemTitleRow}>
@@ -216,47 +258,18 @@ export default function WarehouseBoxSystemsPage() {
 										</span>
 									</div>
 								</div>
-							<div className={styles.systemRowActions}>
-								{editingSystemId === system.id ? (
-									<div className={styles.systemRenameRow}>
-										<input
-											className={styles.textInput}
-											type="text"
-											value={renameInputs[system.id] || ''}
-											onInput={(event: any) =>
-												setRenameInputs((prev) => ({ ...prev, [system.id]: event.target.value }))
-											}
-											onKeyDown={(event: any) => {
-												if (event.key === 'Enter') {
-													event.preventDefault()
-													onRenameSystem(system.id)
-												}
-												if (event.key === 'Escape') {
-													setEditingSystemId(null)
-												}
-											}}
-											autoFocus
-										/>
-										<Button size="small" onClick={() => onRenameSystem(system.id)}>
-											<T>Save</T>
-										</Button>
-										<Button size="small" color="white" onClick={() => setEditingSystemId(null)}>
-											<T>Cancel</T>
-										</Button>
-									</div>
-								) : (
+								<div className={styles.systemRowActions}>
 									<div className={styles.controls}>
-										<Button size="small" onClick={() => setEditingSystemId(system.id)}>
-											<T>Rename</T>
+										<Button size="small" href={`/warehouse/box-systems/${system.id}`}>
+											<T>Edit</T>
 										</Button>
 										<Button size="small" color="white" disabled={!!system.isDefault} onClick={() => onDeactivateSystem(system.id)}>
 											<T>Archive</T>
 										</Button>
 									</div>
-								)}
+								</div>
 							</div>
-						</div>
-					))}
+						))}
 				</div>
 
 				{hasOnlyDefaultSystem ? (

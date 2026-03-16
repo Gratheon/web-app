@@ -1,11 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useLiveQuery } from 'dexie-react-hooks'
 
 import { gql, useMutation, useQuery } from '@/api'
-import { getUser } from '@/models/user'
-import { SUPPORTED_LANGUAGES } from '@/config/languages'
-import RefreshIcon from '@/icons/RefreshIcon'
 import Button from '@/shared/button'
 import ErrorMsg from '@/shared/messageError'
 import Loader from '@/shared/loader'
@@ -13,8 +9,6 @@ import Modal from '@/shared/modal'
 import T from '@/shared/translate'
 import queenImageURL from '@/assets/queen.webp'
 import { getQueenColorFromYear } from '@/page/hiveEdit/hiveTopInfo/queenColor/utils'
-import QueenColorPicker from '@/shared/queenColorPicker'
-import inputStyles from '@/shared/input/styles.module.less'
 import styles from './queens.module.less'
 
 type WarehouseQueen = {
@@ -31,12 +25,6 @@ type WarehouseQueen = {
 
 type SortColumn = 'NAME' | 'YEAR' | 'RACE' | 'COLOR'
 type SortOrder = 'ASC' | 'DESC'
-
-const RANDOM_QUEEN_NAME_QUERY = gql`
-query RandomHiveName($language: String) {
-	randomHiveName(language: $language)
-}
-`
 
 const WAREHOUSE_QUEENS_QUERY = gql`
 {
@@ -66,65 +54,15 @@ mutation deleteWarehouseQueen($familyId: ID!) {
 }
 `
 
-const ADD_WAREHOUSE_QUEEN_MUTATION = gql`
-mutation addWarehouseQueen($queen: FamilyInput!) {
-	addWarehouseQueen(queen: $queen) {
-		id
-		name
-		race
-		added
-		color
-	}
-}
-`
-
 export default function WarehouseQueensPage() {
-	const user = useLiveQuery(() => getUser(), [], null)
-	const [lang, setLang] = useState('en')
 	const { data, loading, error, reexecuteQuery } = useQuery(WAREHOUSE_QUEENS_QUERY)
-	const {
-		data: randomNameData,
-		loading: randomNameLoading,
-		reexecuteQuery: reexecuteRandomNameQuery,
-	} = useQuery(RANDOM_QUEEN_NAME_QUERY, { variables: { language: lang } })
 	const [deleteWarehouseQueen] = useMutation(DELETE_WAREHOUSE_QUEEN_MUTATION)
-	const [addWarehouseQueen] = useMutation(ADD_WAREHOUSE_QUEEN_MUTATION)
 	const [deletingId, setDeletingId] = useState<string | null>(null)
-	const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-	const [isCreating, setIsCreating] = useState(false)
-	const [createError, setCreateError] = useState<string | null>(null)
-	const [newQueenName, setNewQueenName] = useState('')
-	const [newQueenRace, setNewQueenRace] = useState('')
-	const [newQueenYear, setNewQueenYear] = useState(new Date().getFullYear().toString())
-	const [newQueenColor, setNewQueenColor] = useState('')
 	const [sortBy, setSortBy] = useState<SortColumn>('YEAR')
 	const [sortOrder, setSortOrder] = useState<SortOrder>('DESC')
 	const [selectedQueenId, setSelectedQueenId] = useState<string | null>(null)
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 	const [queenToDelete, setQueenToDelete] = useState<WarehouseQueen | null>(null)
-
-	useEffect(() => {
-		let currentLang = 'en'
-		if (user?.lang) {
-			currentLang = user.lang
-		} else if (user === null) {
-			const browserLang = navigator.language.substring(0, 2) as any
-			if (SUPPORTED_LANGUAGES.includes(browserLang)) {
-				currentLang = browserLang
-			}
-		}
-		setLang(currentLang)
-	}, [user])
-
-	useEffect(() => {
-		if (isCreateModalOpen && randomNameData?.randomHiveName && !randomNameLoading) {
-			setNewQueenName(randomNameData.randomHiveName)
-		}
-	}, [isCreateModalOpen, randomNameData, randomNameLoading])
-
-	const handleRefreshName = useCallback(() => {
-		reexecuteRandomNameQuery({ requestPolicy: 'network-only' })
-	}, [reexecuteRandomNameQuery])
 
 	const queens: WarehouseQueen[] = data?.warehouseQueens || []
 	const hiveToApiary = useMemo(() => {
@@ -170,44 +108,6 @@ export default function WarehouseQueensPage() {
 		if (result?.data?.deleteWarehouseQueen) {
 			reexecuteQuery({ requestPolicy: 'network-only' })
 		}
-	}
-
-	function openCreateModal() {
-		setCreateError(null)
-		handleRefreshName()
-		setNewQueenName('')
-		setNewQueenRace('')
-		setNewQueenYear(new Date().getFullYear().toString())
-		setNewQueenColor('')
-		setIsCreateModalOpen(true)
-	}
-
-	async function onCreateQueen() {
-		setCreateError(null)
-		const added = newQueenYear.trim()
-		if (!/^\d{4}$/.test(added)) {
-			setCreateError('Please provide a valid year (4 digits).')
-			return
-		}
-
-		setIsCreating(true)
-		const result = await addWarehouseQueen({
-			queen: {
-				name: newQueenName.trim() || null,
-				race: newQueenRace.trim() || null,
-				added,
-				color: newQueenColor || null,
-			},
-		})
-		setIsCreating(false)
-
-		if (result?.data?.addWarehouseQueen?.id) {
-			setIsCreateModalOpen(false)
-			reexecuteQuery({ requestPolicy: 'network-only' })
-			return
-		}
-
-		setCreateError('Failed to add queen to warehouse.')
 	}
 
 	const sortedQueens = useMemo(() => {
@@ -308,10 +208,6 @@ export default function WarehouseQueensPage() {
 				return
 			}
 
-			if (isCreateModalOpen) {
-				return
-			}
-
 			if (!sortedQueens.length) {
 				return
 			}
@@ -351,7 +247,7 @@ export default function WarehouseQueensPage() {
 		return () => {
 			document.removeEventListener('keydown', onKeyDown, true)
 		}
-	}, [deletingId, isCreateModalOpen, isDeleteModalOpen, selectedQueenId, sortedQueens, queenToDelete])
+	}, [deletingId, isDeleteModalOpen, selectedQueenId, sortedQueens])
 
 	if (loading) {
 		return <Loader />
@@ -368,7 +264,7 @@ export default function WarehouseQueensPage() {
 		<div className={styles.page}>
 			<div className={styles.headerRow}>
 				<h2><T>Warehouse Queens</T></h2>
-				<Button color="green" size="small" onClick={openCreateModal}>
+				<Button color="green" href="/warehouse/queens/create">
 					<T>Add Queen</T>
 				</Button>
 			</div>
@@ -484,76 +380,6 @@ export default function WarehouseQueensPage() {
 				</Modal>
 			) : null}
 
-			{isCreateModalOpen ? (
-				<Modal title={<T>Add Queen</T>} onClose={() => setIsCreateModalOpen(false)}>
-					<div className={styles.modalContent}>
-						<ErrorMsg error={createError} />
-
-						<div className={styles.nameInputWrapper}>
-							<div style={{ flex: 1 }}>
-								<label className={inputStyles.label}><T>Queen Name</T></label>
-								<input
-									className={inputStyles.input}
-									type="text"
-									value={newQueenName}
-									onChange={(e: any) => setNewQueenName(e.target.value)}
-									placeholder="Enter queen name"
-									autoFocus
-								/>
-							</div>
-							<Button
-								type="button"
-								onClick={handleRefreshName}
-								disabled={randomNameLoading}
-								style={{
-									marginTop: '24px',
-									height: '40px',
-									minWidth: '40px',
-									padding: '0 12px',
-								}}
-								title="Get new name suggestion"
-							>
-								<RefreshIcon />
-							</Button>
-						</div>
-
-						<label className={inputStyles.label}><T>Race</T></label>
-						<input
-							className={inputStyles.input}
-							type="text"
-							value={newQueenRace}
-							onChange={(e: any) => setNewQueenRace(e.target.value)}
-							placeholder="e.g. Carniolan, Italian, etc."
-						/>
-
-						<label className={inputStyles.label}><T>Year</T></label>
-						<input
-							className={inputStyles.input}
-							type="text"
-							maxLength={4}
-							value={newQueenYear}
-							onChange={(e: any) => setNewQueenYear(e.target.value)}
-							placeholder="YYYY"
-						/>
-
-						<label className={inputStyles.label}><T>Color (optional)</T></label>
-						<QueenColorPicker
-							year={newQueenYear}
-							color={newQueenColor || null}
-							onColorChange={(value: string) => setNewQueenColor(value)}
-						/>
-
-						<div className={styles.modalActions}>
-							<Button size="small" onClick={() => setIsCreateModalOpen(false)}>
-								<T>Cancel</T>
-							</Button>
-							<Button size="small" color="green" onClick={onCreateQueen} loading={isCreating}>
-								<T>Add to Warehouse</T>
-							</Button>
-						</div>
-					</div>
-				</Modal>
-			) : null}
 			</div>
 	)
 }

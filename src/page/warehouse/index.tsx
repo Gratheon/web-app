@@ -33,6 +33,13 @@ type BoxSystem = {
 	id: string
 	name: string
 	isDefault: boolean
+	boxProfileSourceSystemId?: string | null
+}
+
+type BoxSystemFrameSetting = {
+	systemId: string
+	boxType: 'DEEP' | 'SUPER' | 'LARGE_HORIZONTAL_SECTION'
+	frameSourceSystemId?: string | null
 }
 
 type SectionMatrixRow = {
@@ -90,6 +97,12 @@ const WAREHOUSE_QUERY = gql`
 		id
 		name
 		isDefault
+		boxProfileSourceSystemId
+	}
+	boxSystemFrameSettings {
+		systemId
+		boxType
+		frameSourceSystemId
 	}
 }
 `
@@ -199,6 +212,38 @@ export default function WarehousePage() {
 
 	const items: WarehouseInventoryItem[] = useMemo(() => data?.warehouseInventory || [], [data?.warehouseInventory])
 	const boxSystems: BoxSystem[] = useMemo(() => data?.boxSystems || [], [data?.boxSystems])
+	const linkedBoxSystemIds = useMemo(() => {
+		return new Set(
+			boxSystems
+				.filter((system) => !!system.boxProfileSourceSystemId)
+				.map((system) => String(system.id))
+		)
+	}, [boxSystems])
+	const boxSystemFrameSettings: BoxSystemFrameSetting[] = useMemo(() => data?.boxSystemFrameSettings || [], [data?.boxSystemFrameSettings])
+	const frameSourceByTargetAndModuleType = useMemo(() => {
+		return (boxSystemFrameSettings || []).reduce<Record<string, string>>((acc, setting) => {
+			const moduleType =
+				setting.boxType === 'DEEP' ? 'DEEP'
+				: setting.boxType === 'SUPER' ? 'SUPER'
+				: setting.boxType === 'LARGE_HORIZONTAL_SECTION' ? 'LARGE_HORIZONTAL_SECTION'
+				: ''
+			if (!moduleType) return acc
+			acc[`${setting.systemId}:${moduleType}`] = String(setting.frameSourceSystemId || setting.systemId)
+			return acc
+		}, {})
+	}, [boxSystemFrameSettings])
+
+	function resolveEffectiveFrameSourceSystemId(targetSystemId: string, moduleType: string): string {
+		let current = String(targetSystemId || '')
+		const visited = new Set<string>()
+		while (current && !visited.has(current)) {
+			visited.add(current)
+			const mapped = frameSourceByTargetAndModuleType[`${current}:${moduleType}`]
+			if (!mapped || mapped === current) return current
+			current = mapped
+		}
+		return String(targetSystemId || '')
+	}
 
 	useEffect(() => {
 		const nextCounts = mapCounts(items)
@@ -295,11 +340,11 @@ export default function WarehousePage() {
 						itemsBySystemId: {},
 					})
 				}
-				const systemId = String(frame.frameSpec?.systemId || '')
-				if (systemId) {
-					rowById.get(rowId)!.itemsBySystemId[systemId] = frame
+				const sourceSystemId = String(frame.frameSpec?.systemId || '')
+					if (sourceSystemId && boxSystems.some((system) => system.id === sourceSystemId)) {
+						rowById.get(rowId)!.itemsBySystemId[sourceSystemId] = frame
+					}
 				}
-			}
 			const matrix = matrixByModuleType.get(moduleType)
 			if (matrix) {
 				matrix.rows = Array.from(rowById.values()).sort((a, b) => a.label.localeCompare(b.label))
@@ -347,7 +392,7 @@ export default function WarehousePage() {
 				title: GROUP_LABELS[groupKey] || groupKey,
 				items: grouped[groupKey] as Array<WarehouseInventoryItem | SectionMatrix | PartMatrixRow>,
 			}))
-	}, [items])
+	}, [items, boxSystems, boxSystemFrameSettings])
 
 	async function saveCount(itemKey: string, nextValue: number) {
 		const previousValue = counts[itemKey] || 0
@@ -576,7 +621,7 @@ export default function WarehousePage() {
 																	</div>
 																	{boxSystems.map((system, systemIndex) => {
 																	const sectionItem = matrixItem.sectionItemBySystemId[system.id]
-																	if (!sectionItem) {
+																	if (!sectionItem || linkedBoxSystemIds.has(system.id)) {
 																		return <div key={`section-count-${matrixItem.id}-${system.id}`} className={styles.matrixEmpty}>-</div>
 																	}
 																	const count = counts[sectionItem.key] || 0
@@ -668,7 +713,9 @@ export default function WarehousePage() {
 																</div>
 																	{boxSystems.map((system, systemIndex) => {
 																	const rowItem = frameRow.itemsBySystemId[system.id]
-																if (!rowItem) {
+																	const frameModuleType = String(frameRow.id || '').split('::')[0]
+																	const effectiveFrameSourceSystemId = resolveEffectiveFrameSourceSystemId(system.id, frameModuleType)
+																if (!rowItem || effectiveFrameSourceSystemId !== system.id) {
 																	return (
 																		<div key={`${frameRow.id}-${system.id}`} className={styles.matrixEmpty}>
 																			-
@@ -794,7 +841,7 @@ export default function WarehousePage() {
 																		</div>
 																		{boxSystems.map((system, systemIndex) => {
 																			const rowItem = row.itemsBySystemId[system.id]
-																		if (!rowItem) {
+																		if (!rowItem || linkedBoxSystemIds.has(system.id)) {
 																			return (
 																				<div key={`${row.id}-${system.id}`} className={styles.matrixEmpty}>-</div>
 																			)

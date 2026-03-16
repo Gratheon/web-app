@@ -20,6 +20,18 @@
 	max-width: 900px;
 }
 
+.topBar {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	gap: 12px;
+}
+
+.topBarAction {
+	flex-shrink: 0;
+	margin-top: 4px;
+}
+
 .topSetting {
 	margin: 8px 0 14px;
 }
@@ -67,6 +79,19 @@
 
 .switchInput:checked + .switchTrack .switchThumb {
 	left: 20px;
+}
+
+.switchInput:focus-visible + .switchTrack {
+	outline: 2px solid #2f80ed;
+	outline-offset: 2px;
+}
+
+.switchInput:disabled + .switchTrack {
+	opacity: 0.55;
+}
+
+.switchInput:disabled ~ .switchLabel {
+	opacity: 0.7;
 }
 
 .switchLabel {
@@ -266,6 +291,11 @@
 	grid-template-columns: minmax(180px, 1fr) auto;
 	gap: 10px;
 	align-items: center;
+	cursor: pointer;
+}
+
+.systemRowSelected {
+	background: #f3f8ff;
 }
 
 .systemRowMain {
@@ -509,6 +539,152 @@
 	margin-bottom: 10px;
 }
 
+.formContainer {
+	background: #fff;
+	border-radius: 8px;
+	padding: 14px;
+}
+
+.formField {
+	margin-bottom: 15px;
+	display: flex !important;
+	flex-direction: column;
+}
+
+.formLabel {
+	display: block !important;
+	margin-bottom: 5px;
+	padding: 0 !important;
+	font-size: 13px;
+	font-weight: 600;
+	color: #444;
+}
+
+.fieldControl {
+	display: flex !important;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.radioGroup {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.radioOption {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	padding: 8px 10px;
+	border: 1px solid #d5dbe3;
+	border-radius: 8px;
+	background: #fff;
+	color: #2f3640;
+	cursor: pointer;
+	transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.radioOption:hover {
+	border-color: #b8c6d4;
+	background: #f8fbff;
+}
+
+.radioOptionActive {
+	border-color: #2f80ed;
+	background: #ecf5ff;
+}
+
+.radioInput {
+	position: absolute;
+	opacity: 0;
+	width: 1px;
+	height: 1px;
+	pointer-events: none;
+}
+
+.radioMark {
+	position: relative;
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	border: 2px solid #9ca8b6;
+	background: #fff;
+	box-sizing: border-box;
+	flex-shrink: 0;
+}
+
+.radioInput:checked + .radioMark {
+	border-color: #2f80ed;
+}
+
+.radioInput:checked + .radioMark::after {
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: #2f80ed;
+}
+
+.radioInput:focus-visible + .radioMark {
+	outline: 2px solid #2f80ed;
+	outline-offset: 2px;
+}
+
+.radioInput:disabled + .radioMark {
+	opacity: 0.55;
+}
+
+.radioInput:disabled ~ .radioText {
+	opacity: 0.65;
+}
+
+.radioText {
+	font-size: 13px;
+	line-height: 1.35;
+}
+
+.flexInput {
+	flex: 1;
+	display: block !important;
+	width: 100%;
+}
+
+.nameInput {
+	max-width: 420px;
+}
+
+.actions {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+}
+
+@media (min-width: 768px) {
+	.formField {
+		flex-direction: row;
+		align-items: center;
+	}
+
+	.formLabel {
+		margin-bottom: 0;
+		margin-right: 10px;
+		min-width: 140px;
+		text-align: right;
+		flex-shrink: 0;
+	}
+
+	.fieldControl {
+		flex: 1;
+		min-width: 0;
+	}
+}
+
 .detailPanel {
 	grid-column: 1 / -1;
 	border-top: 1px solid #efefef;
@@ -615,6 +791,78 @@
 	flex-wrap: wrap;
 }
 
+@media (max-width: 860px) {
+	.topBar {
+		flex-direction: column;
+	}
+
+	.topBarAction {
+		margin-top: 0;
+	}
+}
+
+.frameConfigTable {
+	border: 1px solid #ececf2;
+	border-radius: 8px;
+	overflow: auto;
+	margin-top: 10px;
+}
+
+.frameConfigHeaderRow,
+.frameConfigRow {
+	display: grid;
+	grid-template-columns: minmax(180px, 1.4fr) repeat(3, minmax(170px, 1fr));
+	border-bottom: 1px solid #ececf2;
+}
+
+.frameConfigHeaderRow {
+	background: #f7f8fb;
+	font-size: 12px;
+	font-weight: 600;
+	color: #4a5260;
+}
+
+.frameConfigRow:last-child {
+	border-bottom: 0;
+}
+
+.frameConfigHeaderCell {
+	padding: 8px 10px;
+	border-left: 1px solid #ececf2;
+}
+
+.frameConfigHeaderCell:first-child {
+	border-left: 0;
+}
+
+.frameConfigSystemCell {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 10px;
+}
+
+.frameConfigValueCell {
+	padding: 8px;
+	border-left: 1px solid #ececf2;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.profileField {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin-top: 10px;
+	max-width: 420px;
+}
+
+.profileHint {
+	font-size: 12px;
+	color: #5f6773;
+}
+
 @media (max-width: 720px) {
 	.page {
 		padding: 0 10px;
@@ -666,6 +914,11 @@
 	.matrixHeader,
 	.matrixRow {
 		grid-template-columns: minmax(220px, 1.5fr) repeat(var(--system-column-count, 1), minmax(130px, 1fr));
+	}
+
+	.frameConfigHeaderRow,
+	.frameConfigRow {
+		grid-template-columns: minmax(180px, 1.5fr) repeat(3, minmax(140px, 1fr));
 	}
 
 	.matrixLabel {

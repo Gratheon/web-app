@@ -872,6 +872,108 @@
 	color: #5f6773;
 }
 
+.dimensionsHint {
+	font-size: 12px;
+	color: #5f6773;
+}
+
+.dimensionSections {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.dimensionTypeSection {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.dimensionTypeTitle {
+	font-size: 13px;
+	font-weight: 700;
+	color: #2f3640;
+}
+
+.dimensionTable {
+	border: 1px solid #e5eaf1;
+	border-radius: 8px;
+	overflow: auto;
+}
+
+.dimensionHeaderRow,
+.dimensionRow {
+	display: grid;
+	grid-template-columns: minmax(140px, 1fr) repeat(3, minmax(110px, 1fr));
+	border-bottom: 1px solid #e5eaf1;
+}
+
+.dimensionHeaderRow {
+	background: #f7f8fb;
+}
+
+.dimensionRow:last-child {
+	border-bottom: 0;
+}
+
+.dimensionHeaderCell {
+	padding: 8px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #4a5260;
+	border-left: 1px solid #e5eaf1;
+}
+
+.dimensionHeaderCell:first-child {
+	border-left: 0;
+}
+
+.dimensionLabelCell {
+	padding: 8px;
+	display: flex;
+	align-items: center;
+	font-size: 13px;
+	font-weight: 600;
+	color: #2f3640;
+}
+
+.dimensionInput {
+	width: 100%;
+	min-width: 0;
+	border: 1px solid #d8d8d8;
+	border-left: 1px solid #e5eaf1;
+	border-radius: 0;
+	padding: 8px;
+	height: 38px;
+	box-sizing: border-box;
+	font-size: 13px;
+}
+
+.dimensionNotApplicable {
+	border-left: 1px solid #e5eaf1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #9aa1ae;
+	font-weight: 600;
+	font-size: 13px;
+}
+
+.dimensionInput:focus {
+	outline: 2px solid #2f80ed;
+	outline-offset: -2px;
+	position: relative;
+	z-index: 1;
+}
+
+.dimensionInputInvalid {
+	border-color: #d93025;
+}
+
+.dimensionInputInvalid:focus {
+	outline-color: #d93025;
+}
+
 @media (max-width: 720px) {
 	.page {
 		padding: 0 10px;
@@ -928,6 +1030,11 @@
 	.frameConfigHeaderRow,
 	.frameConfigRow {
 		grid-template-columns: minmax(180px, 1.5fr) repeat(3, minmax(140px, 1fr));
+	}
+
+	.dimensionHeaderRow,
+	.dimensionRow {
+		grid-template-columns: minmax(120px, 1fr) repeat(3, minmax(100px, 1fr));
 	}
 
 	.matrixLabel {

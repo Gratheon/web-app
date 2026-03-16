@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router'
 import { useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 
-import { gql, useMutation, useQuery } from '@/api'
+import { apiClient, gql, useMutation, useQuery } from '@/api'
 import { getUser } from '@/models/user'
 import { SUPPORTED_LANGUAGES } from '@/config/languages'
 
@@ -15,11 +15,13 @@ import T from '@/shared/translate'
 import RefreshIcon from '@/icons/RefreshIcon' // Import the new icon component
 import BillingUpgradeNotice from '@/shared/billingUpgradeNotice'
 import { getHiveLimitForBillingTier } from '@/shared/billingTier'
+import MessageSuccess from '@/shared/messageSuccess'
 
 import { Box, boxTypes } from '@/models/boxes'
 import PagePaddedCentered from '@/shared/pagePaddedCentered'
 import QueenColor from '@/page/hiveEdit/hiveTopInfo/queenColor'
 import { getQueenColorFromYear } from '@/page/hiveEdit/hiveTopInfo/queenColor/utils'
+import { useWarehouseAutoAdjust } from '@/hooks/useWarehouseAutoAdjust'
 
 import styles from './styles.module.less'
 
@@ -107,6 +109,83 @@ const BOX_SYSTEM_COLORS = [
 	{ accent: '#eb5757' },
 ]
 
+const WAREHOUSE_INVENTORY_QUERY = gql`
+	query HiveCreateWarehouseInventory {
+		warehouseInventory {
+			key
+			kind
+			count
+			moduleType
+			frameSpec {
+				frameType
+				systemId
+				code
+			}
+		}
+	}
+`
+
+const HIVE_CREATE_DEDUCTION_CONTEXT_QUERY = gql`
+	query HiveCreateDeductionContext($id: ID!) {
+		hive(id: $id) {
+			id
+			boxes {
+				id
+				type
+				frames {
+					id
+					type
+				}
+			}
+		}
+	}
+`
+
+const SET_WAREHOUSE_INVENTORY_COUNT_MUTATION = gql`
+mutation setWarehouseInventoryCount($itemKey: String!, $count: Int!) {
+	setWarehouseInventoryCount(itemKey: $itemKey, count: $count) {
+		key
+		count
+	}
+}
+`
+
+const WAREHOUSE_BY_BOX_TYPE = {
+	[boxTypes.DEEP]: 'DEEP',
+	[boxTypes.SUPER]: 'SUPER',
+	[boxTypes.LARGE_HORIZONTAL_SECTION]: 'LARGE_HORIZONTAL_SECTION',
+	[boxTypes.ROOF]: 'ROOF',
+	[boxTypes.BOTTOM]: 'BOTTOM',
+	[boxTypes.QUEEN_EXCLUDER]: 'QUEEN_EXCLUDER',
+	[boxTypes.HORIZONTAL_FEEDER]: 'HORIZONTAL_FEEDER',
+}
+
+function getSystemIdFromBoxInventoryKey(itemKey?: string): string | undefined {
+	if (!itemKey) return undefined
+	const match = String(itemKey).match(/^BOX:[^:]+:SYSTEM:(\d+)$/)
+	return match?.[1]
+}
+
+function getFrameModuleTypeByCode(frameCode?: string | null): string | null {
+	const code = String(frameCode || '')
+	if (code.endsWith('_DEEP')) return 'DEEP'
+	if (code.endsWith('_SUPER')) return 'SUPER'
+	if (code.endsWith('_HORIZONTAL')) return 'LARGE_HORIZONTAL_SECTION'
+	return null
+}
+
+function getModuleInventoryKeys(moduleType: string, warehouseInventory: any[], preferredSystemId?: string) {
+	const candidates = (warehouseInventory || []).filter((item: any) => {
+		return item?.kind === 'BOX_MODULE' && String(item?.moduleType || '') === moduleType
+	})
+	if (!preferredSystemId) {
+		return candidates.map((item: any) => String(item.key))
+	}
+	const preferred = candidates.filter((item: any) => getSystemIdFromBoxInventoryKey(item?.key) === preferredSystemId)
+	const fallback = candidates.filter((item: any) => getSystemIdFromBoxInventoryKey(item?.key) !== preferredSystemId)
+	return [...preferred, ...fallback].map((item: any) => String(item.key))
+}
+
 function createDefaultBoxes(hiveType: string, boxCount: number) {
 	const primaryBoxType = hiveType === 'horizontal'
 		? boxTypes.LARGE_HORIZONTAL_SECTION
@@ -151,13 +230,18 @@ export default function HiveCreateForm() {
     let user = useLiveQuery(() => getUser(), [], null)
     const { data: hiveLimitData } = useQuery(HIVE_CREATION_LIMIT_QUERY, { requestPolicy: 'network-only' })
     const { data: boxSystemsData } = useQuery(BOX_SYSTEMS_QUERY)
+    const { data: warehouseInventoryData } = useQuery(WAREHOUSE_INVENTORY_QUERY)
     const [boxSystemId, setBoxSystemId] = useState<string | undefined>(undefined)
     const [isBoxSystemOpen, setIsBoxSystemOpen] = useState(false)
+    const { decreaseWarehouseForType, decreaseWarehouseForFrameBy } = useWarehouseAutoAdjust()
+    const [setWarehouseInventoryCount] = useMutation(SET_WAREHOUSE_INVENTORY_COUNT_MUTATION)
     const boxSystemPickerRef = useRef<HTMLDivElement | null>(null)
     const boxSystems = boxSystemsData?.boxSystems || []
+    const warehouseInventory = warehouseInventoryData?.warehouseInventory || []
     const selectedBoxSystem = boxSystems.find((system: any) => system.id === boxSystemId)
         || boxSystems.find((system: any) => system.isDefault)
         || boxSystems[0]
+    const selectedSystemId = hiveType === 'vertical' ? String(selectedBoxSystem?.id || '') : ''
 
     useEffect(() => {
         if (hiveType !== 'vertical') return
@@ -234,6 +318,62 @@ export default function HiveCreateForm() {
     const isHiveLimitReachedByCount = activeHiveCount >= hiveLimit
     const isHiveLimitReached = isHiveLimitReachedByCount || hasHiveLimitBackendError
     const displayedHiveCount = hasHiveLimitBackendError ? hiveLimit : activeHiveCount
+    const requiredModuleType = hiveType === 'horizontal' ? 'LARGE_HORIZONTAL_SECTION' : 'DEEP'
+    const requiredSectionCount = Math.max(0, Math.floor(Number(boxCount) || 0))
+    const requiredFrameCount = Math.max(0, Math.floor(Number(boxCount) || 0)) * Math.max(0, Math.floor(Number(frameCount) || 0))
+
+    const warehouseWarning = useMemo(() => {
+        if (!warehouseInventory?.length || requiredSectionCount <= 0) return null
+
+        const sectionItems = warehouseInventory.filter((item: any) => {
+            return item?.kind === 'BOX_MODULE' && String(item?.moduleType || '') === requiredModuleType
+        })
+        const directSectionItem = sectionItems.find((item: any) => getSystemIdFromBoxInventoryKey(item?.key) === selectedSystemId)
+        const directSectionCount = Math.max(0, Number(directSectionItem?.count) || 0)
+        const totalSectionCount = sectionItems.reduce((sum: number, item: any) => sum + Math.max(0, Number(item?.count) || 0), 0)
+
+        const frameItems = warehouseInventory.filter((item: any) => {
+            if (item?.kind !== 'FRAME_SPEC') return false
+            return getFrameModuleTypeByCode(item?.frameSpec?.code) === requiredModuleType
+        })
+        const directFrameItems = frameItems.filter((item: any) => String(item?.frameSpec?.systemId || '') === selectedSystemId)
+        const directFrameCount = directFrameItems.reduce((sum: number, item: any) => sum + Math.max(0, Number(item?.count) || 0), 0)
+        const totalFrameCount = frameItems.reduce((sum: number, item: any) => sum + Math.max(0, Number(item?.count) || 0), 0)
+
+        const sectionShortageCertain = selectedSystemId
+            ? directSectionCount < requiredSectionCount
+            : totalSectionCount < requiredSectionCount
+        const sectionMissing = selectedSystemId
+            ? Math.max(0, requiredSectionCount - directSectionCount)
+            : Math.max(0, requiredSectionCount - totalSectionCount)
+        const sectionRisk = !!selectedSystemId && !directSectionItem && totalSectionCount >= requiredSectionCount
+
+        const frameShortageCertain = requiredFrameCount > 0 && (selectedSystemId
+            ? directFrameCount < requiredFrameCount
+            : totalFrameCount < requiredFrameCount)
+        const frameMissing = requiredFrameCount > 0
+            ? (selectedSystemId
+                ? Math.max(0, requiredFrameCount - directFrameCount)
+                : Math.max(0, requiredFrameCount - totalFrameCount))
+            : 0
+        const frameRisk = requiredFrameCount > 0 && !!selectedSystemId && directFrameItems.length === 0 && totalFrameCount >= requiredFrameCount
+
+        if (!sectionShortageCertain && !sectionRisk && !frameShortageCertain && !frameRisk) return null
+
+        const parts: string[] = []
+        if (sectionShortageCertain && sectionMissing > 0) {
+            parts.push(`certain shortage: sections missing ${sectionMissing}`)
+        } else if (sectionRisk) {
+            parts.push('risk: section stock for this box system is uncertain')
+        }
+        if (frameShortageCertain && frameMissing > 0) {
+            parts.push(`certain shortage: frames missing ${frameMissing}`)
+        } else if (frameRisk) {
+            parts.push('risk: frame stock for this box system is uncertain')
+        }
+
+        return parts.length ? parts.join(' • ') : null
+    }, [warehouseInventory, requiredModuleType, selectedSystemId, requiredSectionCount, requiredFrameCount])
 
     let [addHive] = useMutation(
         gql`
@@ -271,6 +411,73 @@ export default function HiveCreateForm() {
 		`,
         { errorPolicy: 'all' }
     )
+
+    async function applyWarehouseDeductionsForCreatedHive(hiveId: string) {
+        if (!hiveId) return
+
+        try {
+            const result = await apiClient
+                .query(HIVE_CREATE_DEDUCTION_CONTEXT_QUERY, { id: String(hiveId) }, { requestPolicy: 'network-only' })
+                .toPromise()
+
+            const createdBoxes = result?.data?.hive?.boxes || []
+            const inventoryCountsByKey = (warehouseInventory || []).reduce((acc: Record<string, number>, item: any) => {
+                const key = String(item?.key || '')
+                if (!key) return acc
+                acc[key] = Math.max(0, Number(item?.count) || 0)
+                return acc
+            }, {})
+
+            async function decreaseWarehouseModuleBy(moduleType: string, amount = 1) {
+                let remaining = Math.max(0, Math.floor(amount))
+                if (!moduleType || remaining <= 0) return
+
+                const candidateKeys = getModuleInventoryKeys(moduleType, warehouseInventory, selectedSystemId)
+                if (!candidateKeys.length) {
+                    await decreaseWarehouseForType(moduleType)
+                    return
+                }
+                for (const key of candidateKeys) {
+                    if (remaining <= 0) break
+                    const available = Math.max(0, Number(inventoryCountsByKey[key]) || 0)
+                    if (available <= 0) continue
+                    const take = Math.min(available, remaining)
+                    const nextValue = Math.max(0, available - take)
+
+                    const updateResult = await setWarehouseInventoryCount({
+                        itemKey: key,
+                        count: nextValue,
+                    })
+                    const confirmed = Math.max(
+                        0,
+                        Number(updateResult?.data?.setWarehouseInventoryCount?.count ?? nextValue) || 0
+                    )
+                    inventoryCountsByKey[key] = confirmed
+                    remaining -= take
+                }
+            }
+
+            for (const createdBox of createdBoxes) {
+                const moduleType = WAREHOUSE_BY_BOX_TYPE[createdBox?.type]
+                if (moduleType) {
+                    await decreaseWarehouseModuleBy(moduleType, 1)
+                }
+
+                const frameTypeCounts = (createdBox?.frames || []).reduce((acc: Record<string, number>, frame: any) => {
+                    const frameType = String(frame?.type || '')
+                    if (!frameType) return acc
+                    acc[frameType] = (acc[frameType] || 0) + 1
+                    return acc
+                }, {})
+
+                for (const [frameType, count] of Object.entries(frameTypeCounts)) {
+                    await decreaseWarehouseForFrameBy(createdBox.id, frameType, Number(count) || 0)
+                }
+            }
+        } catch (e) {
+            console.error('Failed to auto-deduct warehouse items after hive creation', e)
+        }
+    }
 
     const handleHiveTypeChange = (event) => {
         const newHiveType = event.target.value;
@@ -330,6 +537,8 @@ export default function HiveCreateForm() {
             return
         }
 
+        await applyWarehouseDeductionsForCreatedHive(String(result.data.addHive.id))
+
         navigate(`/apiaries/${id}/hives/${result.data.addHive.id}`, {
             replace: true, state: {
                 title: "Hive added successfully",
@@ -356,6 +565,20 @@ export default function HiveCreateForm() {
                 </div>
             )}
             {submitError && <ErrorMsg error={submitError} />}
+            {warehouseWarning ? (
+                <div style={{ marginBottom: 12 }}>
+                    <MessageSuccess
+                        isWarning
+                        title={<T>Warehouse warning</T>}
+                        message={
+                            <>
+                                {warehouseWarning}.{' '}
+                                <T>Hive creation will continue. Missing parts are assumed to come from outside your warehouse.</T>
+                            </>
+                        }
+                    />
+                </div>
+            ) : null}
             <div style={{ textAlign: 'center', marginBottom: 20 }}>
                 <HiveIcon boxes={boxes} editable={true} />
             </div>

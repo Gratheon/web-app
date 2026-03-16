@@ -259,7 +259,7 @@ export default function HiveEditDetails({ apiaryId, hiveId, onTopMessageChange }
 	const selectedBoxSystem = boxSystems.find((system: any) => String(system.id) === String(hiveBoxSystemId))
 	const defaultBoxSystem = boxSystems.find((system: any) => system.isDefault) || boxSystems[0]
 	const isHorizontalHive = boxes?.some((box: any) => box.type === 'LARGE_HORIZONTAL_SECTION')
-	const displayedBoxSystem = selectedBoxSystem || (!hiveBoxSystemId && !isHorizontalHive ? defaultBoxSystem : null)
+	const displayedBoxSystem = isHorizontalHive ? null : (selectedBoxSystem || defaultBoxSystem || null)
 	const displayedBoxSystemColor = displayedBoxSystem
 		? BOX_SYSTEM_COLORS[Math.max(boxSystems.findIndex((system: any) => String(system.id) === String(displayedBoxSystem.id)), 0) % BOX_SYSTEM_COLORS.length]
 		: '#6b7280'

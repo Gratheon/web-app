@@ -144,6 +144,22 @@ export function useWarehouseAutoAdjust() {
 		}
 	}
 
+	async function decreaseWarehouseForFrameBy(boxId?: string | number | null, frameType?: string | null, amount = 1) {
+		if (!boxId || !frameType) return
+		if (!autoUpdateFromHives) return
+		const safeAmount = Math.max(0, Math.floor(amount))
+		if (safeAmount <= 0) return
+		try {
+			await adjustWarehouseFrameInventory({
+				boxId: String(boxId),
+				frameType,
+				delta: -safeAmount,
+			})
+		} catch (e) {
+			console.error(e)
+		}
+	}
+
 	async function increaseWarehouseForFrameByFrameId(frameId?: string | number | null) {
 		if (!frameId) return
 		try {
@@ -161,6 +177,7 @@ export function useWarehouseAutoAdjust() {
 		increaseWarehouseForType,
 		increaseWarehouseForTypeBy,
 		decreaseWarehouseForFrame,
+		decreaseWarehouseForFrameBy,
 		increaseWarehouseForFrameByFrameId,
 	}
 }

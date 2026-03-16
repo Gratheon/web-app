@@ -99,6 +99,11 @@ const BOX_SYSTEMS_QUERY = gql`
 			name
 			isDefault
 		}
+		boxSystemFrameSettings {
+			systemId
+			boxType
+			frameSourceSystemId
+		}
 	}
 `
 
@@ -236,12 +241,37 @@ export default function HiveCreateForm() {
     const { decreaseWarehouseForType, decreaseWarehouseForFrameBy } = useWarehouseAutoAdjust()
     const [setWarehouseInventoryCount] = useMutation(SET_WAREHOUSE_INVENTORY_COUNT_MUTATION)
     const boxSystemPickerRef = useRef<HTMLDivElement | null>(null)
-    const boxSystems = boxSystemsData?.boxSystems || []
-    const warehouseInventory = warehouseInventoryData?.warehouseInventory || []
-    const selectedBoxSystem = boxSystems.find((system: any) => system.id === boxSystemId)
-        || boxSystems.find((system: any) => system.isDefault)
-        || boxSystems[0]
-    const selectedSystemId = hiveType === 'vertical' ? String(selectedBoxSystem?.id || '') : ''
+	const boxSystems = boxSystemsData?.boxSystems || []
+	const boxSystemFrameSettings = boxSystemsData?.boxSystemFrameSettings || []
+	const warehouseInventory = warehouseInventoryData?.warehouseInventory || []
+	const selectedBoxSystem = boxSystems.find((system: any) => system.id === boxSystemId)
+	        || boxSystems.find((system: any) => system.isDefault)
+	        || boxSystems[0]
+	const selectedSystemId = hiveType === 'vertical' ? String(selectedBoxSystem?.id || '') : ''
+	const frameSourceByTargetAndModuleType = useMemo(() => {
+		return (boxSystemFrameSettings || []).reduce((acc: Record<string, string>, setting: any) => {
+			const moduleType =
+				setting.boxType === 'DEEP' ? 'DEEP'
+					: setting.boxType === 'SUPER' ? 'SUPER'
+						: setting.boxType === 'LARGE_HORIZONTAL_SECTION' ? 'LARGE_HORIZONTAL_SECTION'
+							: ''
+			if (!moduleType) return acc
+			acc[`${setting.systemId}:${moduleType}`] = String(setting.frameSourceSystemId || setting.systemId)
+			return acc
+		}, {})
+	}, [boxSystemFrameSettings])
+
+	const resolveEffectiveFrameSourceSystemId = useCallback((targetSystemId: string, moduleType: string): string => {
+		let current = String(targetSystemId || '')
+		const visited = new Set<string>()
+		while (current && !visited.has(current)) {
+			visited.add(current)
+			const mapped = frameSourceByTargetAndModuleType[`${current}:${moduleType}`]
+			if (!mapped || mapped === current) return current
+			current = mapped
+		}
+		return String(targetSystemId || '')
+	}, [frameSourceByTargetAndModuleType])
 
     useEffect(() => {
         if (hiveType !== 'vertical') return
@@ -332,13 +362,16 @@ export default function HiveCreateForm() {
         const directSectionCount = Math.max(0, Number(directSectionItem?.count) || 0)
         const totalSectionCount = sectionItems.reduce((sum: number, item: any) => sum + Math.max(0, Number(item?.count) || 0), 0)
 
-        const frameItems = warehouseInventory.filter((item: any) => {
-            if (item?.kind !== 'FRAME_SPEC') return false
-            return getFrameModuleTypeByCode(item?.frameSpec?.code) === requiredModuleType
-        })
-        const directFrameItems = frameItems.filter((item: any) => String(item?.frameSpec?.systemId || '') === selectedSystemId)
-        const directFrameCount = directFrameItems.reduce((sum: number, item: any) => sum + Math.max(0, Number(item?.count) || 0), 0)
-        const totalFrameCount = frameItems.reduce((sum: number, item: any) => sum + Math.max(0, Number(item?.count) || 0), 0)
+		const frameItems = warehouseInventory.filter((item: any) => {
+			if (item?.kind !== 'FRAME_SPEC') return false
+			return getFrameModuleTypeByCode(item?.frameSpec?.code) === requiredModuleType
+		})
+		const effectiveFrameSourceSystemId = selectedSystemId
+			? resolveEffectiveFrameSourceSystemId(selectedSystemId, requiredModuleType)
+			: ''
+		const directFrameItems = frameItems.filter((item: any) => String(item?.frameSpec?.systemId || '') === effectiveFrameSourceSystemId)
+		const directFrameCount = directFrameItems.reduce((sum: number, item: any) => sum + Math.max(0, Number(item?.count) || 0), 0)
+		const totalFrameCount = frameItems.reduce((sum: number, item: any) => sum + Math.max(0, Number(item?.count) || 0), 0)
 
         const sectionShortageCertain = selectedSystemId
             ? directSectionCount < requiredSectionCount
@@ -356,7 +389,7 @@ export default function HiveCreateForm() {
                 ? Math.max(0, requiredFrameCount - directFrameCount)
                 : Math.max(0, requiredFrameCount - totalFrameCount))
             : 0
-        const frameRisk = requiredFrameCount > 0 && !!selectedSystemId && directFrameItems.length === 0 && totalFrameCount >= requiredFrameCount
+		const frameRisk = requiredFrameCount > 0 && !!selectedSystemId && directFrameItems.length === 0 && totalFrameCount >= requiredFrameCount
 
         if (!sectionShortageCertain && !sectionRisk && !frameShortageCertain && !frameRisk) return null
 
@@ -373,7 +406,7 @@ export default function HiveCreateForm() {
         }
 
         return parts.length ? parts.join(' • ') : null
-    }, [warehouseInventory, requiredModuleType, selectedSystemId, requiredSectionCount, requiredFrameCount])
+	}, [warehouseInventory, requiredModuleType, selectedSystemId, requiredSectionCount, requiredFrameCount, resolveEffectiveFrameSourceSystemId])
 
     let [addHive] = useMutation(
         gql`

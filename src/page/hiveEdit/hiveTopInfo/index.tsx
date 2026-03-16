@@ -52,6 +52,7 @@ import JoinColonyModal from '@/page/hiveEdit/JoinColonyModal'
 import DateFormat from '@/shared/dateFormat'
 import { isBillingTierLessThan } from '@/shared/billingTier'
 import HivePlacementMiniMap from './HivePlacementMiniMap'
+import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
 
 const BOX_SYSTEMS_FOR_HIVE_LABEL_QUERY = gql`
 	query HiveTopInfoBoxSystems {
@@ -197,6 +198,13 @@ export default function HiveEditDetails({ apiaryId, hiveId, onTopMessageChange }
 				await cloneFramesForInspection({
 					inspectionId: createdInspection.data.addInspection.id,
 					frameSideIDs,
+				})
+				await addHiveLog({
+					hiveId: +hiveId,
+					action: hiveLogActions.INSPECTION,
+					title: 'Inspection created',
+					details: `Inspection #${createdInspection.data.addInspection.id} captured.`,
+					dedupeKey: `inspection:${createdInspection.data.addInspection.id}`,
 				})
 
 				deleteCellsByFrameSideIDs(frameSideIDs)
@@ -458,13 +466,18 @@ export default function HiveEditDetails({ apiaryId, hiveId, onTopMessageChange }
 		return (
 			<>
 				<div style="padding: 0 10px;">
-					<div className={styles.spotlight_wrap}>
-						<div className={styles.spotlight_icon}>
-							<div className={styles.icon_wrap}>
-								<HiveIcon boxes={boxes} />
+						<div className={styles.spotlight_wrap}>
+							<div className={styles.spotlight_icon}>
+								<div
+									className={styles.icon_wrap}
+									onClick={goToHiveView}
+									style={{ cursor: 'pointer' }}
+									title="Go to hive view"
+								>
+									<HiveIcon boxes={boxes} />
+								</div>
+								<BeeCounter count={hive.beeCount} />
 							</div>
-							<BeeCounter count={hive.beeCount} />
-						</div>
 
 							<div className={styles.name_race_wrap}>
 								<div className={styles.hiveTitleRow}>
@@ -543,86 +556,6 @@ export default function HiveEditDetails({ apiaryId, hiveId, onTopMessageChange }
 									{' '}
 									<T>Collapse cause</T>: {hive.collapse_cause}
 								</>
-							)}
-
-							{hive.parentHive && (
-								<div className={styles.splitLineage}>
-									<T>Split from</T>:{' '}
-									<a href={`/apiaries/${apiaryId}/hives/${hive.parentHive.id}`}>
-										{hive.parentHive.hiveNumber
-											? `Hive #${hive.parentHive.hiveNumber}`
-											: `Hive ${hive.parentHive.id}`}
-									</a>
-									{hive.splitDate && (
-										<>
-											{' '}
-											<T>on</T> <DateFormat datetime={hive.splitDate} />
-										</>
-									)}
-								</div>
-							)}
-
-							{hive.childHives && hive.childHives.length > 0 && (
-								<div className={styles.splitLineage}>
-									<T>Child hives</T>:{' '}
-									{hive.childHives.map((child, idx) => (
-										<span key={child.id}>
-											{idx > 0 && ', '}
-											<a href={`/apiaries/${apiaryId}/hives/${child.id}`}>
-												{child.hiveNumber
-													? `Hive #${child.hiveNumber}`
-													: `Hive ${child.id}`}
-											</a>
-											{child.splitDate && (
-												<>
-													{' '}
-													(<DateFormat datetime={child.splitDate} />)
-												</>
-											)}
-										</span>
-									))}
-								</div>
-							)}
-
-							{hive.mergedIntoHive && (
-								<div className={styles.splitLineage}>
-									<T>Merged into</T>:{' '}
-									<a
-										href={`/apiaries/${apiaryId}/hives/${hive.mergedIntoHive.id}`}
-									>
-										{hive.mergedIntoHive.hiveNumber
-											? `Hive #${hive.mergedIntoHive.hiveNumber}`
-											: `Hive ${hive.mergedIntoHive.id}`}
-									</a>
-									{hive.mergeDate && (
-										<>
-											{' '}
-											<T>on</T> <DateFormat datetime={hive.mergeDate} />
-										</>
-									)}
-								</div>
-							)}
-
-							{hive.mergedFromHives && hive.mergedFromHives.length > 0 && (
-								<div className={styles.splitLineage}>
-									<T>Merged from</T>:{' '}
-									{hive.mergedFromHives.map((merged, idx) => (
-										<span key={merged.id}>
-											{idx > 0 && ', '}
-											<a href={`/apiaries/${apiaryId}/hives/${merged.id}`}>
-												{merged.hiveNumber
-													? `Hive #${merged.hiveNumber}`
-													: `Hive ${merged.id}`}
-											</a>
-											{merged.mergeDate && (
-												<>
-													{' '}
-													(<DateFormat datetime={merged.mergeDate} />)
-												</>
-											)}
-										</span>
-									))}
-								</div>
 							)}
 						</div>
 

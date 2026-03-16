@@ -28,6 +28,7 @@ import BeeCounter from '@/shared/beeCounter'
 import MessageSuccess from '@/shared/messageSuccess'
 
 import styles from './styles.module.less'
+import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
 
 export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 	let [creatingInspection, setCreatingInspection] = useState(false)
@@ -127,6 +128,13 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 					frameSideIDs
 				}
 				)
+				await addHiveLog({
+					hiveId: +hiveId,
+					action: hiveLogActions.INSPECTION,
+					title: 'Inspection created',
+					details: `Inspection #${createdInspection.data.addInspection.id} captured.`,
+					dedupeKey: `inspection:${createdInspection.data.addInspection.id}`,
+				})
 
 				deleteCellsByFrameSideIDs(frameSideIDs)
 				deleteFilesByFrameSideIDs(frameSideIDs)
@@ -302,6 +310,12 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 			const family = families.find(f => f.id === familyId)
 
 			if (family) {
+				const before = {
+					name: family.name || '',
+					race: family.race || '',
+					added: family.added || '',
+					color: family.color || '',
+				}
 				family.name = name
 				family.race = race
 				family.added = year
@@ -323,6 +337,20 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 						},
 					},
 				})
+
+				const changedFields = []
+				if (before.name !== (family.name || '')) changedFields.push('name')
+				if (before.race !== (family.race || '')) changedFields.push('race')
+				if (before.added !== (family.added || '')) changedFields.push('year')
+				if (before.color !== (family.color || '')) changedFields.push('color')
+				if (changedFields.length > 0) {
+					await addHiveLog({
+						hiveId: +hiveId,
+						action: hiveLogActions.QUEEN,
+						title: 'Queen information updated',
+						details: `Updated: ${changedFields.join(', ')}.`,
+					})
+				}
 			}
 		} catch (err) {
 			console.error('Failed to update queen:', err)
@@ -331,6 +359,8 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 
 	const handleRemoveQueen = async (familyId: number) => {
 		try {
+			const familiesBefore = await getAllFamiliesByHive(+hiveId)
+			const removedFamily = familiesBefore.find((f) => f.id === familyId)
 			await deleteFamily(familyId)
 
 			const remainingFamilies = await getAllFamiliesByHive(+hiveId)
@@ -345,6 +375,14 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 					},
 				})
 			}
+			await addHiveLog({
+				hiveId: +hiveId,
+				action: hiveLogActions.QUEEN,
+				title: 'Queen removed',
+				details: removedFamily?.name
+					? `${removedFamily.name} was removed from this hive.`
+					: `Queen #${familyId} was removed from this hive.`,
+			})
 		} catch (err) {
 			console.error('Failed to remove queen:', err)
 		}
@@ -352,6 +390,8 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 
 	const handleWarehouseDrop = async (familyId: number) => {
 		try {
+			const familiesBefore = await getAllFamiliesByHive(+hiveId)
+			const movedFamilyBefore = familiesBefore.find((f) => f.id === familyId)
 			await moveQueenToWarehouse({
 				hiveId: String(hiveId),
 				familyId: String(familyId),
@@ -375,6 +415,14 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 					},
 				})
 			}
+			await addHiveLog({
+				hiveId: +hiveId,
+				action: hiveLogActions.QUEEN,
+				title: 'Queen moved to warehouse',
+				details: movedFamilyBefore?.name
+					? `${movedFamilyBefore.name} was moved to warehouse.`
+					: `Queen #${familyId} was moved to warehouse.`,
+			})
 		} catch (err) {
 			console.error('Failed to move queen to warehouse:', err)
 		}

@@ -13,6 +13,7 @@ export function addCustomIndexes(dbSchema) {
 	dbSchema.translation = '++id, key, namespace, [key+namespace]'
 	dbSchema.translationvalue = '++id, [translationId+lang], translationId, lang'
 	dbSchema.pluralform = '++id, [translationId+lang], translationId, lang'
+	dbSchema.hive_log = '++id,hiveId,createdAt,updatedAt,action,source,dedupeKey'
 
 	// Remove old locale table (set to null to delete in version 103)
 	if (dbSchema.locale) {

@@ -29,6 +29,7 @@ import { updateFile } from '@/models/files'
 import { getUser } from '@/models/user'
 import DragAndDrop from '../hiveEdit/frame/uploadFile/dragDrop'
 import styles from './style.module.less'
+import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
 
 
 // coordinate conversion for PRIA
@@ -206,23 +207,44 @@ export default function ApiaryEditForm() {
 
 		setSaving(true)
 		try {
+			const prevLat = apiary?.lat
+			const prevLng = apiary?.lng
+			const nextLat = `${lat}`
+			const nextLng = `${lng}`
+			const didMove = prevLat !== nextLat || prevLng !== nextLng
+
 			await updateApiaryNetwork({
 				id,
 				apiary: {
 					name,
-					lat: `${lat}`,
-					lng: `${lng}`,
+					lat: nextLat,
+					lng: nextLng,
 				},
 			})
 
 			await updateApiary({
 				id: +id,
 				name,
-				lat: `${lat}`,
-				lng: `${lng}`,
+				lat: nextLat,
+				lng: nextLng,
 				photoUrl: photoUrl || undefined,
 				photoFileId: photoFileId || undefined,
 			})
+
+			if (didMove && apiaryGet?.apiary?.hives?.length) {
+				const movedHives = apiaryGet.apiary.hives as Array<{ id: string | number }>
+				await Promise.all(
+					movedHives.map((hive) =>
+						addHiveLog({
+							hiveId: +hive.id,
+							action: hiveLogActions.LOCATION_MOVE,
+							title: 'Apiary location moved',
+							details: `Location changed from (${prevLat}, ${prevLng}) to (${nextLat}, ${nextLng}).`,
+							dedupeKey: `location:${id}:${nextLat}:${nextLng}:hive:${hive.id}`,
+						})
+					)
+				)
+			}
 
 			navigate(`/apiaries/${id}`, { replace: true })
 		} finally {

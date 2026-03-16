@@ -8,6 +8,7 @@ import ErrorMessage from '@/shared/messageError'
 import Loader from '@/shared/loader'
 
 import { Frame as FrameType, getFrames, moveFrame } from '@/models/frames'
+import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
 import { enrichFramesWithSides } from '@/models/frameSide'
 import { enrichFramesWithSideFiles } from '@/models/frameSideFile'
 import {
@@ -199,6 +200,9 @@ export default function Box({
 
 	if (editable) {
 		async function swapFrames({ removedIndex, addedIndex }) {
+			if (addedIndex === null || addedIndex === undefined || removedIndex === addedIndex) {
+				return
+			}
 			await moveFrame({
 				boxId,
 				addedIndex,
@@ -218,6 +222,12 @@ export default function Box({
 					delete r.__typename
 					return r
 				}),
+			})
+			await addHiveLog({
+				hiveId: +hiveId,
+				action: hiveLogActions.STRUCTURE_MOVE,
+				title: 'Frame rearranged',
+				details: `Frame position changed in section #${boxId}.`,
 			})
 
 			if (!isNil(frameSideId)) {

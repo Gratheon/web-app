@@ -8,8 +8,9 @@ import { h } from 'preact'; // Import h from preact
 import inputStyles from '@/shared/input/styles.module.less'; // Import input styles for label and textarea
 import modalStyles from '@/shared/modal/styles.module.less'; // Import modal styles for button container
 import MessageError from '@/shared/messageError';
-import { getHive, setHiveCollapsed, updateHive } from '@/models/hive';
+import { getHive, setHiveCollapsed } from '@/models/hive';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
 // Define the GraphQL mutation
 const MARK_HIVE_AS_COLLAPSED_MUTATION = `
   mutation MarkHiveAsCollapsed($id: ID!, $collapseDate: DateTime!, $collapseCause: String!) {
@@ -53,6 +54,14 @@ export default function CollapseHiveModal({ hiveId, onClose, onSuccess }: Collap
       setError(result.error.message || 'Error marking hive as collapsed.');
     } else if(result.data) {
       await setHiveCollapsed(hive, collapseDate, collapseCause);
+      await addHiveLog({
+        hiveId: +hiveId,
+        action: hiveLogActions.COLLAPSE,
+        title: 'Hive marked as collapsed',
+        details: collapseCause
+          ? `Date: ${collapseDate}. Cause: ${collapseCause}`
+          : `Date: ${collapseDate}.`,
+      })
 
       onSuccess();
     }

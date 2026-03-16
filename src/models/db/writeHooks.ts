@@ -8,6 +8,7 @@ import { upsertFrameSide } from '../frameSide.ts'
 import { Frame, upsertFrame } from '../frames.ts'
 import { FileResize, upsertFileResize } from '../fileResize.ts'
 import { upsertFrameSideInspection, FrameSideInspection } from '../frameSideInspection.ts' // Import new model function and type
+import { addHiveLog, hiveLogActions } from '../hiveLog.ts'
 
 export const writeHooks = {
 	Apiary: async (_, entity) =>
@@ -80,8 +81,19 @@ export const writeHooks = {
 		await upsertEntityWithNumericID('file', entity)
 	},
 	Inspection: async (_, entity) => {
-		entity.hiveId = +entity.hiveId
+		if (entity.hiveId !== undefined && entity.hiveId !== null) {
+			entity.hiveId = +entity.hiveId
+		}
 		await upsertEntityWithNumericID('inspection', entity)
+		if (entity.hiveId && Number.isFinite(+entity.hiveId)) {
+			await addHiveLog({
+				hiveId: +entity.hiveId,
+				action: hiveLogActions.INSPECTION,
+				title: 'Inspection captured',
+				details: entity.added ? `Inspection at ${entity.added}.` : '',
+				dedupeKey: entity.id ? `inspection:${entity.id}` : undefined,
+			})
+		}
 	},
 	User: async (_, entity) => await upsertEntityWithNumericID('user', entity),
 	Locale: async (_, entity) => {

@@ -16,6 +16,7 @@ import EmptyFrameIcon from '@/icons/emptyFrameIcon.tsx'
 import Button from '@/shared/button'
 import { PopupButton, PopupButtonGroup } from '@/shared/popupButton'
 import { useWarehouseAutoAdjust } from '@/hooks/useWarehouseAutoAdjust'
+import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
 
 export default function FrameButtons({ box, onError }) {
 	let [addFrameMutation] =
@@ -53,6 +54,12 @@ export default function FrameButtons({ box, onError }) {
 			type,
 			leftId: +data.addFrame.leftSide?.id,
 			rightId: +data.addFrame.rightSide?.id,
+		})
+		await addHiveLog({
+			hiveId: +box.hiveId,
+			action: hiveLogActions.STRUCTURE_ADD,
+			title: 'Frame added',
+			details: `Added ${type} frame in section #${boxId} at position ${position}.`,
 		})
 		await decreaseWarehouseForFrame(boxId, type)
 

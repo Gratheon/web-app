@@ -1,0 +1,141 @@
+.logWrap {
+	padding: 16px;
+}
+
+.heading {
+	margin: 0 0 12px;
+	font-size: 18px;
+}
+
+.addRow {
+	display: flex;
+	gap: 8px;
+	margin-bottom: 16px;
+}
+
+.addInput {
+	flex-grow: 1;
+	padding: 10px;
+	border: 1px solid #d8d8d8;
+	border-radius: 6px;
+}
+
+.empty {
+	padding: 16px;
+	border: 1px dashed #d8d8d8;
+	border-radius: 8px;
+	background: #fafafa;
+}
+
+.timeline {
+	position: relative;
+}
+
+.timeline::before {
+	content: '';
+	position: absolute;
+	left: 9px;
+	top: 4px;
+	bottom: 4px;
+	width: 2px;
+	background: #e0e7ef;
+}
+
+.entry {
+	position: relative;
+	margin-bottom: 14px;
+	padding-left: 28px;
+}
+
+.dot {
+	position: absolute;
+	left: 3px;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	background: #4d82d7;
+	border: 2px solid #ffffff;
+	box-shadow: 0 0 0 1px #4d82d7;
+}
+
+.card {
+	border: 1px solid #dfe6f0;
+	border-radius: 10px;
+	background: #ffffff;
+	padding: 10px;
+}
+
+.headerRow {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 4px;
+}
+
+.deleteButton {
+	width: 30px;
+	min-width: 30px;
+	height: 30px;
+	padding: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.meta {
+	font-size: 12px;
+	color: #6f7682;
+}
+
+.title {
+	font-weight: 600;
+	margin-bottom: 4px;
+}
+
+.details {
+	font-size: 14px;
+	color: #3f4550;
+	white-space: pre-wrap;
+}
+
+.relatedLinks {
+	margin-top: 6px;
+	font-size: 13px;
+}
+
+.relatedLinks a {
+	color: #1b5fb8;
+	text-decoration: none;
+}
+
+.relatedLinks a:hover {
+	text-decoration: underline;
+}
+
+.actions {
+	display: flex;
+	gap: 8px;
+	margin-top: 8px;
+}
+
+.editBlock {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.editInput,
+.editTextarea {
+	padding: 8px;
+	border: 1px solid #d8d8d8;
+	border-radius: 6px;
+	width: 100%;
+}
+
+.editTextarea {
+	min-height: 64px;
+	resize: vertical;
+}

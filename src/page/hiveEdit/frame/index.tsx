@@ -25,6 +25,7 @@ import BeeCounter from '@/shared/beeCounter/index.tsx'
 import VarroaIcon from '@/icons/varroa.tsx'
 import Modal from '@/shared/modal'
 import { useWarehouseAutoAdjust } from '@/hooks/useWarehouseAutoAdjust'
+import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
 
 export default function Frame({
 	apiaryId,
@@ -182,6 +183,12 @@ export default function Frame({
 		await removeFrameMutation({
 			id: frameId,
 		})
+		await addHiveLog({
+			hiveId: +hiveId,
+			action: hiveLogActions.STRUCTURE_REMOVE,
+			title: 'Frame removed',
+			details: `Removed frame #${frameId} from section #${boxId}.`,
+		})
 
 		setFrameRemoving(false)
 		navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`, {
@@ -229,6 +236,12 @@ export default function Frame({
 					frameId: frameSide?.frameId ?? undefined,
 				};
 				await upsertFrameSide(dataToUpsert);
+				await addHiveLog({
+					hiveId: +hiveId,
+					action: hiveLogActions.QUEEN,
+					title: newState ? 'Queen presence confirmed' : 'Queen presence unconfirmed',
+					details: `Frame #${frameId}, side #${frameSideId}.`,
+				})
 			} else {
 				// Revert optimistic update if mutation failed or returned false/unexpected
 				setIsQueenChecked(originalState);

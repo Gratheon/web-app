@@ -26,6 +26,8 @@ import MessageSuccess from '@/shared/messageSuccess'
 import HiveIcon from '@/icons/hive.tsx'
 import HiveButtons from '@/page/hiveEdit/boxes/hiveButtons.tsx'
 import HiveWeightGraph from '@/page/hiveEdit/hiveWeightGraph'
+import HiveLogs from '@/page/hiveEdit/logs'
+import { syncHiveLineageLogs } from '@/models/hiveLog'
 
 import styles from '@/page/hiveEdit/styles.module.less'
 import Treatments from '@/page/hiveEdit/treatments'
@@ -206,6 +208,11 @@ export default function HiveEditForm() {
 	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId], null);
 	const box = useLiveQuery(() => getBox(+boxId), [boxId], null);
 	const family = useLiveQuery(() => getFamilyByHive(+hiveId), [hiveId]);
+
+	useEffect(() => {
+		if (!hive) return
+		syncHiveLineageLogs(hive).catch((e) => console.error('Failed to sync lineage logs', e))
+	}, [hive?.id, hive?.splitDate, hive?.mergeDate, hive?.parentHive?.id, hive?.mergedIntoHive?.id, hive?.childHives?.length, hive?.mergedFromHives?.length])
 	
 
 	if (apiary === null || hive === null) {
@@ -386,6 +393,11 @@ export default function HiveEditForm() {
 						</div>
 					)}
 				</div>
+				{mapTab === 'structure' && !boxId && (
+					<div className={styles.logsWrap}>
+						<HiveLogs hiveId={hiveId} apiaryId={apiaryId} />
+					</div>
+				)}
 			</div>
 		</>
 	)

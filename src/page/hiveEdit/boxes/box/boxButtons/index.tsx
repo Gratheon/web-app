@@ -12,6 +12,7 @@ import {
 	getBoxAtPositionBelow,
 	getBox,
 } from '@/models/boxes.ts'
+import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
 import ButtonWithHover from '@/shared/buttonWithHover'
 import T from '@/shared/translate'
 
@@ -54,6 +55,12 @@ export default function BoxButtons({ box, onError }) {
 		}
 
 		await swapBoxPositions(box1, box2)
+		await addHiveLog({
+			hiveId: +box1.hiveId,
+			action: hiveLogActions.STRUCTURE_MOVE,
+			title: `Section moved down`,
+			details: `Section #${box1.id} swapped with section #${box2.id}.`,
+		})
 		setMovingBox(false);
 	}
 
@@ -73,6 +80,12 @@ export default function BoxButtons({ box, onError }) {
 		}
 
 		await swapBoxPositions(box1, box2)
+		await addHiveLog({
+			hiveId: +box1.hiveId,
+			action: hiveLogActions.STRUCTURE_MOVE,
+			title: `Section moved up`,
+			details: `Section #${box1.id} swapped with section #${box2.id}.`,
+		})
 		setMovingBox(false);
 	}
 

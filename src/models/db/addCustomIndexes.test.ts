@@ -30,6 +30,7 @@ describe('addCustomIndexes', () => {
     expect(mockDbSchema.frame_side_inspection).toBe('&id, date,[frameSideId+inspectionId]');
     expect(mockDbSchema.files_frame_side_cells).toBe('&id, count,frameSideId');
     expect(mockDbSchema.frame_side_file).toBe('&id, path,id'); // Checks if 'id' index is added
+    expect((mockDbSchema as any).hive_log).toBe('++id,hiveId,createdAt,updatedAt,action,source,dedupeKey');
 
     // Assert that tables not explicitly modified remain unchanged
     expect(mockDbSchema.apiary).toBe('&id, location');
@@ -63,5 +64,6 @@ describe('addCustomIndexes', () => {
      expect(mockDbSchema.frame_side_inspection).toBe('&id,[frameSideId+inspectionId]');
      expect(mockDbSchema.files_frame_side_cells).toBe('&id,frameSideId');
      expect(mockDbSchema.frame_side_file).toBe('&id,id');
+     expect((mockDbSchema as any).hive_log).toBe('++id,hiveId,createdAt,updatedAt,action,source,dedupeKey');
   });
 });

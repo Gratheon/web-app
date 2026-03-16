@@ -11,6 +11,7 @@ import styles from "./styles.module.less";
 import TreatmentList from "./treatmentList";
 import { getHive, isEditable } from "@/models/hive";
 import { useLiveQuery } from "dexie-react-hooks";
+import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
 
 export default function Treatments({ hiveId, boxId = null }) {
 	const [treating, setTreating] = useState(false)
@@ -50,6 +51,14 @@ export default function Treatments({ hiveId, boxId = null }) {
 			})
 		}
 		setTreatmentType('')
+		await addHiveLog({
+			hiveId: +hiveId,
+			action: hiveLogActions.TREATMENT,
+			title: 'Treatment added',
+			details: boxId
+				? `Treatment "${treatmentType}" added for section #${boxId}.`
+				: `Treatment "${treatmentType}" added for hive.`,
+		})
 		setAddedMsg('Treatment added')
 		setTreating(false)
 	}

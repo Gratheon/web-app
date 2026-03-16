@@ -13,6 +13,7 @@ import { getHive } from '@/models/hive'
 import { getBoxes } from '@/models/boxes'
 import { getFamilyByHive } from '@/models/family'
 import { getUser } from '@/models/user'
+import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
 import styles from './JoinColonyModal.module.less'
 
 interface JoinColonyModalProps {
@@ -95,6 +96,24 @@ export default function JoinColonyModal({
 			}
 
 			if (data?.joinHives) {
+				const targetHiveId = +data.joinHives.id
+				const sourceHiveId = +hiveId
+				await addHiveLog({
+					hiveId: sourceHiveId,
+					action: hiveLogActions.LINEAGE,
+					title: 'Hive merged into another hive',
+					details: `Merge type: ${mergeType}.`,
+					relatedHives: [{ id: targetHiveId, hiveNumber: selectedTargetHive?.hiveNumber }],
+					dedupeKey: `join:source:${sourceHiveId}:target:${targetHiveId}:${mergeType}`,
+				})
+				await addHiveLog({
+					hiveId: targetHiveId,
+					action: hiveLogActions.LINEAGE,
+					title: 'Hive received merged colony',
+					details: `Merge type: ${mergeType}.`,
+					relatedHives: [{ id: sourceHiveId, hiveNumber: currentHive?.hiveNumber }],
+					dedupeKey: `join:target:${targetHiveId}:source:${sourceHiveId}:${mergeType}`,
+				})
 				window.location.href = `/apiaries/${apiaryId}/hives/${data.joinHives.id}`
 			}
 		} catch (err) {

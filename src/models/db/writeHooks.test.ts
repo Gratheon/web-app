@@ -35,6 +35,12 @@ vi.mock('../frameSideFile.ts', async (importOriginal) => {
 vi.mock('../frameSideInspection', () => ({
     upsertFrameSideInspection: vi.fn(),
 }));
+vi.mock('../hiveLog.ts', () => ({
+	addHiveLog: vi.fn(),
+	hiveLogActions: {
+		INSPECTION: 'INSPECTION',
+	},
+}));
 
 
 // Import mocks *after* vi.mock calls
@@ -44,6 +50,7 @@ import { upsertFrameSide } from '../frameSide.ts';
 import { upsertFileResize } from '../fileResize.ts';
 import frameSideFileModel from '../frameSideFile.ts';
 import { upsertFrameSideInspection } from '../frameSideInspection'; // Import the mocked function
+import { addHiveLog } from '../hiveLog.ts';
 
 // Cast mocks for type safety in tests
 const mockUpsertEntity = upsertEntity as Mock;
@@ -53,6 +60,7 @@ const mockUpsertFrameSide = upsertFrameSide as Mock;
 const mockUpsertFileResize = upsertFileResize as Mock;
 const mockFrameSideFileUpsert = frameSideFileModel.upsertEntity as Mock;
 const mockUpsertFrameSideInspection = upsertFrameSideInspection as Mock;
+const mockAddHiveLog = addHiveLog as Mock;
 
 
 describe('writeHooks', () => {
@@ -66,6 +74,7 @@ describe('writeHooks', () => {
     mockUpsertFileResize.mockReset();
     mockFrameSideFileUpsert.mockReset();
     mockUpsertFrameSideInspection.mockReset();
+    mockAddHiveLog.mockReset();
   });
 
   // --- Tests for hooks NOT using the new model ---
@@ -318,6 +327,7 @@ describe('writeHooks', () => {
       await (writeHooks.Inspection as any)(null, mockEntity, {} as any);
       expect(mockUpsertEntityWithNumericID).toHaveBeenCalledTimes(1);
       expect(mockUpsertEntityWithNumericID).toHaveBeenCalledWith('inspection', expectedEntity);
+      expect(mockAddHiveLog).toHaveBeenCalledTimes(1);
     });
      it('should propagate errors from upsertEntityWithNumericID', async () => {
        const mockEntity = { id: '1011', hiveId: '9', date: '2024-01-02' };

@@ -14,6 +14,7 @@ import { SUPPORTED_LANGUAGES } from '@/config/languages'
 import RefreshIcon from '@/icons/RefreshIcon'
 import styles from './AddQueenModal.module.less'
 import inputStyles from '@/shared/input/styles.module.less'
+import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
 
 const RANDOM_QUEEN_NAME_QUERY = gql`
 	query RandomHiveName($language: String) {
@@ -177,6 +178,12 @@ export default function AddQueenModal({
 						color: result.data.assignQueenFromWarehouse.color,
 					}
 					await updateFamily(family)
+					await addHiveLog({
+						hiveId: +hiveId,
+						action: hiveLogActions.QUEEN,
+						title: 'Queen assigned from warehouse',
+						details: `${family.name || `#${family.id}`} was assigned to this hive.`,
+					})
 					await new Promise(resolve => setTimeout(resolve, 100))
 					onSuccess()
 					return
@@ -211,6 +218,12 @@ export default function AddQueenModal({
 					color: result.data.addQueenToHive.color,
 				}
 				await updateFamily(family)
+				await addHiveLog({
+					hiveId: +hiveId,
+					action: hiveLogActions.QUEEN,
+					title: 'New queen introduced',
+					details: `${family.name || `#${family.id}`} (${family.added || 'year unknown'}).`,
+				})
 				await new Promise(resolve => setTimeout(resolve, 100))
 				onSuccess()
 				return

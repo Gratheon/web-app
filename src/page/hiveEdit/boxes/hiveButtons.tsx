@@ -27,6 +27,7 @@ import { enrichFramesWithSides } from '@/models/frameSide'
 import { enrichFramesWithSideFiles } from '@/models/frameSideFile'
 import { useWarehouseAutoAdjust } from '@/hooks/useWarehouseAutoAdjust'
 import Modal from '@/shared/modal'
+import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
 
 const WAREHOUSE_BY_BOX_TYPE = {
 	[boxTypes.DEEP]: 'DEEP',
@@ -138,6 +139,12 @@ const [removingBox, setRemovingBox] = useState(false);
 		const boxFrames = (await getFrames({ boxId: id })) || []
 
 		await removeBox(id)
+		await addHiveLog({
+			hiveId: +hiveId,
+			action: hiveLogActions.STRUCTURE_REMOVE,
+			title: 'Section removed',
+			details: `Removed ${removedBoxType || 'section'} #${id}.`,
+		})
 
 		if (mode === 'warehouse') {
 			await increaseWarehouseForType(WAREHOUSE_BY_BOX_TYPE[removedBoxType])
@@ -179,6 +186,12 @@ const [removingBox, setRemovingBox] = useState(false);
 			hiveId: +hiveId,
 			position,
 			type,
+		})
+		await addHiveLog({
+			hiveId: +hiveId,
+			action: hiveLogActions.STRUCTURE_ADD,
+			title: 'Section added',
+			details: `Added ${type} at position ${position}.`,
 		})
 		await decreaseWarehouseForType(WAREHOUSE_BY_BOX_TYPE[type])
 

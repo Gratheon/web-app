@@ -14,6 +14,7 @@ import RefreshIcon from '@/icons/RefreshIcon'
 import { getUser } from '@/models/user'
 import { SUPPORTED_LANGUAGES } from '@/config/languages'
 import { getBoxes } from '@/models/boxes'
+import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
 import styles from './SplitHiveModal.module.less'
 
 interface Frame {
@@ -178,6 +179,24 @@ export default function SplitHiveModal({
 			}
 
 			if (data?.splitHive) {
+				const newHiveId = +data.splitHive.id
+				await addHiveLog({
+					hiveId: +hiveId,
+					action: hiveLogActions.LINEAGE,
+					title: 'Hive was split',
+					details: `Created a new hive with ${selectedFrameIds.size} frames.`,
+					relatedHives: [{ id: newHiveId }],
+					dedupeKey: `split:source:${hiveId}:child:${newHiveId}`,
+				})
+				await addHiveLog({
+					hiveId: newHiveId,
+					action: hiveLogActions.LINEAGE,
+					title: 'Hive created from split',
+					details: `Created from hive ${hiveId} with ${selectedFrameIds.size} frames.`,
+					relatedHives: [{ id: +hiveId }],
+					dedupeKey: `split:child:${newHiveId}:source:${hiveId}`,
+				})
+
 				let message = `New hive created with ${selectedFrameIds.size} frames`
 				if (queenAction === 'new_queen') {
 					const queenName = data.splitHive.family?.name || 'Unknown'

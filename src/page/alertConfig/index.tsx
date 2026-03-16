@@ -9,7 +9,7 @@ import styles from './styles.module.less'
 import MessageSuccess from '@/shared/messageSuccess'
 import DateTimeFormat from '@/shared/dateTimeFormat'
 import { Tab, TabBar } from '@/shared/tab'
-import imageURL from '@/assets/bear.webp'
+import imageURL from '@/assets/alerts.webp'
 
 type AlertConfigSection = 'history' | 'channels' | 'rules'
 
@@ -187,7 +187,7 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 	const deleteRulePrompt = t('Delete this alert rule?')
 	const deleteText = t('Delete')
 	const deleteRuleTitle = t('Delete rule')
-	const bearHoneyIllustrationAlt = t('Bear and honey illustration')
+	const alertsIllustrationAlt = t('Alerts illustration')
 	const hiveLabel = t('Hive')
 	const smsLabel = t('SMS')
 	const emailLabel = t('Email')
@@ -566,7 +566,7 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 					</h2>
 					{alerts.length === 0 ? (
 							<div className={styles.historyPlaceholder}>
-								<img className={styles.placeholderImage} src={imageURL} alt={bearHoneyIllustrationAlt} draggable={false} />
+								<img className={styles.placeholderImage} src={imageURL} alt={alertsIllustrationAlt} draggable={false} />
 								<p><T>No alerts yet</T></p>
 								<p className={styles.placeholderHint}>
 									<T>Triggered alerts from your hives will appear here.</T>

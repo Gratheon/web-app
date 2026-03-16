@@ -59,6 +59,107 @@
   display: block !important;
 }
 
+.boxSystemPicker {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+}
+
+.boxSystemSelectTrigger {
+  width: 100%;
+  min-height: 34px;
+  border: 1px solid #c9d2dc;
+  border-radius: 6px;
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  gap: 10px;
+  cursor: pointer;
+  color: #1f2937;
+}
+
+.boxSystemSelectTrigger:hover {
+  background: #f8fbff;
+  border-color: #b8c6d4;
+  color: #1f2937;
+}
+
+.boxSystemSelectTrigger:focus-visible {
+  outline: 2px solid #2f80ed;
+  outline-offset: 1px;
+}
+
+.boxSystemSelectTriggerDisabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.boxSystemTriggerValue {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.boxSystemChevron {
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.boxSystemDropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #d1d9e0;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.15);
+  z-index: 20;
+  padding: 4px;
+}
+
+.boxSystemOption {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  padding: 7px 8px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #1f2937;
+  cursor: pointer;
+}
+
+.boxSystemOption:hover {
+  background: #f3f7fb;
+}
+
+.boxSystemOption:focus-visible {
+  outline: none;
+  background: #f3f7fb;
+}
+
+.boxSystemOptionActive {
+  background: #ecf5ff;
+}
+
+.boxSystemOptionDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
 @media (min-width: 768px) {
   .formField {
     flex-direction: row;
@@ -81,4 +182,3 @@
     flex: 1;
   }
 }
-

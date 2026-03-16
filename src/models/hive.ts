@@ -3,6 +3,8 @@ export { db };
 
 export type Hive = {
 	id: number
+	boxSystemId?: number | string
+	box_system_id?: number | string
 	name?: string
 	hiveNumber?: number
 	notes?: string

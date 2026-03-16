@@ -146,6 +146,19 @@
 	align-items: center;
 }
 
+.sectionTree {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.nestedRow {
+	margin-left: 24px;
+	border-left: 2px solid #ececec;
+	border-top-left-radius: 0;
+	border-bottom-left-radius: 0;
+}
+
 .itemInfo {
 	min-width: 0;
 }
@@ -199,6 +212,199 @@
 	flex-wrap: wrap;
 }
 
+.textInput {
+	min-width: 180px;
+	height: 36px;
+	border: 1px solid #d8d8d8;
+	border-radius: 8px;
+	background: #fff;
+	padding: 0 10px;
+	box-sizing: border-box;
+}
+
+.systemCreateForm {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin: 8px 0 12px;
+	flex-wrap: wrap;
+}
+
+.systemList {
+	display: grid;
+	gap: 8px;
+}
+
+.systemRow {
+	background: #fff;
+	border: 1px solid #e8eaf0;
+	border-left: 4px solid var(--system-accent, #2f80ed);
+	border-radius: 10px;
+	padding: 10px 12px;
+	display: grid;
+	grid-template-columns: minmax(180px, 1fr) auto;
+	gap: 10px;
+	align-items: center;
+}
+
+.systemRowMain {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	min-width: 0;
+}
+
+.systemColorDot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: var(--system-accent, #2f80ed);
+	flex-shrink: 0;
+}
+
+.systemRowActions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+}
+
+.defaultBadge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	height: 20px;
+	padding: 0 8px;
+	border-radius: 999px;
+	background: #edf3ff;
+	color: #305da8;
+	font-size: 11px;
+	font-weight: 600;
+}
+
+.systemRenameRow {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.sectionMatrixCard {
+	background: #fff;
+	border-radius: 8px;
+	padding: 6px;
+}
+
+.matrixTable {
+	margin-top: 8px;
+	border: 1px solid #ececf2;
+	border-radius: 8px;
+	overflow: auto;
+}
+
+.matrixHeader,
+.matrixRow {
+	display: grid;
+	grid-template-columns: minmax(340px, 1.8fr) repeat(var(--system-column-count, 1), minmax(170px, 1fr));
+	border-bottom: 1px solid #ececf2;
+}
+
+.matrixHeader {
+	background: #f7f8fb;
+	font-weight: 600;
+	font-size: 12px;
+	color: #4a5260;
+}
+
+.matrixHeader .matrixLabel {
+	padding: 8px 10px;
+}
+
+.matrixRow:last-child {
+	border-bottom: 0;
+}
+
+.matrixLabel {
+	padding: 0;
+	display: flex;
+	align-items: center;
+	min-width: 340px;
+	line-height: 1.2;
+	box-sizing: border-box;
+	overflow: hidden;
+}
+
+.matrixLabelContent {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 24px;
+}
+
+.matrixLabelBlock {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	width: 100%;
+	padding: 8px 10px;
+	box-sizing: border-box;
+	min-width: 0;
+	overflow: hidden;
+}
+
+.matrixItemIcon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	border-radius: 6px;
+	background: #27364a;
+	color: #fff;
+	line-height: 0;
+	flex-shrink: 0;
+}
+
+.matrixSystemHead {
+	padding: 8px 10px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	border-left: 1px solid #ececf2;
+	background: var(--system-soft, #f7f8fb);
+	color: var(--system-accent, #4a5260);
+}
+
+.matrixCell,
+.matrixEmpty {
+	padding: 6px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	border-left: 1px solid #ececf2;
+	min-height: 44px;
+}
+
+.matrixEmpty {
+	color: #9aa1ae;
+	font-weight: 600;
+}
+
+.matrixCell {
+	--item-color: #22a447;
+}
+
+.matrixCell .square {
+	background: var(--item-color);
+}
+
+.matrixCell .countInput {
+	border-color: var(--item-border, #d8d8d8);
+}
+
 .squareStack {
 	width: 64px;
 	height: 52px;
@@ -230,7 +436,7 @@
 }
 
 .countInput {
-	width: 72px;
+	width: 56px;
 	height: 32px;
 	border: 1px solid #d8d8d8;
 	border-radius: 6px;
@@ -345,6 +551,23 @@
 	}
 
 	.controls {
+		justify-content: flex-start;
+	}
+
+	.textInput {
+		width: 100%;
+	}
+
+	.systemCreateForm {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.systemRow {
+		grid-template-columns: 1fr;
+	}
+
+	.systemRowActions {
 		justify-content: flex-start;
 	}
 }

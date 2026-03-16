@@ -17,6 +17,8 @@ import DateTimeAgo from '../../../shared/dateTimeAgo'
 import { sortHives } from '../hiveSort'
 import { getColonyStatusLabel, getHiveFamilies } from '../hivePresentation'
 
+const BOX_SYSTEM_COLORS = ['#2f80ed', '#f2994a', '#27ae60', '#eb5757']
+
 const COLUMN_CONFIG = [
 	{
 		key: 'HIVE_NUMBER',
@@ -55,6 +57,12 @@ const COLUMN_CONFIG = [
 		sortable: true,
 	},
 	{
+		key: 'BOX_SYSTEM',
+		label: 'Box system',
+		translationContext: 'table header - hive box system',
+		sortable: false,
+	},
+	{
 		key: 'LAST_TREATMENT',
 		label: 'Last treatment',
 		translationContext: 'table header of beekeeping app, this column is about anti-varroa mite treatment, in amount of days, start with uppercase latter',
@@ -70,6 +78,7 @@ const COLUMN_CONFIG = [
 
 export default function apiaryListRow({
 	apiary,
+	boxSystems,
 	user,
 	sortBy,
 	sortOrder,
@@ -160,6 +169,33 @@ export default function apiaryListRow({
 			.map((family) => family?.race)
 			.filter(Boolean)
 			.join(', ') || '-'
+	}
+
+	const getBoxSystemCellData = (hive) => {
+		const isHorizontalHive = (hive?.boxes || []).some((box) => box?.type === 'LARGE_HORIZONTAL_SECTION')
+		if (isHorizontalHive) {
+			return {
+				label: 'Independent',
+				color: '#6b7280',
+			}
+		}
+
+		const hiveBoxSystemId = hive?.boxSystemId ?? hive?.box_system_id
+		const selectedSystem = (boxSystems || []).find((system) => String(system.id) === String(hiveBoxSystemId))
+		const defaultSystem = (boxSystems || []).find((system) => system.isDefault) || (boxSystems || [])[0]
+		const system = selectedSystem || defaultSystem
+		if (!system) {
+			return {
+				label: '-',
+				color: '#6b7280',
+			}
+		}
+
+		const systemIndex = Math.max((boxSystems || []).findIndex((entry) => String(entry.id) === String(system.id)), 0)
+		return {
+			label: system.name,
+			color: BOX_SYSTEM_COLORS[systemIndex % BOX_SYSTEM_COLORS.length],
+		}
 	}
 
 	const sortedHives = React.useMemo(() => {
@@ -558,6 +594,22 @@ export default function apiaryListRow({
 												{displayStatus
 													? <span className={`${styles.statusPill} ${getStatusPillClassName(displayStatus)}`}>{displayStatus}</span>
 													: '-'}
+											</td>
+										)}
+										{visibleColumns.includes('BOX_SYSTEM') && (
+											<td>
+												{(() => {
+													const boxSystem = getBoxSystemCellData(hive)
+													return (
+														<span className={styles.boxSystemCell}>
+															<span
+																className={styles.boxSystemDot}
+																style={{ backgroundColor: boxSystem.color }}
+															></span>
+															<span>{boxSystem.label}</span>
+														</span>
+													)
+												})()}
 											</td>
 										)}
 										{visibleColumns.includes('LAST_TREATMENT') && (

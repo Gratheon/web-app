@@ -27,9 +27,24 @@ const ICON_BY_MODULE_TYPE = {
 	GATE: GateIcon,
 }
 
-export function getWarehouseModuleIcon(moduleType?: string | null, size = 16) {
-	if (!moduleType) return null
-	const Icon = ICON_BY_MODULE_TYPE[moduleType]
-	if (!Icon) return null
-	return <Icon size={size} />
+const ICON_BY_FRAME_TYPE = {
+	FOUNDATION: FoundationIcon,
+	EMPTY_COMB: FramesIcon,
+	PARTITION: PartitionIcon,
+	FEEDER: FeederIcon,
+	VOID: EmptyFrameIcon,
+}
+
+export function getWarehouseItemIcon(item?: any, size = 16) {
+	if (!item) return null
+	if (item.moduleType) {
+		const Icon = ICON_BY_MODULE_TYPE[item.moduleType]
+		return Icon ? <Icon size={size} /> : null
+	}
+	const frameType = item?.frameSpec?.frameType
+	if (frameType) {
+		const Icon = ICON_BY_FRAME_TYPE[frameType]
+		return Icon ? <Icon size={size} /> : null
+	}
+	return null
 }

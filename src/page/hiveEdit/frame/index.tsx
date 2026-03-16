@@ -26,13 +26,6 @@ import VarroaIcon from '@/icons/varroa.tsx'
 import Modal from '@/shared/modal'
 import { useWarehouseAutoAdjust } from '@/hooks/useWarehouseAutoAdjust'
 
-const WAREHOUSE_BY_FRAME_TYPE = {
-	FOUNDATION: 'FRAME_FOUNDATION',
-	EMPTY_COMB: 'FRAME_EMPTY_COMB',
-	PARTITION: 'FRAME_PARTITION',
-	FEEDER: 'FRAME_FEEDER',
-}
-
 export default function Frame({
 	apiaryId,
 	hiveId,
@@ -51,7 +44,7 @@ export default function Frame({
 
 	let [frameRemoving, setFrameRemoving] = useState<boolean>(false)
 	const [removeFrameDialogVisible, setRemoveFrameDialogVisible] = useState(false)
-	const { increaseWarehouseForType } = useWarehouseAutoAdjust()
+	const { increaseWarehouseForFrameByFrameId } = useWarehouseAutoAdjust()
 	// Local state for the queen checkbox
 	const [isQueenChecked, setIsQueenChecked] = useState<boolean | undefined>(undefined);
 	// Model functions now handle invalid IDs
@@ -182,7 +175,7 @@ export default function Frame({
 		setFrameRemoving(true)
 
 		if (mode === 'warehouse') {
-			await increaseWarehouseForType(WAREHOUSE_BY_FRAME_TYPE[frame.type])
+			await increaseWarehouseForFrameByFrameId(frameId)
 		}
 
 		await removeFrame(frameId, boxId)

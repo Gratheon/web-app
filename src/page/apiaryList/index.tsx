@@ -21,6 +21,7 @@ const DEFAULT_VISIBLE_COLUMNS = [
 	'QUEEN',
 	'BEE_COUNT',
 	'STATUS',
+	'BOX_SYSTEM',
 	'LAST_TREATMENT',
 	'LAST_INSPECTION',
 ]
@@ -107,14 +108,20 @@ export default function ApiaryList(props) {
 
 	const { loading, error, data, errorNetwork } = useQuery(gql`
 		query apiaries {
+			boxSystems {
+				id
+				name
+				isDefault
+			}
 			apiaries {
 				id
 				name
 
-				hives {
-					id
-					hiveNumber
-					beeCount
+					hives {
+						id
+						boxSystemId
+						hiveNumber
+						beeCount
 					status
 
 					lastInspection
@@ -309,6 +316,10 @@ export default function ApiaryList(props) {
 				return DEFAULT_VISIBLE_COLUMNS
 			}
 
+			if (!parsed.includes('BOX_SYSTEM')) {
+				return [...parsed, 'BOX_SYSTEM']
+			}
+
 			return parsed
 		} catch (error) {
 			console.error('Failed to parse table visible columns config', error)
@@ -371,10 +382,11 @@ export default function ApiaryList(props) {
 
 			{apiaries &&
 				apiaries.map((apiary, i) => (
-					<ApiaryListRow
-						key={i}
-						apiary={apiary}
-						user={user}
+						<ApiaryListRow
+							key={i}
+							apiary={apiary}
+							boxSystems={data?.boxSystems || []}
+							user={user}
 						sortBy={hiveSortBy}
 						sortOrder={hiveSortOrder}
 						onSortChange={handleHiveSortChange}

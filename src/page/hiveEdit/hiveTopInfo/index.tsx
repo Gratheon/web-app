@@ -7,7 +7,7 @@ import T from '@/shared/translate'
 import HiveIcon from '@/shared/hive'
 
 import QRCode from 'qrcode'
-import { useMutation } from '@/api'
+import { gql, useMutation, useQuery } from '@/api'
 
 import InspectionIcon from '@/icons/inspection'
 import Loader from '@/shared/loader'
@@ -53,6 +53,18 @@ import DateFormat from '@/shared/dateFormat'
 import { isBillingTierLessThan } from '@/shared/billingTier'
 import HivePlacementMiniMap from './HivePlacementMiniMap'
 
+const BOX_SYSTEMS_FOR_HIVE_LABEL_QUERY = gql`
+	query HiveTopInfoBoxSystems {
+		boxSystems {
+			id
+			name
+			isDefault
+		}
+	}
+`
+
+const BOX_SYSTEM_COLORS = ['#2f80ed', '#f2994a', '#27ae60', '#eb5757']
+
 export default function HiveEditDetails({ apiaryId, hiveId, onTopMessageChange }) {
 	let [editable, setEditable] = useState(false)
 	let [creatingInspection, setCreatingInspection] = useState(false)
@@ -68,6 +80,7 @@ export default function HiveEditDetails({ apiaryId, hiveId, onTopMessageChange }
 
 	// Model functions now handle invalid IDs
 	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId])
+	const { data: boxSystemsData } = useQuery(BOX_SYSTEMS_FOR_HIVE_LABEL_QUERY)
 	const user = useLiveQuery(() => getUser(), [], null)
 	const isHiveMiniMapLocked = isBillingTierLessThan(user?.billingPlan, 'hobbyist')
 	let boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId])
@@ -240,6 +253,16 @@ export default function HiveEditDetails({ apiaryId, hiveId, onTopMessageChange }
 	if (!hive) {
 		return <Loader />
 	}
+
+	const boxSystems = boxSystemsData?.boxSystems || []
+	const hiveBoxSystemId = hive.boxSystemId ?? hive.box_system_id
+	const selectedBoxSystem = boxSystems.find((system: any) => String(system.id) === String(hiveBoxSystemId))
+	const defaultBoxSystem = boxSystems.find((system: any) => system.isDefault) || boxSystems[0]
+	const isHorizontalHive = boxes?.some((box: any) => box.type === 'LARGE_HORIZONTAL_SECTION')
+	const displayedBoxSystem = selectedBoxSystem || (!hiveBoxSystemId && !isHorizontalHive ? defaultBoxSystem : null)
+	const displayedBoxSystemColor = displayedBoxSystem
+		? BOX_SYSTEM_COLORS[Math.max(boxSystems.findIndex((system: any) => String(system.id) === String(displayedBoxSystem.id)), 0) % BOX_SYSTEM_COLORS.length]
+		: '#6b7280'
 
 	const SplitIcon = () => (
 		<svg
@@ -464,6 +487,22 @@ export default function HiveEditDetails({ apiaryId, hiveId, onTopMessageChange }
 								</div>
 								<div className={styles.wrap4}>
 									<div className={styles.titleQueenWrap}>
+											<div className={styles.boxSystemMeta}>
+												<span className={styles.boxSystemMetaLabel}>
+													<T>Box system</T>:
+												</span>
+												<span className={styles.boxSystemPill}>
+													<span
+														className={styles.boxSystemPillDot}
+														style={{ backgroundColor: displayedBoxSystemColor }}
+													></span>
+													<span>
+														{isHorizontalHive
+															? 'Independent (Horizontal)'
+															: (displayedBoxSystem?.name || 'Unknown')}
+													</span>
+												</span>
+											</div>
 											<div id={styles.queenSection}>
 												<QueenSlot
 													families={families}

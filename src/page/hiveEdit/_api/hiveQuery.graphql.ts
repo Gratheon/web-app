@@ -6,8 +6,14 @@ export default gql`
 			id
 			name
 		}
+		boxSystems {
+			id
+			name
+			isDefault
+		}
 		hive(id: $id) {
 			id
+			boxSystemId
 			hiveNumber
 			notes
 			beeCount

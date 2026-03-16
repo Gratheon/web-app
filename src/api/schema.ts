@@ -226,6 +226,7 @@ enum FrameType {
 
 type Hive {
   id: ID!
+  boxSystemId: ID
 
   # amount of bees detected on all frames. Includes all types (workers, drones, queens)
   beeCount: Int

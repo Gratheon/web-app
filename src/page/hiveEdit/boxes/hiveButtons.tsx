@@ -38,14 +38,6 @@ const WAREHOUSE_BY_BOX_TYPE = {
 	[boxTypes.HORIZONTAL_FEEDER]: 'HORIZONTAL_FEEDER',
 }
 
-const WAREHOUSE_BY_FRAME_TYPE = {
-	FOUNDATION: 'FRAME_FOUNDATION',
-	EMPTY_COMB: 'FRAME_EMPTY_COMB',
-	PARTITION: 'FRAME_PARTITION',
-	FEEDER: 'FRAME_FEEDER',
-}
-
-
 export default function HiveButtons({
 	apiaryId,
 	hiveId,
@@ -59,7 +51,7 @@ export default function HiveButtons({
 	const [adding, setAdding] = useState(false)
 	const [errorRemove, setErrorRemove] = useState(false)
 	const [removeBoxDialogVisible, setRemoveBoxDialogVisible] = useState(false)
-	const { decreaseWarehouseForType, increaseWarehouseForType, increaseWarehouseForTypeBy } = useWarehouseAutoAdjust()
+	const { decreaseWarehouseForType, increaseWarehouseForType, increaseWarehouseForFrameByFrameId } = useWarehouseAutoAdjust()
 	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId]);
 
 	const frames = useLiveQuery(
@@ -149,16 +141,9 @@ const [removingBox, setRemovingBox] = useState(false);
 
 		if (mode === 'warehouse') {
 			await increaseWarehouseForType(WAREHOUSE_BY_BOX_TYPE[removedBoxType])
-
-			const frameTypeCounts = boxFrames.reduce<Record<string, number>>((acc, frame) => {
-				const key = WAREHOUSE_BY_FRAME_TYPE[frame?.type]
-				if (!key) return acc
-				acc[key] = (acc[key] || 0) + 1
-				return acc
-			}, {})
-
-			for (const moduleType of Object.keys(frameTypeCounts)) {
-				await increaseWarehouseForTypeBy(moduleType, frameTypeCounts[moduleType])
+			for (const frame of boxFrames) {
+				if (!frame?.id) continue
+				await increaseWarehouseForFrameByFrameId(frame.id)
 			}
 		}
 

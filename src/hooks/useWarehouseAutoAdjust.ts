@@ -25,6 +25,24 @@ mutation setWarehouseModuleCount($moduleType: WarehouseModuleType!, $count: Int!
 }
 `
 
+const ADJUST_WAREHOUSE_FRAME_INVENTORY_MUTATION = gql`
+mutation adjustWarehouseFrameInventory($boxId: ID!, $frameType: FrameType!, $delta: Int!) {
+	adjustWarehouseFrameInventory(boxId: $boxId, frameType: $frameType, delta: $delta) {
+		key
+		count
+	}
+}
+`
+
+const ADJUST_WAREHOUSE_FRAME_INVENTORY_BY_FRAME_MUTATION = gql`
+mutation adjustWarehouseFrameInventoryByFrame($frameId: ID!, $delta: Int!) {
+	adjustWarehouseFrameInventoryByFrame(frameId: $frameId, delta: $delta) {
+		key
+		count
+	}
+}
+`
+
 function mapCounts(modules: Array<{ moduleType: string; count: number }> = []) {
 	const counts: WarehouseCounts = {}
 
@@ -42,6 +60,8 @@ export function useWarehouseAutoAdjust() {
 
 	const { data } = useQuery(WAREHOUSE_AUTO_ADJUST_QUERY)
 	const [setWarehouseModuleCount] = useMutation(SET_WAREHOUSE_MODULE_COUNT_MUTATION)
+	const [adjustWarehouseFrameInventory] = useMutation(ADJUST_WAREHOUSE_FRAME_INVENTORY_MUTATION)
+	const [adjustWarehouseFrameInventoryByFrame] = useMutation(ADJUST_WAREHOUSE_FRAME_INVENTORY_BY_FRAME_MUTATION)
 
 	useEffect(() => {
 		setCounts(mapCounts(data?.warehouseModules || []))
@@ -110,9 +130,37 @@ export function useWarehouseAutoAdjust() {
 		return updateModuleByDelta(moduleType, safeAmount, false)
 	}
 
+	async function decreaseWarehouseForFrame(boxId?: string | number | null, frameType?: string | null) {
+		if (!boxId || !frameType) return
+		if (!autoUpdateFromHives) return
+		try {
+			await adjustWarehouseFrameInventory({
+				boxId: String(boxId),
+				frameType,
+				delta: -1,
+			})
+		} catch (e) {
+			console.error(e)
+		}
+	}
+
+	async function increaseWarehouseForFrameByFrameId(frameId?: string | number | null) {
+		if (!frameId) return
+		try {
+			await adjustWarehouseFrameInventoryByFrame({
+				frameId: String(frameId),
+				delta: 1,
+			})
+		} catch (e) {
+			console.error(e)
+		}
+	}
+
 	return {
 		decreaseWarehouseForType,
 		increaseWarehouseForType,
 		increaseWarehouseForTypeBy,
+		decreaseWarehouseForFrame,
+		increaseWarehouseForFrameByFrameId,
 	}
 }

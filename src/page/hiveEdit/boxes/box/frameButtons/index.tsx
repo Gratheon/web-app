@@ -13,18 +13,9 @@ import FoundationIcon from '@/icons/foundationIcon.tsx'
 import T from '@/shared/translate'
 import metrics from '@/metrics.tsx'
 import EmptyFrameIcon from '@/icons/emptyFrameIcon.tsx'
-import FeederIcon from '@/icons/feederIcon.tsx'
-import PartitionIcon from '@/icons/partitionIcon.tsx'
 import Button from '@/shared/button'
 import { PopupButton, PopupButtonGroup } from '@/shared/popupButton'
 import { useWarehouseAutoAdjust } from '@/hooks/useWarehouseAutoAdjust'
-
-const WAREHOUSE_BY_FRAME_TYPE = {
-	[frameTypes.FOUNDATION]: 'FRAME_FOUNDATION',
-	[frameTypes.EMPTY_COMB]: 'FRAME_EMPTY_COMB',
-	[frameTypes.PARTITION]: 'FRAME_PARTITION',
-	[frameTypes.FEEDER]: 'FRAME_FEEDER',
-}
 
 export default function FrameButtons({ box, onError }) {
 	let [addFrameMutation] =
@@ -44,7 +35,7 @@ export default function FrameButtons({ box, onError }) {
 	`)
 
 	const [addingFrame, setAdding] = useState(false)
-	const { decreaseWarehouseForType } = useWarehouseAutoAdjust()
+	const { decreaseWarehouseForFrame } = useWarehouseAutoAdjust()
 
 	async function onFrameAdd(boxId, type) {
 		setAdding(true)
@@ -63,7 +54,7 @@ export default function FrameButtons({ box, onError }) {
 			leftId: +data.addFrame.leftSide?.id,
 			rightId: +data.addFrame.rightSide?.id,
 		})
-		await decreaseWarehouseForType(WAREHOUSE_BY_FRAME_TYPE[type])
+		await decreaseWarehouseForFrame(boxId, type)
 
 		metrics.trackFrameAdded()
 		setAdding(false)
@@ -93,18 +84,6 @@ export default function FrameButtons({ box, onError }) {
 							onFrameAdd(box.id, frameTypes.VOID)
 						}}	
 					><EmptyFrameIcon /><T ctx="this is a button that adds new frame into a beehive, but it has no cells or wax inside, only wooden frame">Add empty frame</T></Button>
-					<Button
-						loading={addingFrame}
-						onClick={() => {
-							onFrameAdd(box.id, frameTypes.FEEDER)
-						}}
-					><FeederIcon /><T ctx="this is a button that adds new vertical frame-like container into a beehive, for sugar syrup to be poured in, to feed the bees">Add vertical feeder</T></Button>
-					<Button
-						loading={addingFrame}
-						onClick={() => {
-							onFrameAdd(box.id, frameTypes.PARTITION)
-						}}
-					><PartitionIcon /><T ctx="this is a button that adds new frame-like separator made of wood into a beehive to reduce available space for bees">Add partition</T></Button>
 				</PopupButton>
 			</PopupButtonGroup>
 	)

@@ -55,7 +55,7 @@ export default function HiveIcon({
 	boxes = [],
 	size = 60,
 	editable = false,
-	onColorChange = () => null
+	onColorChange = () => null,
 }: HiveIconProps) {
 	const [colorPickerVisibleAt, showColorPicker] = useState(null)
 	const [, updateState] = useState()
@@ -65,13 +65,11 @@ export default function HiveIcon({
 	const hasLargeHorizontalSection = boxes.some(
 		(box: any) => box?.type === 'LARGE_HORIZONTAL_SECTION'
 	)
-	const hasRoof = boxes.some(
-		(box: any) => box?.type === 'ROOF'
-	)
+	const hasRoof = boxes.some((box: any) => box?.type === 'ROOF')
 	const showDetailedNotches = size > 50
 
 	const hiveWidth = hasLargeHorizontalSection ? Math.round(size * 1.9) : size
-	const roofOverhang = Math.max(4, Math.round(hiveWidth * 0.08))
+	const roofOverhang = Math.max(2, Math.round(hiveWidth * 0.04))
 
 	let hiveStyle = {
 		width: `${hiveWidth}px`,
@@ -103,17 +101,17 @@ export default function HiveIcon({
 
 			if (box.type === 'LARGE_HORIZONTAL_SECTION') {
 				boxStyle.paddingTop = `${size / 1.8}px`
-			}
-			else if (box.type === 'GATE') {
+			} else if (box.type === 'GATE') {
 				boxStyle.paddingTop = `${size / 10}px`
-			}
-			else if (box.type === 'VENTILATION' || box.type === 'QUEEN_EXCLUDER' || box.type === 'BOTTOM') {
+			} else if (
+				box.type === 'VENTILATION' ||
+				box.type === 'QUEEN_EXCLUDER' ||
+				box.type === 'BOTTOM'
+			) {
 				boxStyle.paddingTop = `${size / 20}px`
-			}
-			else if (box.type === 'HORIZONTAL_FEEDER') {
+			} else if (box.type === 'HORIZONTAL_FEEDER') {
 				boxStyle.paddingTop = `${size / 4.5}px`
-			}
-			else if (box.type === 'SUPER') {
+			} else if (box.type === 'SUPER') {
 				boxStyle.paddingTop = `${size / 4}px`
 			} else {
 				boxStyle.paddingTop = `${size / 2}px`
@@ -128,7 +126,11 @@ export default function HiveIcon({
 					style={{
 						...boxStyle,
 					}}
-					className={`${styles.box} ${box.type === 'LARGE_HORIZONTAL_SECTION' ? styles.largeHorizontalSection : ''}`}
+					className={`${styles.box} ${
+						box.type === 'LARGE_HORIZONTAL_SECTION'
+							? styles.largeHorizontalSection
+							: ''
+					}`}
 				>
 					{editable && colorPickerVisibleAt === i && (
 						<GithubPicker
@@ -136,23 +138,22 @@ export default function HiveIcon({
 							colors={colors}
 							onChangeComplete={(c: any) => {
 								box.color = c.hex
-								onColorChange(box);
+								onColorChange(box)
 								showColorPicker(null)
 								forceUpdate()
 							}}
 							color={box.color}
 						/>
 					)}
-					{showDetailedNotches && (box.type === 'DEEP' || box.type === 'SUPER') && (
-						<div className={styles.gripNotch}></div>
-					)}
+					{showDetailedNotches &&
+						(box.type === 'DEEP' || box.type === 'SUPER') && (
+							<div className={styles.gripNotch}></div>
+						)}
 
-					{box.type === 'GATE' &&
-						<div className={styles.gate}></div>
-					}
-					{box.type === 'VENTILATION' &&
+					{box.type === 'GATE' && <div className={styles.gate}></div>}
+					{box.type === 'VENTILATION' && (
 						<div className={styles.ventilation}></div>
-					}
+					)}
 					{box.type === 'LARGE_HORIZONTAL_SECTION' && (
 						<div className={styles.horizontalFrames}></div>
 					)}

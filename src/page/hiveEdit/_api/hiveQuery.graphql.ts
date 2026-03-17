@@ -22,6 +22,12 @@ export default gql`
 			collapse_date
 			collapse_cause
 			splitDate
+			boxes {
+				id
+				position
+				type
+				color
+			}
 
 			parentHive {
 				id

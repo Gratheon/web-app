@@ -28,6 +28,16 @@ class NewTranslationBatcher {
   private timer: ReturnType<typeof setTimeout> | null = null
   private batchDelay: number = 150
 
+  private isDebugEnabled(): boolean {
+    return typeof window !== 'undefined' && Boolean((window as any).__DEBUG_TRANSLATIONS__)
+  }
+
+  private debugLog(...args: any[]) {
+    if (this.isDebugEnabled()) {
+      console.debug('[newTranslationBatcher]', ...args)
+    }
+  }
+
   async request(key: string, isPlural: boolean = false, context?: string, namespace?: string): Promise<any> {
     return new Promise((resolve, reject) => {
       this.queue.push({key, context, namespace, isPlural, resolve, reject})
@@ -69,71 +79,21 @@ class NewTranslationBatcher {
       const result = await apiClient.query(getTranslationsQuery, {inputs}).toPromise()
 
       if (result.data?.getTranslations) {
-        const translationMap = new Map()
+        const persistedRecords = new Set<string>()
 
-        for (const trans of result.data.getTranslations) {
-          const translationId = +trans.id;
+        for (const req of batch) {
+          const translation = result.data.getTranslations.find((trans: any) =>
+            this.isTranslationMatch(req, trans)
+          )
 
-          if (!translationId || isNaN(translationId)) {
-            continue;
-          }
-
-          const requestKey = inputs.find(i => i.key.toLowerCase() === trans.key.toLowerCase())?.key || trans.key;
-
-				await upsertTranslation({
-				id: translationId,
-				key: requestKey,
-				namespace: trans.namespace,
-				context: trans.context
-			})
-
-			if (trans.values) {
-				for (const [lang, value] of Object.entries(trans.values)) {
-					await upsertTranslationValue({
-						translationId: translationId,
-						lang,
-						value: value as string
-					})
-				}
-			} else if (trans.plurals && !trans.values) {
-
-				for (const [lang, pluralData] of Object.entries(trans.plurals)) {
-					const pd = pluralData as any;
-					const rawValue = pd?.other || pd?.few || pd?.many || pd?.one || pd?.zero || pd?.two || requestKey;
-
-						// Capitalize first letter for menu items
-						const capitalizedValue = rawValue.charAt(0).toUpperCase() + rawValue.slice(1);
-
-						await upsertTranslationValue({
-						translationId: translationId,
-						lang,
-						value: capitalizedValue as string
-					})
-				}
-			}
-
-			if (trans.plurals) {
-				for (const [lang, pluralData] of Object.entries(trans.plurals)) {
-					await upsertPluralForm({
-						translationId: translationId,
-						lang,
-						pluralData
-					})
-				}
-			}
-
-          translationMap.set(trans.key, trans)
-        }
-
-
-        batch.forEach(req => {
-          const translation = translationMap.get(req.key)
-          if (translation) {
-            req.resolve(translation)
-          } else {
+          if (!translation) {
             req.reject(new Error('Translation not found'))
+            continue
           }
-        })
+
+          await this.persistTranslationForRequest(req, translation, persistedRecords)
+          req.resolve(translation)
+        }
       } else {
         batch.forEach(req => req.reject(new Error('No translation data')))
       }
@@ -146,13 +106,97 @@ class NewTranslationBatcher {
     const seen = new Map<string, TranslationRequest>()
 
     for (const req of requests) {
-      const key = `${req.key}|${req.namespace || ''}|${req.isPlural}`
+      const key = `${req.key}|${req.context || ''}|${req.namespace || ''}|${req.isPlural}`
       if (!seen.has(key)) {
         seen.set(key, req)
       }
     }
 
     return Array.from(seen.values())
+  }
+
+  private isTranslationMatch(req: TranslationRequest, trans: any): boolean {
+    const requestKey = req.key.toLowerCase()
+    const translationKey = String(trans?.key || '').toLowerCase()
+    if (requestKey !== translationKey) {
+      return false
+    }
+
+    const requestContext = req.context ?? null
+    const translationContext = trans?.context ?? null
+    if (requestContext !== translationContext) {
+      return false
+    }
+
+    const requestNamespace = req.namespace ?? null
+    const translationNamespace = trans?.namespace ?? null
+    return requestNamespace === translationNamespace
+  }
+
+  private async persistTranslationForRequest(
+    req: TranslationRequest,
+    trans: any,
+    persistedRecords: Set<string>
+  ) {
+    const translationId = +trans.id
+    if (!translationId || isNaN(translationId)) {
+      return
+    }
+
+    const cacheKey = `${translationId}|${req.key}|${req.context || ''}|${req.namespace || ''}`
+    if (persistedRecords.has(cacheKey)) {
+      return
+    }
+    persistedRecords.add(cacheKey)
+
+    const persistedTranslationId = await upsertTranslation({
+      id: translationId,
+      key: req.key,
+      namespace: req.namespace,
+      context: req.context
+    })
+
+    if (persistedTranslationId !== translationId) {
+      this.debugLog('translation id remapped', {
+        key: req.key,
+        context: req.context,
+        namespace: req.namespace,
+        remoteId: translationId,
+        localId: persistedTranslationId
+      })
+    }
+
+    if (trans.values) {
+      for (const [lang, value] of Object.entries(trans.values)) {
+        await upsertTranslationValue({
+          translationId: persistedTranslationId,
+          lang,
+          value: value as string
+        })
+      }
+    } else if (trans.plurals && !trans.values) {
+      for (const [lang, pluralData] of Object.entries(trans.plurals)) {
+        const pd = pluralData as any
+        const rawValue = pd?.other || pd?.few || pd?.many || pd?.one || pd?.zero || pd?.two || req.key
+        const capitalizedValue = rawValue.charAt(0).toUpperCase() + rawValue.slice(1)
+
+        await upsertTranslationValue({
+          translationId: persistedTranslationId,
+          lang,
+          value: capitalizedValue as string
+        })
+      }
+    }
+
+    if (trans.plurals) {
+      for (const [lang, pluralData] of Object.entries(trans.plurals)) {
+        await upsertPluralForm({
+          translationId: persistedTranslationId,
+          lang,
+          pluralData
+        })
+      }
+    }
   }
 }
 

@@ -76,7 +76,7 @@ describe('Translations Integration Tests', () => {
 
 	describe('getTranslation', () => {
 		it('should return translation when key exists', async () => {
-			const translation: Translation = { id: 1, key: 'greeting', context: 'home' };
+			const translation: Translation = { id: 1, key: 'greeting', context: undefined };
 			dbMocks.translation.mockToArray.mockResolvedValue([translation]);
 
 			const result = await getTranslation('greeting');
@@ -93,6 +93,18 @@ describe('Translations Integration Tests', () => {
 			const result = await getTranslation('nonexistent');
 
 			expect(result).toBeNull();
+		});
+
+		it('should return translation for matching context', async () => {
+			const matching: Translation = { id: 2, key: 'worker bees', context: 'toggle worker bees visibility' };
+			dbMocks.translation.mockToArray.mockResolvedValue([
+				{ id: 1, key: 'worker bees', context: undefined },
+				matching,
+			]);
+
+			const result = await getTranslation('worker bees', undefined, 'toggle worker bees visibility');
+
+			expect(result).toEqual(matching);
 		});
 	});
 
@@ -152,8 +164,8 @@ describe('Translations Integration Tests', () => {
 			});
 		});
 
-		it('should update existing translation when key exists', async () => {
-			const existing = { id: 1, key: 'welcome', context: 'old' };
+		it('should update existing translation when key and context match', async () => {
+			const existing = { id: 1, key: 'welcome', context: 'new' };
 			dbMocks.translation.mockToArray.mockResolvedValue([existing]);
 			dbMocks.translation.mockPut.mockResolvedValue(1);
 
@@ -165,6 +177,35 @@ describe('Translations Integration Tests', () => {
 				key: 'welcome',
 				namespace: undefined,
 				context: 'new'
+			});
+		});
+
+		it('should insert separate row when context differs', async () => {
+			const existing = { id: 1, key: 'welcome', context: 'old' };
+			dbMocks.translation.mockToArray.mockResolvedValue([existing]);
+			dbMocks.translation.mockPut.mockResolvedValue(2);
+
+			const result = await upsertTranslation({ id: 2, key: 'welcome', context: 'new' });
+
+			expect(result).toBe(2);
+			expect(dbMocks.translation.mockPut).toHaveBeenCalledWith({
+				key: 'welcome',
+				namespace: undefined,
+				context: 'new'
+			});
+		});
+
+		it('should ignore provided id when inserting a new translation key', async () => {
+			dbMocks.translation.mockToArray.mockResolvedValue([]);
+			dbMocks.translation.mockPut.mockResolvedValue(10);
+
+			const result = await upsertTranslation({ id: 999, key: 'worker bees', context: 'toggle worker bees visibility' });
+
+			expect(result).toBe(10);
+			expect(dbMocks.translation.mockPut).toHaveBeenCalledWith({
+				key: 'worker bees',
+				namespace: undefined,
+				context: 'toggle worker bees visibility'
 			});
 		});
 
@@ -401,4 +442,3 @@ describe('Translations Integration Tests', () => {
 		});
 	});
 });
-

@@ -41,7 +41,7 @@ describe('translationService', () => {
 				value: 'Привет',
 				fromCache: true
 			});
-			expect(translations.getTranslation).toHaveBeenCalledWith('hello', undefined);
+			expect(translations.getTranslation).toHaveBeenCalledWith('hello', undefined, undefined);
 			expect(translations.getTranslationValue).toHaveBeenCalledWith(1, 'ru');
 		});
 
@@ -271,6 +271,23 @@ describe('translationService', () => {
 			expect(result).toBe('ru');
 		});
 
+		it('should normalize user language with region to supported base language', () => {
+			const result = getUserLanguage({ lang: 'pt-BR' });
+
+			expect(result).toBe('pt');
+		});
+
+		it('should fallback to browser language when user language is unsupported', () => {
+			Object.defineProperty(navigator, 'language', {
+				value: 'fr-FR',
+				configurable: true
+			});
+
+			const result = getUserLanguage({ lang: 'ko-KR' });
+
+			expect(result).toBe('fr');
+		});
+
 		it('should return browser language when user has no language', () => {
 			Object.defineProperty(navigator, 'language', {
 				value: 'ru-RU',
@@ -327,4 +344,3 @@ describe('translationService', () => {
 		});
 	});
 });
-

@@ -26,9 +26,10 @@ export interface TranslationData {
 export async function fetchTranslationForLanguage(
 	key: string,
 	lang: string,
-	namespace?: string
+	namespace?: string,
+	context?: string
 ): Promise<TranslationResult> {
-	const translation = await getTranslation(key, namespace);
+	const translation = await getTranslation(key, namespace, context);
 
 	if (!translation) {
 		return { value: null, fromCache: false };
@@ -49,7 +50,7 @@ export async function fetchTranslationWithRemote(
 	context?: string,
 	namespace?: string
 ): Promise<string> {
-	const cached = await fetchTranslationForLanguage(key, lang, namespace);
+	const cached = await fetchTranslationForLanguage(key, lang, namespace, context);
 
 	if (cached.value) {
 		return cached.value;
@@ -112,7 +113,10 @@ export function getUserLanguage(
 	supportedLangs: readonly string[] = SUPPORTED_LANGUAGES
 ): string {
 	if (user && user.lang) {
-		return user.lang;
+		const normalizedUserLang = user.lang.toLowerCase().substring(0, 2);
+		if (supportedLangs.includes(normalizedUserLang)) {
+			return normalizedUserLang;
+		}
 	}
 
 	if (typeof navigator !== 'undefined') {
@@ -152,4 +156,3 @@ export async function fetchRemotePlural(
 		return null;
 	}
 }
-

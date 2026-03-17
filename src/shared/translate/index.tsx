@@ -21,6 +21,35 @@ import isDev from '@/isDev'
 import { useMutation } from '@/api'
 import { SUPPORTED_LANGUAGES } from '@/config/languages'
 
+function isTranslationDebugEnabled(): boolean {
+	return typeof window !== 'undefined' && Boolean((window as any).__DEBUG_TRANSLATIONS__)
+}
+
+function debugTranslation(...args: any[]) {
+	if (isTranslationDebugEnabled()) {
+		console.debug('[translate]', ...args)
+	}
+}
+
+const runtimeTranslationCache = new Map<string, string>()
+
+function getCacheKey(key: string, lang: string, ctx?: string, ns?: string): string {
+	return `${lang}|${ns || ''}|${ctx || ''}|${key}`
+}
+
+function useStableUserLanguage() {
+	const user = useLiveQuery(() => getUser(), [], null)
+	const [lang, setLang] = useState(() => getUserLanguage(user, SUPPORTED_LANGUAGES))
+
+	useEffect(() => {
+		if (user?.lang) {
+			setLang(getUserLanguage(user, SUPPORTED_LANGUAGES))
+		}
+	}, [user?.lang])
+
+	return lang
+}
+
 function TRemote({
 	lang,
 	children,
@@ -82,8 +111,8 @@ interface TProps {
 }
 
 export default function T({ children, ctx, ns }: TProps) {
-	let user = useLiveQuery(() => getUser(), [], null)
-	const lang = getUserLanguage(user, SUPPORTED_LANGUAGES)
+	const lang = useStableUserLanguage()
+	const cacheKey = getCacheKey(children, lang, ctx, ns)
 	const [shouldShowRemote, setShouldShowRemote] = useState(false)
 	const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false)
 	const [isEditing, setIsEditing] = useState(false)
@@ -105,7 +134,7 @@ export default function T({ children, ctx, ns }: TProps) {
 
 	let translationData = useLiveQuery(
 		async () => {
-			const trans = await getTranslation(children, ns)
+			const trans = await getTranslation(children, ns, ctx)
 
 			if (!trans) {
 				return { exists: false, value: null }
@@ -114,16 +143,22 @@ export default function T({ children, ctx, ns }: TProps) {
 			const value = await getTranslationValue(trans.id, lang)
 			return { exists: true, value }
 		},
-		[children, lang, ns],
+		[children, lang, ns, ctx],
 		null
 	)
 
 	const translation = translationData?.value || null
 	const translationExists = translationData?.exists ?? false
+	const cachedRuntimeValue = runtimeTranslationCache.get(cacheKey) || null
+
+	if (translation) {
+		runtimeTranslationCache.set(cacheKey, translation)
+	}
 
 	useEffect(() => {
 		// Only fetch if translation record doesn't exist in IndexedDB at all
 		if (!hasAttemptedFetch && translationData && !translationExists) {
+			debugTranslation('rendering remote fallback', { key: children, context: ctx, namespace: ns, lang })
 			setShouldShowRemote(true)
 		}
 	}, [
@@ -171,7 +206,7 @@ export default function T({ children, ctx, ns }: TProps) {
 		setIsSaving(true)
 
 		try {
-			const trans = await getTranslation(children, ns)
+			const trans = await getTranslation(children, ns, ctx)
 			const translationId = trans?.id
 
 			await updateTranslationMutation({
@@ -257,6 +292,14 @@ export default function T({ children, ctx, ns }: TProps) {
 		)
 	}
 
+	if (cachedRuntimeValue && translationData === null) {
+		return (
+			<span onClick={handleClick} style={wrapperStyle}>
+				{cachedRuntimeValue}
+			</span>
+		)
+	}
+
 	if (shouldShowRemote && !hasAttemptedFetch) {
 		return (
 			<TRemote lang={lang} ctx={ctx} ns={ns} onFetched={handleFetched}>
@@ -275,43 +318,54 @@ export default function T({ children, ctx, ns }: TProps) {
 export function useTranslation(key: string, ctx?: string, ns?: string) {
 	const [translatedText, setTranslatedText] = useState(key)
 	const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false)
-
-	let user = useLiveQuery(() => getUser(), [], null)
-	const lang = getUserLanguage(user, SUPPORTED_LANGUAGES)
+	const lang = useStableUserLanguage()
+	const cacheKey = getCacheKey(key, lang, ctx, ns)
 
 	let cachedTranslation = useLiveQuery(
 		async () => {
-			const translation = await getTranslation(key, ns)
+			const translation = await getTranslation(key, ns, ctx)
 			if (!translation) return null
 
 			const value = await getTranslationValue(translation.id, lang)
 			return { translationId: translation.id, value }
 		},
-		[key, lang, ns],
+		[key, lang, ns, ctx],
 		null
 	)
 
 	useEffect(() => {
+		const runtimeValue = runtimeTranslationCache.get(cacheKey)
+		if (runtimeValue) {
+			setTranslatedText(runtimeValue)
+		}
 		setHasAttemptedFetch(false)
-	}, [key, lang, ns])
+	}, [key, lang, ns, ctx, cacheKey])
 
 	useEffect(() => {
 		if (cachedTranslation?.value) {
+			runtimeTranslationCache.set(cacheKey, cachedTranslation.value)
+			debugTranslation('cache hit', { key, context: ctx, namespace: ns, lang, value: cachedTranslation.value })
 			setTranslatedText(cachedTranslation.value)
 			return
 		}
 
-		if (cachedTranslation === null && !hasAttemptedFetch) {
+		if (
+			(cachedTranslation === null || cachedTranslation?.value === null) &&
+			!hasAttemptedFetch
+		) {
+			debugTranslation('cache miss, fetching remote', { key, context: ctx, namespace: ns, lang })
 			setHasAttemptedFetch(true)
 
 			let cancelled = false
 
-			fetchTranslationWithRemote(key, lang, ctx, ns)
-				.then((text) => {
-					if (!cancelled) {
-						setTranslatedText(text)
-					}
-				})
+				fetchTranslationWithRemote(key, lang, ctx, ns)
+					.then((text) => {
+						if (!cancelled) {
+							runtimeTranslationCache.set(cacheKey, text)
+							debugTranslation('remote resolved', { key, context: ctx, namespace: ns, lang, text })
+							setTranslatedText(text)
+						}
+					})
 				.catch((error) => {
 					if (!cancelled) {
 						console.error('Translation fetch error:', error)
@@ -322,7 +376,7 @@ export function useTranslation(key: string, ctx?: string, ns?: string) {
 				cancelled = true
 			}
 		}
-	}, [cachedTranslation, key, lang, ctx, ns, hasAttemptedFetch])
+	}, [cachedTranslation, key, lang, ctx, ns, hasAttemptedFetch, cacheKey])
 
 	return translatedText
 }
@@ -330,9 +384,7 @@ export function useTranslation(key: string, ctx?: string, ns?: string) {
 export function usePlural(count: number, key: string, ns?: string) {
 	const [translatedText, setTranslatedText] = useState(key)
 	const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false)
-
-	let user = useLiveQuery(() => getUser(), [], null)
-	const lang = getUserLanguage(user, SUPPORTED_LANGUAGES)
+	const lang = useStableUserLanguage()
 	const pluralForm = getPluralForm(count, lang)
 
 	let cachedPlural = useLiveQuery(

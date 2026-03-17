@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 
 import Button from '@/shared/button'
 import DateTimeFormat from '@/shared/dateTimeFormat'
-import T from '@/shared/translate'
+import T, { useTranslation as t } from '@/shared/translate'
 import TrashIcon from '@/icons/trashIcon'
 import SkullIcon from '@/icons/SkullIcon'
 import UpIcon from '@/icons/upIcon'
@@ -62,6 +62,44 @@ function GrowthIcon({ size = 10 }: { size?: number }) {
 
 export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryId: string }) {
 	const numericHiveId = +hiveId
+	const tSectionRemoved = t('Section removed')
+	const tFrameAdded = t('Frame added')
+	const tSectionMovedDown = t('Section moved down')
+	const tSectionAdded = t('Section added')
+	const tNewQueenIntroduced = t('New queen introduced')
+	const tColonySplitChildAdded = t('This colony was split and child colony was added to a new hive')
+	const tFrameRearranged = t('Frame rearranged')
+	const tSectionMovedUp = t('Section moved up')
+
+	const titleTranslations = useMemo(() => new Map<string, string>([
+		['Section removed', tSectionRemoved],
+		['Frame added', tFrameAdded],
+		['Section moved down', tSectionMovedDown],
+		['Section added', tSectionAdded],
+		['New queen introduced', tNewQueenIntroduced],
+		['This colony was split and child colony was added to a new hive', tColonySplitChildAdded],
+		['Frame rearranged', tFrameRearranged],
+		['Section moved up', tSectionMovedUp],
+	]), [
+		tSectionRemoved,
+		tFrameAdded,
+		tSectionMovedDown,
+		tSectionAdded,
+		tNewQueenIntroduced,
+		tColonySplitChildAdded,
+		tFrameRearranged,
+		tSectionMovedUp,
+	])
+
+	const titleCanonicalByLower = useMemo(() => {
+		const map = new Map<string, string>()
+		for (const [canonical, localized] of titleTranslations.entries()) {
+			map.set(canonical.toLowerCase(), canonical)
+			map.set(localized.toLowerCase(), canonical)
+		}
+		return map
+	}, [titleTranslations])
+
 	const logs = useLiveQuery(() => listHiveLogs(numericHiveId), [numericHiveId], null)
 	const [draft, setDraft] = useState('')
 	const [editingId, setEditingId] = useState<number | null>(null)
@@ -76,6 +114,16 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 
 	if (logs === null) {
 		return null
+	}
+
+	function canonicalizeTitle(rawTitle: string): string {
+		const normalized = (rawTitle || '').trim().toLowerCase()
+		return titleCanonicalByLower.get(normalized) || rawTitle
+	}
+
+	function getDisplayTitle(rawTitle: string): string {
+		const canonical = canonicalizeTitle(rawTitle)
+		return titleTranslations.get(canonical) || rawTitle
 	}
 
 	function isSplitSourceEntry(entry: HiveLogEntry): boolean {
@@ -177,7 +225,7 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 							onDblClick={() => onStartEdit(entry)}
 							title="Double-click to edit"
 						>
-							{entry.title}
+							{getDisplayTitle(entry.title || '')}
 						</div>
 						{entry.details && (
 							<div
@@ -226,7 +274,8 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 	}
 
 	function getMarker(entry: HiveLogEntry): { className?: string; icon?: any } {
-		const title = (entry.title || '').toLowerCase()
+		const canonicalTitle = canonicalizeTitle(entry.title || '')
+		const title = canonicalTitle.toLowerCase()
 		const details = (entry.details || '').toLowerCase()
 
 		if (entry.action === 'COLLAPSE' || title.includes('collapsed')) {

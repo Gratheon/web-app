@@ -4,7 +4,7 @@ import Button from '@/shared/button'
 import { gql, useMutation, useQuery } from '@/api'
 import MessageSuccess from '@/shared/messageSuccess'
 import MessageError from '@/shared/messageError'
-import T from '@/shared/translate'
+import T, { useTranslation as t } from '@/shared/translate'
 import PricingPlans from './pricingPlans'
 
 import CreditCard from '@/icons/creditCard'
@@ -25,6 +25,8 @@ const BILLING_HISTORY_QUERY = gql`
 
 export default function Billing({ user }) {
 	let { stripeStatus } = useParams()
+	const tSubscriptionExpiredMovedToFree = t('Subscription expired, moved from professional to free tier')
+	const tAccountCreated = t('Account created')
 
 	const { data: historyData } = useQuery(BILLING_HISTORY_QUERY)
 
@@ -88,6 +90,24 @@ export default function Billing({ user }) {
 			case 'payment_failed': return '#F44336'
 			default: return '#999'
 		}
+	}
+
+	const getLocalizedBillingDetail = (details?: string, eventType?: string) => {
+		const normalized = (details || '').trim().toLowerCase()
+
+		if (normalized === 'subscription expired, moved from professional to free tier') {
+			return tSubscriptionExpiredMovedToFree
+		}
+
+		if (normalized === 'account created') {
+			return tAccountCreated
+		}
+
+		if (!details && eventType === 'registration') {
+			return tAccountCreated
+		}
+
+		return details || eventType
 	}
 
 	return (
@@ -178,7 +198,7 @@ export default function Billing({ user }) {
 									marginBottom: '0.25rem'
 								}}>
 									<div style={{ fontWeight: 600, color: '#333' }}>
-										{event.details || event.eventType}
+										{getLocalizedBillingDetail(event.details, event.eventType)}
 									</div>
 									<div style={{ fontSize: '0.85rem', color: '#999' }}>
 										{formatDateTimeByLocale(new Date(event.createdAt), { dateStyle: 'medium', timeStyle: 'short' }, locale)}

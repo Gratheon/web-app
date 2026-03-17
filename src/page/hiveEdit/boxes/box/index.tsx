@@ -6,6 +6,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { gql, useMutation, useQuery, useSubscription } from '@/api'
 import ErrorMessage from '@/shared/messageError'
 import Loader from '@/shared/loader'
+import { useTranslation as t } from '@/shared/translate'
 
 import { Frame as FrameType, getFrames, moveFrame } from '@/models/frames'
 import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
@@ -51,6 +52,7 @@ export default function Box({
 	frameSidesData = [],
 	onFrameImageClick = (imageUrl: string) => {},
 }: BoxType): any {
+	const tFrameRearranged = t('Frame rearranged')
 	const navigate = useNavigate()
 	let framesDiv = []
 
@@ -226,7 +228,7 @@ export default function Box({
 			await addHiveLog({
 				hiveId: +hiveId,
 				action: hiveLogActions.STRUCTURE_MOVE,
-				title: 'Frame rearranged',
+				title: tFrameRearranged,
 				details: `Frame position changed in section #${boxId}.`,
 			})
 

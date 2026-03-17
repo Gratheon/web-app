@@ -83,7 +83,10 @@ export default function HiveIcon({
 		borderLeft: `${size / 10}px solid black`,
 		borderRight: `${size / 10}px solid black`,
 	}
+
+	const roofHeight = (hiveWidth / 10);
 	const roofStyle = {
+		height: `${roofHeight}px`,
 		width: `${hiveWidth + roofOverhang * 2}px`,
 		marginLeft: `-${roofOverhang}px`,
 	}
@@ -142,11 +145,10 @@ export default function HiveIcon({
 						style={{
 							...boxStyle,
 						}}
-						className={`${styles.box} ${
-							box.type === 'LARGE_HORIZONTAL_SECTION'
-								? styles.largeHorizontalSection
-								: ''
-						}`}
+						className={`${styles.box} ${box.type === 'LARGE_HORIZONTAL_SECTION'
+							? styles.largeHorizontalSection
+							: ''
+							}`}
 					>
 						{showDetailedNotches &&
 							(box.type === 'DEEP' || box.type === 'SUPER') && (

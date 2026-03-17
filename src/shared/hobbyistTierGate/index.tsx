@@ -50,9 +50,9 @@ export default function HobbyistTierGate({ children }: HobbyistTierGateProps) {
 			<div
 				style={{
 					position: 'absolute',
-					top: '50%',
+					top: '100px',
 					left: '50%',
-					transform: 'translate(-50%, -50%)',
+					transform: 'translateX(-50%)',
 					width: 'min(460px, calc(100% - 24px))',
 					zIndex: 2,
 				}}

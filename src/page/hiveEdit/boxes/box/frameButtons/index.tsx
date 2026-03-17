@@ -10,7 +10,7 @@ import {
 	addFrame,
 } from '@/models/frames.ts'
 import FoundationIcon from '@/icons/foundationIcon.tsx'
-import T from '@/shared/translate'
+import T, { useTranslation as t } from '@/shared/translate'
 import metrics from '@/metrics.tsx'
 import EmptyFrameIcon from '@/icons/emptyFrameIcon.tsx'
 import Button from '@/shared/button'
@@ -19,6 +19,7 @@ import { useWarehouseAutoAdjust } from '@/hooks/useWarehouseAutoAdjust'
 import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
 
 export default function FrameButtons({ box, onError }) {
+	const tFrameAdded = t('Frame added')
 	let [addFrameMutation] =
 		useMutation(`mutation addFrame($boxId: ID!, $type: String!, $position: Int!) {
 		addFrame(boxId: $boxId, type: $type, position: $position){
@@ -58,7 +59,7 @@ export default function FrameButtons({ box, onError }) {
 		await addHiveLog({
 			hiveId: +box.hiveId,
 			action: hiveLogActions.STRUCTURE_ADD,
-			title: 'Frame added',
+			title: tFrameAdded,
 			details: `Added ${type} frame in section #${boxId} at position ${position}.`,
 		})
 		await decreaseWarehouseForFrame(boxId, type)

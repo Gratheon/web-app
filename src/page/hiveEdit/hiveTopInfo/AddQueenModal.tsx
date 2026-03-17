@@ -2,7 +2,7 @@ import { h } from 'preact'
 import { useState, useEffect, useCallback } from 'preact/hooks'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useMutation, useQuery, gql } from '@/api'
-import T from '@/shared/translate'
+import T, { useTranslation as t } from '@/shared/translate'
 import Modal from '@/shared/modal'
 import Button from '@/shared/button'
 import MessageError from '@/shared/messageError'
@@ -59,6 +59,7 @@ export default function AddQueenModal({
 	onClose,
 	onSuccess
 }: AddQueenModalProps) {
+	const tNewQueenIntroduced = t('New queen introduced')
 	const currentYear = new Date().getFullYear().toString()
 	const [mode, setMode] = useState<ModalMode>(initialMode)
 	const [name, setName] = useState('')
@@ -221,7 +222,7 @@ export default function AddQueenModal({
 				await addHiveLog({
 					hiveId: +hiveId,
 					action: hiveLogActions.QUEEN,
-					title: 'New queen introduced',
+					title: tNewQueenIntroduced,
 					details: `${family.name || `#${family.id}`} (${family.added || 'year unknown'}).`,
 				})
 				await new Promise(resolve => setTimeout(resolve, 100))

@@ -8,7 +8,7 @@ import {
 	getBoxes,
 	removeBox
 } from '@/models/boxes'
-import T from '@/shared/translate'
+import T, { useTranslation as t } from '@/shared/translate'
 
 import AddBoxIcon from '@/icons/addBox'
 import AddSuperIcon from '@/icons/addSuper'
@@ -48,6 +48,8 @@ export default function HiveButtons({
 	openRemoveDialogSignal = 0,
 	onRemoveDialogSignalConsumed = () => {},
 }) {
+	const tSectionRemoved = t('Section removed')
+	const tSectionAdded = t('Section added')
 	let navigate = useNavigate()
 	const [adding, setAdding] = useState(false)
 	const [errorRemove, setErrorRemove] = useState(false)
@@ -142,7 +144,7 @@ const [removingBox, setRemovingBox] = useState(false);
 		await addHiveLog({
 			hiveId: +hiveId,
 			action: hiveLogActions.STRUCTURE_REMOVE,
-			title: 'Section removed',
+			title: tSectionRemoved,
 			details: `Removed ${removedBoxType || 'section'} #${id}.`,
 		})
 
@@ -190,7 +192,7 @@ const [removingBox, setRemovingBox] = useState(false);
 		await addHiveLog({
 			hiveId: +hiveId,
 			action: hiveLogActions.STRUCTURE_ADD,
-			title: 'Section added',
+			title: tSectionAdded,
 			details: `Added ${type} at position ${position}.`,
 		})
 		await decreaseWarehouseForType(WAREHOUSE_BY_BOX_TYPE[type])

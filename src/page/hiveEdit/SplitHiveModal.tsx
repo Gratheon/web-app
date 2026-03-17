@@ -52,6 +52,7 @@ export default function SplitHiveModal({
 	apiaryId,
 	frames,
 }: SplitHiveModalProps) {
+	const tColonySplitChildAdded = t('This colony was split and child colony was added to a new hive')
 	const [selectedFrameIds, setSelectedFrameIds] = useState<Set<number>>(new Set())
 	const [queenAction, setQueenAction] = useState<'new_queen' | 'take_old_queen' | 'no_queen'>('new_queen')
 	const [newHiveName, setNewHiveName] = useState('')
@@ -183,7 +184,7 @@ export default function SplitHiveModal({
 				await addHiveLog({
 					hiveId: +hiveId,
 					action: hiveLogActions.LINEAGE,
-					title: 'This colony was split and child colony was added to a new hive',
+					title: tColonySplitChildAdded,
 					details: `Moved ${selectedFrameIds.size} frames to child hive.`,
 					relatedHives: [{ id: newHiveId }],
 					dedupeKey: `lineage:child:${hiveId}:${newHiveId}`,

@@ -14,9 +14,10 @@ import {
 } from '@/models/boxes.ts'
 import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
 import ButtonWithHover from '@/shared/buttonWithHover'
-import T from '@/shared/translate'
+import T, { useTranslation as t } from '@/shared/translate'
 
 export default function BoxButtons({ box, onError }) {
+	const tSectionMovedDown = t('Section moved down')
 	let buttonDirections = useLiveQuery(async () => {
 		return [
 			await getBoxAtPositionBelow(box.hiveId, box.position) !== null,
@@ -58,7 +59,7 @@ export default function BoxButtons({ box, onError }) {
 		await addHiveLog({
 			hiveId: +box1.hiveId,
 			action: hiveLogActions.STRUCTURE_MOVE,
-			title: `Section moved down`,
+			title: tSectionMovedDown,
 			details: `Section #${box1.id} swapped with section #${box2.id}.`,
 		})
 		setMovingBox(false);

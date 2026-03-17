@@ -5,6 +5,7 @@ import T, { useTranslation as t, usePlural } from '@/shared/translate'
 import ChartContainer from './ChartContainer'
 import InfoIcon from '@/shared/infoIcon'
 import thinkerImageURL from '@/assets/thinker.webp'
+import { formatDateTimeByLocale } from '@/shared/dateLocale'
 
 interface PopulationChartProps {
 	inspectionsByHive: Record<string, Array<{ date: Date; population?: number; hiveName: string }>>
@@ -117,7 +118,7 @@ export default function PopulationChart({ inspectionsByHive, showIdealCurve, cha
 			data.forEach(d => {
 				tableData.push({
 					Hive: hiveName,
-					Time: new Date(d.time * 1000).toLocaleString(),
+					Time: formatDateTimeByLocale(new Date(d.time * 1000), { dateStyle: 'medium', timeStyle: 'short' }),
 					Population: d.value
 				})
 			})

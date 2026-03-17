@@ -5,6 +5,7 @@ import T, { useTranslation as t, usePlural } from '@/shared/translate'
 import ChartContainer from './ChartContainer'
 import { gql, useQuery } from '@/api'
 import InfoIcon from '@/shared/infoIcon'
+import { formatDateTimeByLocale } from '@/shared/dateLocale'
 
 const ALERT_RULES_QUERY = gql`
 	query alertRules($metricType: String!) {
@@ -88,7 +89,7 @@ export default function MultiHiveEntranceSpeedChart({ entranceDataByHive, chartR
 				avgSpeedData.forEach(item => {
 					tableData.push({
 						Hive: hiveName,
-						Time: new Date(item.time * 1000).toLocaleString(),
+						Time: formatDateTimeByLocale(new Date(item.time * 1000), { dateStyle: 'medium', timeStyle: 'short' }),
 						Metric: 'Avg Speed',
 						'Speed (px/frame)': item.value
 					})
@@ -211,4 +212,3 @@ export default function MultiHiveEntranceSpeedChart({ entranceDataByHive, chartR
 		</ChartContainer>
 	)
 }
-

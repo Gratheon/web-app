@@ -56,3 +56,121 @@
 		max-width: calc(100vw - 120px);
 	}
 }
+
+.detectionSettingsGrid {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding-top: 4px;
+}
+
+.detectionSettingsBlock {
+	h3 {
+		margin: 0 0 6px;
+	}
+}
+
+.detectionSettingsHelp {
+	margin: 6px 0 10px;
+	color: #4f5f78;
+	font-size: 13px;
+	line-height: 1.35;
+	max-width: 620px;
+}
+
+.detectionSettingsRow {
+	display: grid;
+	grid-template-columns: 170px auto;
+	align-items: center;
+	column-gap: 12px;
+	justify-content: start;
+
+	@media (max-width: 768px) {
+		grid-template-columns: 1fr;
+		gap: 6px;
+	}
+}
+
+.detectionSettingsLabel {
+	font-weight: 600;
+	color: #2f2f2f;
+}
+
+.detectionSettingsOptions {
+	display: grid;
+	grid-template-columns: repeat(6, minmax(42px, 1fr));
+	border: 1px solid #b8c7df;
+	border-radius: 10px;
+	overflow: hidden;
+	width: 324px;
+	max-width: 100%;
+
+	@media (max-width: 768px) {
+		width: 100%;
+	}
+}
+
+.confidenceChip {
+	border: 0;
+	border-right: 1px solid #b8c7df;
+	background: #f5f8ff;
+	color: #2b3d5a;
+	border-radius: 0;
+	padding: 8px 10px;
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 1;
+	cursor: pointer;
+	transition: all 0.15s ease;
+	position: relative;
+}
+
+.confidenceChip:last-child {
+	border-right: 0;
+}
+
+.confidenceChip:hover {
+	filter: brightness(0.97);
+}
+
+.confidenceChipSelected {
+	background: #2f80ed !important;
+	color: #fff;
+	box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.confidenceChipSelected::after {
+	content: '';
+	position: absolute;
+	left: 50%;
+	transform: translateX(-50%);
+	bottom: 2px;
+	width: 14px;
+	height: 2px;
+	border-radius: 2px;
+	background: rgba(255, 255, 255, 0.9);
+}
+
+.detectionSettingsOptions .confidenceChip:nth-child(1) {
+	background: linear-gradient(180deg, #edf4ff 0%, #e2edff 100%);
+}
+
+.detectionSettingsOptions .confidenceChip:nth-child(2) {
+	background: linear-gradient(180deg, #dce8ff 0%, #cfdeff 100%);
+}
+
+.detectionSettingsOptions .confidenceChip:nth-child(3) {
+	background: linear-gradient(180deg, #c7dbff 0%, #bad1ff 100%);
+}
+
+.detectionSettingsOptions .confidenceChip:nth-child(4) {
+	background: linear-gradient(180deg, #aecaFF 0%, #a0c0ff 100%);
+}
+
+.detectionSettingsOptions .confidenceChip:nth-child(5) {
+	background: linear-gradient(180deg, #94b8ff 0%, #88afff 100%);
+}
+
+.detectionSettingsOptions .confidenceChip:nth-child(6) {
+	background: linear-gradient(180deg, #7aa5ff 0%, #6e9cff 100%);
+}

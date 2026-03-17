@@ -278,6 +278,17 @@ input InspectionInput {
   data: JSON!
 }
 
+input RegisterInput {
+  first_name: String
+  last_name: String
+  email: String!
+  password: String!
+  lang: String
+  locale: String
+  nonce: String
+  solution: String
+}
+
 type Invoice {
   id: ID!
   total: Float
@@ -344,12 +355,7 @@ type Mutation {
   addInspection(inspection: InspectionInput!): Inspection
   treatHive(treatment: TreatmentOfHiveInput!): Boolean
   treatBox(treatment: TreatmentOfBoxInput!): Boolean
-  register(
-    first_name: String
-    last_name: String
-    email: String!
-    password: String!
-  ): LoginResult
+  register(input: RegisterInput!): LoginResult
   login(email: String!, password: String!): LoginResult
   generateApiToken: APIToken
   generateShareToken(name: String!, scopes: JSON!, sourceUrl: URL!): ShareToken
@@ -360,6 +366,7 @@ type Mutation {
   deleteUserSelf: Error
   revokeApiToken(token: String!): Error
   revokeShareToken(token: String!): Error
+  setDetectionConfidencePercents(confidencePercents: DetectionConfidencePercentsInput!): DetectionSettings!
 }
 
 type Plant {
@@ -406,7 +413,40 @@ type Query {
   billingHistory: [BillingHistoryEvent]
   apiTokens: [APIToken]
   shareTokens: [ShareToken]
+  detectionSettings: DetectionSettings!
   translate(en: String, key: String, tc: String): Locale
+}
+
+type DetectionThresholds {
+  bees: Float!
+  drones: Float!
+  queens: Float!
+  queenCups: Float!
+  varroa: Float!
+  varroaBottom: Float!
+}
+
+type DetectionConfidencePercents {
+  bees: Int!
+  drones: Int!
+  queens: Int!
+  queenCups: Int!
+  varroa: Int!
+  varroaBottom: Int!
+}
+
+input DetectionConfidencePercentsInput {
+  bees: Int!
+  drones: Int!
+  queens: Int!
+  queenCups: Int!
+  varroa: Int!
+  varroaBottom: Int!
+}
+
+type DetectionSettings {
+  confidencePercents: DetectionConfidencePercents!
+  thresholds: DetectionThresholds!
 }
 
 type ShareToken {
@@ -455,6 +495,7 @@ type User {
 
   # Language code: en, ru, tr, et, pl
   lang: String
+  locale: String
   date_added: DateTime
   date_expiration: DateTime
   hasSubscription: Boolean
@@ -473,6 +514,7 @@ input UserUpdateInput {
   first_name: String
   last_name: String
   lang: String
+  locale: String
 }
 
 union ValidateTokenResult = TokenUser | Error

@@ -6,6 +6,7 @@ import ErrorMsg from '@/shared/messageError'
 import ChartContainer from '@/shared/charts/ChartContainer'
 import { formatEntranceMovementData } from '@/shared/charts/formatters'
 import InfoIcon from '@/shared/infoIcon'
+import { formatDateTimeByLocale } from '@/shared/dateLocale'
 
 interface EntranceMovementChartProps {
 	movementData: {
@@ -32,7 +33,7 @@ export default function EntranceMovementChart({ movementData, chartRefs, syncCha
 		const lastMetric = movementData.metrics[movementData.metrics.length - 1]
 
 		const tableData = movementData.metrics.map(item => ({
-			label: new Date(item.time).toLocaleString(),
+			label: formatDateTimeByLocale(new Date(item.time), { dateStyle: 'medium', timeStyle: 'short' }),
 			value: `In: ${item.beesIn?.toFixed(2) || '0'} | Out: ${item.beesOut?.toFixed(2) || '0'} | Net: ${item.netFlow?.toFixed(2) || '0'}`
 		}))
 

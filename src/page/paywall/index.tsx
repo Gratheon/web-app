@@ -9,6 +9,7 @@ const USER_QUERY = gql`
 			... on User {
 				id
 				lang
+				locale
 				isSubscriptionExpired
 				billingPlan
 			}

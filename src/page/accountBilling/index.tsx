@@ -13,6 +13,7 @@ const USER_QUERY = gql`
 			... on User {
 				id
 				lang
+				locale
 				date_added
 				date_expiration
 				hasSubscription

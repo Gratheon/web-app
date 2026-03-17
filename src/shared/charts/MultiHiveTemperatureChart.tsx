@@ -6,6 +6,7 @@ import ChartContainer from './ChartContainer'
 import { formatMetricData } from './formatters'
 import { gql, useQuery } from '@/api'
 import InfoIcon from '@/shared/infoIcon'
+import { formatDateTimeByLocale } from '@/shared/dateLocale'
 
 const ALERT_RULES_QUERY = gql`
 	query alertRules($metricType: String!) {
@@ -64,7 +65,7 @@ export default function MultiHiveTemperatureChart({ temperatureDataByHive, chart
 				formattedData.forEach(item => {
 					tableData.push({
 						Hive: hiveName,
-						Time: new Date(item.time * 1000).toLocaleString(),
+						Time: formatDateTimeByLocale(new Date(item.time * 1000), { dateStyle: 'medium', timeStyle: 'short' }),
 						'Temperature (°C)': item.value
 					})
 					minValue = Math.min(minValue, item.value)
@@ -180,4 +181,3 @@ export default function MultiHiveTemperatureChart({ temperatureDataByHive, chart
 		</ChartContainer>
 	)
 }
-

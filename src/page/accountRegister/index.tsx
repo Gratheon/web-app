@@ -10,6 +10,7 @@ import { updateUser } from '@/models/user'
 import { getAppUri } from '@/uri'
 import T, { useTranslation } from '@/shared/translate'
 import { getUserLanguage } from '@/models/translationService'
+import { getBrowserLocale } from '@/shared/dateLocale'
 import metrics from '@/metrics'
 import styles from './styles.module.less'
 import logoURL from '@/assets/logo_v7.svg'
@@ -110,6 +111,7 @@ export default function AccountRegister() {
 						first_name
 						last_name
 						lang
+						locale
 						date_expiration
 						date_added
 						hasSubscription
@@ -176,6 +178,7 @@ export default function AccountRegister() {
 		setErrorOnClient('')
 
 		const detectedLang = getUserLanguage(null)
+		const detectedLocale = getBrowserLocale()
 
 		try {
 			accountCreate({
@@ -185,6 +188,7 @@ export default function AccountRegister() {
 					email: account?.email,
 					password: account?.password,
 					lang: detectedLang,
+					locale: detectedLocale,
 					nonce: currentNonce,
 					solution,
 				}

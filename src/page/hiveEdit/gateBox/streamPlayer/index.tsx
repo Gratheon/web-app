@@ -1,11 +1,9 @@
 import Hls from 'hls.js';
 import React, { useEffect, RefObject } from 'react';
 import styles from './style.module.less'
-import { format } from 'date-fns';
-import {de, et, fr, pl, ru, tr} from 'date-fns/locale'
 import { useLiveQuery } from 'dexie-react-hooks';
 import { getUser } from '../../../../models/user.ts';
-const loadedDateLocales = { de, et, fr, pl, ru, tr }
+import { formatDateTimeByLocale, resolveLocale } from '@/shared/dateLocale';
 
 function ReactHlsPlayer({
   hlsConfig,
@@ -103,7 +101,7 @@ export default function StreamPlayer({ videoStreams }) {
   if(!userStored){
     return;
   }
-  const dateLangOptions = { locale: loadedDateLocales[userStored.lang] }
+  const locale = resolveLocale(userStored.locale, userStored.lang)
   
   return <div>
     {videoStreams.map((stream, index) => {
@@ -115,8 +113,8 @@ export default function StreamPlayer({ videoStreams }) {
           backgroundColor: selectedStream === index ? "rgba(0, 0, 0, 0.3)" : "rgba(0, 0, 0, 0.1)"
         }}
       >
-        {format(new Date(stream.startTime), 'dd MMMM yyyy, hh:mm', dateLangOptions)} &mdash;
-        {format(new Date(stream.endTime), 'dd MMMM yyyy, hh:mm', dateLangOptions)}
+        {formatDateTimeByLocale(new Date(stream.startTime), { dateStyle: 'medium', timeStyle: 'short' }, locale)} &mdash;
+        {formatDateTimeByLocale(new Date(stream.endTime), { dateStyle: 'medium', timeStyle: 'short' }, locale)}
 
         ({stream.maxSegment * 10} sec)
       </div>

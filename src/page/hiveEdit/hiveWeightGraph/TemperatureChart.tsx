@@ -5,6 +5,7 @@ import T, { useTranslation as t } from '@/shared/translate'
 import ChartContainer from '@/shared/charts/ChartContainer'
 import { formatMetricData } from '@/shared/charts/formatters'
 import InfoIcon from '@/shared/infoIcon'
+import { formatDateTimeByLocale } from '@/shared/dateLocale'
 
 const red = 'rgba(255,211,174,0.42)'
 const green = 'rgba(126,207,36,0.83)'
@@ -37,7 +38,7 @@ export default function TemperatureChart({ temperatureData, chartRefs, syncChart
 		}
 
 		const tableData = sortedTemperatureData.map(item => ({
-			label: new Date(item.time * 1000).toLocaleString(),
+			label: formatDateTimeByLocale(new Date(item.time * 1000), { dateStyle: 'medium', timeStyle: 'short' }),
 			value: `${item.value} °C`
 		}))
 

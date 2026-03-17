@@ -1,3 +1,5 @@
+import { formatDateTimeByLocale } from '@/shared/dateLocale'
+
 export function formatMetricData(metrics: Array<{ t: string; v: number }>) {
 	if (!metrics || metrics.length === 0) return []
 
@@ -61,8 +63,7 @@ export function formatEntranceMovementData(
 
 export function formatTableData(data: Array<{ time: number; value: number }>, label: string = 'Value') {
 	return data.map(item => ({
-		Time: new Date(item.time * 1000).toLocaleString(),
+		Time: formatDateTimeByLocale(new Date(item.time * 1000), { dateStyle: 'medium', timeStyle: 'short' }),
 		[label]: item.value
 	}))
 }
-

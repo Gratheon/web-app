@@ -1,4 +1,5 @@
 import { db } from "./db";
+import { persistLocale } from '@/shared/dateLocale';
 
 export type User = {
 	id?: number
@@ -6,6 +7,7 @@ export type User = {
 	first_name?: string
 	last_name?: string
 	lang?: string
+	locale?: string
 	date_expiration?: string
 	date_added?: string
 
@@ -32,6 +34,7 @@ export async function getUser(): Promise<User> {
 export async function updateUser(data: User) {
 	try {
 		data.id = +data.id
+		persistLocale(data.locale)
 
 		return await db[TABLE_NAME].put(data)
 	} catch (e) {

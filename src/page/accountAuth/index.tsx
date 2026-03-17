@@ -54,6 +54,7 @@ export default function AccountAuth() {
 						first_name
 						last_name
 						lang
+						locale
 						date_expiration
 						date_added
 						hasSubscription

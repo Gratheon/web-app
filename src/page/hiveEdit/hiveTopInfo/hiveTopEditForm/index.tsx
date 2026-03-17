@@ -443,7 +443,12 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 			{okMsg}
 
 			<div className={styles.iconBlock}>
-				<HiveIcon onColorChange={onColorChange} boxes={boxes} editable={true} />
+				<div className={styles.hiveColorRow}>
+					<label className={styles.hiveColorLabel}>
+						<T>Hive colors</T>
+					</label>
+					<HiveIcon onColorChange={onColorChange} boxes={boxes} editable={true} />
+				</div>
 				<BeeCounter count={hive.beeCount} />
 			</div>
 

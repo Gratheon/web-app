@@ -62,6 +62,9 @@ export default function HiveIcon({
 	//@ts-ignore
 	const forceUpdate = React.useCallback(() => updateState({}), [])
 
+	const isSectionBox = (boxType: string) =>
+		boxType === 'DEEP' || boxType === 'SUPER' || boxType === 'LARGE_HORIZONTAL_SECTION'
+
 	const hasLargeHorizontalSection = boxes.some(
 		(box: any) => box?.type === 'LARGE_HORIZONTAL_SECTION'
 	)
@@ -117,45 +120,62 @@ export default function HiveIcon({
 				boxStyle.paddingTop = `${size / 2}px`
 			}
 
+			const isPaintableSection = isSectionBox(box.type)
+
 			visualBoxes.push(
-				<div
-					onClick={() => {
-						//@ts-ignore
-						showColorPicker(colorPickerVisibleAt === null ? i : null)
-					}}
-					style={{
-						...boxStyle,
-					}}
-					className={`${styles.box} ${
-						box.type === 'LARGE_HORIZONTAL_SECTION'
-							? styles.largeHorizontalSection
-							: ''
-					}`}
-				>
-					{editable && colorPickerVisibleAt === i && (
-						<GithubPicker
-							width={300}
-							colors={colors}
-							onChangeComplete={(c: any) => {
-								box.color = c.hex
-								onColorChange(box)
-								showColorPicker(null)
-								forceUpdate()
+				<div key={box.id || i} className={styles.boxRow}>
+					{editable && isPaintableSection && (
+						<button
+							type="button"
+							className={styles.colorDot}
+							style={{ backgroundColor: box.color || '#ffc848' }}
+							onClick={(event) => {
+								event.stopPropagation()
+								//@ts-ignore
+								showColorPicker(colorPickerVisibleAt === i ? null : i)
 							}}
-							color={box.color}
+							aria-label={`Set color for section ${box.position + 1}`}
 						/>
 					)}
-					{showDetailedNotches &&
-						(box.type === 'DEEP' || box.type === 'SUPER') && (
-							<div className={styles.gripNotch}></div>
-						)}
 
-					{box.type === 'GATE' && <div className={styles.gate}></div>}
-					{box.type === 'VENTILATION' && (
-						<div className={styles.ventilation}></div>
-					)}
-					{box.type === 'LARGE_HORIZONTAL_SECTION' && (
-						<div className={styles.horizontalFrames}></div>
+					<div
+						style={{
+							...boxStyle,
+						}}
+						className={`${styles.box} ${
+							box.type === 'LARGE_HORIZONTAL_SECTION'
+								? styles.largeHorizontalSection
+								: ''
+						}`}
+					>
+						{showDetailedNotches &&
+							(box.type === 'DEEP' || box.type === 'SUPER') && (
+								<div className={styles.gripNotch}></div>
+							)}
+
+						{box.type === 'GATE' && <div className={styles.gate}></div>}
+						{box.type === 'VENTILATION' && (
+							<div className={styles.ventilation}></div>
+						)}
+						{box.type === 'LARGE_HORIZONTAL_SECTION' && (
+							<div className={styles.horizontalFrames}></div>
+						)}
+					</div>
+
+					{editable && colorPickerVisibleAt === i && isPaintableSection && (
+						<div className={styles.colorPickerPopup}>
+							<GithubPicker
+								width={300}
+								colors={colors}
+								onChangeComplete={(c: any) => {
+									box.color = c.hex
+									onColorChange(box)
+									showColorPicker(null)
+									forceUpdate()
+								}}
+								color={box.color}
+							/>
+						</div>
 					)}
 				</div>
 			)

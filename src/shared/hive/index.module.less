@@ -1,5 +1,6 @@
 .hive {
 	display: inline-block;
+	position: relative;
 
 	.roof {
 		height: 8px;
@@ -16,6 +17,12 @@
 	}
 
 	.boxes {
+		position: relative;
+
+		.boxRow {
+			position: relative;
+		}
+
 		.box {
 			border-bottom: 1px solid #2d2300;
 			border-left: 0.5px solid #ededed;
@@ -92,5 +99,31 @@
 			transparent 6px
 		);
 		opacity: 0.9;
+	}
+
+	.colorDot {
+		position: absolute;
+		right: -24px;
+		top: 50%;
+		transform: translateY(-50%);
+		width: 20px;
+		height: 20px;
+		border-radius: 999px;
+		border: 1px solid #1f2937;
+		cursor: pointer;
+		padding: 0;
+		outline: none;
+	}
+
+	.colorDot:hover {
+		transform: translateY(-50%) scale(1.1);
+	}
+
+	.colorPickerPopup {
+		position: absolute;
+		left: calc(100% - 4px);
+		top: calc(50% + 16px);
+		transform: none;
+		z-index: 50;
 	}
 }

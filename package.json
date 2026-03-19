@@ -98,7 +98,7 @@
 			"@remix-run/router": "1.23.2",
 			"esbuild": "0.25.12",
 			"webpack": "5.104.1",
-			"flatted@<3.4.0": ">=3.4.0"
+			"flatted": "3.4.2"
 		}
 	}
 }

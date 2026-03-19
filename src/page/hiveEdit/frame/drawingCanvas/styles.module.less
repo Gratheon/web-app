@@ -1,26 +1,47 @@
 @import '../../../../layout.module.less';
 
 .buttonPanel {
-	width: 200px;
+	display: inline-flex;
 	background: rgba(1, 1, 1, 0.5);
-	position: absolute;
-	top: 0;
-	left: 0;
-	bottom: 0;
-	border-right: 2px solid white;
-
-	-webkit-transition: left 0.5s ease-in-out;
-    -moz-transition: left 0.5s ease-in-out;
-    -o-transition: left 0.5s ease-in-out;
-    transition: left 0.5s ease-in-out;
+	border-radius: 8px;
+	padding: 8px;
+	margin-bottom: 8px;
 }
 
 .buttonGrp {
 	position: relative;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-bottom: 8px;
+	padding: 8px;
+	background: rgba(0, 0, 0, 0.5);
+	border-radius: 8px;
+}
+
+.toolbarGroup {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.toolbarRight {
+	margin-left: auto;
 }
 
 @media @mobileAndTablet {
 	.buttonGrp {
 		padding: 5px;
+	}
+
+	.toolbar {
+		padding: 6px;
+		gap: 6px;
 	}
 }

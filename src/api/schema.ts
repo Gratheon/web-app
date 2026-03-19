@@ -183,6 +183,7 @@ input FrameSideCellsInput {
   eggsPercent: Int
   pollenPercent: Int
   honeyPercent: Int
+  cells: JSON
 }
 
 #  FrameSideFile is an intermediate (join) entity that connects FrameSide with File

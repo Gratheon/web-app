@@ -1,5 +1,6 @@
 # Gratheon Web Application
 
+[![codecov](https://codecov.io/gh/Gratheon/web-app/graph/badge.svg?token=IQ80BP6NSY)](https://codecov.io/gh/Gratheon/web-app)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
 Frontend application for the Gratheon beehive management and analytics platform. Built with Preact, Vite, Urql, and Dexie for offline support.

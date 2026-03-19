@@ -26,6 +26,13 @@ const WAREHOUSE_BY_BOX_TYPE = {
 	[boxTypes.HORIZONTAL_FEEDER]: 'HORIZONTAL_FEEDER',
 }
 
+function resolveWarehouseModuleTypeForBox(boxType: string, hiveType?: string | null) {
+	if (boxType === boxTypes.DEEP && String(hiveType || '').toUpperCase() === 'NUCLEUS') {
+		return 'NUCS'
+	}
+	return WAREHOUSE_BY_BOX_TYPE[boxType]
+}
+
 const WAREHOUSE_INVENTORY_QUERY = gql`
 	query HiveDeleteWarehouseInventory {
 		warehouseInventory {
@@ -33,6 +40,11 @@ const WAREHOUSE_INVENTORY_QUERY = gql`
 			kind
 			moduleType
 			count
+		}
+		boxSystemFrameSettings {
+			systemId
+			boxType
+			frameSourceSystemId
 		}
 	}
 `
@@ -61,6 +73,28 @@ export default function deactivateButton({ hiveId }) {
 	const { increaseWarehouseForTypeBy, increaseWarehouseForFrameByFrameId } = useWarehouseAutoAdjust()
 	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId], null)
 	const { data: warehouseInventoryData } = useQuery(WAREHOUSE_INVENTORY_QUERY)
+	const frameSourceByTargetAndModuleType = (warehouseInventoryData?.boxSystemFrameSettings || []).reduce((acc: Record<string, string>, setting: any) => {
+		const moduleType =
+			setting.boxType === 'DEEP' ? 'DEEP'
+			: setting.boxType === 'SUPER' ? 'SUPER'
+			: setting.boxType === 'LARGE_HORIZONTAL_SECTION' ? 'LARGE_HORIZONTAL_SECTION'
+			: ''
+		if (!moduleType) return acc
+		acc[`${setting.systemId}:${moduleType}`] = String(setting.frameSourceSystemId || setting.systemId)
+		return acc
+	}, {} as Record<string, string>)
+
+	function resolveEffectiveFrameSourceSystemId(targetSystemId: string, moduleType: string): string {
+		let current = String(targetSystemId || '')
+		const visited = new Set<string>()
+		while (current && !visited.has(current)) {
+			visited.add(current)
+			const mapped = frameSourceByTargetAndModuleType[`${current}:${moduleType}`]
+			if (!mapped || mapped === current) return current
+			current = mapped
+		}
+		return String(targetSystemId || '')
+	}
 
 	useEffect(() => {
 		if (!removeHiveDialogVisible) return
@@ -98,8 +132,10 @@ export default function deactivateButton({ hiveId }) {
 				const hiveBoxes = await getBoxes({ hiveId: +hiveId })
 				const boxModuleTotals: Record<string, number> = {}
 				const hiveSystemId = String(hive?.boxSystemId || hive?.box_system_id || '')
+				const nucPreferredSystemId = hiveSystemId ? resolveEffectiveFrameSourceSystemId(hiveSystemId, 'DEEP') : ''
+				const hiveType = String(hive?.hiveType || '')
 				for (const box of hiveBoxes) {
-					const moduleType = WAREHOUSE_BY_BOX_TYPE[box?.type]
+					const moduleType = resolveWarehouseModuleTypeForBox(box?.type, hiveType)
 					if (moduleType) {
 						boxModuleTotals[moduleType] = (boxModuleTotals[moduleType] || 0) + 1
 					}
@@ -129,7 +165,8 @@ export default function deactivateButton({ hiveId }) {
 					const candidates = inventoryItems.filter((item: any) => {
 						return item?.kind === 'BOX_MODULE' && String(item?.moduleType || '') === moduleType
 					})
-					const preferred = candidates.find((item: any) => getSystemIdFromBoxInventoryKey(item?.key) === hiveSystemId)
+					const preferredSystemId = moduleType === 'NUCS' ? nucPreferredSystemId : hiveSystemId
+					const preferred = candidates.find((item: any) => getSystemIdFromBoxInventoryKey(item?.key) === preferredSystemId)
 					const target = preferred || candidates[0]
 
 					if (!target?.key) {

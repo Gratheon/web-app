@@ -133,7 +133,7 @@ export default function HiveBoxes({
 							currentBoxSelected?.type == boxTypes.SUPER ||
 							currentBoxSelected?.type === boxTypes.LARGE_HORIZONTAL_SECTION) && (
 							<div style="display:flex; align-items:right;">
-								<FrameButtons box={currentBoxSelected} onError={onError} />
+								<FrameButtons box={currentBoxSelected} hiveId={hiveId} onError={onError} />
 
 								{displayMode == 'list' && (
 									<Button onClick={() => setDisplayMode('visual')}>

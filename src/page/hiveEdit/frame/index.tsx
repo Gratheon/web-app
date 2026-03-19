@@ -342,6 +342,19 @@ export default function Frame({
 								<QueenIcon size={14} color={'white'} />
 							</Button>
 						)}
+						{frameSideId && (
+							<Button
+								onClick={() =>
+									navigate(
+										`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}/frame/${frameId}/${frameSideId}/canvas-edit`
+									)
+								}
+							>
+								<span>
+									<T>Edit canvas</T>
+								</span>
+							</Button>
+						)}
 
 					<Button color="red" title="Remove frame" onClick={() => setRemoveFrameDialogVisible(true)}>
 						<DeleteIcon />
@@ -356,6 +369,7 @@ export default function Frame({
 					hiveId={hiveId}
 					frameId={frameId}
 					frameSideId={frameSideId}
+					allowDrawing={false}
 				/>
 
 				{extraButtons}

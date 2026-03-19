@@ -14,6 +14,7 @@ export default gql`
 		}
 		hive(id: $id) {
 			id
+			hiveType
 			boxSystemId
 			hiveNumber
 			notes

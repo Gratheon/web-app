@@ -211,6 +211,7 @@ export default function apiaryListRow({
 
 		return sortHives(apiary.hives, sortBy, sortOrder)
 	}, [apiary?.hives, sortBy, sortOrder])
+	const apiaryHives = Array.isArray(apiary?.hives) ? apiary.hives : []
 
 	const renderSortableHeader = (column, translationContext, label) => (
 		<th
@@ -452,29 +453,29 @@ export default function apiaryListRow({
 				</h2>
 
 				<div className={styles.buttons}>
-					{listType == 'table' && apiary.hives.length > 0 && <Button onClick={() => {
+					{listType == 'table' && apiaryHives.length > 0 && <Button onClick={() => {
 						setListType('list')
 						localStorage.setItem('apiaryListType.' + apiary.id, 'list')
 					}}>
 						<ListIcon />
 					</Button>}
 
-					{listType == 'list' && apiary.hives.length > 0 && <Button onClick={() => {
+					{listType == 'list' && apiaryHives.length > 0 && <Button onClick={() => {
 						setListType('table')
 						localStorage.setItem('apiaryListType.' + apiary.id, 'table')
 					}}>
 						<TableIcon />
 					</Button>}
 
-					<Button href={`/apiaries/${apiary.id}/hives/add`}
-						color={apiary.hives.length == 0 ? 'green' : 'white'}>
+						<Button href={`/apiaries/${apiary.id}/hives/add`}
+							color={apiaryHives.length == 0 ? 'green' : 'white'}>
 						<HiveIcon /><span><T ctx="button to add beehive">Add hive</T></span>
 					</Button>
 				</div>
 			</div>
 
 			<div className={styles.hives}>
-				{apiary.hives && apiary.hives.length == 0 && <HivesPlaceholder />}
+					{apiaryHives.length == 0 && <HivesPlaceholder />}
 				{listType == 'list' && sortedHives &&
 					sortedHives.map((hive, i) => (
 						<div
@@ -494,7 +495,7 @@ export default function apiaryListRow({
 							onClick={() => onSelectHive(apiary.id, hive.id)}
 						>
 							<NavLink to={`/apiaries/${apiary.id}/hives/${hive.id}`}>
-								<Hive boxes={hive.boxes} size={60} />
+								<Hive boxes={hive.boxes} size={60} hiveType={hive.hiveType} />
 								<div className={styles.title}>
 									{hive.hiveNumber && <span>#{hive.hiveNumber} </span>}
 									{getHiveFamilies(hive)[0]?.name || hive.name || 'Unnamed'}
@@ -505,7 +506,7 @@ export default function apiaryListRow({
 						</div>
 					))}
 
-				{listType == 'table' && apiary.hives.length > 0 &&
+					{listType == 'table' && apiaryHives.length > 0 &&
 					<table className={styles.hivesTable}>
 						<thead>
 							<tr>
@@ -573,7 +574,7 @@ export default function apiaryListRow({
 												<>
 										<td>
 											<NavLink to={`/apiaries/${apiary.id}/hives/${hive.id}`}>
-												<Hive boxes={hive.boxes} size={20} />
+												<Hive boxes={hive.boxes} size={20} hiveType={hive.hiveType} />
 											</NavLink>
 										</td>
 										{visibleColumns.includes('HIVE_NUMBER') && (

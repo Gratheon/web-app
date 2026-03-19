@@ -24,6 +24,7 @@ interface FrameSideDrawingProps {
 	frameSideFile: FrameSideFile | null | undefined
 	frameId: string | number
 	frameSideId: string | number
+	allowDrawing?: boolean
 }
 
 export default function FrameSideDrawing({
@@ -32,6 +33,7 @@ export default function FrameSideDrawing({
 	// Removed initialFrameSideFile prop as we fetch live data
 	frameId,
 	frameSideId,
+	allowDrawing = true,
 }: FrameSideDrawingProps) {
 	// Model function getFrameSideFile now handles invalid IDs
 	const liveFrameSideFile = useLiveQuery(
@@ -107,6 +109,7 @@ export default function FrameSideDrawing({
 					strokeHistory={liveFrameSideFile.strokeHistory}
 					onStrokeHistoryUpdate={onStrokeHistoryUpdate}
 					frameSideFile={liveFrameSideFile}
+					allowDrawing={allowDrawing}
 				/>
 			</div>
 		</div>

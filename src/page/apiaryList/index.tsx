@@ -121,6 +121,7 @@ export default function ApiaryList(props) {
 
 					hives {
 						id
+						hiveType
 						boxSystemId
 						hiveNumber
 						beeCount

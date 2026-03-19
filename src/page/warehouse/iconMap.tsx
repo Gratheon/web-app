@@ -14,6 +14,7 @@ import WarehouseRoofIcon from '@/icons/warehouseRoofIcon'
 
 const ICON_BY_MODULE_TYPE = {
 	DEEP: AddBoxIcon,
+	NUCS: AddBoxIcon,
 	SUPER: AddSuperIcon,
 	LARGE_HORIZONTAL_SECTION: WarehouseHorizontalHiveIcon,
 	ROOF: WarehouseRoofIcon,

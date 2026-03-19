@@ -63,8 +63,13 @@ export const GROUPS: Array<{ id: string; title: string; items: WarehouseModuleIt
 		items: [
 			{
 				id: 'DEEP',
-				label: 'Deep sections',
+				label: 'Nest sections',
 				description: 'Big hive sections used for brood and core colony space.',
+			},
+			{
+				id: 'NUCS',
+				label: 'Nucs',
+				description: 'Monolithic 5-frame nucleus hive bodies.',
 			},
 			{
 				id: 'SUPER',
@@ -84,6 +89,7 @@ export const MODULES = GROUPS.flatMap((group) => group.items)
 
 export const SUPPORTED_WAREHOUSE_MODULE_TYPES = new Set([
 	'DEEP',
+	'NUCS',
 	'SUPER',
 	'ROOF',
 	'HORIZONTAL_FEEDER',

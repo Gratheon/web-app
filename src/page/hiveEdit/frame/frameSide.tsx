@@ -19,6 +19,7 @@ export default function FrameSide({
 	hiveId,
 	frameId,
 	frameSideId,
+	allowDrawing = true,
 }) {
 
 	if (!frameId || !frameSideId) {
@@ -160,5 +161,7 @@ export default function FrameSide({
 		frameSide={frameSide}
 		frameSideFile={frameSideFile}
 		frameId={frameId}
-		frameSideId={frameSideId} />
+		frameSideId={frameSideId}
+		allowDrawing={allowDrawing}
+	/>
 }

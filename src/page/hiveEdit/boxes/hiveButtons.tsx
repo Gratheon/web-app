@@ -39,6 +39,13 @@ const WAREHOUSE_BY_BOX_TYPE = {
 	[boxTypes.HORIZONTAL_FEEDER]: 'HORIZONTAL_FEEDER',
 }
 
+function resolveWarehouseModuleTypeForBox(boxType: string, hiveType?: string | null) {
+	if (boxType === boxTypes.DEEP && String(hiveType || '').toUpperCase() === 'NUCLEUS') {
+		return 'NUCS'
+	}
+	return WAREHOUSE_BY_BOX_TYPE[boxType]
+}
+
 export default function HiveButtons({
 	apiaryId,
 	hiveId,
@@ -149,7 +156,8 @@ const [removingBox, setRemovingBox] = useState(false);
 		})
 
 		if (mode === 'warehouse') {
-			await increaseWarehouseForType(WAREHOUSE_BY_BOX_TYPE[removedBoxType])
+			const moduleType = resolveWarehouseModuleTypeForBox(removedBoxType, hive?.hiveType)
+			await increaseWarehouseForType(moduleType === 'NUCS' ? 'NUCS' : moduleType)
 			for (const frame of boxFrames) {
 				if (!frame?.id) continue
 				await increaseWarehouseForFrameByFrameId(frame.id)
@@ -195,7 +203,8 @@ const [removingBox, setRemovingBox] = useState(false);
 			title: tSectionAdded,
 			details: `Added ${type} at position ${position}.`,
 		})
-		await decreaseWarehouseForType(WAREHOUSE_BY_BOX_TYPE[type])
+		const moduleType = resolveWarehouseModuleTypeForBox(type, hive?.hiveType)
+		await decreaseWarehouseForType(moduleType)
 
 		setAdding(false)
 
@@ -214,7 +223,8 @@ const [removingBox, setRemovingBox] = useState(false);
 		box.type === boxTypes.SUPER ||
 		box.type === boxTypes.LARGE_HORIZONTAL_SECTION
 	) && frames && frames.length > 0 && !frameId
-	const showAddSectionButtons = mode !== 'removeOnly' && !box?.id
+	const isNucleusHive = String(hive?.hiveType || '').toUpperCase() === 'NUCLEUS'
+	const showAddSectionButtons = mode !== 'removeOnly' && !box?.id && !isNucleusHive
 	const showRemoveButton = mode !== 'nonRemove' && box?.id
 	const buttonGroupClassName = mode === 'removeOnly'
 		? `${styles.hiveButtons} ${styles.removeOnlyGroup}`

@@ -134,6 +134,7 @@ const HIVE_CREATE_DEDUCTION_CONTEXT_QUERY = gql`
 	query HiveCreateDeductionContext($id: ID!) {
 		hive(id: $id) {
 			id
+			hiveType
 			boxes {
 				id
 				type
@@ -163,6 +164,13 @@ const WAREHOUSE_BY_BOX_TYPE = {
 	[boxTypes.BOTTOM]: 'BOTTOM',
 	[boxTypes.QUEEN_EXCLUDER]: 'QUEEN_EXCLUDER',
 	[boxTypes.HORIZONTAL_FEEDER]: 'HORIZONTAL_FEEDER',
+}
+
+function resolveWarehouseModuleTypeForBox(boxType: string, hiveType?: string | null) {
+	if (boxType === boxTypes.DEEP && String(hiveType || '').toUpperCase() === 'NUCLEUS') {
+		return 'NUCS'
+	}
+	return WAREHOUSE_BY_BOX_TYPE[boxType]
 }
 
 function getSystemIdFromBoxInventoryKey(itemKey?: string): string | undefined {
@@ -199,9 +207,12 @@ function createDefaultBoxes(hiveType: string, boxCount: number) {
 	const initialBoxes = []
 	for (let i = 0; i < boxCount; i++) {
 		initialBoxes.push({
-			color: `${defaultBoxColor}`,
+			color: hiveType === 'nucleus' ? '#cda36a' : `${defaultBoxColor}`,
 			type: primaryBoxType,
 		})
+	}
+	if (hiveType === 'nucleus') {
+		return initialBoxes
 	}
 	initialBoxes.push({
 		type: boxTypes.GATE
@@ -247,7 +258,7 @@ export default function HiveCreateForm() {
 	const selectedBoxSystem = boxSystems.find((system: any) => system.id === boxSystemId)
 	        || boxSystems.find((system: any) => system.isDefault)
 	        || boxSystems[0]
-	const selectedSystemId = hiveType === 'vertical' ? String(selectedBoxSystem?.id || '') : ''
+    const selectedSystemId = hiveType === 'horizontal' ? '' : String(selectedBoxSystem?.id || '')
 	const frameSourceByTargetAndModuleType = useMemo(() => {
 		return (boxSystemFrameSettings || []).reduce((acc: Record<string, string>, setting: any) => {
 			const moduleType =
@@ -274,7 +285,7 @@ export default function HiveCreateForm() {
 	}, [frameSourceByTargetAndModuleType])
 
     useEffect(() => {
-        if (hiveType !== 'vertical') return
+        if (hiveType === 'horizontal') return
         if (boxSystemId) return
         const systems = boxSystems
         if (!systems.length) return
@@ -348,38 +359,47 @@ export default function HiveCreateForm() {
     const isHiveLimitReachedByCount = activeHiveCount >= hiveLimit
     const isHiveLimitReached = isHiveLimitReachedByCount || hasHiveLimitBackendError
     const displayedHiveCount = hasHiveLimitBackendError ? hiveLimit : activeHiveCount
-    const requiredModuleType = hiveType === 'horizontal' ? 'LARGE_HORIZONTAL_SECTION' : 'DEEP'
+	const requiredSectionModuleType = hiveType === 'horizontal'
+        ? 'LARGE_HORIZONTAL_SECTION'
+        : hiveType === 'nucleus'
+            ? 'NUCS'
+            : 'DEEP'
+    const requiredFrameModuleType = hiveType === 'horizontal' ? 'LARGE_HORIZONTAL_SECTION' : 'DEEP'
     const requiredSectionCount = Math.max(0, Math.floor(Number(boxCount) || 0))
     const requiredFrameCount = Math.max(0, Math.floor(Number(boxCount) || 0)) * Math.max(0, Math.floor(Number(frameCount) || 0))
 
     const warehouseWarning = useMemo(() => {
         if (!warehouseInventory?.length || requiredSectionCount <= 0) return null
 
+        const preferredSectionSystemId = requiredSectionModuleType === 'NUCS' && selectedSystemId
+            ? resolveEffectiveFrameSourceSystemId(selectedSystemId, 'DEEP')
+            : selectedSystemId
+
         const sectionItems = warehouseInventory.filter((item: any) => {
-            return item?.kind === 'BOX_MODULE' && String(item?.moduleType || '') === requiredModuleType
+            return item?.kind === 'BOX_MODULE' && String(item?.moduleType || '') === requiredSectionModuleType
         })
-        const directSectionItem = sectionItems.find((item: any) => getSystemIdFromBoxInventoryKey(item?.key) === selectedSystemId)
+        const directSectionItem = sectionItems.find((item: any) => getSystemIdFromBoxInventoryKey(item?.key) === preferredSectionSystemId)
         const directSectionCount = Math.max(0, Number(directSectionItem?.count) || 0)
         const totalSectionCount = sectionItems.reduce((sum: number, item: any) => sum + Math.max(0, Number(item?.count) || 0), 0)
 
 		const frameItems = warehouseInventory.filter((item: any) => {
 			if (item?.kind !== 'FRAME_SPEC') return false
-			return getFrameModuleTypeByCode(item?.frameSpec?.code) === requiredModuleType
+			return getFrameModuleTypeByCode(item?.frameSpec?.code) === requiredFrameModuleType
 		})
 		const effectiveFrameSourceSystemId = selectedSystemId
-			? resolveEffectiveFrameSourceSystemId(selectedSystemId, requiredModuleType)
+			? resolveEffectiveFrameSourceSystemId(selectedSystemId, requiredFrameModuleType)
 			: ''
 		const directFrameItems = frameItems.filter((item: any) => String(item?.frameSpec?.systemId || '') === effectiveFrameSourceSystemId)
 		const directFrameCount = directFrameItems.reduce((sum: number, item: any) => sum + Math.max(0, Number(item?.count) || 0), 0)
 		const totalFrameCount = frameItems.reduce((sum: number, item: any) => sum + Math.max(0, Number(item?.count) || 0), 0)
 
-        const sectionShortageCertain = selectedSystemId
+        const sectionShortageCertain = preferredSectionSystemId
             ? directSectionCount < requiredSectionCount
             : totalSectionCount < requiredSectionCount
-        const sectionMissing = selectedSystemId
+        const sectionMissing = preferredSectionSystemId
             ? Math.max(0, requiredSectionCount - directSectionCount)
             : Math.max(0, requiredSectionCount - totalSectionCount)
-        const sectionRisk = !!selectedSystemId && !directSectionItem && totalSectionCount >= requiredSectionCount
+        const sectionRisk = !!preferredSectionSystemId && !directSectionItem && totalSectionCount >= requiredSectionCount
 
         const frameShortageCertain = requiredFrameCount > 0 && (selectedSystemId
             ? directFrameCount < requiredFrameCount
@@ -406,7 +426,7 @@ export default function HiveCreateForm() {
         }
 
         return parts.length ? parts.join(' • ') : null
-	}, [warehouseInventory, requiredModuleType, selectedSystemId, requiredSectionCount, requiredFrameCount, resolveEffectiveFrameSourceSystemId])
+	}, [warehouseInventory, requiredSectionModuleType, requiredFrameModuleType, selectedSystemId, requiredSectionCount, requiredFrameCount, resolveEffectiveFrameSourceSystemId])
 
     let [addHive] = useMutation(
         gql`
@@ -415,6 +435,7 @@ export default function HiveCreateForm() {
 				$queenYear: String
 				$queenColor: String
 				$hiveNumber: Int
+				$hiveType: HiveType
 				$boxCount: Int!
 				$frameCount: Int!
 				$apiaryId: ID!
@@ -428,6 +449,7 @@ export default function HiveCreateForm() {
 						queenYear: $queenYear
 						queenColor: $queenColor
 						hiveNumber: $hiveNumber
+						hiveType: $hiveType
 						boxCount: $boxCount
 						frameCount: $frameCount
 						initialBoxType: $initialBoxType
@@ -453,6 +475,8 @@ export default function HiveCreateForm() {
                 .query(HIVE_CREATE_DEDUCTION_CONTEXT_QUERY, { id: String(hiveId) }, { requestPolicy: 'network-only' })
                 .toPromise()
 
+            const createdHiveType = String(result?.data?.hive?.hiveType || '')
+            const createdHiveSystemId = String(selectedSystemId || '')
             const createdBoxes = result?.data?.hive?.boxes || []
             const inventoryCountsByKey = (warehouseInventory || []).reduce((acc: Record<string, number>, item: any) => {
                 const key = String(item?.key || '')
@@ -461,11 +485,11 @@ export default function HiveCreateForm() {
                 return acc
             }, {})
 
-            async function decreaseWarehouseModuleBy(moduleType: string, amount = 1) {
+            async function decreaseWarehouseModuleBy(moduleType: string, amount = 1, preferredModuleSystemId?: string) {
                 let remaining = Math.max(0, Math.floor(amount))
                 if (!moduleType || remaining <= 0) return
 
-                const candidateKeys = getModuleInventoryKeys(moduleType, warehouseInventory, selectedSystemId)
+                const candidateKeys = getModuleInventoryKeys(moduleType, warehouseInventory, preferredModuleSystemId)
                 if (!candidateKeys.length) {
                     await decreaseWarehouseForType(moduleType)
                     return
@@ -491,9 +515,12 @@ export default function HiveCreateForm() {
             }
 
             for (const createdBox of createdBoxes) {
-                const moduleType = WAREHOUSE_BY_BOX_TYPE[createdBox?.type]
+                const moduleType = resolveWarehouseModuleTypeForBox(createdBox?.type, createdHiveType)
                 if (moduleType) {
-                    await decreaseWarehouseModuleBy(moduleType, 1)
+                    const preferredModuleSystemId = moduleType === 'NUCS' && createdHiveSystemId
+                        ? resolveEffectiveFrameSourceSystemId(createdHiveSystemId, 'DEEP')
+                        : createdHiveSystemId
+                    await decreaseWarehouseModuleBy(moduleType, 1, preferredModuleSystemId)
                 }
 
                 const frameTypeCounts = (createdBox?.frames || []).reduce((acc: Record<string, number>, frame: any) => {
@@ -523,6 +550,10 @@ export default function HiveCreateForm() {
             setBoxCount(1);
             setFrameCount(20);
             setBoxes(createDefaultBoxes(newHiveType, 1));
+        } else if (newHiveType === 'nucleus') {
+            setBoxCount(1);
+            setFrameCount(5);
+            setBoxes(createDefaultBoxes(newHiveType, 1));
         }
     };
 
@@ -547,10 +578,11 @@ export default function HiveCreateForm() {
                 queenYear: queenYear || undefined,
                 queenColor: queenColor || undefined,
                 hiveNumber: hiveNumber || undefined,
+                hiveType: hiveType === 'horizontal' ? 'HORIZONTAL' : hiveType === 'nucleus' ? 'NUCLEUS' : 'VERTICAL',
                 boxCount,
                 frameCount,
                 initialBoxType: hiveType === 'horizontal' ? boxTypes.LARGE_HORIZONTAL_SECTION : boxTypes.DEEP,
-                boxSystemId: hiveType === 'vertical' ? (boxSystemId || undefined) : undefined,
+                boxSystemId: hiveType === 'horizontal' ? undefined : (boxSystemId || undefined),
                 colors: boxes.map((b: Box) => {
                     return b.color
                 }),
@@ -613,7 +645,7 @@ export default function HiveCreateForm() {
                 </div>
             ) : null}
             <div style={{ textAlign: 'center', marginBottom: 20 }}>
-                <HiveIcon boxes={boxes} editable={true} />
+                <HiveIcon boxes={boxes} editable={true} hiveType={hiveType === 'nucleus' ? 'NUCLEUS' : hiveType === 'horizontal' ? 'HORIZONTAL' : 'VERTICAL'} />
             </div>
 
             <VisualForm
@@ -623,7 +655,7 @@ export default function HiveCreateForm() {
                         <T>Install</T>
                     </Button>
                 }>
-                {hiveType === 'vertical' ? (
+                {hiveType !== 'horizontal' ? (
                     <div className={styles.formField}>
                         <label className={styles.formLabel}><T>Box System</T></label>
                         <div className={styles.boxSystemPicker} ref={boxSystemPickerRef}>
@@ -720,6 +752,15 @@ export default function HiveCreateForm() {
                                         onChange={handleHiveTypeChange}
                                     />
                                     <T>Horizontal</T>
+                                </label>
+                                <label style={{ marginLeft: '10px' }}>
+                                    <input
+                                        type="radio"
+                                        value="nucleus"
+                                        checked={hiveType === 'nucleus'}
+                                        onChange={handleHiveTypeChange}
+                                    />
+                                    <T>Nucleus (Nuc)</T>
                                 </label>
                             </div>
                         </div>
@@ -824,6 +865,7 @@ export default function HiveCreateForm() {
                                 name="boxCount"
                                 value={boxCount}
                                 onInput={(e: any) => {
+                                    if (hiveType === 'nucleus') return
                                     const newBoxCount = parseInt(e.target.value, 10);
                                     if (newBoxCount < 1 || newBoxCount > 6) return;
                                     updateHiveDimensions(newBoxCount, frameCount);
@@ -831,6 +873,7 @@ export default function HiveCreateForm() {
                                 min="1"
                                 max="6"
                                 step="1"
+                                disabled={hiveType === 'nucleus'}
                             />
                         </div>
 
@@ -843,11 +886,13 @@ export default function HiveCreateForm() {
                                 name="frameCount"
                                 value={frameCount}
                                 onInput={(e: any) => {
+                                    if (hiveType === 'nucleus') return
                                     setFrameCount(parseInt(e.target.value, 10))
                                 }}
                                 min="0"
                                 max="25"
                                 step="1"
+                                disabled={hiveType === 'nucleus'}
                             />
                         </div>
             </VisualForm>

@@ -7,6 +7,7 @@ import {
 
 type HiveLike = {
 	id?: string | number | null
+	hiveType?: string | null
 	hiveNumber?: number | null
 	name?: string | null
 	beeCount?: number | null

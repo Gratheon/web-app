@@ -330,6 +330,7 @@ interface DrawingCanvasProps {
 	onStrokeHistoryUpdate: (history: DrawingLine[] | undefined) => void;
 	frameSideFile: any;
 	hideControls?: boolean;
+	allowDrawing?: boolean;
 }
 
 export default function DrawingCanvas({
@@ -344,13 +345,14 @@ export default function DrawingCanvas({
 	onStrokeHistoryUpdate,
 	frameSideFile,
 	hideControls = false,
+	allowDrawing = true,
 }: DrawingCanvasProps) {
 
 	const ref = useRef<HTMLCanvasElement>(null);
 	const [showBees, setBeeVisibility] = useState(true);
 	const [panelVisible, setPanelVisible] = useState(false);
 	const [showDrones, setDroneVisibility] = useState(true);
-	const [showCells, setCellVisibility] = useState(false);
+	const [showCells, setCellVisibility] = useState(true);
 	const [showQueenCups, setQueenCupsVisibility] = useState(true);
 	const [showVarroa, setShowVarroaVisibility] = useState(true);
 	const [version, setVersion] = useState(0);
@@ -383,17 +385,19 @@ export default function DrawingCanvas({
 	const forceRedraw = useCallback(() => setVersion(v => v + 1), []);
 
 	const clearHistory = useCallback(() => {
+		if (!allowDrawing) return;
 		points = [];
 		onStrokeHistoryUpdate([]);
 		forceRedraw();
-	}, [onStrokeHistoryUpdate, forceRedraw]);
+	}, [allowDrawing, onStrokeHistoryUpdate, forceRedraw]);
 
 	const undoDraw = useCallback(() => {
+		if (!allowDrawing) return;
 		const newHistory: DrawingLine[] = [...strokeHistory];
 		newHistory.pop();
 		onStrokeHistoryUpdate(newHistory);
 		forceRedraw();
-	}, [strokeHistory, onStrokeHistoryUpdate, forceRedraw]);
+	}, [allowDrawing, strokeHistory, onStrokeHistoryUpdate, forceRedraw]);
 
 	const redrawCurrentCanvas = useCallback(() => {
 		const canvas = ref.current;
@@ -467,6 +471,7 @@ export default function DrawingCanvas({
 
 	// Drawing Event Handlers
 	useLayoutEffect(() => {
+		if (!allowDrawing) return;
 		const canvas = ref.current;
 		if (!canvas) return;
 		const ctx = canvas.getContext('2d');
@@ -547,7 +552,7 @@ export default function DrawingCanvas({
 			canvas.removeEventListener('touchend', handleDrawEnd);
 			canvas.removeEventListener('touchcancel', handleDrawEnd);
 		};
-	}, [strokeHistory, onStrokeHistoryUpdate, currentLineWidth]); // Dependencies for drawing logic
+	}, [allowDrawing, strokeHistory, onStrokeHistoryUpdate, currentLineWidth]); // Dependencies for drawing logic
 
 	// Zoom and Pan Event Handlers
 	useLayoutEffect(() => {
@@ -804,7 +809,7 @@ export default function DrawingCanvas({
 				<T>Canvas not supported.</T>
 			</canvas>
 
-			{!hideControls && (
+			{!hideControls && allowDrawing && (
 				<div className={styles.buttonGrp} style={{ position: 'absolute', bottom: 10, right: 10, background: 'rgba(0,0,0,0.5)', padding: '5px', borderRadius: '5px' }}>
 					<Button onClick={clearHistory}><T ctx="clear drawing button">Clear drawing</T></Button>
 					<Button onClick={undoDraw}><T>Undo</T></Button>

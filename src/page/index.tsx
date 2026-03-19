@@ -14,6 +14,7 @@ import ApiaryView from './apiaryView'
 import ApiaryList from './apiaryList'
 import HiveCreateForm from './hiveCreate'
 import HiveEditView from './hiveEdit'
+import CanvasEditView from './hiveEdit/frame/canvasEditView'
 import HiveGeneralEditPage from './hiveGeneralEdit'
 import AccountEdit from './accountEdit'
 import AccountBilling from './accountBilling'
@@ -153,6 +154,10 @@ export default function Page() {
 			<Route
 				path="/apiaries/:apiaryId/hives/:hiveId/box/:boxId/frame/:frameId/:frameSideId"
 				element={<LoggedInPage><HiveEditView /></LoggedInPage>}
+			/>
+			<Route
+				path="/apiaries/:apiaryId/hives/:hiveId/box/:boxId/frame/:frameId/:frameSideId/canvas-edit"
+				element={<LoggedInPage><CanvasEditView /></LoggedInPage>}
 			/>
 
 			<Route

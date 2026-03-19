@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
 
 import FramesIcon from '@/icons/framesIcon.tsx'
 
@@ -9,6 +10,7 @@ import {
 	frameTypes,
 	addFrame,
 } from '@/models/frames.ts'
+import { getHive } from '@/models/hive'
 import FoundationIcon from '@/icons/foundationIcon.tsx'
 import T, { useTranslation as t } from '@/shared/translate'
 import metrics from '@/metrics.tsx'
@@ -18,7 +20,7 @@ import { PopupButton, PopupButtonGroup } from '@/shared/popupButton'
 import { useWarehouseAutoAdjust } from '@/hooks/useWarehouseAutoAdjust'
 import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
 
-export default function FrameButtons({ box, onError }) {
+export default function FrameButtons({ box, onError, hiveId }) {
 	const tFrameAdded = t('Frame added')
 	let [addFrameMutation] =
 		useMutation(`mutation addFrame($boxId: ID!, $type: String!, $position: Int!) {
@@ -38,6 +40,10 @@ export default function FrameButtons({ box, onError }) {
 
 	const [addingFrame, setAdding] = useState(false)
 	const { decreaseWarehouseForFrame } = useWarehouseAutoAdjust()
+	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId], null)
+	const frameCount = useLiveQuery(() => countBoxFrames(+box.id), [box.id], 0)
+	const isNucleusHive = String(hive?.hiveType || '').toUpperCase() === 'NUCLEUS'
+	const canAddFrame = !isNucleusHive || (Number(frameCount) || 0) < 5
 
 	async function onFrameAdd(boxId, type) {
 		setAdding(true)
@@ -66,6 +72,10 @@ export default function FrameButtons({ box, onError }) {
 
 		metrics.trackFrameAdded()
 		setAdding(false)
+	}
+
+	if (!canAddFrame) {
+		return null
 	}
 
 	return (

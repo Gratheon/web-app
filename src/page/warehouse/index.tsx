@@ -53,6 +53,7 @@ type SectionMatrix = {
 	label: string
 	description: string
 	sectionItemBySystemId: Record<string, WarehouseInventoryItem>
+	nucSectionItemBySystemId?: Record<string, WarehouseInventoryItem>
 	standaloneSectionItem?: WarehouseInventoryItem
 	iconItem?: WarehouseInventoryItem
 	rows: SectionMatrixRow[]
@@ -357,6 +358,13 @@ export default function WarehousePage() {
 			matrixByModuleType.delete('LARGE_HORIZONTAL_SECTION')
 		}
 
+		const deepMatrix = matrixByModuleType.get('DEEP')
+		const nucMatrix = matrixByModuleType.get('NUCS')
+		if (deepMatrix && nucMatrix) {
+			deepMatrix.nucSectionItemBySystemId = nucMatrix.sectionItemBySystemId
+			matrixByModuleType.delete('NUCS')
+		}
+
 		grouped.HIVE_SECTIONS = Array.from(matrixByModuleType.values())
 
 		const partSingles: WarehouseInventoryItem[] = []
@@ -522,7 +530,7 @@ export default function WarehousePage() {
 																	<span className={styles.itemIcon}>{icon}</span>
 																</span>
 															)}
-															<span className={styles.itemTitle}>{matrixItem.label}</span>
+																<span className={styles.itemTitle}>{matrixItem.id === 'DEEP' ? 'Nest sections' : matrixItem.label}</span>
 														</div>
 														<div className={styles.itemDescription}>{matrixItem.description}</div>
 													</div>
@@ -591,7 +599,7 @@ export default function WarehousePage() {
 																		<div className={styles.matrixLabelBlock}>
 																			<span className={styles.matrixLabelContent}>
 																				{matrixItem.iconItem ? <span className={styles.matrixItemIcon} aria-hidden="true">{getWarehouseItemIcon(matrixItem.iconItem, 15)}</span> : null}
-																				<span><T>Sections</T></span>
+																					<span>{matrixItem.id === 'DEEP' ? <T>Deep sections</T> : <T>Sections</T>}</span>
 																			</span>
 																			{(() => {
 																				const colorSquares = buildSystemColorSquares(
@@ -668,8 +676,101 @@ export default function WarehousePage() {
 																	)
 																})}
 															</div>
-														) : null}
-														{matrixItem.rows.map((frameRow) => (
+															) : null}
+															{matrixItem.id === 'DEEP' && Object.keys(matrixItem.nucSectionItemBySystemId || {}).length > 0 ? (
+																<div
+																	className={styles.matrixRow}
+																	style={{ ['--system-column-count' as any]: String(Math.max(boxSystems.length, 1)) }}
+																>
+																	<div className={styles.matrixLabel}>
+																		<div className={styles.matrixLabelBlock}>
+																			<span className={styles.matrixLabelContent}>
+																				{matrixItem.iconItem ? <span className={styles.matrixItemIcon} aria-hidden="true">{getWarehouseItemIcon(matrixItem.iconItem, 15)}</span> : null}
+																				<span><T>Nucs</T></span>
+																			</span>
+																			{(() => {
+																				const nucSourceSystems = boxSystems.filter((system) => {
+																					const sourceId = resolveEffectiveFrameSourceSystemId(system.id, 'DEEP')
+																					return sourceId === system.id
+																				})
+																				const colorSquares = buildSystemColorSquares(
+																					nucSourceSystems.map((system, idx) => {
+																						const sectionItem = (matrixItem.nucSectionItemBySystemId || {})[system.id]
+																						const palette = getSystemPaletteByIndex(idx)
+																						return { count: sectionItem ? counts[sectionItem.key] || 0 : 0, color: palette.accent }
+																					})
+																				)
+																				const total = nucSourceSystems.reduce((sum, system) => {
+																					const sectionItem = (matrixItem.nucSectionItemBySystemId || {})[system.id]
+																					return sum + (sectionItem ? counts[sectionItem.key] || 0 : 0)
+																				}, 0)
+																				return (
+																					<div className={styles.squareStack} title={`${Math.min(total, MAX_VISUAL_SQUARES)} / ${total}`}>
+																						{colorSquares.map((color, sqIndex) => (
+																							<span
+																								key={`nucs-${matrixItem.id}-sq-${sqIndex}`}
+																								className={styles.square}
+																								style={{ ...getSquareStyle(sqIndex), background: color }}
+																							></span>
+																						))}
+																					</div>
+																				)
+																			})()}
+																		</div>
+																	</div>
+																	{boxSystems.map((system, systemIndex) => {
+																		const sourceId = resolveEffectiveFrameSourceSystemId(system.id, 'DEEP')
+																		const isFrameSourceColumn = sourceId === system.id
+																		const sectionItem = (matrixItem.nucSectionItemBySystemId || {})[sourceId]
+																		if (!isFrameSourceColumn || !sectionItem || linkedBoxSystemIds.has(system.id)) {
+																			return <div key={`nucs-section-count-${matrixItem.id}-${system.id}`} className={styles.matrixEmpty}>-</div>
+																		}
+																		const count = counts[sectionItem.key] || 0
+																		return (
+																			<div
+																				key={`nucs-section-count-${matrixItem.id}-${system.id}`}
+																				className={styles.matrixCell}
+																				style={getSystemThemeStyle(system.id, systemIndex)}
+																			>
+																				<Button
+																					size="small"
+																					title="Decrease"
+																					onClick={() => updateCount(sectionItem.key, -1)}
+																					disabled={count <= 0 || savingItem === sectionItem.key}
+																				>
+																					-
+																				</Button>
+																				<input
+																					className={styles.countInput}
+																					type="number"
+																					min={0}
+																					step={1}
+																					inputMode="numeric"
+																					value={inputs[sectionItem.key] ?? String(count)}
+																					disabled={savingItem === sectionItem.key}
+																					onInput={(event: any) => onInputChange(sectionItem.key, event.target.value)}
+																					onBlur={() => onInputCommit(sectionItem.key)}
+																					onKeyDown={(event: any) => {
+																						if (event.key === 'Enter') {
+																							event.preventDefault()
+																							onInputCommit(sectionItem.key)
+																						}
+																					}}
+																				/>
+																				<Button
+																					size="small"
+																					title="Increase"
+																					onClick={() => updateCount(sectionItem.key, 1)}
+																					disabled={savingItem === sectionItem.key}
+																				>
+																					+
+																				</Button>
+																			</div>
+																		)
+																	})}
+																</div>
+															) : null}
+															{matrixItem.rows.map((frameRow) => (
 															<div
 																key={frameRow.id}
 																className={styles.matrixRow}

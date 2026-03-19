@@ -49,6 +49,7 @@ type HiveIconProps = {
 	beeCount?: number
 	editable?: boolean
 	onColorChange?: any
+	hiveType?: string
 }
 
 export default function HiveIcon({
@@ -56,6 +57,7 @@ export default function HiveIcon({
 	size = 60,
 	editable = false,
 	onColorChange = () => null,
+	hiveType,
 }: HiveIconProps) {
 	const [colorPickerVisibleAt, showColorPicker] = useState(null)
 	const [, updateState] = useState()
@@ -69,9 +71,24 @@ export default function HiveIcon({
 		(box: any) => box?.type === 'LARGE_HORIZONTAL_SECTION'
 	)
 	const hasRoof = boxes.some((box: any) => box?.type === 'ROOF')
+	const hasBottom = boxes.some((box: any) => box?.type === 'BOTTOM')
+	const sectionBoxes = boxes.filter((box: any) => isSectionBox(box?.type))
+	const normalizedHiveType = String(hiveType || '').toUpperCase()
+	const isNucleusByType = normalizedHiveType === 'NUCLEUS'
+	const isNucleusByShape =
+		!hasLargeHorizontalSection &&
+		!hasRoof &&
+		!hasBottom &&
+		sectionBoxes.length === 1 &&
+		sectionBoxes[0]?.type === 'DEEP'
+	const isNucleusHive = isNucleusByType || isNucleusByShape
 	const showDetailedNotches = size > 50
 
-	const hiveWidth = hasLargeHorizontalSection ? Math.round(size * 1.9) : size
+	const hiveWidth = hasLargeHorizontalSection
+		? Math.round(size * 1.9)
+		: isNucleusHive
+			? Math.round(size * 0.8)
+			: size
 	const roofOverhang = Math.max(2, Math.round(hiveWidth * 0.04))
 
 	let hiveStyle = {
@@ -101,7 +118,7 @@ export default function HiveIcon({
 			}
 
 			const boxStyle = {
-				backgroundColor: box.color,
+				backgroundColor: box.color || '#cda36a',
 				paddingTop: `${size / 2}px`,
 			}
 
@@ -147,9 +164,13 @@ export default function HiveIcon({
 						}}
 						className={`${styles.box} ${box.type === 'LARGE_HORIZONTAL_SECTION'
 							? styles.largeHorizontalSection
+							: (isNucleusHive && box.type === 'DEEP')
+								? styles.nucleusSection
 							: ''
 							}`}
 					>
+						{isNucleusHive && box.type === 'DEEP' && <div className={styles.nucleusCap}></div>}
+						{isNucleusHive && box.type === 'DEEP' && <div className={styles.nucleusEntrance}></div>}
 						{showDetailedNotches &&
 							(box.type === 'DEEP' || box.type === 'SUPER') && (
 								<div className={styles.gripNotch}></div>
@@ -187,7 +208,7 @@ export default function HiveIcon({
 		<div className={styles.hive} style={hiveStyle}>
 			{hasRoof && <div className={styles.roof} style={roofStyle}></div>}
 			<div className={styles.boxes}>{visualBoxes}</div>
-			<div className={styles.legs} style={legsStyle}></div>
+			{!isNucleusHive && <div className={styles.legs} style={legsStyle}></div>}
 		</div>
 	)
 }

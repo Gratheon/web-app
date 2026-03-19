@@ -388,7 +388,17 @@ describe('FrameSideFile Model', () => {
 
          it('should initialize array, append delta, update flags and percentages', async () => {
             // ARRANGE
-            const payload = { delta: [cell1], isCellsDetectionComplete: false, broodPercent: 10, cappedBroodPercent: 1, eggsPercent: 2, pollenPercent: 3, honeyPercent: 4 };
+            const payload = {
+                delta: [cell1],
+                isCellsDetectionComplete: false,
+                broodPercent: 10,
+                droneBroodPercent: 0,
+                cappedBroodPercent: 1,
+                eggsPercent: 2,
+                nectarPercent: 0,
+                pollenPercent: 3,
+                honeyPercent: 4
+            };
              dbMocks.innerMockModify.mockImplementation(async (callback) => {
                 // Cast state to any to allow adding percentage properties, reflecting current code behavior
                 const state: any = { id: frameSideId, detectedCells: undefined };
@@ -397,8 +407,10 @@ describe('FrameSideFile Model', () => {
                 expect(state.detectedCells).toEqual([cell1]); // Initialized and populated
                 expect(state.isCellsDetectionComplete).toBe(false);
                 expect(state.broodPercent).toBe(10);
+                expect(state.droneBroodPercent).toBe(0);
                 expect(state.cappedBroodPercent).toBe(1);
                 expect(state.eggsPercent).toBe(2);
+                expect(state.nectarPercent).toBe(0);
                 expect(state.pollenPercent).toBe(3);
                 expect(state.honeyPercent).toBe(4);
             });
@@ -411,7 +423,17 @@ describe('FrameSideFile Model', () => {
          it('should append delta to existing array', async () => {
             // ARRANGE
             const initialState = { ...baseFile, id: frameSideId, detectedCells: [cell1] };
-            const payload = { delta: [cell2], isCellsDetectionComplete: true, broodPercent: 15, cappedBroodPercent: 2, eggsPercent: 3, pollenPercent: 4, honeyPercent: 5 };
+            const payload = {
+                delta: [cell2],
+                isCellsDetectionComplete: true,
+                broodPercent: 15,
+                droneBroodPercent: 1,
+                cappedBroodPercent: 2,
+                eggsPercent: 3,
+                nectarPercent: 6,
+                pollenPercent: 4,
+                honeyPercent: 5
+            };
              dbMocks.innerMockModify.mockImplementation(async (callback) => {
                 // Cast state to any to allow checking percentage properties added by the callback
                 const state: any = { ...initialState };
@@ -420,8 +442,10 @@ describe('FrameSideFile Model', () => {
                 expect(state.detectedCells).toEqual([cell1, cell2]);
                 expect(state.isCellsDetectionComplete).toBe(true);
                 expect(state.broodPercent).toBe(15);
+                expect(state.droneBroodPercent).toBe(1);
                 expect(state.cappedBroodPercent).toBe(2);
                 expect(state.eggsPercent).toBe(3);
+                expect(state.nectarPercent).toBe(6);
                 expect(state.pollenPercent).toBe(4);
                 expect(state.honeyPercent).toBe(5);
             });
@@ -436,7 +460,17 @@ describe('FrameSideFile Model', () => {
             const error = new Error('Modify Error');
             dbMocks.innerMockModify.mockRejectedValue(error);
             const consoleErrorSpy = vi.spyOn(console, 'error');
-            const payload = { delta: [cell1], isCellsDetectionComplete: false, broodPercent: 10, cappedBroodPercent: 1, eggsPercent: 2, pollenPercent: 3, honeyPercent: 4 };
+            const payload = {
+                delta: [cell1],
+                isCellsDetectionComplete: false,
+                broodPercent: 10,
+                droneBroodPercent: 0,
+                cappedBroodPercent: 1,
+                eggsPercent: 2,
+                nectarPercent: 0,
+                pollenPercent: 3,
+                honeyPercent: 4
+            };
 
             // ACT & ASSERT
             await expect(appendResourceDetectionData(frameSideId, payload)).rejects.toThrow(error);

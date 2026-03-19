@@ -43,4 +43,12 @@ jobs:
 
       - run: pnpm install
       - run: pnpm build
-      - run: pnpm test:unit
+      - run: pnpm test:unit --coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          flags: unit-tests
+          name: web-app-unit-tests

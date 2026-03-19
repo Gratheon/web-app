@@ -3,8 +3,13 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { gql, useMutation } from '@/api' // Removed useSubscription
 // Import only needed model functions and types
 import {
-	FrameSideFile, getFrameSideFile, updateStrokeHistoryData
+	FrameSideFile, getFrameSideFile, updateDetectedCellsData, updateStrokeHistoryData
 } from '@/models/frameSideFile' // Removed append...Data functions
+import {
+	getFrameSideCells,
+	newFrameSideCells,
+	updateFrameSideCells
+} from '@/models/frameSideCells'
 import { FrameSide as FrameSideType } from '@/models/frameSide' // Removed getFrameSide, upsertFrameSide
 import Loading from '@/shared/loader'
 import ErrorMessage from '@/shared/messageError'
@@ -25,6 +30,8 @@ interface FrameSideDrawingProps {
 	frameId: string | number
 	frameSideId: string | number
 	allowDrawing?: boolean
+	saveRequestId?: number
+	onCellEditsStateChange?: (state: { hasUnsaved: boolean; isSaving: boolean }) => void
 }
 
 export default function FrameSideDrawing({
@@ -34,6 +41,8 @@ export default function FrameSideDrawing({
 	frameId,
 	frameSideId,
 	allowDrawing = true,
+	saveRequestId = 0,
+	onCellEditsStateChange = () => {},
 }: FrameSideDrawingProps) {
 	// Model function getFrameSideFile now handles invalid IDs
 	const liveFrameSideFile = useLiveQuery(
@@ -51,6 +60,53 @@ export default function FrameSideDrawing({
 			filesStrokeEditMutation(files: $files)
 		}
 	`)
+	const [frameSideCellsMutate] = useMutation(gql`
+		mutation updateFrameSideCells($cells: FrameSideCellsInput!) {
+			updateFrameSideCells(cells: $cells)
+		}
+	`)
+
+	const getRelativeCounts = useCallback((cells: any[]) => {
+		let brood = 0
+		let cappedBrood = 0
+		let eggs = 0
+		let pollen = 0
+		let honey = 0
+		let nectar = 0
+		let empty = 0
+
+		for (const cell of cells || []) {
+			const cls = Array.isArray(cell) ? cell[0] : undefined
+			switch (cls) {
+				case 0: cappedBrood += 1; break
+				case 1: eggs += 1; break
+				case 2: honey += 1; break
+				case 3: brood += 1; break
+				case 4: nectar += 1; break
+				case 5: empty += 1; break
+				case 6: pollen += 1; break
+			}
+		}
+
+		const total = brood + cappedBrood + eggs + pollen + honey + nectar + empty
+		if (total <= 0) {
+			return {
+				broodPercent: 0,
+				cappedBroodPercent: 0,
+				eggsPercent: 0,
+				pollenPercent: 0,
+				honeyPercent: 0,
+			}
+		}
+
+		return {
+			broodPercent: Math.floor((100 * brood) / total),
+			cappedBroodPercent: Math.floor((100 * cappedBrood) / total),
+			eggsPercent: Math.floor((100 * eggs) / total),
+			pollenPercent: Math.floor((100 * pollen) / total),
+			honeyPercent: Math.floor((100 * honey) / total),
+		}
+	}, [])
 
 	// Updated onStrokeHistoryUpdate to use atomic modify function
 	const onStrokeHistoryUpdate = async (strokeHistory) => {
@@ -86,6 +142,36 @@ export default function FrameSideDrawing({
 			});
 	};
 
+	const onDetectedCellsUpdate = useCallback(async (detectedCells) => {
+		const numericFrameSideId = +frameSideId
+		await updateDetectedCellsData(numericFrameSideId, detectedCells || [])
+
+		const relativeCounts = getRelativeCounts(detectedCells || [])
+		const frameSideCellsState =
+			(await getFrameSideCells(numericFrameSideId)) ||
+			newFrameSideCells(numericFrameSideId, undefined)
+
+		frameSideCellsState.broodPercent = relativeCounts.broodPercent
+		frameSideCellsState.cappedBroodPercent = relativeCounts.cappedBroodPercent
+		frameSideCellsState.eggsPercent = relativeCounts.eggsPercent
+		frameSideCellsState.pollenPercent = relativeCounts.pollenPercent
+		frameSideCellsState.honeyPercent = relativeCounts.honeyPercent
+
+		await updateFrameSideCells(frameSideCellsState)
+
+		await frameSideCellsMutate({
+			cells: {
+				id: frameSideCellsState.id,
+				broodPercent: frameSideCellsState.broodPercent,
+				cappedBroodPercent: frameSideCellsState.cappedBroodPercent,
+				eggsPercent: frameSideCellsState.eggsPercent,
+				pollenPercent: frameSideCellsState.pollenPercent,
+				honeyPercent: frameSideCellsState.honeyPercent,
+				cells: detectedCells || [],
+			},
+		})
+	}, [frameSideId, frameSideCellsMutate, getRelativeCounts])
+
 	if (liveFrameSideFile === undefined || !frameId || !frameSideId || !frameSide) {
 		return <Loading />
 	}
@@ -108,8 +194,11 @@ export default function FrameSideDrawing({
 					detectedVarroa={liveFrameSideFile.detectedVarroa}
 					strokeHistory={liveFrameSideFile.strokeHistory}
 					onStrokeHistoryUpdate={onStrokeHistoryUpdate}
+					onDetectedCellsUpdate={onDetectedCellsUpdate}
 					frameSideFile={liveFrameSideFile}
 					allowDrawing={allowDrawing}
+					saveRequestId={saveRequestId}
+					onCellEditsStateChange={onCellEditsStateChange}
 				/>
 			</div>
 		</div>

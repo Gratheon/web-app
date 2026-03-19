@@ -329,6 +329,18 @@ export async function updateStrokeHistoryData(frameSideId: number, strokeHistory
     }
 }
 
+export async function updateDetectedCellsData(frameSideId: number, detectedCells: any[]) {
+    try {
+        await db[FRAME_SIDE_FILE_TABLE].where({ id: frameSideId }).modify((frameSideFile) => {
+            frameSideFile.detectedCells = Array.isArray(detectedCells) ? detectedCells : [];
+            frameSideFile.isCellsDetectionComplete = true;
+        });
+    } catch (e) {
+        console.error('Error updating detected cells:', e, { frameSideId });
+        throw e;
+    }
+}
+
 
 export async function deleteFilesByFrameSideIDs(frameSideIds: number[]) {
     try {

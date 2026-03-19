@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import Button from '@/shared/button'
@@ -11,6 +11,9 @@ import styles from './canvasEditView.module.less'
 export default function CanvasEditView() {
 	const navigate = useNavigate()
 	const { apiaryId, hiveId, boxId, frameId, frameSideId } = useParams()
+	const [hasUnsavedCellEdits, setHasUnsavedCellEdits] = useState(false)
+	const [isSavingCellEdits, setIsSavingCellEdits] = useState(false)
+	const [saveRequestId, setSaveRequestId] = useState(0)
 
 	if (!apiaryId || !hiveId || !boxId || !frameId || !frameSideId) {
 		return null
@@ -40,13 +43,23 @@ export default function CanvasEditView() {
 			/>
 			<div className={styles.topBar}>
 				<h2 style={{ margin: 0 }}><T>Edit canvas</T></h2>
-				<Button
-					onClick={() =>
-						navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}/frame/${frameId}/${frameSideId}`)
-					}
-				>
-					<T>Back to hive view</T>
-				</Button>
+				<div style={{ display: 'flex', gap: 8 }}>
+					<Button
+						color="green"
+						loading={isSavingCellEdits}
+						disabled={!hasUnsavedCellEdits || isSavingCellEdits}
+						onClick={() => setSaveRequestId((v) => v + 1)}
+					>
+						<T>Save cell edits</T>
+					</Button>
+					<Button
+						onClick={() =>
+							navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}/frame/${frameId}/${frameSideId}`)
+						}
+					>
+						<T>Back to hive view</T>
+					</Button>
+				</div>
 			</div>
 			<div className={styles.canvasWrap}>
 				<FrameSide
@@ -54,6 +67,11 @@ export default function CanvasEditView() {
 					frameId={frameId}
 					frameSideId={frameSideId}
 					allowDrawing={true}
+					saveRequestId={saveRequestId}
+					onCellEditsStateChange={({ hasUnsaved, isSaving }) => {
+						setHasUnsavedCellEdits(hasUnsaved)
+						setIsSavingCellEdits(isSaving)
+					}}
 				/>
 			</div>
 		</div>

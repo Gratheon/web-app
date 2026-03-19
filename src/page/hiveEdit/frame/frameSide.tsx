@@ -15,12 +15,23 @@ import FrameSideDrawing from './frameSideDrawing.tsx'
 import metrics from '../../../metrics.tsx'
 import T from '../../../shared/translate'
 
+type FrameSideProps = {
+	hiveId: string | number
+	frameId: string | number
+	frameSideId: string | number
+	allowDrawing?: boolean
+	saveRequestId?: number
+	onCellEditsStateChange?: (state: { hasUnsaved: boolean; isSaving: boolean }) => void
+}
+
 export default function FrameSide({
 	hiveId,
 	frameId,
 	frameSideId,
 	allowDrawing = true,
-}) {
+	saveRequestId = 0,
+	onCellEditsStateChange = () => {},
+}: FrameSideProps) {
 
 	if (!frameId || !frameSideId) {
 		return
@@ -163,5 +174,7 @@ export default function FrameSide({
 		frameId={frameId}
 		frameSideId={frameSideId}
 		allowDrawing={allowDrawing}
+		saveRequestId={saveRequestId}
+		onCellEditsStateChange={onCellEditsStateChange}
 	/>
 }

@@ -7,16 +7,28 @@ import T from '@/shared/translate';
 import Loader from '@/shared/loader';
 import styles from './styles.module.less';
 import QueenIcon from '@/icons/queenIcon.tsx';
-import LeftChevron from '@/icons/leftChevron.tsx';
-import RightChevron from '@/icons/rightChevron.tsx';
+import CellBrushIcon from '@/icons/cellBrushIcon.tsx';
+import EraserIcon from '@/icons/eraserIcon.tsx';
+import FreeDrawIcon from '@/icons/freeDrawIcon.tsx';
+import UndoStrokeIcon from '@/icons/undoStrokeIcon.tsx';
+import BrushSizeIcon from '@/icons/brushSizeIcon.tsx';
 
 let img: HTMLImageElement | null = null;
 let isMousedown = false;
 type DrawingPoint = { x: number; y: number; lineWidth: number; color?: string }
 type DrawingLine = DrawingPoint[]
+type BrushCellType = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 'erase'
+type BrushSizePreset = 'small' | 'medium' | 'large'
 
 let points: DrawingPoint[] = [];
 const dpr = typeof window !== 'undefined' ? window.devicePixelRatio : 1;
+const DEFAULT_BRUSH_DIAMETER_RATIO = 0.15;
+const BRUSH_DIAMETER_BY_PRESET: Record<BrushSizePreset, number> = {
+	small: DEFAULT_BRUSH_DIAMETER_RATIO * 0.6,
+	medium: DEFAULT_BRUSH_DIAMETER_RATIO,
+	large: DEFAULT_BRUSH_DIAMETER_RATIO * 1.4,
+};
+const DEFAULT_NEW_CELL_RADIUS_RATIO = 0.012;
 
 let REL_PX = 1;
 let globalCameraZoom = 1;
@@ -92,6 +104,17 @@ function getCellStyle(cls: number): { stroke: string; fill: string } {
 	}
 }
 
+function getContrastingTextColor(background: string): string {
+	const rgbMatch = background.match(/\d+/g);
+	if (!rgbMatch || rgbMatch.length < 3) {
+		// Fallback for named/hex colors
+		return background === '#FFD900' || background === 'rgb(255 219 127)' ? '#111' : '#fff';
+	}
+	const [r, g, b] = rgbMatch.slice(0, 3).map(Number);
+	const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+	return luminance > 0.6 ? '#111' : '#fff';
+}
+
 function drawDetectedCells(detectedFrameCells: any[], ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
 	const relPx = calculateRelPx(canvas);
 	detectedFrameCells.forEach(([cls, x, y, r, probability]) => {
@@ -105,6 +128,177 @@ function drawDetectedCells(detectedFrameCells: any[], ctx: CanvasRenderingContex
 		ctx.fill();
 	});
 	ctx.globalAlpha = 1;
+}
+
+function clamp01(value: number): number {
+	return Math.max(0, Math.min(1, value));
+}
+
+function drawBrushPreview(
+	ctx: CanvasRenderingContext2D,
+	canvas: HTMLCanvasElement,
+	brushCursor: { x: number; y: number } | null,
+	selectedCellType: BrushCellType,
+	brushRadiusRatio: number
+) {
+	if (!brushCursor) return;
+
+	const radius = brushRadiusRatio * canvas.height;
+	if (selectedCellType === 'erase') {
+		ctx.save();
+		ctx.globalAlpha = 0.95;
+		ctx.strokeStyle = '#ff4d4f';
+		ctx.lineWidth = 2;
+		ctx.beginPath();
+		ctx.arc(brushCursor.x * canvas.width, brushCursor.y * canvas.height, radius, 0, 2 * Math.PI);
+		ctx.stroke();
+		ctx.restore();
+		return;
+	}
+
+	const { stroke, fill } = getCellStyle(selectedCellType);
+	ctx.save();
+	ctx.globalAlpha = 0.85;
+	ctx.strokeStyle = stroke;
+	ctx.fillStyle = fill;
+	ctx.lineWidth = 2;
+	ctx.beginPath();
+	ctx.arc(brushCursor.x * canvas.width, brushCursor.y * canvas.height, radius, 0, 2 * Math.PI);
+	ctx.fill();
+	ctx.stroke();
+	ctx.restore();
+}
+
+function applyCellBrush(
+	sourceCells: any[],
+	center: { x: number; y: number },
+	selectedCellType: BrushCellType,
+	brushRadiusRatio: number
+): { cells: any[]; changed: boolean } {
+	const inputCells = Array.isArray(sourceCells) ? sourceCells : [];
+	const result: any[] = [];
+	const brushRadius = brushRadiusRatio;
+	const brushRadiusSq = brushRadius * brushRadius;
+	let touchedCells = 0;
+	let changed = false;
+	const deriveMedianRadius = (cells: any[]): number => {
+		const radii = cells
+			.filter((cell) => Array.isArray(cell) && typeof cell[3] === 'number' && Number.isFinite(cell[3]) && cell[3] > 0)
+			.map((cell) => cell[3] as number)
+			.sort((a, b) => a - b);
+		if (radii.length === 0) return DEFAULT_NEW_CELL_RADIUS_RATIO;
+		return radii[Math.floor(radii.length / 2)];
+	};
+
+	const hasCircleCollision = (
+		cells: any[],
+		x: number,
+		y: number,
+		radius: number
+	): boolean => {
+		for (const cell of cells) {
+			if (!Array.isArray(cell) || cell.length < 4) continue;
+			const ex = typeof cell[1] === 'number' ? cell[1] : 0;
+			const ey = typeof cell[2] === 'number' ? cell[2] : 0;
+			const er = (typeof cell[3] === 'number' && Number.isFinite(cell[3]) && cell[3] > 0)
+				? cell[3]
+				: radius;
+			const minDistance = radius + er;
+			const dx = ex - x;
+			const dy = ey - y;
+			if ((dx * dx + dy * dy) < (minDistance * minDistance)) {
+				return true;
+			}
+		}
+		return false;
+	};
+
+	for (const cell of inputCells) {
+		if (!Array.isArray(cell) || cell.length < 5) continue;
+		const [cls, x, y, r, probability] = cell;
+		const dx = x - center.x;
+		const dy = y - center.y;
+		const isInsideBrush = (dx * dx + dy * dy) <= brushRadiusSq;
+
+		if (!isInsideBrush) {
+			result.push(cell);
+			continue;
+		}
+
+		touchedCells += 1;
+		if (selectedCellType === 'erase') {
+			changed = true;
+			continue;
+		}
+
+		if (cls !== selectedCellType) {
+			changed = true;
+			result.push([selectedCellType, x, y, r, probability]);
+		} else {
+			result.push(cell);
+		}
+	}
+
+	if (selectedCellType !== 'erase') {
+		const derivedRadius = deriveMedianRadius(inputCells);
+		const verticalStep = derivedRadius * Math.sqrt(3);
+		const horizontalStep = derivedRadius * 2;
+		const effectiveBrushRadius = Math.max(derivedRadius, brushRadius - derivedRadius);
+		let addedCells = 0;
+		const maxAddedCells = 120;
+
+		let rowIndex = 0;
+		for (let y = center.y - effectiveBrushRadius; y <= center.y + effectiveBrushRadius; y += verticalStep) {
+			const rowOffset = (rowIndex % 2 === 0) ? 0 : derivedRadius;
+			for (
+				let x = center.x - effectiveBrushRadius + rowOffset;
+				x <= center.x + effectiveBrushRadius;
+				x += horizontalStep
+			) {
+				const dxBrush = x - center.x;
+				const dyBrush = y - center.y;
+				// Keep full circle footprint inside brush disk.
+				if ((dxBrush * dxBrush + dyBrush * dyBrush) > (effectiveBrushRadius * effectiveBrushRadius)) {
+					continue;
+				}
+
+				if (hasCircleCollision(result, x, y, derivedRadius)) {
+					continue;
+				}
+
+				result.push([
+					selectedCellType,
+					clamp01(x),
+					clamp01(y),
+					derivedRadius,
+					100,
+				]);
+				addedCells += 1;
+				changed = true;
+				if (addedCells >= maxAddedCells) {
+					break;
+				}
+			}
+			if (addedCells >= maxAddedCells) {
+				break;
+			}
+			rowIndex += 1;
+		}
+
+		// Fallback: ensure at least one cell can still be placed in empty area.
+		if (touchedCells === 0 && addedCells === 0 && !hasCircleCollision(result, center.x, center.y, derivedRadius)) {
+			result.push([
+				selectedCellType,
+				clamp01(center.x),
+				clamp01(center.y),
+				derivedRadius,
+				100,
+			]);
+			changed = true;
+		}
+	}
+
+	return { cells: result, changed };
 }
 
 function drawDetectedVarroa(detectedVarroa: any[], ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
@@ -247,20 +441,20 @@ function debounce(func: (...args: any[]) => void, timeout = 300) {
 
 function calculateCanvasSize(canvas: HTMLCanvasElement, imgWidth: number, imgHeight: number) {
 	const parentContainer = canvas.parentElement;
-	const canvasParentWidth = parentContainer
-		? parentContainer.getBoundingClientRect().width
+	const containerWidth = parentContainer
+		? parentContainer.clientWidth
 		: document.documentElement.clientWidth;
 	const isMobileView = document.body.clientWidth < 1200;
 	zoomEnabled = !isMobileView;
 
-	// Size from the actual container width so sidebars/layout toggles are handled automatically.
-	const canvasWidth = Math.max(canvasParentWidth, 1);
+	// Use container clientWidth (not measured canvas width) so shrink works reliably.
+	const cssWidth = Math.max(Math.floor(containerWidth), 1);
+	const cssHeight = Math.max(Math.floor(cssWidth * (imgHeight / imgWidth)), 1);
 
-	const targetWidth = dpr * Math.floor(canvasWidth);
-	canvas.width = targetWidth;
-	canvas.height = targetWidth * (imgHeight / imgWidth);
-	canvas.style.width = `${canvas.width / dpr}px`;
-	canvas.style.height = `${canvas.height / dpr}px`;
+	canvas.width = Math.floor(cssWidth * dpr);
+	canvas.height = Math.floor(cssHeight * dpr);
+	canvas.style.width = '100%';
+	canvas.style.height = `${cssHeight}px`;
 }
 
 function initCanvasSize(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
@@ -284,12 +478,16 @@ interface DrawLayersParams {
 	detectedQueenCups: any[];
 	showVarroa: boolean;
 	detectedVarroa: any[];
+	brushCursor?: { x: number; y: number } | null;
+	activeTool?: 'cell-brush' | 'stroke';
+	selectedCellType?: BrushCellType;
+	brushRadiusRatio?: number;
 }
 
 function drawCanvasLayers({
 	canvas, ctx, strokeHistory, showBees, showDrones, isAiQueenVisible,
 	detectedBees, showCells, detectedCells, showQueenCups, detectedQueenCups,
-	showVarroa, detectedVarroa
+	showVarroa, detectedVarroa, brushCursor, activeTool, selectedCellType, brushRadiusRatio = DEFAULT_BRUSH_DIAMETER_RATIO / 2
 }: DrawLayersParams) {
 	ctx.save();
 	ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -307,6 +505,9 @@ function drawCanvasLayers({
 	}
 	if (showQueenCups && detectedQueenCups) drawQueenCups(detectedQueenCups, ctx, canvas);
 	if (strokeHistory && strokeHistory.length > 0) redrawStrokes(canvas, ctx, strokeHistory);
+	if (activeTool === 'cell-brush' && selectedCellType !== undefined && brushCursor) {
+		drawBrushPreview(ctx, canvas, brushCursor, selectedCellType, brushRadiusRatio);
+	}
 }
 
 async function loadImage(url: string): Promise<HTMLImageElement> {
@@ -328,9 +529,12 @@ interface DrawingCanvasProps {
 	detectedCells?: any[];
 	detectedVarroa?: any[];
 	onStrokeHistoryUpdate: (history: DrawingLine[] | undefined) => void;
+	onDetectedCellsUpdate?: (detectedCells: any[]) => void | Promise<void>;
 	frameSideFile: any;
 	hideControls?: boolean;
 	allowDrawing?: boolean;
+	saveRequestId?: number;
+	onCellEditsStateChange?: (state: { hasUnsaved: boolean; isSaving: boolean }) => void;
 }
 
 export default function DrawingCanvas({
@@ -343,21 +547,37 @@ export default function DrawingCanvas({
 	detectedCells = [],
 	detectedVarroa = [],
 	onStrokeHistoryUpdate,
+	onDetectedCellsUpdate,
 	frameSideFile,
 	hideControls = false,
 	allowDrawing = true,
+	saveRequestId = 0,
+	onCellEditsStateChange = () => {},
 }: DrawingCanvasProps) {
 
 	const ref = useRef<HTMLCanvasElement>(null);
 	const [showBees, setBeeVisibility] = useState(true);
-	const [panelVisible, setPanelVisible] = useState(false);
 	const [showDrones, setDroneVisibility] = useState(true);
 	const [showCells, setCellVisibility] = useState(true);
 	const [showQueenCups, setQueenCupsVisibility] = useState(true);
 	const [showVarroa, setShowVarroaVisibility] = useState(true);
-	const [version, setVersion] = useState(0);
 	const [isAiQueenVisible, setIsAiQueenVisible] = useState(true);
 	const [currentLineWidth, setCurrentLineWidth] = useState(0);
+	const [activeTool, setActiveTool] = useState<'cell-brush' | 'stroke'>('cell-brush');
+	const [selectedCellType, setSelectedCellType] = useState<BrushCellType>(2);
+	const [brushSizePreset, setBrushSizePreset] = useState<BrushSizePreset>('medium');
+	const [hasUnsavedCellEdits, setHasUnsavedCellEdits] = useState(false);
+	const [isSavingCellEdits, setIsSavingCellEdits] = useState(false);
+	const editableDetectedCellsRef = useRef<any[]>(detectedCells || []);
+	const brushCursorRef = useRef<{ x: number; y: number } | null>(null);
+	const lastBrushCenterRef = useRef<{ x: number; y: number } | null>(null);
+	const redrawRafRef = useRef<number | null>(null);
+	const cellEditChangedRef = useRef(false);
+
+	useEffect(() => {
+		if (hasUnsavedCellEdits) return;
+		editableDetectedCellsRef.current = detectedCells || [];
+	}, [detectedCells, hasUnsavedCellEdits]);
 
 	const allDetectedBees = React.useMemo(() => {
 		const combined = [...(detectedBees || [])];
@@ -366,6 +586,8 @@ export default function DrawingCanvas({
 		}
 		return combined;
 	}, [detectedBees, detectedDrones]); // Track line width for drawing updates
+
+	const brushRadiusRatio = BRUSH_DIAMETER_BY_PRESET[brushSizePreset] / 2;
 
 	const getThumbnailUrl = useCallback(() => {
 		let bestUrl = imageUrl;
@@ -382,22 +604,18 @@ export default function DrawingCanvas({
 
 	const [canvasUrl, setCanvasUrl] = useState(getThumbnailUrl());
 
-	const forceRedraw = useCallback(() => setVersion(v => v + 1), []);
-
 	const clearHistory = useCallback(() => {
 		if (!allowDrawing) return;
 		points = [];
 		onStrokeHistoryUpdate([]);
-		forceRedraw();
-	}, [allowDrawing, onStrokeHistoryUpdate, forceRedraw]);
+	}, [allowDrawing, onStrokeHistoryUpdate]);
 
 	const undoDraw = useCallback(() => {
 		if (!allowDrawing) return;
 		const newHistory: DrawingLine[] = [...strokeHistory];
 		newHistory.pop();
 		onStrokeHistoryUpdate(newHistory);
-		forceRedraw();
-	}, [allowDrawing, strokeHistory, onStrokeHistoryUpdate, forceRedraw]);
+	}, [allowDrawing, strokeHistory, onStrokeHistoryUpdate]);
 
 	const redrawCurrentCanvas = useCallback(() => {
 		const canvas = ref.current;
@@ -407,10 +625,31 @@ export default function DrawingCanvas({
 
 		drawCanvasLayers({
 			canvas, ctx, strokeHistory, showBees, showDrones, isAiQueenVisible,
-			detectedBees: allDetectedBees, showCells, detectedCells, showQueenCups, detectedQueenCups,
-			showVarroa, detectedVarroa
+			detectedBees: allDetectedBees,
+			showCells,
+			detectedCells: editableDetectedCellsRef.current,
+			showQueenCups,
+			detectedQueenCups,
+			showVarroa,
+			detectedVarroa,
+			brushCursor: brushCursorRef.current,
+			activeTool,
+			selectedCellType,
+			brushRadiusRatio
 		});
-	}, [strokeHistory, showBees, showDrones, isAiQueenVisible, allDetectedBees, showCells, detectedCells, showQueenCups, detectedQueenCups, showVarroa, detectedVarroa]);
+	}, [strokeHistory, showBees, showDrones, isAiQueenVisible, allDetectedBees, showCells, showQueenCups, detectedQueenCups, showVarroa, detectedVarroa, activeTool, selectedCellType, brushRadiusRatio]);
+
+	const scheduleRedraw = useCallback(() => {
+		if (redrawRafRef.current !== null) return;
+		redrawRafRef.current = window.requestAnimationFrame(() => {
+			redrawRafRef.current = null;
+			redrawCurrentCanvas();
+		});
+	}, [redrawCurrentCanvas]);
+
+	useEffect(() => {
+		scheduleRedraw();
+	}, [detectedCells, scheduleRedraw]);
 
 	useEffect(() => {
 		// Reset camera state when switching frame image to avoid stale zoom/pan jumps.
@@ -419,7 +658,19 @@ export default function DrawingCanvas({
 		isPanning = false;
 		isMousedown = false;
 		points = [];
+		cellEditChangedRef.current = false;
+		brushCursorRef.current = null;
+		lastBrushCenterRef.current = null;
 	}, [imageUrl]);
+
+	useEffect(() => {
+		return () => {
+			if (redrawRafRef.current !== null) {
+				window.cancelAnimationFrame(redrawRafRef.current);
+				redrawRafRef.current = null;
+			}
+		};
+	}, []);
 
 
 	// Setup Canvas and Image
@@ -477,9 +728,90 @@ export default function DrawingCanvas({
 		const ctx = canvas.getContext('2d');
 		if (!ctx) return;
 
+		const updateBrushCursor = (e: MouseEvent | TouchEvent) => {
+			if (activeTool !== 'cell-brush') return;
+			const pos = getCanvasRelativePosition(canvas, e);
+			const normalizedPos = getNormalizedPosition(canvas, pos);
+			brushCursorRef.current = {
+				x: clamp01(normalizedPos.x),
+				y: clamp01(normalizedPos.y),
+			};
+			scheduleRedraw();
+		};
+
+		const applyBrushAtEvent = (e: MouseEvent | TouchEvent) => {
+			if (activeTool !== 'cell-brush' || !showCells) return;
+			const pos = getCanvasRelativePosition(canvas, e);
+			const normalizedPos = getNormalizedPosition(canvas, pos);
+			const clampedCenter = { x: clamp01(normalizedPos.x), y: clamp01(normalizedPos.y) };
+			const getMedianRadius = (cells: any[]): number => {
+				const radii = cells
+					.filter((cell) => Array.isArray(cell) && typeof cell[3] === 'number' && Number.isFinite(cell[3]) && cell[3] > 0)
+					.map((cell) => cell[3] as number)
+					.sort((a, b) => a - b);
+				if (radii.length === 0) return DEFAULT_NEW_CELL_RADIUS_RATIO;
+				return radii[Math.floor(radii.length / 2)];
+			};
+
+			const applyBrushAlongPath = (from: { x: number; y: number }, to: { x: number; y: number }) => {
+				const dx = to.x - from.x;
+				const dy = to.y - from.y;
+				const distance = Math.hypot(dx, dy);
+				const medianRadius = getMedianRadius(editableDetectedCellsRef.current);
+				const step = Math.max(0.003, medianRadius * 0.8);
+				const steps = Math.max(1, Math.min(64, Math.ceil(distance / step)));
+
+				let workingCells = editableDetectedCellsRef.current;
+				let changedAny = false;
+
+				for (let i = 1; i <= steps; i++) {
+					const t = i / steps;
+					const center = {
+						x: clamp01(from.x + dx * t),
+						y: clamp01(from.y + dy * t),
+					};
+
+					const { cells: nextCells, changed } = applyCellBrush(
+						workingCells,
+						center,
+						selectedCellType,
+						brushRadiusRatio
+					);
+
+					if (changed) {
+						workingCells = nextCells;
+						changedAny = true;
+					}
+				}
+
+				if (changedAny) {
+					cellEditChangedRef.current = true;
+					editableDetectedCellsRef.current = workingCells;
+					if (!hasUnsavedCellEdits) {
+						setHasUnsavedCellEdits(true);
+					}
+				}
+			};
+
+			const from = lastBrushCenterRef.current || clampedCenter;
+			applyBrushAlongPath(from, clampedCenter);
+			lastBrushCenterRef.current = clampedCenter;
+			brushCursorRef.current = clampedCenter;
+			scheduleRedraw();
+		};
+
 		const handleDrawStart = (e: MouseEvent | TouchEvent) => {
 			if (isPanning || (e instanceof MouseEvent && e.button !== 0)) return;
 			e.preventDefault(); // Prevent scrolling on touch
+
+			if (activeTool === 'cell-brush' && showCells) {
+				isMousedown = true;
+				applyBrushAtEvent(e);
+				return;
+			}
+			if (activeTool === 'cell-brush' && !showCells) {
+				return;
+			}
 
 			isMousedown = true;
 			const pos = getCanvasRelativePosition(canvas, e);
@@ -497,8 +829,17 @@ export default function DrawingCanvas({
 		};
 
 		const handleDrawMove = (e: MouseEvent | TouchEvent) => {
+			updateBrushCursor(e);
 			if (!isMousedown || isPanning) return;
 			e.preventDefault();
+
+			if (activeTool === 'cell-brush' && showCells) {
+				applyBrushAtEvent(e);
+				return;
+			}
+			if (activeTool === 'cell-brush' && !showCells) {
+				return;
+			}
 
 			const pos = getCanvasRelativePosition(canvas, e);
 			const normalizedPos = getNormalizedPosition(canvas, pos);
@@ -521,6 +862,16 @@ export default function DrawingCanvas({
 			if (!isMousedown || isPanning || (e instanceof MouseEvent && e.button !== 0)) return;
 
 			isMousedown = false;
+			if (activeTool === 'cell-brush' && showCells) {
+				cellEditChangedRef.current = false;
+				lastBrushCenterRef.current = null;
+				return;
+			}
+			if (activeTool === 'cell-brush' && !showCells) {
+				lastBrushCenterRef.current = null;
+				return;
+			}
+
 			if (points.length > 0) {
 				let newHistory: DrawingLine[] = [[...points]];
 
@@ -533,12 +884,19 @@ export default function DrawingCanvas({
 			setCurrentLineWidth(0);
 		};
 
+		const handleDrawLeave = async (e: MouseEvent | TouchEvent) => {
+			brushCursorRef.current = null;
+			lastBrushCenterRef.current = null;
+			scheduleRedraw();
+			await handleDrawEnd(e);
+		};
+
 		canvas.addEventListener('mousedown', handleDrawStart);
 		canvas.addEventListener('touchstart', handleDrawStart, { passive: false });
 		canvas.addEventListener('mousemove', handleDrawMove);
 		canvas.addEventListener('touchmove', handleDrawMove, { passive: false });
 		canvas.addEventListener('mouseup', handleDrawEnd);
-		canvas.addEventListener('mouseleave', handleDrawEnd); // End draw if mouse leaves canvas
+		canvas.addEventListener('mouseleave', handleDrawLeave); // End draw if mouse leaves canvas
 		canvas.addEventListener('touchend', handleDrawEnd);
 		canvas.addEventListener('touchcancel', handleDrawEnd);
 
@@ -548,11 +906,11 @@ export default function DrawingCanvas({
 			canvas.removeEventListener('mousemove', handleDrawMove);
 			canvas.removeEventListener('touchmove', handleDrawMove);
 			canvas.removeEventListener('mouseup', handleDrawEnd);
-			canvas.removeEventListener('mouseleave', handleDrawEnd);
+			canvas.removeEventListener('mouseleave', handleDrawLeave);
 			canvas.removeEventListener('touchend', handleDrawEnd);
 			canvas.removeEventListener('touchcancel', handleDrawEnd);
 		};
-	}, [allowDrawing, strokeHistory, onStrokeHistoryUpdate, currentLineWidth]); // Dependencies for drawing logic
+	}, [allowDrawing, strokeHistory, onStrokeHistoryUpdate, currentLineWidth, activeTool, selectedCellType, scheduleRedraw, hasUnsavedCellEdits, showCells, brushRadiusRatio]); // Dependencies for drawing logic
 
 	// Zoom and Pan Event Handlers
 	useLayoutEffect(() => {
@@ -730,20 +1088,45 @@ export default function DrawingCanvas({
 		return <div><T>Loading image...</T></div>;
 	}
 
+	const cellTypeOptions: Array<{ value: BrushCellType; label: string }> = [
+		{ value: 4, label: 'Nectar' },
+		{ value: 2, label: 'Honey' },
+		{ value: 6, label: 'Pollen' },
+		{ value: 1, label: 'Eggs' },
+		{ value: 3, label: 'Brood' },
+		{ value: 0, label: 'Capped brood' },
+		{ value: 5, label: 'Empty' },
+		{ value: 'erase', label: 'Eraser' },
+	];
+
+	const onSaveCellEdits = useCallback(async () => {
+		if (!onDetectedCellsUpdate || !hasUnsavedCellEdits || isSavingCellEdits) return;
+		setIsSavingCellEdits(true);
+		let savedOk = false;
+		onCellEditsStateChange({ hasUnsaved: hasUnsavedCellEdits, isSaving: true });
+		try {
+			await onDetectedCellsUpdate(editableDetectedCellsRef.current);
+			savedOk = true;
+			setHasUnsavedCellEdits(false);
+		} finally {
+			setIsSavingCellEdits(false);
+			onCellEditsStateChange({ hasUnsaved: !savedOk, isSaving: false });
+		}
+	}, [onDetectedCellsUpdate, hasUnsavedCellEdits, isSavingCellEdits, onCellEditsStateChange]);
+
+	useEffect(() => {
+		onCellEditsStateChange({ hasUnsaved: hasUnsavedCellEdits, isSaving: isSavingCellEdits });
+	}, [hasUnsavedCellEdits, isSavingCellEdits, onCellEditsStateChange]);
+
+	useEffect(() => {
+		if (!saveRequestId) return;
+		onSaveCellEdits();
+	}, [saveRequestId, onSaveCellEdits]);
+
 	return (
 		<div style={{ position: 'relative', overflow: 'hidden' }}>
 			{!hideControls && (
-				<div
-					className={styles.buttonPanel}
-					style={{ left: panelVisible ? 0 : -200 }}
-				>
-					<Button
-						onClick={() => setPanelVisible(!panelVisible)}
-						style={{ position: 'absolute', right: -43, top: 100, borderRadius: '0 20px 20px 0', border: '2px solid white', borderLeft: 'none' }}
-					>
-						{isAnyDetectionLoading ? <Loader size={0} /> : panelVisible ? <LeftChevron /> : <RightChevron />}
-					</Button>
-
+				<div className={styles.buttonPanel}>
 					<div className={styles.buttonGrp}>
 							<Button onClick={() => setBeeVisibility(!showBees)}>
 								{
@@ -804,17 +1187,115 @@ export default function DrawingCanvas({
 					</div>
 				</div>
 			)}
+			{!hideControls && allowDrawing && showCells && (
+				<div className={styles.toolbar}>
+					<div className={styles.toolbarGroup}>
+						<Button
+							onClick={() => setActiveTool('cell-brush')}
+							style={activeTool === 'cell-brush' ? { opacity: 1 } : { opacity: 0.7 }}
+						>
+							<CellBrushIcon size={14} />
+							<T>Cell brush</T>
+						</Button>
+						<Button
+							onClick={() => setActiveTool('stroke')}
+							style={activeTool === 'stroke' ? { opacity: 1 } : { opacity: 0.7 }}
+						>
+							<FreeDrawIcon size={14} />
+							<T>Free draw</T>
+						</Button>
+					</div>
+					{activeTool === 'cell-brush' && (
+						<>
+						<div className={styles.toolbarGroup}>
+							{cellTypeOptions.filter((option) => option.value !== 'erase').map((option) => {
+								const isSelected = selectedCellType === option.value;
+								const buttonBg = getCellStyle(option.value as number).fill;
+								const buttonText = getContrastingTextColor(buttonBg);
+								return (
+								<Button
+									key={String(option.value)}
+									onClick={() => setSelectedCellType(option.value)}
+									style={{
+										opacity: isSelected ? 1 : 0.82,
+										background: buttonBg,
+										color: buttonText,
+										border: isSelected ? '2px solid white' : '2px solid transparent',
+									}}
+								>
+									{option.label}
+								</Button>
+								);
+							})}
+						</div>
+						<div className={`${styles.toolbarGroup} ${styles.toolbarRight}`}>
+							<Button
+								iconOnly
+								title="Small brush"
+								onClick={() => setBrushSizePreset('small')}
+								style={{
+									opacity: brushSizePreset === 'small' ? 1 : 0.82,
+									border: brushSizePreset === 'small' ? '2px solid white' : '2px solid transparent',
+								}}
+							>
+								<BrushSizeIcon size={14} dotRadius={2} />
+							</Button>
+							<Button
+								iconOnly
+								title="Medium brush"
+								onClick={() => setBrushSizePreset('medium')}
+								style={{
+									opacity: brushSizePreset === 'medium' ? 1 : 0.82,
+									border: brushSizePreset === 'medium' ? '2px solid white' : '2px solid transparent',
+								}}
+							>
+								<BrushSizeIcon size={14} dotRadius={3} />
+							</Button>
+							<Button
+								iconOnly
+								title="Large brush"
+								onClick={() => setBrushSizePreset('large')}
+								style={{
+									opacity: brushSizePreset === 'large' ? 1 : 0.82,
+									border: brushSizePreset === 'large' ? '2px solid white' : '2px solid transparent',
+								}}
+							>
+								<BrushSizeIcon size={14} dotRadius={4.5} />
+							</Button>
+							<Button
+								onClick={() => setSelectedCellType('erase')}
+								style={{
+									opacity: selectedCellType === 'erase' ? 1 : 0.82,
+									background: 'rgb(90, 90, 90)',
+									color: '#fff',
+									border: selectedCellType === 'erase' ? '2px solid white' : '2px solid transparent',
+								}}
+							>
+								<EraserIcon size={14} color="#fff" />
+								<T>Eraser</T>
+							</Button>
+						</div>
+						</>
+					)}
+					{activeTool === 'stroke' && (
+						<div className={styles.toolbarGroup}>
+							<Button onClick={undoDraw}>
+								<UndoStrokeIcon size={14} />
+								<T>Undo stroke</T>
+							</Button>
+							<Button onClick={clearHistory}>
+								<EraserIcon size={14} />
+								<T>Clear drawing</T>
+							</Button>
+						</div>
+					)}
+				</div>
+			)}
 
 			<canvas ref={ref} id="container" style={{ width: '100%', display: 'block', touchAction: 'none' }}>
 				<T>Canvas not supported.</T>
 			</canvas>
 
-			{!hideControls && allowDrawing && (
-				<div className={styles.buttonGrp} style={{ position: 'absolute', bottom: 10, right: 10, background: 'rgba(0,0,0,0.5)', padding: '5px', borderRadius: '5px' }}>
-					<Button onClick={clearHistory}><T ctx="clear drawing button">Clear drawing</T></Button>
-					<Button onClick={undoDraw}><T>Undo</T></Button>
-				</div>
-			)}
 		</div>
 	);
 }

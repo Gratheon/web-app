@@ -214,8 +214,10 @@ interface ResourceDetectionPayload {
     delta: any[];
     isCellsDetectionComplete: boolean;
     broodPercent: number;
+    droneBroodPercent: number;
     cappedBroodPercent: number;
     eggsPercent: number;
+    nectarPercent: number;
     pollenPercent: number;
     honeyPercent: number;
 }
@@ -232,8 +234,10 @@ export async function appendResourceDetectionData(frameSideId: number, payload: 
             }
             frameSideFile.isCellsDetectionComplete = payload.isCellsDetectionComplete;
             frameSideFile.broodPercent = payload.broodPercent;
+            frameSideFile.droneBroodPercent = payload.droneBroodPercent;
             frameSideFile.cappedBroodPercent = payload.cappedBroodPercent;
             frameSideFile.eggsPercent = payload.eggsPercent;
+            frameSideFile.nectarPercent = payload.nectarPercent;
             frameSideFile.pollenPercent = payload.pollenPercent;
             frameSideFile.honeyPercent = payload.honeyPercent;
         });

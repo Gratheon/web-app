@@ -8,6 +8,7 @@ export type FrameSideCells = {
 	hiveId?: any // internal
 
 	broodPercent?: number
+	nectarPercent?: number
 	honeyPercent?: number
 	pollenPercent?: number
 
@@ -18,6 +19,7 @@ export type FrameSideCells = {
 
 export type HiveInspectionCellStats = {
 	broodPercent?: number
+	nectarPercent?: number
 	honeyPercent?: number
 	pollenPercent?: number
 
@@ -34,6 +36,7 @@ export function newFrameSideCells(id, hiveId): FrameSideCells {
 		frameSideId: id,
 		hiveId,
 		broodPercent: 0,
+		nectarPercent: 0,
 		honeyPercent: 0,
 		pollenPercent: 0,
 		eggsPercent: 0,
@@ -51,6 +54,9 @@ export async function getFrameSideCells(
 		if (!res.droneBroodPercent){
 			res.droneBroodPercent = 0
 		}
+		if (!res.nectarPercent){
+			res.nectarPercent = 0
+		}
 		return res
 	} catch (e) {
 		console.error(e)
@@ -66,22 +72,24 @@ export async function updateFrameStat(
 	cells[key] = +percent
 
 	let total =
-		cells.broodPercent +
-		cells.cappedBroodPercent +
-		cells.eggsPercent +
-		cells.honeyPercent +
-		cells.pollenPercent +
-		cells.droneBroodPercent // Added drone brood
+		(cells.broodPercent || 0) +
+		(cells.cappedBroodPercent || 0) +
+		(cells.eggsPercent || 0) +
+		(cells.nectarPercent || 0) +
+		(cells.honeyPercent || 0) +
+		(cells.pollenPercent || 0) +
+		(cells.droneBroodPercent || 0) // Added drone brood
 
 	if (total > 100) {
-		cells.broodPercent = Math.floor((100 * cells.broodPercent) / total)
+		cells.broodPercent = Math.floor((100 * (cells.broodPercent || 0)) / total)
 		cells.cappedBroodPercent = Math.floor(
-			(100 * cells.cappedBroodPercent) / total
+			(100 * (cells.cappedBroodPercent || 0)) / total
 		)
-		cells.eggsPercent = Math.floor((100 * cells.eggsPercent) / total)
-		cells.honeyPercent = Math.floor((100 * cells.honeyPercent) / total)
-		cells.pollenPercent = Math.floor((100 * cells.pollenPercent) / total)
-		cells.droneBroodPercent = Math.floor((100 * cells.droneBroodPercent) / total) // Added drone brood
+		cells.eggsPercent = Math.floor((100 * (cells.eggsPercent || 0)) / total)
+		cells.nectarPercent = Math.floor((100 * (cells.nectarPercent || 0)) / total)
+		cells.honeyPercent = Math.floor((100 * (cells.honeyPercent || 0)) / total)
+		cells.pollenPercent = Math.floor((100 * (cells.pollenPercent || 0)) / total)
+		cells.droneBroodPercent = Math.floor((100 * (cells.droneBroodPercent || 0)) / total) // Added drone brood
 	}
 
 	try {
@@ -108,6 +116,7 @@ export async function getHiveInspectionStats(
 ): Promise<HiveInspectionCellStats> {
 	let stats: HiveInspectionCellStats = {
 		broodPercent: 0,
+		nectarPercent: 0,
 		honeyPercent: 0,
 		pollenPercent: 0,
 		eggsPercent: 0,
@@ -124,6 +133,7 @@ export async function getHiveInspectionStats(
 
 		if (left) {
 			stats.broodPercent += left.broodPercent
+			stats.nectarPercent += left.nectarPercent
 			stats.honeyPercent += left.honeyPercent
 			stats.pollenPercent += left.pollenPercent
 			stats.eggsPercent += left.eggsPercent
@@ -135,6 +145,7 @@ export async function getHiveInspectionStats(
 
 		if (right) {
 			stats.broodPercent += right.broodPercent
+			stats.nectarPercent += right.nectarPercent
 			stats.honeyPercent += right.honeyPercent
 			stats.pollenPercent += right.pollenPercent
 			stats.eggsPercent += right.eggsPercent
@@ -146,6 +157,7 @@ export async function getHiveInspectionStats(
 
 	// average collected percentages
 	stats.broodPercent /= frameCount
+	stats.nectarPercent /= frameCount
 	stats.honeyPercent /= frameCount
 	stats.pollenPercent /= frameCount
 	stats.eggsPercent /= frameCount
@@ -181,11 +193,12 @@ export async function getDominantResourceColorForFrameSide(
 	// Define resource types and their corresponding colors
 	const resourceTypes = {
 		broodPercent: colors.broodColor,
+		nectarPercent: colors.nectarColor,
 		honeyPercent: colors.honeyColor,
 		pollenPercent: colors.pollenColor,
 		eggsPercent: colors.eggsColor,
 		cappedBroodPercent: colors.cappedBroodColor,
-		droneBroodPercent: colors.drone, // Added drone brood (using existing drone color)
+		droneBroodPercent: colors.droneBroodColor,
 	};
 
 	// Iterate through resource types to find the dominant one

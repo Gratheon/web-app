@@ -21,8 +21,6 @@ import MetricList from './metricList'
 import styles from './styles.module.less'
 import FrameSide from './frameSide.tsx'
 import BoxFrame from '../boxes/box/boxFrame'
-import BeeCounter from '@/shared/beeCounter/index.tsx'
-import VarroaIcon from '@/icons/varroa.tsx'
 import Modal from '@/shared/modal'
 import { useWarehouseAutoAdjust } from '@/hooks/useWarehouseAutoAdjust'
 import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
@@ -263,6 +261,33 @@ export default function Frame({
 	)
 
 	const error = <ErrorMessage error={errorFrameRemove || errorConfirmQueen} />
+	const frameTypeTitle = (
+		<>
+			{frame.type === 'EMPTY_COMB' && (
+				<T ctx="This is beehive frame with beecomb">Beecomb frame</T>
+			)}
+			{frame.type === 'FOUNDATION' && (
+				<T ctx="This is empty beehive frame with a wax foundation">
+					Foundation frame
+				</T>
+			)}
+			{frame.type === 'FEEDER' && (
+				<T ctx="This is a vertical sugar syrup container that goes into beehive in a size of a regular hive frame">
+					Vertical feeder
+				</T>
+			)}
+			{frame.type === 'PARTITION' && (
+				<T ctx="This is a beehive frame of solid wood made to separate parts of the hive">
+					Partition
+				</T>
+			)}
+			{frame.type === 'VOID' && (
+				<T ctx="This is a beehive frame without any wax">
+					Frame without wax
+				</T>
+			)}
+		</>
+	)
 
 	return (
 		<div className={styles.frame}>
@@ -270,7 +295,9 @@ export default function Frame({
 				{error}
 
 				<div className={styles.frameHeader}>
-					<div>
+					<h3 className={styles.frameTypeTitle}>{frameTypeTitle}</h3>
+					<div className={styles.frameHeaderControls}>
+						<div className={styles.frameHeaderLeft}>
 						{frame && (
 							<BoxFrame
 								box={box}
@@ -283,63 +310,23 @@ export default function Frame({
 								displayMode="visual"
 							/>
 						)}
-					</div>
-
-
-					<div>
-						<h3>
-							{frame.type === 'EMPTY_COMB' && (
-								<T ctx="This is beehive frame with beecomb">Beecomb frame</T>
-							)}
-							{frame.type === 'FOUNDATION' && (
-								<T ctx="This is empty beehive frame with a wax foundation">
-									Foundation frame
-								</T>
-							)}
-							{frame.type === 'FEEDER' && (
-								<T ctx="This is a vertical sugar syrup container that goes into beehive in a size of a regular hive frame">
-									Vertical feeder
-								</T>
-							)}
-							{frame.type === 'PARTITION' && (
-								<T ctx="This is a beehive frame of solid wood made to separate parts of the hive">
-									Partition
-								</T>
-							)}
-							{frame.type === 'VOID' && (
-								<T ctx="This is a beehive frame without any wax">
-									Frame without wax
-								</T>
-							)}
-						</h3>
-
-						<div style={{ display: 'flex', alignItems: 'center' }}>
-							{frameSideFile && typeof frameSideFile.detectedWorkerBeeCount === 'number' && frameSideFile.detectedWorkerBeeCount >= 0 && (
-								<div title="Detected worker bees on this side" style={{marginRight: '5px'}}>
-									<BeeCounter count={frameSideFile.detectedWorkerBeeCount} />
-								</div>
-							)}
-
-							<MetricList frameSideId={frameSideId} />
-
-							{frameSideFile?.varroaCount > 0 &&
-								<div style="padding: 0 10px;display:flex;">
-									<VarroaIcon />
-
-									{frameSideFile.varroaCount}
-								</div>
-							}
 						</div>
 
-					</div>
-					<div>
+						<div className={styles.frameHeaderMiddle}>
+							<MetricList frameSideId={frameSideId} />
+						</div>
+						<div className={styles.frameHeaderRight}>
 						{/* Render button if frameSideId exists */}
 						{frameSideId && (
-							<Button title="Mark queen presence" onClick={onQueenToggle}>
+							<Button
+								color="white"
+								title="Mark queen presence"
+								onClick={onQueenToggle}
+							>
 								{/* Default Checkbox 'on' to false if isQueenChecked is undefined/null */}
-								<Checkbox on={!!isQueenChecked} />
+								<Checkbox on={!!isQueenChecked} color="#111" />
 								<span><T ctx="this is a button that marks if a queen bee is present on this frame side">Queen Present</T></span>
-								<QueenIcon size={14} color={'white'} />
+								<QueenIcon size={14} color={'#111'} />
 							</Button>
 						)}
 						{frameSideId && (
@@ -362,6 +349,7 @@ export default function Frame({
 							<T>Remove frame</T>
 						</span>
 					</Button>
+						</div>
 					</div>
 				</div>
 

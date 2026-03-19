@@ -17,7 +17,7 @@ let img: HTMLImageElement | null = null;
 let isMousedown = false;
 type DrawingPoint = { x: number; y: number; lineWidth: number; color?: string }
 type DrawingLine = DrawingPoint[]
-type BrushCellType = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 'erase'
+type BrushCellType = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 'erase'
 type BrushSizePreset = 'small' | 'medium' | 'large'
 
 let points: DrawingPoint[] = [];
@@ -100,6 +100,7 @@ function getCellStyle(cls: number): { stroke: string; fill: string } {
 		case 4: return { stroke: colors.nectarColor, fill: colors.nectarColor };
 		case 5: return { stroke: colors.emptyCellColor, fill: colors.emptyCellColor };
 		case 6: return { stroke: colors.pollenColor, fill: colors.pollenColor };
+		case 7: return { stroke: colors.droneBroodColor, fill: colors.droneBroodColor };
 		default: return { stroke: 'grey', fill: 'grey' };
 	}
 }
@@ -1095,9 +1096,15 @@ export default function DrawingCanvas({
 		{ value: 1, label: 'Eggs' },
 		{ value: 3, label: 'Brood' },
 		{ value: 0, label: 'Capped brood' },
+		{ value: 7, label: 'Drone brood' },
 		{ value: 5, label: 'Empty' },
 		{ value: 'erase', label: 'Eraser' },
 	];
+	const layerToggleButtonStyle = {
+		background: '#fff',
+		color: '#111',
+		border: '1px solid #d6d6d6',
+	};
 
 	const onSaveCellEdits = useCallback(async () => {
 		if (!onDetectedCellsUpdate || !hasUnsavedCellEdits || isSavingCellEdits) return;
@@ -1128,7 +1135,7 @@ export default function DrawingCanvas({
 			{!hideControls && (
 				<div className={styles.buttonPanel}>
 					<div className={styles.buttonGrp}>
-							<Button onClick={() => setBeeVisibility(!showBees)}>
+							<Button size="small" style={layerToggleButtonStyle} onClick={() => setBeeVisibility(!showBees)}>
 								{
 									(
 										frameSideFile?.isBeeDetectionComplete ||
@@ -1138,26 +1145,26 @@ export default function DrawingCanvas({
 										(detectedBees?.length || 0) > 0 ||
 										(detectedDrones?.length || 0) > 0
 									)
-										? <Checkbox on={showBees} />
+										? <Checkbox on={showBees} color="#111" />
 										: <Loader size={0} />
 								}
-								<span><T ctx="toggle worker bees visibility">Worker bees</T></span>
+								<span><T ctx="toggle worker bees visibility">Worker bees</T>{frameSideFile?.detectedWorkerBeeCount > 0 && ` (${frameSideFile.detectedWorkerBeeCount})`}</span>
 							</Button>
 
 						{detectedCells && (
-							<Button onClick={() => setCellVisibility(!showCells)}>
-								{frameSideFile?.isCellsDetectionComplete ? <Checkbox on={showCells} /> : <Loader size={0} />}
+							<Button size="small" style={layerToggleButtonStyle} onClick={() => setCellVisibility(!showCells)}>
+								{frameSideFile?.isCellsDetectionComplete ? <Checkbox on={showCells} color="#111" /> : <Loader size={0} />}
 								<span><T ctx="toggle frame cells visibility">Frame cells</T>{frameSideFile?.isCellsDetectionComplete && <FrameCells />}</span>
 							</Button>
 						)}
 
-						<Button onClick={() => setIsAiQueenVisible(!isAiQueenVisible)}>
-							{frameSideFile?.isQueenDetectionComplete ? <Checkbox on={isAiQueenVisible} /> : <Loader size={0} />}
+						<Button size="small" style={layerToggleButtonStyle} onClick={() => setIsAiQueenVisible(!isAiQueenVisible)}>
+							{frameSideFile?.isQueenDetectionComplete ? <Checkbox on={isAiQueenVisible} color="#111" /> : <Loader size={0} />}
 							<span><T ctx="toggle AI queen visibility">Queen</T></span>
-							<QueenIcon size={14} color={'white'} />
+							<QueenIcon size={14} color={'#111'} />
 						</Button>
 
-							<Button onClick={() => setDroneVisibility(!showDrones)}>
+							<Button size="small" style={layerToggleButtonStyle} onClick={() => setDroneVisibility(!showDrones)}>
 								{
 									(
 										frameSideFile?.isBeeDetectionComplete ||
@@ -1167,22 +1174,30 @@ export default function DrawingCanvas({
 										(detectedBees?.length || 0) > 0 ||
 										(detectedDrones?.length || 0) > 0
 									)
-										? <Checkbox on={showDrones} />
+										? <Checkbox on={showDrones} color="#111" />
 										: <Loader size={0} />
 								}
 								<span><T ctx="toggle drones visibility">Drones</T>{frameSideFile?.detectedDroneCount > 0 && ` (${frameSideFile.detectedDroneCount})`}</span>
 							</Button>
 
 						{detectedQueenCups && (
-							<Button onClick={() => setQueenCupsVisibility(!showQueenCups)}>
-								{frameSideFile?.isQueenCupsDetectionComplete ? <Checkbox on={showQueenCups} /> : <Loader size={0} />}
+							<Button size="small" style={layerToggleButtonStyle} onClick={() => setQueenCupsVisibility(!showQueenCups)}>
+								{frameSideFile?.isQueenCupsDetectionComplete ? <Checkbox on={showQueenCups} color="#111" /> : <Loader size={0} />}
 								<span><T ctx="toggle queen cups visibility">Queen cups</T></span>
 							</Button>
 						)}
 
-						<Button onClick={() => setShowVarroaVisibility(!showVarroa)}>
-							{frameSideFile?.isVarroaDetectionComplete ? <Checkbox on={showVarroa} /> : <Loader size={0} />}
-							<span><T ctx="toggle varroa mites visibility">Varroa mites</T></span>
+						<Button size="small" style={layerToggleButtonStyle} onClick={() => setShowVarroaVisibility(!showVarroa)}>
+							{
+								(
+									frameSideFile?.isVarroaDetectionComplete ||
+									(frameSideFile?.varroaCount || 0) > 0 ||
+									(detectedVarroa?.length || 0) > 0
+								)
+									? <Checkbox on={showVarroa} color="#111" />
+									: <Loader size={0} />
+							}
+							<span><T ctx="toggle varroa mites visibility">Varroa mites</T>{frameSideFile?.varroaCount > 0 && ` (${frameSideFile.varroaCount})`}</span>
 						</Button>
 					</div>
 				</div>

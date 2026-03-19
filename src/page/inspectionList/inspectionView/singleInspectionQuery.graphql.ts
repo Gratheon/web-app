@@ -24,7 +24,9 @@ export default gql`
 			cells {
 				id
 				broodPercent
+				droneBroodPercent
 				honeyPercent
+				nectarPercent
 				pollenPercent
 				eggsPercent
 				cappedBroodPercent

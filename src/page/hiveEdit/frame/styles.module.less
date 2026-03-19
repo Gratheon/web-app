@@ -24,24 +24,56 @@
 }
 
 .frameHeader {
-	h3 {
-		margin: 0;
-		font-size: 12px;
-		text-transform: uppercase;
-		text-align: center;
-	}
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
 
 	@media @desktop {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
+		.frameHeaderControls {
+			flex-wrap: nowrap;
+		}
 	}
-
 
 	@media @mobileAndTablet {
 		margin-top: 40px;
 		margin-left: 20px;
+
+		.frameHeaderControls {
+			flex-wrap: wrap;
+			align-items: flex-start;
+		}
+
+		.frameHeaderRight {
+			justify-content: flex-start;
+		}
 	}
+}
+
+.frameTypeTitle {
+	margin: 0;
+	font-size: 12px;
+	text-transform: uppercase;
+	text-align: center;
+}
+
+.frameHeaderControls {
+	display: flex;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.frameHeaderLeft,
+.frameHeaderMiddle,
+.frameHeaderRight {
+	display: flex;
+	align-items: flex-end;
+}
+
+.frameHeaderRight {
+	gap: 6px;
+	flex-wrap: wrap;
+	justify-content: flex-end;
 }
 
 .removeFrameActions {

@@ -1,11 +1,19 @@
 .slider {
 	cursor: pointer;
 
+	&:first-child .picker {
+		border-top-left-radius: 5px;
+	}
+
+	&:last-child .picker {
+		border-top-right-radius: 5px;
+	}
+
 	.picker {
-		height: 32px;
+		height: 40px;
 		font-size: 15px;
-		line-height: 35px;
-		width: 45px;
+		line-height: 40px;
+		width: 42px;
 		text-align: center;
 	}
 }

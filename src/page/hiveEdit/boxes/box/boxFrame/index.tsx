@@ -63,7 +63,7 @@ export default function BoxFrame({
 			return (
 				// Added wrapper for relative positioning of overlay and indicator
 				<div className={styles.listFrameIconWrapper}>
-					<div className={styles.listFrameIcon} style={{ margin: '3px' }}> {/* Fix inline style syntax */}
+					<div className={styles.listFrameIcon}>
 						<FrameSideImage
 							frameSideId={frame.leftId}
 							dominantColor={leftDominantColor} // Pass color prop

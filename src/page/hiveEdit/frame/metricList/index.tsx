@@ -51,10 +51,10 @@ export default function MetricList({ frameSideId }) {
 						pollenPercent: frameSide2.pollenPercent,
 						honeyPercent: frameSide2.honeyPercent,
 						eggsPercent: frameSide2.eggsPercent,
+						nectarPercent: frameSide2.nectarPercent,
 						cappedBroodPercent: frameSide2.cappedBroodPercent,
 						broodPercent: frameSide2.broodPercent,
-						// NOTE: Backend schema needs update for droneBroodPercent
-						droneBroodPercent: frameSide2.droneBroodPercent, 
+						droneBroodPercent: frameSide2.droneBroodPercent,
 					},
 				})
 			}, 300),
@@ -80,7 +80,7 @@ export default function MetricList({ frameSideId }) {
 	}
 
 	return (
-		<div style="overflow: hidden; width:300px; align-content: flex-end;">
+		<div style="overflow: hidden; width:340px; align-content: flex-end;">
 			<div
 				style={{
 					display: expanded ? 'block' : 'flex',
@@ -142,6 +142,17 @@ export default function MetricList({ frameSideId }) {
 					onChange={(e) => onResize('pollenPercent', e.target.value)}
 				>
 					<T>Pollen</T>
+				</ResourceEditRow>
+
+				<ResourceEditRow
+					expanded={expanded}
+					onClick={() => expand(!expanded)}
+					color={colors.nectarColor}
+					textColor="black"
+					percent={frameSideCells.nectarPercent}
+					onChange={(e) => onResize('nectarPercent', e.target.value)}
+				>
+					<T>Nectar</T>
 				</ResourceEditRow>
 
 

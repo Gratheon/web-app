@@ -11,8 +11,10 @@ export default gql`
 			__typename
 			id
 			broodPercent
+			droneBroodPercent
 			cappedBroodPercent
 			eggsPercent
+			nectarPercent
 			pollenPercent
 			honeyPercent
 		}

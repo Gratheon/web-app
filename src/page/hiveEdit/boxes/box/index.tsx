@@ -65,8 +65,10 @@ export default function Box({
 
 					frameSideId
 					broodPercent
+					droneBroodPercent
 					cappedBroodPercent
 					eggsPercent
+					nectarPercent
 					pollenPercent
 					honeyPercent
 				}
@@ -83,10 +85,14 @@ export default function Box({
 
 				frameSideFile.broodPercent =
 					response.onHiveFrameSideCellsDetected.broodPercent
+				frameSideFile.droneBroodPercent =
+					response.onHiveFrameSideCellsDetected.droneBroodPercent
 				frameSideFile.cappedBroodPercent =
 					response.onHiveFrameSideCellsDetected.cappedBroodPercent
 				frameSideFile.eggsPercent =
 					response.onHiveFrameSideCellsDetected.eggsPercent
+				frameSideFile.nectarPercent =
+					response.onHiveFrameSideCellsDetected.nectarPercent
 				frameSideFile.pollenPercent =
 					response.onHiveFrameSideCellsDetected.pollenPercent
 				frameSideFile.honeyPercent =

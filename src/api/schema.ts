@@ -169,8 +169,10 @@ type FrameSide {
 type FrameSideCells {
   id: ID!
   broodPercent: Int
+  droneBroodPercent: Int
   cappedBroodPercent: Int
   eggsPercent: Int
+  nectarPercent: Int
   pollenPercent: Int
   honeyPercent: Int
 }
@@ -179,8 +181,10 @@ type FrameSideCells {
 input FrameSideCellsInput {
   id: ID!
   broodPercent: Int
+  droneBroodPercent: Int
   cappedBroodPercent: Int
   eggsPercent: Int
+  nectarPercent: Int
   pollenPercent: Int
   honeyPercent: Int
   cells: JSON

@@ -68,6 +68,7 @@ export default function FrameSideDrawing({
 
 	const getRelativeCounts = useCallback((cells: any[]) => {
 		let brood = 0
+		let droneBrood = 0
 		let cappedBrood = 0
 		let eggs = 0
 		let pollen = 0
@@ -85,15 +86,18 @@ export default function FrameSideDrawing({
 				case 4: nectar += 1; break
 				case 5: empty += 1; break
 				case 6: pollen += 1; break
+				case 7: droneBrood += 1; break
 			}
 		}
 
-		const total = brood + cappedBrood + eggs + pollen + honey + nectar + empty
+		const total = brood + droneBrood + cappedBrood + eggs + pollen + honey + nectar + empty
 		if (total <= 0) {
 			return {
 				broodPercent: 0,
+				droneBroodPercent: 0,
 				cappedBroodPercent: 0,
 				eggsPercent: 0,
+				nectarPercent: 0,
 				pollenPercent: 0,
 				honeyPercent: 0,
 			}
@@ -101,8 +105,10 @@ export default function FrameSideDrawing({
 
 		return {
 			broodPercent: Math.floor((100 * brood) / total),
+			droneBroodPercent: Math.floor((100 * droneBrood) / total),
 			cappedBroodPercent: Math.floor((100 * cappedBrood) / total),
 			eggsPercent: Math.floor((100 * eggs) / total),
+			nectarPercent: Math.floor((100 * nectar) / total),
 			pollenPercent: Math.floor((100 * pollen) / total),
 			honeyPercent: Math.floor((100 * honey) / total),
 		}
@@ -152,8 +158,10 @@ export default function FrameSideDrawing({
 			newFrameSideCells(numericFrameSideId, undefined)
 
 		frameSideCellsState.broodPercent = relativeCounts.broodPercent
+		frameSideCellsState.droneBroodPercent = relativeCounts.droneBroodPercent
 		frameSideCellsState.cappedBroodPercent = relativeCounts.cappedBroodPercent
 		frameSideCellsState.eggsPercent = relativeCounts.eggsPercent
+		frameSideCellsState.nectarPercent = relativeCounts.nectarPercent
 		frameSideCellsState.pollenPercent = relativeCounts.pollenPercent
 		frameSideCellsState.honeyPercent = relativeCounts.honeyPercent
 
@@ -163,8 +171,10 @@ export default function FrameSideDrawing({
 			cells: {
 				id: frameSideCellsState.id,
 				broodPercent: frameSideCellsState.broodPercent,
+				droneBroodPercent: frameSideCellsState.droneBroodPercent,
 				cappedBroodPercent: frameSideCellsState.cappedBroodPercent,
 				eggsPercent: frameSideCellsState.eggsPercent,
+				nectarPercent: frameSideCellsState.nectarPercent,
 				pollenPercent: frameSideCellsState.pollenPercent,
 				honeyPercent: frameSideCellsState.honeyPercent,
 				cells: detectedCells || [],

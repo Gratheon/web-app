@@ -278,14 +278,14 @@ describe('writeHooks', () => {
   describe('FrameSideCells', () => {
     it('should convert percentages and id to numbers and call upsertEntityWithNumericID', async () => {
         const mockCells: any = { id: '310', broodPercent: '10.5', cappedBroodPercent: '5', eggsPercent: '2.2', pollenPercent: '3', honeyPercent: '20' };
-        const expectedEntity = { id: 310, frameSideId: 310, broodPercent: 10.5, cappedBroodPercent: 5, eggsPercent: 2.2, pollenPercent: 3, honeyPercent: 20 };
+        const expectedEntity = { id: 310, frameSideId: 310, broodPercent: 10.5, cappedBroodPercent: 5, eggsPercent: 2.2, nectarPercent: 0, pollenPercent: 3, honeyPercent: 20, droneBroodPercent: 0 };
         await writeHooks.FrameSideCells(null, mockCells, {} as any);
         expect(mockUpsertEntityWithNumericID).toHaveBeenCalledTimes(1);
         expect(mockUpsertEntityWithNumericID).toHaveBeenCalledWith('files_frame_side_cells', expectedEntity);
     });
      it('should handle missing percentage fields by defaulting to 0', async () => {
         const mockCells: any = { id: '311', broodPercent: '15', pollenPercent: null, honeyPercent: undefined };
-         const expectedEntity = { id: 311, frameSideId: 311, broodPercent: 15, cappedBroodPercent: 0, eggsPercent: 0, pollenPercent: 0, honeyPercent: 0 };
+         const expectedEntity = { id: 311, frameSideId: 311, broodPercent: 15, cappedBroodPercent: 0, eggsPercent: 0, nectarPercent: 0, pollenPercent: 0, honeyPercent: 0, droneBroodPercent: 0 };
         await writeHooks.FrameSideCells(null, mockCells, {} as any);
         expect(mockUpsertEntityWithNumericID).toHaveBeenCalledTimes(1);
         expect(mockUpsertEntityWithNumericID).toHaveBeenCalledWith('files_frame_side_cells', expectedEntity);

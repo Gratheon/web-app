@@ -70,8 +70,12 @@ export const writeHooks = {
 			? +cells.cappedBroodPercent
 			: 0
 		cells.eggsPercent = cells?.eggsPercent ? +cells.eggsPercent : 0
+		cells.nectarPercent = cells?.nectarPercent ? +cells.nectarPercent : 0
 		cells.pollenPercent = cells?.pollenPercent ? +cells.pollenPercent : 0
 		cells.honeyPercent = cells?.honeyPercent ? +cells.honeyPercent : 0
+		cells.droneBroodPercent = cells?.droneBroodPercent
+			? +cells.droneBroodPercent
+			: 0
 
 		cells.frameSideId = +cells.id
 		cells.id = +cells.id

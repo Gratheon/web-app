@@ -113,6 +113,7 @@ describe('FrameSideCells Model', () => {
                 frameSideId: id,
                 hiveId: hiveId,
                 broodPercent: 0,
+                nectarPercent: 0,
                 honeyPercent: 0,
                 pollenPercent: 0,
                 eggsPercent: 0,

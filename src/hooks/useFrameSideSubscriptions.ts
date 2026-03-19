@@ -34,8 +34,10 @@ interface ResourceDetectionData {
         delta: any[];
         isCellsDetectionComplete: boolean;
         broodPercent: number;
+        droneBroodPercent: number;
         cappedBroodPercent: number;
         eggsPercent: number;
+        nectarPercent: number;
         pollenPercent: number;
         honeyPercent: number;
     };
@@ -118,8 +120,10 @@ export function useFrameSideSubscriptions(frameSideId: number | string | null | 
                 delta
                 isCellsDetectionComplete
                 broodPercent
+                droneBroodPercent
                 cappedBroodPercent
                 eggsPercent
+                nectarPercent
                 pollenPercent
                 honeyPercent
             }
@@ -139,8 +143,10 @@ export function useFrameSideSubscriptions(frameSideId: number | string | null | 
                 delta: updatePayload.delta || [],
                 isCellsDetectionComplete: updatePayload.isCellsDetectionComplete,
                 broodPercent: updatePayload.broodPercent,
+                droneBroodPercent: updatePayload.droneBroodPercent,
                 cappedBroodPercent: updatePayload.cappedBroodPercent,
                 eggsPercent: updatePayload.eggsPercent,
+                nectarPercent: updatePayload.nectarPercent,
                 pollenPercent: updatePayload.pollenPercent,
                 honeyPercent: updatePayload.honeyPercent,
             }).catch(error => console.error("Failed to append resource data:", error));

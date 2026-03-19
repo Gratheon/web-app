@@ -35,6 +35,16 @@ export default function BoxFrameSide({
 				title="Honey"
 			></div>
 
+			<div
+				style={{
+					height: `${
+						frameSide.cells?.nectarPercent ? frameSide.cells.nectarPercent : 0
+					}%`,
+					backgroundColor: colors.nectarColor,
+				}}
+				title="Nectar"
+			></div>
+
 
 			<div
 				style={{

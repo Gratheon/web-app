@@ -8,6 +8,7 @@ type KeyboardHintsProps = {
 	keys: string
 	className?: string
 	absolute?: boolean
+	alwaysVisible?: boolean
 }
 
 function getInitialVisibility() {
@@ -19,6 +20,7 @@ export default function KeyboardHints({
 	keys,
 	className = '',
 	absolute = true,
+	alwaysVisible = false,
 }: KeyboardHintsProps) {
 	const [visible, setVisible] = useState(getInitialVisibility)
 
@@ -35,7 +37,7 @@ export default function KeyboardHints({
 		}
 	}, [])
 
-	if (!visible) return null
+	if (!alwaysVisible && !visible) return null
 
 	const classNames = [styles.keyboardHint]
 	if (absolute) classNames.push(styles.absolute)

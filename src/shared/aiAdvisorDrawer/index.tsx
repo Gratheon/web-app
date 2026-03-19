@@ -11,18 +11,23 @@ import { getFrameSideCells } from '@/models/frameSideCells'
 import { getFrameSideFile } from '@/models/frameSideFile'
 import { getUser } from '@/models/user'
 import { listInspections } from '@/models/inspections'
+import { listHiveLogs, syncHiveLogsFromBackend } from '@/models/hiveLog'
 
 import beekeeperURL from '@/assets/beekeeper.png'
 import styles from './styles.module.less'
 import AIAdvisorBillingNotice from '@/shared/aiAdvisorBillingNotice'
+import KeyboardHints from '@/shared/keyboardHints'
 import T, { useTranslation as t } from '@/shared/translate'
 import { isBillingTierAtLeast } from '@/shared/billingTier'
 
 type ChatMessage = {
 	id: string
-	role: 'assistant' | 'system' | 'error'
+	role: 'assistant' | 'system' | 'error' | 'user'
 	text?: string
 	html?: string
+	payloadOverview?: Record<string, any>
+	shortcuts?: ViewContext['shortcuts']
+	shortcutsTitle?: string
 	loading?: boolean
 }
 
@@ -137,8 +142,67 @@ const GENERATE_ADVICE_MUTATION = gql`
 	}
 `
 
+const APIARY_ADVISOR_QUERY = gql`
+	query advisorApiary($id: ID!) {
+		apiary(id: $id) {
+			id
+			name
+			type
+			lat
+			lng
+			hives {
+				id
+				hiveNumber
+				boxCount
+				family {
+					name
+				}
+			}
+		}
+	}
+`
+
+const APIARY_PLACEMENT_QUERY = gql`
+	query advisorApiaryPlacement($apiaryId: ID!) {
+		hivePlacements(apiaryId: $apiaryId) {
+			hiveId
+			x
+			y
+			rotation
+		}
+		apiaryObstacles(apiaryId: $apiaryId) {
+			id
+			type
+			x
+			y
+			width
+			height
+			radius
+			rotation
+			label
+		}
+	}
+`
+
+const APIARY_WEATHER_QUERY = gql`
+	query advisorApiaryWeather($lat: String!, $lng: String!) {
+		weather(lat: $lat, lng: $lng)
+	}
+`
+
 function buildId(prefix: string) {
 	return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+}
+
+type FrameRouteContext = {
+	boxId: number
+	frameId: number
+	frameSideId: number | null
+	isCanvasEdit: boolean
+}
+
+type ApiaryRouteContext = {
+	apiaryId: number
 }
 
 function getHiveContext(pathname: string) {
@@ -150,9 +214,81 @@ function getHiveContext(pathname: string) {
 	}
 }
 
+function getFrameRouteContext(pathname: string): FrameRouteContext | null {
+	const matches = pathname.match(
+		/^\/apiaries\/\d+\/hives\/\d+\/box\/(\d+)\/frame\/(\d+)(?:\/(\d+))?(\/canvas-edit)?(?:\/|$)/
+	)
+	if (!matches) return null
+	return {
+		boxId: +matches[1],
+		frameId: +matches[2],
+		frameSideId: matches[3] ? +matches[3] : null,
+		isCanvasEdit: Boolean(matches[4]),
+	}
+}
+
+function getApiaryOverviewContext(pathname: string): ApiaryRouteContext | null {
+	const matches = pathname.match(/^\/apiaries\/(\d+)\/?$/)
+	if (!matches) return null
+	return {
+		apiaryId: +matches[1],
+	}
+}
+
+function normalizeDegrees(value: number) {
+	const out = value % 360
+	return out < 0 ? out + 360 : out
+}
+
+function angularDelta(a: number, b: number) {
+	const delta = Math.abs(normalizeDegrees(a) - normalizeDegrees(b))
+	return Math.min(delta, 360 - delta)
+}
+
+function distance2d(x1: number, y1: number, x2: number, y2: number) {
+	return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
+}
+
+function pruneForPreview(value: any, depth = 0): any {
+	if (value === null || value === undefined) return value
+	if (depth > 4) return '[truncated]'
+	if (typeof value === 'string') return value.slice(0, 200)
+	if (typeof value === 'number' || typeof value === 'boolean') return value
+
+	if (Array.isArray(value)) {
+		return value.slice(0, 5).map((entry) => pruneForPreview(entry, depth + 1))
+	}
+
+	if (typeof value === 'object') {
+		const keys = Object.keys(value).slice(0, 12)
+		const out = {}
+		for (let i = 0; i < keys.length; i++) {
+			const key = keys[i]
+			out[key] = pruneForPreview(value[key], depth + 1)
+		}
+		return out
+	}
+
+	return String(value)
+}
+
+function findSelectedFramePayload(
+	framesByBox: Record<string, any>,
+	frameRouteContext: FrameRouteContext | null
+) {
+	if (!frameRouteContext) return null
+
+	const framesInBox = Object.values(framesByBox[String(frameRouteContext.boxId)] || {})
+	const selectedFrame = framesInBox.find((frame: any) => +frame?.id === frameRouteContext.frameId)
+
+	if (!selectedFrame) return null
+
+	return pruneForPreview(selectedFrame)
+}
+
 function getViewContext(pathname: string, labels: DrawerTranslations): ViewContext {
 	const isHiveDetailView = /^\/apiaries\/\d+\/hives\/\d+(?:\/|$)/.test(pathname)
-	const isCanvasEditView = /^\/apiaries\/\d+\/hives\/\d+\/box\/\d+\/frame\/\d+\/\d+(?:\/|$)/.test(pathname)
+	const isCanvasEditView = /^\/apiaries\/\d+\/hives\/\d+\/box\/\d+\/frame\/\d+\/\d+\/canvas-edit(?:\/|$)/.test(pathname)
 	const isHiveListView = pathname === '/' || pathname === '/apiaries' || pathname === '/apiaries/'
 	const isWarehouseQueenListView = pathname === '/warehouse/queens' || pathname === '/warehouse/queens/'
 	const isDeviceListView = pathname === '/devices' || pathname === '/devices/'
@@ -272,11 +408,14 @@ function getViewContext(pathname: string, labels: DrawerTranslations): ViewConte
 	}
 }
 
-function renderShortcutsHtml(shortcuts: ViewContext['shortcuts'], keyboardShortcutsLabel: string) {
-	const items = shortcuts
-		.map((item) => `<li><strong>${item.keys}</strong> - ${item.action}</li>`)
-		.join('')
-	return `<div><strong>${keyboardShortcutsLabel}:</strong><ul>${items}</ul></div>`
+function formatShortcutHintKeys(keys: string) {
+	if (keys === 'Arrow keys') return '← ↑ → ↓'
+
+	return keys
+		.replace(/Arrow Left/g, '←')
+		.replace(/Arrow Right/g, '→')
+		.replace(/Arrow Up/g, '↑')
+		.replace(/Arrow Down/g, '↓')
 }
 
 export default function AIAdvisorDrawer() {
@@ -328,18 +467,12 @@ export default function AIAdvisorDrawer() {
 	const shortcutsActionIncreaseBrushSize = t('Increase brush size')
 	const shortcutsActionDecreaseBrushSize = t('Decrease brush size')
 	const shortcutsActionUndoStroke = t('Undo stroke')
-	const openHiveDetailMessage = t('Open a hive detail page to run hive-specific AI analysis.')
-	const loadingHiveInfoMessage = t('Loading hive information...')
-	const loadedHiveInfoMessage = t('Loaded hive information')
-	const boxesLabel = t('boxes')
-	const loadingPastInspectionsMessage = t('Loading past inspections...')
-	const loadedPastInspectionsMessage = t('Loaded past inspections')
-	const loadingMetricsMessage = t('Loading metrics...')
-	const loadedRecentTelemetryMetricsMessage = t('Loaded recent telemetry metrics.')
-	const sendingContextMessage = t('Sending context to AI Advisor for summarization...')
-	const summaryGeneratedMessage = t('Summary generated.')
+	const openHiveDetailMessage = t('Open a hive detail page or apiary overview page to run AI analysis.')
+	const advisorThinkingMessage = t('AI Advisor is thinking...')
 	const summaryUnavailableMessage = t('AI Advisor did not return a summary yet. Backend endpoint may still be unavailable.')
 	const failedAdvisoryMessage = t('Failed to complete AI advisory run. Please try again in a moment.')
+	const askAdvisorPlaceholder = t('Ask AI Advisor about this hive...')
+	const sendButtonLabel = t('Send')
 	const closeAiAdvisorLabel = t('Close AI Advisor')
 	const aiAdvisorAvatarAlt = t('AI Advisor avatar')
 
@@ -347,12 +480,19 @@ export default function AIAdvisorDrawer() {
 	const navigate = useNavigate()
 	const runRef = useRef(0)
 	const [messages, setMessages] = useState<ChatMessage[]>([])
+	const [draftMessage, setDraftMessage] = useState('')
+	const [isSendingUserMessage, setIsSendingUserMessage] = useState(false)
+	const [adviceContext, setAdviceContext] = useState<any | null>(null)
+	const [advisorTargetHiveID, setAdvisorTargetHiveID] = useState<number | undefined>(undefined)
+	const [advisorLangCode, setAdvisorLangCode] = useState<string | undefined>(undefined)
 	const [billingLocked, setBillingLocked] = useState(false)
 	const [generateAdvice] = useMutation(GENERATE_ADVICE_MUTATION)
 
 	const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search])
 	const isOpen = searchParams.get('aiAdvisor') === '1'
 	const hiveContext = useMemo(() => getHiveContext(location.pathname), [location.pathname])
+	const apiaryOverviewContext = useMemo(() => getApiaryOverviewContext(location.pathname), [location.pathname])
+	const frameRouteContext = useMemo(() => getFrameRouteContext(location.pathname), [location.pathname])
 	const viewContext = useMemo(
 		() =>
 			getViewContext(location.pathname, {
@@ -470,6 +610,10 @@ export default function AIAdvisorDrawer() {
 		setMessages((prev) => prev.map((msg) => (msg.id === id ? { ...msg, ...patch } : msg)))
 	}
 
+	function removeMessage(id: string) {
+		setMessages((prev) => prev.filter((msg) => msg.id !== id))
+	}
+
 	useEffect(() => {
 		if (!shouldRender) {
 			return
@@ -478,6 +622,9 @@ export default function AIAdvisorDrawer() {
 		const runId = Date.now()
 		runRef.current = runId
 		setBillingLocked(false)
+		setAdviceContext(null)
+		setAdvisorTargetHiveID(undefined)
+		setAdvisorLangCode(undefined)
 		setMessages([
 			{
 				id: buildId('view'),
@@ -487,13 +634,16 @@ export default function AIAdvisorDrawer() {
 			{
 				id: buildId('shortcuts'),
 				role: 'system',
-				html: renderShortcutsHtml(viewContext.shortcuts, keyboardShortcutsLabel),
+				shortcuts: viewContext.shortcuts,
+				shortcutsTitle: keyboardShortcutsLabel,
 			},
 		])
 
 		const run = async () => {
+			let pendingReplyId: string | null = null
 			try {
 				const user = await getUser()
+				setAdvisorLangCode(user?.lang)
 				if (runRef.current !== runId) return
 
 				if (!canUseAIAdvisor(user?.billingPlan)) {
@@ -501,17 +651,196 @@ export default function AIAdvisorDrawer() {
 					return
 				}
 
-				if (!hiveContext) {
-					addMessage({
-						id: buildId('context'),
-						role: 'system',
-						text: openHiveDetailMessage,
-					})
-					return
-				}
+					if (!hiveContext && !apiaryOverviewContext) {
+						addMessage({
+							id: buildId('context'),
+							role: 'system',
+							text: openHiveDetailMessage,
+						})
+						return
+					}
+					if (hiveContext && frameRouteContext) {
+						return
+					}
 
-				const hiveStepId = buildId('step')
-				addMessage({ id: hiveStepId, role: 'system', text: loadingHiveInfoMessage, loading: true })
+					if (apiaryOverviewContext && !hiveContext) {
+						const localApiary = await getApiary(apiaryOverviewContext.apiaryId)
+						const apiaryResult = await apiClient
+							.query(APIARY_ADVISOR_QUERY, { id: apiaryOverviewContext.apiaryId })
+							.toPromise()
+						const placementResult = await apiClient
+							.query(APIARY_PLACEMENT_QUERY, { apiaryId: apiaryOverviewContext.apiaryId })
+							.toPromise()
+
+						if (runRef.current !== runId) return
+
+						const apiary = apiaryResult?.data?.apiary || localApiary || null
+						const hives = Array.isArray(apiary?.hives) ? apiary.hives : []
+						const placements = placementResult?.data?.hivePlacements || []
+						const obstacles = placementResult?.data?.apiaryObstacles || []
+						const lat = Number(apiary?.lat || 0)
+						const lng = Number(apiary?.lng || 0)
+						const hasCoordinates = !!lat && !!lng && !Number.isNaN(lat) && !Number.isNaN(lng)
+
+						let weatherPayload = null
+						if (hasCoordinates) {
+							const weatherResult = await apiClient
+								.query(APIARY_WEATHER_QUERY, { lat: `${lat}`, lng: `${lng}` })
+								.toPromise()
+							weatherPayload = weatherResult?.data?.weather || null
+						}
+
+						if (runRef.current !== runId) return
+
+						const weather = {
+							temperature: weatherPayload?.current_weather?.temperature ?? null,
+							windSpeed: weatherPayload?.current_weather?.windspeed ?? null,
+							windDirection:
+								weatherPayload?.current_weather?.winddirection
+								?? weatherPayload?.current?.wind_direction_10m
+								?? weatherPayload?.hourly?.winddirection_10m?.[0]
+								?? null,
+							rain: weatherPayload?.current?.precipitation ?? weatherPayload?.hourly?.rain?.[0] ?? null,
+							pressure:
+								weatherPayload?.current?.surface_pressure
+								?? weatherPayload?.current?.pressure_msl
+								?? weatherPayload?.hourly?.surface_pressure?.[0]
+								?? weatherPayload?.hourly?.pressure_msl?.[0]
+								?? null,
+							elevation: weatherPayload?.elevation ?? null,
+						}
+
+						const hivePlacements = hives.map((hive: any) => {
+							const placement = placements.find((entry: any) => String(entry?.hiveId) === String(hive?.id))
+							const nearbyObstacles = placement
+								? obstacles
+									.map((obstacle: any) => {
+										const obstacleDistance = distance2d(
+											Number(placement.x),
+											Number(placement.y),
+											Number(obstacle?.x || 0),
+											Number(obstacle?.y || 0)
+										)
+										const obstacleKind = obstacle?.type === 'CIRCLE' ? 'tree' : 'building'
+										return {
+											id: obstacle?.id,
+											kind: obstacleKind,
+											label: obstacle?.label || obstacleKind,
+											distancePx: Math.round(obstacleDistance),
+										}
+									})
+									.filter((obstacle: any) => obstacle.distancePx <= 150)
+								: []
+
+							const facingDirectionDeg = placement?.rotation ?? null
+							const windDirectionDeg = weather.windDirection
+							const windAngleDeltaDeg =
+								facingDirectionDeg === null || windDirectionDeg === null
+									? null
+									: Math.round(angularDelta(+facingDirectionDeg, +windDirectionDeg))
+
+							return {
+								hiveId: hive?.id,
+								hiveNumber: hive?.hiveNumber,
+								familyName: hive?.family?.name || null,
+								boxCount: hive?.boxCount ?? null,
+								position: placement
+									? {
+										x: placement.x,
+										y: placement.y,
+									}
+									: null,
+								facingDirectionDeg,
+								windDirectionDeg,
+								windAngleDeltaDeg,
+								nearbyObstacles,
+							}
+						})
+
+						const adviceContext: any = {
+							mode: 'apiary-overview',
+							apiary: {
+								id: apiary?.id,
+								name: apiary?.name,
+								type: apiary?.type,
+								lat: apiary?.lat,
+								lng: apiary?.lng,
+							},
+							weather,
+							hivePlacements,
+							obstacles: obstacles.map((obstacle: any) => ({
+								id: obstacle?.id,
+								type: obstacle?.type,
+								label: obstacle?.label,
+								x: obstacle?.x,
+								y: obstacle?.y,
+								width: obstacle?.width,
+								height: obstacle?.height,
+								radius: obstacle?.radius,
+								rotation: obstacle?.rotation,
+							})),
+							currentView: {
+								pathname: location.pathname,
+								view: viewContext.name,
+								apiarySelection: apiaryOverviewContext,
+							},
+						}
+						setAdviceContext(adviceContext)
+						setAdvisorTargetHiveID(undefined)
+
+						const payloadOverview = {
+							scope: 'apiary-context',
+							selection: apiaryOverviewContext,
+							counts: {
+								hives: hives.length,
+								placements: placements.length,
+								obstacles: obstacles.length,
+							},
+							weatherSummary: {
+								temperature: weather.temperature,
+								windSpeed: weather.windSpeed,
+								windDirection: weather.windDirection,
+								rain: weather.rain,
+							},
+							contextPreview: pruneForPreview(adviceContext),
+						}
+
+						addMessage({
+							id: buildId('payload'),
+							role: 'system',
+							payloadOverview,
+						})
+
+						pendingReplyId = buildId('reply-loading')
+						addMessage({
+							id: pendingReplyId,
+							role: 'assistant',
+							text: advisorThinkingMessage,
+							loading: true,
+						})
+
+						const response = await generateAdvice({
+							hiveID: undefined,
+							langCode: user?.lang,
+							adviceContext,
+						})
+
+						if (runRef.current !== runId) return
+
+						const adviceHtml = response?.data?.generateHiveAdvice
+						if (adviceHtml) {
+							removeMessage(pendingReplyId)
+							addMessage({ id: buildId('reply'), role: 'assistant', html: adviceHtml })
+						} else {
+							removeMessage(pendingReplyId)
+							addMessage({
+								id: buildId('reply'),
+								role: 'error',
+								text: summaryUnavailableMessage,
+							})
+						}
+						return
+					}
 
 				const [apiary, hive, family, boxes] = await Promise.all([
 					getApiary(hiveContext.apiaryId),
@@ -547,23 +876,14 @@ export default function AIAdvisorDrawer() {
 					framesByBox[boxes[i].id] = frames
 				}
 
-				updateMessage(hiveStepId, {
-					text: `${loadedHiveInfoMessage} (${boxes.length} ${boxesLabel}).`,
-					loading: false,
-				})
-
-				const inspectionsStepId = buildId('step')
-				addMessage({ id: inspectionsStepId, role: 'system', text: loadingPastInspectionsMessage, loading: true })
 				const inspections = await listInspections(hiveContext.hiveId)
 
 				if (runRef.current !== runId) return
-				updateMessage(inspectionsStepId, {
-					text: `${loadedPastInspectionsMessage} (${inspections.length}).`,
-					loading: false,
-				})
 
-				const metricsStepId = buildId('step')
-				addMessage({ id: metricsStepId, role: 'system', text: loadingMetricsMessage, loading: true })
+				await syncHiveLogsFromBackend(hiveContext.hiveId, 200).catch(() => {})
+				const changeHistory = await listHiveLogs(hiveContext.hiveId, 200)
+
+				if (runRef.current !== runId) return
 
 				const now = new Date()
 				const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
@@ -577,28 +897,71 @@ export default function AIAdvisorDrawer() {
 					.toPromise()
 
 				if (runRef.current !== runId) return
-				updateMessage(metricsStepId, {
-					text: loadedRecentTelemetryMetricsMessage,
-					loading: false,
-				})
 
-				const summarizeStepId = buildId('step')
-				addMessage({
-					id: summarizeStepId,
-					role: 'system',
-					text: sendingContextMessage,
-					loading: true,
-				})
-
-				const adviceContext = {
+				const adviceContext: any = {
 					apiary,
 					hive,
 					family,
 					boxes,
 					frames: framesByBox,
 					inspections,
+					changeHistory: changeHistory.map((entry) => ({
+						id: entry.id,
+						action: entry.action,
+						title: entry.title,
+						details: entry.details,
+						source: entry.source,
+						createdAt: entry.createdAt,
+						relatedHives: entry.relatedHives || [],
+					})),
 					metrics: metricsResult?.data,
+					currentView: {
+						pathname: location.pathname,
+						view: viewContext.name,
+						frameSelection: frameRouteContext,
+					},
 				}
+				const selectedFramePayload = findSelectedFramePayload(framesByBox, frameRouteContext)
+					if (selectedFramePayload) {
+						adviceContext.selectedFrame = selectedFramePayload
+					}
+					setAdviceContext(adviceContext)
+					setAdvisorTargetHiveID(hiveContext.hiveId)
+
+				const payloadOverview = {
+					scope: frameRouteContext ? 'hive-frame-context' : 'hive-context',
+					selection: frameRouteContext || null,
+						counts: {
+							boxes: boxes.length,
+							inspections: inspections.length,
+							changeHistoryEntries: changeHistory.length,
+							frames: Object.values(framesByBox).reduce(
+								(total: number, byBox: any) => total + Object.keys(byBox || {}).length,
+								0
+						),
+					},
+					selectedFrame: selectedFramePayload,
+					metricsSummary: {
+						weightPoints: metricsResult?.data?.weightKg?.metrics?.length || 0,
+						temperaturePoints: metricsResult?.data?.temperatureCelsius?.metrics?.length || 0,
+						entrancePoints: metricsResult?.data?.entranceMovement?.metrics?.length || 0,
+					},
+					contextPreview: pruneForPreview(adviceContext),
+				}
+
+				addMessage({
+					id: buildId('payload'),
+					role: 'system',
+					payloadOverview,
+				})
+
+				pendingReplyId = buildId('reply-loading')
+				addMessage({
+					id: pendingReplyId,
+					role: 'assistant',
+					text: advisorThinkingMessage,
+					loading: true,
+				})
 
 				const response = await generateAdvice({
 					hiveID: hiveContext.hiveId,
@@ -607,15 +970,13 @@ export default function AIAdvisorDrawer() {
 				})
 
 				if (runRef.current !== runId) return
-				updateMessage(summarizeStepId, {
-					text: summaryGeneratedMessage,
-					loading: false,
-				})
 
 				const adviceHtml = response?.data?.generateHiveAdvice
 				if (adviceHtml) {
+					removeMessage(pendingReplyId)
 					addMessage({ id: buildId('reply'), role: 'assistant', html: adviceHtml })
 				} else {
+					removeMessage(pendingReplyId)
 					addMessage({
 						id: buildId('reply'),
 						role: 'error',
@@ -624,6 +985,9 @@ export default function AIAdvisorDrawer() {
 				}
 			} catch (error) {
 				if (runRef.current !== runId) return
+				if (pendingReplyId) {
+					removeMessage(pendingReplyId)
+				}
 				addMessage({
 					id: buildId('error'),
 					role: 'error',
@@ -637,26 +1001,82 @@ export default function AIAdvisorDrawer() {
 			return () => {
 				runRef.current = 0
 			}
-		}, [
-			hiveContext,
-			shouldRender,
+			}, [
+				hiveContext,
+				apiaryOverviewContext,
+				shouldRender,
 			viewContext,
 			generateAdvice,
-			currentViewLabel,
-			keyboardShortcutsLabel,
-			openHiveDetailMessage,
-			loadingHiveInfoMessage,
-			loadedHiveInfoMessage,
-			boxesLabel,
-			loadingPastInspectionsMessage,
-			loadedPastInspectionsMessage,
-			loadingMetricsMessage,
-			loadedRecentTelemetryMetricsMessage,
-			sendingContextMessage,
-			summaryGeneratedMessage,
-			summaryUnavailableMessage,
-			failedAdvisoryMessage,
+				currentViewLabel,
+				keyboardShortcutsLabel,
+				openHiveDetailMessage,
+				advisorThinkingMessage,
+				summaryUnavailableMessage,
+				failedAdvisoryMessage,
+				location.pathname,
+			viewContext.name,
+			frameRouteContext,
 		])
+
+	const onSendUserMessage = async () => {
+		const chatMessage = draftMessage.trim()
+		if (!chatMessage || billingLocked || !adviceContext || isSendingUserMessage) {
+			return
+		}
+
+		const userMessageId = buildId('user')
+		const pendingReplyId = buildId('reply-loading')
+		const nextMessages = [
+			...messages,
+			{ id: userMessageId, role: 'user' as const, text: chatMessage },
+			{ id: pendingReplyId, role: 'assistant' as const, text: advisorThinkingMessage, loading: true },
+		]
+		setMessages(nextMessages)
+		setDraftMessage('')
+		setIsSendingUserMessage(true)
+
+		try {
+			const chatHistory = nextMessages
+				.filter((message) => message.role === 'user' || message.role === 'assistant')
+				.slice(-12)
+				.map((message) => ({
+					role: message.role,
+					text: message.text || message.html || '',
+				}))
+
+			const response = await generateAdvice({
+				hiveID: advisorTargetHiveID,
+				langCode: advisorLangCode,
+				adviceContext: {
+					...adviceContext,
+					chatMessage,
+					chatHistory,
+				},
+			})
+
+			const adviceHtml = response?.data?.generateHiveAdvice
+			if (adviceHtml) {
+				removeMessage(pendingReplyId)
+				addMessage({ id: buildId('reply'), role: 'assistant', html: adviceHtml })
+			} else {
+				removeMessage(pendingReplyId)
+				addMessage({
+					id: buildId('reply'),
+					role: 'error',
+					text: summaryUnavailableMessage,
+				})
+			}
+		} catch (error) {
+			removeMessage(pendingReplyId)
+			addMessage({
+				id: buildId('error'),
+				role: 'error',
+				text: failedAdvisoryMessage,
+			})
+		} finally {
+			setIsSendingUserMessage(false)
+		}
+	}
 
 	useEffect(() => {
 		if (!shouldRender) {
@@ -694,12 +1114,38 @@ export default function AIAdvisorDrawer() {
 					const roleClass =
 						message.role === 'assistant'
 							? styles.assistant
+							: message.role === 'user'
+								? styles.user
 							: message.role === 'error'
 								? styles.error
 								: styles.system
 					return (
 						<div key={message.id} className={`${styles.message} ${roleClass}`}>
-							{message.html ? (
+							{message.shortcuts ? (
+								<div>
+									<strong>{message.shortcutsTitle || keyboardShortcutsLabel}:</strong>
+									<ul className={styles.shortcutList}>
+										{message.shortcuts.map((item, index) => (
+												<li key={`${message.id}-${index}`} className={styles.shortcutItem}>
+													<KeyboardHints
+														keys={formatShortcutHintKeys(item.keys)}
+														absolute={false}
+													alwaysVisible
+													className={styles.inlineHint}
+												/>
+												<span>{item.action}</span>
+											</li>
+										))}
+									</ul>
+								</div>
+							) : message.payloadOverview ? (
+								<details className={styles.payloadDetails}>
+									<summary className={styles.payloadSummary}>AI payload overview</summary>
+									<pre className={styles.payloadPre}>
+										{JSON.stringify(message.payloadOverview, null, 2)}
+									</pre>
+								</details>
+							) : message.html ? (
 								<div dangerouslySetInnerHTML={{ __html: message.html }} />
 							) : (
 								<div>
@@ -717,6 +1163,37 @@ export default function AIAdvisorDrawer() {
 						)
 					})}
 				{billingLocked && <AIAdvisorBillingNotice compact />}
+			</div>
+			<div className={styles.composer}>
+				<textarea
+					className={styles.composerInput}
+					value={draftMessage}
+					onChange={(event) =>
+						setDraftMessage((event.target as HTMLTextAreaElement).value)
+					}
+					placeholder={askAdvisorPlaceholder}
+					rows={3}
+					disabled={billingLocked || !adviceContext || isSendingUserMessage}
+					onKeyDown={(event) => {
+						if (event.key === 'Enter' && !event.shiftKey) {
+							event.preventDefault()
+							onSendUserMessage()
+						}
+					}}
+				/>
+				<button
+					className={styles.sendBtn}
+					type="button"
+					onClick={onSendUserMessage}
+					disabled={
+						billingLocked ||
+						!adviceContext ||
+						isSendingUserMessage ||
+						!draftMessage.trim()
+					}
+				>
+					{sendButtonLabel}
+				</button>
 			</div>
 		</div>
 	)

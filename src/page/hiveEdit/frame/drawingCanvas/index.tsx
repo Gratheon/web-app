@@ -12,6 +12,7 @@ import EraserIcon from '@/icons/eraserIcon.tsx';
 import FreeDrawIcon from '@/icons/freeDrawIcon.tsx';
 import UndoStrokeIcon from '@/icons/undoStrokeIcon.tsx';
 import BrushSizeIcon from '@/icons/brushSizeIcon.tsx';
+import KeyboardHints from '@/shared/keyboardHints';
 
 let img: HTMLImageElement | null = null;
 let isMousedown = false;
@@ -19,6 +20,7 @@ type DrawingPoint = { x: number; y: number; lineWidth: number; color?: string }
 type DrawingLine = DrawingPoint[]
 type BrushCellType = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 'erase'
 type BrushSizePreset = 'small' | 'medium' | 'large'
+type NonEraseBrushCellType = Exclude<BrushCellType, 'erase'>
 
 let points: DrawingPoint[] = [];
 const dpr = typeof window !== 'undefined' ? window.devicePixelRatio : 1;
@@ -29,6 +31,26 @@ const BRUSH_DIAMETER_BY_PRESET: Record<BrushSizePreset, number> = {
 	large: DEFAULT_BRUSH_DIAMETER_RATIO * 1.4,
 };
 const DEFAULT_NEW_CELL_RADIUS_RATIO = 0.012;
+const CELL_SHORTCUTS: Record<string, NonEraseBrushCellType> = {
+	n: 4,
+	y: 2,
+	p: 6,
+	g: 1,
+	b: 3,
+	k: 0,
+	d: 7,
+	u: 5,
+};
+const CELL_TYPE_HINTS: Record<NonEraseBrushCellType, string> = {
+	4: 'N',
+	2: 'Y',
+	6: 'P',
+	1: 'G',
+	3: 'B',
+	0: 'K',
+	7: 'D',
+	5: 'U',
+};
 
 let REL_PX = 1;
 let globalCameraZoom = 1;
@@ -570,6 +592,7 @@ export default function DrawingCanvas({
 	const [hasUnsavedCellEdits, setHasUnsavedCellEdits] = useState(false);
 	const [isSavingCellEdits, setIsSavingCellEdits] = useState(false);
 	const editableDetectedCellsRef = useRef<any[]>(detectedCells || []);
+	const lastHandledSaveRequestIdRef = useRef(0);
 	const brushCursorRef = useRef<{ x: number; y: number } | null>(null);
 	const lastBrushCenterRef = useRef<{ x: number; y: number } | null>(null);
 	const redrawRafRef = useRef<number | null>(null);
@@ -604,6 +627,22 @@ export default function DrawingCanvas({
 	}, [imageUrl, resizes]);
 
 	const [canvasUrl, setCanvasUrl] = useState(getThumbnailUrl());
+
+	const increaseBrushPreset = useCallback(() => {
+		setBrushSizePreset((prev) => {
+			if (prev === 'small') return 'medium';
+			if (prev === 'medium') return 'large';
+			return 'large';
+		});
+	}, []);
+
+	const decreaseBrushPreset = useCallback(() => {
+		setBrushSizePreset((prev) => {
+			if (prev === 'large') return 'medium';
+			if (prev === 'medium') return 'small';
+			return 'small';
+		});
+	}, []);
 
 	const clearHistory = useCallback(() => {
 		if (!allowDrawing) return;
@@ -1127,8 +1166,101 @@ export default function DrawingCanvas({
 
 	useEffect(() => {
 		if (!saveRequestId) return;
+		if (saveRequestId === lastHandledSaveRequestIdRef.current) return;
+		lastHandledSaveRequestIdRef.current = saveRequestId;
 		onSaveCellEdits();
 	}, [saveRequestId, onSaveCellEdits]);
+
+	useEffect(() => {
+		if (!allowDrawing) return;
+
+		const isTypingTarget = (target: EventTarget | null) => {
+			const element = target as HTMLElement | null;
+			if (!element) return false;
+			const tagName = String(element.tagName || '').toLowerCase();
+			return (
+				element.isContentEditable ||
+				tagName === 'input' ||
+				tagName === 'textarea' ||
+				tagName === 'select'
+			);
+		};
+
+		const isModalTarget = (target: EventTarget | null) => {
+			const element = target as HTMLElement | null;
+			if (!element || typeof element.closest !== 'function') return false;
+			return Boolean(element.closest('[class*="modalOverlay"], [class*="modalContent"]'));
+		};
+
+		const onKeyDown = (event: KeyboardEvent) => {
+			if (event.defaultPrevented) return;
+			if (event.repeat) return;
+			if (isTypingTarget(event.target)) return;
+			if (isModalTarget(event.target)) return;
+
+			const key = String(event.key || '');
+			const lowerKey = key.toLowerCase();
+			let handled = false;
+
+			const isUndoShortcut =
+				(event.ctrlKey || event.metaKey) &&
+				!event.altKey &&
+				lowerKey === 'z';
+			if (isUndoShortcut) {
+				undoDraw();
+				handled = true;
+			}
+
+			if (event.ctrlKey || event.metaKey) {
+				if (handled) {
+					event.preventDefault();
+					event.stopPropagation();
+				}
+				return;
+			}
+
+			if (!event.altKey && !event.shiftKey) {
+				const nextCellType = CELL_SHORTCUTS[lowerKey];
+				if (showCells && nextCellType !== undefined) {
+					setActiveTool('cell-brush');
+					setSelectedCellType(nextCellType);
+					handled = true;
+				}
+			}
+
+			if (!event.altKey && !event.shiftKey) {
+				if (lowerKey === 'f') {
+					setActiveTool('stroke');
+					handled = true;
+				} else if (lowerKey === 'c' && showCells) {
+					setActiveTool('cell-brush');
+					setSelectedCellType((prev) => (prev === 'erase' ? 2 : prev));
+					handled = true;
+				} else if (lowerKey === 'x' && showCells) {
+					setActiveTool('cell-brush');
+					setSelectedCellType('erase');
+					handled = true;
+				}
+			}
+
+			const isIncreaseKey = key === '+' || key === '=' || event.code === 'NumpadAdd';
+			const isDecreaseKey = key === '-' || event.code === 'NumpadSubtract';
+			if (!event.altKey && !event.shiftKey && (isIncreaseKey || isDecreaseKey)) {
+				if (isIncreaseKey) increaseBrushPreset();
+				if (isDecreaseKey) decreaseBrushPreset();
+				handled = true;
+			}
+
+			if (!handled) return;
+			event.preventDefault();
+			event.stopPropagation();
+		};
+
+		document.addEventListener('keydown', onKeyDown, true);
+		return () => {
+			document.removeEventListener('keydown', onKeyDown, true);
+		};
+	}, [allowDrawing, decreaseBrushPreset, increaseBrushPreset, showCells, undoDraw]);
 
 	return (
 		<div style={{ position: 'relative', overflow: 'hidden' }}>
@@ -1211,6 +1343,7 @@ export default function DrawingCanvas({
 						>
 							<CellBrushIcon size={14} />
 							<T>Cell brush</T>
+							<KeyboardHints keys="C" />
 						</Button>
 						<Button
 							onClick={() => setActiveTool('stroke')}
@@ -1218,6 +1351,7 @@ export default function DrawingCanvas({
 						>
 							<FreeDrawIcon size={14} />
 							<T>Free draw</T>
+							<KeyboardHints keys="F" />
 						</Button>
 					</div>
 					{activeTool === 'cell-brush' && (
@@ -1239,6 +1373,7 @@ export default function DrawingCanvas({
 									}}
 								>
 									{option.label}
+									<KeyboardHints keys={CELL_TYPE_HINTS[option.value as NonEraseBrushCellType]} />
 								</Button>
 								);
 							})}
@@ -1254,6 +1389,7 @@ export default function DrawingCanvas({
 								}}
 							>
 								<BrushSizeIcon size={14} dotRadius={2} />
+								<KeyboardHints keys="-" />
 							</Button>
 							<Button
 								iconOnly
@@ -1276,6 +1412,7 @@ export default function DrawingCanvas({
 								}}
 							>
 								<BrushSizeIcon size={14} dotRadius={4.5} />
+								<KeyboardHints keys="+" />
 							</Button>
 							<Button
 								onClick={() => setSelectedCellType('erase')}
@@ -1288,6 +1425,7 @@ export default function DrawingCanvas({
 							>
 								<EraserIcon size={14} color="#fff" />
 								<T>Eraser</T>
+								<KeyboardHints keys="X" />
 							</Button>
 						</div>
 						</>
@@ -1297,6 +1435,7 @@ export default function DrawingCanvas({
 							<Button onClick={undoDraw}>
 								<UndoStrokeIcon size={14} />
 								<T>Undo stroke</T>
+								<KeyboardHints keys="Ctrl+Z" />
 							</Button>
 							<Button onClick={clearHistory}>
 								<EraserIcon size={14} />

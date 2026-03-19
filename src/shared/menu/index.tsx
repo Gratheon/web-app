@@ -18,6 +18,8 @@ import wideLogoURL from '@/assets/logo_v7w.svg'
 
 const MOBILE_NAV_ICON_SIZE = 24
 const AI_ADVISOR_CONTEXT_KEY = 'ai-advisor-last-hive-context'
+const SHORTCUT_HINTS_EVENT = 'gratheon-shortcut-hints'
+const SHORTCUT_HINTS_STORAGE_KEY = 'gratheon-shortcut-hints-visible'
 
 async function onLogoutClick() {
     await logout()
@@ -306,6 +308,19 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
             setShowShortcutHints(false)
         }
     }, [isHiveAdvisorOpen])
+
+    useEffect(() => {
+        if (showShortcutHints) {
+            localStorage.setItem(SHORTCUT_HINTS_STORAGE_KEY, '1')
+        } else {
+            localStorage.removeItem(SHORTCUT_HINTS_STORAGE_KEY)
+        }
+        window.dispatchEvent(
+            new CustomEvent(SHORTCUT_HINTS_EVENT, {
+                detail: { visible: showShortcutHints },
+            })
+        )
+    }, [showShortcutHints])
 
     useEffect(() => {
         const isTypingTarget = (target) => {

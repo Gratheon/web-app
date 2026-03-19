@@ -38,6 +38,8 @@ type ViewContext = {
 type DrawerTranslations = {
 	hiveDetailViewName: string
 	hiveDetailViewDescription: string
+	canvasEditViewName: string
+	canvasEditViewDescription: string
 	hiveListViewName: string
 	hiveListViewDescription: string
 	warehouseQueenListViewName: string
@@ -66,6 +68,20 @@ type DrawerTranslations = {
 	shortcutsActionDeleteSelectedWarehouseQueen: string
 	shortcutsActionDeleteSelectedDevice: string
 	shortcutsActionCancelFocusedDialogAction: string
+	shortcutsActionSwitchToCellBrush: string
+	shortcutsActionSwitchToFreeDraw: string
+	shortcutsActionSwitchToCellEraser: string
+	shortcutsActionSetCellTypeNectar: string
+	shortcutsActionSetCellTypeHoney: string
+	shortcutsActionSetCellTypePollen: string
+	shortcutsActionSetCellTypeEggs: string
+	shortcutsActionSetCellTypeBrood: string
+	shortcutsActionSetCellTypeCappedBrood: string
+	shortcutsActionSetCellTypeDroneBrood: string
+	shortcutsActionSetCellTypeEmpty: string
+	shortcutsActionIncreaseBrushSize: string
+	shortcutsActionDecreaseBrushSize: string
+	shortcutsActionUndoStroke: string
 }
 
 function canUseAIAdvisor(plan?: string | null) {
@@ -136,9 +152,41 @@ function getHiveContext(pathname: string) {
 
 function getViewContext(pathname: string, labels: DrawerTranslations): ViewContext {
 	const isHiveDetailView = /^\/apiaries\/\d+\/hives\/\d+(?:\/|$)/.test(pathname)
+	const isCanvasEditView = /^\/apiaries\/\d+\/hives\/\d+\/box\/\d+\/frame\/\d+\/\d+(?:\/|$)/.test(pathname)
 	const isHiveListView = pathname === '/' || pathname === '/apiaries' || pathname === '/apiaries/'
 	const isWarehouseQueenListView = pathname === '/warehouse/queens' || pathname === '/warehouse/queens/'
 	const isDeviceListView = pathname === '/devices' || pathname === '/devices/'
+
+	if (isCanvasEditView) {
+		return {
+			name: labels.canvasEditViewName,
+			description: labels.canvasEditViewDescription,
+			shortcuts: [
+				{ keys: 'Shift + ?', action: labels.shortcutsActionOpenAdvisor },
+				{ keys: 'M', action: labels.shortcutsActionToggleLeftMenu },
+				{ keys: '1-9 / 0', action: labels.shortcutsActionGoToLeftMenuItemByNumber },
+				{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
+				{ keys: 'A', action: labels.shortcutsActionGoToApiaryView },
+				{ keys: 'H', action: labels.shortcutsActionGoToHiveListView },
+				{ keys: 'Arrow Left / Arrow Right', action: labels.shortcutsActionSwitchSelectedHiveFrames },
+				{ keys: 'Arrow Up / Arrow Down', action: labels.shortcutsActionSwitchSelectedHiveSections },
+				{ keys: 'C', action: labels.shortcutsActionSwitchToCellBrush },
+				{ keys: 'F', action: labels.shortcutsActionSwitchToFreeDraw },
+				{ keys: 'X', action: labels.shortcutsActionSwitchToCellEraser },
+				{ keys: 'N', action: labels.shortcutsActionSetCellTypeNectar },
+				{ keys: 'Y', action: labels.shortcutsActionSetCellTypeHoney },
+				{ keys: 'P', action: labels.shortcutsActionSetCellTypePollen },
+				{ keys: 'G', action: labels.shortcutsActionSetCellTypeEggs },
+				{ keys: 'B', action: labels.shortcutsActionSetCellTypeBrood },
+				{ keys: 'K', action: labels.shortcutsActionSetCellTypeCappedBrood },
+				{ keys: 'D', action: labels.shortcutsActionSetCellTypeDroneBrood },
+				{ keys: 'U', action: labels.shortcutsActionSetCellTypeEmpty },
+				{ keys: '+ / =', action: labels.shortcutsActionIncreaseBrushSize },
+				{ keys: '-', action: labels.shortcutsActionDecreaseBrushSize },
+				{ keys: 'Ctrl + Z', action: labels.shortcutsActionUndoStroke },
+			],
+		}
+	}
 
 	if (isHiveDetailView) {
 		return {
@@ -236,6 +284,8 @@ export default function AIAdvisorDrawer() {
 	const keyboardShortcutsLabel = t('Keyboard shortcuts')
 	const hiveDetailViewName = t('Hive detail view')
 	const hiveDetailViewDescription = t('Detailed hive workflow with sections, frames, inspections, and metrics.')
+	const canvasEditViewName = t('Frame canvas edit view')
+	const canvasEditViewDescription = t('Frame-side canvas editor with tool switching, cell brush typing, and brush size controls.')
 	const hiveListViewName = t('Hive list view')
 	const hiveListViewDescription = t('Apiary overview with list and table hive navigation modes.')
 	const warehouseQueenListViewName = t('Warehouse queen list view')
@@ -264,6 +314,20 @@ export default function AIAdvisorDrawer() {
 	const shortcutsActionDeleteSelectedHiveSection = t('Delete selected hive section')
 	const shortcutsActionDeleteSelectedWarehouseQueen = t('Delete selected warehouse queen')
 	const shortcutsActionDeleteSelectedDevice = t('Delete selected device')
+	const shortcutsActionSwitchToCellBrush = t('Switch to cell brush')
+	const shortcutsActionSwitchToFreeDraw = t('Switch to free draw')
+	const shortcutsActionSwitchToCellEraser = t('Switch to cell eraser')
+	const shortcutsActionSetCellTypeNectar = t('Set cell type to nectar')
+	const shortcutsActionSetCellTypeHoney = t('Set cell type to honey')
+	const shortcutsActionSetCellTypePollen = t('Set cell type to pollen')
+	const shortcutsActionSetCellTypeEggs = t('Set cell type to eggs')
+	const shortcutsActionSetCellTypeBrood = t('Set cell type to brood')
+	const shortcutsActionSetCellTypeCappedBrood = t('Set cell type to capped brood')
+	const shortcutsActionSetCellTypeDroneBrood = t('Set cell type to drone brood')
+	const shortcutsActionSetCellTypeEmpty = t('Set cell type to empty')
+	const shortcutsActionIncreaseBrushSize = t('Increase brush size')
+	const shortcutsActionDecreaseBrushSize = t('Decrease brush size')
+	const shortcutsActionUndoStroke = t('Undo stroke')
 	const openHiveDetailMessage = t('Open a hive detail page to run hive-specific AI analysis.')
 	const loadingHiveInfoMessage = t('Loading hive information...')
 	const loadedHiveInfoMessage = t('Loaded hive information')
@@ -294,6 +358,8 @@ export default function AIAdvisorDrawer() {
 			getViewContext(location.pathname, {
 				hiveDetailViewName,
 				hiveDetailViewDescription,
+				canvasEditViewName,
+				canvasEditViewDescription,
 					hiveListViewName,
 					hiveListViewDescription,
 					warehouseQueenListViewName,
@@ -322,11 +388,27 @@ export default function AIAdvisorDrawer() {
 						shortcutsActionDeleteSelectedHiveSection,
 						shortcutsActionDeleteSelectedWarehouseQueen,
 						shortcutsActionDeleteSelectedDevice,
+						shortcutsActionSwitchToCellBrush,
+						shortcutsActionSwitchToFreeDraw,
+						shortcutsActionSwitchToCellEraser,
+						shortcutsActionSetCellTypeNectar,
+						shortcutsActionSetCellTypeHoney,
+						shortcutsActionSetCellTypePollen,
+						shortcutsActionSetCellTypeEggs,
+						shortcutsActionSetCellTypeBrood,
+						shortcutsActionSetCellTypeCappedBrood,
+						shortcutsActionSetCellTypeDroneBrood,
+						shortcutsActionSetCellTypeEmpty,
+						shortcutsActionIncreaseBrushSize,
+						shortcutsActionDecreaseBrushSize,
+						shortcutsActionUndoStroke,
 					}),
 		[
 			location.pathname,
 			hiveDetailViewName,
 			hiveDetailViewDescription,
+			canvasEditViewName,
+			canvasEditViewDescription,
 			hiveListViewName,
 			hiveListViewDescription,
 			warehouseQueenListViewName,
@@ -355,6 +437,20 @@ export default function AIAdvisorDrawer() {
 			shortcutsActionDeleteSelectedHiveSection,
 			shortcutsActionDeleteSelectedWarehouseQueen,
 			shortcutsActionDeleteSelectedDevice,
+			shortcutsActionSwitchToCellBrush,
+			shortcutsActionSwitchToFreeDraw,
+			shortcutsActionSwitchToCellEraser,
+			shortcutsActionSetCellTypeNectar,
+			shortcutsActionSetCellTypeHoney,
+			shortcutsActionSetCellTypePollen,
+			shortcutsActionSetCellTypeEggs,
+			shortcutsActionSetCellTypeBrood,
+			shortcutsActionSetCellTypeCappedBrood,
+			shortcutsActionSetCellTypeDroneBrood,
+			shortcutsActionSetCellTypeEmpty,
+			shortcutsActionIncreaseBrushSize,
+			shortcutsActionDecreaseBrushSize,
+			shortcutsActionUndoStroke,
 		]
 	)
 	const shouldRender = isOpen

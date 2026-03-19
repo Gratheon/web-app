@@ -41,10 +41,23 @@
 		.frameHeaderControls {
 			flex-wrap: wrap;
 			align-items: flex-start;
+			row-gap: 8px;
+		}
+
+		.frameHeaderLeft {
+			order: 1;
 		}
 
 		.frameHeaderRight {
-			justify-content: flex-start;
+			order: 2;
+			margin-left: auto;
+			flex-wrap: nowrap;
+			justify-content: flex-end;
+		}
+
+		.frameHeaderMiddle {
+			order: 3;
+			width: 100%;
 		}
 	}
 }

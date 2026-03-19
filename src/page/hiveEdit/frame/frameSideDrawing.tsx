@@ -49,6 +49,10 @@ export default function FrameSideDrawing({
 		() => getFrameSideFile({ frameSideId: +frameSideId }),
 		[frameSideId]
 	);
+	const liveFrameSideCells = useLiveQuery(
+		() => getFrameSideCells(+frameSideId),
+		[frameSideId]
+	);
 
 	// Call the custom hook to handle subscriptions
 	useFrameSideSubscriptions(frameSideId);
@@ -164,6 +168,7 @@ export default function FrameSideDrawing({
 		frameSideCellsState.nectarPercent = relativeCounts.nectarPercent
 		frameSideCellsState.pollenPercent = relativeCounts.pollenPercent
 		frameSideCellsState.honeyPercent = relativeCounts.honeyPercent
+		frameSideCellsState.cells = detectedCells || []
 
 		await updateFrameSideCells(frameSideCellsState)
 
@@ -190,6 +195,11 @@ export default function FrameSideDrawing({
 		return <div>No frame side data found.</div>;
 	}
 
+	const effectiveDetectedCells =
+		Array.isArray(liveFrameSideFile?.detectedCells) && liveFrameSideFile.detectedCells.length > 0
+			? liveFrameSideFile.detectedCells
+			: (liveFrameSideCells?.cells || []);
+
 	return (
 		<div className={styles.frame}>
 			<div className={styles.body}>
@@ -200,7 +210,7 @@ export default function FrameSideDrawing({
 					detectedQueenCups={liveFrameSideFile.detectedQueenCups}
 					detectedBees={liveFrameSideFile.detectedBees}
 					detectedDrones={liveFrameSideFile.detectedDrones}
-					detectedCells={liveFrameSideFile.detectedCells}
+					detectedCells={effectiveDetectedCells}
 					detectedVarroa={liveFrameSideFile.detectedVarroa}
 					strokeHistory={liveFrameSideFile.strokeHistory}
 					onStrokeHistoryUpdate={onStrokeHistoryUpdate}

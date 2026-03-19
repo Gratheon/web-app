@@ -6,6 +6,7 @@ export type FrameSideCells = {
 	id: number // same as frameSideId, just for indexing
 	frameSideId?: any // internal
 	hiveId?: any // internal
+	cells?: any[]
 
 	broodPercent?: number
 	nectarPercent?: number
@@ -35,6 +36,7 @@ export function newFrameSideCells(id, hiveId): FrameSideCells {
 		id,
 		frameSideId: id,
 		hiveId,
+		cells: [],
 		broodPercent: 0,
 		nectarPercent: 0,
 		honeyPercent: 0,

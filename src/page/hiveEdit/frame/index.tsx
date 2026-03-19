@@ -15,6 +15,7 @@ import ErrorMessage from '@/shared/messageError'
 import DeleteIcon from '@/icons/deleteIcon.tsx'
 import QueenIcon from '@/icons/queenIcon.tsx'
 import Checkbox from '@/icons/checkbox.tsx'
+import FreeDrawIcon from '@/icons/freeDrawIcon.tsx'
 
 import MetricList from './metricList'
 
@@ -46,6 +47,7 @@ export default function Frame({
 	const { increaseWarehouseForFrameByFrameId } = useWarehouseAutoAdjust()
 	// Local state for the queen checkbox
 	const [isQueenChecked, setIsQueenChecked] = useState<boolean | undefined>(undefined);
+	const [isIpadMode, setIsIpadMode] = useState(false)
 	// Model functions now handle invalid IDs
 	let frame = useLiveQuery(() => getFrame(+frameId), [frameId]);
 	let frameSide = useLiveQuery(() => getFrameSide(+frameSideId), [frameSideId]);
@@ -60,6 +62,19 @@ export default function Frame({
 	useEffect(() => {
 		setIsQueenChecked(frameSide?.isQueenConfirmed);
 	}, [frameSide]);
+
+	useEffect(() => {
+		const detectIpadMode = () => {
+			const isTabletViewport = window.matchMedia('(max-width: 1200px)').matches
+			setIsIpadMode(isTabletViewport)
+		}
+
+		detectIpadMode()
+		window.addEventListener('resize', detectIpadMode)
+		return () => {
+			window.removeEventListener('resize', detectIpadMode)
+		}
+	}, [])
 
 	// Removed subscription for queen confirmation updates
 
@@ -320,34 +335,57 @@ export default function Frame({
 						{frameSideId && (
 							<Button
 								color="white"
-								title="Mark queen presence"
+								title={
+									isIpadMode
+										? (isQueenChecked ? 'Queen present' : 'Queen not marked')
+										: 'Mark queen presence'
+								}
+								iconOnly={isIpadMode}
 								onClick={onQueenToggle}
 							>
-								{/* Default Checkbox 'on' to false if isQueenChecked is undefined/null */}
-								<Checkbox on={!!isQueenChecked} color="#111" />
-								<span><T ctx="this is a button that marks if a queen bee is present on this frame side">Queen Present</T></span>
-								<QueenIcon size={14} color={'#111'} />
+								{isIpadMode ? (
+									<QueenIcon size={16} color={isQueenChecked ? '#111' : '#666'} />
+								) : (
+									<>
+										{/* Default Checkbox 'on' to false if isQueenChecked is undefined/null */}
+										<Checkbox on={!!isQueenChecked} color="#111" />
+										<span><T ctx="this is a button that marks if a queen bee is present on this frame side">Queen Present</T></span>
+										<QueenIcon size={14} color={'#111'} />
+									</>
+								)}
 							</Button>
 						)}
 						{frameSideId && (
 							<Button
+								iconOnly={isIpadMode}
+								title="Edit canvas"
 								onClick={() =>
 									navigate(
 										`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}/frame/${frameId}/${frameSideId}/canvas-edit`
 									)
 								}
 							>
-								<span>
-									<T>Edit canvas</T>
-								</span>
+								<FreeDrawIcon size={14} />
+								{!isIpadMode && (
+									<span>
+										<T>Edit canvas</T>
+									</span>
+								)}
 							</Button>
 						)}
 
-					<Button color="red" title="Remove frame" onClick={() => setRemoveFrameDialogVisible(true)}>
+					<Button
+						color="red"
+						title="Remove frame"
+						iconOnly={isIpadMode}
+						onClick={() => setRemoveFrameDialogVisible(true)}
+					>
 						<DeleteIcon />
-						<span>
-							<T>Remove frame</T>
-						</span>
+						{!isIpadMode && (
+							<span>
+								<T>Remove frame</T>
+							</span>
+						)}
 					</Button>
 						</div>
 					</div>

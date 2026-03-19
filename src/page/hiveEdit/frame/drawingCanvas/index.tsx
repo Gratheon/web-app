@@ -30,7 +30,7 @@ const BRUSH_DIAMETER_BY_PRESET: Record<BrushSizePreset, number> = {
 	medium: DEFAULT_BRUSH_DIAMETER_RATIO,
 	large: DEFAULT_BRUSH_DIAMETER_RATIO * 1.4,
 };
-const DEFAULT_NEW_CELL_RADIUS_RATIO = 0.012;
+const DEFAULT_NEW_CELL_RADIUS_RATIO = 0.006;
 const CELL_SHORTCUTS: Record<string, NonEraseBrushCellType> = {
 	n: 4,
 	y: 2,
@@ -1278,20 +1278,20 @@ export default function DrawingCanvas({
 										(detectedDrones?.length || 0) > 0
 									)
 										? <Checkbox on={showBees} color="#111" />
-										: <Loader size={0} />
+										: <Loader size={0} stroke="#111" />
 								}
 								<span><T ctx="toggle worker bees visibility">Worker bees</T>{frameSideFile?.detectedWorkerBeeCount > 0 && ` (${frameSideFile.detectedWorkerBeeCount})`}</span>
 							</Button>
 
 						{detectedCells && (
 							<Button size="small" style={layerToggleButtonStyle} onClick={() => setCellVisibility(!showCells)}>
-								{frameSideFile?.isCellsDetectionComplete ? <Checkbox on={showCells} color="#111" /> : <Loader size={0} />}
+								<Checkbox on={showCells} color="#111" />
 								<span><T ctx="toggle frame cells visibility">Frame cells</T>{frameSideFile?.isCellsDetectionComplete && <FrameCells />}</span>
 							</Button>
 						)}
 
 						<Button size="small" style={layerToggleButtonStyle} onClick={() => setIsAiQueenVisible(!isAiQueenVisible)}>
-							{frameSideFile?.isQueenDetectionComplete ? <Checkbox on={isAiQueenVisible} color="#111" /> : <Loader size={0} />}
+							{frameSideFile?.isQueenDetectionComplete ? <Checkbox on={isAiQueenVisible} color="#111" /> : <Loader size={0} stroke="#111" />}
 							<span><T ctx="toggle AI queen visibility">Queen</T></span>
 							<QueenIcon size={14} color={'#111'} />
 						</Button>
@@ -1307,14 +1307,14 @@ export default function DrawingCanvas({
 										(detectedDrones?.length || 0) > 0
 									)
 										? <Checkbox on={showDrones} color="#111" />
-										: <Loader size={0} />
+										: <Loader size={0} stroke="#111" />
 								}
 								<span><T ctx="toggle drones visibility">Drones</T>{frameSideFile?.detectedDroneCount > 0 && ` (${frameSideFile.detectedDroneCount})`}</span>
 							</Button>
 
 						{detectedQueenCups && (
 							<Button size="small" style={layerToggleButtonStyle} onClick={() => setQueenCupsVisibility(!showQueenCups)}>
-								{frameSideFile?.isQueenCupsDetectionComplete ? <Checkbox on={showQueenCups} color="#111" /> : <Loader size={0} />}
+								{frameSideFile?.isQueenCupsDetectionComplete ? <Checkbox on={showQueenCups} color="#111" /> : <Loader size={0} stroke="#111" />}
 								<span><T ctx="toggle queen cups visibility">Queen cups</T></span>
 							</Button>
 						)}
@@ -1327,7 +1327,7 @@ export default function DrawingCanvas({
 									(detectedVarroa?.length || 0) > 0
 								)
 									? <Checkbox on={showVarroa} color="#111" />
-									: <Loader size={0} />
+									: <Loader size={0} stroke="#111" />
 							}
 							<span><T ctx="toggle varroa mites visibility">Varroa mites</T>{frameSideFile?.varroaCount > 0 && ` (${frameSideFile.varroaCount})`}</span>
 						</Button>

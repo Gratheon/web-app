@@ -168,6 +168,7 @@ type FrameSide {
 
 type FrameSideCells {
   id: ID!
+  cells: JSON
   broodPercent: Int
   droneBroodPercent: Int
   cappedBroodPercent: Int

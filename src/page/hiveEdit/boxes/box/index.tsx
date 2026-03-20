@@ -11,8 +11,7 @@ import { useTranslation as t } from '@/shared/translate'
 import {
 	Frame as FrameType,
 	getFrames,
-	moveFrame,
-	moveFrameBetweenBoxes,
+	updateFrame,
 } from '@/models/frames'
 import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
 import { enrichFramesWithSides } from '@/models/frameSide'
@@ -29,6 +28,11 @@ import Frame from './boxFrame'
 import FRAMES_QUERY from './framesQuery.graphql.ts'
 
 let activeFrameDragPayload: any = null
+const BOX_SLOT_CAPACITY: Record<string, number> = {
+	DEEP: 10,
+	SUPER: 10,
+	LARGE_HORIZONTAL_SECTION: 25,
+}
 
 type BoxType = {
 	box: any
@@ -218,43 +222,145 @@ export default function Box({
 			await updateFramesRemote({ frames })
 		}
 
+		function getSlotCapacity(boxType: string, boxFrames: any[]): number {
+			const base = BOX_SLOT_CAPACITY[boxType] || 10
+			const maxPosition = boxFrames.reduce((max, frame) => Math.max(max, +(frame?.position || 0)), 0)
+			return Math.max(base, maxPosition)
+		}
+
+		function toSlots(boxFrames: any[], capacity: number): (any | null)[] {
+			const slots = Array.from({ length: capacity }, () => null)
+			for (const frame of boxFrames) {
+				const slotIndex = +frame.position - 1
+				if (slotIndex >= 0 && slotIndex < capacity && !slots[slotIndex]) {
+					slots[slotIndex] = frame
+				}
+			}
+			return slots
+		}
+
+		function findAndRemoveFrame(slots: (any | null)[], frameId?: number) {
+			if (!frameId) return null
+			const index = slots.findIndex((frame) => frame && +frame.id === +frameId)
+			if (index < 0) return null
+			const frame = slots[index]
+			slots[index] = null
+			return frame
+		}
+
+		function placeFrameWithRightShift(slots: (any | null)[], frame: any, targetIndex: number): boolean {
+			if (targetIndex < 0 || targetIndex >= slots.length) {
+				return false
+			}
+
+			if (!slots[targetIndex]) {
+				slots[targetIndex] = frame
+				return true
+			}
+
+			let emptyIndex = -1
+			for (let i = targetIndex + 1; i < slots.length; i++) {
+				if (!slots[i]) {
+					emptyIndex = i
+					break
+				}
+			}
+
+			if (emptyIndex < 0) {
+				return false
+			}
+
+			for (let i = emptyIndex; i > targetIndex; i--) {
+				slots[i] = slots[i - 1]
+			}
+			slots[targetIndex] = frame
+			return true
+		}
+
+		function assignPositionsFromSlots(slots: (any | null)[]) {
+			const updated: any[] = []
+			for (let i = 0; i < slots.length; i++) {
+				const frame = slots[i]
+				if (!frame) continue
+				frame.position = i + 1
+				updated.push(frame)
+			}
+			return updated
+		}
+
+		async function persistFrames(framesToPersist: any[]) {
+			await Promise.all(framesToPersist.map((frame) => updateFrame(frame)))
+		}
+
 		async function applyFrameMove({
 			sourceBoxId,
 			sourceBoxType,
 			sourceIndex,
 			targetBoxId,
 			targetIndex,
+			frameId,
 		}: {
 			sourceBoxId: number
 			sourceBoxType: string
 			sourceIndex: number
 			targetBoxId: number
 			targetIndex: number
+			frameId?: number
 		}) {
 			if (sourceBoxType !== box.type) {
 				return
 			}
 
-			if (sourceBoxId === targetBoxId) {
-				if (sourceIndex === targetIndex) {
-					return
-				}
+			const sourceFrames = (await getFrames({ boxId: +sourceBoxId })) || []
+			const targetFrames =
+				sourceBoxId === targetBoxId
+					? sourceFrames
+					: (await getFrames({ boxId: +targetBoxId })) || []
 
-				await moveFrame({
-					boxId: +targetBoxId,
-					addedIndex: targetIndex,
-					removedIndex: sourceIndex,
-				})
-				await updateFramesForBoxes([targetBoxId])
+			const sourceCapacity = getSlotCapacity(sourceBoxType, sourceFrames)
+			const targetCapacity = getSlotCapacity(box.type, targetFrames)
+			const sourceSlots = toSlots(sourceFrames, sourceCapacity)
+			const targetSlots =
+				sourceBoxId === targetBoxId ? sourceSlots : toSlots(targetFrames, targetCapacity)
+
+			let movingFrame = sourceSlots[sourceIndex]
+			if (!movingFrame) {
+				movingFrame = findAndRemoveFrame(sourceSlots, frameId) || null
 			} else {
-				await moveFrameBetweenBoxes({
-					fromBoxId: +sourceBoxId,
-					toBoxId: +targetBoxId,
-					removedIndex: sourceIndex,
-					addedIndex: targetIndex,
-				})
-				await updateFramesForBoxes([sourceBoxId, targetBoxId])
+				sourceSlots[sourceIndex] = null
 			}
+
+			if (!movingFrame) {
+				return
+			}
+
+			const safeTargetIndex = Math.max(0, Math.min(targetIndex, targetSlots.length - 1))
+			const placed = placeFrameWithRightShift(targetSlots, movingFrame, safeTargetIndex)
+			if (!placed) {
+				// No free slot to the right in the target section.
+				return
+			}
+
+			const sourceUpdated = assignPositionsFromSlots(sourceSlots).map((frame) => ({
+				...frame,
+				boxId: +sourceBoxId,
+			}))
+			const targetUpdated =
+				sourceBoxId === targetBoxId
+					? sourceUpdated
+					: assignPositionsFromSlots(targetSlots).map((frame) => ({
+						...frame,
+						boxId: +targetBoxId,
+					}))
+
+			await persistFrames(
+				sourceBoxId === targetBoxId
+					? sourceUpdated
+					: [...sourceUpdated, ...targetUpdated]
+			)
+			await updateFramesForBoxes(
+				sourceBoxId === targetBoxId ? [targetBoxId] : [sourceBoxId, targetBoxId]
+			)
 
 			await addHiveLog({
 				hiveId: +hiveId,
@@ -352,6 +458,7 @@ export default function Box({
 				sourceIndex: +payload.index,
 				targetBoxId: +box.id,
 				targetIndex,
+				frameId: payload.frameId ? +payload.frameId : undefined,
 			})
 			setDragHoverIndex(null)
 		}
@@ -382,128 +489,91 @@ export default function Box({
 		const isListDragMode = editable && displayMode === 'list'
 		const isCompatibleDrag = isListDragMode && activeFrameDragPayload?.boxType === box.type
 		const shouldShowSlots = Boolean(activeFrameDragPayload) && isCompatibleDrag
-
-		for (let i = 0; i < frames.length; i++) {
-			const frame = frames[i]
-			const isFrameDragged = activeFrameDragPayload?.frameId === frame.id
-
-			if (shouldShowSlots) {
-				const isHoveredSlot = dragHoverIndex === i
-				framesDiv.push(
-					<div
-						key={`slot-${box.id}-${i}`}
-						onDragOver={(event) => {
-							onNativeDragOver(event)
-							if (isCompatibleDrag) {
-								setDragHoverIndex(i)
-							}
-						}}
-						onDrop={(event) => {
-							void onNativeDropAtIndex(event, i)
-						}}
-						style={{
-							display: 'inline-block',
-							height: 'calc(100% - 20px)',
-							verticalAlign: 'top',
-							marginTop: 10,
-							marginBottom: 0,
-							marginLeft: 2,
-							marginRight: 2,
-							width: isHoveredSlot ? 38 : 10,
-							boxSizing: 'border-box',
-							border: '2px dashed rgba(255,255,255,0.65)',
-							borderRadius: 4,
-							background: isHoveredSlot ? 'rgba(255,255,255,0.16)' : 'transparent',
-							transition: 'width 120ms ease, background-color 120ms ease',
-						}}
-					/>
-				)
-			}
-
-			const frameDiv = (
-				<Frame
-					key={frame.id}
-					box={box}
-					frameId={frameId}
-					frameSideId={frameSideId}
-					hiveId={hiveId}
-					apiaryId={apiaryId}
-					frame={frame}
-					editable={editable}
-					displayMode={displayMode}
-					frameSidesData={frameSidesData}
-					onFrameImageClick={onFrameImageClick}
-					dragDropProps={
-						isListDragMode
-							? {
-								draggable: true,
-								onDragStart: (event: React.DragEvent<HTMLDivElement>) =>
-									onNativeDragStart(event, {
-										boxId: box.id,
-										boxType: box.type,
-										index: i,
-										frameId: frame.id,
-									}),
-								onDragEnd: onNativeDragEnd,
-								style: isFrameDragged
-									? {
-										opacity: 0.45,
-										transform: 'scale(0.98)',
-									}
-									: undefined,
-							}
-							: undefined
-					}
-				/>
-			)
-
-			if (isListDragMode) {
-				framesDiv.push(
-					<div
-						key={`drag-${frame.id}`}
-						style={{
-							display: 'inline-block',
-							height: '100%',
-							verticalAlign: 'top',
-						}}
-					>
-						{frameDiv}
-					</div>
-				)
-			} else {
-				framesDiv.push(frameDiv)
+		const slotCapacity = Math.max(
+			BOX_SLOT_CAPACITY[box.type] || 10,
+			frames.reduce((max, frame) => Math.max(max, +(frame?.position || 0)), 0)
+		)
+		const frameBySlot = new Map<number, any>()
+		for (const frame of frames) {
+			const slotIndex = +frame.position - 1
+			if (slotIndex >= 0 && slotIndex < slotCapacity && !frameBySlot.has(slotIndex)) {
+				frameBySlot.set(slotIndex, frame)
 			}
 		}
 
-		if (shouldShowSlots) {
-			const lastSlotIndex = frames.length
-			const isHoveredSlot = dragHoverIndex === lastSlotIndex
+		for (let i = 0; i < slotCapacity; i++) {
+			const frame = frameBySlot.get(i)
+			const isEmptySlot = !frame
+			const isFrameDragged = !isEmptySlot && activeFrameDragPayload?.frameId === frame.id
+
+			const slotIsHovered = dragHoverIndex === i
 			framesDiv.push(
 				<div
-					key={`slot-${box.id}-${lastSlotIndex}`}
+					key={`slot-${box.id}-${i}`}
 					onDragOver={(event) => {
 						onNativeDragOver(event)
-						setDragHoverIndex(lastSlotIndex)
+						if (isCompatibleDrag) {
+							setDragHoverIndex(i)
+						}
 					}}
 					onDrop={(event) => {
-						void onNativeDropAtIndex(event, lastSlotIndex)
+						void onNativeDropAtIndex(event, i)
 					}}
 					style={{
 						display: 'inline-block',
-						height: 'calc(100% - 20px)',
+						width: 38,
+						height: '100%',
 						verticalAlign: 'top',
-						marginTop: 10,
-						marginBottom: 0,
-						marginLeft: 2,
-						marginRight: 2,
-						width: isHoveredSlot ? 38 : 10,
+						marginLeft: 1,
+						marginRight: 1,
 						boxSizing: 'border-box',
-						border: '2px dashed rgba(255,255,255,0.65)',
+						border: shouldShowSlots
+							? '2px dashed rgba(255,255,255,0.45)'
+							: '2px dashed transparent',
 						borderRadius: 4,
-						background: isHoveredSlot ? 'rgba(255,255,255,0.16)' : 'transparent',
-						transition: 'width 120ms ease, background-color 120ms ease',
+						background: shouldShowSlots && slotIsHovered
+							? 'rgba(255,255,255,0.14)'
+							: 'transparent',
+						transition: 'background-color 120ms ease, border-color 120ms ease',
 					}}
-				/>
+				>
+					{!isEmptySlot && (
+						<Frame
+							key={frame.id}
+							box={box}
+							frameId={frameId}
+							frameSideId={frameSideId}
+							hiveId={hiveId}
+							apiaryId={apiaryId}
+							frame={frame}
+							editable={editable}
+							displayMode={displayMode}
+							frameSidesData={frameSidesData}
+							onFrameImageClick={onFrameImageClick}
+							dragDropProps={
+								isListDragMode
+									? {
+										draggable: true,
+										onDragStart: (event: React.DragEvent<HTMLDivElement>) =>
+											onNativeDragStart(event, {
+												boxId: box.id,
+												boxType: box.type,
+												index: i,
+												frameId: frame.id,
+											}),
+										onDragEnd: onNativeDragEnd,
+										style: isFrameDragged
+											? {
+												opacity: 0.45,
+												transform: 'scale(0.98)',
+											}
+											: undefined,
+									}
+									: undefined
+							}
+						/>
+					)}
+				</div>
 			)
 		}
 	}

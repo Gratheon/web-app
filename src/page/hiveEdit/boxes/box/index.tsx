@@ -1,5 +1,4 @@
 import isNil from 'lodash/isNil'
-import { Container, Draggable } from '@edorivai/react-smooth-dnd'
 import { useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 
@@ -8,7 +7,12 @@ import ErrorMessage from '@/shared/messageError'
 import Loader from '@/shared/loader'
 import { useTranslation as t } from '@/shared/translate'
 
-import { Frame as FrameType, getFrames, moveFrame } from '@/models/frames'
+import {
+	Frame as FrameType,
+	getFrames,
+	moveFrame,
+	moveFrameBetweenBoxes,
+} from '@/models/frames'
 import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
 import { enrichFramesWithSides } from '@/models/frameSide'
 import { enrichFramesWithSideFiles } from '@/models/frameSideFile'
@@ -22,6 +26,8 @@ import {
 import styles from './index.module.less'
 import Frame from './boxFrame'
 import FRAMES_QUERY from './framesQuery.graphql.ts'
+
+let activeFrameDragPayload: any = null
 
 type BoxType = {
 	box: any
@@ -55,6 +61,7 @@ export default function Box({
 	const tFrameRearranged = t('Frame rearranged')
 	const navigate = useNavigate()
 	let framesDiv = []
+	const frameDragPayloadMime = 'application/gratheon-frame-dnd'
 
 	useSubscription(
 		gql`
@@ -174,52 +181,27 @@ export default function Box({
 	}
 
 
-	if (frames && frames.length > 0) {
-		for (let i = 0; i < frames.length; i++) {
-			const frame = frames[i]
-
-			let frameDiv = (
-				<Frame
-					box={box}
-					frameId={frameId}
-					frameSideId={frameSideId}
-					hiveId={hiveId}
-					apiaryId={apiaryId}
-					frame={frame}
-					editable={editable}
-					displayMode={displayMode}
-					// Pass props down to Frame
-					frameSidesData={frameSidesData}
-					onFrameImageClick={onFrameImageClick}
-				/>
-			)
-
-			if (editable && displayMode == 'list') {
-				framesDiv.push(
-					</* @ts-ignore */ Draggable key={i}>{frameDiv}</Draggable>
-				)
-			} else {
-				framesDiv.push(frameDiv)
-			}
-		}
-	}
-
 	let framesWrapped: any = framesDiv
+	let onNativeDragStart = (event: React.DragEvent<HTMLDivElement>, payload: any) => {}
+	let onNativeDragEnd = () => {}
+	let onNativeDragOver = (event: React.DragEvent<HTMLDivElement>) => {}
+	let onNativeDropAtIndex = async (
+		event: React.DragEvent<HTMLDivElement>,
+		targetIndex: number
+	) => {}
+	let onNativeDropAtEnd = async (event: React.DragEvent<HTMLDivElement>) => {}
+	let boxInnerDragProps: any = {}
 
 	if (editable) {
-		async function swapFrames({ removedIndex, addedIndex }) {
-			if (addedIndex === null || addedIndex === undefined || removedIndex === addedIndex) {
-				return
-			}
-			await moveFrame({
-				boxId,
-				addedIndex,
-				removedIndex,
-			})
-
-			const frames = await getFrames({ boxId: +boxId })
-			await updateFramesRemote({
-				frames: frames.map((v: FrameType) => {
+		async function updateFramesForBoxes(boxIds: number[]) {
+			const distinctBoxIds = [...new Set(boxIds)]
+			const framesByBox = await Promise.all(
+				distinctBoxIds.map((id) => getFrames({ boxId: +id }))
+			)
+			const frames = framesByBox
+				.flat()
+				.filter(Boolean)
+				.map((v: FrameType) => {
 					let r = {
 						...v,
 					}
@@ -229,16 +211,60 @@ export default function Box({
 					delete r.rightSide
 					delete r.__typename
 					return r
-				}),
-			})
+				})
+
+			await updateFramesRemote({ frames })
+		}
+
+		async function applyFrameMove({
+			sourceBoxId,
+			sourceBoxType,
+			sourceIndex,
+			targetBoxId,
+			targetIndex,
+		}: {
+			sourceBoxId: number
+			sourceBoxType: string
+			sourceIndex: number
+			targetBoxId: number
+			targetIndex: number
+		}) {
+			if (sourceBoxType !== box.type) {
+				return
+			}
+
+			if (sourceBoxId === targetBoxId) {
+				if (sourceIndex === targetIndex) {
+					return
+				}
+
+				await moveFrame({
+					boxId: +targetBoxId,
+					addedIndex: targetIndex,
+					removedIndex: sourceIndex,
+				})
+				await updateFramesForBoxes([targetBoxId])
+			} else {
+				await moveFrameBetweenBoxes({
+					fromBoxId: +sourceBoxId,
+					toBoxId: +targetBoxId,
+					removedIndex: sourceIndex,
+					addedIndex: targetIndex,
+				})
+				await updateFramesForBoxes([sourceBoxId, targetBoxId])
+			}
+
 			await addHiveLog({
 				hiveId: +hiveId,
 				action: hiveLogActions.STRUCTURE_MOVE,
 				title: tFrameRearranged,
-				details: `Frame position changed in section #${boxId}.`,
+				details:
+					sourceBoxId === targetBoxId
+						? `Frame position changed in section #${targetBoxId}.`
+						: `Frame moved from section #${sourceBoxId} to section #${targetBoxId}.`,
 			})
 
-			if (!isNil(frameSideId)) {
+			if (sourceBoxId === targetBoxId && !isNil(frameSideId)) {
 				navigate(
 					`/apiaries/${apiaryId}/hives/${hiveId}/box/${box.id}/frame/${frameId}/${frameSideId}`,
 					{ replace: true }
@@ -246,19 +272,117 @@ export default function Box({
 			}
 		}
 
-		framesWrapped = (
-			<>
-				{/* @ts-ignore */}
-				<Container
-					style={{ height: `100%` }}
-					onDrop={swapFrames}
-					orientation="horizontal"
-				>
-					{framesDiv}
-				</Container>
-			</>
-		)
+		onNativeDragStart = (event, payload) => {
+			event.stopPropagation()
+			event.dataTransfer.effectAllowed = 'move'
+			const raw = JSON.stringify(payload)
+			event.dataTransfer.setData(frameDragPayloadMime, raw)
+			event.dataTransfer.setData('text/plain', raw)
+			activeFrameDragPayload = payload
+		}
+
+		onNativeDragEnd = () => {
+			activeFrameDragPayload = null
+		}
+
+		onNativeDragOver = (event) => {
+			event.preventDefault()
+			event.dataTransfer.dropEffect = 'move'
+		}
+
+		onNativeDropAtIndex = async (event, targetIndex) => {
+			event.preventDefault()
+			event.stopPropagation()
+
+			const raw =
+				event.dataTransfer.getData(frameDragPayloadMime) ||
+				event.dataTransfer.getData('text/plain')
+			let payload: any = activeFrameDragPayload
+			if (raw) {
+				try {
+					payload = JSON.parse(raw)
+				} catch {
+					// Keep activeFrameDragPayload fallback
+				}
+			}
+
+			if (
+				!payload ||
+				payload?.boxId === undefined ||
+				payload?.boxType === undefined ||
+				payload?.index === undefined
+			) {
+				return
+			}
+
+			await applyFrameMove({
+				sourceBoxId: +payload.boxId,
+				sourceBoxType: payload.boxType,
+				sourceIndex: +payload.index,
+				targetBoxId: +box.id,
+				targetIndex,
+			})
+		}
+
+		onNativeDropAtEnd = async (event) => {
+			const targetIndex = frames?.length || 0
+			await onNativeDropAtIndex(event, targetIndex)
+		}
+
+		if (displayMode === 'list') {
+			boxInnerDragProps = {
+				onDragOver: onNativeDragOver,
+				onDrop: (event: React.DragEvent<HTMLDivElement>) => {
+					void onNativeDropAtEnd(event)
+				},
+			}
+		}
 	}
+
+		if (frames && frames.length > 0) {
+			for (let i = 0; i < frames.length; i++) {
+				const frame = frames[i]
+				const dragDropProps =
+					editable && displayMode === 'list'
+						? {
+							draggable: true,
+							onDragStart: (event) =>
+								onNativeDragStart(event, {
+									boxId: box.id,
+									boxType: box.type,
+									index: i,
+									frameId: frame.id,
+								}),
+							onDragEnd: onNativeDragEnd,
+							onDragOver: onNativeDragOver,
+							onDrop: (event) => {
+								void onNativeDropAtIndex(event, i)
+							},
+						}
+						: undefined
+
+				const frameDiv = (
+					<Frame
+						key={frame.id}
+						box={box}
+						frameId={frameId}
+						frameSideId={frameSideId}
+						hiveId={hiveId}
+					apiaryId={apiaryId}
+					frame={frame}
+					editable={editable}
+						displayMode={displayMode}
+						frameSidesData={frameSidesData}
+						onFrameImageClick={onFrameImageClick}
+						dragDropProps={dragDropProps}
+					/>
+				)
+
+				framesDiv.push(frameDiv)
+			}
+		}
+
+	framesWrapped = framesDiv
 
 	// visually limit the width of the box to 12 frames
 	let maxWidthStyle ={}
@@ -412,7 +536,7 @@ export default function Box({
 				}`}
 				style={maxWidthStyle}
 			>
-				<div className={styles.boxInner}>
+				<div className={styles.boxInner} {...boxInnerDragProps}>
 					{!frames && <Loader size={1} />}
 					{framesWrapped}
 				</div>

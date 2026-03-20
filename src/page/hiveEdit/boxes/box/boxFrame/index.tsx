@@ -22,6 +22,7 @@ export default function BoxFrame({
 	// Destructure new props here
 	frameSidesData,
 	onFrameImageClick,
+	dragDropProps,
 }: {
 	box: Box
 	apiaryId: number
@@ -35,6 +36,7 @@ export default function BoxFrame({
 	// Add new props
 	frameSidesData?: any[]
 	onFrameImageClick?: (imageUrl: string) => void
+	dragDropProps?: any
 }) {
 	if (!frame || !box) return null
 
@@ -155,7 +157,10 @@ export default function BoxFrame({
 	// Render non-visual mode
 	return (
 		// Added wrapper for relative positioning
-		<div className={`${styles.frameWrapper} ${selectedFrame && styles.frameSelected}`}>
+		<div
+			className={`${styles.frameWrapper} ${selectedFrame && styles.frameSelected}`}
+			{...dragDropProps}
+		>
 			<div className={styles.frame}>
 				{frameInternal}
 			</div>

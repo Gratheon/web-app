@@ -103,7 +103,14 @@ export default function FrameSideImage({
 			{!displayUrl && <div className={styles.frameSideImageInternalSides}></div>}
 
 			{/* Render image if URL exists */}
-			{displayUrl && <img src={displayUrl} alt={`Frame side ${frameSideId}`} />}
+			{displayUrl && (
+				<img
+					src={displayUrl}
+					alt={`Frame side ${frameSideId}`}
+					draggable={false}
+					onDragStart={(e) => e.preventDefault()}
+				/>
+			)}
 		</div>
 	)
 }

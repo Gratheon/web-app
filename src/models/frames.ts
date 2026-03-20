@@ -161,6 +161,74 @@ export async function moveFrame({
 	await Promise.all(updatePromises)
 }
 
+export async function moveFrameBetweenBoxes({
+	fromBoxId,
+	toBoxId,
+	removedIndex,
+	addedIndex,
+}: {
+	fromBoxId: number
+	toBoxId: number
+	removedIndex: number
+	addedIndex: number
+}) {
+	if (fromBoxId === toBoxId) {
+		await moveFrame({
+			boxId: fromBoxId,
+			removedIndex,
+			addedIndex,
+		})
+		return
+	}
+
+	const sourceFrames = (await getFrames({ boxId: +fromBoxId })) || []
+	const targetFrames = (await getFrames({ boxId: +toBoxId })) || []
+	console.info('[hive-dnd] moveFrameBetweenBoxes:start', {
+		fromBoxId,
+		toBoxId,
+		removedIndex,
+		addedIndex,
+		sourceCount: sourceFrames.length,
+		targetCount: targetFrames.length,
+	})
+
+	if (removedIndex < 0 || removedIndex >= sourceFrames.length) {
+		console.warn('[hive-dnd] moveFrameBetweenBoxes:invalid removedIndex', {
+			removedIndex,
+			sourceCount: sourceFrames.length,
+		})
+		return
+	}
+
+	const [movedFrame] = sourceFrames.splice(removedIndex, 1)
+	if (!movedFrame) {
+		return
+	}
+
+	const safeAddedIndex = Math.max(0, Math.min(addedIndex, targetFrames.length))
+	movedFrame.boxId = +toBoxId
+	targetFrames.splice(safeAddedIndex, 0, movedFrame)
+
+	sourceFrames.forEach((frame, index) => {
+		frame.position = index + 1
+		frame.boxId = +fromBoxId
+	})
+
+	targetFrames.forEach((frame, index) => {
+		frame.position = index + 1
+		frame.boxId = +toBoxId
+	})
+	console.info('[hive-dnd] moveFrameBetweenBoxes:applying', {
+		movedFrameId: movedFrame.id,
+		sourceCountAfter: sourceFrames.length,
+		targetCountAfter: targetFrames.length,
+	})
+
+	await Promise.all(
+		[...sourceFrames, ...targetFrames].map((frame) => updateFrame(frame))
+	)
+}
+
 export async function updateFrame(data: Frame) {
 	try {
 		return await db['frame'].put(data)

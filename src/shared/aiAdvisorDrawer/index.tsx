@@ -8,7 +8,7 @@ import { getFamilyByHive } from '@/models/family'
 import { getBoxes } from '@/models/boxes'
 import { getFrames } from '@/models/frames'
 import { getFrameSideCells } from '@/models/frameSideCells'
-import { getFrameSideFile } from '@/models/frameSideFile'
+import { getFrameSideFile, getFrameSidePreviewImage } from '@/models/frameSideFile'
 import { getUser } from '@/models/user'
 import { listInspections } from '@/models/inspections'
 import { listHiveLogs, syncHiveLogsFromBackend } from '@/models/hiveLog'
@@ -190,6 +190,22 @@ const APIARY_WEATHER_QUERY = gql`
 	}
 `
 
+const FRAME_SIDE_IMAGE_QUERY = gql`
+	query advisorFrameImage($frameSideId: ID!) {
+		hiveFrameSideFile(frameSideId: $frameSideId) {
+			frameSideId
+			file {
+				id
+				url
+				resizes {
+					max_dimension_px
+					url
+				}
+			}
+		}
+	}
+`
+
 function buildId(prefix: string) {
 	return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
@@ -249,6 +265,44 @@ function distance2d(x1: number, y1: number, x2: number, y2: number) {
 	return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
 }
 
+function truncateText(value: any, max = 500) {
+	if (typeof value !== 'string') return value
+	return value.length > max ? `${value.slice(0, max)}...` : value
+}
+
+function compactCellSummary(cells: any) {
+	if (!cells || typeof cells !== 'object') return null
+	return {
+		broodPercent: cells.broodPercent ?? 0,
+		cappedBroodPercent: cells.cappedBroodPercent ?? 0,
+		eggsPercent: cells.eggsPercent ?? 0,
+		nectarPercent: cells.nectarPercent ?? 0,
+		honeyPercent: cells.honeyPercent ?? 0,
+		pollenPercent: cells.pollenPercent ?? 0,
+		droneBroodPercent: cells.droneBroodPercent ?? 0,
+	}
+}
+
+function pickOptimizedImage(file?: any) {
+	if (!file) return null
+	const resizes = Array.isArray(file?.resizes) ? [...file.resizes] : []
+	if (!resizes.length) {
+		return {
+			url: file?.url || null,
+			maxDimensionPx: null,
+			source: file?.url ? 'original' : null,
+		}
+	}
+
+	resizes.sort((a, b) => (a?.max_dimension_px || 0) - (b?.max_dimension_px || 0))
+	const preferred = resizes.find((resize) => (resize?.max_dimension_px || 0) >= 512) || resizes[resizes.length - 1]
+	return {
+		url: preferred?.url || file?.url || null,
+		maxDimensionPx: preferred?.max_dimension_px || null,
+		source: preferred?.url ? 'resize' : 'original',
+	}
+}
+
 function pruneForPreview(value: any, depth = 0): any {
 	if (value === null || value === undefined) return value
 	if (depth > 4) return '[truncated]'
@@ -284,6 +338,15 @@ function findSelectedFramePayload(
 	if (!selectedFrame) return null
 
 	return pruneForPreview(selectedFrame)
+}
+
+function findSelectedFrameRaw(
+	framesByBox: Record<string, any>,
+	frameRouteContext: FrameRouteContext | null
+) {
+	if (!frameRouteContext) return null
+	const framesInBox = Object.values(framesByBox[String(frameRouteContext.boxId)] || {})
+	return framesInBox.find((frame: any) => +frame?.id === frameRouteContext.frameId) || null
 }
 
 function getViewContext(pathname: string, labels: DrawerTranslations): ViewContext {
@@ -659,10 +722,6 @@ export default function AIAdvisorDrawer() {
 						})
 						return
 					}
-					if (hiveContext && frameRouteContext) {
-						return
-					}
-
 					if (apiaryOverviewContext && !hiveContext) {
 						const localApiary = await getApiary(apiaryOverviewContext.apiaryId)
 						const apiaryResult = await apiClient
@@ -859,8 +918,8 @@ export default function AIAdvisorDrawer() {
 					for (let j in frames) {
 						if (!frames[j].leftSide || !frames[j].rightSide) continue
 
-						frames[j].leftSide.cells = await getFrameSideCells(+frames[j].leftId)
-						frames[j].rightSide.cells = await getFrameSideCells(+frames[j].rightId)
+						;(frames[j].leftSide as any).cells = compactCellSummary(await getFrameSideCells(+frames[j].leftId))
+						;(frames[j].rightSide as any).cells = compactCellSummary(await getFrameSideCells(+frames[j].rightId))
 						const leftSide = frames[j].leftSide as any
 						const rightSide = frames[j].rightSide as any
 
@@ -885,9 +944,9 @@ export default function AIAdvisorDrawer() {
 
 				if (runRef.current !== runId) return
 
-				const now = new Date()
-				const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-				const metricsResult = await apiClient
+					const now = new Date()
+					const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+					const metricsResult = await apiClient
 					.query(METRICS_QUERY, {
 						hiveId: hiveContext.hiveId,
 						timeRangeMin: 7 * 24 * 60,
@@ -896,40 +955,78 @@ export default function AIAdvisorDrawer() {
 					})
 					.toPromise()
 
-				if (runRef.current !== runId) return
+					if (runRef.current !== runId) return
 
-				const adviceContext: any = {
-					apiary,
-					hive,
-					family,
+					const hasFrameSideContext = Boolean(frameRouteContext?.frameSideId)
+					let selectedFrameImage: any = null
+					if (hasFrameSideContext) {
+						const frameImageResult = await apiClient
+							.query(FRAME_SIDE_IMAGE_QUERY, { frameSideId: frameRouteContext.frameSideId })
+							.toPromise()
+						let frameFile = frameImageResult?.data?.hiveFrameSideFile?.file
+						if (!frameFile) {
+							// Fallback to local cache (Dexie) when backend query is temporarily missing.
+							frameFile = await getFrameSidePreviewImage(frameRouteContext.frameSideId as number)
+						}
+						const optimizedImage = pickOptimizedImage(frameFile)
+
+						selectedFrameImage = {
+							frameSideId: frameRouteContext.frameSideId,
+							originalUrl: frameFile?.url || null,
+							optimizedUrl: optimizedImage?.url || null,
+							optimizedMaxDimensionPx: optimizedImage?.maxDimensionPx ?? null,
+							source: optimizedImage?.source || null,
+						}
+					}
+
+					const selectedFrameRaw = findSelectedFrameRaw(framesByBox, frameRouteContext)
+					const framesForAdvice = hasFrameSideContext
+						? {
+							[String(frameRouteContext?.boxId || '')]: selectedFrameRaw
+								? { [String((selectedFrameRaw as any).id)]: selectedFrameRaw }
+								: {},
+						}
+						: framesByBox
+
+					const adviceContext: any = {
+						mode: hasFrameSideContext ? 'frame-focus' : 'hive-overview',
+						apiary,
+						hive,
+						family,
 					boxes,
-					frames: framesByBox,
-					inspections,
+					frames: framesForAdvice,
+					inspections: inspections.slice(0, 40),
 					changeHistory: changeHistory.map((entry) => ({
 						id: entry.id,
 						action: entry.action,
 						title: entry.title,
-						details: entry.details,
+						details: truncateText(entry.details, 500),
 						source: entry.source,
 						createdAt: entry.createdAt,
 						relatedHives: entry.relatedHives || [],
-					})),
+					})).slice(0, 60),
 					metrics: metricsResult?.data,
-					currentView: {
-						pathname: location.pathname,
-						view: viewContext.name,
-						frameSelection: frameRouteContext,
-					},
-				}
-				const selectedFramePayload = findSelectedFramePayload(framesByBox, frameRouteContext)
+						currentView: {
+							pathname: location.pathname,
+							view: viewContext.name,
+							frameSelection: frameRouteContext,
+						},
+						frameFocusPrompt: hasFrameSideContext
+							? 'Given hive context and the attached optimized frame-side image, analyze this specific frame and provide practical beekeeping advice.'
+							: null,
+					}
+					const selectedFramePayload = findSelectedFramePayload(framesByBox, frameRouteContext)
 					if (selectedFramePayload) {
 						adviceContext.selectedFrame = selectedFramePayload
+					}
+					if (selectedFrameImage) {
+						adviceContext.selectedFrameImage = selectedFrameImage
 					}
 					setAdviceContext(adviceContext)
 					setAdvisorTargetHiveID(hiveContext.hiveId)
 
 				const payloadOverview = {
-					scope: frameRouteContext ? 'hive-frame-context' : 'hive-context',
+					scope: hasFrameSideContext ? 'hive-frame-context' : 'hive-context',
 					selection: frameRouteContext || null,
 						counts: {
 							boxes: boxes.length,
@@ -941,13 +1038,21 @@ export default function AIAdvisorDrawer() {
 						),
 					},
 					selectedFrame: selectedFramePayload,
-					metricsSummary: {
-						weightPoints: metricsResult?.data?.weightKg?.metrics?.length || 0,
-						temperaturePoints: metricsResult?.data?.temperatureCelsius?.metrics?.length || 0,
-						entrancePoints: metricsResult?.data?.entranceMovement?.metrics?.length || 0,
-					},
-					contextPreview: pruneForPreview(adviceContext),
-				}
+						metricsSummary: {
+							weightPoints: metricsResult?.data?.weightKg?.metrics?.length || 0,
+							temperaturePoints: metricsResult?.data?.temperatureCelsius?.metrics?.length || 0,
+							entrancePoints: metricsResult?.data?.entranceMovement?.metrics?.length || 0,
+						},
+						selectedFrameImage: selectedFrameImage
+							? {
+								frameSideId: selectedFrameImage.frameSideId,
+								optimizedUrl: selectedFrameImage.optimizedUrl,
+								optimizedMaxDimensionPx: selectedFrameImage.optimizedMaxDimensionPx,
+								source: selectedFrameImage.source,
+							}
+							: null,
+						contextPreview: pruneForPreview(adviceContext),
+					}
 
 				addMessage({
 					id: buildId('payload'),
@@ -972,6 +1077,7 @@ export default function AIAdvisorDrawer() {
 				if (runRef.current !== runId) return
 
 				const adviceHtml = response?.data?.generateHiveAdvice
+				const responseErrorMessage = response?.error?.message
 				if (adviceHtml) {
 					removeMessage(pendingReplyId)
 					addMessage({ id: buildId('reply'), role: 'assistant', html: adviceHtml })
@@ -980,7 +1086,7 @@ export default function AIAdvisorDrawer() {
 					addMessage({
 						id: buildId('reply'),
 						role: 'error',
-						text: summaryUnavailableMessage,
+						text: responseErrorMessage || summaryUnavailableMessage,
 					})
 				}
 			} catch (error) {
@@ -1055,6 +1161,7 @@ export default function AIAdvisorDrawer() {
 			})
 
 			const adviceHtml = response?.data?.generateHiveAdvice
+			const responseErrorMessage = response?.error?.message
 			if (adviceHtml) {
 				removeMessage(pendingReplyId)
 				addMessage({ id: buildId('reply'), role: 'assistant', html: adviceHtml })
@@ -1063,7 +1170,7 @@ export default function AIAdvisorDrawer() {
 				addMessage({
 					id: buildId('reply'),
 					role: 'error',
-					text: summaryUnavailableMessage,
+					text: responseErrorMessage || summaryUnavailableMessage,
 				})
 			}
 		} catch (error) {

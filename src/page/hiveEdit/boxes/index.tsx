@@ -64,24 +64,22 @@ export default function Boxes({
 	}
 
 	function onBoxClick({ event, boxId }) {
-		// whitelist boxes that can be clicked on
-		// so that we don't redirect when clicking on the background div
-		if (
-			typeof event.target.className === 'string' &&
-			event.target.className.length > 0 &&
-			(event.target.className.indexOf('ventilation') >= 0 ||
-				event.target.className.indexOf('excluder') >= 0 ||
-				event.target.className.indexOf('feeder') >= 0 ||
-				event.target.className.indexOf('box') >= 0 ||
-				event.target.className.indexOf('gate') >= 0 ||
-				event.target.className.indexOf('bottom') >= 0 ||
-				event.target.className.indexOf('roof') >= 0)
-		) {
-			event.stopPropagation()
-			navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`, {
-				replace: true,
-			})
-		}
+		const target = event.target
+		if (!(target instanceof Element)) return
+
+		// Only react to clicks inside a hive section container.
+		if (!target.closest('.boxOuterClick')) return
+
+		// Frame click should keep frame navigation and must not be replaced by section navigation.
+		if (target.closest('[data-frame-clickable="true"]')) return
+
+		// Ignore explicit interactive controls.
+		if (target.closest('button, a, input, select, textarea, [role="button"]')) return
+
+		event.stopPropagation()
+		navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`, {
+			replace: true,
+		})
 	}
 
 	return (

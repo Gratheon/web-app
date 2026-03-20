@@ -64,7 +64,7 @@ export default function BoxFrame({
 		if (frame.type === 'FOUNDATION' || frame.type === 'EMPTY_COMB') {
 			return (
 				// Added wrapper for relative positioning of overlay and indicator
-				<div className={styles.listFrameIconWrapper}>
+				<div className={styles.listFrameIconWrapper} data-frame-clickable="true">
 					<div className={styles.listFrameIcon}>
 						<FrameSideImage
 							frameSideId={frame.leftId}
@@ -159,6 +159,7 @@ export default function BoxFrame({
 		// Added wrapper for relative positioning
 		<div
 			className={`${styles.frameWrapper} ${selectedFrame && styles.frameSelected}`}
+			data-frame-clickable="true"
 			{...dragDropProps}
 		>
 			<div className={styles.frame}>

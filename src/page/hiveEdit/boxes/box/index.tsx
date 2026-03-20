@@ -8,11 +8,7 @@ import ErrorMessage from '@/shared/messageError'
 import Loader from '@/shared/loader'
 import { useTranslation as t } from '@/shared/translate'
 
-import {
-	Frame as FrameType,
-	getFrames,
-	updateFrame,
-} from '@/models/frames'
+import { Frame as FrameType, getFrames, updateFrame } from '@/models/frames'
 import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
 import { enrichFramesWithSides } from '@/models/frameSide'
 import { enrichFramesWithSideFiles } from '@/models/frameSideFile'
@@ -33,6 +29,11 @@ const BOX_SLOT_CAPACITY: Record<string, number> = {
 	SUPER: 10,
 	LARGE_HORIZONTAL_SECTION: 25,
 }
+const SLOT_WIDTH_PX = 38
+const SLOT_MARGIN_PX = 1
+const SLOT_STEP_PX = SLOT_WIDTH_PX + SLOT_MARGIN_PX * 2
+const VISUAL_INDICATOR_OFFSET_PX = 6
+const LIST_INDICATOR_OFFSET_PX = 15
 
 type BoxType = {
 	box: any
@@ -119,11 +120,13 @@ export default function Box({
 	const frames = useLiveQuery(
 		async () => {
 			const framesWithoutSides = await getFrames({ boxId: box.id })
-			if (!framesWithoutSides) return null;
+			if (!framesWithoutSides) return null
 			const framesWithoutCells = await enrichFramesWithSides(framesWithoutSides)
-			if (!framesWithoutCells) return null;
-			const framesWithoutFiles = await enrichFramesWithSideCells(framesWithoutCells)
-			if (!framesWithoutFiles) return null;
+			if (!framesWithoutCells) return null
+			const framesWithoutFiles = await enrichFramesWithSideCells(
+				framesWithoutCells
+			)
+			if (!framesWithoutFiles) return null
 			return await enrichFramesWithSideFiles(framesWithoutFiles)
 		},
 		[box.id],
@@ -154,41 +157,75 @@ export default function Box({
 		return <Loader />
 	}
 
-	// Calculate edge and adjacent bee counts and overall max count
-	let firstFrameLeftBees = 0;
-	let lastFrameRightBees = 0;
-	const adjacentBeeCounts: number[] = [];
-	let maxBeeCount = 0; // Renamed from maxAdjacentBeeCount and includes edges
+	const safeFrames = Array.isArray(frames) ? frames : []
+	const positionedFrames = safeFrames
+		.map((frame) => ({
+			frame,
+			slotIndex: Math.max(0, +(frame?.position || 1) - 1),
+		}))
+		.sort((a, b) => a.slotIndex - b.slotIndex)
+	const firstOccupiedSlotIndex = positionedFrames.length
+		? positionedFrames[0].slotIndex
+		: 0
+	const slotRenderStartIndex =
+		box.type === 'LARGE_HORIZONTAL_SECTION'
+			? Math.max(0, firstOccupiedSlotIndex - 1)
+			: 0
 
-	if (frames && frames.length > 0) {
-		// Calculate left edge count
-		firstFrameLeftBees = (frames[0].leftSide?.frameSideFile?.detectedWorkerBeeCount || 0) + (frames[0].leftSide?.frameSideFile?.detectedDroneCount || 0);
-		maxBeeCount = Math.max(maxBeeCount, firstFrameLeftBees);
-
-		// Calculate adjacent counts
-		if (frames.length > 1) {
-			for (let i = 0; i < frames.length - 1; i++) {
-				const rightSideBees = (frames[i].rightSide?.frameSideFile?.detectedWorkerBeeCount || 0) + (frames[i].rightSide?.frameSideFile?.detectedDroneCount || 0);
-				const leftSideBees = (frames[i + 1].leftSide?.frameSideFile?.detectedWorkerBeeCount || 0) + (frames[i + 1].leftSide?.frameSideFile?.detectedDroneCount || 0);
-				const totalAdjacentBees = rightSideBees + leftSideBees;
-				adjacentBeeCounts.push(totalAdjacentBees);
-				maxBeeCount = Math.max(maxBeeCount, totalAdjacentBees);
-			}
-
-			// Calculate right edge count (only if more than one frame)
-			const lastFrameIndex = frames.length - 1;
-			lastFrameRightBees = (frames[lastFrameIndex].rightSide?.frameSideFile?.detectedWorkerBeeCount || 0) + (frames[lastFrameIndex].rightSide?.frameSideFile?.detectedDroneCount || 0);
-			maxBeeCount = Math.max(maxBeeCount, lastFrameRightBees);
-		} else {
-			// If only one frame, the right edge is the same as the left edge calculation's frame
-			lastFrameRightBees = (frames[0].rightSide?.frameSideFile?.detectedWorkerBeeCount || 0) + (frames[0].rightSide?.frameSideFile?.detectedDroneCount || 0);
-			maxBeeCount = Math.max(maxBeeCount, lastFrameRightBees);
-		}
+	function getBeeCountForSide(frameSide: any): number {
+		return (
+			(frameSide?.frameSideFile?.detectedWorkerBeeCount || 0) +
+			(frameSide?.frameSideFile?.detectedDroneCount || 0)
+		)
 	}
 
+	const boundaryIndicatorMap = new Map<number, number>()
+	for (const { frame, slotIndex } of positionedFrames) {
+		const leftBoundary = slotIndex
+		const rightBoundary = slotIndex + 1
+		const leftCount = getBeeCountForSide(frame?.leftSide)
+		const rightCount = getBeeCountForSide(frame?.rightSide)
+		boundaryIndicatorMap.set(
+			leftBoundary,
+			(boundaryIndicatorMap.get(leftBoundary) || 0) + leftCount
+		)
+		boundaryIndicatorMap.set(
+			rightBoundary,
+			(boundaryIndicatorMap.get(rightBoundary) || 0) + rightCount
+		)
+	}
+
+	const boundaryIndicators: Array<{
+		key: string
+		count: number
+		boundarySlotIndex: number
+	}> = [...boundaryIndicatorMap.entries()]
+		.map(([boundarySlotIndex, count]) => ({
+			key: `boundary-${boundarySlotIndex}`,
+			count,
+			boundarySlotIndex,
+		}))
+		.sort((a, b) => a.boundarySlotIndex - b.boundarySlotIndex)
+
+	const maxBeeCount = Math.max(
+		...boundaryIndicators.map((indicator) => indicator.count),
+		0
+	)
+
+	function getIndicatorLeft(
+		boundarySlotIndex: number,
+		mode: 'visual' | 'list'
+	): number {
+		const offset =
+			mode === 'visual' ? VISUAL_INDICATOR_OFFSET_PX : LIST_INDICATOR_OFFSET_PX
+		return (boundarySlotIndex - slotRenderStartIndex) * SLOT_STEP_PX + offset
+	}
 
 	let framesWrapped: any = framesDiv
-	let onNativeDragStart = (event: React.DragEvent<HTMLDivElement>, payload: any) => {}
+	let onNativeDragStart = (
+		event: React.DragEvent<HTMLDivElement>,
+		payload: any
+	) => {}
 	let onNativeDragEnd = () => {}
 	let onNativeDragOver = (event: React.DragEvent<HTMLDivElement>) => {}
 	let onNativeDropAtIndex = async (
@@ -222,24 +259,28 @@ export default function Box({
 			await Promise.all(framesByBox.flat().map((frame) => updateFrame(frame)))
 
 			const frames = framesByBox.flat().map((v: FrameType) => {
-					const r: any = {
-						...v,
-					}
-					r.position = Number.isFinite(+r.position) && +r.position > 0 ? +r.position : 1
-					delete r.rightId
-					delete r.leftId
-					delete r.leftSide
-					delete r.rightSide
-					delete r.__typename
-					return r
-				})
+				const r: any = {
+					...v,
+				}
+				r.position =
+					Number.isFinite(+r.position) && +r.position > 0 ? +r.position : 1
+				delete r.rightId
+				delete r.leftId
+				delete r.leftSide
+				delete r.rightSide
+				delete r.__typename
+				return r
+			})
 
 			await updateFramesRemote({ frames })
 		}
 
 		function getSlotCapacity(boxType: string, boxFrames: any[]): number {
 			const base = BOX_SLOT_CAPACITY[boxType] || 10
-			const maxPosition = boxFrames.reduce((max, frame) => Math.max(max, +(frame?.position || 0)), 0)
+			const maxPosition = boxFrames.reduce(
+				(max, frame) => Math.max(max, +(frame?.position || 0)),
+				0
+			)
 			return Math.max(base, maxPosition)
 		}
 
@@ -263,7 +304,11 @@ export default function Box({
 			return frame
 		}
 
-		function placeFrameWithRightShift(slots: (any | null)[], frame: any, targetIndex: number): boolean {
+		function placeFrameWithRightShift(
+			slots: (any | null)[],
+			frame: any,
+			targetIndex: number
+		): boolean {
 			if (targetIndex < 0 || targetIndex >= slots.length) {
 				return false
 			}
@@ -336,7 +381,9 @@ export default function Box({
 			const targetCapacity = getSlotCapacity(box.type, targetFrames)
 			const sourceSlots = toSlots(sourceFrames, sourceCapacity)
 			const targetSlots =
-				sourceBoxId === targetBoxId ? sourceSlots : toSlots(targetFrames, targetCapacity)
+				sourceBoxId === targetBoxId
+					? sourceSlots
+					: toSlots(targetFrames, targetCapacity)
 
 			let movingFrame = sourceSlots[sourceIndex]
 			if (!movingFrame) {
@@ -349,24 +396,33 @@ export default function Box({
 				return
 			}
 
-			const safeTargetIndex = Math.max(0, Math.min(targetIndex, targetSlots.length - 1))
-			const placed = placeFrameWithRightShift(targetSlots, movingFrame, safeTargetIndex)
+			const safeTargetIndex = Math.max(
+				0,
+				Math.min(targetIndex, targetSlots.length - 1)
+			)
+			const placed = placeFrameWithRightShift(
+				targetSlots,
+				movingFrame,
+				safeTargetIndex
+			)
 			if (!placed) {
 				// No free slot to the right in the target section.
 				return
 			}
 
-			const sourceUpdated = assignPositionsFromSlots(sourceSlots).map((frame) => ({
-				...frame,
-				boxId: +sourceBoxId,
-			}))
+			const sourceUpdated = assignPositionsFromSlots(sourceSlots).map(
+				(frame) => ({
+					...frame,
+					boxId: +sourceBoxId,
+				})
+			)
 			const targetUpdated =
 				sourceBoxId === targetBoxId
 					? sourceUpdated
 					: assignPositionsFromSlots(targetSlots).map((frame) => ({
-						...frame,
-						boxId: +targetBoxId,
-					}))
+							...frame,
+							boxId: +targetBoxId,
+					  }))
 
 			await persistFrames(
 				sourceBoxId === targetBoxId
@@ -520,7 +576,8 @@ export default function Box({
 
 	if (frames && frames.length > 0) {
 		const isListDragMode = editable && displayMode === 'list'
-		const isCompatibleDrag = isListDragMode && activeFrameDragPayload?.boxType === box.type
+		const isCompatibleDrag =
+			isListDragMode && activeFrameDragPayload?.boxType === box.type
 		const shouldShowSlots = Boolean(activeFrameDragPayload) && isCompatibleDrag
 		const slotCapacity = Math.max(
 			BOX_SLOT_CAPACITY[box.type] || 10,
@@ -529,22 +586,22 @@ export default function Box({
 		const frameBySlot = new Map<number, any>()
 		for (const frame of frames) {
 			const slotIndex = +frame.position - 1
-			if (slotIndex >= 0 && slotIndex < slotCapacity && !frameBySlot.has(slotIndex)) {
+			if (
+				slotIndex >= 0 &&
+				slotIndex < slotCapacity &&
+				!frameBySlot.has(slotIndex)
+			) {
 				frameBySlot.set(slotIndex, frame)
 			}
 		}
-		const occupiedSlotIndexes = [...frameBySlot.keys()].sort((a, b) => a - b)
-		const firstOccupiedIndex = occupiedSlotIndexes.length ? occupiedSlotIndexes[0] : 0
-		const listSlotStart =
-			box.type === 'LARGE_HORIZONTAL_SECTION'
-				? Math.max(0, firstOccupiedIndex - 1)
-				: 0
+		const listSlotStart = slotRenderStartIndex
 		const listSlotEnd = slotCapacity - 1
 
 		for (let i = listSlotStart; i <= listSlotEnd; i++) {
 			const frame = frameBySlot.get(i)
 			const isEmptySlot = !frame
-			const isFrameDragged = !isEmptySlot && activeFrameDragPayload?.frameId === frame.id
+			const isFrameDragged =
+				!isEmptySlot && activeFrameDragPayload?.frameId === frame.id
 
 			const slotIsHovered = dragHoverIndex === i
 			framesDiv.push(
@@ -561,19 +618,20 @@ export default function Box({
 					}}
 					style={{
 						display: 'inline-block',
-						width: 38,
+						width: SLOT_WIDTH_PX,
 						height: '100%',
 						verticalAlign: 'top',
-						marginLeft: 1,
-						marginRight: 1,
+						marginLeft: SLOT_MARGIN_PX,
+						marginRight: SLOT_MARGIN_PX,
 						boxSizing: 'border-box',
 						border: shouldShowSlots
 							? '2px dashed rgba(255,255,255,0.45)'
 							: '2px dashed transparent',
 						borderRadius: 4,
-						background: shouldShowSlots && slotIsHovered
-							? 'rgba(255,255,255,0.14)'
-							: 'transparent',
+						background:
+							shouldShowSlots && slotIsHovered
+								? 'rgba(255,255,255,0.14)'
+								: 'transparent',
 						transition: 'background-color 120ms ease, border-color 120ms ease',
 					}}
 				>
@@ -593,22 +651,22 @@ export default function Box({
 							dragDropProps={
 								isListDragMode
 									? {
-										draggable: true,
-										onDragStart: (event: React.DragEvent<HTMLDivElement>) =>
-											onNativeDragStart(event, {
-												boxId: box.id,
-												boxType: box.type,
-												index: i,
-												frameId: frame.id,
-											}),
-										onDragEnd: onNativeDragEnd,
-										style: isFrameDragged
-											? {
-												opacity: 0.45,
-												transform: 'scale(0.98)',
-											}
-											: undefined,
-									}
+											draggable: true,
+											onDragStart: (event: React.DragEvent<HTMLDivElement>) =>
+												onNativeDragStart(event, {
+													boxId: box.id,
+													boxType: box.type,
+													index: i,
+													frameId: frame.id,
+												}),
+											onDragEnd: onNativeDragEnd,
+											style: isFrameDragged
+												? {
+														opacity: 0.45,
+														transform: 'scale(0.98)',
+												  }
+												: undefined,
+									  }
 									: undefined
 							}
 						/>
@@ -640,140 +698,63 @@ export default function Box({
 		}
 	}
 
-
 	if (displayMode == 'visual') {
 		return (
 			<>
 				<ErrorMessage error={error} />
-				<div 
+				<div
 					className={`${styles.boxOuter} ${selected && styles.selected}`}
-					style={maxWidthStyle}>
+					style={maxWidthStyle}
+				>
 					<div className={styles.boxInnerVisual}>
 						{!frames && <Loader size={1} />}
 						{framesDiv}
-					</div>
-					{/* New Indicator Layer */}
-					<div className={styles.indicatorLayer}>
-						{/* Render First Frame Left Indicator */}
-						{firstFrameLeftBees > 0 && (
-							<div
-								key="indicator-line-left-edge"
-								className={styles.betweenFrameIndicator}
-								style={{ left: '1px' }} // Position before the first frame
-							>
-								<div
-									className={styles.indicatorLine}
-									style={{ height: `${maxBeeCount > 0 ? Math.min(100, (firstFrameLeftBees / maxBeeCount) * 100) : 0}%` }}
-								/>
-							</div>
-						)}
-						{/* Render Between-Frame Indicator Lines */}
-						{adjacentBeeCounts.map((count, index) => {
-							if (count <= 0) return null;
-							// Use maxBeeCount for scaling
-							const indicatorHeightPercent = maxBeeCount > 0 ? Math.min(100, (count / maxBeeCount) * 100) : 0;
-							const visualFrameTotalWidth = 116; // 100 width + 4 padding + 12 margin
-							const leftPosition = (index + 1) * visualFrameTotalWidth + 1; // Center + 3px shift
-
+						<div className={styles.indicatorLayer}>
+							{boundaryIndicators.map((indicator) => {
+								if (indicator.count <= 0) return null
+								const leftPosition = getIndicatorLeft(
+									indicator.boundarySlotIndex,
+									'visual'
+								)
+								const indicatorHeightPercent =
+									maxBeeCount > 0
+										? Math.min(100, (indicator.count / maxBeeCount) * 100)
+										: 0
+								return (
+									<div
+										key={`indicator-line-${indicator.key}`}
+										className={styles.betweenFrameIndicator}
+										style={{ left: `${leftPosition}px` }}
+									>
+										<div
+											className={styles.indicatorLine}
+											style={{ height: `${indicatorHeightPercent}%` }}
+										/>
+									</div>
+								)
+							})}
+						</div>
+						{boundaryIndicators.map((indicator) => {
+							if (indicator.count <= 0) return null
+							const leftPosition = getIndicatorLeft(
+								indicator.boundarySlotIndex,
+								'visual'
+							)
 							return (
 								<div
-									key={`indicator-line-${index}`}
-									className={styles.betweenFrameIndicator}
+									key={`indicator-count-${indicator.key}`}
+									className={styles.indicatorCount}
 									style={{ left: `${leftPosition}px` }}
 								>
-									<div
-										className={styles.indicatorLine}
-										style={{ height: `${indicatorHeightPercent}%` }}
-									/>
+									{indicator.count}
 								</div>
-							);
+							)
 						})}
-						{/* Render Last Frame Right Indicator */}
-						{lastFrameRightBees > 0 && frames && frames.length > 0 && (
-							<div
-								key="indicator-line-right-edge"
-								className={styles.betweenFrameIndicator}
-								// Position after the last frame
-								style={{ left: `${frames.length * 116 + 1}px` }}
-							>
-								<div
-									className={styles.indicatorLine}
-									style={{ height: `${maxBeeCount > 0 ? Math.min(100, (lastFrameRightBees / maxBeeCount) * 100) : 0}%` }}
-								/>
-							</div>
-						)}
 					</div>
-					{/* Render Indicator Counts (Moved outside indicatorLayer AND boxInnerVisual for z-index) */}
-					{/* Render First Frame Left Count */}
-					{firstFrameLeftBees > 0 && (
-						<div
-							key="indicator-count-left-edge"
-							className={styles.indicatorCount}
-							style={{ left: '1px' }} // Use calculated center; transform handles centering
-						>
-							{firstFrameLeftBees}
-						</div>
-					)}
-					{/* Render Between-Frame Counts */}
-					{adjacentBeeCounts.map((count, index) => {
-						if (count <= 0) return null;
-						const visualFrameTotalWidth = 116;
-						const leftPosition = (index + 1) * visualFrameTotalWidth + 1; // Center + 3px shift
-
-						// Position count directly within the boxOuter
-							return (
-								<div
-									key={`indicator-count-${index}`}
-									className={styles.indicatorCount}
-									style={{ left: `${leftPosition}px` }} // Use calculated center; transform handles centering
-								>
-									{count}
-								</div>
-						);
-					})}
-					{/* Render Last Frame Right Count */}
-					{lastFrameRightBees > 0 && frames && frames.length > 0 && (
-						<div
-							key="indicator-count-right-edge"
-							className={styles.indicatorCount}
-							style={{ left: `${frames.length * 116 + 1}px` }} // Use calculated center; transform handles centering
-						>
-							{lastFrameRightBees}
-						</div>
-					)}
 				</div>
 			</>
 		)
 	}
-
-	// --- Non-Visual Mode ---
-	// Calculate edge counts and max count for non-visual mode
-	let firstFrameLeftBeesList = 0;
-	let lastFrameRightBeesList = 0;
-	const adjacentBeeCountsList: number[] = [];
-	let maxBeeCountList = 0;
-
-	if (frames && frames.length > 0) {
-		firstFrameLeftBeesList = (frames[0].leftSide?.frameSideFile?.detectedWorkerBeeCount || 0) + (frames[0].leftSide?.frameSideFile?.detectedDroneCount || 0);
-		maxBeeCountList = Math.max(maxBeeCountList, firstFrameLeftBeesList);
-
-		if (frames.length > 1) {
-			for (let i = 0; i < frames.length - 1; i++) {
-				const rightSideBees = (frames[i].rightSide?.frameSideFile?.detectedWorkerBeeCount || 0) + (frames[i].rightSide?.frameSideFile?.detectedDroneCount || 0);
-				const leftSideBees = (frames[i + 1].leftSide?.frameSideFile?.detectedWorkerBeeCount || 0) + (frames[i + 1].leftSide?.frameSideFile?.detectedDroneCount || 0);
-				const totalAdjacentBees = rightSideBees + leftSideBees;
-				adjacentBeeCountsList.push(totalAdjacentBees);
-				maxBeeCountList = Math.max(maxBeeCountList, totalAdjacentBees);
-			}
-			const lastFrameIndex = frames.length - 1;
-			lastFrameRightBeesList = (frames[lastFrameIndex].rightSide?.frameSideFile?.detectedWorkerBeeCount || 0) + (frames[lastFrameIndex].rightSide?.frameSideFile?.detectedDroneCount || 0);
-			maxBeeCountList = Math.max(maxBeeCountList, lastFrameRightBeesList);
-		} else {
-			lastFrameRightBeesList = (frames[0].rightSide?.frameSideFile?.detectedWorkerBeeCount || 0) + (frames[0].rightSide?.frameSideFile?.detectedDroneCount || 0);
-			maxBeeCountList = Math.max(maxBeeCountList, lastFrameRightBeesList);
-		}
-	}
-
 
 	return (
 		<>
@@ -784,62 +765,36 @@ export default function Box({
 				}`}
 				style={maxWidthStyle}
 			>
-				<div className={styles.boxInner} {...boxInnerDragProps}>
-					{!frames && <Loader size={1} />}
-					{framesWrapped}
-				</div>
-				{/* New Indicator Layer for non-visual modes */}
-				<div className={styles.indicatorLayer}>
-					{/* Render First Frame Left Indicator (List Mode) */}
-					{firstFrameLeftBeesList > 0 && (
-						<div
-							key="indicator-line-left-edge-list"
-							className={styles.betweenFrameIndicator}
-							style={{ left: '3px' }} // Adjust position for list mode
-						>
-							<div
-								className={styles.indicatorLine}
-								style={{ height: `${maxBeeCountList > 0 ? Math.min(100, (firstFrameLeftBeesList / maxBeeCountList) * 100) : 0}%` }}
-							/>
-						</div>
-					)}
-					{/* Render Between-Frame Indicator Lines (List Mode) */}
-					{adjacentBeeCountsList.map((count, index) => {
-						if (count <= 0) return null;
-						// Use maxBeeCountList for scaling
-						const indicatorHeightPercent = maxBeeCountList > 0 ? Math.min(100, (count / maxBeeCountList) * 100) : 0;
-						const listFrameTotalWidth = 38;
-						const leftPosition = (index + 1) * listFrameTotalWidth + 3;
-
-						return (
-							<div
-								key={`indicator-line-${index}`}
-								className={styles.betweenFrameIndicator}
-								style={{ left: `${leftPosition}px` }}
-							>
+					<div className={styles.boxInner} {...boxInnerDragProps}>
+						{!frames && <Loader size={1} />}
+						{framesWrapped}
+						<div className={styles.indicatorLayer}>
+							{boundaryIndicators.map((indicator) => {
+								if (indicator.count <= 0) return null
+								const leftPosition = getIndicatorLeft(
+									indicator.boundarySlotIndex,
+								'list'
+							)
+							const indicatorHeightPercent =
+								maxBeeCount > 0
+									? Math.min(100, (indicator.count / maxBeeCount) * 100)
+									: 0
+							return (
 								<div
-									className={styles.indicatorLine}
-									style={{ height: `${indicatorHeightPercent}%` }}
-								/>
-							</div>
-						);
-					})}
-					{/* Render Last Frame Right Indicator (List Mode) */}
-					{lastFrameRightBeesList > 0 && frames && frames.length > 0 && (
-						<div
-							key="indicator-line-right-edge-list"
-							className={styles.betweenFrameIndicator}
-							// Position after the last frame in list mode
-							style={{ left: `${frames.length * 38 + 3}px` }}
-						>
-							<div
-								className={styles.indicatorLine}
-								style={{ height: `${maxBeeCountList > 0 ? Math.min(100, (lastFrameRightBeesList / maxBeeCountList) * 100) : 0}%` }}
-							/>
+									key={`indicator-line-list-${indicator.key}`}
+									className={styles.betweenFrameIndicator}
+									style={{ left: `${leftPosition}px` }}
+								>
+									<div
+										className={styles.indicatorLine}
+										style={{ height: `${indicatorHeightPercent}%` }}
+										/>
+									</div>
+								)
+							})}
 						</div>
-					)}
+					</div>
 				</div>
-			</div>
 		</>
 	)
 }

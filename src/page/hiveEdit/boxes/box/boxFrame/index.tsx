@@ -1,12 +1,12 @@
 import { useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 
-import { Box } from '@/models/boxes.ts';
-import { Frame } from '@/models/frames.ts';
-import { enrichFramesWithSides } from '@/models/frameSide.ts';
-import { getDominantResourceColorForFrameSide } from '@/models/frameSideCells.ts'; // Import new function
+import { Box } from '@/models/boxes.ts'
+import { Frame } from '@/models/frames.ts'
+import { enrichFramesWithSides } from '@/models/frameSide.ts'
+import { getDominantResourceColorForFrameSide } from '@/models/frameSideCells.ts' // Import new function
 
-import styles from './index.module.less';
+import styles from './index.module.less'
 import FrameSideImage from './frameSideImage'
 import BoxFrameEmptyComb from './boxFrameEmptyComb'
 
@@ -50,21 +50,28 @@ export default function BoxFrame({
 	const leftDominantColor = useLiveQuery(
 		() => getDominantResourceColorForFrameSide(frame.leftId),
 		[frame.leftId] // Re-run query if leftId changes
-	);
+	)
 	const rightDominantColor = useLiveQuery(
 		() => getDominantResourceColorForFrameSide(frame.rightId),
 		[frame.rightId] // Re-run query if rightId changes
-	);
+	)
 
 	// Find the specific data for left and right sides from the passed array
-	const leftSideData = frameSidesData?.find(fs => +fs.frameSideId === +frame.leftId);
-	const rightSideData = frameSidesData?.find(fs => +fs.frameSideId === +frame.rightId);
+	const leftSideData = frameSidesData?.find(
+		(fs) => +fs.frameSideId === +frame.leftId
+	)
+	const rightSideData = frameSidesData?.find(
+		(fs) => +fs.frameSideId === +frame.rightId
+	)
 
 	if (displayMode == 'visual') {
 		if (frame.type === 'FOUNDATION' || frame.type === 'EMPTY_COMB') {
 			return (
 				// Added wrapper for relative positioning of overlay and indicator
-				<div className={styles.listFrameIconWrapper} data-frame-clickable="true">
+				<div
+					className={styles.listFrameIconWrapper}
+					data-frame-clickable="true"
+				>
 					<div className={styles.listFrameIcon}>
 						<FrameSideImage
 							frameSideId={frame.leftId}
@@ -158,13 +165,13 @@ export default function BoxFrame({
 	return (
 		// Added wrapper for relative positioning
 		<div
-			className={`${styles.frameWrapper} ${selectedFrame && styles.frameSelected}`}
+			className={`${styles.frameWrapper} ${
+				selectedFrame && styles.frameSelected
+			}`}
 			data-frame-clickable="true"
 			{...dragDropProps}
 		>
-			<div className={styles.frame}>
-				{frameInternal}
-			</div>
+			<div className={styles.frame}>{frameInternal}</div>
 		</div>
 	)
 }

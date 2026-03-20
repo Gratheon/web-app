@@ -47,7 +47,11 @@ export default function Boxes({
 	let navigate = useNavigate()
 
 	// Model function getBoxes now handles invalid IDs
-	const boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId], false);
+	const boxes = useLiveQuery(
+		() => getBoxes({ hiveId: +hiveId }),
+		[hiveId],
+		false
+	)
 
 	if (boxes === false) {
 		return <Loader />
@@ -74,7 +78,8 @@ export default function Boxes({
 		if (target.closest('[data-frame-clickable="true"]')) return
 
 		// Ignore explicit interactive controls.
-		if (target.closest('button, a, input, select, textarea, [role="button"]')) return
+		if (target.closest('button, a, input, select, textarea, [role="button"]'))
+			return
 
 		event.stopPropagation()
 		navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}`, {

@@ -300,6 +300,8 @@ export default function HiveEditForm() {
 		boxId,
 		frameId
 	)
+	const isHorizontalHive = String(hive?.hiveType || '').toUpperCase() === 'HORIZONTAL'
+	const useHorizontalStructureLayout = isHorizontalHive && mapTab === 'structure'
 
 	function onBoxClose(event) {
 		event.stopPropagation()
@@ -366,7 +368,11 @@ export default function HiveEditForm() {
 				</TabBar>
 			</div>
 
-			<div className={styles.boxesFrameWrap}>
+			<div
+				className={`${styles.boxesFrameWrap} ${
+					useHorizontalStructureLayout ? styles.horizontalStructureLayout : ''
+				}`}
+			>
 				{mapTab === 'structure' && (
 					<div className={styles.boxesWrap}>
 						<Boxes

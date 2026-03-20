@@ -620,13 +620,25 @@ export default function Box({
 
 	framesWrapped = framesDiv
 
-	// visually limit the width of the box to 12 frames
-	let maxWidthStyle ={}
-		if(frames.length> 10){
-			maxWidthStyle = {
-				maxWidth: 32 * 12 + 10
-			}
+	// Keep vertical sections compact, but allow horizontal sections to fit full slot capacity.
+	let maxWidthStyle: any = {}
+	if (box.type === 'LARGE_HORIZONTAL_SECTION') {
+		const slotCapacity = Math.max(
+			BOX_SLOT_CAPACITY[box.type] || 25,
+			(frames || []).reduce(
+				(max, frame) => Math.max(max, +(frame?.position || 0)),
+				0
+			)
+		)
+		maxWidthStyle = {
+			minWidth: slotCapacity * 40 + 28,
+			maxWidth: 'none',
 		}
+	} else if (frames.length > 10) {
+		maxWidthStyle = {
+			maxWidth: 32 * 12 + 10,
+		}
+	}
 
 
 	if (displayMode == 'visual') {

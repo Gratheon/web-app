@@ -43,6 +43,10 @@
 		display: flex;
 	}
 
+	.horizontalStructureLayout {
+		flex-direction: column;
+	}
+
 	.boxesWrap {
 		padding-right: 5px;
 		// overflow: hidden;
@@ -57,11 +61,23 @@
 		flex-grow: 1;
 	}
 
+	.horizontalStructureLayout .frameWrap {
+		margin-top: 12px;
+		border-radius: 5px;
+	}
+
 	.logsWrap {
 		margin-top: 0;
 		margin-left: 4px;
 		width: min(560px, 40vw);
 		min-width: 420px;
 		flex-shrink: 0;
+	}
+
+	.horizontalStructureLayout .logsWrap {
+		margin-top: 12px;
+		margin-left: 0;
+		width: 100%;
+		min-width: 0;
 	}
 }

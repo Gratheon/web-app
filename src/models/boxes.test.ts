@@ -384,6 +384,7 @@ describe('Boxes Model', () => {
             hiveId: newBox.hiveId,
             position: newBox.position,
             type: newBox.type,
+            holeCount: undefined,
         });
     });
 
@@ -418,6 +419,7 @@ describe('Boxes Model', () => {
             color: updatedBox.color,
             position: updatedBox.position,
             type: updatedBox.type,
+            holeCount: undefined,
         });
     });
 
@@ -437,6 +439,7 @@ describe('Boxes Model', () => {
             color: undefined, // Should be undefined
             position: updatedBox.position,
             type: updatedBox.type,
+            holeCount: undefined,
         });
     });
 

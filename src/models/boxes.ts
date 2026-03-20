@@ -6,6 +6,7 @@ export type Box = {
 	type: string
 	position: number
 	color?: string
+	holeCount?: number
 
 	hiveId?: number //reference
 	frames?: Frame[]
@@ -23,6 +24,19 @@ export const boxTypes = {
 	QUEEN_EXCLUDER: 'QUEEN_EXCLUDER',
 	HORIZONTAL_FEEDER: 'HORIZONTAL_FEEDER',
 	BOTTOM: 'BOTTOM',
+}
+
+export const GATE_HOLE_COUNT_MIN = 0
+export const GATE_HOLE_COUNT_MAX = 16
+export const GATE_HOLE_COUNT_DEFAULT = 8
+
+export function normalizeGateHoleCount(value: unknown): number {
+	const parsed = Number(value)
+	if (!Number.isFinite(parsed)) {
+		return GATE_HOLE_COUNT_DEFAULT
+	}
+	const rounded = Math.round(parsed)
+	return Math.max(GATE_HOLE_COUNT_MIN, Math.min(GATE_HOLE_COUNT_MAX, rounded))
 }
 
 const TABLE_NAME = 'box'
@@ -123,13 +137,17 @@ export async function addBox({
 	hiveId,
 	position,
 	type,
+	holeCount,
 }: Box) {
 	try {
+		const normalizedHoleCount =
+			type === boxTypes.GATE ? normalizeGateHoleCount(holeCount) : undefined
 		await db[TABLE_NAME].put({
 			id,
 			hiveId,
 			position,
 			type,
+			holeCount: normalizedHoleCount,
 		})
 	} catch (e) {
 		console.error(e)
@@ -143,14 +161,18 @@ export async function updateBox({
 	color,
 	position,
 	type,
+	holeCount,
 }: Box) {
 	try {
+		const normalizedHoleCount =
+			type === boxTypes.GATE ? normalizeGateHoleCount(holeCount) : undefined
 		await db[TABLE_NAME].put({
 			id,
 			hiveId,
 			color,
 			position,
 			type,
+			holeCount: normalizedHoleCount,
 		})
 	} catch (e) {
 		console.error(e)

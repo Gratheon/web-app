@@ -11,6 +11,7 @@ export default gql`
 				position
 				type
 				color
+				holeCount
 
 				frames {
 					__typename

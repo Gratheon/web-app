@@ -28,6 +28,7 @@ export default gql`
 				position
 				type
 				color
+				holeCount
 			}
 
 			parentHive {

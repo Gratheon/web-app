@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import style from './style.module.less';
 import beeURL from "@/assets/bee-side.png"
 import { gql, useQuery } from '@/api';
+import {
+	normalizeGateHoleCount,
+	GATE_HOLE_COUNT_MAX,
+} from '@/models/boxes';
 
 const Bee = ({ position, intervalMs = 3000 }) => {
 	const [left, setLeft] = useState(position);
@@ -52,6 +56,14 @@ export default function Gate({ hiveId, box, boxId }) {
 
 	let indicatorIn = null;
 	let indicatorOut = null;
+	const holeCount = normalizeGateHoleCount(box?.holeCount)
+	const halfSlots = GATE_HOLE_COUNT_MAX / 2
+	const slotStepPercent = 25 / halfSlots
+	const leftVisible = Math.floor(holeCount / 2)
+	const rightVisible = holeCount - leftVisible
+	const doorTravelLeftPercent = `${leftVisible * slotStepPercent}%`
+	const doorTravelRightPercent = `${rightVisible * slotStepPercent}%`
+	const holeGapPx = holeCount > 10 ? 2 : 3
 
 	if (beesIn > 0 && beesOut > 0) {
 		indicatorIn = '▲';
@@ -73,10 +85,6 @@ export default function Gate({ hiveId, box, boxId }) {
 			<div style="color:white;font-size:12px;font-weight:bold;margin-bottom:10px;">
 				{beesIn} {indicatorIn}
 			</div>
-
-			{[...Array(8)].map((_, index) => (
-				<div key={index} style="border:1px solid darkgrey;width:12px;height:12px;background:black;margin-right:12px;border-radius:5px 5px 0 0;"></div>
-			))}
 			<Bee key={1} position={40 + Math.random() * 10} intervalMs={4000 + (Math.random() * 3000)} />
 			<Bee key={2} position={40 + Math.random() * 10} intervalMs={3000 + (Math.random() * 3000)} />
 			<Bee key={3} position={40 + Math.random() * 10} intervalMs={4000 + (Math.random() * 3000)} />
@@ -84,6 +92,38 @@ export default function Gate({ hiveId, box, boxId }) {
 
 			<div style="color:white;font-size:12px;font-weight:bold;margin-bottom:10px;">
 				{indicatorOut} {beesOut}
+			</div>
+			<div
+				className={style.entranceViewport}
+				style={{
+					'--door-travel-left': doorTravelLeftPercent,
+					'--door-travel-right': doorTravelRightPercent,
+					'--hole-count': `${GATE_HOLE_COUNT_MAX}`,
+					'--hole-gap': `${holeGapPx}px`,
+				} as any}
+			>
+				<div className={style.entranceBase}></div>
+				<div className={style.entranceHoles}>
+					{[...Array(GATE_HOLE_COUNT_MAX)].map((_, index) => (
+						(() => {
+							const isLeftSide = index < halfSlots
+							const leftBoundary = halfSlots - leftVisible
+							const rightBoundary = halfSlots + rightVisible
+							const isVisible = isLeftSide
+								? index >= leftBoundary
+								: index < rightBoundary
+							return (
+						<span
+							key={index}
+							className={`${style.entranceHole} ${!isVisible ? style.entranceHoleHidden : ''}`}
+							title={`Entrance hole ${index + 1}`}
+						></span>
+							)
+						})()
+					))}
+				</div>
+				<div className={`${style.entranceDoor} ${style.entranceDoorLeft}`}></div>
+				<div className={`${style.entranceDoor} ${style.entranceDoorRight}`}></div>
 			</div>
 		</div>
 	);

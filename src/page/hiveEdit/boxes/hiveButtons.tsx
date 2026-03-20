@@ -6,7 +6,8 @@ import {
 	boxTypes,
 	addBox,
 	getBoxes,
-	removeBox
+	removeBox,
+	GATE_HOLE_COUNT_DEFAULT,
 } from '@/models/boxes'
 import T, { useTranslation as t } from '@/shared/translate'
 
@@ -78,10 +79,11 @@ export default function HiveButtons({
 	)
 
 	let [addBoxMutation, { error: errorAdd }] =
-		useMutation(`mutation addBox($hiveId: ID!, $position: Int!, $type: BoxType!) {
-	addBox(hiveId: $hiveId, position: $position, type: $type) {
+		useMutation(`mutation addBox($hiveId: ID!, $position: Int!, $type: BoxType!, $holeCount: Int) {
+	addBox(hiveId: $hiveId, position: $position, type: $type, holeCount: $holeCount) {
 		id
 		position
+		holeCount
 	}
 }
 `)
@@ -189,6 +191,7 @@ const [removingBox, setRemovingBox] = useState(false);
 			hiveId: +hiveId,
 			position,
 			type,
+			holeCount: type === boxTypes.GATE ? GATE_HOLE_COUNT_DEFAULT : null,
 		})
 
 		await addBox({
@@ -196,6 +199,7 @@ const [removingBox, setRemovingBox] = useState(false);
 			hiveId: +hiveId,
 			position,
 			type,
+			holeCount: type === boxTypes.GATE ? GATE_HOLE_COUNT_DEFAULT : undefined,
 		})
 		await addHiveLog({
 			hiveId: +hiveId,

@@ -1,12 +1,90 @@
 .gate {
 	background: gray;
 	display: flex;
+	flex-direction: column;
+	align-items: center;
 	justify-content: center;
 	padding: 14px 0 0;
 	position: relative;
 	cursor: pointer;
 	flex-grow: 1;
 	border-radius: 3px;
+}
+
+.entranceViewport {
+	--door-travel-left: 0%;
+	--door-travel-right: 0%;
+	--hole-count: 1;
+	--hole-gap: 3px;
+	position: relative;
+	width: calc(100% - 12px);
+	height: 32px;
+	margin-top: auto;
+	margin-bottom: 4px;
+	overflow: hidden;
+}
+
+.entranceBase {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	height: 30px;
+	background: linear-gradient(to bottom, #8bc34a, #5d9f2d);
+	border-radius: 4px 4px 2px 2px;
+	z-index: 0;
+}
+
+.entranceHoles {
+	position: absolute;
+	left: 50%;
+	top: 21px;
+	transform: translateX(-50%);
+	display: grid;
+	grid-template-columns: repeat(var(--hole-count), minmax(0, 1fr));
+	column-gap: var(--hole-gap);
+	width: 50%;
+	z-index: 2;
+	pointer-events: none;
+}
+
+.entranceHole {
+	width: 8px;
+	height: 8px;
+	justify-self: center;
+	border-radius: 4px 4px 0 0;
+	background: #030303;
+	border: 1px solid rgba(95, 95, 95, 0.75);
+	box-shadow: inset 0 0 0 1px rgba(50, 50, 50, 0.45);
+	flex: 0 0 auto;
+	box-sizing: border-box;
+}
+
+.entranceHoleHidden {
+	visibility: hidden;
+}
+
+.entranceDoor {
+	position: absolute;
+	top: 0;
+	width: 25%;
+	height: 30px;
+	border-radius: 4px 4px 2px 2px;
+	background: linear-gradient(to bottom, #f7df75, #e6b720);
+	border: 1px solid #bc8f10;
+	box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+	z-index: 3;
+}
+
+.entranceDoorLeft {
+	left: calc(25% - var(--door-travel-left));
+	transform: none;
+}
+
+.entranceDoorRight {
+	right: calc(25% - var(--door-travel-right));
+	left: auto;
+	transform: none;
 }
 
 .selected{

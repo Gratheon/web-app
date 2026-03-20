@@ -151,6 +151,7 @@ export default function ApiaryList(props) {
 						id
 						position
 						color
+						holeCount
 						type
 					}
 				}

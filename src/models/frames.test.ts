@@ -4,6 +4,7 @@ import {
   getFrame,
   getFramesByHive,
   getFrames,
+  getFirstEmptyFramePosition,
   countBoxFrames,
   addFrame,
   upsertFrame,
@@ -225,6 +226,54 @@ describe('Frames Model', () => {
             // ACT & ASSERT
             await expect(countBoxFrames(1)).rejects.toThrow(error);
             expect(consoleErrorSpy).toHaveBeenCalledWith(error);
+        });
+    });
+
+    describe('getFirstEmptyFramePosition', () => {
+        it('should return first gap when positions have a hole', async () => {
+            // ARRANGE
+            dbMocks.mockFrameSortBy.mockResolvedValue([
+                { ...frame1, position: 1 },
+                { ...frame2, position: 2 },
+                { ...frame3, position: 4 },
+            ]);
+
+            // ACT
+            const result = await getFirstEmptyFramePosition(10);
+
+            // ASSERT
+            expect(result).toBe(3);
+            expect(dbMocks.mockFrameWhere).toHaveBeenCalledWith({ boxId: 10 });
+            expect(dbMocks.mockFrameSortBy).toHaveBeenCalledWith('position');
+        });
+
+        it('should return 1 when the first occupied position starts later', async () => {
+            // ARRANGE
+            dbMocks.mockFrameSortBy.mockResolvedValue([
+                { ...frame1, position: 2 },
+                { ...frame2, position: 3 },
+            ]);
+
+            // ACT
+            const result = await getFirstEmptyFramePosition(10);
+
+            // ASSERT
+            expect(result).toBe(1);
+        });
+
+        it('should return next position when no gaps exist', async () => {
+            // ARRANGE
+            dbMocks.mockFrameSortBy.mockResolvedValue([
+                { ...frame1, position: 1 },
+                { ...frame2, position: 2 },
+                { ...frame3, position: 3 },
+            ]);
+
+            // ACT
+            const result = await getFirstEmptyFramePosition(10);
+
+            // ASSERT
+            expect(result).toBe(4);
         });
     });
 

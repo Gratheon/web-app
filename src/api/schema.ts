@@ -46,6 +46,7 @@ type Box {
   id: ID
   position: Int
   color: String
+  holeCount: Int
   type: BoxType!
   frames: [Frame]
 }
@@ -351,8 +352,9 @@ type Mutation {
   addHive(hive: HiveInput!): Hive
   updateHive(hive: HiveUpdateInput!): Hive
   deactivateHive(id: ID!): Boolean
-  addBox(hiveId: ID!, position: Int!, color: String, type: BoxType!): Box!
+  addBox(hiveId: ID!, position: Int!, color: String, type: BoxType!, holeCount: Int): Box!
   updateBoxColor(id: ID!, color: String): Boolean!
+  updateBoxHoleCount(id: ID!, holeCount: Int!): Boolean!
   deactivateBox(id: ID!): Boolean
   swapBoxPositions(id: ID!, id2: ID!): Boolean
   addFrame(boxId: ID!, type: String!, position: Int!): Frame!

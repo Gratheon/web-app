@@ -17,7 +17,7 @@ import BillingUpgradeNotice from '@/shared/billingUpgradeNotice'
 import { getHiveLimitForBillingTier } from '@/shared/billingTier'
 import MessageSuccess from '@/shared/messageSuccess'
 
-import { Box, boxTypes } from '@/models/boxes'
+import { Box, boxTypes, GATE_HOLE_COUNT_DEFAULT } from '@/models/boxes'
 import PagePaddedCentered from '@/shared/pagePaddedCentered'
 import QueenColor from '@/page/hiveEdit/hiveTopInfo/queenColor'
 import { getQueenColorFromYear } from '@/page/hiveEdit/hiveTopInfo/queenColor/utils'
@@ -224,7 +224,8 @@ function createDefaultBoxes(hiveType: string, boxCount: number) {
 		return initialBoxes
 	}
 	initialBoxes.push({
-		type: boxTypes.GATE
+		type: boxTypes.GATE,
+		holeCount: GATE_HOLE_COUNT_DEFAULT,
 	})
 	initialBoxes.push({
 		type: boxTypes.ROOF

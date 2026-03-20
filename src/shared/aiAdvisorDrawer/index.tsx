@@ -5,7 +5,7 @@ import { apiClient, gql, useMutation } from '@/api'
 import { getApiary } from '@/models/apiary'
 import { getHive } from '@/models/hive'
 import { getFamilyByHive } from '@/models/family'
-import { getBoxes } from '@/models/boxes'
+import { getBoxes, boxTypes, normalizeGateHoleCount } from '@/models/boxes'
 import { getFrames } from '@/models/frames'
 import { getFrameSideCells } from '@/models/frameSideCells'
 import { getFrameSideFile, getFrameSidePreviewImage } from '@/models/frameSideFile'
@@ -995,13 +995,20 @@ export default function AIAdvisorDrawer() {
 					getFamilyByHive(hiveContext.hiveId),
 					getBoxes({ hiveId: hiveContext.hiveId }),
 				])
+				const boxesForAdvice = (boxes || []).map((box: any) => {
+					const normalized = { ...box }
+					delete normalized.color
+					if (normalized?.type === boxTypes.GATE) {
+						normalized.holeCount = normalizeGateHoleCount(normalized.holeCount)
+					}
+					return normalized
+				})
 
 				if (runRef.current !== runId) return
 
 				const framesByBox = {}
-				for (let i in boxes) {
-					const frames = Object.assign({}, await getFrames({ boxId: +boxes[i].id }))
-					delete boxes[i].color
+				for (let i in boxesForAdvice) {
+					const frames = Object.assign({}, await getFrames({ boxId: +boxesForAdvice[i].id }))
 
 					for (let j in frames) {
 						if (!frames[j].leftSide || !frames[j].rightSide) continue
@@ -1020,7 +1027,7 @@ export default function AIAdvisorDrawer() {
 						rightSide.isQueenDetected = rightFile?.queenDetected || false
 					}
 
-					framesByBox[boxes[i].id] = frames
+					framesByBox[boxesForAdvice[i].id] = frames
 				}
 
 				const inspections = await listInspections(hiveContext.hiveId)
@@ -1081,7 +1088,7 @@ export default function AIAdvisorDrawer() {
 						apiary,
 						hive,
 						family,
-					boxes,
+					boxes: boxesForAdvice,
 					frames: framesForAdvice,
 					inspections: inspections.slice(0, 40),
 					changeHistory: changeHistory.map((entry) => ({
@@ -1117,7 +1124,7 @@ export default function AIAdvisorDrawer() {
 					scope: hasFrameSideContext ? 'hive-frame-context' : 'hive-context',
 					selection: frameRouteContext || null,
 						counts: {
-							boxes: boxes.length,
+							boxes: boxesForAdvice.length,
 							inspections: inspections.length,
 							changeHistoryEntries: changeHistory.length,
 							frames: Object.values(framesByBox).reduce(

@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import styles from './index.module.less'
+import { normalizeGateHoleCount, GATE_HOLE_COUNT_MIN, GATE_HOLE_COUNT_MAX } from '@/models/boxes'
 
 //@ts-ignore
 import GithubPicker from 'react-color/es/Github'
@@ -83,6 +84,12 @@ export default function HiveIcon({
 		sectionBoxes[0]?.type === 'DEEP'
 	const isNucleusHive = isNucleusByType || isNucleusByShape
 	const showDetailedNotches = size > 50
+	const gateDoorOffsetByHoleCount = (holeCountRaw: unknown) => {
+		const holeCount = normalizeGateHoleCount(holeCountRaw)
+		const range = GATE_HOLE_COUNT_MAX - GATE_HOLE_COUNT_MIN
+		const progress = range > 0 ? (holeCount - GATE_HOLE_COUNT_MIN) / range : 0
+		return `${Math.round(progress * 5)}px`
+	}
 
 	const hiveWidth = hasLargeHorizontalSection
 		? Math.round(size * 1.9)
@@ -176,7 +183,15 @@ export default function HiveIcon({
 								<div className={styles.gripNotch}></div>
 							)}
 
-						{box.type === 'GATE' && <div className={styles.gate}></div>}
+						{box.type === 'GATE' && (
+							<div
+								className={styles.gate}
+								style={{ '--gate-door-offset': gateDoorOffsetByHoleCount(box.holeCount) } as any}
+							>
+								<span className={`${styles.gateDoor} ${styles.gateDoorLeft}`}></span>
+								<span className={`${styles.gateDoor} ${styles.gateDoorRight}`}></span>
+							</div>
+						)}
 						{box.type === 'VENTILATION' && (
 							<div className={styles.ventilation}></div>
 						)}

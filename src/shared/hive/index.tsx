@@ -53,6 +53,18 @@ type HiveIconProps = {
 	hiveType?: string
 }
 
+export function gateWidthByHoleCount(holeCountRaw: unknown): string {
+	const holeCount = normalizeGateHoleCount(holeCountRaw)
+	const maxWidth = 92
+	if (holeCount <= GATE_HOLE_COUNT_MIN) return '0%'
+	const progress = holeCount / GATE_HOLE_COUNT_MAX
+	return `${Math.round(progress * maxWidth)}%`
+}
+
+export function shouldRenderGateLine(holeCountRaw: unknown): boolean {
+	return normalizeGateHoleCount(holeCountRaw) > GATE_HOLE_COUNT_MIN
+}
+
 export default function HiveIcon({
 	boxes = [],
 	size = 60,
@@ -84,13 +96,6 @@ export default function HiveIcon({
 		sectionBoxes[0]?.type === 'DEEP'
 	const isNucleusHive = isNucleusByType || isNucleusByShape
 	const showDetailedNotches = size > 50
-	const gateWidthByHoleCount = (holeCountRaw: unknown) => {
-		const holeCount = normalizeGateHoleCount(holeCountRaw)
-		const maxWidth = 92
-		if (holeCount <= GATE_HOLE_COUNT_MIN) return '0%'
-		const progress = holeCount / GATE_HOLE_COUNT_MAX
-		return `${Math.round(progress * maxWidth)}%`
-	}
 
 	const hiveWidth = hasLargeHorizontalSection
 		? Math.round(size * 1.9)
@@ -184,7 +189,7 @@ export default function HiveIcon({
 								<div className={styles.gripNotch}></div>
 							)}
 
-						{box.type === 'GATE' && normalizeGateHoleCount(box.holeCount) > 0 && (
+						{box.type === 'GATE' && shouldRenderGateLine(box.holeCount) && (
 							<div
 								className={styles.gate}
 								style={{ width: gateWidthByHoleCount(box.holeCount) }}

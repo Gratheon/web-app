@@ -9,6 +9,10 @@ import {
   addBox,
   updateBox,
   swapBoxPositions,
+  normalizeGateHoleCount,
+  GATE_HOLE_COUNT_MIN,
+  GATE_HOLE_COUNT_MAX,
+  GATE_HOLE_COUNT_DEFAULT,
   Box,
   boxTypes, // Import boxTypes if needed for tests
 } from './boxes';
@@ -99,6 +103,23 @@ describe('Boxes Model', () => {
   const box1: Box = { id: 1, hiveId: 10, position: 1, type: boxTypes.DEEP };
   const box2: Box = { id: 2, hiveId: 10, position: 2, type: boxTypes.SUPER };
   const box3: Box = { id: 3, hiveId: 10, position: 0, type: boxTypes.GATE };
+
+  describe('normalizeGateHoleCount', () => {
+    it('returns default for non-numeric values', () => {
+      expect(normalizeGateHoleCount(undefined)).toBe(GATE_HOLE_COUNT_DEFAULT);
+      expect(normalizeGateHoleCount('abc')).toBe(GATE_HOLE_COUNT_DEFAULT);
+    });
+
+    it('clamps values to the supported range', () => {
+      expect(normalizeGateHoleCount(-5)).toBe(GATE_HOLE_COUNT_MIN);
+      expect(normalizeGateHoleCount(999)).toBe(GATE_HOLE_COUNT_MAX);
+    });
+
+    it('rounds floating values', () => {
+      expect(normalizeGateHoleCount(3.6)).toBe(4);
+      expect(normalizeGateHoleCount(3.2)).toBe(3);
+    });
+  });
 
 
   describe('getBox', () => {
@@ -400,6 +421,24 @@ describe('Boxes Model', () => {
         expect(dbMocks.mockPut).toHaveBeenCalledTimes(1);
         expect(consoleErrorSpy).toHaveBeenCalledWith(error);
     });
+
+    it('normalizes holeCount for gate boxes before persisting', async () => {
+      // ARRANGE
+      const newGate: Box = { id: 6, hiveId: 12, position: 0, type: boxTypes.GATE, holeCount: 20 };
+      dbMocks.mockPut.mockResolvedValue(6);
+
+      // ACT
+      await addBox(newGate);
+
+      // ASSERT
+      expect(dbMocks.mockPut).toHaveBeenCalledWith({
+        id: 6,
+        hiveId: 12,
+        position: 0,
+        type: boxTypes.GATE,
+        holeCount: GATE_HOLE_COUNT_MAX,
+      });
+    });
   });
 
   describe('updateBox', () => {
@@ -454,6 +493,25 @@ describe('Boxes Model', () => {
         await expect(updateBox(updatedBox)).rejects.toThrow(error);
         expect(dbMocks.mockPut).toHaveBeenCalledTimes(1);
         expect(consoleErrorSpy).toHaveBeenCalledWith(error);
+    });
+
+    it('normalizes holeCount for gate updates before persisting', async () => {
+      // ARRANGE
+      const updatedGate: Box = { id: 3, hiveId: 10, position: 0, type: boxTypes.GATE, holeCount: -2 };
+      dbMocks.mockPut.mockResolvedValue(3);
+
+      // ACT
+      await updateBox(updatedGate);
+
+      // ASSERT
+      expect(dbMocks.mockPut).toHaveBeenCalledWith({
+        id: 3,
+        hiveId: 10,
+        color: undefined,
+        position: 0,
+        type: boxTypes.GATE,
+        holeCount: GATE_HOLE_COUNT_MIN,
+      });
     });
   });
 

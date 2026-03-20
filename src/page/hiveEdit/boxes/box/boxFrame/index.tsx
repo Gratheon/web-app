@@ -46,14 +46,27 @@ export default function BoxFrame({
 	let navigate = useNavigate()
 	const frameURL = `/apiaries/${apiaryId}/hives/${hiveId}/box/${box.id}/frame/${frame.id}`
 
-	// Fetch dominant colors for both sides using useLiveQuery
+	const leftSideId = Number(frame.leftId)
+	const rightSideId = Number(frame.rightId)
+	const hasValidLeftSide = Number.isFinite(leftSideId) && leftSideId > 0
+	const hasValidRightSide = Number.isFinite(rightSideId) && rightSideId > 0
+	const leftSideDep = hasValidLeftSide ? leftSideId : 0
+	const rightSideDep = hasValidRightSide ? rightSideId : 0
+
+	// Fetch dominant colors for both sides using useLiveQuery (only for valid side ids)
 	const leftDominantColor = useLiveQuery(
-		() => getDominantResourceColorForFrameSide(frame.leftId),
-		[frame.leftId] // Re-run query if leftId changes
+		() =>
+			hasValidLeftSide
+				? getDominantResourceColorForFrameSide(leftSideId)
+				: Promise.resolve(null),
+		[leftSideDep] // Re-run query when a valid side id changes
 	)
 	const rightDominantColor = useLiveQuery(
-		() => getDominantResourceColorForFrameSide(frame.rightId),
-		[frame.rightId] // Re-run query if rightId changes
+		() =>
+			hasValidRightSide
+				? getDominantResourceColorForFrameSide(rightSideId)
+				: Promise.resolve(null),
+		[rightSideDep] // Re-run query when a valid side id changes
 	)
 
 	// Find the specific data for left and right sides from the passed array

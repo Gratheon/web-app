@@ -50,8 +50,13 @@ export function newFrameSideCells(id, hiveId): FrameSideCells {
 export async function getFrameSideCells(
 	frameSideId: number
 ): Promise<FrameSideCells | null> {
+	const normalizedId = Number(frameSideId)
+	if (!Number.isFinite(normalizedId) || normalizedId <= 0) {
+		return null
+	}
+
 	try {
-		let res = await db[FRAME_SIDE_CELL_TABLE].get(+frameSideId)
+		let res = await db[FRAME_SIDE_CELL_TABLE].get(normalizedId)
 		if (!res) return null
 		if (!res.droneBroodPercent){
 			res.droneBroodPercent = 0
@@ -250,13 +255,13 @@ export async function enrichFramesWithSideCells(
 		frames.forEach((frame, index, array) => {
 			if (frame.leftSide) {
 				frame.leftSide.cells = frameSideCellsMap.get(+frame.leftId)
-			} else {
+			} else if (frame.leftId) {
 				console.warn('frame.leftSide is null', frame)
 			}
 
 			if (frame.rightSide) {
 				frame.rightSide.cells = frameSideCellsMap.get(+frame.rightId)
-			} else {
+			} else if (frame.rightId) {
 				console.warn('frame.rightSide is null', frame)
 			}
 

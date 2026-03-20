@@ -7,6 +7,7 @@ import { useMutation } from '@/api'
 
 import {
 	countBoxFrames,
+	getFirstEmptyFramePosition,
 	frameTypes,
 	addFrame,
 } from '@/models/frames.ts'
@@ -49,7 +50,7 @@ export default function FrameButtons({ box, onError, hiveId }) {
 
 	async function onFrameAdd(boxId, type) {
 		setAdding(true)
-		let position = (await countBoxFrames(boxId)) + 1
+		let position = await getFirstEmptyFramePosition(+boxId)
 		const { data, error } = await addFrameMutation({ boxId, position, type })
 
 		if (error) {

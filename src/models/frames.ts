@@ -78,6 +78,28 @@ export async function countBoxFrames(boxId): Promise<number> {
 	}
 }
 
+export async function getFirstEmptyFramePosition(boxId: number): Promise<number> {
+	try {
+		const frames = (await getFrames({ boxId: +boxId })) || []
+		const occupied = new Set<number>()
+		for (const frame of frames) {
+			const pos = Number(frame?.position)
+			if (Number.isFinite(pos) && pos > 0) {
+				occupied.add(pos)
+			}
+		}
+
+		let position = 1
+		while (occupied.has(position)) {
+			position++
+		}
+		return position
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
+}
+
 export async function addFrame(frameData) {
 	try {
 		const { id, position, boxId, type, leftId, rightId } = frameData
@@ -247,9 +269,6 @@ export async function removeFrame(frameId, boxId) {
 		}
 
 		await db['frame'].delete(+frameId)
-
-		// shift positions of other frames
-		await moveFrame({ boxId: +boxId, removedIndex: frame.position })
 	} catch (e) {
 		console.error(e)
 		throw e

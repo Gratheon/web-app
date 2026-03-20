@@ -17,6 +17,12 @@ import {
 
 export default function MetricList({ frameSideId }) {
 	const numericFrameSideId = +frameSideId
+	const hasValidFrameSideId =
+		Number.isFinite(numericFrameSideId) && numericFrameSideId > 0
+
+	if (!hasValidFrameSideId) {
+		return null
+	}
 
 	const loadOrInitFrameSideCells = useMemo(
 		() =>

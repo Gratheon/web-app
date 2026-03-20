@@ -398,6 +398,7 @@ type Query {
   file(id: ID!): File
   hiveFiles(hiveId: ID!): [FrameSideFile]
   getExistingHiveAdvice(hiveID: ID): String
+  aiAdvisorUsage: AIAdvisorUsage!
   hiveFrameSideFile(frameSideId: ID!): FrameSideFile
   hiveFrameSideCells(frameSideId: ID!): FrameSideCells
 
@@ -421,6 +422,19 @@ type Query {
   shareTokens: [ShareToken]
   detectionSettings: DetectionSettings!
   translate(en: String, key: String, tc: String): Locale
+}
+
+type AIAdvisorUsage {
+  month: String!
+  inputTokensUsed: Int!
+  outputTokensUsed: Int!
+  totalTokensUsed: Int!
+  requestCount: Int!
+  inputTokensLimit: Int!
+  outputTokensLimit: Int!
+  inputUsagePercent: Int!
+  outputUsagePercent: Int!
+  percentUsed: Int!
 }
 
 type DetectionThresholds {

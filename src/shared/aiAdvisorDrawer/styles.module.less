@@ -53,6 +53,59 @@
 	color: #666;
 }
 
+.usage {
+	margin: 4px 0 0;
+	font-size: 12px;
+	color: #2f8b0b;
+	font-weight: 600;
+}
+
+.usageRow {
+	margin-top: 4px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.usageRow .usage {
+	margin: 0;
+}
+
+.battery {
+	position: relative;
+	display: inline-grid;
+	grid-template-columns: repeat(8, 1fr);
+	align-items: center;
+	gap: 1px;
+	width: 34px;
+	height: 12px;
+	border: 1px solid #8a9199;
+	border-radius: 1px;
+	background: #fff;
+	padding: 1px;
+}
+
+.batterySegment {
+	display: block;
+	height: 100%;
+	background: #eceff3;
+	transition: background-color 0.2s ease;
+}
+
+.on {
+	background: #2f8b0b;
+}
+
+.batteryCap {
+	position: absolute;
+	right: -3px;
+	top: 3px;
+	width: 2px;
+	height: 6px;
+	border-radius: 1px;
+	background: #8a9199;
+}
+
 .headerText {
 	flex: 1;
 	min-width: 0;

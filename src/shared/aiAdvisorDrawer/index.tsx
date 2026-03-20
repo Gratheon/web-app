@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import { apiClient, gql, useMutation } from '@/api'
@@ -43,6 +43,10 @@ type ViewContext = {
 type DrawerTranslations = {
 	hiveDetailViewName: string
 	hiveDetailViewDescription: string
+	apiaryOverviewViewName: string
+	apiaryOverviewViewDescription: string
+	frameViewName: string
+	frameViewDescription: string
 	canvasEditViewName: string
 	canvasEditViewDescription: string
 	hiveListViewName: string
@@ -206,6 +210,23 @@ const FRAME_SIDE_IMAGE_QUERY = gql`
 	}
 `
 
+const AI_ADVISOR_USAGE_QUERY = gql`
+	query aiAdvisorUsage {
+		aiAdvisorUsage {
+			month
+			inputTokensUsed
+			outputTokensUsed
+			totalTokensUsed
+			requestCount
+			inputTokensLimit
+			outputTokensLimit
+			inputUsagePercent
+			outputUsagePercent
+			percentUsed
+		}
+	}
+`
+
 function buildId(prefix: string) {
 	return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
@@ -351,6 +372,8 @@ function findSelectedFrameRaw(
 
 function getViewContext(pathname: string, labels: DrawerTranslations): ViewContext {
 	const isHiveDetailView = /^\/apiaries\/\d+\/hives\/\d+(?:\/|$)/.test(pathname)
+	const isApiaryOverviewView = /^\/apiaries\/\d+\/?$/.test(pathname)
+	const isFrameView = /^\/apiaries\/\d+\/hives\/\d+\/box\/\d+\/frame\/\d+(?:\/\d+)?\/?$/.test(pathname)
 	const isCanvasEditView = /^\/apiaries\/\d+\/hives\/\d+\/box\/\d+\/frame\/\d+\/\d+\/canvas-edit(?:\/|$)/.test(pathname)
 	const isHiveListView = pathname === '/' || pathname === '/apiaries' || pathname === '/apiaries/'
 	const isWarehouseQueenListView = pathname === '/warehouse/queens' || pathname === '/warehouse/queens/'
@@ -387,6 +410,24 @@ function getViewContext(pathname: string, labels: DrawerTranslations): ViewConte
 		}
 	}
 
+	if (isFrameView) {
+		return {
+			name: labels.frameViewName,
+			description: labels.frameViewDescription,
+			shortcuts: [
+				{ keys: 'Shift + ?', action: labels.shortcutsActionOpenAdvisor },
+				{ keys: 'M', action: labels.shortcutsActionToggleLeftMenu },
+				{ keys: '1-9 / 0', action: labels.shortcutsActionGoToLeftMenuItemByNumber },
+				{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
+				{ keys: 'A', action: labels.shortcutsActionGoToApiaryView },
+				{ keys: 'H', action: labels.shortcutsActionGoToHiveListView },
+				{ keys: 'Arrow Left / Arrow Right', action: labels.shortcutsActionSwitchSelectedHiveFrames },
+				{ keys: 'Arrow Up / Arrow Down', action: labels.shortcutsActionSwitchSelectedHiveSections },
+				{ keys: 'Tab / Shift + Tab', action: labels.shortcutsActionMoveFocusAcrossControls },
+			],
+		}
+	}
+
 	if (isHiveDetailView) {
 		return {
 			name: labels.hiveDetailViewName,
@@ -407,6 +448,21 @@ function getViewContext(pathname: string, labels: DrawerTranslations): ViewConte
 					{ keys: 'Enter', action: labels.shortcutsActionConfirmFocusedDialogAction },
 				],
 			}
+	}
+
+	if (isApiaryOverviewView) {
+		return {
+			name: labels.apiaryOverviewViewName,
+			description: labels.apiaryOverviewViewDescription,
+			shortcuts: [
+				{ keys: 'Shift + ?', action: labels.shortcutsActionOpenAdvisor },
+				{ keys: 'M', action: labels.shortcutsActionToggleLeftMenu },
+				{ keys: '1-9 / 0', action: labels.shortcutsActionGoToLeftMenuItemByNumber },
+				{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
+				{ keys: 'H', action: labels.shortcutsActionGoToHiveListView },
+				{ keys: 'Tab / Shift + Tab', action: labels.shortcutsActionMoveFocusAcrossPageControls },
+			],
+		}
 	}
 
 	if (isHiveListView) {
@@ -486,6 +542,10 @@ export default function AIAdvisorDrawer() {
 	const keyboardShortcutsLabel = t('Keyboard shortcuts')
 	const hiveDetailViewName = t('Hive detail view')
 	const hiveDetailViewDescription = t('Detailed hive workflow with sections, frames, inspections, and metrics.')
+	const apiaryOverviewViewName = t('Apiary overview view')
+	const apiaryOverviewViewDescription = t('Apiary-level overview with colony list, placement, and local conditions context.')
+	const frameViewName = t('Frame view')
+	const frameViewDescription = t('Single frame-side view focused on detected cells, bees, queens, and varroa signals.')
 	const canvasEditViewName = t('Frame canvas edit view')
 	const canvasEditViewDescription = t('Frame-side canvas editor with tool switching, cell brush typing, and brush size controls.')
 	const hiveListViewName = t('Hive list view')
@@ -538,6 +598,8 @@ export default function AIAdvisorDrawer() {
 	const sendButtonLabel = t('Send')
 	const closeAiAdvisorLabel = t('Close AI Advisor')
 	const aiAdvisorAvatarAlt = t('AI Advisor avatar')
+	const aiUsageRemainingLabel = 'AI remaining'
+	const aiUsageUnavailableLabel = 'unavailable'
 
 	const location = useLocation()
 	const navigate = useNavigate()
@@ -549,6 +611,8 @@ export default function AIAdvisorDrawer() {
 	const [advisorTargetHiveID, setAdvisorTargetHiveID] = useState<number | undefined>(undefined)
 	const [advisorLangCode, setAdvisorLangCode] = useState<string | undefined>(undefined)
 	const [billingLocked, setBillingLocked] = useState(false)
+	const [usageLoading, setUsageLoading] = useState(false)
+	const [aiUsage, setAiUsage] = useState<any | null>(null)
 	const [generateAdvice] = useMutation(GENERATE_ADVICE_MUTATION)
 
 	const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search])
@@ -561,6 +625,10 @@ export default function AIAdvisorDrawer() {
 			getViewContext(location.pathname, {
 				hiveDetailViewName,
 				hiveDetailViewDescription,
+				apiaryOverviewViewName,
+				apiaryOverviewViewDescription,
+				frameViewName,
+				frameViewDescription,
 				canvasEditViewName,
 				canvasEditViewDescription,
 					hiveListViewName,
@@ -610,6 +678,10 @@ export default function AIAdvisorDrawer() {
 			location.pathname,
 			hiveDetailViewName,
 			hiveDetailViewDescription,
+			apiaryOverviewViewName,
+			apiaryOverviewViewDescription,
+			frameViewName,
+			frameViewDescription,
 			canvasEditViewName,
 			canvasEditViewDescription,
 			hiveListViewName,
@@ -677,6 +749,18 @@ export default function AIAdvisorDrawer() {
 		setMessages((prev) => prev.filter((msg) => msg.id !== id))
 	}
 
+	const fetchAiUsage = useCallback(async () => {
+		try {
+			setUsageLoading(true)
+			const usageResult = await apiClient.query(AI_ADVISOR_USAGE_QUERY, {}).toPromise()
+			setAiUsage(usageResult?.data?.aiAdvisorUsage || null)
+		} catch {
+			setAiUsage(null)
+		} finally {
+			setUsageLoading(false)
+		}
+	}, [])
+
 	useEffect(() => {
 		if (!shouldRender) {
 			return
@@ -685,6 +769,7 @@ export default function AIAdvisorDrawer() {
 		const runId = Date.now()
 		runRef.current = runId
 		setBillingLocked(false)
+		setAiUsage(null)
 		setAdviceContext(null)
 		setAdvisorTargetHiveID(undefined)
 		setAdvisorLangCode(undefined)
@@ -713,6 +798,8 @@ export default function AIAdvisorDrawer() {
 					setBillingLocked(true)
 					return
 				}
+				await fetchAiUsage()
+				if (runRef.current !== runId) return
 
 					if (!hiveContext && !apiaryOverviewContext) {
 						addMessage({
@@ -898,6 +985,7 @@ export default function AIAdvisorDrawer() {
 								text: summaryUnavailableMessage,
 							})
 						}
+						await fetchAiUsage()
 						return
 					}
 
@@ -1089,6 +1177,7 @@ export default function AIAdvisorDrawer() {
 						text: responseErrorMessage || summaryUnavailableMessage,
 					})
 				}
+				await fetchAiUsage()
 			} catch (error) {
 				if (runRef.current !== runId) return
 				if (pendingReplyId) {
@@ -1122,6 +1211,7 @@ export default function AIAdvisorDrawer() {
 				location.pathname,
 			viewContext.name,
 			frameRouteContext,
+			fetchAiUsage,
 		])
 
 	const onSendUserMessage = async () => {
@@ -1173,6 +1263,7 @@ export default function AIAdvisorDrawer() {
 					text: responseErrorMessage || summaryUnavailableMessage,
 				})
 			}
+			await fetchAiUsage()
 		} catch (error) {
 			removeMessage(pendingReplyId)
 			addMessage({
@@ -1184,6 +1275,15 @@ export default function AIAdvisorDrawer() {
 			setIsSendingUserMessage(false)
 		}
 	}
+
+	const aiUsagePercent = Math.max(0, Math.min(100, Number(aiUsage?.percentUsed || 0)))
+	const aiUsageRemaining = Math.max(0, 100 - aiUsagePercent)
+	const batteryColor = aiUsageRemaining > 60 ? '#2f8b0b' : aiUsageRemaining > 30 ? '#d49d0f' : '#b22222'
+	const aiUsageSubtitle = usageLoading
+		? `${aiUsageRemainingLabel}: ...`
+		: aiUsage
+			? `${aiUsageRemainingLabel}: ${aiUsageRemaining}%`
+			: `${aiUsageRemainingLabel}: ${aiUsageUnavailableLabel}`
 
 	useEffect(() => {
 		if (!shouldRender) {
@@ -1211,6 +1311,27 @@ export default function AIAdvisorDrawer() {
 				<div className={styles.headerText}>
 					<h3 className={styles.title}><T>AI Advisor</T></h3>
 					<p className={styles.subtitle}>{viewContext.name}</p>
+					{!billingLocked && (
+						<div className={styles.usageRow}>
+							<p className={styles.usage}>{aiUsageSubtitle}</p>
+							{aiUsage && (
+								<span className={styles.battery} aria-label={`${aiUsageRemainingLabel}: ${aiUsageRemaining}%`}>
+									{Array.from({ length: 8 }).map((_, index) => {
+										const threshold = ((index + 1) / 8) * 100
+										const isOn = aiUsageRemaining >= threshold
+										return (
+											<span
+												key={`battery-segment-${index}`}
+												className={`${styles.batterySegment} ${isOn ? styles.on : ''}`}
+												style={isOn ? { backgroundColor: batteryColor } : undefined}
+											/>
+										)
+									})}
+									<span className={styles.batteryCap} />
+								</span>
+							)}
+						</div>
+					)}
 					</div>
 				<button className={styles.closeBtn} type="button" onClick={closeDrawer} aria-label={closeAiAdvisorLabel}>
 					×

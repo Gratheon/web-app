@@ -198,6 +198,31 @@
   gap: 1rem;
 }
 
+.plan-details {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.plan-details-section h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.95rem;
+  color: #222;
+}
+
+.plan-details-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: #444;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.plan-details-list li {
+  margin-bottom: 0.35rem;
+}
+
 .price-row {
   display: flex;
   align-items: center;

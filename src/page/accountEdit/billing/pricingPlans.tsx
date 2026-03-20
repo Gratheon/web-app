@@ -78,6 +78,30 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 							<div className="plan-pricing-simple">
 								<div className="price-large">€0</div>
 							</div>
+							<div className="plan-details">
+								<div className="plan-details-section">
+									<h4><T>Features</T></h4>
+									<ul className="plan-details-list">
+										<li><T>Apiary & hive management</T></li>
+										<li><T>Frame photo upload</T></li>
+										<li><T>Keyboard support</T></li>
+										<li><T>Public hive sharing</T></li>
+										<li><T>QR code generation</T></li>
+										<li><T>Treatment diary</T></li>
+										<li><T>Feeding history</T></li>
+										<li><T>Hive ownership transfer (in development)</T></li>
+									</ul>
+								</div>
+								<div className="plan-details-section">
+									<h4><T>Limits</T></h4>
+									<ul className="plan-details-list">
+										<li><T>Up to 3 hives</T></li>
+										<li><T>10 frames per hive max</T></li>
+										<li><T>No AI image processing</T></li>
+										<li><T>6 months image retention</T></li>
+									</ul>
+								</div>
+							</div>
 						</div>
 					</div>
 					</div>
@@ -113,6 +137,29 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 									</div>
 									<div className="price-note" style={{ textAlign: 'center', marginTop: '-0.2rem' }}>
 										☕ <T>About the price of a cup of coffee</T>
+									</div>
+								</div>
+								<div className="plan-details">
+									<div className="plan-details-section">
+										<h4><T>Features</T></h4>
+										<ul className="plan-details-list">
+											<li><T>Basic data management in database</T></li>
+											<li><T>Frame photo upload and storage</T></li>
+											<li><T>Hive placement planner</T></li>
+											<li><T>Inspection notes and treatment diary</T></li>
+											<li><T>Colony split management</T></li>
+											<li><T>Colony joining tool</T></li>
+											<li><T>Warehouse inventory management</T></li>
+										</ul>
+									</div>
+									<div className="plan-details-section">
+										<h4><T>Limits</T></h4>
+										<ul className="plan-details-list">
+											<li><T>Up to 15 hives</T></li>
+											<li><T>1 user account</T></li>
+											<li><T>No AI image processing features</T></li>
+											<li><T>1 year image retention</T></li>
+										</ul>
 									</div>
 								</div>
 							</div>
@@ -163,6 +210,30 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 									</Button>
 								</div>
 							</div>
+							<div className="plan-details">
+								<div className="plan-details-section">
+									<h4><T>Features</T></h4>
+									<ul className="plan-details-list">
+										<li><T>Cell analysis</T></li>
+										<li><T>Hive bottom board varroa counting</T></li>
+										<li><T>Inspection management</T></li>
+										<li><T>Frame annotation tool</T></li>
+										<li><T>AI beekeeping assistant</T></li>
+										<li><T>AI image analysis credits included monthly</T></li>
+									</ul>
+								</div>
+								<div className="plan-details-section">
+									<h4><T>Limits</T></h4>
+									<ul className="plan-details-list">
+										<li><T>1 user account</T></li>
+										<li><T>Up to 50 hives</T></li>
+										<li><T>30 frames per hive</T></li>
+										<li><T>2 year image retention</T></li>
+										<li><T>AI analysis volume capped per month</T></li>
+										<li><T>Mixed real usage: expect ~100-130 AI prompts/month (hive, API, frame views)</T></li>
+									</ul>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -209,6 +280,28 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 									>
 										<T>Buy</T>
 									</Button>
+								</div>
+							</div>
+							<div className="plan-details">
+								<div className="plan-details-section">
+									<h4><T>Features</T></h4>
+									<ul className="plan-details-list">
+										<li><T>Hive telemetry storage</T></li>
+										<li><T>Timeseries data analytics</T></li>
+										<li><T>Colony comparison analytics (in development)</T></li>
+										<li><T>AI-driven anomaly detection (in development)</T></li>
+										<li><T>Device management (in development)</T></li>
+										<li><T>Unlimited inspections per hive</T></li>
+									</ul>
+								</div>
+								<div className="plan-details-section">
+									<h4><T>Limits</T></h4>
+									<ul className="plan-details-list">
+										<li><T>Min 10 min telemetry resolution</T></li>
+										<li><T>Up to 5 user accounts</T></li>
+										<li><T>Up to 200 hives</T></li>
+										<li><T>5 year image retention</T></li>
+									</ul>
 								</div>
 							</div>
 						</div>

@@ -4,6 +4,17 @@ import {execute, TypeInfo, visit, visitWithTypeInfo} from 'graphql'
 
 import {db} from '@/models/db'
 
+function shouldLogOfflineIndexDbDebug() {
+    if (typeof window === 'undefined') {
+        return false
+    }
+
+    return (
+        import.meta.env.DEV ||
+        window.localStorage.getItem('debug:offline-indexdb') === '1'
+    )
+}
+
 // An alternative offline-first URQL exchange with custom resolvers
 // some compromises:
 // 1. requires all graphql queries to include id for every requested property
@@ -68,6 +79,7 @@ export function offlineIndexDbExchange({
         else {
             if (!bubble.data && bubble.error) {
                 useCacheOnly = true;
+                console.warn('[offlineIndexDbExchange] Network error, using IndexedDB cache fallback', bubble.error);
                 bubble.data = (
                     await execute({
                         schema: schemaObject,
@@ -123,9 +135,21 @@ export function offlineIndexDbExchange({
             // Ensure data exists before traversing
             if (data) {
                 await traverseResponse(null, data, typeMap, writeHooks);
+                if (shouldLogOfflineIndexDbDebug()) {
+                    console.debug('[offlineIndexDbExchange] Traversal completed for operation', {
+                        operationKind: op.kind,
+                        rootFields: Object.keys(data),
+                    })
+                }
             }
         } catch (traversalError) {
-        // Keep traversal failures isolated from the network response.
+            // Keep traversal failures isolated from the network response.
+            console.error('[offlineIndexDbExchange] Traversal failed', {
+                error: traversalError,
+                operationKind: op.kind,
+                variables: op.variables,
+                rootFields: data ? Object.keys(data) : [],
+            })
         }
         return bubble;
     }
@@ -183,9 +207,15 @@ async function traverseResponse(
                         continue
                     }
 
-                        if (!tableName) {
-	                        return
-	                     }
+                    if (!tableName) {
+                        console.warn('[offlineIndexDbExchange] Missing table name for path', {
+                            path: pathString,
+                            objType,
+                            value,
+                        })
+                        // Skip this branch, but continue traversing siblings.
+                        continue
+                    }
 
                      if (writeHooks?.[tableName]) {
                             // normalize objects, clean them up from nested things
@@ -219,6 +249,13 @@ async function traverseResponse(
                                     // Don't log here again, just re-throw for onResult
                                     throw e; // Re-throw the specific FrameSide error
                                 }
+                                console.error('[offlineIndexDbExchange] Write hook failed', {
+                                    error: e,
+                                    path: pathString,
+                                    tableName,
+                                    parentContext: parent ? { ...parent } : null,
+                                    cleanedValue,
+                                })
                             } // Closing brace for try block
                         }
                     }

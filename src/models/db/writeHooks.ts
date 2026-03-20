@@ -108,7 +108,16 @@ export const writeHooks = {
 			})
 		}
 	},
-	User: async (_, entity) => await upsertEntityWithNumericID('user', entity),
+	User: async (_, entity) => {
+		if (typeof window !== 'undefined' && (import.meta.env.DEV || window.localStorage.getItem('debug:offline-indexdb') === '1')) {
+			console.debug('[writeHooks] Upserting User from GraphQL response', {
+				id: entity?.id,
+				email: entity?.email,
+				billingPlan: entity?.billingPlan,
+			})
+		}
+		await upsertEntityWithNumericID('user', entity)
+	},
 	Locale: async (_, entity) => {
 		await upsertEntityWithNumericID('locale', entity)
 	},

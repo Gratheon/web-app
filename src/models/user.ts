@@ -17,15 +17,34 @@ export type User = {
 }
 
 const TABLE_NAME = 'user'
+let hasLoggedMissingUserTable = false
 
 export async function getUser(): Promise<User> {
 	try {
-		const user = (await db[TABLE_NAME].toArray())[0]
+		const table = db[TABLE_NAME]
+		if (!table || typeof table.toArray !== 'function') {
+			if (!hasLoggedMissingUserTable) {
+				hasLoggedMissingUserTable = true
+				console.warn('[models/user] User table not initialized yet', {
+					tableName: TABLE_NAME,
+					availableTables: db.tables?.map((entry) => entry.name) || [],
+				})
+			}
+			return null
+		}
+
+		hasLoggedMissingUserTable = false
+
+		const user = (await table.toArray())[0]
 
 		if (user) return user
 		else return null
 	} catch (e) {
 		console.error(e)
+		console.error('[models/user] Failed to read user from IndexedDB', {
+			tableName: TABLE_NAME,
+			availableTables: db.tables?.map((table) => table.name) || [],
+		})
 		throw e
 	}
 }

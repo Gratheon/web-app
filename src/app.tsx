@@ -18,7 +18,42 @@ import metrics from './metrics'
 
 initErrorReporting()
 
-syncGraphqlSchemaToIndexDB(schemaObject)
+async function disableServiceWorkerInDev() {
+	if (typeof window === 'undefined') {
+		return
+	}
+	if (!import.meta.env.DEV) {
+		return
+	}
+	if (!('serviceWorker' in navigator)) {
+		return
+	}
+
+	try {
+		const registrations = await navigator.serviceWorker.getRegistrations()
+		if (registrations.length > 0) {
+			await Promise.all(registrations.map((registration) => registration.unregister()))
+			console.info('[AppInit] Unregistered service workers in dev', { count: registrations.length })
+		}
+	} catch (error) {
+		console.warn('[AppInit] Failed to unregister service workers in dev', error)
+	}
+}
+
+if (typeof window !== 'undefined' && (import.meta.env.DEV || window.localStorage.getItem('debug:offline-indexdb') === '1')) {
+	console.debug('[AppInit] Starting bootstrap')
+}
+
+try {
+	void disableServiceWorkerInDev()
+	syncGraphqlSchemaToIndexDB(schemaObject)
+	if (typeof window !== 'undefined' && (import.meta.env.DEV || window.localStorage.getItem('debug:offline-indexdb') === '1')) {
+		console.debug('[AppInit] syncGraphqlSchemaToIndexDB completed')
+	}
+} catch (error) {
+	console.error('[AppInit] syncGraphqlSchemaToIndexDB failed', error)
+	throw error
+}
 
 export default function App() {
 	if (typeof window === 'undefined') {
@@ -73,4 +108,3 @@ export default function App() {
 		</GlobalErrorHandler>
 	)
 }
-

@@ -1463,8 +1463,8 @@ export default function DrawingCanvas({
 							width={130}
 							min={0}
 							max={100}
-							onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-								const nextValue = Number(event.target.value);
+							onChange={(event: Event) => {
+								const nextValue = Number((event.target as HTMLInputElement | null)?.value);
 								setCellsOpacityPercent(Number.isFinite(nextValue) ? nextValue : 100);
 							}}
 						/>

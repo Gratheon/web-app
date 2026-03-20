@@ -15,6 +15,8 @@ import FoundationIcon from '@/icons/foundationIcon.tsx'
 import T, { useTranslation as t } from '@/shared/translate'
 import metrics from '@/metrics.tsx'
 import EmptyFrameIcon from '@/icons/emptyFrameIcon.tsx'
+import PartitionIcon from '@/icons/partitionIcon.tsx'
+import FeederIcon from '@/icons/feederIcon.tsx'
 import Button from '@/shared/button'
 import { PopupButton, PopupButtonGroup } from '@/shared/popupButton'
 import { useWarehouseAutoAdjust } from '@/hooks/useWarehouseAutoAdjust'
@@ -102,6 +104,18 @@ export default function FrameButtons({ box, onError, hiveId }) {
 							onFrameAdd(box.id, frameTypes.VOID)
 						}}	
 					><EmptyFrameIcon /><T ctx="this is a button that adds new frame into a beehive, but it has no cells or wax inside, only wooden frame">Add empty frame</T></Button>
+					<Button
+						loading={addingFrame}
+						onClick={() => {
+							onFrameAdd(box.id, frameTypes.PARTITION)
+						}}
+					><PartitionIcon /><T ctx="this is a button that adds a solid wooden frame used to separate parts of a beehive">Add partition frame</T></Button>
+					<Button
+						loading={addingFrame}
+						onClick={() => {
+							onFrameAdd(box.id, frameTypes.FEEDER)
+						}}
+					><FeederIcon /><T ctx="this is a button that adds a frame feeder used to hold sugar syrup inside a beehive">Add feeder frame</T></Button>
 				</PopupButton>
 			</PopupButtonGroup>
 	)

@@ -84,11 +84,12 @@ export default function HiveIcon({
 		sectionBoxes[0]?.type === 'DEEP'
 	const isNucleusHive = isNucleusByType || isNucleusByShape
 	const showDetailedNotches = size > 50
-	const gateDoorOffsetByHoleCount = (holeCountRaw: unknown) => {
+	const gateWidthByHoleCount = (holeCountRaw: unknown) => {
 		const holeCount = normalizeGateHoleCount(holeCountRaw)
-		const range = GATE_HOLE_COUNT_MAX - GATE_HOLE_COUNT_MIN
-		const progress = range > 0 ? (holeCount - GATE_HOLE_COUNT_MIN) / range : 0
-		return `${Math.round(progress * 5)}px`
+		const maxWidth = 92
+		if (holeCount <= GATE_HOLE_COUNT_MIN) return '0%'
+		const progress = holeCount / GATE_HOLE_COUNT_MAX
+		return `${Math.round(progress * maxWidth)}%`
 	}
 
 	const hiveWidth = hasLargeHorizontalSection
@@ -183,14 +184,11 @@ export default function HiveIcon({
 								<div className={styles.gripNotch}></div>
 							)}
 
-						{box.type === 'GATE' && (
+						{box.type === 'GATE' && normalizeGateHoleCount(box.holeCount) > 0 && (
 							<div
 								className={styles.gate}
-								style={{ '--gate-door-offset': gateDoorOffsetByHoleCount(box.holeCount) } as any}
-							>
-								<span className={`${styles.gateDoor} ${styles.gateDoorLeft}`}></span>
-								<span className={`${styles.gateDoor} ${styles.gateDoorRight}`}></span>
-							</div>
+								style={{ width: gateWidthByHoleCount(box.holeCount) }}
+							></div>
 						)}
 						{box.type === 'VENTILATION' && (
 							<div className={styles.ventilation}></div>

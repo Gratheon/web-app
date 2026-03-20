@@ -4,15 +4,6 @@ import { useMutation } from '../../../api';
 import Button from '@/shared/button';
 import T from '@/shared/translate';
 import VisualForm from '@/shared/visualForm';
-import Slider from '@/shared/slider';
-import { useLiveQuery } from 'dexie-react-hooks';
-import {
-	getBox,
-	updateBox,
-	GATE_HOLE_COUNT_MIN,
-	GATE_HOLE_COUNT_MAX,
-	normalizeGateHoleCount,
-} from '@/models/boxes';
 import styles from './styles.module.less';
 
 const UPDATE_DEVICE_MUTATION = gql`
@@ -23,19 +14,7 @@ mutation updateDevice($id: ID!, $device: DeviceUpdateInput!) {
 }
 `
 
-const UPDATE_BOX_HOLE_COUNT_MUTATION = gql`
-mutation updateBoxHoleCount($id: ID!, $holeCount: Int!) {
-	updateBoxHoleCount(id: $id, holeCount: $holeCount)
-}
-`
-
 export default function GateBox({ boxId, hiveId }) {
-	const gateBox = useLiveQuery(
-		() => getBox(+boxId),
-		[boxId],
-		null
-	)
-	const [isSavingHoleCount, setIsSavingHoleCount] = useState(false)
 	let {
 		loading, data,
 	} = useQuery(gql`
@@ -50,7 +29,6 @@ export default function GateBox({ boxId, hiveId }) {
 	}
 `, { variables: { boxIds: [+boxId] } });
 	const [updateDevice, { error: updateError }] = useMutation(UPDATE_DEVICE_MUTATION)
-	const [updateBoxHoleCountMutation, { error: updateHoleCountError }] = useMutation(UPDATE_BOX_HOLE_COUNT_MUTATION)
 	const [selectedDeviceId, setSelectedDeviceId] = useState('')
 	const [isSavingConnection, setIsSavingConnection] = useState(false)
 	const [connectionMessage, setConnectionMessage] = useState('')
@@ -67,39 +45,6 @@ export default function GateBox({ boxId, hiveId }) {
 	useEffect(() => {
 		setSelectedDeviceId(connectedDevice?.id || '')
 	}, [connectedDevice?.id])
-
-	const holeCount = normalizeGateHoleCount(gateBox?.holeCount)
-
-	const onHoleCountChange = async (event: any) => {
-		if (!gateBox?.id || isSavingHoleCount) return
-		const nextCount = normalizeGateHoleCount(event?.target?.value)
-		if (nextCount === holeCount) return
-
-		setIsSavingHoleCount(true)
-		setConnectionMessage('')
-		try {
-			const holeCountResult = await updateBoxHoleCountMutation({
-				id: `${gateBox.id}`,
-				holeCount: nextCount,
-			})
-			if (holeCountResult?.error) {
-				throw holeCountResult.error
-			}
-			await updateBox({
-				id: +gateBox.id,
-				hiveId: gateBox.hiveId ? +gateBox.hiveId : +hiveId,
-				position: +gateBox.position,
-				type: gateBox.type,
-				color: gateBox.color,
-				holeCount: nextCount,
-			})
-			setConnectionMessage('Entrance hole count saved.')
-		} catch (error) {
-			setConnectionMessage('Failed to save entrance hole count.')
-		} finally {
-			setIsSavingHoleCount(false)
-		}
-	}
 
 	if (loading) {
 		return null;
@@ -172,29 +117,7 @@ export default function GateBox({ boxId, hiveId }) {
 				</div>
 			</VisualForm>
 			{updateError ? <div className={styles.connectionError}>{updateError.message}</div> : null}
-			{updateHoleCountError ? <div className={styles.connectionError}>{updateHoleCountError.message}</div> : null}
 			{connectionMessage ? <div className={styles.connectionHint}>{connectionMessage}</div> : null}
-
-			<div className={styles.holeControl}>
-				<h4><T>Entrance hole count</T></h4>
-				<p className={styles.holeHint}>
-					<T>
-						Adjust how many entrance holes are open right now.
-					</T>
-				</p>
-				<div className={styles.sliderRow}>
-					<Slider
-						backgroundColor="#2f80ed"
-						value={holeCount}
-						min={GATE_HOLE_COUNT_MIN}
-						max={GATE_HOLE_COUNT_MAX}
-						width={240}
-						onChange={onHoleCountChange}
-					/>
-					<div className={styles.holeValue}>{holeCount}</div>
-				</div>
-				{isSavingHoleCount && <div className={styles.connectionHint}><T>Saving entrance holes...</T></div>}
-			</div>
 		</div>
 	);
 

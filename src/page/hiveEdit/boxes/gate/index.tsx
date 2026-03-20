@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useRef, useState, useEffect } from 'react';
 import style from './style.module.less';
 import beeURL from "@/assets/bee-side.png"
-import { gql, useQuery } from '@/api';
+import { gql, useMutation, useQuery } from '@/api';
 import {
 	normalizeGateHoleCount,
+	updateBox,
+	getBox,
 	GATE_HOLE_COUNT_MAX,
+	GATE_HOLE_COUNT_MIN,
 } from '@/models/boxes';
 
 const Bee = ({ position, intervalMs = 3000 }) => {
@@ -36,6 +39,12 @@ const Bee = ({ position, intervalMs = 3000 }) => {
 	);
 };
 
+const UPDATE_BOX_HOLE_COUNT_MUTATION = gql`
+mutation updateBoxHoleCount($id: ID!, $holeCount: Int!) {
+	updateBoxHoleCount(id: $id, holeCount: $holeCount)
+}
+`
+
 export default function Gate({ hiveId, box, boxId }) {
 	let { data, error, loading } = useQuery(gql`
 		query entranceMovementToday($hiveId: ID!, $boxId: ID!) {
@@ -47,16 +56,27 @@ export default function Gate({ hiveId, box, boxId }) {
 	`, {
 		variables: { hiveId, boxId: box.id },
 	});
+	const [updateBoxHoleCountMutation] = useMutation(UPDATE_BOX_HOLE_COUNT_MUTATION)
+	const entranceRef = useRef<HTMLDivElement | null>(null)
+	const dragStateRef = useRef<{ side: 'left' | 'right' } | null>(null)
+	const [isDraggingDoor, setIsDraggingDoor] = useState(false)
+	const [draftHoleCount, setDraftHoleCount] = useState(() => normalizeGateHoleCount(box?.holeCount))
 
 	if (loading) return <p>Loading...</p>;
 	if (error) return <p>Error: {error.message}</p>;
+
+	useEffect(() => {
+		if (!isDraggingDoor) {
+			setDraftHoleCount(normalizeGateHoleCount(box?.holeCount))
+		}
+	}, [box?.holeCount, isDraggingDoor])
 
 	let beesIn = data?.entranceMovementToday?.beesIn;
 	let beesOut = data?.entranceMovementToday?.beesOut;
 
 	let indicatorIn = null;
 	let indicatorOut = null;
-	const holeCount = normalizeGateHoleCount(box?.holeCount)
+	const holeCount = normalizeGateHoleCount(draftHoleCount)
 	const halfSlots = GATE_HOLE_COUNT_MAX / 2
 	const slotStepPercent = 25 / halfSlots
 	const leftVisible = Math.floor(holeCount / 2)
@@ -64,6 +84,75 @@ export default function Gate({ hiveId, box, boxId }) {
 	const doorTravelLeftPercent = `${leftVisible * slotStepPercent}%`
 	const doorTravelRightPercent = `${rightVisible * slotStepPercent}%`
 	const holeGapPx = holeCount > 10 ? 2 : 3
+
+	const persistHoleCount = async (nextCount: number) => {
+		const normalized = normalizeGateHoleCount(nextCount)
+		if (normalized === normalizeGateHoleCount(box?.holeCount)) return
+
+		const result = await updateBoxHoleCountMutation({
+			id: `${box.id}`,
+			holeCount: normalized,
+		})
+		if (result?.error) return
+
+		const latestBox = await getBox(+box.id)
+		await updateBox({
+			id: +box.id,
+			hiveId: latestBox?.hiveId ? +latestBox.hiveId : +hiveId,
+			position: latestBox?.position ? +latestBox.position : +box.position,
+			type: box.type,
+			color: latestBox?.color ?? box.color,
+			holeCount: normalized,
+		})
+	}
+
+	const updateDraftFromPointer = (event: PointerEvent) => {
+		const root = entranceRef.current
+		const dragState = dragStateRef.current
+		if (!root || !dragState) return null
+
+		const rect = root.getBoundingClientRect()
+		const centerX = rect.left + rect.width / 2
+		const halfOpenRange = rect.width * 0.25
+		if (halfOpenRange <= 0) return null
+
+		const signedDistance = dragState.side === 'left'
+			? centerX - event.clientX
+			: event.clientX - centerX
+
+		const clamped = Math.max(0, Math.min(halfOpenRange, signedDistance))
+		const fraction = clamped / halfOpenRange
+		const nextCount = Math.round(fraction * GATE_HOLE_COUNT_MAX)
+		const normalized = Math.max(GATE_HOLE_COUNT_MIN, Math.min(GATE_HOLE_COUNT_MAX, nextCount))
+		setDraftHoleCount(normalized)
+		return normalized
+	}
+
+	const beginDoorDrag = (side: 'left' | 'right', event: any) => {
+		event.preventDefault()
+		event.stopPropagation()
+		dragStateRef.current = {
+			side,
+		}
+		setIsDraggingDoor(true)
+
+		const onMove = (moveEvent: PointerEvent) => {
+			updateDraftFromPointer(moveEvent)
+		}
+		const onUp = async (upEvent: PointerEvent) => {
+			const finalCount = updateDraftFromPointer(upEvent)
+			window.removeEventListener('pointermove', onMove)
+			window.removeEventListener('pointerup', onUp)
+			setIsDraggingDoor(false)
+			dragStateRef.current = null
+			if (finalCount !== null) {
+				await persistHoleCount(normalizeGateHoleCount(finalCount))
+			}
+		}
+
+		window.addEventListener('pointermove', onMove)
+		window.addEventListener('pointerup', onUp)
+	}
 
 	if (beesIn > 0 && beesOut > 0) {
 		indicatorIn = '▲';
@@ -94,6 +183,7 @@ export default function Gate({ hiveId, box, boxId }) {
 				{indicatorOut} {beesOut}
 			</div>
 			<div
+				ref={entranceRef}
 				className={style.entranceViewport}
 				style={{
 					'--door-travel-left': doorTravelLeftPercent,
@@ -122,8 +212,14 @@ export default function Gate({ hiveId, box, boxId }) {
 						})()
 					))}
 				</div>
-				<div className={`${style.entranceDoor} ${style.entranceDoorLeft}`}></div>
-				<div className={`${style.entranceDoor} ${style.entranceDoorRight}`}></div>
+				<div
+					className={`${style.entranceDoor} ${style.entranceDoorLeft} ${isDraggingDoor ? style.dragging : ''}`}
+					onPointerDown={(event: any) => beginDoorDrag('left', event)}
+				></div>
+				<div
+					className={`${style.entranceDoor} ${style.entranceDoorRight} ${isDraggingDoor ? style.dragging : ''}`}
+					onPointerDown={(event: any) => beginDoorDrag('right', event)}
+				></div>
 			</div>
 		</div>
 	);

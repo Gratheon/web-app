@@ -74,6 +74,9 @@
 	border: 1px solid #bc8f10;
 	box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
 	z-index: 3;
+	cursor: ew-resize;
+	touch-action: none;
+	user-select: none;
 }
 
 .entranceDoorLeft {
@@ -85,6 +88,10 @@
 	right: calc(25% - var(--door-travel-right));
 	left: auto;
 	transform: none;
+}
+
+.dragging {
+	filter: brightness(1.04);
 }
 
 .selected{

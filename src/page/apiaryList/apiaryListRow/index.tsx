@@ -476,11 +476,13 @@ export default function apiaryListRow({
 
 			<div className={styles.hives}>
 					{apiaryHives.length == 0 && <HivesPlaceholder />}
-				{listType == 'list' && sortedHives &&
-					sortedHives.map((hive, i) => (
-						<div
-							key={i}
-							className={`${styles.hive} ${hive.status === 'collapsed' ? styles.collapsedHive : ''} ${hive.status === 'merged' ? styles.mergedHive : ''} ${selectedHiveApiaryId === apiary.id && selectedHiveId === hive.id ? styles.selectedHive : ''}`}
+					{listType == 'list' && sortedHives &&
+						sortedHives.map((hive, i) => {
+							const isHorizontalHive = (hive?.boxes || []).some((box) => box?.type === 'LARGE_HORIZONTAL_SECTION')
+							return (
+							<div
+								key={i}
+								className={`${styles.hive} ${isHorizontalHive ? styles.horizontalHive : ''} ${hive.status === 'collapsed' ? styles.collapsedHive : ''} ${hive.status === 'merged' ? styles.mergedHive : ''} ${selectedHiveApiaryId === apiary.id && selectedHiveId === hive.id ? styles.selectedHive : ''}`}
 							data-hive-item="1"
 							data-apiary-id={apiary.id}
 							data-hive-id={hive.id}
@@ -502,9 +504,10 @@ export default function apiaryListRow({
 								</div>
 							</NavLink>
 
-							<BeeCounter count={hive.beeCount} />
-						</div>
-					))}
+								<BeeCounter count={hive.beeCount} />
+							</div>
+							)
+						})}
 
 					{listType == 'table' && apiaryHives.length > 0 &&
 					<table className={styles.hivesTable}>

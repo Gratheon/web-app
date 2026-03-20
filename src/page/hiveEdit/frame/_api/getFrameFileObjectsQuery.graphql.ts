@@ -10,7 +10,6 @@ export default gql`
 		hiveFrameSideCells(frameSideId: $frameSideId) {
 			__typename
 			id
-			cells
 			broodPercent
 			droneBroodPercent
 			cappedBroodPercent

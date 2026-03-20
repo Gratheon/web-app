@@ -123,7 +123,7 @@ export default function HiveIcon({
 			}
 
 			if (box.type === 'LARGE_HORIZONTAL_SECTION') {
-				boxStyle.paddingTop = `${size / 1.8}px`
+				boxStyle.paddingTop = `${size / 1.3}px`
 			} else if (box.type === 'GATE') {
 				boxStyle.paddingTop = `${size / 10}px`
 			} else if (
@@ -180,10 +180,16 @@ export default function HiveIcon({
 						{box.type === 'VENTILATION' && (
 							<div className={styles.ventilation}></div>
 						)}
-						{box.type === 'LARGE_HORIZONTAL_SECTION' && (
-							<div className={styles.horizontalFrames}></div>
-						)}
-					</div>
+							{box.type === 'LARGE_HORIZONTAL_SECTION' && (
+								<div className={styles.horizontalFrames}>
+									<span className={styles.horizontalFrameLine}></span>
+									<span className={styles.horizontalFrameLine}></span>
+									<span className={styles.horizontalFrameLine}></span>
+									<span className={styles.horizontalFrameLine}></span>
+									<span className={styles.horizontalEntrance}></span>
+								</div>
+							)}
+						</div>
 
 					{editable && colorPickerVisibleAt === i && isPaintableSection && (
 						<div className={styles.colorPickerPopup}>

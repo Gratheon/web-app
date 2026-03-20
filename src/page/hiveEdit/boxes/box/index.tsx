@@ -1,4 +1,5 @@
 import isNil from 'lodash/isNil'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 
@@ -60,6 +61,7 @@ export default function Box({
 }: BoxType): any {
 	const tFrameRearranged = t('Frame rearranged')
 	const navigate = useNavigate()
+	const [dragHoverIndex, setDragHoverIndex] = useState<number | null>(null)
 	let framesDiv = []
 	const frameDragPayloadMime = 'application/gratheon-frame-dnd'
 
@@ -273,16 +275,28 @@ export default function Box({
 		}
 
 		onNativeDragStart = (event, payload) => {
+			console.warn('[hive-dnd] dragstart', {
+				sourceBoxId: payload?.boxId,
+				sourceBoxType: payload?.boxType,
+				sourceIndex: payload?.index,
+				frameId: payload?.frameId,
+			})
 			event.stopPropagation()
 			event.dataTransfer.effectAllowed = 'move'
 			const raw = JSON.stringify(payload)
 			event.dataTransfer.setData(frameDragPayloadMime, raw)
 			event.dataTransfer.setData('text/plain', raw)
+
 			activeFrameDragPayload = payload
 		}
 
 		onNativeDragEnd = () => {
+			console.warn('[hive-dnd] dragend', {
+				activeFrameId: activeFrameDragPayload?.frameId,
+				activeBoxId: activeFrameDragPayload?.boxId,
+			})
 			activeFrameDragPayload = null
+			setDragHoverIndex(null)
 		}
 
 		onNativeDragOver = (event) => {
@@ -291,6 +305,11 @@ export default function Box({
 		}
 
 		onNativeDropAtIndex = async (event, targetIndex) => {
+			console.warn('[hive-dnd] drop:attempt', {
+				targetBoxId: box.id,
+				targetBoxType: box.type,
+				targetIndex,
+			})
 			event.preventDefault()
 			event.stopPropagation()
 
@@ -312,9 +331,21 @@ export default function Box({
 				payload?.boxType === undefined ||
 				payload?.index === undefined
 			) {
+				console.warn('[hive-dnd] drop:missing-payload', {
+					raw,
+					activeFrameDragPayload,
+				})
 				return
 			}
 
+			console.warn('[hive-dnd] drop:resolved-payload', {
+				sourceBoxId: payload.boxId,
+				sourceBoxType: payload.boxType,
+				sourceIndex: payload.index,
+				frameId: payload.frameId,
+				targetBoxId: box.id,
+				targetIndex,
+			})
 			await applyFrameMove({
 				sourceBoxId: +payload.boxId,
 				sourceBoxType: payload.boxType,
@@ -322,6 +353,7 @@ export default function Box({
 				targetBoxId: +box.id,
 				targetIndex,
 			})
+			setDragHoverIndex(null)
 		}
 
 		onNativeDropAtEnd = async (event) => {
@@ -329,68 +361,162 @@ export default function Box({
 			await onNativeDropAtIndex(event, targetIndex)
 		}
 
-		if (displayMode === 'list') {
-			boxInnerDragProps = {
-				onDragOver: onNativeDragOver,
-				onDrop: (event: React.DragEvent<HTMLDivElement>) => {
-					void onNativeDropAtEnd(event)
+			if (displayMode === 'list') {
+				boxInnerDragProps = {
+					onDragOver: (event: React.DragEvent<HTMLDivElement>) => {
+						onNativeDragOver(event)
+						// Trigger first rerender during active drag without interrupting dragstart lifecycle.
+						if (dragHoverIndex === null) {
+							setDragHoverIndex(frames?.length || 0)
+						}
+					},
+					onDragLeave: () => setDragHoverIndex(null),
+					onDrop: (event: React.DragEvent<HTMLDivElement>) => {
+						void onNativeDropAtEnd(event)
 				},
 			}
 		}
 	}
 
-		if (frames && frames.length > 0) {
-			for (let i = 0; i < frames.length; i++) {
-				const frame = frames[i]
-				const dragDropProps =
-					editable && displayMode === 'list'
-						? {
-							draggable: true,
-							onDragStart: (event) =>
-								onNativeDragStart(event, {
-									boxId: box.id,
-									boxType: box.type,
-									index: i,
-									frameId: frame.id,
-								}),
-							onDragEnd: onNativeDragEnd,
-							onDragOver: onNativeDragOver,
-							onDrop: (event) => {
-								void onNativeDropAtIndex(event, i)
-							},
-						}
-						: undefined
+	if (frames && frames.length > 0) {
+		const isListDragMode = editable && displayMode === 'list'
+		const isCompatibleDrag = isListDragMode && activeFrameDragPayload?.boxType === box.type
+		const shouldShowSlots = Boolean(activeFrameDragPayload) && isCompatibleDrag
 
-				const frameDiv = (
-					<Frame
-						key={frame.id}
-						box={box}
-						frameId={frameId}
-						frameSideId={frameSideId}
-						hiveId={hiveId}
+		for (let i = 0; i < frames.length; i++) {
+			const frame = frames[i]
+			const isFrameDragged = activeFrameDragPayload?.frameId === frame.id
+
+			if (shouldShowSlots) {
+				const isHoveredSlot = dragHoverIndex === i
+				framesDiv.push(
+					<div
+						key={`slot-${box.id}-${i}`}
+						onDragOver={(event) => {
+							onNativeDragOver(event)
+							if (isCompatibleDrag) {
+								setDragHoverIndex(i)
+							}
+						}}
+						onDrop={(event) => {
+							void onNativeDropAtIndex(event, i)
+						}}
+						style={{
+							display: 'inline-block',
+							height: 'calc(100% - 20px)',
+							verticalAlign: 'top',
+							marginTop: 10,
+							marginBottom: 0,
+							marginLeft: 2,
+							marginRight: 2,
+							width: isHoveredSlot ? 38 : 10,
+							boxSizing: 'border-box',
+							border: '2px dashed rgba(255,255,255,0.65)',
+							borderRadius: 4,
+							background: isHoveredSlot ? 'rgba(255,255,255,0.16)' : 'transparent',
+							transition: 'width 120ms ease, background-color 120ms ease',
+						}}
+					/>
+				)
+			}
+
+			const frameDiv = (
+				<Frame
+					key={frame.id}
+					box={box}
+					frameId={frameId}
+					frameSideId={frameSideId}
+					hiveId={hiveId}
 					apiaryId={apiaryId}
 					frame={frame}
 					editable={editable}
-						displayMode={displayMode}
-						frameSidesData={frameSidesData}
-						onFrameImageClick={onFrameImageClick}
-						dragDropProps={dragDropProps}
-					/>
-				)
+					displayMode={displayMode}
+					frameSidesData={frameSidesData}
+					onFrameImageClick={onFrameImageClick}
+					dragDropProps={
+						isListDragMode
+							? {
+								draggable: true,
+								onDragStart: (event: React.DragEvent<HTMLDivElement>) =>
+									onNativeDragStart(event, {
+										boxId: box.id,
+										boxType: box.type,
+										index: i,
+										frameId: frame.id,
+									}),
+								onDragEnd: onNativeDragEnd,
+								style: isFrameDragged
+									? {
+										opacity: 0.45,
+										transform: 'scale(0.98)',
+									}
+									: undefined,
+							}
+							: undefined
+					}
+				/>
+			)
 
+			if (isListDragMode) {
+				framesDiv.push(
+					<div
+						key={`drag-${frame.id}`}
+						style={{
+							display: 'inline-block',
+							height: '100%',
+							verticalAlign: 'top',
+						}}
+					>
+						{frameDiv}
+					</div>
+				)
+			} else {
 				framesDiv.push(frameDiv)
 			}
 		}
+
+		if (shouldShowSlots) {
+			const lastSlotIndex = frames.length
+			const isHoveredSlot = dragHoverIndex === lastSlotIndex
+			framesDiv.push(
+				<div
+					key={`slot-${box.id}-${lastSlotIndex}`}
+					onDragOver={(event) => {
+						onNativeDragOver(event)
+						setDragHoverIndex(lastSlotIndex)
+					}}
+					onDrop={(event) => {
+						void onNativeDropAtIndex(event, lastSlotIndex)
+					}}
+					style={{
+						display: 'inline-block',
+						height: 'calc(100% - 20px)',
+						verticalAlign: 'top',
+						marginTop: 10,
+						marginBottom: 0,
+						marginLeft: 2,
+						marginRight: 2,
+						width: isHoveredSlot ? 38 : 10,
+						boxSizing: 'border-box',
+						border: '2px dashed rgba(255,255,255,0.65)',
+						borderRadius: 4,
+						background: isHoveredSlot ? 'rgba(255,255,255,0.16)' : 'transparent',
+						transition: 'width 120ms ease, background-color 120ms ease',
+					}}
+				/>
+			)
+		}
+	}
 
 	framesWrapped = framesDiv
 
 	// visually limit the width of the box to 12 frames
 	let maxWidthStyle ={}
-	if(frames.length> 10){
-		maxWidthStyle = {
-			maxWidth: 32 * 12 + 10
+		if(frames.length> 10){
+			maxWidthStyle = {
+				maxWidth: 32 * 12 + 10
+			}
 		}
-	}
 
 
 	if (displayMode == 'visual') {

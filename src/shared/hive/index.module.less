@@ -36,6 +36,22 @@
 		.largeHorizontalSection {
 			border-radius: 0 0 6px 6px;
 			position: relative;
+			border-left: 3px solid #ffffff;
+			border-right: 3px solid #ffffff;
+			box-sizing: border-box;
+			overflow: hidden;
+		}
+
+		.largeHorizontalSection::before {
+			content: '';
+			position: absolute;
+			left: 0;
+			right: 0;
+			top: 0;
+			height: 18%;
+			background: linear-gradient(to bottom, #ffffff 0%, #f0ede2 100%);
+			border-bottom: 2px solid rgba(76, 76, 76, 0.65);
+			pointer-events: none;
 		}
 
 		.nucleusSection {
@@ -118,17 +134,65 @@
 	}
 
 	.horizontalFrames {
-		width: calc(100% - 8px);
-		height: 4px;
-		margin: -8px auto 4px;
-		background-image: repeating-linear-gradient(
-			to right,
-			rgba(45, 35, 0, 0.75) 0,
-			rgba(45, 35, 0, 0.75) 1px,
-			transparent 1px,
-			transparent 6px
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 0;
+		bottom: 0;
+		pointer-events: none;
+		z-index: 1;
+	}
+
+	.horizontalFrameLine {
+		position: absolute;
+		left: 0;
+		right: 0;
+		height: 2px;
+		background: linear-gradient(
+			to bottom,
+			rgba(76, 76, 76, 0.7) 0,
+			rgba(76, 76, 76, 0.7) 1px,
+			rgba(255, 255, 255, 0.82) 1px,
+			rgba(255, 255, 255, 0.82) 2px
 		);
-		opacity: 0.9;
+	}
+
+	.horizontalFrameLine:nth-child(1) {
+		top: 20%;
+		transform: translateY(-50%);
+		background: linear-gradient(
+			to bottom,
+			rgba(76, 76, 76, 0.72) 0,
+			rgba(76, 76, 76, 0.72) 1px,
+			rgba(108, 108, 108, 0.72) 1px,
+			rgba(108, 108, 108, 0.72) 2px
+		);
+	}
+
+	.horizontalFrameLine:nth-child(2) {
+		top: 40%;
+		transform: translateY(-50%);
+	}
+
+	.horizontalFrameLine:nth-child(3) {
+		top: 60%;
+		transform: translateY(-50%);
+	}
+
+	.horizontalFrameLine:nth-child(4) {
+		top: 80%;
+		transform: translateY(-50%);
+	}
+
+	.horizontalEntrance {
+		position: absolute;
+		right: 16px;
+		bottom: -1px;
+		width: 20px;
+		height: 3px;
+		background: #111111;
+		border-radius: 1px;
+		z-index: 2;
 	}
 
 	.colorDot {

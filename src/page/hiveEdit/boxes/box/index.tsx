@@ -201,16 +201,31 @@ export default function Box({
 	if (editable) {
 		async function updateFramesForBoxes(boxIds: number[]) {
 			const distinctBoxIds = [...new Set(boxIds)]
-			const framesByBox = await Promise.all(
+			const framesByBoxRaw = await Promise.all(
 				distinctBoxIds.map((id) => getFrames({ boxId: +id }))
 			)
-			const frames = framesByBox
-				.flat()
-				.filter(Boolean)
-				.map((v: FrameType) => {
-					let r = {
+
+			const framesByBox = framesByBoxRaw.map((boxFramesRaw, boxIndex) => {
+				const boxId = +distinctBoxIds[boxIndex]
+				const boxFrames = (boxFramesRaw || []).filter(Boolean)
+				return boxFrames.map((frame: any, idx: number) => {
+					const normalizedPosition =
+						Number.isFinite(+frame?.position) && +frame.position > 0
+							? +frame.position
+							: idx + 1
+					frame.position = normalizedPosition
+					frame.boxId = boxId
+					return frame
+				})
+			})
+
+			await Promise.all(framesByBox.flat().map((frame) => updateFrame(frame)))
+
+			const frames = framesByBox.flat().map((v: FrameType) => {
+					const r: any = {
 						...v,
 					}
+					r.position = Number.isFinite(+r.position) && +r.position > 0 ? +r.position : 1
 					delete r.rightId
 					delete r.leftId
 					delete r.leftSide
@@ -464,22 +479,40 @@ export default function Box({
 		}
 
 		onNativeDropAtEnd = async (event) => {
-			const targetIndex = frames?.length || 0
+			const slotCapacity = Math.max(
+				BOX_SLOT_CAPACITY[box.type] || 10,
+				(frames || []).reduce(
+					(max, frame) => Math.max(max, +(frame?.position || 0)),
+					0
+				)
+			)
+			const lastOccupiedIndex = (frames || []).reduce(
+				(max, frame) => Math.max(max, +(frame?.position || 0) - 1),
+				-1
+			)
+			const targetIndex = Math.min(
+				slotCapacity - 1,
+				Math.max(0, lastOccupiedIndex + 1)
+			)
 			await onNativeDropAtIndex(event, targetIndex)
 		}
 
-			if (displayMode === 'list') {
-				boxInnerDragProps = {
-					onDragOver: (event: React.DragEvent<HTMLDivElement>) => {
-						onNativeDragOver(event)
-						// Trigger first rerender during active drag without interrupting dragstart lifecycle.
-						if (dragHoverIndex === null) {
-							setDragHoverIndex(frames?.length || 0)
-						}
-					},
-					onDragLeave: () => setDragHoverIndex(null),
-					onDrop: (event: React.DragEvent<HTMLDivElement>) => {
-						void onNativeDropAtEnd(event)
+		if (displayMode === 'list') {
+			boxInnerDragProps = {
+				onDragOver: (event: React.DragEvent<HTMLDivElement>) => {
+					onNativeDragOver(event)
+					// Trigger first rerender during active drag without interrupting dragstart lifecycle.
+					if (dragHoverIndex === null) {
+						const lastOccupiedIndex = (frames || []).reduce(
+							(max, frame) => Math.max(max, +(frame?.position || 0) - 1),
+							-1
+						)
+						setDragHoverIndex(Math.max(0, lastOccupiedIndex + 1))
+					}
+				},
+				onDragLeave: () => setDragHoverIndex(null),
+				onDrop: (event: React.DragEvent<HTMLDivElement>) => {
+					void onNativeDropAtEnd(event)
 				},
 			}
 		}
@@ -500,8 +533,15 @@ export default function Box({
 				frameBySlot.set(slotIndex, frame)
 			}
 		}
+		const occupiedSlotIndexes = [...frameBySlot.keys()].sort((a, b) => a - b)
+		const firstOccupiedIndex = occupiedSlotIndexes.length ? occupiedSlotIndexes[0] : 0
+		const listSlotStart =
+			box.type === 'LARGE_HORIZONTAL_SECTION'
+				? Math.max(0, firstOccupiedIndex - 1)
+				: 0
+		const listSlotEnd = slotCapacity - 1
 
-		for (let i = 0; i < slotCapacity; i++) {
+		for (let i = listSlotStart; i <= listSlotEnd; i++) {
 			const frame = frameBySlot.get(i)
 			const isEmptySlot = !frame
 			const isFrameDragged = !isEmptySlot && activeFrameDragPayload?.frameId === frame.id

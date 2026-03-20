@@ -140,7 +140,16 @@ const HIVE_CREATE_DEDUCTION_CONTEXT_QUERY = gql`
 				type
 				frames {
 					id
+					position
 					type
+					leftSide {
+						id
+						frameId
+					}
+					rightSide {
+						id
+						frameId
+					}
 				}
 			}
 		}

@@ -27,6 +27,15 @@ export const writeHooks = {
 			value.boxId = +parent.id
 		}
 
+		const incomingPosition = Number(frame?.position ?? value?.position)
+		const hasIncomingPosition = Number.isFinite(incomingPosition) && incomingPosition > 0
+		// Ignore incomplete frame payloads from lightweight queries.
+		// Full frame sync paths include position + side ids.
+		if (!hasIncomingPosition) {
+			return
+		}
+		value.position = incomingPosition
+
 		if (frame.leftSide) {
 			value.leftId = +frame.leftSide?.id
 		}

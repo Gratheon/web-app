@@ -203,17 +203,56 @@ export default function HiveEditForm() {
 		}
 	}, [location.pathname])
 
+	const parsePositiveId = (value?: string) => {
+		const parsed = Number(value)
+		return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined
+	}
+	const apiaryIdNum = parsePositiveId(apiaryId)
+	const hiveIdNum = parsePositiveId(hiveId)
+	const boxIdNum = parsePositiveId(boxId)
+	const hasValidBoxId = Boolean(boxIdNum)
+
 	// Model functions now handle invalid IDs
-	const apiary = useLiveQuery(() => getApiary(+apiaryId), [apiaryId], null);
-	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId], null);
-	const box = useLiveQuery(() => getBox(+boxId), [boxId], null);
-	const family = useLiveQuery(() => getFamilyByHive(+hiveId), [hiveId]);
+	const apiary = useLiveQuery(
+		() => (apiaryIdNum ? getApiary(apiaryIdNum) : Promise.resolve(undefined)),
+		[apiaryId || ''],
+		null
+	)
+	const hive = useLiveQuery(
+		() => (hiveIdNum ? getHive(hiveIdNum) : Promise.resolve(undefined)),
+		[hiveId || ''],
+		null
+	)
+	const box = useLiveQuery(
+		() => (boxIdNum ? getBox(boxIdNum) : Promise.resolve(undefined)),
+		[boxId || ''],
+		null
+	)
+	const family = useLiveQuery(
+		() => (hiveIdNum ? getFamilyByHive(hiveIdNum) : Promise.resolve(null)),
+		[hiveId || '']
+	)
 
 	useEffect(() => {
 		if (!hive) return
 		syncHiveLineageLogs(hive).catch((e) => console.error('Failed to sync lineage logs', e))
 	}, [hive?.id, hive?.splitDate, hive?.mergeDate, hive?.parentHive?.id, hive?.mergedIntoHive?.id, hive?.childHives?.length, hive?.mergedFromHives?.length])
-	
+
+	useEffect(() => {
+		if (boxId) return
+		if (!apiaryId || !hiveId) return
+		if (String(hive?.hiveType || '').toUpperCase() !== 'HORIZONTAL') return
+
+		;(async () => {
+				const boxes = await getBoxes({ hiveId: hiveIdNum })
+			if (!boxes?.length) return
+			const targetBox = boxes.find((b) => b.type === boxTypes.LARGE_HORIZONTAL_SECTION)
+			if (!targetBox?.id) return
+			navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${targetBox.id}`, {
+				replace: true,
+			})
+		})()
+	}, [apiaryId, boxId, hive?.hiveType, hiveId, navigate])
 
 	if (apiary === null || hive === null) {
 		return <Loader />
@@ -227,9 +266,9 @@ export default function HiveEditForm() {
 			loading,
 			error: errorGet,
 			errorNetwork,
-		} = useQuery(HIVE_QUERY, {
-			variables: { id: +hiveId, apiaryId: +apiaryId },
-		}))
+			} = useQuery(HIVE_QUERY, {
+				variables: { id: hiveIdNum || 0, apiaryId: apiaryIdNum || 0 },
+			}))
 
 		if (loading) {
 			return <Loader />

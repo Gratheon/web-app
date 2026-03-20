@@ -13,6 +13,7 @@ import FreeDrawIcon from '@/icons/freeDrawIcon.tsx';
 import UndoStrokeIcon from '@/icons/undoStrokeIcon.tsx';
 import BrushSizeIcon from '@/icons/brushSizeIcon.tsx';
 import KeyboardHints from '@/shared/keyboardHints';
+import Slider from '@/shared/slider';
 
 let img: HTMLImageElement | null = null;
 let isMousedown = false;
@@ -138,11 +139,16 @@ function getContrastingTextColor(background: string): string {
 	return luminance > 0.6 ? '#111' : '#fff';
 }
 
-function drawDetectedCells(detectedFrameCells: any[], ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
+function drawDetectedCells(
+	detectedFrameCells: any[],
+	ctx: CanvasRenderingContext2D,
+	canvas: HTMLCanvasElement,
+	opacityFactor = 1
+) {
 	const relPx = calculateRelPx(canvas);
 	detectedFrameCells.forEach(([cls, x, y, r, probability]) => {
 		const { stroke, fill } = getCellStyle(cls);
-		ctx.globalAlpha = 0.3 + probability / 100;
+		ctx.globalAlpha = Math.max(0, Math.min(1, (0.3 + probability / 100) * opacityFactor));
 		ctx.beginPath();
 		ctx.strokeStyle = stroke;
 		ctx.fillStyle = fill;
@@ -497,6 +503,7 @@ interface DrawLayersParams {
 	detectedBees: any[];
 	showCells: boolean;
 	detectedCells: any[];
+	cellsOpacityFactor?: number;
 	showQueenCups: boolean;
 	detectedQueenCups: any[];
 	showVarroa: boolean;
@@ -510,7 +517,8 @@ interface DrawLayersParams {
 function drawCanvasLayers({
 	canvas, ctx, strokeHistory, showBees, showDrones, isAiQueenVisible,
 	detectedBees, showCells, detectedCells, showQueenCups, detectedQueenCups,
-	showVarroa, detectedVarroa, brushCursor, activeTool, selectedCellType, brushRadiusRatio = DEFAULT_BRUSH_DIAMETER_RATIO / 2
+	showVarroa, detectedVarroa, brushCursor, activeTool, selectedCellType, brushRadiusRatio = DEFAULT_BRUSH_DIAMETER_RATIO / 2,
+	cellsOpacityFactor = 1
 }: DrawLayersParams) {
 	ctx.save();
 	ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -521,7 +529,7 @@ function drawCanvasLayers({
 	if (img) {
 		ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 	}
-	if (showCells && detectedCells) drawDetectedCells(detectedCells, ctx, canvas);
+	if (showCells && detectedCells) drawDetectedCells(detectedCells, ctx, canvas, cellsOpacityFactor);
 	if (showVarroa && detectedVarroa) drawDetectedVarroa(detectedVarroa, ctx, canvas);
 	if ((showBees || showDrones || isAiQueenVisible) && detectedBees) {
 		drawDetectedBees(detectedBees, ctx, canvas, showBees, showDrones, isAiQueenVisible);
@@ -589,6 +597,7 @@ export default function DrawingCanvas({
 	const [activeTool, setActiveTool] = useState<'cell-brush' | 'stroke'>('cell-brush');
 	const [selectedCellType, setSelectedCellType] = useState<BrushCellType>(2);
 	const [brushSizePreset, setBrushSizePreset] = useState<BrushSizePreset>('medium');
+	const [cellsOpacityPercent, setCellsOpacityPercent] = useState(100);
 	const [hasUnsavedCellEdits, setHasUnsavedCellEdits] = useState(false);
 	const [isSavingCellEdits, setIsSavingCellEdits] = useState(false);
 	const editableDetectedCellsRef = useRef<any[]>(detectedCells || []);
@@ -675,9 +684,10 @@ export default function DrawingCanvas({
 			brushCursor: brushCursorRef.current,
 			activeTool,
 			selectedCellType,
-			brushRadiusRatio
+			brushRadiusRatio,
+			cellsOpacityFactor: cellsOpacityPercent / 100,
 		});
-	}, [strokeHistory, showBees, showDrones, isAiQueenVisible, allDetectedBees, showCells, showQueenCups, detectedQueenCups, showVarroa, detectedVarroa, activeTool, selectedCellType, brushRadiusRatio]);
+	}, [strokeHistory, showBees, showDrones, isAiQueenVisible, allDetectedBees, showCells, showQueenCups, detectedQueenCups, showVarroa, detectedVarroa, activeTool, selectedCellType, brushRadiusRatio, cellsOpacityPercent]);
 
 	const scheduleRedraw = useCallback(() => {
 		if (redrawRafRef.current !== null) return;
@@ -1334,7 +1344,7 @@ export default function DrawingCanvas({
 					</div>
 				</div>
 			)}
-			{!hideControls && allowDrawing && showCells && (
+			{!hideControls && allowDrawing && (
 				<div className={styles.toolbar}>
 					<div className={styles.toolbarGroup}>
 						<Button
@@ -1443,6 +1453,23 @@ export default function DrawingCanvas({
 							</Button>
 						</div>
 					)}
+					<div className={`${styles.toolbarGroup} ${styles.toolbarRight} ${styles.toolbarSliderGroup}`}>
+						<span className={styles.toolbarSliderLabel}>
+							<T>Cells opacity</T>
+						</span>
+						<Slider
+							backgroundColor="#f0b800"
+							value={cellsOpacityPercent}
+							width={130}
+							min={0}
+							max={100}
+							onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+								const nextValue = Number(event.target.value);
+								setCellsOpacityPercent(Number.isFinite(nextValue) ? nextValue : 100);
+							}}
+						/>
+						<span className={styles.toolbarSliderValue}>{cellsOpacityPercent}%</span>
+					</div>
 				</div>
 			)}
 

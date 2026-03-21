@@ -15,16 +15,30 @@ export default {
 	},
 	apiaries: async (_, { db }) => {
 		const apiaries = await db.apiary.limit(100).toArray()
+		const allHives = await db.hive.limit(500).toArray()
+		const allBoxes = await db.box.limit(2000).toArray()
+		const hasApiaryRelations = allHives.some((hive) => hive?.apiaryId != null || hive?.apiary_id != null)
 
 		const apiariesWithHives = []
 
 		for await (const apiary of apiaries) {
-			const hives = await db.hive.limit(100).toArray()
-			const hivesWithBoxes = []
-			for await (const hive of hives) {
-				const boxes = await db.box.limit(100).toArray()
-				hivesWithBoxes.push({ ...hive, boxes })
-			}
+			const apiaryHives = allHives.filter((hive) => {
+				// Backward compatibility: if old cache entries have no apiaryId and there is
+				// only one cached apiary, keep showing those hives.
+				if (!hasApiaryRelations && apiaries.length === 1) {
+					return true
+				}
+				const hiveApiaryId = hive?.apiaryId ?? hive?.apiary_id
+				return String(hiveApiaryId) === String(apiary.id)
+			})
+
+			const hivesWithBoxes = apiaryHives.map((hive) => {
+				const boxes = allBoxes
+					.filter((box) => String(box?.hiveId ?? box?.hive_id) === String(hive.id))
+					.sort((a, b) => Number(a?.position || 0) - Number(b?.position || 0))
+				return { ...hive, boxes }
+			})
+
 			apiariesWithHives.push({ ...apiary, hives: hivesWithBoxes })
 		}
 

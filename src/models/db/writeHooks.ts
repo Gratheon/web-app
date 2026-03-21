@@ -13,7 +13,12 @@ import { addHiveLog, hiveLogActions } from '../hiveLog.ts'
 export const writeHooks = {
 	Apiary: async (_, entity) =>
 		await upsertEntityWithNumericID('apiary', entity),
-	Hive: async (_, entity) => await upsertEntityWithNumericID('hive', entity),
+	Hive: async (parent, entity) => {
+		if (parent?.id != null) {
+			entity.apiaryId = +parent.id
+		}
+		await upsertEntityWithNumericID('hive', entity)
+	},
 	Box: async (parent, entity) => {
 		entity.hiveId = +parent.id
 		await upsertEntityWithNumericID('box', entity)

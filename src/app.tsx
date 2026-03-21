@@ -15,6 +15,7 @@ import { getUser } from './models/user'
 import { getUserLanguage } from './models/translationService'
 import { SUPPORTED_LANGUAGES } from './config/languages'
 import metrics from './metrics'
+import OfflineWarning from './shared/offlineWarning'
 
 initErrorReporting()
 
@@ -101,6 +102,7 @@ export default function App() {
 				/>
 
 				<BrowserRouter>
+					<OfflineWarning />
 					<Page />
 				</BrowserRouter>
 				</UploadProvider>

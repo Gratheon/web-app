@@ -142,13 +142,14 @@ function useQueryAdapted(query: string | TypedDocumentNode, options?: any) {
 		variables: options?.variables,
 	})
 
+	const hasData = result.data !== null && result.data !== undefined
 
 	return {
 		data: result.data,
 		loading: result.fetching,
 		error: result.error,
 		//@ts-ignore
-		errorNetwork: result?.originalError,
+		errorNetwork: hasData ? null : result?.originalError,
 		reexecuteQuery
 	}
 }

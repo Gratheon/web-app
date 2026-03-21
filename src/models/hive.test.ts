@@ -1,5 +1,15 @@
 import { describe, it, expect, vi, beforeEach, Mock, afterEach } from 'vitest';
-import { getHive, updateHive, Hive } from './hive'; // Import functions and type
+import {
+  getHive,
+  updateHive,
+  getHives,
+  bulkUpsertHives,
+  setHiveCollapsed,
+  isCollapsed,
+  isEditable,
+  isMerged,
+  Hive,
+} from './hive'; // Import functions and type
 import { db } from './db'; // Import original db for type info if needed, but we mock it
 
 // --- Mock Dependencies ---
@@ -8,21 +18,35 @@ import { db } from './db'; // Import original db for type info if needed, but we
 vi.mock('./db', () => {
   const innerMockGet = vi.fn();
   const innerMockPut = vi.fn();
+  const innerMockToArray = vi.fn();
+  const innerMockBulkPut = vi.fn();
   return {
     db: {
       hive: { // Mock the 'hive' table specifically
         get: innerMockGet,
         put: innerMockPut,
+        toArray: innerMockToArray,
+        bulkPut: innerMockBulkPut,
       },
       // Expose inner mocks for test access
-      __mocks: { mockGet: innerMockGet, mockPut: innerMockPut }
+      __mocks: {
+        mockGet: innerMockGet,
+        mockPut: innerMockPut,
+        mockToArray: innerMockToArray,
+        mockBulkPut: innerMockBulkPut,
+      }
     },
   };
 });
 
 // Import the mocked db *after* vi.mock call
 // Get typed access to the inner mocks
-const dbMocks = (db as any).__mocks as { mockGet: Mock, mockPut: Mock };
+const dbMocks = (db as any).__mocks as {
+  mockGet: Mock,
+  mockPut: Mock,
+  mockToArray: Mock,
+  mockBulkPut: Mock,
+};
 
 describe('Hive Model', () => {
 
@@ -30,6 +54,8 @@ describe('Hive Model', () => {
     // ARRANGE: Reset inner mocks using dbMocks reference
     dbMocks.mockGet.mockReset();
     dbMocks.mockPut.mockReset();
+    dbMocks.mockToArray.mockReset();
+    dbMocks.mockBulkPut.mockReset();
     vi.spyOn(console, 'error').mockImplementation(() => {}); // Suppress console.error
   });
 
@@ -98,6 +124,92 @@ describe('Hive Model', () => {
       expect(dbMocks.mockGet).toHaveBeenCalledTimes(1);
       expect(dbMocks.mockGet).toHaveBeenCalledWith(hiveId);
       expect(consoleErrorSpy).toHaveBeenCalledWith(error);
+    });
+  });
+
+  describe('getHives', () => {
+    it('should return all hives from db', async () => {
+      // ARRANGE
+      dbMocks.mockToArray.mockResolvedValue([hive1, hive2]);
+
+      // ACT
+      const result = await getHives();
+
+      // ASSERT
+      expect(result).toEqual([hive1, hive2]);
+      expect(dbMocks.mockToArray).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return [] if db read fails', async () => {
+      // ARRANGE
+      dbMocks.mockToArray.mockRejectedValue(new Error('toArray failed'));
+
+      // ACT
+      const result = await getHives();
+
+      // ASSERT
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('bulkUpsertHives', () => {
+    it('should skip when input is empty or invalid', async () => {
+      // ACT
+      await bulkUpsertHives([] as Hive[]);
+      await bulkUpsertHives(null as any);
+      await bulkUpsertHives({} as any);
+
+      // ASSERT
+      expect(dbMocks.mockBulkPut).not.toHaveBeenCalled();
+    });
+
+    it('should bulk put hives when data is valid', async () => {
+      // ARRANGE
+      const hives = [hive1, hive2];
+
+      // ACT
+      await bulkUpsertHives(hives);
+
+      // ASSERT
+      expect(dbMocks.mockBulkPut).toHaveBeenCalledTimes(1);
+      expect(dbMocks.mockBulkPut).toHaveBeenCalledWith(hives);
+    });
+  });
+
+  describe('status helpers', () => {
+    it('should classify collapsed hives by status or collapse_date', () => {
+      expect(isCollapsed({ id: 1, status: 'collapsed' })).toBe(true);
+      expect(isCollapsed({ id: 1, collapse_date: '2025-01-01' })).toBe(true);
+      expect(isCollapsed({ id: 1, status: 'active' })).toBe(false);
+    });
+
+    it('should classify merged hives by status or mergedIntoHive', () => {
+      expect(isMerged({ id: 1, status: 'merged' })).toBe(true);
+      expect(isMerged({ id: 1, mergedIntoHive: { id: 2 } })).toBe(true);
+      expect(isMerged({ id: 1, status: 'active' })).toBe(false);
+    });
+
+    it('should allow edits only for active non-merged hives', () => {
+      expect(isEditable({ id: 1, status: 'active' })).toBe(true);
+      expect(isEditable({ id: 1, status: 'collapsed' })).toBe(false);
+      expect(isEditable({ id: 1, status: 'merged' })).toBe(false);
+    });
+  });
+
+  describe('setHiveCollapsed', () => {
+    it('should set collapse fields and persist hive', async () => {
+      // ARRANGE
+      const hive: Hive = { id: 9, status: 'active' };
+      dbMocks.mockPut.mockResolvedValue(9);
+
+      // ACT
+      const result = await setHiveCollapsed(hive, '2026-01-01', 'queen loss');
+
+      // ASSERT
+      expect(result.status).toBe('collapsed');
+      expect(result.collapse_date).toBe('2026-01-01');
+      expect(result.collapse_cause).toBe('queen loss');
+      expect(dbMocks.mockPut).toHaveBeenCalledWith(result);
     });
   });
 

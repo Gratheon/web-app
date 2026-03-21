@@ -9,6 +9,7 @@ import {
   addFrame,
   upsertFrame,
   moveFrame,
+  moveFrameBetweenBoxes,
   updateFrame,
   removeFrame,
   isFrameWithSides,
@@ -177,6 +178,24 @@ describe('Frames Model', () => {
             expect(mockGetFrames).not.toHaveBeenCalled();
             expect(result).toEqual([]);
         });
+
+        it('should collect and flatten frames from all boxes in hive order', async () => {
+            // ARRANGE
+            const hiveId = 10;
+            mockGetBoxes.mockResolvedValue([{ id: 10 }, { id: 11 }]);
+            dbMocks.mockFrameSortBy
+                .mockResolvedValueOnce([frame1, frame2])
+                .mockResolvedValueOnce([frame3]);
+
+            // ACT
+            const result = await getFramesByHive(hiveId);
+
+            // ASSERT
+            expect(mockGetBoxes).toHaveBeenCalledWith({ hiveId });
+            expect(dbMocks.mockFrameWhere).toHaveBeenNthCalledWith(1, { boxId: 10 });
+            expect(dbMocks.mockFrameWhere).toHaveBeenNthCalledWith(2, { boxId: 11 });
+            expect(result).toEqual([frame1, frame2, frame3]);
+        });
     });
 
     describe('getFrames', () => {
@@ -202,6 +221,15 @@ describe('Frames Model', () => {
             // ASSERT
             expect(result).toBeNull();
             expect(consoleErrorSpy).toHaveBeenCalledWith(error);
+        });
+
+        it('should return [] when where clause is null', async () => {
+            // ACT
+            const result = await getFrames(null as any);
+
+            // ASSERT
+            expect(result).toEqual([]);
+            expect(dbMocks.mockFrameWhere).not.toHaveBeenCalled();
         });
     });
 
@@ -274,6 +302,35 @@ describe('Frames Model', () => {
 
             // ASSERT
             expect(result).toBe(4);
+        });
+
+        it('should ignore invalid positions and still return first empty position', async () => {
+            // ARRANGE
+            dbMocks.mockFrameSortBy.mockResolvedValue([
+                { ...frame1, position: -1 },
+                { ...frame2, position: 'abc' as any },
+                { ...frame3, position: 2 },
+            ]);
+
+            // ACT
+            const result = await getFirstEmptyFramePosition(10);
+
+            // ASSERT
+            expect(result).toBe(1);
+        });
+
+        it('should return 1 if loading frames fails (fallback behavior)', async () => {
+            // ARRANGE
+            const error = new Error('Get Frames Failed');
+            dbMocks.mockFrameSortBy.mockRejectedValue(error);
+            const consoleErrorSpy = vi.spyOn(console, 'error');
+
+            // ACT
+            const result = await getFirstEmptyFramePosition(10);
+
+            // ASSERT
+            expect(result).toBe(1);
+            expect(consoleErrorSpy).toHaveBeenCalledWith(error);
         });
     });
 
@@ -384,6 +441,119 @@ describe('Frames Model', () => {
             await expect(updateFrame(frame1)).rejects.toThrow(error);
             expect(dbMocks.mockFramePut).toHaveBeenCalledTimes(1);
             expect(consoleErrorSpy).toHaveBeenCalledWith(error);
+        });
+    });
+
+    describe('moveFrame', () => {
+        it('should reorder frame positions inside a box', async () => {
+            // ARRANGE
+            dbMocks.mockFrameSortBy.mockResolvedValue([
+                { ...frame1, position: 1 },
+                { ...frame2, position: 2 },
+                { ...frame3, position: 3, boxId: 10 },
+            ]);
+
+            // ACT
+            await moveFrame({ boxId: 10, removedIndex: 1, addedIndex: 0 });
+
+            // ASSERT
+            expect(dbMocks.mockFramePut).toHaveBeenCalledTimes(3);
+            const updatedFrames = dbMocks.mockFramePut.mock.calls.map((call) => call[0]).sort((a, b) => a.id - b.id);
+            expect(updatedFrames).toEqual([
+                expect.objectContaining({ id: 1, position: 2 }),
+                expect.objectContaining({ id: 2, position: 1 }),
+                expect.objectContaining({ id: 3, position: 3 }),
+            ]);
+        });
+
+        it('should keep removed frame at -1 when addedIndex is null', async () => {
+            // ARRANGE
+            dbMocks.mockFrameSortBy.mockResolvedValue([
+                { ...frame1, position: 1 },
+                { ...frame2, position: 2 },
+            ]);
+
+            // ACT
+            await moveFrame({ boxId: 10, removedIndex: 0, addedIndex: null as any });
+
+            // ASSERT
+            const updatedFrames = dbMocks.mockFramePut.mock.calls.map((call) => call[0]).sort((a, b) => a.id - b.id);
+            expect(updatedFrames).toEqual([
+                expect.objectContaining({ id: 1, position: -1 }),
+                expect.objectContaining({ id: 2, position: 1 }),
+            ]);
+        });
+    });
+
+    describe('moveFrameBetweenBoxes', () => {
+        it('should move frame between boxes and reindex both sides', async () => {
+            // ARRANGE
+            dbMocks.mockFrameSortBy
+                .mockResolvedValueOnce([
+                    { id: 1, boxId: 10, position: 1, type: frameTypes.FOUNDATION, leftId: 1, rightId: 2 },
+                    { id: 2, boxId: 10, position: 2, type: frameTypes.FOUNDATION, leftId: 3, rightId: 4 },
+                ])
+                .mockResolvedValueOnce([
+                    { id: 3, boxId: 11, position: 1, type: frameTypes.VOID, leftId: 5, rightId: 6 },
+                ]);
+
+            // ACT
+            await moveFrameBetweenBoxes({
+                fromBoxId: 10,
+                toBoxId: 11,
+                removedIndex: 1,
+                addedIndex: 5,
+            });
+
+            // ASSERT
+            const updates = dbMocks.mockFramePut.mock.calls.map((call) => call[0]).sort((a, b) => a.id - b.id);
+            expect(updates).toEqual([
+                expect.objectContaining({ id: 1, boxId: 10, position: 1 }),
+                expect.objectContaining({ id: 2, boxId: 11, position: 2 }),
+                expect.objectContaining({ id: 3, boxId: 11, position: 1 }),
+            ]);
+        });
+
+        it('should no-op on invalid removedIndex', async () => {
+            // ARRANGE
+            dbMocks.mockFrameSortBy
+                .mockResolvedValueOnce([{ ...frame1, boxId: 10, position: 1 }])
+                .mockResolvedValueOnce([{ ...frame2, boxId: 11, position: 1 }]);
+
+            // ACT
+            await moveFrameBetweenBoxes({
+                fromBoxId: 10,
+                toBoxId: 11,
+                removedIndex: 3,
+                addedIndex: 0,
+            });
+
+            // ASSERT
+            expect(dbMocks.mockFramePut).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('removeFrame', () => {
+        it('should delete frame when it exists', async () => {
+            // ARRANGE
+            dbMocks.mockFrameGet.mockResolvedValue(frame1);
+            dbMocks.mockFrameDelete.mockResolvedValue(undefined);
+
+            // ACT
+            await removeFrame(1, 10);
+
+            // ASSERT
+            expect(dbMocks.mockFrameGet).toHaveBeenCalledWith({ id: 1 });
+            expect(dbMocks.mockFrameDelete).toHaveBeenCalledWith(1);
+        });
+
+        it('should throw when frame does not exist', async () => {
+            // ARRANGE
+            dbMocks.mockFrameGet.mockResolvedValue(undefined);
+
+            // ACT & ASSERT
+            await expect(removeFrame(123, 10)).rejects.toThrow('Frame with id 123 not found. Cannot remove.');
+            expect(dbMocks.mockFrameDelete).not.toHaveBeenCalled();
         });
     });
 

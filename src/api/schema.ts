@@ -47,6 +47,7 @@ type Box {
   position: Int
   color: String
   holeCount: Int
+  roofStyle: RoofStyle
   type: BoxType!
   frames: [Frame]
 }
@@ -72,6 +73,11 @@ enum BoxType {
   QUEEN_EXCLUDER
   HORIZONTAL_FEEDER
   BOTTOM
+}
+
+enum RoofStyle {
+  FLAT
+  ANGULAR
 }
 
 union CancelSubscriptionResult = User | Error
@@ -355,6 +361,7 @@ type Mutation {
   addBox(hiveId: ID!, position: Int!, color: String, type: BoxType!, holeCount: Int): Box!
   updateBoxColor(id: ID!, color: String): Boolean!
   updateBoxHoleCount(id: ID!, holeCount: Int!): Boolean!
+  updateBoxRoofStyle(id: ID!, roofStyle: RoofStyle!): Boolean!
   deactivateBox(id: ID!): Boolean
   swapBoxPositions(id: ID!, id2: ID!): Boolean
   addFrame(boxId: ID!, type: String!, position: Int!): Frame!

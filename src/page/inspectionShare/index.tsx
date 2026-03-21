@@ -28,6 +28,7 @@ const ValidateInspectionShareQuery = gql`
       beeCount
       boxes {
         id # Keep ID
+        roofStyle
         # name # Remove invalid field
         frames { # Replace framesCount with frames (requesting minimal subfield)
         	id

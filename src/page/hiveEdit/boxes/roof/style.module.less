@@ -8,6 +8,45 @@
 	flex-grow: 1;
 }
 
+.flat {
+	border-radius: 3px 3px 0 0;
+}
+
+.angular {
+	height: 45px;
+	background: transparent;
+	border: none;
+	border-radius: 0;
+	width: calc(100% + 50px);
+	margin-left: -10px;
+	margin-right: -10px;
+	overflow: visible;
+}
+
+.angular::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 8px;
+	background: linear-gradient(to bottom, #707070, #363636);
+	clip-path: polygon(0% 100%, 50% 0%, 100% 100%);
+	filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.35));
+}
+
+.angular::after {
+	content: '';
+	position: absolute;
+	left: 10px;
+	right: 10px;
+	bottom: 0;
+	height: 8px;
+	background: #2f2f2f;
+	border-radius: 2px 2px 0 0;
+	border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
 .lip {
 	position: absolute;
 	left: 4px;
@@ -18,7 +57,24 @@
 	border-radius: 0 0 2px 2px;
 }
 
+.angular .lip {
+	display: none;
+}
+
 .selected {
 	background: linear-gradient(to bottom, #666, #3c3c3c);
 	border-color: #111;
+}
+
+.selected.angular {
+	background: transparent;
+	border-color: transparent;
+}
+
+.selected.angular::before {
+	background: linear-gradient(to bottom, #858585, #434343);
+}
+
+.selected.angular::after {
+	background: linear-gradient(to bottom, #727272, #3a3a3a);
 }

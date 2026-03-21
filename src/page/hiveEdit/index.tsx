@@ -19,6 +19,7 @@ import { getFrames } from '@/models/frames.ts'
 import Frame from '@/page/hiveEdit/frame'
 import GateBox from '@/page/hiveEdit/gateBox/GateBox.tsx'
 import BottomBox from '@/page/hiveEdit/bottomBox/BottomBox.tsx'
+import RoofBox from '@/page/hiveEdit/roofBox'
 import MessageNotFound from '@/shared/messageNotFound'
 import BreadCrumbs from '@/shared/breadcrumbs'
 import T from '@/shared/translate'
@@ -427,6 +428,7 @@ export default function HiveEditForm() {
 							<HiveButtons apiaryId={apiaryId} hiveId={hiveId} box={box} frameId={frameId} mode="nonRemove" />
 
 							{box && box.type === boxTypes.BOTTOM && <BottomBox boxId={boxId} hiveId={hiveId} />}
+							{box && box.type === boxTypes.ROOF && <RoofBox boxId={boxId} hiveId={hiveId} />}
 
 							{/* {!frameId && <Button
                             color="red"

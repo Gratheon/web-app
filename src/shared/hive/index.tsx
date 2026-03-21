@@ -1,6 +1,12 @@
 import React, { useState } from 'react'
 import styles from './index.module.less'
-import { normalizeGateHoleCount, GATE_HOLE_COUNT_MIN, GATE_HOLE_COUNT_MAX } from '@/models/boxes'
+import {
+	normalizeGateHoleCount,
+	normalizeRoofStyle,
+	GATE_HOLE_COUNT_MIN,
+	GATE_HOLE_COUNT_MAX,
+	roofStyles,
+} from '@/models/boxes'
 
 //@ts-ignore
 import GithubPicker from 'react-color/es/Github'
@@ -83,7 +89,10 @@ export default function HiveIcon({
 	const hasLargeHorizontalSection = boxes.some(
 		(box: any) => box?.type === 'LARGE_HORIZONTAL_SECTION'
 	)
-	const hasRoof = boxes.some((box: any) => box?.type === 'ROOF')
+	const roofBox = boxes.find((box: any) => box?.type === 'ROOF')
+	const hasRoof = Boolean(roofBox)
+	const roofStyleType = normalizeRoofStyle(roofBox?.roofStyle)
+	const isAngularRoof = roofStyleType === roofStyles.ANGULAR
 	const hasBottom = boxes.some((box: any) => box?.type === 'BOTTOM')
 	const sectionBoxes = boxes.filter((box: any) => isSectionBox(box?.type))
 	const normalizedHiveType = String(hiveType || '').toUpperCase()
@@ -102,7 +111,9 @@ export default function HiveIcon({
 		: isNucleusHive
 			? Math.round(size * 0.8)
 			: size
-	const roofOverhang = Math.max(2, Math.round(hiveWidth * 0.04))
+	const roofOverhang = isAngularRoof
+		? Math.max(4, Math.round(hiveWidth * 0.11))
+		: Math.max(2, Math.round(hiveWidth * 0.04))
 
 	let hiveStyle = {
 		width: `${hiveWidth}px`,
@@ -114,12 +125,19 @@ export default function HiveIcon({
 		borderRight: `${size / 10}px solid black`,
 	}
 
-	const roofHeight = (hiveWidth / 10);
-	const roofStyle = {
+	const angularBaseHeight = isAngularRoof
+		? Math.max(3, Math.round(size / 12))
+		: Math.max(2, Math.round(size / 18))
+	const roofTopHeight = isAngularRoof
+		? Math.round(hiveWidth / 4.8)
+		: Math.round(hiveWidth / 10)
+	const roofHeight = roofTopHeight + (isAngularRoof ? angularBaseHeight : 0)
+	const roofBaseStyle = {
 		height: `${roofHeight}px`,
 		width: `${hiveWidth + roofOverhang * 2}px`,
 		marginLeft: `-${roofOverhang}px`,
-	}
+		'--roof-angular-base-height': `${angularBaseHeight}px`,
+	} as any
 
 	let visualBoxes: any = []
 	if (boxes && boxes.length > 0) {
@@ -230,7 +248,12 @@ export default function HiveIcon({
 	}
 	return (
 		<div className={styles.hive} style={hiveStyle}>
-			{hasRoof && <div className={styles.roof} style={roofStyle}></div>}
+			{hasRoof && (
+				<div
+					className={`${styles.roof} ${isAngularRoof ? styles.roofAngular : styles.roofFlat}`}
+					style={roofBaseStyle}
+				></div>
+			)}
 			<div className={styles.boxes}>{visualBoxes}</div>
 			{!isNucleusHive && <div className={styles.legs} style={legsStyle}></div>}
 		</div>

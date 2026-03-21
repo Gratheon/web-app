@@ -77,7 +77,7 @@ describe('HiveIcon', () => {
 			<HiveIcon
 				size={80}
 				boxes={[
-					{ id: 1, type: 'ROOF', position: 7 },
+					{ id: 1, type: 'ROOF', position: 7, roofStyle: 'FLAT' },
 					{ id: 2, type: 'DEEP', position: 6, color: '#aaa' },
 					{ id: 3, type: 'SUPER', position: 5, color: '#bbb' },
 					{ id: 4, type: 'HORIZONTAL_FEEDER', position: 4 },
@@ -93,6 +93,25 @@ describe('HiveIcon', () => {
 		expect(container.querySelector(`.${styles.roof}`)).not.toBeNull()
 		expect(container.querySelector(`.${styles.ventilation}`)).not.toBeNull()
 		expect(container.querySelectorAll(`.${styles.gripNotch}`).length).toBe(2)
+		renderPreact(null, container)
+		container.remove()
+	})
+
+	it('renders angular roof style when selected on roof box', () => {
+		const container = document.createElement('div')
+		document.body.appendChild(container)
+
+		renderPreact(
+			<HiveIcon
+				boxes={[
+					{ id: 1, type: 'ROOF', position: 2, roofStyle: 'ANGULAR' },
+					{ id: 2, type: 'DEEP', position: 1, color: '#aaa' },
+				]}
+			/>,
+			container
+		)
+
+		expect(container.querySelector(`.${styles.roofAngular}`)).not.toBeNull()
 		renderPreact(null, container)
 		container.remove()
 	})

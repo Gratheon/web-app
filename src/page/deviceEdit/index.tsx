@@ -36,6 +36,7 @@ const DEVICE_EDIT_QUERY = gql`
 			boxes {
 				id
 				position
+				roofStyle
 				type
 			}
 		}

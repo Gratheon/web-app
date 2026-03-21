@@ -3,8 +3,8 @@
 	position: relative;
 
 	.roof {
-		max-height: 8px;
-		min-height: 3px;
+		max-height: 16px;
+		min-height: 4px;
 		background: linear-gradient(
 			to bottom,
 			#7b858f 0%,
@@ -15,6 +15,42 @@
 			#5f6974 100%
 		);
 		border-radius: 2px 2px 0 0;
+		position: relative;
+		overflow: visible;
+	}
+
+	.roofFlat {
+		border-radius: 2px 2px 0 0;
+	}
+
+	.roofAngular {
+		background: transparent;
+		border-radius: 0;
+		max-height: none;
+		min-height: 8px;
+	}
+
+	.roofAngular::before {
+		content: '';
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 0;
+		bottom: var(--roof-angular-base-height, 4px);
+		background: linear-gradient(to bottom, #8f99a3 0%, #5a6570 100%);
+		clip-path: polygon(0% 100%, 50% 0%, 100% 100%);
+	}
+
+	.roofAngular::after {
+		content: '';
+		position: absolute;
+		left: 8%;
+		right: 8%;
+		bottom: 0;
+		height: var(--roof-angular-base-height, 4px);
+		background: linear-gradient(to bottom, #76818c 0%, #4f5963 100%);
+		border-radius: 2px 2px 0 0;
+		border-top: 1px solid rgba(255, 255, 255, 0.2);
 	}
 
 	.boxes {

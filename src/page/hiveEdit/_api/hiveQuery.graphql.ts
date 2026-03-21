@@ -29,6 +29,7 @@ export default gql`
 				type
 				color
 				holeCount
+				roofStyle
 			}
 
 			parentHive {

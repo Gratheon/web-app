@@ -8,6 +8,7 @@ import {
 	getBoxes,
 	removeBox,
 	GATE_HOLE_COUNT_DEFAULT,
+	roofStyles,
 } from '@/models/boxes'
 import T, { useTranslation as t } from '@/shared/translate'
 
@@ -84,6 +85,7 @@ export default function HiveButtons({
 		id
 		position
 		holeCount
+		roofStyle
 	}
 }
 `)
@@ -200,6 +202,7 @@ const [removingBox, setRemovingBox] = useState(false);
 			position,
 			type,
 			holeCount: type === boxTypes.GATE ? GATE_HOLE_COUNT_DEFAULT : undefined,
+			roofStyle: type === boxTypes.ROOF ? roofStyles.FLAT : undefined,
 		})
 		await addHiveLog({
 			hiveId: +hiveId,

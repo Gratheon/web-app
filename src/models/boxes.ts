@@ -7,9 +7,17 @@ export type Box = {
 	position: number
 	color?: string
 	holeCount?: number
+	roofStyle?: RoofStyle
 
 	hiveId?: number //reference
 	frames?: Frame[]
+}
+
+export type RoofStyle = 'FLAT' | 'ANGULAR'
+
+export const roofStyles = {
+	FLAT: 'FLAT' as RoofStyle,
+	ANGULAR: 'ANGULAR' as RoofStyle,
 }
 
 let boxes: Box[] = [] // db.get('boxes')
@@ -37,6 +45,10 @@ export function normalizeGateHoleCount(value: unknown): number {
 	}
 	const rounded = Math.round(parsed)
 	return Math.max(GATE_HOLE_COUNT_MIN, Math.min(GATE_HOLE_COUNT_MAX, rounded))
+}
+
+export function normalizeRoofStyle(value: unknown): RoofStyle {
+	return value === roofStyles.ANGULAR ? roofStyles.ANGULAR : roofStyles.FLAT
 }
 
 const TABLE_NAME = 'box'
@@ -138,16 +150,20 @@ export async function addBox({
 	position,
 	type,
 	holeCount,
+	roofStyle,
 }: Box) {
 	try {
 		const normalizedHoleCount =
 			type === boxTypes.GATE ? normalizeGateHoleCount(holeCount) : undefined
+		const normalizedRoofStyle =
+			type === boxTypes.ROOF ? normalizeRoofStyle(roofStyle) : undefined
 		await db[TABLE_NAME].put({
 			id,
 			hiveId,
 			position,
 			type,
 			holeCount: normalizedHoleCount,
+			roofStyle: normalizedRoofStyle,
 		})
 	} catch (e) {
 		console.error(e)
@@ -162,10 +178,13 @@ export async function updateBox({
 	position,
 	type,
 	holeCount,
+	roofStyle,
 }: Box) {
 	try {
 		const normalizedHoleCount =
 			type === boxTypes.GATE ? normalizeGateHoleCount(holeCount) : undefined
+		const normalizedRoofStyle =
+			type === boxTypes.ROOF ? normalizeRoofStyle(roofStyle) : undefined
 		await db[TABLE_NAME].put({
 			id,
 			hiveId,
@@ -173,6 +192,7 @@ export async function updateBox({
 			position,
 			type,
 			holeCount: normalizedHoleCount,
+			roofStyle: normalizedRoofStyle,
 		})
 	} catch (e) {
 		console.error(e)

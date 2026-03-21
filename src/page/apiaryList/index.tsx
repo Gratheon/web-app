@@ -152,6 +152,7 @@ export default function ApiaryList(props) {
 						position
 						color
 						holeCount
+						roofStyle
 						type
 					}
 				}

@@ -25,6 +25,7 @@ const QUERY = gql`
 			boxes {
 				id
 				position
+				roofStyle
 				type
 			}
 		}

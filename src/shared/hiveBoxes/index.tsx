@@ -83,7 +83,7 @@ export default function HiveBoxes({
 					<Bottom selected={+boxId === box.id} />
 				)}
 				{box.type === boxTypes.ROOF && (
-					<Roof selected={+boxId === box.id} />
+					<Roof selected={+boxId === box.id} roofStyle={box.roofStyle} />
 				)}
 				</div>
 

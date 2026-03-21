@@ -10,6 +10,7 @@ import {
   updateBox,
   swapBoxPositions,
   normalizeGateHoleCount,
+  normalizeRoofStyle,
   GATE_HOLE_COUNT_MIN,
   GATE_HOLE_COUNT_MAX,
   GATE_HOLE_COUNT_DEFAULT,
@@ -118,6 +119,18 @@ describe('Boxes Model', () => {
     it('rounds floating values', () => {
       expect(normalizeGateHoleCount(3.6)).toBe(4);
       expect(normalizeGateHoleCount(3.2)).toBe(3);
+    });
+  });
+
+  describe('normalizeRoofStyle', () => {
+    it('defaults to FLAT for invalid values', () => {
+      expect(normalizeRoofStyle(undefined)).toBe('FLAT');
+      expect(normalizeRoofStyle('')).toBe('FLAT');
+      expect(normalizeRoofStyle('SOMETHING_ELSE')).toBe('FLAT');
+    });
+
+    it('keeps ANGULAR value', () => {
+      expect(normalizeRoofStyle('ANGULAR')).toBe('ANGULAR');
     });
   });
 
@@ -406,6 +419,7 @@ describe('Boxes Model', () => {
             position: newBox.position,
             type: newBox.type,
             holeCount: undefined,
+            roofStyle: undefined,
         });
     });
 
@@ -437,6 +451,7 @@ describe('Boxes Model', () => {
         position: 0,
         type: boxTypes.GATE,
         holeCount: GATE_HOLE_COUNT_MAX,
+        roofStyle: undefined,
       });
     });
   });
@@ -459,6 +474,7 @@ describe('Boxes Model', () => {
             position: updatedBox.position,
             type: updatedBox.type,
             holeCount: undefined,
+            roofStyle: undefined,
         });
     });
 
@@ -479,6 +495,7 @@ describe('Boxes Model', () => {
             position: updatedBox.position,
             type: updatedBox.type,
             holeCount: undefined,
+            roofStyle: undefined,
         });
     });
 
@@ -511,6 +528,7 @@ describe('Boxes Model', () => {
         position: 0,
         type: boxTypes.GATE,
         holeCount: GATE_HOLE_COUNT_MIN,
+        roofStyle: undefined,
       });
     });
   });

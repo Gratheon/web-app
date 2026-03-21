@@ -12,6 +12,7 @@ export default gql`
 				type
 				color
 				holeCount
+				roofStyle
 
 				frames {
 					__typename

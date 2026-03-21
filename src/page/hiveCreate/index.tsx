@@ -138,6 +138,7 @@ const HIVE_CREATE_DEDUCTION_CONTEXT_QUERY = gql`
 			boxes {
 				id
 				type
+				roofStyle
 				frames {
 					id
 					position

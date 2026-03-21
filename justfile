@@ -1,5 +1,12 @@
+default:
+	just start
+
 start:
-  . $HOME/.nvm/nvm.sh && nvm use && pnpm i && pnpm dev
+	. $HOME/.nvm/nvm.sh && nvm use && pnpm i && pnpm dev
+
+# Start web app with Service Worker enabled in dev (for offline caching tests)
+start-pwa:
+	. $HOME/.nvm/nvm.sh && nvm use && pnpm i && pnpm dev:pwa
 
 stop:
 	COMPOSE_PROJECT_NAME=gratheon docker compose -f docker-compose.dev.yml down

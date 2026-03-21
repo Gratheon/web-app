@@ -160,7 +160,10 @@ export default function ApiaryList(props) {
 		}
 	`)
 
-	const apiaries = data?.apiaries || []
+	const apiaries = React.useMemo(
+		() => (data?.apiaries || []).filter((apiary) => apiary && apiary.id != null),
+		[data?.apiaries]
+	)
 	const hasMixedApiaryTypes = React.useMemo(() => {
 		const distinctTypes = new Set((apiaries || []).map((apiary) => normalizeApiaryType(apiary?.type)))
 		return distinctTypes.size > 1
@@ -169,7 +172,11 @@ export default function ApiaryList(props) {
 	const sortedHivesByApiary = React.useMemo(() => (
 		apiaries.map((apiary) => ({
 			apiaryId: apiary.id,
-			hives: sortHives(apiary.hives || [], hiveSortBy, hiveSortOrder),
+			hives: sortHives(
+				(apiary.hives || []).filter((hive) => hive && hive.id != null),
+				hiveSortBy,
+				hiveSortOrder
+			),
 		}))
 	), [apiaries, hiveSortBy, hiveSortOrder])
 
@@ -380,7 +387,7 @@ export default function ApiaryList(props) {
 		}))
 	}, [hiveSortBy, hiveSortOrder])
 
-	if (loading) {
+	if (loading && apiaries.length === 0) {
 		return <Loader />
 	}
 

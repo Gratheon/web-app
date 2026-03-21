@@ -9,12 +9,25 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vitejs.dev/config/
 const host = process.env.TAURI_DEV_HOST
+const pwaDevEnabled = process.env.VITE_PWA_DEV === '1'
 
 export default defineConfig({
 	publicDir: 'static',
 	plugins: [
 		svgr(),
 		VitePWA({
+			includeAssets: [
+				'favicon.ico',
+				'apple-touch-icon.png',
+				'icon_16x16.png',
+				'icon_32x32.png',
+				'icon_96x96.png',
+				'icon_128x128.png',
+				'icon_192x192.png',
+				'icon_256x256.png',
+				'icon_384x384.png',
+				'icon_512x512.png',
+			],
 			manifest: {
 				name: 'Gratheon',
 				short_name: 'Gratheon',
@@ -68,10 +81,47 @@ export default defineConfig({
 			},
 			registerType: 'autoUpdate',
 			devOptions: {
-				enabled: false,
+				enabled: pwaDevEnabled,
 			},
 			workbox: {
 				maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+				// Include emitted build images (including src/assets/*.webp) in precache.
+				// This allows placeholders to render offline without requiring a prior runtime fetch.
+				globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,jpg,jpeg,woff,woff2}'],
+				runtimeCaching: [
+					{
+						// Cache local bundled images and static icon files.
+						urlPattern: ({ request, sameOrigin }) =>
+							request.destination === 'image' && sameOrigin,
+						handler: 'CacheFirst',
+						options: {
+							cacheName: 'images-local-v1',
+							expiration: {
+								maxEntries: 300,
+								maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+							},
+							cacheableResponse: {
+								statuses: [0, 200],
+							},
+						},
+					},
+					{
+						// Cache selected remote images (S3 backgrounds, gravatar, OSM tiles) after first load.
+						urlPattern:
+							/^https:\/\/(?:gratheon\.s3-accelerate\.amazonaws\.com|www\.gravatar\.com|[a-z]\.tile\.openstreetmap\.org)\/.*\.(?:png|jpg|jpeg|webp|svg)(?:\?.*)?$/i,
+						handler: 'CacheFirst',
+						options: {
+							cacheName: 'images-remote-v1',
+							expiration: {
+								maxEntries: 200,
+								maxAgeSeconds: 60 * 60 * 24 * 14, // 14 days
+							},
+							cacheableResponse: {
+								statuses: [0, 200],
+							},
+						},
+					},
+				],
 			},
 		}),
 		preact({

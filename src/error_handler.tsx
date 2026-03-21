@@ -3,6 +3,7 @@ import { Component } from 'preact'
 import { useEffect, useState } from 'react'
 
 import ErrorMsg from './shared/messageError'
+import styles from './error_handler.module.less'
 
 export default class GlobalErrorHandler extends Component {
 	state = { errors: [] }
@@ -39,10 +40,12 @@ export default class GlobalErrorHandler extends Component {
 		if (this.state.errors && this.state.errors.length) {
 			return (
 				<>
-					{errors &&
-						errors.map((error, index) => (
-							<ErrorMsg key={index} error={error} borderRadius={0} />
-						))}
+					<div className={styles.globalErrors}>
+						{errors &&
+							errors.map((error, index) => (
+								<ErrorMsg key={index} error={error} borderRadius={0} />
+							))}
+					</div>
 
 					{children}
 				</>

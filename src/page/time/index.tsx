@@ -207,12 +207,22 @@ export default function TimeView() {
 	}, [enabledCharts, isPaywalled])
 
 	const { data: gqlData } = useQuery(HIVES_QUERY, {})
+	const safeApiaries = useMemo(
+		() =>
+			(gqlData?.apiaries || [])
+				.filter((apiary) => apiary && apiary.id != null)
+				.map((apiary) => ({
+					...apiary,
+					hives: (apiary.hives || []).filter((hive) => hive && hive.id != null),
+				})),
+		[gqlData?.apiaries]
+	)
 
 	useEffect(() => {
-		if (gqlData?.apiaries?.length > 0 && !selectedApiaryId) {
-			setSelectedApiaryId(gqlData.apiaries[0].id)
+		if (safeApiaries.length > 0 && !selectedApiaryId) {
+			setSelectedApiaryId(String(safeApiaries[0].id))
 		}
-	}, [gqlData, selectedApiaryId])
+	}, [safeApiaries, selectedApiaryId])
 
 	useEffect(() => {
 		saveToLocalStorage(LS_KEYS.SELECTED_APIARY, selectedApiaryId)
@@ -241,23 +251,23 @@ export default function TimeView() {
 
 	const allHives = useLiveQuery(async () => {
 		let localHives = await getHives()
-		if ((!localHives || localHives.length === 0) && gqlData && gqlData.apiaries) {
-			const allHives = gqlData.apiaries.flatMap(apiary => apiary.hives || [])
+		if ((!localHives || localHives.length === 0) && safeApiaries.length > 0) {
+			const allHives = safeApiaries.flatMap(apiary => apiary.hives || [])
 			if (allHives.length > 0) {
 				await bulkUpsertHives(allHives)
 				return allHives
 			}
 		}
 		return localHives
-	}, [gqlData], [])
+	}, [safeApiaries], [])
 
 	const hiveToApiaryMap = useMemo(() => {
-		if (!gqlData?.apiaries) return {}
+		if (!safeApiaries.length) return {}
 		const map: Record<string, any> = {}
-		gqlData.apiaries.forEach(apiary => {
+		safeApiaries.forEach(apiary => {
 			apiary.hives?.forEach(hive => {
-				map[hive.id] = {
-					id: apiary.id,
+				map[String(hive.id)] = {
+					id: String(apiary.id),
 					name: apiary.name,
 					lat: apiary.lat,
 					lng: apiary.lng
@@ -265,15 +275,15 @@ export default function TimeView() {
 			})
 		})
 		return map
-	}, [gqlData])
+	}, [safeApiaries])
 
 	useEffect(() => {
 		if (urlHiveId && allHives && hiveToApiaryMap) {
-			const targetHive = allHives.find(h => h.id === urlHiveId)
+			const targetHive = allHives.find(h => h && String(h.id) === String(urlHiveId))
 			if (targetHive) {
-				const apiaryId = hiveToApiaryMap[urlHiveId]?.id
+				const apiaryId = hiveToApiaryMap[String(urlHiveId)]?.id
 				if (apiaryId && apiaryId !== selectedApiaryId) {
-					setSelectedApiaryId(apiaryId)
+					setSelectedApiaryId(String(apiaryId))
 				}
 
 				if (!selectedHiveIds.includes(urlHiveId)) {
@@ -316,20 +326,21 @@ export default function TimeView() {
 	}, [urlScrollTo, effectiveEnabledCharts, searchParams, setSearchParams])
 
 	const selectedApiary = useMemo(() => {
-		if (!selectedApiaryId || !gqlData?.apiaries) return null
-		return gqlData.apiaries.find(a => a.id === selectedApiaryId)
-	}, [selectedApiaryId, gqlData])
+		if (!selectedApiaryId || !safeApiaries.length) return null
+		return safeApiaries.find(a => String(a.id) === String(selectedApiaryId)) || null
+	}, [selectedApiaryId, safeApiaries])
 
 	const hives = useMemo(() => {
 		if (!allHives) return []
-		if (!selectedApiaryId) return allHives
-		return allHives.filter(h => hiveToApiaryMap[h.id]?.id === selectedApiaryId)
+		const normalizedHives = allHives.filter((h) => h && h.id != null)
+		if (!selectedApiaryId) return normalizedHives
+		return normalizedHives.filter(h => hiveToApiaryMap[String(h.id)]?.id === String(selectedApiaryId))
 	}, [allHives, selectedApiaryId, hiveToApiaryMap])
 
 	const activeHives = useMemo(() => {
 		if (!hives) return []
 		if (selectedHiveIds.length === 0) return hives
-		return hives.filter(h => selectedHiveIds.includes(h.id))
+		return hives.filter(h => selectedHiveIds.includes(String(h.id)))
 	}, [hives, selectedHiveIds])
 
 	const relevantApiaries = useMemo(() => {
@@ -664,12 +675,12 @@ export default function TimeView() {
 							/>
 						</div>
 
-						<div className={styles.filterBlock}>
-							<ApiarySelector
-								apiaries={gqlData?.apiaries || []}
-								selectedApiaryId={selectedApiaryId}
-								onSelectApiary={setSelectedApiaryId}
-							/>
+							<div className={styles.filterBlock}>
+								<ApiarySelector
+									apiaries={safeApiaries}
+									selectedApiaryId={selectedApiaryId}
+									onSelectApiary={setSelectedApiaryId}
+								/>
 						</div>
 
 						<div className={styles.filterBlock}>

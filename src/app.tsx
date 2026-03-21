@@ -16,14 +16,29 @@ import { getUserLanguage } from './models/translationService'
 import { SUPPORTED_LANGUAGES } from './config/languages'
 import metrics from './metrics'
 import OfflineWarning from './shared/offlineWarning'
+import { precacheUiAssets } from './assets/precacheUiAssets'
 
 initErrorReporting()
+
+function isPwaDevModeEnabled() {
+	if (import.meta.env.VITE_PWA_DEV === '1') {
+		return true
+	}
+	if (typeof window === 'undefined') {
+		return false
+	}
+	return window.localStorage.getItem('debug:pwa-dev') === '1'
+}
 
 async function disableServiceWorkerInDev() {
 	if (typeof window === 'undefined') {
 		return
 	}
 	if (!import.meta.env.DEV) {
+		return
+	}
+	if (isPwaDevModeEnabled()) {
+		console.info('[AppInit] Keeping service workers in dev due to debug:pwa-dev=1')
 		return
 	}
 	if (!('serviceWorker' in navigator)) {
@@ -75,6 +90,10 @@ export default function App() {
 			metrics.setUser(user)
 		}
 	}, [user])
+
+	useEffect(() => {
+		precacheUiAssets()
+	}, [])
 
 	return (
 		<GlobalErrorHandler>

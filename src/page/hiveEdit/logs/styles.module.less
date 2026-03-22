@@ -138,10 +138,10 @@
 	padding: 8px;
 }
 
-.headerRow {
+.titleRow {
 	display: flex;
 	justify-content: space-between;
-	align-items: center;
+	align-items: flex-start;
 	gap: 8px;
 	margin-bottom: 2px;
 }
@@ -168,7 +168,14 @@
 	margin-bottom: 2px;
 }
 
-.details {
+.footerRow {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+}
+
+.detailsInline {
+	flex: 1;
 	font-size: 13px;
 	line-height: 1.3;
 	color: #3f4550;

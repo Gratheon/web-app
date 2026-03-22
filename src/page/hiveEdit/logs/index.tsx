@@ -212,9 +212,13 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 	function renderEntryCard(entry: HiveLogEntry, isEditing: boolean) {
 		return (
 			<>
-				<div className={styles.headerRow}>
-					<div className={styles.meta}>
-						<DateTimeFormat datetime={entry.createdAt} />
+				<div className={styles.titleRow}>
+					<div
+						className={styles.title}
+						onDblClick={() => onStartEdit(entry)}
+						title="Double-click to edit"
+					>
+						{getDisplayTitle(entry.title || '')}
 					</div>
 					{!isEditing && (
 						<Button
@@ -232,22 +236,20 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 
 				{!isEditing && (
 					<>
-						<div
-							className={styles.title}
-							onDblClick={() => onStartEdit(entry)}
-							title="Double-click to edit"
-						>
-							{getDisplayTitle(entry.title || '')}
+						<div className={styles.footerRow}>
+							{entry.details && (
+								<span
+									className={styles.detailsInline}
+									onDblClick={() => onStartEdit(entry)}
+									title="Double-click to edit"
+								>
+									{entry.details}
+								</span>
+							)}
+							<span className={styles.meta}>
+								<DateTimeFormat datetime={entry.createdAt} />
+							</span>
 						</div>
-						{entry.details && (
-							<div
-								className={styles.details}
-								onDblClick={() => onStartEdit(entry)}
-								title="Double-click to edit"
-							>
-								{entry.details}
-							</div>
-						)}
 						{Array.isArray(entry.relatedHives) && entry.relatedHives.length > 0 && (
 							<div className={styles.relatedLinks}>
 								{entry.relatedHives.map((related, index) => (

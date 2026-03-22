@@ -7,6 +7,7 @@ import {
 	addBox,
 	getBoxes,
 	removeBox,
+	swapBoxPositions,
 	GATE_HOLE_COUNT_DEFAULT,
 	roofStyles,
 } from '@/models/boxes'
@@ -95,6 +96,10 @@ let [removeBoxMutation] = useMutation(`mutation deactivateBox($id: ID!) {
 }
 `)
 
+let [swapBoxPositionsMutation, { error: errorSwap }] = useMutation(
+	`mutation swapBoxPositions($id: ID!, $id2: ID!) {swapBoxPositions(id: $id, id2: $id2)}`
+)
+
 const [removingBox, setRemovingBox] = useState(false);
 
 	useEffect(() => {
@@ -175,12 +180,20 @@ const [removingBox, setRemovingBox] = useState(false);
 			replace: true,
 		})
 	}
-	async function onBoxAdd(type, placement: 'top' | 'bottom' = 'top') {
+	async function onBoxAdd(type, placement: 'top' | 'bottom' | 'underRoof' = 'top') {
 		setAdding(true)
 		const hiveBoxes = await getBoxes({ hiveId: +hiveId })
 		const positions = hiveBoxes.map((hiveBox) => hiveBox.position)
 		const maxPosition = positions.length > 0 ? Math.max(...positions) : 0
 		const minPosition = positions.length > 0 ? Math.min(...positions) : 0
+		const bottomBoardBox = hiveBoxes
+			.filter((hiveBox) => hiveBox.type === boxTypes.BOTTOM)
+			.sort((a, b) => a.position - b.position)[0]
+		const topRoofBox = hiveBoxes
+			.filter((hiveBox) => hiveBox.type === boxTypes.ROOF)
+			.sort((a, b) => b.position - a.position)[0]
+		const shouldPlaceUnderRoof = placement === 'underRoof' && topRoofBox
+		const shouldPlaceGateBeforeBottom = type === boxTypes.GATE && placement === 'bottom' && bottomBoardBox
 		const position = placement === 'bottom'
 			? minPosition - 1
 			: maxPosition + 1
@@ -204,11 +217,56 @@ const [removingBox, setRemovingBox] = useState(false);
 			holeCount: type === boxTypes.GATE ? GATE_HOLE_COUNT_DEFAULT : undefined,
 			roofStyle: type === boxTypes.ROOF ? roofStyles.FLAT : undefined,
 		})
+
+		let finalPosition = position
+		if (shouldPlaceGateBeforeBottom) {
+			const { error } = await swapBoxPositionsMutation({
+				id: +id,
+				id2: +bottomBoardBox.id,
+			})
+			if (error) {
+				setAdding(false)
+				return
+			}
+			await swapBoxPositions(
+				{
+					id: +id,
+					hiveId: +hiveId,
+					position,
+					type,
+					holeCount: type === boxTypes.GATE ? GATE_HOLE_COUNT_DEFAULT : undefined,
+				},
+				{ ...bottomBoardBox }
+			)
+			finalPosition = +bottomBoardBox.position
+		}
+		if (shouldPlaceUnderRoof) {
+			const { error } = await swapBoxPositionsMutation({
+				id: +id,
+				id2: +topRoofBox.id,
+			})
+			if (error) {
+				setAdding(false)
+				return
+			}
+			await swapBoxPositions(
+				{
+					id: +id,
+					hiveId: +hiveId,
+					position,
+					type,
+					holeCount: type === boxTypes.GATE ? GATE_HOLE_COUNT_DEFAULT : undefined,
+				},
+				{ ...topRoofBox }
+			)
+			finalPosition = +topRoofBox.position
+		}
+
 		await addHiveLog({
 			hiveId: +hiveId,
 			action: hiveLogActions.STRUCTURE_ADD,
 			title: tSectionAdded,
-			details: `Added ${type} at position ${position}.`,
+			details: `Added ${type} at position ${finalPosition}.`,
 		})
 		const moduleType = resolveWarehouseModuleTypeForBox(type, hive?.hiveType)
 		await decreaseWarehouseForType(moduleType)
@@ -239,7 +297,7 @@ const [removingBox, setRemovingBox] = useState(false);
 
 	return (
 		<>
-			<ErrorMessage error={errorAdd || errorRemove} />
+			<ErrorMessage error={errorAdd || errorSwap || errorRemove} />
 
 			{(showAddSectionButtons || showRemoveButton) && (
 				<div className={buttonGroupClassName}>
@@ -259,7 +317,7 @@ const [removingBox, setRemovingBox] = useState(false);
 							loading={adding}
 							color="white"
 							title="Add feeder"
-							onClick={() => onBoxAdd(boxTypes.HORIZONTAL_FEEDER)}
+							onClick={() => onBoxAdd(boxTypes.HORIZONTAL_FEEDER, 'underRoof')}
 						>
 							<span><T ctx="this is a button to add tiny part of beehive, a horizontal box where sugar syrup can be poured to feed bees">Add feeder</T></span>
 						</Button>
@@ -302,7 +360,7 @@ const [removingBox, setRemovingBox] = useState(false);
 							className={styles.actionButton}
 							loading={adding}
 							title="Add entrance"
-							onClick={() => onBoxAdd(boxTypes.GATE)}
+							onClick={() => onBoxAdd(boxTypes.GATE, 'bottom')}
 						>
 							<GateIcon /><span><T ctx="this is a button to add new section of beehive, specifically holes, an entrance">Add entrance</T></span>
 						</Button>

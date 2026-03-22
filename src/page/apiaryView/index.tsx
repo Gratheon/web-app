@@ -12,6 +12,8 @@ import T from '@/shared/translate'
 import BillingUpgradeNotice from '@/shared/billingUpgradeNotice'
 import { isBillingTierLessThan } from '@/shared/billingTier'
 import { apiaryTypes, normalizeApiaryType } from '@/models/apiary'
+import useNetworkStatus from '@/hooks/useNetworkStatus'
+import ServiceDegradedWarning from '@/shared/serviceDegradedWarning'
 
 import HivePlacement from '@/page/apiaryEdit/hivePlacement'
 import { getUser } from '@/models/user'
@@ -225,6 +227,8 @@ export default function ApiaryView() {
 		loading,
 		error,
 		data,
+		degradedError,
+		degradedService,
 	} = useQuery(
 		gql`
 			query apiaryView($id: ID!) {
@@ -249,6 +253,8 @@ export default function ApiaryView() {
 	)
 
 	const apiaryFromQuery = data?.apiary
+	const isOnline = useNetworkStatus()
+	const isServiceDegraded = isOnline && (!!degradedService || !!degradedError)
 	const name = apiaryFromQuery?.name || apiary?.name || `Apiary #${id}`
 	const apiaryType = normalizeApiaryType(apiaryFromQuery?.type || apiary?.type)
 	const isMobileApiary = apiaryType === apiaryTypes.MOBILE
@@ -322,6 +328,7 @@ export default function ApiaryView() {
 
 	return (
 		<div className={styles.page}>
+			{isServiceDegraded && <ServiceDegradedWarning />}
 			<ErrorMsg error={error} />
 
 			<section className={styles.hero}>

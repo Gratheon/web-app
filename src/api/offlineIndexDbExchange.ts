@@ -98,6 +98,11 @@ export function offlineIndexDbExchange({
         if (useCacheOnly) {
             bubble.originalError = bubble.error
             bubble.error = null
+            bubble.degradedService = true
+            bubble.extensions = {
+                ...(bubble.extensions || {}),
+                degradedService: true,
+            }
 
             return bubble
         }

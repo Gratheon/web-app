@@ -124,6 +124,10 @@
 
 	@media @tabletAndUp {
 		display: block;
+		margin-top: 0;
+	}
+
+	@media @desktop {
 		margin-top: -80px;
 	}
 }
@@ -245,13 +249,23 @@
 
 .miniMapCircle {
 	width: min(340px, 100%);
-	aspect-ratio: 1 / 1;
-	height: auto;
 	overflow: hidden;
 	border: 2px solid #d7dfd9;
 	border-radius: 50%;
 	background: #ffffff;
 	box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+
+	@media @tabletAndUp {
+		width: min(240px, 32vw);
+	}
+
+	@media @desktop {
+		width: min(340px, 100%);
+	}
+
+	@media @mobile {
+		border-radius: 16px;
+	}
 }
 
 .miniMapCircle canvas {
@@ -269,6 +283,18 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
+
+	@media @tabletAndUp {
+		width: min(240px, 32vw);
+	}
+
+	@media @desktop {
+		width: min(340px, 100%);
+	}
+
+	@media @mobile {
+		aspect-ratio: 17 / 12;
+	}
 }
 
 .qrModal {

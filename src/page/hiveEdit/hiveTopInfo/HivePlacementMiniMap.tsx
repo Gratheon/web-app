@@ -7,8 +7,12 @@ import { HivePlacement, Obstacle, Hive, HIVE_SIZE } from '@/page/apiaryEdit/hive
 import styles from './styles.module.less'
 
 const MINI_MAP_SIZE = 340
+const MINI_MAP_MOBILE_HEIGHT = 240
+const MOBILE_BREAKPOINT_PX = 576
 const MINI_MAP_VIEWPORT_RATIO = 1.4
 const MINI_MAP_ZOOM = 1 / MINI_MAP_VIEWPORT_RATIO
+const MINI_MAP_MOBILE_VIEWPORT_RATIO = 1.8
+const MINI_MAP_MOBILE_ZOOM = 1 / MINI_MAP_MOBILE_VIEWPORT_RATIO
 
 interface Props {
 	apiaryId: string
@@ -86,6 +90,10 @@ const fallbackSunAngleByHour = (hour: number) => {
 
 export default function HivePlacementMiniMap({ apiaryId, selectedHiveId }: Props) {
 	const [now, setNow] = useState(() => new Date())
+	const [isMobileViewport, setIsMobileViewport] = useState(() => {
+		if (typeof window === 'undefined') return false
+		return window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT_PX}px)`).matches
+	})
 
 	const compassN = t('N', 'single letter compass direction: North')
 	const compassS = t('S', 'single letter compass direction: South')
@@ -134,6 +142,16 @@ export default function HivePlacementMiniMap({ apiaryId, selectedHiveId }: Props
 	useEffect(() => {
 		const timer = window.setInterval(() => setNow(new Date()), ONE_MINUTE_MS)
 		return () => window.clearInterval(timer)
+	}, [])
+
+	useEffect(() => {
+		const mediaQuery = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT_PX}px)`)
+		const onViewportChange = (event: MediaQueryListEvent) => setIsMobileViewport(event.matches)
+
+		setIsMobileViewport(mediaQuery.matches)
+		mediaQuery.addEventListener('change', onViewportChange)
+
+		return () => mediaQuery.removeEventListener('change', onViewportChange)
 	}, [])
 
 	const hives = (apiaryData?.apiary?.hives || []) as Hive[]
@@ -200,11 +218,14 @@ export default function HivePlacementMiniMap({ apiaryId, selectedHiveId }: Props
 		return null
 	}
 
+	const miniMapHeight = isMobileViewport ? MINI_MAP_MOBILE_HEIGHT : MINI_MAP_SIZE
+	const miniMapZoom = isMobileViewport ? MINI_MAP_MOBILE_ZOOM : MINI_MAP_ZOOM
+
 	return (
 		<div className={`${styles.miniMapCircle} ${isNight ? styles.miniMapNight : ''}`}>
 			<Canvas
 				canvasWidth={MINI_MAP_SIZE}
-				canvasHeight={MINI_MAP_SIZE}
+				canvasHeight={miniMapHeight}
 				placements={placements}
 				obstacles={(placementData?.apiaryObstacles || []) as Obstacle[]}
 				hives={hives}
@@ -229,7 +250,7 @@ export default function HivePlacementMiniMap({ apiaryId, selectedHiveId }: Props
 				flightLineLength={24}
 				showSelectionHandles={false}
 				focusPoint={{ x: focusPlacement.x, y: focusPlacement.y }}
-				zoomScale={MINI_MAP_ZOOM}
+				zoomScale={miniMapZoom}
 				allowReadOnlyClick
 				readOnlyHitTest={isHiveHit}
 				onClick={(x, y) => {

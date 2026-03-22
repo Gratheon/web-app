@@ -2,8 +2,38 @@ import React, { useEffect, useState } from 'react'
 
 import BearIcon from '@/icons/bear'
 import DeleteIcon from '@/icons/deleteIcon'
+import ServiceDegradedWarning from '@/shared/serviceDegradedWarning'
 
 import styles from './index.module.less'
+
+const UPSTREAM_SERVICE_BY_HOST = {
+	'image-splitter': 'Image analysis service',
+	'swarm-api': 'Hive data service',
+	'telemetry-api': 'Telemetry service',
+	'alerts': 'Alerts service',
+}
+
+const UPSTREAM_FAILURE_PATTERN = /(ENOTFOUND|EAI_AGAIN|ECONNREFUSED|ECONNRESET|ETIMEDOUT|socket hang up|fetch failed|network error)/i
+const GRAPHQL_UPSTREAM_URL_PATTERN = /request to https?:\/\/([^/:]+)(?::\d+)?\/graphql failed/i
+
+function getUpstreamFailureServiceName(graphQLErrors: any[] = []) {
+	for (const gqlError of graphQLErrors) {
+		const message = String(gqlError?.message || '')
+		if (!UPSTREAM_FAILURE_PATTERN.test(message)) {
+			continue
+		}
+
+		const hostMatch = message.match(GRAPHQL_UPSTREAM_URL_PATTERN)
+		const host = hostMatch?.[1]
+		if (!host) {
+			return 'A backend service'
+		}
+
+		return UPSTREAM_SERVICE_BY_HOST[host] || 'A backend service'
+	}
+
+	return null
+}
 
 export default function ErrorMsg({ key=null, error, borderRadius=5 }) {
     const [visible, setVisible] = useState(true);
@@ -49,6 +79,11 @@ export default function ErrorMsg({ key=null, error, borderRadius=5 }) {
 
 	// Backend / graphql errors
 	if (error?.graphQLErrors) {
+		const degradedServiceName = getUpstreamFailureServiceName(error.graphQLErrors)
+		if (degradedServiceName) {
+			return <ServiceDegradedWarning />
+		}
+
 		return (
 			<div className={error?.graphQLErrors ? styles.errorMsgBig : styles.errorMsgSmall}>
 				<div style="width:24px"><BearIcon size={24} /></div>

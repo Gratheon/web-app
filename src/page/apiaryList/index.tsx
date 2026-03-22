@@ -8,6 +8,8 @@ import { getUser } from '@/models/user'
 import Loader from '../../shared/loader'
 import ErrorMsg from '../../shared/messageError'
 import T from '../../shared/translate'
+import useNetworkStatus from '@/hooks/useNetworkStatus'
+import ServiceDegradedWarning from '@/shared/serviceDegradedWarning'
 
 import ApiaryListRow from './apiaryListRow'
 import ApiariesPlaceholder from './apiariesPlaceholder'
@@ -107,7 +109,7 @@ export default function ApiaryList(props) {
 		return DEFAULT_SORT_ORDER
 	})
 
-	const { loading, error, data, errorNetwork } = useQuery(gql`
+	const { loading, error, data, errorNetwork, degradedError, degradedService } = useQuery(gql`
 		query apiaries {
 			boxSystems {
 				id
@@ -164,6 +166,8 @@ export default function ApiaryList(props) {
 		() => (data?.apiaries || []).filter((apiary) => apiary && apiary.id != null),
 		[data?.apiaries]
 	)
+	const isOnline = useNetworkStatus()
+	const isServiceDegraded = isOnline && (!!degradedService || !!degradedError)
 	const hasMixedApiaryTypes = React.useMemo(() => {
 		const distinctTypes = new Set((apiaries || []).map((apiary) => normalizeApiaryType(apiary?.type)))
 		return distinctTypes.size > 1
@@ -393,6 +397,7 @@ export default function ApiaryList(props) {
 
 	return (
 		<div className={styles.page}>
+			{isServiceDegraded && <ServiceDegradedWarning />}
 			<ErrorMsg error={error || errorNetwork} borderRadius={0} />
 			{apiaries !== null && apiaries?.length === 0 && <ApiariesPlaceholder />}
 

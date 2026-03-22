@@ -143,11 +143,17 @@ function useQueryAdapted(query: string | TypedDocumentNode, options?: any) {
 	})
 
 	const hasData = result.data !== null && result.data !== undefined
+	//@ts-ignore
+	const degradedError = result?.originalError || null
+	//@ts-ignore
+	const isDegraded = !!(result?.degradedService || result?.extensions?.degradedService || degradedError)
 
 	return {
 		data: result.data,
 		loading: result.fetching,
 		error: result.error,
+		degradedError,
+		degradedService: isDegraded,
 		//@ts-ignore
 		errorNetwork: hasData ? null : result?.originalError,
 		reexecuteQuery

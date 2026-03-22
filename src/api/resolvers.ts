@@ -13,6 +13,43 @@ export default {
 	user: async (_, { db }) => {
 		return await db.user.limit(1).first()
 	},
+	apiary: async (_, { db }, { variableValues: { id } }) => {
+		const apiaryId = Number(id)
+		if (!Number.isFinite(apiaryId)) {
+			return null
+		}
+
+		const apiary = await db.apiary.where({ id: apiaryId }).first()
+		if (!apiary) {
+			return null
+		}
+
+		const allHives = await db.hive.limit(500).toArray()
+		const hasApiaryRelations = allHives.some((hive) => hive?.apiaryId != null || hive?.apiary_id != null)
+		const apiaryHives = allHives.filter((hive) => {
+			if (!hasApiaryRelations) {
+				return true
+			}
+			const hiveApiaryId = hive?.apiaryId ?? hive?.apiary_id
+			return String(hiveApiaryId) === String(apiary.id)
+		})
+
+		const hiveIds = apiaryHives.map((hive) => Number(hive?.id)).filter((hiveId) => Number.isFinite(hiveId))
+		const families = hiveIds.length > 0
+			? await db.family.where('hiveId').anyOf(hiveIds).toArray()
+			: []
+		const familyByHiveId = new Map(families.map((family) => [String(family?.hiveId), family]))
+
+		const hives = apiaryHives.map((hive) => ({
+			...hive,
+			family: familyByHiveId.get(String(hive?.id)) || null,
+		}))
+
+		return {
+			...apiary,
+			hives,
+		}
+	},
 	apiaries: async (_, { db }) => {
 		const apiaries = await db.apiary.limit(100).toArray()
 		const allHives = await db.hive.limit(500).toArray()

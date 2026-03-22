@@ -40,6 +40,10 @@ export default function HiveBoxes({
 
 	for (let box of boxes) {
 		const isCurrentBoxSelected = box.id === parseInt(boxId, 10)
+		const isSectionBox =
+			box.type == boxTypes.DEEP ||
+			box.type == boxTypes.SUPER ||
+			box.type === boxTypes.LARGE_HORIZONTAL_SECTION
 		if (isCurrentBoxSelected) {
 			currentBoxSelected = box
 		}
@@ -51,8 +55,8 @@ export default function HiveBoxes({
 					onBoxClick({ event, boxId: box.id })
 				}}
 			>
-				<div className={styles.box + ` boxOuterClick `}>
-					{(box.type == boxTypes.DEEP || box.type == boxTypes.SUPER || box.type === boxTypes.LARGE_HORIZONTAL_SECTION) && (
+				<div className={`${styles.box} boxOuterClick`}>
+					{isSectionBox && (
 						<Box
 							box={box}
 							boxId={+boxId}

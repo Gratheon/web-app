@@ -49,10 +49,9 @@
 
 	.boxesWrap {
 		padding-right: 5px;
-		// overflow: hidden;
-
-		// flex-grow: 1;
-		// max-width: 50%;
+		width: 420px;
+		min-width: 420px;
+		flex-shrink: 0;
 	}
 
 	.frameWrap {
@@ -61,17 +60,38 @@
 		flex-grow: 1;
 	}
 
+	.frameWrapCompact {
+		width: 260px;
+		min-width: 260px;
+		flex-grow: 0;
+		flex-shrink: 0;
+	}
+
 	.horizontalStructureLayout .frameWrap {
 		margin-top: 12px;
 		border-radius: 5px;
 	}
 
+	.horizontalStructureLayout .frameWrapCompact {
+		width: auto;
+		min-width: 0;
+		flex-grow: 1;
+		flex-shrink: 1;
+	}
+
+	.horizontalStructureLayout .boxesWrap {
+		width: 100%;
+		min-width: 0;
+		flex-shrink: 1;
+	}
+
 	.logsWrap {
 		margin-top: 0;
 		margin-left: 4px;
-		width: min(560px, 40vw);
-		min-width: 420px;
-		flex-shrink: 0;
+		width: auto;
+		min-width: 280px;
+		flex-grow: 1;
+		flex-shrink: 1;
 	}
 
 	.horizontalStructureLayout .logsWrap {

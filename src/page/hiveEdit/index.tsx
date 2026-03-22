@@ -303,6 +303,7 @@ export default function HiveEditForm() {
 	)
 	const isHorizontalHive = String(hive?.hiveType || '').toUpperCase() === 'HORIZONTAL'
 	const useHorizontalStructureLayout = isHorizontalHive && mapTab === 'structure'
+	const useCompactStructureMiddle = mapTab === 'structure' && !boxId && !useHorizontalStructureLayout
 
 	function onBoxClose(event) {
 		event.stopPropagation()
@@ -401,7 +402,11 @@ export default function HiveEditForm() {
 					</div>
 				)}
 
-				<div className={styles.frameWrap}>
+				<div
+					className={`${styles.frameWrap} ${
+						useCompactStructureMiddle ? styles.frameWrapCompact : ''
+					}`}
+				>
 					{mapTab === 'treatments' && (
 						<Treatments hiveId={hiveId} boxId={boxId} />
 					)}

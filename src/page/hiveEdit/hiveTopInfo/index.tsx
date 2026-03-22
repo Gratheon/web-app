@@ -502,13 +502,14 @@ export default function HiveEditDetails({ apiaryId, hiveId, apiaryType, onTopMes
 								</div>
 								<div className={styles.wrap4}>
 									<div className={styles.titleQueenWrap}>
-											<div className={styles.boxSystemMeta}>
-												<span className={styles.boxSystemMetaLabel}>
-													<T>Hive system</T>:
-												</span>
-												<span className={styles.boxSystemPill}>
+										<div className={styles.metaRow}>
+											<div className={styles.metaLabel}>
+												<T>Hive system</T>
+											</div>
+											<div className={styles.metaValue}>
+												<span className={styles.boxSystemValue}>
 													<span
-														className={styles.boxSystemPillDot}
+														className={styles.boxSystemDot}
 														style={{ backgroundColor: displayedBoxSystemColor }}
 													></span>
 													<span>
@@ -518,31 +519,39 @@ export default function HiveEditDetails({ apiaryId, hiveId, apiaryType, onTopMes
 													</span>
 												</span>
 											</div>
-											<div id={styles.queenSection}>
-												<QueenSlot
-													families={families}
-													editable={false}
-													onAddQueen={() => {}}
-													onRemoveQueen={() => {}}
-													onEmptySlotClick={() => navigate(`/apiaries/${apiaryId}/hives/${hiveId}/edit`)}
-												/>
-
-											{hive && isCollapsed(hive) && (
-												<div className={styles.collapsedLabel}>
-													{hive.collapse_date && (
-														<>
-															<DateFormat datetime={hive.collapse_date} />{' '}
-														</>
-													)}
-													<SkullIcon
-														size={14}
-														color="#b22222"
-														style={{ marginRight: 4 }}
-													/>
-													<T>Collapsed</T>
-													</div>
-												)}
+										</div>
+										<div className={styles.metaRow}>
+											<div className={styles.metaLabel}>
+												<T>Queen</T>
 											</div>
+											<div className={styles.metaValue}>
+												<div id={styles.queenSection}>
+													<QueenSlot
+														families={families}
+														editable={false}
+														onAddQueen={() => {}}
+														onRemoveQueen={() => {}}
+														onEmptySlotClick={() => navigate(`/apiaries/${apiaryId}/hives/${hiveId}/edit`)}
+													/>
+												</div>
+											</div>
+										</div>
+
+										{hive && isCollapsed(hive) && (
+											<div className={styles.collapsedLabel}>
+												{hive.collapse_date && (
+													<>
+														<DateFormat datetime={hive.collapse_date} />{' '}
+													</>
+												)}
+												<SkullIcon
+													size={14}
+													color="#b22222"
+													style={{ marginRight: 4 }}
+												/>
+												<T>Collapsed</T>
+											</div>
+										)}
 											<HiveStatistics hiveId={hiveId} />
 											{hive.notes && <p className={styles.hiveNotes}>{hive.notes}</p>}
 										</div>

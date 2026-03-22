@@ -17,7 +17,6 @@ import EmptyFrameIcon from '@/icons/emptyFrameIcon'
 import {
 	addManualHiveLogEntry,
 	deleteHiveLogEntry,
-	formatHiveLogAction,
 	listHiveLogs,
 	updateHiveLogEntry,
 	HiveLogEntry,
@@ -33,6 +32,8 @@ type TimelineRow = {
 	splitChildLinked: boolean
 	mergeReceive: boolean
 }
+
+const LOG_PAGE_SIZE = 50
 
 function LabVialIcon({ size = 10 }: { size?: number }) {
 	return (
@@ -105,11 +106,16 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 	const [editingId, setEditingId] = useState<number | null>(null)
 	const [editTitle, setEditTitle] = useState('')
 	const [editDetails, setEditDetails] = useState('')
+	const [visibleCount, setVisibleCount] = useState(LOG_PAGE_SIZE)
 
 	useEffect(() => {
 		syncHiveLogsFromBackend(numericHiveId).catch((e) =>
 			console.error('Failed to sync hive logs in view', e)
 		)
+	}, [numericHiveId])
+
+	useEffect(() => {
+		setVisibleCount(LOG_PAGE_SIZE)
 	}, [numericHiveId])
 
 	if (logs === null) {
@@ -177,6 +183,12 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 		return rows
 	}, [logs])
 
+	const visibleTimelineRows = useMemo(
+		() => timelineRows.slice(0, visibleCount),
+		[timelineRows, visibleCount]
+	)
+	const hasMoreRows = visibleCount < timelineRows.length
+
 	async function onAddNote() {
 		if (!draft.trim()) return
 		await addManualHiveLogEntry(numericHiveId, draft)
@@ -202,7 +214,7 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 			<>
 				<div className={styles.headerRow}>
 					<div className={styles.meta}>
-						{formatHiveLogAction(entry.action)} • <DateTimeFormat datetime={entry.createdAt} />
+						<DateTimeFormat datetime={entry.createdAt} />
 					</div>
 					{!isEditing && (
 						<Button
@@ -374,7 +386,7 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 
 			{logs.length > 0 && (
 				<div className={styles.timeline}>
-					{timelineRows.map((row) => {
+					{visibleTimelineRows.map((row) => {
 						const isEditing = editingId === +row.entry.id
 						const marker = getMarker(row.entry)
 						return (
@@ -420,6 +432,13 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 							</div>
 						)
 					})}
+					{hasMoreRows && (
+						<div className={styles.loadMoreWrap}>
+							<Button onClick={() => setVisibleCount((prev) => prev + LOG_PAGE_SIZE)}>
+								<T>Load more history</T>
+							</Button>
+						</div>
+					)}
 				</div>
 			)}
 		</div>

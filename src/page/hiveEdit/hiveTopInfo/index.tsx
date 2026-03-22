@@ -531,6 +531,15 @@ export default function HiveEditDetails({ apiaryId, hiveId, apiaryType, onTopMes
 														editable={false}
 														onAddQueen={() => {}}
 														onRemoveQueen={() => {}}
+														onNavigateToLastSeen={(family) => {
+															if (!family.lastSeenFrameId || !family.lastSeenFrameSideId) {
+																return
+															}
+															const fallbackFrame = (allHiveFrames || []).find((frame) => Number(frame?.id) === Number(family.lastSeenFrameId))
+															const targetBoxId = family.lastSeenBoxId || fallbackFrame?.boxId
+															if (!targetBoxId) return
+															navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${targetBoxId}/frame/${family.lastSeenFrameId}/${family.lastSeenFrameSideId}`)
+														}}
 														onEmptySlotClick={() => navigate(`/apiaries/${apiaryId}/hives/${hiveId}/edit`)}
 													/>
 												</div>

@@ -62,6 +62,7 @@ interface QueenSlotProps {
 	editable: boolean
 	onAddQueen: () => void
 	onRemoveQueen: (familyId: number) => void
+	onNavigateToLastSeen?: (family: Family) => void
 	onEmptySlotClick?: () => void
 	onUpdateQueen?: (familyId: number, name: string, race: string, year: string, color?: string) => void
 	onDragStart?: (familyId: number) => void
@@ -73,6 +74,7 @@ export default function QueenSlot({
 	editable,
 	onAddQueen,
 	onRemoveQueen,
+	onNavigateToLastSeen,
 	onEmptySlotClick,
 	onUpdateQueen,
 	onDragStart,
@@ -302,6 +304,19 @@ export default function QueenSlot({
 									>
 										{family.race || <T>Unknown Race</T>}
 									</span>
+									{family.lastSeenFrameId && family.lastSeenFrameSideId && (
+										<Button
+											size="small"
+											onClick={(e) => {
+												e.stopPropagation()
+												if (onNavigateToLastSeen) {
+													onNavigateToLastSeen(family)
+												}
+											}}
+										>
+											<T>Last seen on frame</T> #{family.lastSeenFrameId}
+										</Button>
+									)}
 
 								</>
 							)}

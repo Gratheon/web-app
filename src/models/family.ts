@@ -8,6 +8,10 @@ export type Family = {
 	added: string
 	color?: string
 	age?: number
+	lastSeenFrameId?: number
+	lastSeenFrameSideId?: number
+	lastSeenBoxId?: number
+	lastSeenAt?: string
   }
 
 const TABLE_NAME = 'family'
@@ -51,6 +55,32 @@ export async function updateFamily(data: Family) {
 	}
 }
 
+export async function updateFamilyLastSeen(
+	familyId: number,
+	lastSeen: {
+		frameId: number
+		frameSideId: number
+		boxId?: number
+		seenAt?: string
+	}
+) {
+	try {
+		const family = await db[TABLE_NAME].get(familyId)
+		if (!family) return
+
+		family.lastSeenFrameId = lastSeen.frameId
+		family.lastSeenFrameSideId = lastSeen.frameSideId
+		if (lastSeen.boxId !== undefined) {
+			family.lastSeenBoxId = lastSeen.boxId
+		}
+		family.lastSeenAt = lastSeen.seenAt || new Date().toISOString()
+		await db[TABLE_NAME].put(family)
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
+}
+
 export async function deleteFamily(familyId: number) {
 	try {
 		return await db[TABLE_NAME].delete(familyId)
@@ -59,4 +89,3 @@ export async function deleteFamily(familyId: number) {
 		throw e
 	}
 }
-

@@ -14,6 +14,7 @@ import UndoStrokeIcon from '@/icons/undoStrokeIcon.tsx';
 import BrushSizeIcon from '@/icons/brushSizeIcon.tsx';
 import KeyboardHints from '@/shared/keyboardHints';
 import Slider from '@/shared/slider';
+import type { QueenAnnotation } from '@/models/frameSideFile';
 
 let img: HTMLImageElement | null = null;
 let isMousedown = false;
@@ -508,16 +509,50 @@ interface DrawLayersParams {
 	detectedQueenCups: any[];
 	showVarroa: boolean;
 	detectedVarroa: any[];
+	showQueenAnnotations?: boolean;
+	queenAnnotations?: QueenAnnotation[];
 	brushCursor?: { x: number; y: number } | null;
 	activeTool?: 'cell-brush' | 'stroke';
 	selectedCellType?: BrushCellType;
 	brushRadiusRatio?: number;
 }
 
+function drawQueenAnnotations(
+	queenAnnotations: QueenAnnotation[],
+	ctx: CanvasRenderingContext2D,
+	canvas: HTMLCanvasElement
+) {
+	if (!Array.isArray(queenAnnotations)) return;
+	const relPx = calculateRelPx(canvas);
+	queenAnnotations.forEach((annotation, index) => {
+		const x = Number(annotation?.x);
+		const y = Number(annotation?.y);
+		const radiusRatio = Number(annotation?.radius);
+		if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+
+		const radius = (Number.isFinite(radiusRatio) && radiusRatio > 0 ? radiusRatio : 0.02) * canvas.width;
+		const isApproved = annotation?.status === 'approved';
+		ctx.save();
+		ctx.globalAlpha = isApproved ? 0.85 : 0.65;
+		ctx.beginPath();
+		ctx.arc(x * canvas.width, y * canvas.height, radius, 0, 2 * Math.PI);
+		ctx.fillStyle = isApproved ? 'rgba(36, 112, 255, 0.18)' : 'rgba(36, 112, 255, 0.08)';
+		ctx.fill();
+		ctx.lineWidth = Math.max(2, 2.2 * relPx);
+		ctx.strokeStyle = isApproved ? '#1f5eff' : '#6fa2ff';
+		ctx.stroke();
+		ctx.fillStyle = '#1252d6';
+		ctx.font = `${Math.floor(Math.max(11, 10 * relPx))}px Arial`;
+		ctx.fillText(`Q${index + 1}`, (x * canvas.width) + radius + (4 * relPx), y * canvas.height);
+		ctx.restore();
+	});
+}
+
 function drawCanvasLayers({
 	canvas, ctx, strokeHistory, showBees, showDrones, isAiQueenVisible,
 	detectedBees, showCells, detectedCells, showQueenCups, detectedQueenCups,
-	showVarroa, detectedVarroa, brushCursor, activeTool, selectedCellType, brushRadiusRatio = DEFAULT_BRUSH_DIAMETER_RATIO / 2,
+	showVarroa, detectedVarroa, showQueenAnnotations = true, queenAnnotations = [],
+	brushCursor, activeTool, selectedCellType, brushRadiusRatio = DEFAULT_BRUSH_DIAMETER_RATIO / 2,
 	cellsOpacityFactor = 1
 }: DrawLayersParams) {
 	ctx.save();
@@ -533,6 +568,9 @@ function drawCanvasLayers({
 	if (showVarroa && detectedVarroa) drawDetectedVarroa(detectedVarroa, ctx, canvas);
 	if ((showBees || showDrones || isAiQueenVisible) && detectedBees) {
 		drawDetectedBees(detectedBees, ctx, canvas, showBees, showDrones, isAiQueenVisible);
+	}
+	if (showQueenAnnotations && queenAnnotations) {
+		drawQueenAnnotations(queenAnnotations, ctx, canvas);
 	}
 	if (showQueenCups && detectedQueenCups) drawQueenCups(detectedQueenCups, ctx, canvas);
 	if (strokeHistory && strokeHistory.length > 0) redrawStrokes(canvas, ctx, strokeHistory);
@@ -559,8 +597,13 @@ interface DrawingCanvasProps {
 	detectedDrones?: any[];
 	detectedCells?: any[];
 	detectedVarroa?: any[];
+	queenAnnotations?: QueenAnnotation[];
+	families?: Array<{ id: number; name?: string }>;
 	onStrokeHistoryUpdate: (history: DrawingLine[] | undefined) => void;
 	onDetectedCellsUpdate?: (detectedCells: any[]) => void | Promise<void>;
+	onQueenAnnotationsUpdate?: (queenAnnotations: QueenAnnotation[]) => void | Promise<void>;
+	onRemoveDetectedQueenCandidate?: (target: { x: number; y: number }) => void | Promise<void>;
+	onCreateQueen?: (queen: { name?: string; race?: string; added?: string }) => Promise<number | null>;
 	frameSideFile: any;
 	hideControls?: boolean;
 	allowDrawing?: boolean;
@@ -577,8 +620,13 @@ export default function DrawingCanvas({
 	detectedDrones = [],
 	detectedCells = [],
 	detectedVarroa = [],
+	queenAnnotations = [],
+	families = [],
 	onStrokeHistoryUpdate,
 	onDetectedCellsUpdate,
+	onQueenAnnotationsUpdate,
+	onRemoveDetectedQueenCandidate,
+	onCreateQueen,
 	frameSideFile,
 	hideControls = false,
 	allowDrawing = true,
@@ -592,14 +640,17 @@ export default function DrawingCanvas({
 	const [showCells, setCellVisibility] = useState(true);
 	const [showQueenCups, setQueenCupsVisibility] = useState(true);
 	const [showVarroa, setShowVarroaVisibility] = useState(true);
+	const [showQueenAnnotations, setShowQueenAnnotations] = useState(true);
 	const [isAiQueenVisible, setIsAiQueenVisible] = useState(true);
 	const [currentLineWidth, setCurrentLineWidth] = useState(0);
 	const [activeTool, setActiveTool] = useState<'cell-brush' | 'stroke'>('cell-brush');
 	const [selectedCellType, setSelectedCellType] = useState<BrushCellType>(2);
 	const [brushSizePreset, setBrushSizePreset] = useState<BrushSizePreset>('medium');
-	const [cellsOpacityPercent, setCellsOpacityPercent] = useState(100);
+	const [cellsOpacityPercent, setCellsOpacityPercent] = useState(50);
 	const [hasUnsavedCellEdits, setHasUnsavedCellEdits] = useState(false);
 	const [isSavingCellEdits, setIsSavingCellEdits] = useState(false);
+	const [editableQueenAnnotations, setEditableQueenAnnotations] = useState<QueenAnnotation[]>(queenAnnotations || []);
+	const [isAddingQueenMarker, setIsAddingQueenMarker] = useState(false);
 	const editableDetectedCellsRef = useRef<any[]>(detectedCells || []);
 	const lastHandledSaveRequestIdRef = useRef(0);
 	const brushCursorRef = useRef<{ x: number; y: number } | null>(null);
@@ -612,6 +663,60 @@ export default function DrawingCanvas({
 		editableDetectedCellsRef.current = detectedCells || [];
 	}, [detectedCells, hasUnsavedCellEdits]);
 
+	useEffect(() => {
+		setEditableQueenAnnotations(Array.isArray(queenAnnotations) ? queenAnnotations : []);
+	}, [queenAnnotations]);
+
+	const persistQueenAnnotations = useCallback(async (nextAnnotations: QueenAnnotation[]) => {
+		setEditableQueenAnnotations(nextAnnotations);
+		if (onQueenAnnotationsUpdate) {
+			await onQueenAnnotationsUpdate(nextAnnotations);
+		}
+	}, [onQueenAnnotationsUpdate]);
+
+	const upsertQueenAnnotation = useCallback(async (id: string, updater: (annotation: QueenAnnotation) => QueenAnnotation) => {
+		const next = editableQueenAnnotations.map((annotation) => (
+			annotation.id === id ? updater(annotation) : annotation
+		));
+		await persistQueenAnnotations(next);
+	}, [editableQueenAnnotations, persistQueenAnnotations]);
+
+	const removeQueenAnnotation = useCallback(async (annotation: QueenAnnotation) => {
+		const next = editableQueenAnnotations.filter((item) => item.id !== annotation.id);
+		await persistQueenAnnotations(next);
+	}, [editableQueenAnnotations, persistQueenAnnotations]);
+
+	const handleAssignFamily = useCallback(async (annotation: QueenAnnotation, value: string) => {
+		if (value === '__new__') {
+			const name = window.prompt('Queen name (optional)') || '';
+			const year = window.prompt('Year (optional, e.g. 2026)') || '';
+			const race = window.prompt('Race (optional)') || '';
+			if (!onCreateQueen) return;
+			const createdFamilyId = await onCreateQueen({
+				name: name || undefined,
+				added: year || undefined,
+				race: race || undefined,
+			});
+			if (!createdFamilyId) return;
+
+			await upsertQueenAnnotation(annotation.id, (current) => ({
+				...current,
+				familyId: createdFamilyId,
+				status: 'approved',
+				updatedAt: new Date().toISOString(),
+			}));
+			return;
+		}
+
+		const familyId = value ? Number(value) : null;
+		await upsertQueenAnnotation(annotation.id, (current) => ({
+			...current,
+			familyId,
+			status: familyId ? 'approved' : current.status,
+			updatedAt: new Date().toISOString(),
+		}));
+	}, [onCreateQueen, upsertQueenAnnotation]);
+
 	const allDetectedBees = React.useMemo(() => {
 		const combined = [...(detectedBees || [])];
 		if (detectedDrones && detectedDrones.length > 0) {
@@ -621,6 +726,7 @@ export default function DrawingCanvas({
 	}, [detectedBees, detectedDrones]); // Track line width for drawing updates
 
 	const brushRadiusRatio = BRUSH_DIAMETER_BY_PRESET[brushSizePreset] / 2;
+	const showAiQueensOnCanvas = allowDrawing ? isAiQueenVisible : false;
 
 	const getThumbnailUrl = useCallback(() => {
 		let bestUrl = imageUrl;
@@ -673,7 +779,7 @@ export default function DrawingCanvas({
 		if (!ctx) return;
 
 		drawCanvasLayers({
-			canvas, ctx, strokeHistory, showBees, showDrones, isAiQueenVisible,
+			canvas, ctx, strokeHistory, showBees, showDrones, isAiQueenVisible: showAiQueensOnCanvas,
 			detectedBees: allDetectedBees,
 			showCells,
 			detectedCells: editableDetectedCellsRef.current,
@@ -681,13 +787,15 @@ export default function DrawingCanvas({
 			detectedQueenCups,
 			showVarroa,
 			detectedVarroa,
+			showQueenAnnotations,
+			queenAnnotations: editableQueenAnnotations,
 			brushCursor: brushCursorRef.current,
 			activeTool,
 			selectedCellType,
 			brushRadiusRatio,
 			cellsOpacityFactor: cellsOpacityPercent / 100,
 		});
-	}, [strokeHistory, showBees, showDrones, isAiQueenVisible, allDetectedBees, showCells, showQueenCups, detectedQueenCups, showVarroa, detectedVarroa, activeTool, selectedCellType, brushRadiusRatio, cellsOpacityPercent]);
+	}, [strokeHistory, showBees, showDrones, showAiQueensOnCanvas, allDetectedBees, showCells, showQueenCups, detectedQueenCups, showVarroa, detectedVarroa, showQueenAnnotations, editableQueenAnnotations, activeTool, selectedCellType, brushRadiusRatio, cellsOpacityPercent]);
 
 	const scheduleRedraw = useCallback(() => {
 		if (redrawRafRef.current !== null) return;
@@ -854,6 +962,25 @@ export default function DrawingCanvas({
 			if (isPanning || (e instanceof MouseEvent && e.button !== 0)) return;
 			e.preventDefault(); // Prevent scrolling on touch
 
+			if (isAddingQueenMarker) {
+				const pos = getCanvasRelativePosition(canvas, e);
+				const normalizedPos = getNormalizedPosition(canvas, pos);
+				const newAnnotation: QueenAnnotation = {
+					id: `manual-${Date.now()}-${Math.round(Math.random() * 10000)}`,
+					x: clamp01(normalizedPos.x),
+					y: clamp01(normalizedPos.y),
+					radius: 0.022,
+					source: 'manual',
+					status: 'candidate',
+					familyId: null,
+					createdAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString(),
+				};
+				void persistQueenAnnotations([...(editableQueenAnnotations || []), newAnnotation]);
+				setIsAddingQueenMarker(false);
+				return;
+			}
+
 			if (activeTool === 'cell-brush' && showCells) {
 				isMousedown = true;
 				applyBrushAtEvent(e);
@@ -960,7 +1087,7 @@ export default function DrawingCanvas({
 			canvas.removeEventListener('touchend', handleDrawEnd);
 			canvas.removeEventListener('touchcancel', handleDrawEnd);
 		};
-	}, [allowDrawing, strokeHistory, onStrokeHistoryUpdate, currentLineWidth, activeTool, selectedCellType, scheduleRedraw, hasUnsavedCellEdits, showCells, brushRadiusRatio]); // Dependencies for drawing logic
+	}, [allowDrawing, strokeHistory, onStrokeHistoryUpdate, currentLineWidth, activeTool, selectedCellType, scheduleRedraw, hasUnsavedCellEdits, showCells, brushRadiusRatio, isAddingQueenMarker, editableQueenAnnotations, persistQueenAnnotations]); // Dependencies for drawing logic
 
 	// Zoom and Pan Event Handlers
 	useLayoutEffect(() => {
@@ -1098,12 +1225,12 @@ export default function DrawingCanvas({
 	// Redraw when visibility toggles change
 	useEffect(() => {
 		redrawCurrentCanvas();
-	}, [showBees, showDrones, isAiQueenVisible, showCells, showQueenCups, showVarroa, redrawCurrentCanvas]);
+	}, [showBees, showDrones, isAiQueenVisible, showCells, showQueenCups, showVarroa, showQueenAnnotations, redrawCurrentCanvas]);
 
 	// Redraw when detection data changes
 	useEffect(() => {
 		redrawCurrentCanvas();
-	}, [detectedBees, detectedCells, detectedQueenCups, detectedVarroa, redrawCurrentCanvas]);
+	}, [detectedBees, detectedCells, detectedQueenCups, detectedVarroa, editableQueenAnnotations, redrawCurrentCanvas]);
 
 
 	const isAnyDetectionLoading =
@@ -1300,10 +1427,17 @@ export default function DrawingCanvas({
 							</Button>
 						)}
 
-						<Button size="small" style={layerToggleButtonStyle} onClick={() => setIsAiQueenVisible(!isAiQueenVisible)}>
-							{frameSideFile?.isQueenDetectionComplete ? <Checkbox on={isAiQueenVisible} color="#111" /> : <Loader size={0} stroke="#111" />}
-							<span><T ctx="toggle AI queen visibility">Queen</T></span>
-							<QueenIcon size={14} color={'#111'} />
+						{allowDrawing && (
+							<Button size="small" style={layerToggleButtonStyle} onClick={() => setIsAiQueenVisible(!isAiQueenVisible)}>
+								{frameSideFile?.isQueenDetectionComplete ? <Checkbox on={isAiQueenVisible} color="#111" /> : <Loader size={0} stroke="#111" />}
+								<span><T ctx="toggle AI queen visibility">AI queen candidates</T></span>
+								<QueenIcon size={14} color={'#111'} />
+							</Button>
+						)}
+
+						<Button size="small" style={layerToggleButtonStyle} onClick={() => setShowQueenAnnotations(!showQueenAnnotations)}>
+							<Checkbox on={showQueenAnnotations} color="#111" />
+							<span><T>Queen markers</T></span>
 						</Button>
 
 							<Button size="small" style={layerToggleButtonStyle} onClick={() => setDroneVisibility(!showDrones)}>
@@ -1470,6 +1604,66 @@ export default function DrawingCanvas({
 						/>
 						<span className={styles.toolbarSliderValue}>{cellsOpacityPercent}%</span>
 					</div>
+				</div>
+			)}
+
+			{allowDrawing && onQueenAnnotationsUpdate && (
+				<div style={{ marginTop: 10, border: '1px solid #d5dbe5', borderRadius: 8, padding: 10, background: '#f8fbff' }}>
+					<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
+						<strong><T>Queen management</T></strong>
+						<Button size="small" onClick={() => setIsAddingQueenMarker((v) => !v)} style={isAddingQueenMarker ? { background: '#2470ff', color: '#fff' } : undefined}>
+							<T>{isAddingQueenMarker ? 'Click image to place marker' : 'Add queen marker'}</T>
+						</Button>
+					</div>
+					{editableQueenAnnotations.length === 0 && (
+						<div style={{ fontSize: 13, color: '#415066' }}>
+							<T>No queen markers on this frame yet.</T>
+						</div>
+					)}
+					{editableQueenAnnotations.map((annotation, index) => (
+						<div key={annotation.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto auto auto', gap: 8, alignItems: 'center', marginBottom: 6 }}>
+							<div style={{ minWidth: 0 }}>
+								<strong>{`Q${index + 1}`}</strong> {annotation.source === 'ai' ? '(AI)' : '(manual)'} {annotation.status === 'approved' ? 'approved' : 'candidate'}
+							</div>
+							<select
+								value={annotation.familyId ? String(annotation.familyId) : ''}
+								onChange={(event) => void handleAssignFamily(annotation, String((event.target as HTMLSelectElement).value || ''))}
+							>
+								<option value="">Unassigned</option>
+								{families.map((family) => (
+									<option key={family.id} value={family.id}>
+										{family.name || `#${family.id}`}
+									</option>
+								))}
+								<option value="__new__">+ New queen...</option>
+							</select>
+							<Button
+								size="small"
+								onClick={() => void upsertQueenAnnotation(annotation.id, (current) => ({
+									...current,
+									status: 'approved',
+									updatedAt: new Date().toISOString(),
+								}))}
+							>
+								<T>Approve</T>
+							</Button>
+							<Button
+								size="small"
+								color="gray"
+								onClick={async () => {
+									if (annotation.source === 'ai' && onRemoveDetectedQueenCandidate) {
+										await onRemoveDetectedQueenCandidate({ x: annotation.x, y: annotation.y });
+									}
+									await removeQueenAnnotation(annotation);
+								}}
+							>
+								<T>Reject</T>
+							</Button>
+							<Button size="small" color="red" onClick={async () => { await removeQueenAnnotation(annotation); }}>
+								<T>Delete</T>
+							</Button>
+						</div>
+					))}
 				</div>
 			)}
 

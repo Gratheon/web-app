@@ -14,13 +14,17 @@ export default function BoxFrameSide({
 	onFrameSideClick: () => void
 }) {
 	if (!frameSide) return
+	const hasQueenMarkers = Array.isArray(frameSide?.frameSideFile?.queenAnnotations)
+		? frameSide.frameSideFile.queenAnnotations.length > 0
+		: false
+	const showQueenPresence = Boolean(frameSide.isQueenConfirmed || hasQueenMarkers)
 
 	return (
 		<div
 			className={`${styles.frameSide} ${className}`}
 			onClick={onFrameSideClick}
 		>
-			{frameSide.isQueenConfirmed && (
+			{showQueenPresence && (
 				<QueenIcon className={styles.crown} size={16} />
 			)}
 

@@ -17,6 +17,7 @@ import T from '../../../shared/translate'
 
 type FrameSideProps = {
 	hiveId: string | number
+	boxId?: string | number
 	frameId: string | number
 	frameSideId: string | number
 	allowDrawing?: boolean
@@ -26,6 +27,7 @@ type FrameSideProps = {
 
 export default function FrameSide({
 	hiveId,
+	boxId,
 	frameId,
 	frameSideId,
 	allowDrawing = true,
@@ -171,6 +173,8 @@ export default function FrameSide({
 		file={file}
 		frameSide={frameSide}
 		frameSideFile={frameSideFile}
+		hiveId={hiveId}
+		boxId={boxId}
 		frameId={frameId}
 		frameSideId={frameSideId}
 		allowDrawing={allowDrawing}

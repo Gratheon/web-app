@@ -28,8 +28,21 @@ export type FrameSideFile = {
     isQueenCupsDetectionComplete?: boolean
     isVarroaDetectionComplete?: boolean // Added this line
     queenDetected?: boolean // Added this line
+    queenAnnotations?: QueenAnnotation[]
 
     counts: any
+}
+
+export type QueenAnnotation = {
+    id: string
+    x: number
+    y: number
+    radius: number
+    source: 'ai' | 'manual'
+    status: 'candidate' | 'approved'
+    familyId?: number | null
+    createdAt?: string
+    updatedAt?: string
 }
 
 export const FRAME_SIDE_FILE_TABLE = 'frame_side_file'
@@ -341,6 +354,64 @@ export async function updateDetectedCellsData(frameSideId: number, detectedCells
         });
     } catch (e) {
         console.error('Error updating detected cells:', e, { frameSideId });
+        throw e;
+    }
+}
+
+export async function updateQueenAnnotationsData(
+    frameSideId: number,
+    queenAnnotations: QueenAnnotation[]
+) {
+    try {
+        await db[FRAME_SIDE_FILE_TABLE].where({ id: frameSideId }).modify((frameSideFile) => {
+            frameSideFile.queenAnnotations = Array.isArray(queenAnnotations) ? queenAnnotations : [];
+        });
+    } catch (e) {
+        console.error('Error updating queen annotations:', e, { frameSideId });
+        throw e;
+    }
+}
+
+export async function removeNearestDetectedQueen(
+    frameSideId: number,
+    target: { x: number; y: number }
+) {
+    try {
+        await db[FRAME_SIDE_FILE_TABLE].where({ id: frameSideId }).modify((frameSideFile) => {
+            const detectedBees = Array.isArray(frameSideFile.detectedBees) ? frameSideFile.detectedBees : [];
+            const queenIndices = detectedBees
+                .map((bee, index) => ({ bee, index }))
+                .filter((entry) => Number(entry?.bee?.n) === 3);
+
+            if (queenIndices.length === 0) {
+                return;
+            }
+
+            let closestIndex = queenIndices[0].index;
+            let minDistance = Number.POSITIVE_INFINITY;
+
+            for (const entry of queenIndices) {
+                const bx = Number(entry.bee?.x);
+                const by = Number(entry.bee?.y);
+                if (!Number.isFinite(bx) || !Number.isFinite(by)) {
+                    continue;
+                }
+                const dx = bx - target.x;
+                const dy = by - target.y;
+                const distance = (dx * dx) + (dy * dy);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestIndex = entry.index;
+                }
+            }
+
+            frameSideFile.detectedBees = detectedBees.filter((_, index) => index !== closestIndex);
+            const currentQueenCount = Number(frameSideFile.detectedQueenCount || 0);
+            frameSideFile.detectedQueenCount = Math.max(0, currentQueenCount - 1);
+            frameSideFile.queenDetected = frameSideFile.detectedQueenCount > 0;
+        });
+    } catch (e) {
+        console.error('Error removing nearest detected queen:', e, { frameSideId, target });
         throw e;
     }
 }

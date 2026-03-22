@@ -262,7 +262,12 @@ export default function HiveEditForm() {
 	let loading, errorGet, errorNetwork
 
 	// if local cache is empty - query
-	if (!apiary || !hive || !hive.inspectionCount) {
+	const needsHiveBootstrap =
+		!apiary ||
+		!hive ||
+		hive.inspectionCount === undefined ||
+		hive.inspectionCount === null
+	if (needsHiveBootstrap) {
 		;({
 			loading,
 			error: errorGet,

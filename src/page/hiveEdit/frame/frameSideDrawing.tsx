@@ -3,13 +3,14 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { gql, useMutation } from '@/api' // Removed useSubscription
 // Import only needed model functions and types
 import {
-	FrameSideFile, getFrameSideFile, updateDetectedCellsData, updateStrokeHistoryData
+	FrameSideFile, QueenAnnotation, getFrameSideFile, removeNearestDetectedQueen, updateDetectedCellsData, updateQueenAnnotationsData, updateStrokeHistoryData
 } from '@/models/frameSideFile' // Removed append...Data functions
 import {
 	getFrameSideCells,
 	newFrameSideCells,
 	updateFrameSideCells
 } from '@/models/frameSideCells'
+import { getAllFamiliesByHive, updateFamily, updateFamilyLastSeen } from '@/models/family'
 import { FrameSide as FrameSideType } from '@/models/frameSide' // Removed getFrameSide, upsertFrameSide
 import Loading from '@/shared/loader'
 import ErrorMessage from '@/shared/messageError'
@@ -29,6 +30,8 @@ interface FrameSideDrawingProps {
 	frameSideFile: FrameSideFile | null | undefined
 	frameId: string | number
 	frameSideId: string | number
+	hiveId: string | number
+	boxId?: string | number
 	allowDrawing?: boolean
 	saveRequestId?: number
 	onCellEditsStateChange?: (state: { hasUnsaved: boolean; isSaving: boolean }) => void
@@ -40,6 +43,8 @@ export default function FrameSideDrawing({
 	// Removed initialFrameSideFile prop as we fetch live data
 	frameId,
 	frameSideId,
+	hiveId,
+	boxId,
 	allowDrawing = true,
 	saveRequestId = 0,
 	onCellEditsStateChange = () => {},
@@ -52,6 +57,11 @@ export default function FrameSideDrawing({
 	const liveFrameSideCells = useLiveQuery(
 		() => getFrameSideCells(+frameSideId),
 		[frameSideId]
+	);
+	const hiveFamilies = useLiveQuery(
+		() => getAllFamiliesByHive(+hiveId),
+		[hiveId],
+		[]
 	);
 
 	// Call the custom hook to handle subscriptions
@@ -67,6 +77,17 @@ export default function FrameSideDrawing({
 	const [frameSideCellsMutate] = useMutation(gql`
 		mutation updateFrameSideCells($cells: FrameSideCellsInput!) {
 			updateFrameSideCells(cells: $cells)
+		}
+	`)
+	const [addQueenToHiveMutate] = useMutation(gql`
+		mutation addQueenToHive($hiveId: ID!, $queen: FamilyInput!) {
+			addQueenToHive(hiveId: $hiveId, queen: $queen) {
+				id
+				name
+				race
+				added
+				color
+			}
 		}
 	`)
 
@@ -187,6 +208,50 @@ export default function FrameSideDrawing({
 		})
 	}, [frameSideId, frameSideCellsMutate, getRelativeCounts])
 
+	const onQueenAnnotationsUpdate = useCallback(async (queenAnnotations: QueenAnnotation[]) => {
+		const numericFrameSideId = +frameSideId
+		const numericFrameId = +frameId
+		const numericBoxId = boxId ? +boxId : undefined
+		const normalized = Array.isArray(queenAnnotations) ? queenAnnotations : []
+		await updateQueenAnnotationsData(numericFrameSideId, normalized)
+
+		const approvedWithFamily = normalized.filter(
+			(annotation) => annotation.status === 'approved' && annotation.familyId
+		)
+		for (const annotation of approvedWithFamily) {
+			await updateFamilyLastSeen(Number(annotation.familyId), {
+				frameId: numericFrameId,
+				frameSideId: numericFrameSideId,
+				boxId: Number.isFinite(numericBoxId) ? numericBoxId : undefined,
+				seenAt: annotation.updatedAt || new Date().toISOString(),
+			})
+		}
+	}, [frameSideId, frameId, boxId])
+
+	const onCreateQueen = useCallback(async (queen: { name?: string; race?: string; added?: string }) => {
+		const result = await addQueenToHiveMutate({
+			hiveId: String(hiveId),
+			queen: {
+				name: queen.name,
+				race: queen.race,
+				added: queen.added,
+			},
+		})
+		const createdQueen = result?.data?.addQueenToHive
+		if (!createdQueen?.id) {
+			return null
+		}
+		await updateFamily({
+			id: +createdQueen.id,
+			hiveId: +hiveId,
+			name: createdQueen.name || '',
+			race: createdQueen.race || '',
+			added: createdQueen.added || '',
+			color: createdQueen.color || null,
+		})
+		return +createdQueen.id
+	}, [addQueenToHiveMutate, hiveId])
+
 	if (liveFrameSideFile === undefined || !frameId || !frameSideId || !frameSide) {
 		return <Loading />
 	}
@@ -199,6 +264,26 @@ export default function FrameSideDrawing({
 		Array.isArray(liveFrameSideFile?.detectedCells) && liveFrameSideFile.detectedCells.length > 0
 			? liveFrameSideFile.detectedCells
 			: (liveFrameSideCells?.cells || []);
+	const hasStoredQueenAnnotations =
+		liveFrameSideFile &&
+		Object.prototype.hasOwnProperty.call(liveFrameSideFile, 'queenAnnotations')
+	const effectiveQueenAnnotations: QueenAnnotation[] = hasStoredQueenAnnotations
+		? (Array.isArray(liveFrameSideFile?.queenAnnotations) ? liveFrameSideFile.queenAnnotations : [])
+		: (Array.isArray(liveFrameSideFile?.detectedBees)
+			? liveFrameSideFile.detectedBees
+				.filter((bee) => Number(bee?.n) === 3)
+				.map((bee, index) => ({
+					id: `ai-${index}`,
+					x: Number(bee?.x) || 0.5,
+					y: Number(bee?.y) || 0.5,
+					radius: Math.max(Number(bee?.w) || 0.03, Number(bee?.h) || 0.03) / 2,
+					source: 'ai',
+					status: 'candidate',
+					familyId: null,
+					createdAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString(),
+				}))
+			: [])
 
 	return (
 		<div className={styles.frame}>
@@ -212,9 +297,14 @@ export default function FrameSideDrawing({
 					detectedDrones={liveFrameSideFile.detectedDrones}
 					detectedCells={effectiveDetectedCells}
 					detectedVarroa={liveFrameSideFile.detectedVarroa}
+					queenAnnotations={effectiveQueenAnnotations}
+					families={hiveFamilies || []}
 					strokeHistory={liveFrameSideFile.strokeHistory}
 					onStrokeHistoryUpdate={onStrokeHistoryUpdate}
 					onDetectedCellsUpdate={onDetectedCellsUpdate}
+					onQueenAnnotationsUpdate={onQueenAnnotationsUpdate}
+					onRemoveDetectedQueenCandidate={(target) => removeNearestDetectedQueen(+frameSideId, target)}
+					onCreateQueen={onCreateQueen}
 					frameSideFile={liveFrameSideFile}
 					allowDrawing={allowDrawing}
 					saveRequestId={saveRequestId}

@@ -64,6 +64,7 @@ export default function CanvasEditView() {
 			<div className={styles.canvasWrap}>
 				<FrameSide
 					hiveId={hiveId}
+					boxId={boxId}
 					frameId={frameId}
 					frameSideId={frameSideId}
 					allowDrawing={true}

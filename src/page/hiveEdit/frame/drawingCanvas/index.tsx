@@ -2,7 +2,6 @@ import React, { useState, useRef, useLayoutEffect, useEffect, useCallback } from
 import Button from '@/shared/button';
 import colors from '@/colors.ts';
 import Checkbox from '@/icons/checkbox.tsx';
-import FrameCells from '@/icons/frameCells.tsx';
 import T from '@/shared/translate';
 import Loader from '@/shared/loader';
 import styles from './styles.module.less';
@@ -14,6 +13,10 @@ import UndoStrokeIcon from '@/icons/undoStrokeIcon.tsx';
 import BrushSizeIcon from '@/icons/brushSizeIcon.tsx';
 import KeyboardHints from '@/shared/keyboardHints';
 import Slider from '@/shared/slider';
+import Modal from '@/shared/modal';
+import { Tab, TabBar } from '@/shared/tab';
+import inputStyles from '@/shared/input/styles.module.less';
+import QueenColorPicker from '@/shared/queenColorPicker';
 import type { QueenAnnotation } from '@/models/frameSideFile';
 
 let img: HTMLImageElement | null = null;
@@ -23,6 +26,7 @@ type DrawingLine = DrawingPoint[]
 type BrushCellType = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 'erase'
 type BrushSizePreset = 'small' | 'medium' | 'large'
 type NonEraseBrushCellType = Exclude<BrushCellType, 'erase'>
+type CanvasControlTab = 'frame-cells' | 'free-draw' | 'queens' | 'bees' | 'varroa-mites'
 
 let points: DrawingPoint[] = [];
 const dpr = typeof window !== 'undefined' ? window.devicePixelRatio : 1;
@@ -502,7 +506,6 @@ interface DrawLayersParams {
 	showDrones: boolean;
 	isAiQueenVisible: boolean;
 	detectedBees: any[];
-	showCells: boolean;
 	detectedCells: any[];
 	cellsOpacityFactor?: number;
 	showQueenCups: boolean;
@@ -512,6 +515,8 @@ interface DrawLayersParams {
 	showQueenAnnotations?: boolean;
 	queenAnnotations?: QueenAnnotation[];
 	brushCursor?: { x: number; y: number } | null;
+	isAddingQueenMarker?: boolean;
+	canCellBrushPreview?: boolean;
 	activeTool?: 'cell-brush' | 'stroke';
 	selectedCellType?: BrushCellType;
 	brushRadiusRatio?: number;
@@ -538,7 +543,13 @@ function drawQueenAnnotations(
 		ctx.arc(x * canvas.width, y * canvas.height, radius, 0, 2 * Math.PI);
 		ctx.fillStyle = isApproved ? 'rgba(36, 112, 255, 0.18)' : 'rgba(36, 112, 255, 0.08)';
 		ctx.fill();
-		ctx.lineWidth = Math.max(2, 2.2 * relPx);
+		// Layered ring: white base stroke + blue stroke on top to create inner/outer outline effect.
+		const blueStrokeWidth = Math.max(1, 1.2 * relPx);
+		const whiteStrokeWidth = blueStrokeWidth + Math.max(2, 1.8 * relPx);
+		ctx.lineWidth = whiteStrokeWidth;
+		ctx.strokeStyle = '#ffffff';
+		ctx.stroke();
+		ctx.lineWidth = blueStrokeWidth;
 		ctx.strokeStyle = isApproved ? '#1f5eff' : '#6fa2ff';
 		ctx.stroke();
 		ctx.fillStyle = '#1252d6';
@@ -548,11 +559,34 @@ function drawQueenAnnotations(
 	});
 }
 
+function drawQueenPlacementPreview(
+	ctx: CanvasRenderingContext2D,
+	canvas: HTMLCanvasElement,
+	brushCursor: { x: number; y: number },
+	radiusRatio = 0.022
+) {
+	const relPx = calculateRelPx(canvas);
+	ctx.save();
+	ctx.globalAlpha = 0.95;
+	ctx.beginPath();
+	ctx.arc(
+		brushCursor.x * canvas.width,
+		brushCursor.y * canvas.height,
+		radiusRatio * canvas.width,
+		0,
+		2 * Math.PI
+	);
+	ctx.lineWidth = Math.max(2, 2.2 * relPx);
+	ctx.strokeStyle = '#1f5eff';
+	ctx.stroke();
+	ctx.restore();
+}
+
 function drawCanvasLayers({
 	canvas, ctx, strokeHistory, showBees, showDrones, isAiQueenVisible,
-	detectedBees, showCells, detectedCells, showQueenCups, detectedQueenCups,
+	detectedBees, detectedCells, showQueenCups, detectedQueenCups,
 	showVarroa, detectedVarroa, showQueenAnnotations = true, queenAnnotations = [],
-	brushCursor, activeTool, selectedCellType, brushRadiusRatio = DEFAULT_BRUSH_DIAMETER_RATIO / 2,
+	brushCursor, isAddingQueenMarker = false, canCellBrushPreview = false, activeTool, selectedCellType, brushRadiusRatio = DEFAULT_BRUSH_DIAMETER_RATIO / 2,
 	cellsOpacityFactor = 1
 }: DrawLayersParams) {
 	ctx.save();
@@ -564,7 +598,7 @@ function drawCanvasLayers({
 	if (img) {
 		ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 	}
-	if (showCells && detectedCells) drawDetectedCells(detectedCells, ctx, canvas, cellsOpacityFactor);
+	if (detectedCells) drawDetectedCells(detectedCells, ctx, canvas, cellsOpacityFactor);
 	if (showVarroa && detectedVarroa) drawDetectedVarroa(detectedVarroa, ctx, canvas);
 	if ((showBees || showDrones || isAiQueenVisible) && detectedBees) {
 		drawDetectedBees(detectedBees, ctx, canvas, showBees, showDrones, isAiQueenVisible);
@@ -574,7 +608,9 @@ function drawCanvasLayers({
 	}
 	if (showQueenCups && detectedQueenCups) drawQueenCups(detectedQueenCups, ctx, canvas);
 	if (strokeHistory && strokeHistory.length > 0) redrawStrokes(canvas, ctx, strokeHistory);
-	if (activeTool === 'cell-brush' && selectedCellType !== undefined && brushCursor) {
+	if (isAddingQueenMarker && brushCursor) {
+		drawQueenPlacementPreview(ctx, canvas, brushCursor);
+	} else if (canCellBrushPreview && activeTool === 'cell-brush' && selectedCellType !== undefined && brushCursor) {
 		drawBrushPreview(ctx, canvas, brushCursor, selectedCellType, brushRadiusRatio);
 	}
 }
@@ -603,7 +639,7 @@ interface DrawingCanvasProps {
 	onDetectedCellsUpdate?: (detectedCells: any[]) => void | Promise<void>;
 	onQueenAnnotationsUpdate?: (queenAnnotations: QueenAnnotation[]) => void | Promise<void>;
 	onRemoveDetectedQueenCandidate?: (target: { x: number; y: number }) => void | Promise<void>;
-	onCreateQueen?: (queen: { name?: string; race?: string; added?: string }) => Promise<number | null>;
+	onCreateQueen?: (queen: { name?: string; race?: string; added?: string; color?: string | null }) => Promise<number | null>;
 	frameSideFile: any;
 	hideControls?: boolean;
 	allowDrawing?: boolean;
@@ -637,11 +673,11 @@ export default function DrawingCanvas({
 	const ref = useRef<HTMLCanvasElement>(null);
 	const [showBees, setBeeVisibility] = useState(true);
 	const [showDrones, setDroneVisibility] = useState(true);
-	const [showCells, setCellVisibility] = useState(true);
 	const [showQueenCups, setQueenCupsVisibility] = useState(true);
 	const [showVarroa, setShowVarroaVisibility] = useState(true);
 	const [showQueenAnnotations, setShowQueenAnnotations] = useState(true);
 	const [isAiQueenVisible, setIsAiQueenVisible] = useState(true);
+	const [activeControlTab, setActiveControlTab] = useState<CanvasControlTab>('frame-cells');
 	const [currentLineWidth, setCurrentLineWidth] = useState(0);
 	const [activeTool, setActiveTool] = useState<'cell-brush' | 'stroke'>('cell-brush');
 	const [selectedCellType, setSelectedCellType] = useState<BrushCellType>(2);
@@ -651,6 +687,13 @@ export default function DrawingCanvas({
 	const [isSavingCellEdits, setIsSavingCellEdits] = useState(false);
 	const [editableQueenAnnotations, setEditableQueenAnnotations] = useState<QueenAnnotation[]>(queenAnnotations || []);
 	const [isAddingQueenMarker, setIsAddingQueenMarker] = useState(false);
+	const [pendingMarkerFamilyId, setPendingMarkerFamilyId] = useState<number | null>(null);
+	const [isCreateQueenModalOpen, setIsCreateQueenModalOpen] = useState(false);
+	const [newQueenName, setNewQueenName] = useState('');
+	const [newQueenRace, setNewQueenRace] = useState('');
+	const [newQueenYear, setNewQueenYear] = useState(String(new Date().getFullYear()));
+	const [newQueenColor, setNewQueenColor] = useState<string | null>(null);
+	const [isCreatingQueen, setIsCreatingQueen] = useState(false);
 	const editableDetectedCellsRef = useRef<any[]>(detectedCells || []);
 	const lastHandledSaveRequestIdRef = useRef(0);
 	const brushCursorRef = useRef<{ x: number; y: number } | null>(null);
@@ -687,27 +730,6 @@ export default function DrawingCanvas({
 	}, [editableQueenAnnotations, persistQueenAnnotations]);
 
 	const handleAssignFamily = useCallback(async (annotation: QueenAnnotation, value: string) => {
-		if (value === '__new__') {
-			const name = window.prompt('Queen name (optional)') || '';
-			const year = window.prompt('Year (optional, e.g. 2026)') || '';
-			const race = window.prompt('Race (optional)') || '';
-			if (!onCreateQueen) return;
-			const createdFamilyId = await onCreateQueen({
-				name: name || undefined,
-				added: year || undefined,
-				race: race || undefined,
-			});
-			if (!createdFamilyId) return;
-
-			await upsertQueenAnnotation(annotation.id, (current) => ({
-				...current,
-				familyId: createdFamilyId,
-				status: 'approved',
-				updatedAt: new Date().toISOString(),
-			}));
-			return;
-		}
-
 		const familyId = value ? Number(value) : null;
 		await upsertQueenAnnotation(annotation.id, (current) => ({
 			...current,
@@ -715,7 +737,54 @@ export default function DrawingCanvas({
 			status: familyId ? 'approved' : current.status,
 			updatedAt: new Date().toISOString(),
 		}));
-	}, [onCreateQueen, upsertQueenAnnotation]);
+	}, [upsertQueenAnnotation]);
+
+	const onStartMarkExistingQueen = useCallback(() => {
+		if (isAddingQueenMarker && pendingMarkerFamilyId === null) {
+			setIsAddingQueenMarker(false);
+			return;
+		}
+		setPendingMarkerFamilyId(null);
+		setIsAddingQueenMarker(true);
+	}, [isAddingQueenMarker, pendingMarkerFamilyId]);
+
+	const onOpenMarkNewQueenModal = useCallback(() => {
+		setNewQueenName('');
+		setNewQueenRace('');
+		setNewQueenYear(String(new Date().getFullYear()));
+		setNewQueenColor(null);
+		setIsCreateQueenModalOpen(true);
+	}, []);
+
+	const onConfirmCreateQueen = useCallback(async () => {
+		const year = String(newQueenYear || '').trim();
+		if (year && !/^\d{4}$/.test(year)) {
+			window.alert('Year must be 4 digits (e.g. 2026).');
+			return;
+		}
+		if (!onCreateQueen) {
+			window.alert('Creating a queen is not available in this view.');
+			return;
+		}
+		setIsCreatingQueen(true);
+		try {
+			const createdFamilyId = await onCreateQueen({
+				name: newQueenName.trim() || undefined,
+				race: newQueenRace.trim() || undefined,
+				added: year || undefined,
+				color: newQueenColor,
+			});
+			if (!createdFamilyId) {
+				window.alert('Failed to create queen.');
+				return;
+			}
+			setPendingMarkerFamilyId(Number(createdFamilyId));
+			setIsCreateQueenModalOpen(false);
+			setIsAddingQueenMarker(true);
+		} finally {
+			setIsCreatingQueen(false);
+		}
+	}, [newQueenName, newQueenRace, newQueenYear, newQueenColor, onCreateQueen]);
 
 	const allDetectedBees = React.useMemo(() => {
 		const combined = [...(detectedBees || [])];
@@ -727,6 +796,8 @@ export default function DrawingCanvas({
 
 	const brushRadiusRatio = BRUSH_DIAMETER_BY_PRESET[brushSizePreset] / 2;
 	const showAiQueensOnCanvas = allowDrawing ? isAiQueenVisible : false;
+	const canCellBrush = allowDrawing && activeControlTab === 'frame-cells';
+	const canStrokeDraw = allowDrawing && activeControlTab === 'free-draw';
 
 	const getThumbnailUrl = useCallback(() => {
 		let bestUrl = imageUrl;
@@ -781,7 +852,6 @@ export default function DrawingCanvas({
 		drawCanvasLayers({
 			canvas, ctx, strokeHistory, showBees, showDrones, isAiQueenVisible: showAiQueensOnCanvas,
 			detectedBees: allDetectedBees,
-			showCells,
 			detectedCells: editableDetectedCellsRef.current,
 			showQueenCups,
 			detectedQueenCups,
@@ -790,12 +860,14 @@ export default function DrawingCanvas({
 			showQueenAnnotations,
 			queenAnnotations: editableQueenAnnotations,
 			brushCursor: brushCursorRef.current,
+			isAddingQueenMarker,
+			canCellBrushPreview: canCellBrush,
 			activeTool,
 			selectedCellType,
 			brushRadiusRatio,
 			cellsOpacityFactor: cellsOpacityPercent / 100,
 		});
-	}, [strokeHistory, showBees, showDrones, showAiQueensOnCanvas, allDetectedBees, showCells, showQueenCups, detectedQueenCups, showVarroa, detectedVarroa, showQueenAnnotations, editableQueenAnnotations, activeTool, selectedCellType, brushRadiusRatio, cellsOpacityPercent]);
+	}, [strokeHistory, showBees, showDrones, showAiQueensOnCanvas, allDetectedBees, showQueenCups, detectedQueenCups, showVarroa, detectedVarroa, showQueenAnnotations, editableQueenAnnotations, isAddingQueenMarker, canCellBrush, activeTool, selectedCellType, brushRadiusRatio, cellsOpacityPercent]);
 
 	const scheduleRedraw = useCallback(() => {
 		if (redrawRafRef.current !== null) return;
@@ -808,6 +880,18 @@ export default function DrawingCanvas({
 	useEffect(() => {
 		scheduleRedraw();
 	}, [detectedCells, scheduleRedraw]);
+
+	useEffect(() => {
+		const canvas = ref.current;
+		if (!canvas || isPanning) return;
+		canvas.style.cursor = isAddingQueenMarker
+			? 'pointer'
+			: activeControlTab === 'free-draw'
+				? 'crosshair'
+				: activeControlTab === 'frame-cells'
+					? 'all-scroll'
+					: 'default';
+	}, [activeControlTab, isAddingQueenMarker]);
 
 	useEffect(() => {
 		// Reset camera state when switching frame image to avoid stale zoom/pan jumps.
@@ -887,7 +971,7 @@ export default function DrawingCanvas({
 		if (!ctx) return;
 
 		const updateBrushCursor = (e: MouseEvent | TouchEvent) => {
-			if (activeTool !== 'cell-brush') return;
+			if (!canCellBrush || activeTool !== 'cell-brush') return;
 			const pos = getCanvasRelativePosition(canvas, e);
 			const normalizedPos = getNormalizedPosition(canvas, pos);
 			brushCursorRef.current = {
@@ -898,7 +982,7 @@ export default function DrawingCanvas({
 		};
 
 		const applyBrushAtEvent = (e: MouseEvent | TouchEvent) => {
-			if (activeTool !== 'cell-brush' || !showCells) return;
+			if (!canCellBrush || activeTool !== 'cell-brush') return;
 			const pos = getCanvasRelativePosition(canvas, e);
 			const normalizedPos = getNormalizedPosition(canvas, pos);
 			const clampedCenter = { x: clamp01(normalizedPos.x), y: clamp01(normalizedPos.y) };
@@ -971,24 +1055,25 @@ export default function DrawingCanvas({
 					y: clamp01(normalizedPos.y),
 					radius: 0.022,
 					source: 'manual',
-					status: 'candidate',
-					familyId: null,
+					status: 'approved',
+					familyId: pendingMarkerFamilyId,
 					createdAt: new Date().toISOString(),
 					updatedAt: new Date().toISOString(),
 				};
 				void persistQueenAnnotations([...(editableQueenAnnotations || []), newAnnotation]);
 				setIsAddingQueenMarker(false);
+				setPendingMarkerFamilyId(null);
 				return;
 			}
 
-			if (activeTool === 'cell-brush' && showCells) {
+			if (!canCellBrush && !canStrokeDraw) return;
+
+			if (canCellBrush && activeTool === 'cell-brush') {
 				isMousedown = true;
 				applyBrushAtEvent(e);
 				return;
 			}
-			if (activeTool === 'cell-brush' && !showCells) {
-				return;
-			}
+			if (!canStrokeDraw) return;
 
 			isMousedown = true;
 			const pos = getCanvasRelativePosition(canvas, e);
@@ -1008,15 +1093,14 @@ export default function DrawingCanvas({
 		const handleDrawMove = (e: MouseEvent | TouchEvent) => {
 			updateBrushCursor(e);
 			if (!isMousedown || isPanning) return;
+			if (!canCellBrush && !canStrokeDraw) return;
 			e.preventDefault();
 
-			if (activeTool === 'cell-brush' && showCells) {
+			if (canCellBrush && activeTool === 'cell-brush') {
 				applyBrushAtEvent(e);
 				return;
 			}
-			if (activeTool === 'cell-brush' && !showCells) {
-				return;
-			}
+			if (!canStrokeDraw) return;
 
 			const pos = getCanvasRelativePosition(canvas, e);
 			const normalizedPos = getNormalizedPosition(canvas, pos);
@@ -1039,12 +1123,12 @@ export default function DrawingCanvas({
 			if (!isMousedown || isPanning || (e instanceof MouseEvent && e.button !== 0)) return;
 
 			isMousedown = false;
-			if (activeTool === 'cell-brush' && showCells) {
+			if (canCellBrush && activeTool === 'cell-brush') {
 				cellEditChangedRef.current = false;
 				lastBrushCenterRef.current = null;
 				return;
 			}
-			if (activeTool === 'cell-brush' && !showCells) {
+			if (!canStrokeDraw) {
 				lastBrushCenterRef.current = null;
 				return;
 			}
@@ -1087,7 +1171,7 @@ export default function DrawingCanvas({
 			canvas.removeEventListener('touchend', handleDrawEnd);
 			canvas.removeEventListener('touchcancel', handleDrawEnd);
 		};
-	}, [allowDrawing, strokeHistory, onStrokeHistoryUpdate, currentLineWidth, activeTool, selectedCellType, scheduleRedraw, hasUnsavedCellEdits, showCells, brushRadiusRatio, isAddingQueenMarker, editableQueenAnnotations, persistQueenAnnotations]); // Dependencies for drawing logic
+	}, [allowDrawing, strokeHistory, onStrokeHistoryUpdate, currentLineWidth, activeTool, selectedCellType, scheduleRedraw, hasUnsavedCellEdits, brushRadiusRatio, isAddingQueenMarker, pendingMarkerFamilyId, editableQueenAnnotations, persistQueenAnnotations, canCellBrush, canStrokeDraw]); // Dependencies for drawing logic
 
 	// Zoom and Pan Event Handlers
 	useLayoutEffect(() => {
@@ -1095,6 +1179,15 @@ export default function DrawingCanvas({
 		if (!canvas || !zoomEnabled) return; // Only attach if zoom is enabled
 		const ctx = canvas.getContext('2d');
 		if (!ctx) return;
+		const getIdleCursor = () => (
+			isAddingQueenMarker
+				? 'pointer'
+				: activeControlTab === 'free-draw'
+					? 'crosshair'
+					: activeControlTab === 'frame-cells'
+						? 'all-scroll'
+						: 'default'
+		);
 
 			const handleScroll = (event: WheelEvent) => {
 				if (isMousedown) return;
@@ -1191,7 +1284,7 @@ export default function DrawingCanvas({
 		const handlePanEnd = () => {
 			if (isPanning) {
 				isPanning = false;
-				canvas.style.cursor = 'default';
+				canvas.style.cursor = getIdleCursor();
 			}
 		};
 
@@ -1220,12 +1313,12 @@ export default function DrawingCanvas({
 			window.removeEventListener('touchend', handlePanEnd);
 			canvas.removeEventListener('mouseleave', handlePanEnd);
 		};
-	}, [imageUrl, canvasUrl, redrawCurrentCanvas, zoomEnabled]); // Re-attach if zoomEnabled changes
+	}, [imageUrl, canvasUrl, redrawCurrentCanvas, zoomEnabled, activeControlTab, isAddingQueenMarker]); // Re-attach if cursor mode changes
 
 	// Redraw when visibility toggles change
 	useEffect(() => {
 		redrawCurrentCanvas();
-	}, [showBees, showDrones, isAiQueenVisible, showCells, showQueenCups, showVarroa, showQueenAnnotations, redrawCurrentCanvas]);
+	}, [showBees, showDrones, isAiQueenVisible, showQueenCups, showVarroa, showQueenAnnotations, redrawCurrentCanvas]);
 
 	// Redraw when detection data changes
 	useEffect(() => {
@@ -1281,6 +1374,20 @@ export default function DrawingCanvas({
 		color: '#111',
 		border: '1px solid #d6d6d6',
 	};
+
+	useEffect(() => {
+		if (!allowDrawing) return;
+		if (activeControlTab === 'frame-cells') {
+			setActiveTool('cell-brush');
+		} else if (activeControlTab === 'free-draw') {
+			setActiveTool('stroke');
+		}
+		if (activeControlTab !== 'frame-cells') {
+			brushCursorRef.current = null;
+			lastBrushCenterRef.current = null;
+			scheduleRedraw();
+		}
+	}, [activeControlTab, allowDrawing]);
 
 	const onSaveCellEdits = useCallback(async () => {
 		if (!onDetectedCellsUpdate || !hasUnsavedCellEdits || isSavingCellEdits) return;
@@ -1358,8 +1465,8 @@ export default function DrawingCanvas({
 
 			if (!event.altKey && !event.shiftKey) {
 				const nextCellType = CELL_SHORTCUTS[lowerKey];
-				if (showCells && nextCellType !== undefined) {
-					setActiveTool('cell-brush');
+				if (nextCellType !== undefined) {
+					setActiveControlTab('frame-cells');
 					setSelectedCellType(nextCellType);
 					handled = true;
 				}
@@ -1367,14 +1474,14 @@ export default function DrawingCanvas({
 
 			if (!event.altKey && !event.shiftKey) {
 				if (lowerKey === 'f') {
-					setActiveTool('stroke');
+					setActiveControlTab('free-draw');
 					handled = true;
-				} else if (lowerKey === 'c' && showCells) {
-					setActiveTool('cell-brush');
+				} else if (lowerKey === 'c') {
+					setActiveControlTab('frame-cells');
 					setSelectedCellType((prev) => (prev === 'erase' ? 2 : prev));
 					handled = true;
-				} else if (lowerKey === 'x' && showCells) {
-					setActiveTool('cell-brush');
+				} else if (lowerKey === 'x') {
+					setActiveControlTab('frame-cells');
 					setSelectedCellType('erase');
 					handled = true;
 				}
@@ -1397,167 +1504,135 @@ export default function DrawingCanvas({
 		return () => {
 			document.removeEventListener('keydown', onKeyDown, true);
 		};
-	}, [allowDrawing, decreaseBrushPreset, increaseBrushPreset, showCells, undoDraw]);
+	}, [allowDrawing, decreaseBrushPreset, increaseBrushPreset, undoDraw]);
 
 	return (
 		<div style={{ position: 'relative', overflow: 'hidden' }}>
 			{!hideControls && (
+				<TabBar>
+					<Tab isSelected={activeControlTab === 'frame-cells'} onClick={() => setActiveControlTab('frame-cells')}>
+						<T>Frame cells</T>
+					</Tab>
+					<Tab isSelected={activeControlTab === 'free-draw'} onClick={() => setActiveControlTab('free-draw')}>
+						<T>Free draw</T>
+					</Tab>
+					<Tab isSelected={activeControlTab === 'queens'} onClick={() => setActiveControlTab('queens')}>
+						<T>Queens</T>
+					</Tab>
+					<Tab isSelected={activeControlTab === 'bees'} onClick={() => setActiveControlTab('bees')}>
+						<T>Bees</T>
+					</Tab>
+					<Tab isSelected={activeControlTab === 'varroa-mites'} onClick={() => setActiveControlTab('varroa-mites')}>
+						<T>Varroa mites</T>
+					</Tab>
+				</TabBar>
+			)}
+			{!hideControls && (activeControlTab === 'bees' || activeControlTab === 'varroa-mites') && (
 				<div className={styles.buttonPanel}>
 					<div className={styles.buttonGrp}>
-							<Button size="small" style={layerToggleButtonStyle} onClick={() => setBeeVisibility(!showBees)}>
+						{activeControlTab === 'bees' && (
+							<>
+								<Button size="small" style={layerToggleButtonStyle} onClick={() => setBeeVisibility(!showBees)}>
+									{
+										(
+											frameSideFile?.isBeeDetectionComplete ||
+											frameSideFile?.isDroneDetectionComplete ||
+											(frameSideFile?.detectedWorkerBeeCount || 0) > 0 ||
+											(frameSideFile?.detectedDroneCount || 0) > 0 ||
+											(detectedBees?.length || 0) > 0 ||
+											(detectedDrones?.length || 0) > 0
+										)
+											? <Checkbox on={showBees} color="#111" />
+											: <Loader size={0} stroke="#111" />
+									}
+									<span><T ctx="toggle worker bees visibility">Worker bees</T>{frameSideFile?.detectedWorkerBeeCount > 0 && ` (${frameSideFile.detectedWorkerBeeCount})`}</span>
+								</Button>
+
+								<Button size="small" style={layerToggleButtonStyle} onClick={() => setDroneVisibility(!showDrones)}>
+									{
+										(
+											frameSideFile?.isBeeDetectionComplete ||
+											frameSideFile?.isDroneDetectionComplete ||
+											(frameSideFile?.detectedWorkerBeeCount || 0) > 0 ||
+											(frameSideFile?.detectedDroneCount || 0) > 0 ||
+											(detectedBees?.length || 0) > 0 ||
+											(detectedDrones?.length || 0) > 0
+										)
+											? <Checkbox on={showDrones} color="#111" />
+											: <Loader size={0} stroke="#111" />
+									}
+									<span><T ctx="toggle drones visibility">Drones</T>{frameSideFile?.detectedDroneCount > 0 && ` (${frameSideFile.detectedDroneCount})`}</span>
+								</Button>
+							</>
+						)}
+
+						{activeControlTab === 'varroa-mites' && (
+							<Button size="small" style={layerToggleButtonStyle} onClick={() => setShowVarroaVisibility(!showVarroa)}>
 								{
 									(
-										frameSideFile?.isBeeDetectionComplete ||
-										frameSideFile?.isDroneDetectionComplete ||
-										(frameSideFile?.detectedWorkerBeeCount || 0) > 0 ||
-										(frameSideFile?.detectedDroneCount || 0) > 0 ||
-										(detectedBees?.length || 0) > 0 ||
-										(detectedDrones?.length || 0) > 0
+										frameSideFile?.isVarroaDetectionComplete ||
+										(frameSideFile?.varroaCount || 0) > 0 ||
+										(detectedVarroa?.length || 0) > 0
 									)
-										? <Checkbox on={showBees} color="#111" />
+										? <Checkbox on={showVarroa} color="#111" />
 										: <Loader size={0} stroke="#111" />
 								}
-								<span><T ctx="toggle worker bees visibility">Worker bees</T>{frameSideFile?.detectedWorkerBeeCount > 0 && ` (${frameSideFile.detectedWorkerBeeCount})`}</span>
-							</Button>
-
-						{detectedCells && (
-							<Button size="small" style={layerToggleButtonStyle} onClick={() => setCellVisibility(!showCells)}>
-								<Checkbox on={showCells} color="#111" />
-								<span><T ctx="toggle frame cells visibility">Frame cells</T>{frameSideFile?.isCellsDetectionComplete && <FrameCells />}</span>
+								<span><T ctx="toggle varroa mites visibility">Varroa mites</T>{frameSideFile?.varroaCount > 0 && ` (${frameSideFile.varroaCount})`}</span>
 							</Button>
 						)}
-
-						{allowDrawing && (
-							<Button size="small" style={layerToggleButtonStyle} onClick={() => setIsAiQueenVisible(!isAiQueenVisible)}>
-								{frameSideFile?.isQueenDetectionComplete ? <Checkbox on={isAiQueenVisible} color="#111" /> : <Loader size={0} stroke="#111" />}
-								<span><T ctx="toggle AI queen visibility">AI queen candidates</T></span>
-								<QueenIcon size={14} color={'#111'} />
-							</Button>
-						)}
-
-						<Button size="small" style={layerToggleButtonStyle} onClick={() => setShowQueenAnnotations(!showQueenAnnotations)}>
-							<Checkbox on={showQueenAnnotations} color="#111" />
-							<span><T>Queen markers</T></span>
-						</Button>
-
-							<Button size="small" style={layerToggleButtonStyle} onClick={() => setDroneVisibility(!showDrones)}>
-								{
-									(
-										frameSideFile?.isBeeDetectionComplete ||
-										frameSideFile?.isDroneDetectionComplete ||
-										(frameSideFile?.detectedWorkerBeeCount || 0) > 0 ||
-										(frameSideFile?.detectedDroneCount || 0) > 0 ||
-										(detectedBees?.length || 0) > 0 ||
-										(detectedDrones?.length || 0) > 0
-									)
-										? <Checkbox on={showDrones} color="#111" />
-										: <Loader size={0} stroke="#111" />
-								}
-								<span><T ctx="toggle drones visibility">Drones</T>{frameSideFile?.detectedDroneCount > 0 && ` (${frameSideFile.detectedDroneCount})`}</span>
-							</Button>
-
-						{detectedQueenCups && (
-							<Button size="small" style={layerToggleButtonStyle} onClick={() => setQueenCupsVisibility(!showQueenCups)}>
-								{frameSideFile?.isQueenCupsDetectionComplete ? <Checkbox on={showQueenCups} color="#111" /> : <Loader size={0} stroke="#111" />}
-								<span><T ctx="toggle queen cups visibility">Queen cups</T></span>
-							</Button>
-						)}
-
-						<Button size="small" style={layerToggleButtonStyle} onClick={() => setShowVarroaVisibility(!showVarroa)}>
-							{
-								(
-									frameSideFile?.isVarroaDetectionComplete ||
-									(frameSideFile?.varroaCount || 0) > 0 ||
-									(detectedVarroa?.length || 0) > 0
-								)
-									? <Checkbox on={showVarroa} color="#111" />
-									: <Loader size={0} stroke="#111" />
-							}
-							<span><T ctx="toggle varroa mites visibility">Varroa mites</T>{frameSideFile?.varroaCount > 0 && ` (${frameSideFile.varroaCount})`}</span>
-						</Button>
 					</div>
 				</div>
 			)}
-			{!hideControls && allowDrawing && (
+			{!hideControls && allowDrawing && activeControlTab === 'frame-cells' && (
 				<div className={styles.toolbar}>
-					<div className={styles.toolbarGroup}>
-						<Button
-							onClick={() => setActiveTool('cell-brush')}
-							style={activeTool === 'cell-brush' ? { opacity: 1 } : { opacity: 0.7 }}
-						>
-							<CellBrushIcon size={14} />
-							<T>Cell brush</T>
-							<KeyboardHints keys="C" />
-						</Button>
-						<Button
-							onClick={() => setActiveTool('stroke')}
-							style={activeTool === 'stroke' ? { opacity: 1 } : { opacity: 0.7 }}
-						>
-							<FreeDrawIcon size={14} />
-							<T>Free draw</T>
-							<KeyboardHints keys="F" />
-						</Button>
-					</div>
-					{activeTool === 'cell-brush' && (
-						<>
+					<div className={styles.toolbarRow}>
 						<div className={styles.toolbarGroup}>
-							{cellTypeOptions.filter((option) => option.value !== 'erase').map((option) => {
-								const isSelected = selectedCellType === option.value;
-								const buttonBg = getCellStyle(option.value as number).fill;
-								const buttonText = getContrastingTextColor(buttonBg);
-								return (
+							<Button style={{ opacity: 1 }}>
+								<CellBrushIcon size={14} />
+								<T>Cell brush</T>
+								<KeyboardHints keys="C" />
+							</Button>
+						</div>
+						<div className={`${styles.toolbarGroup} ${styles.toolbarMid}`}>
+							<div className={styles.toolbarGroup}>
 								<Button
-									key={String(option.value)}
-									onClick={() => setSelectedCellType(option.value)}
+									iconOnly
+									title="Small brush"
+									onClick={() => setBrushSizePreset('small')}
 									style={{
-										opacity: isSelected ? 1 : 0.82,
-										background: buttonBg,
-										color: buttonText,
-										border: isSelected ? '2px solid white' : '2px solid transparent',
+										opacity: brushSizePreset === 'small' ? 1 : 0.82,
+										border: brushSizePreset === 'small' ? '2px solid white' : '2px solid transparent',
 									}}
 								>
-									{option.label}
-									<KeyboardHints keys={CELL_TYPE_HINTS[option.value as NonEraseBrushCellType]} />
+									<BrushSizeIcon size={14} dotRadius={2} />
+									<KeyboardHints keys="-" />
 								</Button>
-								);
-							})}
+								<Button
+									iconOnly
+									title="Medium brush"
+									onClick={() => setBrushSizePreset('medium')}
+									style={{
+										opacity: brushSizePreset === 'medium' ? 1 : 0.82,
+										border: brushSizePreset === 'medium' ? '2px solid white' : '2px solid transparent',
+									}}
+								>
+									<BrushSizeIcon size={14} dotRadius={3} />
+								</Button>
+								<Button
+									iconOnly
+									title="Large brush"
+									onClick={() => setBrushSizePreset('large')}
+									style={{
+										opacity: brushSizePreset === 'large' ? 1 : 0.82,
+										border: brushSizePreset === 'large' ? '2px solid white' : '2px solid transparent',
+									}}
+								>
+									<BrushSizeIcon size={14} dotRadius={4.5} />
+									<KeyboardHints keys="+" />
+								</Button>
+							</div>
 						</div>
 						<div className={`${styles.toolbarGroup} ${styles.toolbarRight}`}>
-							<Button
-								iconOnly
-								title="Small brush"
-								onClick={() => setBrushSizePreset('small')}
-								style={{
-									opacity: brushSizePreset === 'small' ? 1 : 0.82,
-									border: brushSizePreset === 'small' ? '2px solid white' : '2px solid transparent',
-								}}
-							>
-								<BrushSizeIcon size={14} dotRadius={2} />
-								<KeyboardHints keys="-" />
-							</Button>
-							<Button
-								iconOnly
-								title="Medium brush"
-								onClick={() => setBrushSizePreset('medium')}
-								style={{
-									opacity: brushSizePreset === 'medium' ? 1 : 0.82,
-									border: brushSizePreset === 'medium' ? '2px solid white' : '2px solid transparent',
-								}}
-							>
-								<BrushSizeIcon size={14} dotRadius={3} />
-							</Button>
-							<Button
-								iconOnly
-								title="Large brush"
-								onClick={() => setBrushSizePreset('large')}
-								style={{
-									opacity: brushSizePreset === 'large' ? 1 : 0.82,
-									border: brushSizePreset === 'large' ? '2px solid white' : '2px solid transparent',
-								}}
-							>
-								<BrushSizeIcon size={14} dotRadius={4.5} />
-								<KeyboardHints keys="+" />
-							</Button>
 							<Button
 								onClick={() => setSelectedCellType('erase')}
 								style={{
@@ -1572,58 +1647,131 @@ export default function DrawingCanvas({
 								<KeyboardHints keys="X" />
 							</Button>
 						</div>
-						</>
-					)}
-					{activeTool === 'stroke' && (
-						<div className={styles.toolbarGroup}>
-							<Button onClick={undoDraw}>
-								<UndoStrokeIcon size={14} />
-								<T>Undo stroke</T>
-								<KeyboardHints keys="Ctrl+Z" />
-							</Button>
-							<Button onClick={clearHistory}>
-								<EraserIcon size={14} />
-								<T>Clear drawing</T>
-							</Button>
+					</div>
+					<div className={`${styles.toolbarRow} ${styles.toolbarRowSecond}`}>
+						<div className={`${styles.toolbarGroup} ${styles.toolbarCellTypes}`}>
+							{cellTypeOptions.filter((option) => option.value !== 'erase').map((option) => {
+								const isSelected = selectedCellType === option.value;
+								const buttonBg = getCellStyle(option.value as number).fill;
+								const buttonText = getContrastingTextColor(buttonBg);
+								return (
+								<Button
+									key={String(option.value)}
+									size="small"
+									className={styles.cellTypeButton}
+									onClick={() => setSelectedCellType(option.value)}
+									style={{
+										opacity: isSelected ? 1 : 0.82,
+										background: buttonBg,
+										color: buttonText,
+										border: isSelected ? '2px solid white' : '2px solid transparent',
+									}}
+								>
+									{option.label}
+									<KeyboardHints keys={CELL_TYPE_HINTS[option.value as NonEraseBrushCellType]} />
+								</Button>
+								);
+							})}
 						</div>
-					)}
-					<div className={`${styles.toolbarGroup} ${styles.toolbarRight} ${styles.toolbarSliderGroup}`}>
-						<span className={styles.toolbarSliderLabel}>
-							<T>Cells opacity</T>
-						</span>
-						<Slider
-							backgroundColor="#f0b800"
-							value={cellsOpacityPercent}
-							width={130}
-							min={0}
-							max={100}
-							onChange={(event: Event) => {
-								const nextValue = Number((event.target as HTMLInputElement | null)?.value);
-								setCellsOpacityPercent(Number.isFinite(nextValue) ? nextValue : 100);
-							}}
-						/>
-						<span className={styles.toolbarSliderValue}>{cellsOpacityPercent}%</span>
+						<div className={`${styles.toolbarGroup} ${styles.toolbarRight} ${styles.toolbarSliderGroup}`}>
+							<span className={styles.toolbarSliderLabel}>
+								<T>Cells opacity</T>
+							</span>
+							<Slider
+								backgroundColor="#f0b800"
+								value={cellsOpacityPercent}
+								width={130}
+								min={0}
+								max={100}
+								onChange={(event: Event) => {
+									const nextValue = Number((event.target as HTMLInputElement | null)?.value);
+									setCellsOpacityPercent(Number.isFinite(nextValue) ? nextValue : 100);
+								}}
+							/>
+							<span className={styles.toolbarSliderValue}>{cellsOpacityPercent}%</span>
+						</div>
+					</div>
+				</div>
+			)}
+			{!hideControls && allowDrawing && activeControlTab === 'free-draw' && (
+				<div className={styles.toolbar}>
+					<div className={styles.toolbarGroup}>
+						<Button style={{ opacity: 1 }}>
+							<FreeDrawIcon size={14} />
+							<T>Free draw</T>
+							<KeyboardHints keys="F" />
+						</Button>
+						<Button onClick={undoDraw}>
+							<UndoStrokeIcon size={14} />
+							<T>Undo stroke</T>
+							<KeyboardHints keys="Ctrl+Z" />
+						</Button>
+						<Button onClick={clearHistory}>
+							<EraserIcon size={14} />
+							<T>Clear drawing</T>
+						</Button>
 					</div>
 				</div>
 			)}
 
-			{allowDrawing && onQueenAnnotationsUpdate && (
+			{allowDrawing && onQueenAnnotationsUpdate && activeControlTab === 'queens' && (
 				<div style={{ marginTop: 10, border: '1px solid #d5dbe5', borderRadius: 8, padding: 10, background: '#f8fbff' }}>
 					<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
-						<strong><T>Queen management</T></strong>
-						<Button size="small" onClick={() => setIsAddingQueenMarker((v) => !v)} style={isAddingQueenMarker ? { background: '#2470ff', color: '#fff' } : undefined}>
-							<T>{isAddingQueenMarker ? 'Click image to place marker' : 'Add queen marker'}</T>
-						</Button>
+						<div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+							<Button size="small" style={layerToggleButtonStyle} onClick={() => setShowQueenAnnotations(!showQueenAnnotations)}>
+								<Checkbox on={showQueenAnnotations} color="#111" />
+								<span><T>Queen markers</T></span>
+							</Button>
+							<Button size="small" style={layerToggleButtonStyle} onClick={() => setIsAiQueenVisible(!isAiQueenVisible)}>
+								{frameSideFile?.isQueenDetectionComplete ? <Checkbox on={isAiQueenVisible} color="#111" /> : <Loader size={0} stroke="#111" />}
+								<span><T ctx="toggle AI queen visibility">AI queen candidates</T></span>
+								<QueenIcon size={14} color={'#111'} />
+							</Button>
+							{detectedQueenCups && (
+								<Button size="small" style={layerToggleButtonStyle} onClick={() => setQueenCupsVisibility(!showQueenCups)}>
+									{frameSideFile?.isQueenCupsDetectionComplete ? <Checkbox on={showQueenCups} color="#111" /> : <Loader size={0} stroke="#111" />}
+									<span><T ctx="toggle queen cups visibility">Queen cups</T></span>
+								</Button>
+							)}
+						</div>
+						<div style={{ display: 'flex', gap: 6 }}>
+							<Button
+								size="small"
+								onClick={onStartMarkExistingQueen}
+								style={isAddingQueenMarker && pendingMarkerFamilyId === null ? { background: '#2470ff', color: '#fff' } : undefined}
+							>
+								<T>{isAddingQueenMarker && pendingMarkerFamilyId === null ? 'Click image to mark existing queen' : 'Mark existing queen'}</T>
+							</Button>
+							<Button
+								size="small"
+								onClick={onOpenMarkNewQueenModal}
+								style={isAddingQueenMarker && pendingMarkerFamilyId !== null ? { background: '#2470ff', color: '#fff' } : undefined}
+							>
+								<T>{isAddingQueenMarker && pendingMarkerFamilyId !== null ? 'Click image to mark new queen' : 'Mark new queen'}</T>
+							</Button>
+						</div>
 					</div>
 					{editableQueenAnnotations.length === 0 && (
 						<div style={{ fontSize: 13, color: '#415066' }}>
 							<T>No queen markers on this frame yet.</T>
 						</div>
 					)}
-					{editableQueenAnnotations.map((annotation, index) => (
-						<div key={annotation.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto auto auto', gap: 8, alignItems: 'center', marginBottom: 6 }}>
+					{editableQueenAnnotations.map((annotation, index) => {
+						const isAiCandidate = annotation.source === 'ai' && annotation.status !== 'approved';
+						return (
+						<div
+							key={annotation.id}
+							style={{
+								display: 'grid',
+								gridTemplateColumns: isAiCandidate ? 'auto auto auto auto auto' : 'auto auto auto',
+								gap: 8,
+								alignItems: 'center',
+								marginBottom: 6,
+								justifyContent: 'start',
+							}}
+						>
 							<div style={{ minWidth: 0 }}>
-								<strong>{`Q${index + 1}`}</strong> {annotation.source === 'ai' ? '(AI)' : '(manual)'} {annotation.status === 'approved' ? 'approved' : 'candidate'}
+								<strong>{`Q${index + 1}`}</strong>
 							</div>
 							<select
 								value={annotation.familyId ? String(annotation.familyId) : ''}
@@ -1635,36 +1783,101 @@ export default function DrawingCanvas({
 										{family.name || `#${family.id}`}
 									</option>
 								))}
-								<option value="__new__">+ New queen...</option>
 							</select>
-							<Button
-								size="small"
-								onClick={() => void upsertQueenAnnotation(annotation.id, (current) => ({
-									...current,
-									status: 'approved',
-									updatedAt: new Date().toISOString(),
-								}))}
-							>
-								<T>Approve</T>
-							</Button>
-							<Button
-								size="small"
-								color="gray"
-								onClick={async () => {
-									if (annotation.source === 'ai' && onRemoveDetectedQueenCandidate) {
-										await onRemoveDetectedQueenCandidate({ x: annotation.x, y: annotation.y });
-									}
-									await removeQueenAnnotation(annotation);
-								}}
-							>
-								<T>Reject</T>
-							</Button>
+							{isAiCandidate && (
+								<Button
+									size="small"
+									onClick={() => void upsertQueenAnnotation(annotation.id, (current) => ({
+										...current,
+										status: 'approved',
+										updatedAt: new Date().toISOString(),
+									}))}
+								>
+									<T>Approve</T>
+								</Button>
+							)}
+							{isAiCandidate && (
+								<Button
+									size="small"
+									color="gray"
+									onClick={async () => {
+										if (annotation.source === 'ai' && onRemoveDetectedQueenCandidate) {
+											await onRemoveDetectedQueenCandidate({ x: annotation.x, y: annotation.y });
+										}
+										await removeQueenAnnotation(annotation);
+									}}
+								>
+									<T>Reject</T>
+								</Button>
+							)}
 							<Button size="small" color="red" onClick={async () => { await removeQueenAnnotation(annotation); }}>
 								<T>Delete</T>
 							</Button>
 						</div>
-					))}
+						);
+					})}
 				</div>
+			)}
+
+			{isCreateQueenModalOpen && (
+				<Modal title={<T>New queen</T>} onClose={() => setIsCreateQueenModalOpen(false)}>
+					<div className={styles.createQueenModalContent}>
+						<div className={styles.createQueenNameRow}>
+							<div style={{ flex: 1 }}>
+								<label className={inputStyles.label}><T>Queen Name</T></label>
+								<input
+									className={inputStyles.input}
+									type="text"
+									value={newQueenName}
+									onChange={(event) => setNewQueenName(String((event.target as HTMLInputElement).value || ''))}
+									placeholder="Enter queen name"
+									autoFocus
+								/>
+							</div>
+						</div>
+						<div>
+							<label className={inputStyles.label}><T>Race</T></label>
+							<input
+								className={inputStyles.input}
+								type="text"
+								value={newQueenRace}
+								onChange={(event) => setNewQueenRace(String((event.target as HTMLInputElement).value || ''))}
+								placeholder="e.g. Carniolan, Italian, etc."
+							/>
+						</div>
+						<div>
+							<label className={inputStyles.label}><T>Year</T></label>
+							<div className={styles.createQueenYearRow}>
+								<input
+									className={inputStyles.input}
+									type="text"
+									value={newQueenYear}
+									maxLength={4}
+									onChange={(event) => {
+										setNewQueenYear(String((event.target as HTMLInputElement).value || ''));
+										setNewQueenColor(null);
+									}}
+									placeholder="YYYY"
+								/>
+								<div className={styles.createQueenColorPickerWrapper}>
+									<QueenColorPicker
+										year={newQueenYear}
+										color={newQueenColor}
+										onColorChange={(value: string) => setNewQueenColor(value)}
+									/>
+								</div>
+							</div>
+						</div>
+						<div className={styles.createQueenModalButtons}>
+							<Button size="small" color="gray" onClick={() => setIsCreateQueenModalOpen(false)}>
+								<T>Cancel</T>
+							</Button>
+							<Button size="small" color="green" onClick={() => void onConfirmCreateQueen()} loading={isCreatingQueen}>
+								<T>Create and mark</T>
+							</Button>
+						</div>
+					</div>
+				</Modal>
 			)}
 
 			<canvas ref={ref} id="container" style={{ width: '100%', display: 'block', touchAction: 'none' }}>

@@ -16,12 +16,23 @@
 
 .toolbar {
 	display: flex;
-	flex-wrap: wrap;
-	gap: 8px;
+	flex-direction: column;
+	gap: 6px;
 	margin-bottom: 8px;
 	padding: 8px;
 	background: rgba(0, 0, 0, 0.5);
 	border-radius: 8px;
+}
+
+.toolbarRow {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.toolbarRowSecond {
+	padding-top: 2px;
 }
 
 .toolbarGroup {
@@ -30,8 +41,25 @@
 	gap: 6px;
 }
 
+.toolbarMid {
+	flex: 1 1 auto;
+	justify-content: center;
+	align-items: center;
+}
+
 .toolbarRight {
 	margin-left: auto;
+}
+
+.toolbarCellTypes {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.cellTypeButton {
+	font-size: 12px;
+	padding: 4px 8px;
+	line-height: 1.1;
 }
 
 .toolbarSliderGroup {
@@ -50,6 +78,39 @@
 	font-size: 12px;
 	min-width: 36px;
 	text-align: right;
+}
+
+.createQueenModalContent {
+	padding: 10px 0;
+	min-width: 320px;
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+.createQueenNameRow {
+	display: flex;
+	align-items: flex-end;
+	gap: 8px;
+}
+
+.createQueenYearRow {
+	display: flex;
+	align-items: flex-end;
+	gap: 8px;
+}
+
+.createQueenColorPickerWrapper {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+}
+
+.createQueenModalButtons {
+	margin-top: 8px;
+	display: flex;
+	justify-content: center;
+	gap: 8px;
 }
 
 @media @mobileAndTablet {

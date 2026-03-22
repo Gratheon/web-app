@@ -228,13 +228,14 @@ export default function FrameSideDrawing({
 		}
 	}, [frameSideId, frameId, boxId])
 
-	const onCreateQueen = useCallback(async (queen: { name?: string; race?: string; added?: string }) => {
+	const onCreateQueen = useCallback(async (queen: { name?: string; race?: string; added?: string; color?: string | null }) => {
 		const result = await addQueenToHiveMutate({
 			hiveId: String(hiveId),
 			queen: {
 				name: queen.name,
 				race: queen.race,
 				added: queen.added,
+				color: queen.color,
 			},
 		})
 		const createdQueen = result?.data?.addQueenToHive

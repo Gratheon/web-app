@@ -514,6 +514,7 @@ interface DrawLayersParams {
 	detectedVarroa: any[];
 	showQueenAnnotations?: boolean;
 	queenAnnotations?: QueenAnnotation[];
+	familyNameById?: Record<number, string>;
 	brushCursor?: { x: number; y: number } | null;
 	isAddingQueenMarker?: boolean;
 	canCellBrushPreview?: boolean;
@@ -525,17 +526,18 @@ interface DrawLayersParams {
 function drawQueenAnnotations(
 	queenAnnotations: QueenAnnotation[],
 	ctx: CanvasRenderingContext2D,
-	canvas: HTMLCanvasElement
+	canvas: HTMLCanvasElement,
+	familyNameById: Record<number, string>
 ) {
 	if (!Array.isArray(queenAnnotations)) return;
 	const relPx = calculateRelPx(canvas);
-	queenAnnotations.forEach((annotation, index) => {
+	queenAnnotations.forEach((annotation) => {
 		const x = Number(annotation?.x);
 		const y = Number(annotation?.y);
 		const radiusRatio = Number(annotation?.radius);
 		if (!Number.isFinite(x) || !Number.isFinite(y)) return;
 
-		const radius = (Number.isFinite(radiusRatio) && radiusRatio > 0 ? radiusRatio : 0.02) * canvas.width;
+		const radius = (Number.isFinite(radiusRatio) && radiusRatio > 0 ? radiusRatio : 0.02) * canvas.width * 1.5;
 		const isApproved = annotation?.status === 'approved';
 		ctx.save();
 		ctx.globalAlpha = isApproved ? 0.85 : 0.65;
@@ -552,9 +554,26 @@ function drawQueenAnnotations(
 		ctx.lineWidth = blueStrokeWidth;
 		ctx.strokeStyle = isApproved ? '#1f5eff' : '#6fa2ff';
 		ctx.stroke();
-		ctx.fillStyle = '#1252d6';
-		ctx.font = `${Math.floor(Math.max(11, 10 * relPx))}px Arial`;
-		ctx.fillText(`Q${index + 1}`, (x * canvas.width) + radius + (4 * relPx), y * canvas.height);
+		const familyId = Number(annotation?.familyId);
+		const queenName = Number.isFinite(familyId) && familyId > 0 ? (familyNameById[familyId] || '') : '';
+		if (queenName) {
+			const fontSize = Math.floor(Math.max(11, 10 * relPx));
+			const labelX = (x * canvas.width) + radius + (4 * relPx);
+			const labelY = y * canvas.height;
+			const textPaddingX = Math.max(3, 3 * relPx);
+			const textPaddingY = Math.max(2, 2 * relPx);
+			ctx.font = `${fontSize}px Arial`;
+			ctx.textBaseline = 'middle';
+			const textWidth = ctx.measureText(queenName).width;
+			const boxX = labelX - textPaddingX;
+			const boxY = labelY - (fontSize / 2) - textPaddingY;
+			const boxW = textWidth + (textPaddingX * 2);
+			const boxH = fontSize + (textPaddingY * 2);
+			ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+			ctx.fillRect(boxX, boxY, boxW, boxH);
+			ctx.fillStyle = '#1252d6';
+			ctx.fillText(queenName, labelX, labelY);
+		}
 		ctx.restore();
 	});
 }
@@ -585,7 +604,7 @@ function drawQueenPlacementPreview(
 function drawCanvasLayers({
 	canvas, ctx, strokeHistory, showBees, showDrones, isAiQueenVisible,
 	detectedBees, detectedCells, showQueenCups, detectedQueenCups,
-	showVarroa, detectedVarroa, showQueenAnnotations = true, queenAnnotations = [],
+	showVarroa, detectedVarroa, showQueenAnnotations = true, queenAnnotations = [], familyNameById = {},
 	brushCursor, isAddingQueenMarker = false, canCellBrushPreview = false, activeTool, selectedCellType, brushRadiusRatio = DEFAULT_BRUSH_DIAMETER_RATIO / 2,
 	cellsOpacityFactor = 1
 }: DrawLayersParams) {
@@ -604,7 +623,7 @@ function drawCanvasLayers({
 		drawDetectedBees(detectedBees, ctx, canvas, showBees, showDrones, isAiQueenVisible);
 	}
 	if (showQueenAnnotations && queenAnnotations) {
-		drawQueenAnnotations(queenAnnotations, ctx, canvas);
+		drawQueenAnnotations(queenAnnotations, ctx, canvas, familyNameById);
 	}
 	if (showQueenCups && detectedQueenCups) drawQueenCups(detectedQueenCups, ctx, canvas);
 	if (strokeHistory && strokeHistory.length > 0) redrawStrokes(canvas, ctx, strokeHistory);
@@ -634,7 +653,7 @@ interface DrawingCanvasProps {
 	detectedCells?: any[];
 	detectedVarroa?: any[];
 	queenAnnotations?: QueenAnnotation[];
-	families?: Array<{ id: number; name?: string }>;
+	families?: Array<{ id: number; name?: string; lastSeenFrameId?: number; lastSeenFrameSideId?: number }>;
 	onStrokeHistoryUpdate: (history: DrawingLine[] | undefined) => void;
 	onDetectedCellsUpdate?: (detectedCells: any[]) => void | Promise<void>;
 	onQueenAnnotationsUpdate?: (queenAnnotations: QueenAnnotation[]) => void | Promise<void>;
@@ -793,6 +812,37 @@ export default function DrawingCanvas({
 		}
 		return combined;
 	}, [detectedBees, detectedDrones]); // Track line width for drawing updates
+	const currentFrameSideId = Number(frameSideFile?.frameSideId);
+	const familyNameById = React.useMemo(() => {
+		const map: Record<number, string> = {};
+		for (const family of families || []) {
+			const numericId = Number(family?.id);
+			if (!Number.isFinite(numericId)) continue;
+			const name = String(family?.name || '').trim();
+			if (name) map[numericId] = name;
+		}
+		return map;
+	}, [families]);
+	const occupiedFamilyIds = React.useMemo(() => {
+		const occupied = new Set<number>();
+		for (const annotation of editableQueenAnnotations || []) {
+			const familyId = Number(annotation?.familyId);
+			if (Number.isFinite(familyId) && familyId > 0) occupied.add(familyId);
+		}
+		for (const family of families || []) {
+			const familyId = Number(family?.id);
+			if (!Number.isFinite(familyId) || familyId <= 0) continue;
+			const lastSeenFrameSideId = Number((family as any)?.lastSeenFrameSideId);
+			if (
+				Number.isFinite(lastSeenFrameSideId) &&
+				lastSeenFrameSideId > 0 &&
+				(!Number.isFinite(currentFrameSideId) || lastSeenFrameSideId !== currentFrameSideId)
+			) {
+				occupied.add(familyId);
+			}
+		}
+		return occupied;
+	}, [editableQueenAnnotations, families, currentFrameSideId]);
 
 	const brushRadiusRatio = BRUSH_DIAMETER_BY_PRESET[brushSizePreset] / 2;
 	const showAiQueensOnCanvas = allowDrawing ? isAiQueenVisible : false;
@@ -859,6 +909,7 @@ export default function DrawingCanvas({
 			detectedVarroa,
 			showQueenAnnotations,
 			queenAnnotations: editableQueenAnnotations,
+			familyNameById,
 			brushCursor: brushCursorRef.current,
 			isAddingQueenMarker,
 			canCellBrushPreview: canCellBrush,
@@ -867,7 +918,7 @@ export default function DrawingCanvas({
 			brushRadiusRatio,
 			cellsOpacityFactor: cellsOpacityPercent / 100,
 		});
-	}, [strokeHistory, showBees, showDrones, showAiQueensOnCanvas, allDetectedBees, showQueenCups, detectedQueenCups, showVarroa, detectedVarroa, showQueenAnnotations, editableQueenAnnotations, isAddingQueenMarker, canCellBrush, activeTool, selectedCellType, brushRadiusRatio, cellsOpacityPercent]);
+	}, [strokeHistory, showBees, showDrones, showAiQueensOnCanvas, allDetectedBees, showQueenCups, detectedQueenCups, showVarroa, detectedVarroa, showQueenAnnotations, editableQueenAnnotations, familyNameById, isAddingQueenMarker, canCellBrush, activeTool, selectedCellType, brushRadiusRatio, cellsOpacityPercent]);
 
 	const scheduleRedraw = useCallback(() => {
 		if (redrawRafRef.current !== null) return;
@@ -1756,29 +1807,33 @@ export default function DrawingCanvas({
 							<T>No queen markers on this frame yet.</T>
 						</div>
 					)}
-					{editableQueenAnnotations.map((annotation, index) => {
+					{editableQueenAnnotations.map((annotation) => {
 						const isAiCandidate = annotation.source === 'ai' && annotation.status !== 'approved';
+						const selectedFamilyId = Number(annotation.familyId);
+						const selectableFamilies = (families || []).filter((family) => {
+							const familyId = Number(family?.id);
+							if (!Number.isFinite(familyId) || familyId <= 0) return false;
+							if (Number.isFinite(selectedFamilyId) && selectedFamilyId > 0 && familyId === selectedFamilyId) return true;
+							return !occupiedFamilyIds.has(familyId);
+						});
 						return (
 						<div
 							key={annotation.id}
 							style={{
 								display: 'grid',
-								gridTemplateColumns: isAiCandidate ? 'auto auto auto auto auto' : 'auto auto auto',
+								gridTemplateColumns: isAiCandidate ? 'auto auto auto auto' : 'auto auto',
 								gap: 8,
 								alignItems: 'center',
 								marginBottom: 6,
 								justifyContent: 'start',
 							}}
 						>
-							<div style={{ minWidth: 0 }}>
-								<strong>{`Q${index + 1}`}</strong>
-							</div>
 							<select
 								value={annotation.familyId ? String(annotation.familyId) : ''}
 								onChange={(event) => void handleAssignFamily(annotation, String((event.target as HTMLSelectElement).value || ''))}
 							>
 								<option value="">Unassigned</option>
-								{families.map((family) => (
+								{selectableFamilies.map((family) => (
 									<option key={family.id} value={family.id}>
 										{family.name || `#${family.id}`}
 									</option>

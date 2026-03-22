@@ -300,6 +300,7 @@ export default function FrameSideDrawing({
 					detectedVarroa={liveFrameSideFile.detectedVarroa}
 					queenAnnotations={effectiveQueenAnnotations}
 					families={hiveFamilies || []}
+					currentFrameId={+frameId}
 					strokeHistory={liveFrameSideFile.strokeHistory}
 					onStrokeHistoryUpdate={onStrokeHistoryUpdate}
 					onDetectedCellsUpdate={onDetectedCellsUpdate}

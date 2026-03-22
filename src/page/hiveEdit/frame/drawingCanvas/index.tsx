@@ -1,9 +1,14 @@
 import React, { useState, useRef, useLayoutEffect, useEffect, useCallback } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { gql, useQuery } from '@/api';
+import { SUPPORTED_LANGUAGES } from '@/config/languages';
+import { getUser } from '@/models/user';
 import Button from '@/shared/button';
 import colors from '@/colors.ts';
 import Checkbox from '@/icons/checkbox.tsx';
 import T from '@/shared/translate';
 import Loader from '@/shared/loader';
+import RefreshIcon from '@/icons/RefreshIcon';
 import styles from './styles.module.less';
 import QueenIcon from '@/icons/queenIcon.tsx';
 import CellBrushIcon from '@/icons/cellBrushIcon.tsx';
@@ -17,7 +22,9 @@ import Modal from '@/shared/modal';
 import { Tab, TabBar } from '@/shared/tab';
 import inputStyles from '@/shared/input/styles.module.less';
 import QueenColorPicker from '@/shared/queenColorPicker';
+import QueenColor from '@/page/hiveEdit/hiveTopInfo/queenColor';
 import type { QueenAnnotation } from '@/models/frameSideFile';
+import { buildOccupiedFamilyIds } from './queenAvailability';
 
 let img: HTMLImageElement | null = null;
 let isMousedown = false;
@@ -69,6 +76,12 @@ let offsetsum = { x: 0, y: 0 };
 let isPanning = false;
 let startPanPosition = { x: 0, y: 0 };
 let initialPanOffset = { x: 0, y: 0 };
+
+const RANDOM_QUEEN_NAME_QUERY = gql`
+	query RandomHiveName($language: String) {
+		randomHiveName(language: $language)
+	}
+`;
 
 function clampCameraOffset(canvas: HTMLCanvasElement) {
 	const minX = canvas.width - canvas.width * globalCameraZoom;
@@ -502,6 +515,7 @@ interface DrawLayersParams {
 	canvas: HTMLCanvasElement;
 	ctx: CanvasRenderingContext2D;
 	strokeHistory: DrawingLine[];
+	showDetectedCells?: boolean;
 	showBees: boolean;
 	showDrones: boolean;
 	isAiQueenVisible: boolean;
@@ -602,7 +616,7 @@ function drawQueenPlacementPreview(
 }
 
 function drawCanvasLayers({
-	canvas, ctx, strokeHistory, showBees, showDrones, isAiQueenVisible,
+	canvas, ctx, strokeHistory, showDetectedCells = true, showBees, showDrones, isAiQueenVisible,
 	detectedBees, detectedCells, showQueenCups, detectedQueenCups,
 	showVarroa, detectedVarroa, showQueenAnnotations = true, queenAnnotations = [], familyNameById = {},
 	brushCursor, isAddingQueenMarker = false, canCellBrushPreview = false, activeTool, selectedCellType, brushRadiusRatio = DEFAULT_BRUSH_DIAMETER_RATIO / 2,
@@ -617,7 +631,7 @@ function drawCanvasLayers({
 	if (img) {
 		ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 	}
-	if (detectedCells) drawDetectedCells(detectedCells, ctx, canvas, cellsOpacityFactor);
+	if (showDetectedCells && detectedCells) drawDetectedCells(detectedCells, ctx, canvas, cellsOpacityFactor);
 	if (showVarroa && detectedVarroa) drawDetectedVarroa(detectedVarroa, ctx, canvas);
 	if ((showBees || showDrones || isAiQueenVisible) && detectedBees) {
 		drawDetectedBees(detectedBees, ctx, canvas, showBees, showDrones, isAiQueenVisible);
@@ -653,7 +667,8 @@ interface DrawingCanvasProps {
 	detectedCells?: any[];
 	detectedVarroa?: any[];
 	queenAnnotations?: QueenAnnotation[];
-	families?: Array<{ id: number; name?: string; lastSeenFrameId?: number; lastSeenFrameSideId?: number }>;
+	families?: Array<{ id: number; name?: string; added?: string; color?: string; lastSeenFrameId?: number; lastSeenFrameSideId?: number }>;
+	currentFrameId?: number;
 	onStrokeHistoryUpdate: (history: DrawingLine[] | undefined) => void;
 	onDetectedCellsUpdate?: (detectedCells: any[]) => void | Promise<void>;
 	onQueenAnnotationsUpdate?: (queenAnnotations: QueenAnnotation[]) => void | Promise<void>;
@@ -677,6 +692,7 @@ export default function DrawingCanvas({
 	detectedVarroa = [],
 	queenAnnotations = [],
 	families = [],
+	currentFrameId,
 	onStrokeHistoryUpdate,
 	onDetectedCellsUpdate,
 	onQueenAnnotationsUpdate,
@@ -696,6 +712,7 @@ export default function DrawingCanvas({
 	const [showVarroa, setShowVarroaVisibility] = useState(true);
 	const [showQueenAnnotations, setShowQueenAnnotations] = useState(true);
 	const [isAiQueenVisible, setIsAiQueenVisible] = useState(true);
+	const [showFrameCells, setShowFrameCells] = useState(true);
 	const [activeControlTab, setActiveControlTab] = useState<CanvasControlTab>('frame-cells');
 	const [currentLineWidth, setCurrentLineWidth] = useState(0);
 	const [activeTool, setActiveTool] = useState<'cell-brush' | 'stroke'>('cell-brush');
@@ -713,6 +730,13 @@ export default function DrawingCanvas({
 	const [newQueenYear, setNewQueenYear] = useState(String(new Date().getFullYear()));
 	const [newQueenColor, setNewQueenColor] = useState<string | null>(null);
 	const [isCreatingQueen, setIsCreatingQueen] = useState(false);
+	const [nameSuggestionLang, setNameSuggestionLang] = useState('en');
+	const user = useLiveQuery(() => getUser(), [], null);
+	const {
+		data: randomNameData,
+		loading: randomNameLoading,
+		reexecuteQuery: reexecuteRandomNameQuery,
+	} = useQuery(RANDOM_QUEEN_NAME_QUERY, { variables: { language: nameSuggestionLang } });
 	const editableDetectedCellsRef = useRef<any[]>(detectedCells || []);
 	const lastHandledSaveRequestIdRef = useRef(0);
 	const brushCursorRef = useRef<{ x: number; y: number } | null>(null);
@@ -724,6 +748,25 @@ export default function DrawingCanvas({
 		if (hasUnsavedCellEdits) return;
 		editableDetectedCellsRef.current = detectedCells || [];
 	}, [detectedCells, hasUnsavedCellEdits]);
+
+	useEffect(() => {
+		let lang = 'en';
+		if (user?.lang) {
+			lang = user.lang;
+		} else if (user === null && typeof navigator !== 'undefined') {
+			const browserLang = navigator.language.substring(0, 2) as any;
+			if (SUPPORTED_LANGUAGES.includes(browserLang)) {
+				lang = browserLang;
+			}
+		}
+		setNameSuggestionLang(lang);
+	}, [user]);
+
+	useEffect(() => {
+		if (randomNameData?.randomHiveName && !randomNameLoading) {
+			setNewQueenName(String(randomNameData.randomHiveName || ''));
+		}
+	}, [randomNameData, randomNameLoading]);
 
 	useEffect(() => {
 		setEditableQueenAnnotations(Array.isArray(queenAnnotations) ? queenAnnotations : []);
@@ -768,12 +811,20 @@ export default function DrawingCanvas({
 	}, [isAddingQueenMarker, pendingMarkerFamilyId]);
 
 	const onOpenMarkNewQueenModal = useCallback(() => {
-		setNewQueenName('');
+		const suggestedName = String(randomNameData?.randomHiveName || '').trim();
+		setNewQueenName(suggestedName);
 		setNewQueenRace('');
 		setNewQueenYear(String(new Date().getFullYear()));
 		setNewQueenColor(null);
 		setIsCreateQueenModalOpen(true);
-	}, []);
+		if (!suggestedName) {
+			reexecuteRandomNameQuery({ requestPolicy: 'network-only' });
+		}
+	}, [randomNameData, reexecuteRandomNameQuery]);
+
+	const onRefreshQueenName = useCallback(() => {
+		reexecuteRandomNameQuery({ requestPolicy: 'network-only' });
+	}, [reexecuteRandomNameQuery]);
 
 	const onConfirmCreateQueen = useCallback(async () => {
 		const year = String(newQueenYear || '').trim();
@@ -823,31 +874,43 @@ export default function DrawingCanvas({
 		}
 		return map;
 	}, [families]);
-	const occupiedFamilyIds = React.useMemo(() => {
-		const occupied = new Set<number>();
-		for (const annotation of editableQueenAnnotations || []) {
-			const familyId = Number(annotation?.familyId);
-			if (Number.isFinite(familyId) && familyId > 0) occupied.add(familyId);
-		}
+	const familyById = React.useMemo(() => {
+		const map = new Map<number, { id: number; name?: string; added?: string; color?: string }>();
 		for (const family of families || []) {
-			const familyId = Number(family?.id);
-			if (!Number.isFinite(familyId) || familyId <= 0) continue;
-			const lastSeenFrameSideId = Number((family as any)?.lastSeenFrameSideId);
-			if (
-				Number.isFinite(lastSeenFrameSideId) &&
-				lastSeenFrameSideId > 0 &&
-				(!Number.isFinite(currentFrameSideId) || lastSeenFrameSideId !== currentFrameSideId)
-			) {
-				occupied.add(familyId);
-			}
+			const numericId = Number(family?.id);
+			if (!Number.isFinite(numericId) || numericId <= 0) continue;
+			map.set(numericId, family);
 		}
-		return occupied;
-	}, [editableQueenAnnotations, families, currentFrameSideId]);
+		return map;
+	}, [families]);
+	const occupiedFamilyIds = React.useMemo(
+		() => buildOccupiedFamilyIds({
+			queenAnnotations: editableQueenAnnotations || [],
+			families: families || [],
+			currentFrameId,
+			currentFrameSideId,
+		}),
+		[editableQueenAnnotations, families, currentFrameId, currentFrameSideId]
+	);
 
 	const brushRadiusRatio = BRUSH_DIAMETER_BY_PRESET[brushSizePreset] / 2;
 	const showAiQueensOnCanvas = allowDrawing ? isAiQueenVisible : false;
 	const canCellBrush = allowDrawing && activeControlTab === 'frame-cells';
 	const canStrokeDraw = allowDrawing && activeControlTab === 'free-draw';
+	const showQueenAnnotationsOnCanvas = showQueenAnnotations;
+	const readOnlyQueenMarkers = React.useMemo(
+		() => (editableQueenAnnotations || []).filter(
+			(annotation) => !(annotation?.source === 'ai' && annotation?.status !== 'approved')
+		),
+		[editableQueenAnnotations]
+	);
+	const queenAnnotationsOnCanvas = allowDrawing ? editableQueenAnnotations : readOnlyQueenMarkers;
+	const showQueenCupsOnCanvas = allowDrawing ? showQueenCups : false;
+	const showVarroaOnCanvas = allowDrawing ? showVarroa : false;
+	const showDetectedCellsOnCanvas = allowDrawing ? true : showFrameCells;
+	const cellsOpacityFactor = allowDrawing
+		? cellsOpacityPercent / 100
+		: 0.5;
 
 	const getThumbnailUrl = useCallback(() => {
 		let bestUrl = imageUrl;
@@ -900,15 +963,15 @@ export default function DrawingCanvas({
 		if (!ctx) return;
 
 		drawCanvasLayers({
-			canvas, ctx, strokeHistory, showBees, showDrones, isAiQueenVisible: showAiQueensOnCanvas,
+			canvas, ctx, strokeHistory, showDetectedCells: showDetectedCellsOnCanvas, showBees, showDrones, isAiQueenVisible: showAiQueensOnCanvas,
 			detectedBees: allDetectedBees,
 			detectedCells: editableDetectedCellsRef.current,
-			showQueenCups,
+			showQueenCups: showQueenCupsOnCanvas,
 			detectedQueenCups,
-			showVarroa,
+			showVarroa: showVarroaOnCanvas,
 			detectedVarroa,
-			showQueenAnnotations,
-			queenAnnotations: editableQueenAnnotations,
+			showQueenAnnotations: showQueenAnnotationsOnCanvas,
+			queenAnnotations: queenAnnotationsOnCanvas,
 			familyNameById,
 			brushCursor: brushCursorRef.current,
 			isAddingQueenMarker,
@@ -916,9 +979,9 @@ export default function DrawingCanvas({
 			activeTool,
 			selectedCellType,
 			brushRadiusRatio,
-			cellsOpacityFactor: cellsOpacityPercent / 100,
+			cellsOpacityFactor,
 		});
-	}, [strokeHistory, showBees, showDrones, showAiQueensOnCanvas, allDetectedBees, showQueenCups, detectedQueenCups, showVarroa, detectedVarroa, showQueenAnnotations, editableQueenAnnotations, familyNameById, isAddingQueenMarker, canCellBrush, activeTool, selectedCellType, brushRadiusRatio, cellsOpacityPercent]);
+	}, [strokeHistory, showDetectedCellsOnCanvas, showBees, showDrones, showAiQueensOnCanvas, allDetectedBees, showQueenCupsOnCanvas, detectedQueenCups, showVarroaOnCanvas, detectedVarroa, showQueenAnnotationsOnCanvas, queenAnnotationsOnCanvas, familyNameById, isAddingQueenMarker, canCellBrush, activeTool, selectedCellType, brushRadiusRatio, cellsOpacityFactor]);
 
 	const scheduleRedraw = useCallback(() => {
 		if (redrawRafRef.current !== null) return;
@@ -935,6 +998,10 @@ export default function DrawingCanvas({
 	useEffect(() => {
 		const canvas = ref.current;
 		if (!canvas || isPanning) return;
+		if (!allowDrawing) {
+			canvas.style.cursor = 'default';
+			return;
+		}
 		canvas.style.cursor = isAddingQueenMarker
 			? 'pointer'
 			: activeControlTab === 'free-draw'
@@ -942,7 +1009,7 @@ export default function DrawingCanvas({
 				: activeControlTab === 'frame-cells'
 					? 'all-scroll'
 					: 'default';
-	}, [activeControlTab, isAddingQueenMarker]);
+	}, [activeControlTab, isAddingQueenMarker, allowDrawing]);
 
 	useEffect(() => {
 		// Reset camera state when switching frame image to avoid stale zoom/pan jumps.
@@ -1231,7 +1298,9 @@ export default function DrawingCanvas({
 		const ctx = canvas.getContext('2d');
 		if (!ctx) return;
 		const getIdleCursor = () => (
-			isAddingQueenMarker
+			!allowDrawing
+				? 'default'
+				: isAddingQueenMarker
 				? 'pointer'
 				: activeControlTab === 'free-draw'
 					? 'crosshair'
@@ -1364,7 +1433,7 @@ export default function DrawingCanvas({
 			window.removeEventListener('touchend', handlePanEnd);
 			canvas.removeEventListener('mouseleave', handlePanEnd);
 		};
-	}, [imageUrl, canvasUrl, redrawCurrentCanvas, zoomEnabled, activeControlTab, isAddingQueenMarker]); // Re-attach if cursor mode changes
+	}, [imageUrl, canvasUrl, redrawCurrentCanvas, zoomEnabled, activeControlTab, isAddingQueenMarker, allowDrawing]); // Re-attach if cursor mode changes
 
 	// Redraw when visibility toggles change
 	useEffect(() => {
@@ -1559,7 +1628,7 @@ export default function DrawingCanvas({
 
 	return (
 		<div style={{ position: 'relative', overflow: 'hidden' }}>
-			{!hideControls && (
+			{!hideControls && allowDrawing && (
 				<TabBar>
 					<Tab isSelected={activeControlTab === 'frame-cells'} onClick={() => setActiveControlTab('frame-cells')}>
 						<T>Frame cells</T>
@@ -1578,7 +1647,54 @@ export default function DrawingCanvas({
 					</Tab>
 				</TabBar>
 			)}
-			{!hideControls && (activeControlTab === 'bees' || activeControlTab === 'varroa-mites') && (
+			{!hideControls && !allowDrawing && (
+				<div className={styles.buttonPanel}>
+					<div className={styles.buttonGrp}>
+						<Button size="small" style={layerToggleButtonStyle} onClick={() => setShowFrameCells(!showFrameCells)}>
+							{frameSideFile?.isCellsDetectionComplete
+								? <Checkbox on={showFrameCells} color="#111" />
+								: <Loader size={0} stroke="#111" />
+							}
+							<span><T ctx="toggle frame cells visibility">Frame cells</T></span>
+						</Button>
+						<Button size="small" style={layerToggleButtonStyle} onClick={() => setBeeVisibility(!showBees)}>
+							{
+								(
+									frameSideFile?.isBeeDetectionComplete ||
+									frameSideFile?.isDroneDetectionComplete ||
+									(frameSideFile?.detectedWorkerBeeCount || 0) > 0 ||
+									(frameSideFile?.detectedDroneCount || 0) > 0 ||
+									(detectedBees?.length || 0) > 0 ||
+									(detectedDrones?.length || 0) > 0
+								)
+									? <Checkbox on={showBees} color="#111" />
+									: <Loader size={0} stroke="#111" />
+							}
+							<span><T ctx="toggle worker bees visibility">Worker bees</T>{frameSideFile?.detectedWorkerBeeCount > 0 && ` (${frameSideFile.detectedWorkerBeeCount})`}</span>
+						</Button>
+						<Button size="small" style={layerToggleButtonStyle} onClick={() => setDroneVisibility(!showDrones)}>
+							{
+								(
+									frameSideFile?.isBeeDetectionComplete ||
+									frameSideFile?.isDroneDetectionComplete ||
+									(frameSideFile?.detectedWorkerBeeCount || 0) > 0 ||
+									(frameSideFile?.detectedDroneCount || 0) > 0 ||
+									(detectedBees?.length || 0) > 0 ||
+									(detectedDrones?.length || 0) > 0
+								)
+									? <Checkbox on={showDrones} color="#111" />
+									: <Loader size={0} stroke="#111" />
+							}
+							<span><T ctx="toggle drones visibility">Drones</T>{frameSideFile?.detectedDroneCount > 0 && ` (${frameSideFile.detectedDroneCount})`}</span>
+						</Button>
+						<Button size="small" style={layerToggleButtonStyle} onClick={() => setShowQueenAnnotations(!showQueenAnnotations)}>
+							<Checkbox on={showQueenAnnotations} color="#111" />
+							<span><T ctx="toggle queens visibility">Queens</T>{readOnlyQueenMarkers.length > 0 && ` (${readOnlyQueenMarkers.length})`}</span>
+						</Button>
+					</div>
+				</div>
+			)}
+			{!hideControls && allowDrawing && (activeControlTab === 'bees' || activeControlTab === 'varroa-mites') && (
 				<div className={styles.buttonPanel}>
 					<div className={styles.buttonGrp}>
 						{activeControlTab === 'bees' && (
@@ -1810,6 +1926,9 @@ export default function DrawingCanvas({
 					{editableQueenAnnotations.map((annotation) => {
 						const isAiCandidate = annotation.source === 'ai' && annotation.status !== 'approved';
 						const selectedFamilyId = Number(annotation.familyId);
+						const selectedFamily = Number.isFinite(selectedFamilyId) && selectedFamilyId > 0
+							? familyById.get(selectedFamilyId)
+							: undefined;
 						const selectableFamilies = (families || []).filter((family) => {
 							const familyId = Number(family?.id);
 							if (!Number.isFinite(familyId) || familyId <= 0) return false;
@@ -1828,17 +1947,27 @@ export default function DrawingCanvas({
 								justifyContent: 'start',
 							}}
 						>
-							<select
-								value={annotation.familyId ? String(annotation.familyId) : ''}
-								onChange={(event) => void handleAssignFamily(annotation, String((event.target as HTMLSelectElement).value || ''))}
-							>
-								<option value="">Unassigned</option>
-								{selectableFamilies.map((family) => (
-									<option key={family.id} value={family.id}>
-										{family.name || `#${family.id}`}
-									</option>
-								))}
-							</select>
+							<div className={styles.queenFamilySelectWrap}>
+								<span className={styles.queenFamilyColor}>
+									{selectedFamily ? (
+										<QueenColor year={selectedFamily.added || ''} color={selectedFamily.color} />
+									) : (
+										<span className={styles.queenFamilyColorPlaceholder} />
+									)}
+								</span>
+								<select
+									className={styles.queenFamilySelect}
+									value={annotation.familyId ? String(annotation.familyId) : ''}
+									onChange={(event) => void handleAssignFamily(annotation, String((event.target as HTMLSelectElement).value || ''))}
+								>
+									<option value="">Unassigned</option>
+									{selectableFamilies.map((family) => (
+										<option key={family.id} value={family.id}>
+											{family.name || `#${family.id}`}
+										</option>
+									))}
+								</select>
+							</div>
 							{isAiCandidate && (
 								<Button
 									size="small"
@@ -1889,6 +2018,20 @@ export default function DrawingCanvas({
 									autoFocus
 								/>
 							</div>
+							<Button
+								type="button"
+								onClick={onRefreshQueenName}
+								disabled={randomNameLoading}
+								style={{
+									height: '40px',
+									minWidth: '40px',
+									padding: '0 12px',
+									margin: '24px 0 0',
+								}}
+								title="Get new name suggestion"
+							>
+								<RefreshIcon />
+							</Button>
 						</div>
 						<div>
 							<label className={inputStyles.label}><T>Race</T></label>

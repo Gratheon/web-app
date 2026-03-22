@@ -9,6 +9,14 @@ import { getDominantResourceColorForFrameSide } from '@/models/frameSideCells.ts
 import styles from './index.module.less'
 import FrameSideImage from './frameSideImage'
 import BoxFrameEmptyComb from './boxFrameEmptyComb'
+import {
+	LIST_FOUNDATION_WIDTH_PX,
+	LIST_FRAME_BODY_WIDTH_PX,
+	LIST_FRAME_GAP_PX,
+	VISUAL_FRAME_SIDE_GAP_PX,
+	VISUAL_FRAME_SIDE_WIDTH_PX,
+	VISUAL_FRAME_TOTAL_WIDTH_PX,
+} from '../geometry'
 
 export default function BoxFrame({
 	box,
@@ -76,6 +84,16 @@ export default function BoxFrame({
 	const rightSideData = frameSidesData?.find(
 		(fs) => +fs.frameSideId === +frame.rightId
 	)
+	const listFrameGeometryStyle = {
+		'--list-frame-body-width': `${LIST_FRAME_BODY_WIDTH_PX}px`,
+		'--list-frame-gap': `${LIST_FRAME_GAP_PX}px`,
+		'--list-foundation-width': `${LIST_FOUNDATION_WIDTH_PX}px`,
+	} as React.CSSProperties
+	const visualFrameGeometryStyle = {
+		'--visual-frame-total-width': `${VISUAL_FRAME_TOTAL_WIDTH_PX}px`,
+		'--visual-frame-side-width': `${VISUAL_FRAME_SIDE_WIDTH_PX}px`,
+		'--visual-frame-side-gap': `${VISUAL_FRAME_SIDE_GAP_PX}px`,
+	} as React.CSSProperties
 
 	if (displayMode == 'visual') {
 		if (frame.type === 'FOUNDATION' || frame.type === 'EMPTY_COMB') {
@@ -84,6 +102,7 @@ export default function BoxFrame({
 				<div
 					className={styles.listFrameIconWrapper}
 					data-frame-clickable="true"
+					style={visualFrameGeometryStyle}
 				>
 					<div className={styles.listFrameIcon}>
 						<FrameSideImage
@@ -182,6 +201,7 @@ export default function BoxFrame({
 				selectedFrame && styles.frameSelected
 			}`}
 			data-frame-clickable="true"
+			style={listFrameGeometryStyle}
 			{...dragDropProps}
 		>
 			<div className={styles.frame}>{frameInternal}</div>

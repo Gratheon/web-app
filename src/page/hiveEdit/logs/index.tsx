@@ -33,6 +33,10 @@ type TimelineRow = {
 	mergeReceive: boolean
 }
 
+type TimelineDisplayItem =
+	| { kind: 'entry'; row: TimelineRow }
+	| { kind: 'group'; key: string; rows: TimelineRow[] }
+
 const LOG_PAGE_SIZE = 50
 
 function LabVialIcon({ size = 10 }: { size?: number }) {
@@ -107,6 +111,7 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 	const [editTitle, setEditTitle] = useState('')
 	const [editDetails, setEditDetails] = useState('')
 	const [visibleCount, setVisibleCount] = useState(LOG_PAGE_SIZE)
+	const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
 
 	useEffect(() => {
 		syncHiveLogsFromBackend(numericHiveId).catch((e) =>
@@ -116,6 +121,7 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 
 	useEffect(() => {
 		setVisibleCount(LOG_PAGE_SIZE)
+		setExpandedGroups({})
 	}, [numericHiveId])
 
 	if (logs === null) {
@@ -188,6 +194,56 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 		[timelineRows, visibleCount]
 	)
 	const hasMoreRows = visibleCount < timelineRows.length
+
+	function getContinuousActionGroupKey(row: TimelineRow): string | null {
+		if (row.splitChild || row.splitChildLinked || row.mergeReceive) return null
+		const titleKey = canonicalizeTitle(row.entry.title || '').trim().toLowerCase()
+		if (!titleKey) return null
+		return `${row.entry.action}|${titleKey}`
+	}
+
+	const displayTimelineItems = useMemo(() => {
+		const items: TimelineDisplayItem[] = []
+		let idx = 0
+		while (idx < visibleTimelineRows.length) {
+			const current = visibleTimelineRows[idx]
+			const groupKey = getContinuousActionGroupKey(current)
+			if (!groupKey) {
+				items.push({ kind: 'entry', row: current })
+				idx += 1
+				continue
+			}
+
+			const groupedRows: TimelineRow[] = [current]
+			let nextIdx = idx + 1
+			while (
+				nextIdx < visibleTimelineRows.length &&
+				getContinuousActionGroupKey(visibleTimelineRows[nextIdx]) === groupKey
+			) {
+				groupedRows.push(visibleTimelineRows[nextIdx])
+				nextIdx += 1
+			}
+
+			if (groupedRows.length > 1) {
+				items.push({
+					kind: 'group',
+					key: `group-${groupKey}-${groupedRows[0].entry.id}-${groupedRows[groupedRows.length - 1].entry.id}`,
+					rows: groupedRows,
+				})
+			} else {
+				items.push({ kind: 'entry', row: current })
+			}
+			idx = nextIdx
+		}
+		return items
+	}, [visibleTimelineRows])
+
+	function toggleGroup(groupKey: string) {
+		setExpandedGroups((prev) => ({
+			...prev,
+			[groupKey]: !prev[groupKey],
+		}))
+	}
 
 	async function onAddNote() {
 		if (!draft.trim()) return
@@ -388,49 +444,96 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 
 			{logs.length > 0 && (
 				<div className={styles.timeline}>
-					{visibleTimelineRows.map((row) => {
-						const isEditing = editingId === +row.entry.id
-						const marker = getMarker(row.entry)
+					{displayTimelineItems.map((item) => {
+						if (item.kind === 'entry') {
+							const row = item.row
+							const isEditing = editingId === +row.entry.id
+							const marker = getMarker(row.entry)
+							return (
+								<div
+									className={`${styles.entry} ${row.splitChild ? styles.entryBranchChild : ''} ${row.splitChildLinked ? styles.entryBranchLinked : ''} ${row.mergeReceive ? styles.entryMergeIn : ''}`}
+									key={row.key}
+								>
+									{row.splitChild && (
+										<>
+											{row.splitChildLinked && (
+												<>
+													<span className={styles.splitLinkStem} />
+													<svg
+														className={styles.splitLinkCurve}
+														viewBox="0 0 24 24"
+														preserveAspectRatio="none"
+														aria-hidden
+													>
+														<path d="M24 24 C18 18 10 6 0 0" />
+													</svg>
+												</>
+											)}
+											<span className={styles.branchSideDot} />
+										</>
+									)}
+									{row.mergeReceive && (
+										<>
+											<svg
+												className={styles.mergeCurve}
+												viewBox="0 0 24 48"
+												preserveAspectRatio="none"
+												aria-hidden
+											>
+												<path d="M0 48 C10 38 18 12 24 0" />
+											</svg>
+											<span className={styles.mergeSideDot} />
+										</>
+									)}
+									<div className={`${styles.dot} ${marker.className || ''}`}>
+										{marker.icon && <span className={styles.dotIcon}>{marker.icon}</span>}
+									</div>
+									<div className={styles.card}>{renderEntryCard(row.entry, isEditing)}</div>
+								</div>
+							)
+						}
+
+						const newestRow = item.rows[0]
+						const marker = getMarker(newestRow.entry)
+						const isExpanded = Boolean(expandedGroups[item.key])
 						return (
 							<div
-								className={`${styles.entry} ${row.splitChild ? styles.entryBranchChild : ''} ${row.splitChildLinked ? styles.entryBranchLinked : ''} ${row.mergeReceive ? styles.entryMergeIn : ''}`}
-								key={row.key}
+								className={`${styles.entry} ${newestRow.splitChild ? styles.entryBranchChild : ''} ${newestRow.splitChildLinked ? styles.entryBranchLinked : ''} ${newestRow.mergeReceive ? styles.entryMergeIn : ''}`}
+								key={item.key}
 							>
-								{row.splitChild && (
-									<>
-										{row.splitChildLinked && (
-											<>
-												<span className={styles.splitLinkStem} />
-												<svg
-													className={styles.splitLinkCurve}
-													viewBox="0 0 24 24"
-													preserveAspectRatio="none"
-													aria-hidden
-												>
-													<path d="M24 24 C18 18 10 6 0 0" />
-												</svg>
-											</>
-										)}
-										<span className={styles.branchSideDot} />
-									</>
-								)}
-								{row.mergeReceive && (
-									<>
-										<svg
-											className={styles.mergeCurve}
-											viewBox="0 0 24 48"
-											preserveAspectRatio="none"
-											aria-hidden
-										>
-											<path d="M0 48 C10 38 18 12 24 0" />
-										</svg>
-										<span className={styles.mergeSideDot} />
-									</>
-								)}
 								<div className={`${styles.dot} ${marker.className || ''}`}>
 									{marker.icon && <span className={styles.dotIcon}>{marker.icon}</span>}
 								</div>
-								<div className={styles.card}>{renderEntryCard(row.entry, isEditing)}</div>
+								<div className={styles.groupStack}>
+									<div className={`${styles.card} ${styles.groupCard}`}>
+										<div
+											className={styles.groupSummary}
+											onClick={() => toggleGroup(item.key)}
+										>
+											<span className={styles.groupTitle}>
+												{getDisplayTitle(newestRow.entry.title || '')}
+											</span>
+											<span className={styles.groupCountBadge}>
+												{item.rows.length} changes
+											</span>
+										</div>
+										<div className={styles.groupDate}>
+											<DateTimeFormat datetime={newestRow.entry.createdAt} />
+										</div>
+										{isExpanded && (
+											<div className={styles.groupItems}>
+												{item.rows.map((row) => {
+													const isEditing = editingId === +row.entry.id
+													return (
+														<div className={styles.groupItem} key={row.key}>
+															{renderEntryCard(row.entry, isEditing)}
+														</div>
+													)
+												})}
+											</div>
+										)}
+									</div>
+								</div>
 							</div>
 						)
 					})}

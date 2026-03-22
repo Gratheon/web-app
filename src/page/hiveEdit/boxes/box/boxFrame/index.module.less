@@ -48,8 +48,8 @@
 }
 
 .frame {
-	margin: 10px 4px 0;
-	width: 30px;
+	margin: var(--list-frame-margin-top, 10px) calc(var(--list-frame-gap, 8px) / 2) 0;
+	width: var(--list-frame-body-width, 30px);
 	border-radius: 5px;
 	display: flex;
 	flex-direction: column;
@@ -75,7 +75,7 @@
 
 	.foundation {
 		background-color: @foundationColor;
-		width: 2px;
+		width: var(--list-foundation-width, 2px);
 		cursor: col-resize;
 	}
 
@@ -119,9 +119,9 @@
 
 .listFrameIcon {
 	border-radius: 0;
-	width: 130px;
+	width: var(--visual-frame-total-width, 132px);
 	display: flex;
-	gap: 4px;
+	gap: var(--visual-frame-side-gap, 4px);
 	height: 40px;
 	background: transparent;
 	position: relative; // Needed for absolute positioning of children

@@ -4,7 +4,7 @@
 
 .frameSideImage {
 	border: 1px solid @frameColor;
-	width: 64px;
+	width: var(--visual-frame-side-width, 64px);
 	height: 36px;
 	flex-grow: 1;
 	margin: 0;
@@ -19,7 +19,7 @@
         border-bottom: 1px solid @frameColor;
     }
 	.frameSideImageInternalSides{
-        width: 52px;
+        width: calc(var(--visual-frame-side-width, 64px) - 12px);
         height: 95%;
         margin: 0 auto;
         border-left: 1px solid @frameColor;
@@ -38,7 +38,7 @@
         border-bottom: 1px solid @color-selected-frame;
     }
     .frameSideImageInternalSides{
-        width: 50px;
+        width: calc(var(--visual-frame-side-width, 64px) - 14px);
         border-left: 1px solid @color-selected-frame;
         border-right: 1px solid @color-selected-frame;
     }

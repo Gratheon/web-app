@@ -22,6 +22,15 @@ import {
 import styles from './index.module.less'
 import Frame from './boxFrame'
 import FRAMES_QUERY from './framesQuery.graphql.ts'
+import {
+	LIST_SLOT_WIDTH_PX,
+	LIST_SECTION_PADDING_X_PX,
+	VISUAL_SECTION_PADDING_X_PX,
+} from './geometry'
+import {
+	getListIndicatorLeftPx,
+	getVisualIndicatorLeftPx,
+} from './indicatorPosition'
 
 let activeFrameDragPayload: any = null
 const BOX_SLOT_CAPACITY: Record<string, number> = {
@@ -29,11 +38,6 @@ const BOX_SLOT_CAPACITY: Record<string, number> = {
 	SUPER: 10,
 	LARGE_HORIZONTAL_SECTION: 25,
 }
-const SLOT_WIDTH_PX = 38
-const SLOT_MARGIN_PX = 1
-const SLOT_STEP_PX = SLOT_WIDTH_PX + SLOT_MARGIN_PX * 2
-const VISUAL_INDICATOR_OFFSET_PX = 6
-const LIST_INDICATOR_OFFSET_PX = 15
 
 type BoxType = {
 	box: any
@@ -179,49 +183,96 @@ export default function Box({
 		)
 	}
 
-	const boundaryIndicatorMap = new Map<number, number>()
+	const boundaryIndicatorMap = new Map<
+		number,
+		{ count: number; hasLeftContribution: boolean; hasRightContribution: boolean }
+	>()
 	for (const { frame, slotIndex } of positionedFrames) {
 		const leftBoundary = slotIndex
 		const rightBoundary = slotIndex + 1
 		const leftCount = getBeeCountForSide(frame?.leftSide)
 		const rightCount = getBeeCountForSide(frame?.rightSide)
-		boundaryIndicatorMap.set(
-			leftBoundary,
-			(boundaryIndicatorMap.get(leftBoundary) || 0) + leftCount
-		)
-		boundaryIndicatorMap.set(
-			rightBoundary,
-			(boundaryIndicatorMap.get(rightBoundary) || 0) + rightCount
-		)
+		const leftBoundaryEntry = boundaryIndicatorMap.get(leftBoundary) || {
+			count: 0,
+			hasLeftContribution: false,
+			hasRightContribution: false,
+		}
+		leftBoundaryEntry.count += leftCount
+		leftBoundaryEntry.hasLeftContribution = true
+		boundaryIndicatorMap.set(leftBoundary, leftBoundaryEntry)
+
+		const rightBoundaryEntry = boundaryIndicatorMap.get(rightBoundary) || {
+			count: 0,
+			hasLeftContribution: false,
+			hasRightContribution: false,
+		}
+		rightBoundaryEntry.count += rightCount
+		rightBoundaryEntry.hasRightContribution = true
+		boundaryIndicatorMap.set(rightBoundary, rightBoundaryEntry)
 	}
 
 	const boundaryIndicators: Array<{
 		key: string
 		count: number
 		boundarySlotIndex: number
+		hasLeftContribution: boolean
+		hasRightContribution: boolean
 	}> = [...boundaryIndicatorMap.entries()]
-		.map(([boundarySlotIndex, count]) => ({
+		.map(([boundarySlotIndex, value]) => ({
 			key: `boundary-${boundarySlotIndex}`,
-			count,
+			count: value.count,
 			boundarySlotIndex,
+			hasLeftContribution: value.hasLeftContribution,
+			hasRightContribution: value.hasRightContribution,
 		}))
 		.sort((a, b) => a.boundarySlotIndex - b.boundarySlotIndex)
 
+	const occupiedSlots = new Set(
+		positionedFrames.map(({ slotIndex }) => slotIndex)
+	)
+	const displayIndicators = boundaryIndicators.filter((indicator) => {
+		const hasFrameOnLeft = occupiedSlots.has(indicator.boundarySlotIndex - 1)
+		const hasFrameOnRight = occupiedSlots.has(indicator.boundarySlotIndex)
+		return hasFrameOnLeft || hasFrameOnRight
+	})
+
 	const maxBeeCount = Math.max(
-		...boundaryIndicators.map((indicator) => indicator.count),
+		...displayIndicators.map((indicator) => indicator.count),
 		0
 	)
 
 	function getIndicatorLeft(
-		boundarySlotIndex: number,
+		indicator: {
+			boundarySlotIndex: number
+			hasLeftContribution: boolean
+			hasRightContribution: boolean
+		},
 		mode: 'visual' | 'list'
 	): number {
-		const offset =
-			mode === 'visual' ? VISUAL_INDICATOR_OFFSET_PX : LIST_INDICATOR_OFFSET_PX
-		return (boundarySlotIndex - slotRenderStartIndex) * SLOT_STEP_PX + offset
+		if (mode === 'list') {
+			return getListIndicatorLeftPx({
+				boundarySlotIndex: indicator.boundarySlotIndex,
+				slotRenderStartIndex,
+				hasLeftContribution: indicator.hasLeftContribution,
+				hasRightContribution: indicator.hasRightContribution,
+			})
+		}
+
+		return getVisualIndicatorLeftPx({
+			boundarySlotIndex: indicator.boundarySlotIndex,
+			slotRenderStartIndex,
+			hasLeftContribution: indicator.hasLeftContribution,
+			hasRightContribution: indicator.hasRightContribution,
+		})
 	}
 
 	let framesWrapped: any = framesDiv
+	const listInnerStyle = {
+		'--hive-section-padding-x': `${LIST_SECTION_PADDING_X_PX}px`,
+	} as React.CSSProperties
+	const visualInnerStyle = {
+		'--hive-section-padding-x': `${VISUAL_SECTION_PADDING_X_PX}px`,
+	} as React.CSSProperties
 	let onNativeDragStart = (
 		event: React.DragEvent<HTMLDivElement>,
 		payload: any
@@ -618,21 +669,24 @@ export default function Box({
 					}}
 					style={{
 						display: 'inline-block',
-						width: SLOT_WIDTH_PX,
+						flex: '0 0 auto',
+						width: LIST_SLOT_WIDTH_PX,
 						height: '100%',
 						verticalAlign: 'top',
-						marginLeft: SLOT_MARGIN_PX,
-						marginRight: SLOT_MARGIN_PX,
+						marginLeft: 0,
+						marginRight: 0,
 						boxSizing: 'border-box',
-						border: shouldShowSlots
+						outline: shouldShowSlots
 							? '2px dashed rgba(255,255,255,0.45)'
 							: '2px dashed transparent',
+						outlineOffset: -2,
 						borderRadius: 4,
 						background:
 							shouldShowSlots && slotIsHovered
 								? 'rgba(255,255,255,0.14)'
 								: 'transparent',
-						transition: 'background-color 120ms ease, border-color 120ms ease',
+						transition:
+							'background-color 120ms ease, outline-color 120ms ease',
 					}}
 				>
 					{!isEmptySlot && (
@@ -689,7 +743,7 @@ export default function Box({
 			)
 		)
 		maxWidthStyle = {
-			minWidth: slotCapacity * 40 + 28,
+			minWidth: slotCapacity * LIST_SLOT_WIDTH_PX + 28,
 			maxWidth: 'none',
 		}
 	} else if (frames.length > 10) {
@@ -706,14 +760,14 @@ export default function Box({
 					className={`${styles.boxOuter} ${selected && styles.selected}`}
 					style={maxWidthStyle}
 				>
-					<div className={styles.boxInnerVisual}>
+					<div className={styles.boxInnerVisual} style={visualInnerStyle}>
 						{!frames && <Loader size={1} />}
 						{framesDiv}
 						<div className={styles.indicatorLayer}>
-							{boundaryIndicators.map((indicator) => {
+							{displayIndicators.map((indicator) => {
 								if (indicator.count <= 0) return null
 								const leftPosition = getIndicatorLeft(
-									indicator.boundarySlotIndex,
+									indicator,
 									'visual'
 								)
 								const indicatorHeightPercent =
@@ -734,10 +788,10 @@ export default function Box({
 								)
 							})}
 						</div>
-						{boundaryIndicators.map((indicator) => {
+						{displayIndicators.map((indicator) => {
 							if (indicator.count <= 0) return null
 							const leftPosition = getIndicatorLeft(
-								indicator.boundarySlotIndex,
+								indicator,
 								'visual'
 							)
 							return (
@@ -765,14 +819,18 @@ export default function Box({
 				}`}
 				style={maxWidthStyle}
 			>
-					<div className={styles.boxInner} {...boxInnerDragProps}>
+					<div
+						className={styles.boxInner}
+						style={listInnerStyle}
+						{...boxInnerDragProps}
+					>
 						{!frames && <Loader size={1} />}
 						{framesWrapped}
-						<div className={styles.indicatorLayer}>
-							{boundaryIndicators.map((indicator) => {
+						<div className={styles.indicatorLayer} style={{ zIndex: 2 }}>
+							{displayIndicators.map((indicator) => {
 								if (indicator.count <= 0) return null
 								const leftPosition = getIndicatorLeft(
-									indicator.boundarySlotIndex,
+									indicator,
 								'list'
 							)
 							const indicatorHeightPercent =

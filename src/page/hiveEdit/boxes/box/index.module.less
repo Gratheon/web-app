@@ -52,7 +52,7 @@
 
 .boxInner {
 	border-bottom: 1px solid #b3b3b3;
-	padding: 0 14px;
+	padding: 0 var(--hive-section-padding-x, 14px);
 	display: flex;
 	// min-width: 304px;
 	width: 100%;
@@ -66,7 +66,7 @@
 .boxInnerVisual {
     display: flex;
     flex-wrap: wrap;
-    padding: 0 5px;
+    padding: 0 var(--hive-section-padding-x, 5px);
 	position: relative; // Ensure this is positioned for z-index stacking
 	z-index: 1; // Ensure frames are above the indicator layer
 }
@@ -95,8 +95,8 @@
 .indicatorLayer {
 	position: absolute;
 	top: 0;
-	left: 0;
-	width: 100%;
+	left: calc(var(--hive-section-padding-x, 0px) - 2px);
+	width: calc(100% - (var(--hive-section-padding-x, 0px) * 2) + 4px);
 	height: 100%;
 	pointer-events: none; // Allow clicks to pass through to frames
 	z-index: 0; // Position behind the frame containers
@@ -116,7 +116,7 @@
 
 .indicatorLine {
 	width: 100%; // Full width of the container
-	background-color: white; // Changed to white
+	background-color: white;
 	border-radius: 1px; // Slightly rounded edges
 	transition: height 0.3s ease; // Smooth height transition
 	// Height is set via inline style

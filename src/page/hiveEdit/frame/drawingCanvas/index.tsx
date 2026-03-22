@@ -1923,83 +1923,77 @@ export default function DrawingCanvas({
 							<T>No queen markers on this frame yet.</T>
 						</div>
 					)}
-					{editableQueenAnnotations.map((annotation) => {
-						const isAiCandidate = annotation.source === 'ai' && annotation.status !== 'approved';
-						const selectedFamilyId = Number(annotation.familyId);
-						const selectedFamily = Number.isFinite(selectedFamilyId) && selectedFamilyId > 0
-							? familyById.get(selectedFamilyId)
-							: undefined;
-						const selectableFamilies = (families || []).filter((family) => {
-							const familyId = Number(family?.id);
-							if (!Number.isFinite(familyId) || familyId <= 0) return false;
-							if (Number.isFinite(selectedFamilyId) && selectedFamilyId > 0 && familyId === selectedFamilyId) return true;
-							return !occupiedFamilyIds.has(familyId);
-						});
-						return (
-						<div
-							key={annotation.id}
-							style={{
-								display: 'grid',
-								gridTemplateColumns: isAiCandidate ? 'auto auto auto auto' : 'auto auto',
-								gap: 8,
-								alignItems: 'center',
-								marginBottom: 6,
-								justifyContent: 'start',
-							}}
-						>
-							<div className={styles.queenFamilySelectWrap}>
-								<span className={styles.queenFamilyColor}>
-									{selectedFamily ? (
-										<QueenColor year={selectedFamily.added || ''} color={selectedFamily.color} />
-									) : (
-										<span className={styles.queenFamilyColorPlaceholder} />
+					<div className={styles.queenMarkersGrid}>
+						{editableQueenAnnotations.map((annotation) => {
+							const isAiCandidate = annotation.source === 'ai' && annotation.status !== 'approved';
+							const selectedFamilyId = Number(annotation.familyId);
+							const selectedFamily = Number.isFinite(selectedFamilyId) && selectedFamilyId > 0
+								? familyById.get(selectedFamilyId)
+								: undefined;
+							const selectableFamilies = (families || []).filter((family) => {
+								const familyId = Number(family?.id);
+								if (!Number.isFinite(familyId) || familyId <= 0) return false;
+								if (Number.isFinite(selectedFamilyId) && selectedFamilyId > 0 && familyId === selectedFamilyId) return true;
+								return !occupiedFamilyIds.has(familyId);
+							});
+							return (
+								<div key={annotation.id} className={styles.queenMarkerCard}>
+									<div className={styles.queenMarkerTopRow}>
+										<div className={styles.queenFamilySelectWrap}>
+											<span className={styles.queenFamilyColor}>
+												{selectedFamily ? (
+													<QueenColor year={selectedFamily.added || ''} color={selectedFamily.color} />
+												) : (
+													<span className={styles.queenFamilyColorPlaceholder} />
+												)}
+											</span>
+											<select
+												className={styles.queenFamilySelect}
+												value={annotation.familyId ? String(annotation.familyId) : ''}
+												onChange={(event) => void handleAssignFamily(annotation, String((event.target as HTMLSelectElement).value || ''))}
+											>
+												<option value="">Unassigned</option>
+												{selectableFamilies.map((family) => (
+													<option key={family.id} value={family.id}>
+														{family.name || `#${family.id}`}
+													</option>
+												))}
+											</select>
+										</div>
+										<Button size="small" color="red" onClick={async () => { await removeQueenAnnotation(annotation); }}>
+											<T>Delete</T>
+										</Button>
+									</div>
+									{isAiCandidate && (
+										<div className={styles.queenMarkerActionsRow}>
+											<Button
+												size="small"
+												onClick={() => void upsertQueenAnnotation(annotation.id, (current) => ({
+													...current,
+													status: 'approved',
+													updatedAt: new Date().toISOString(),
+												}))}
+											>
+												<T>Approve</T>
+											</Button>
+											<Button
+												size="small"
+												color="gray"
+												onClick={async () => {
+													if (annotation.source === 'ai' && onRemoveDetectedQueenCandidate) {
+														await onRemoveDetectedQueenCandidate({ x: annotation.x, y: annotation.y });
+													}
+													await removeQueenAnnotation(annotation);
+												}}
+											>
+												<T>Reject</T>
+											</Button>
+										</div>
 									)}
-								</span>
-								<select
-									className={styles.queenFamilySelect}
-									value={annotation.familyId ? String(annotation.familyId) : ''}
-									onChange={(event) => void handleAssignFamily(annotation, String((event.target as HTMLSelectElement).value || ''))}
-								>
-									<option value="">Unassigned</option>
-									{selectableFamilies.map((family) => (
-										<option key={family.id} value={family.id}>
-											{family.name || `#${family.id}`}
-										</option>
-									))}
-								</select>
-							</div>
-							{isAiCandidate && (
-								<Button
-									size="small"
-									onClick={() => void upsertQueenAnnotation(annotation.id, (current) => ({
-										...current,
-										status: 'approved',
-										updatedAt: new Date().toISOString(),
-									}))}
-								>
-									<T>Approve</T>
-								</Button>
-							)}
-							{isAiCandidate && (
-								<Button
-									size="small"
-									color="gray"
-									onClick={async () => {
-										if (annotation.source === 'ai' && onRemoveDetectedQueenCandidate) {
-											await onRemoveDetectedQueenCandidate({ x: annotation.x, y: annotation.y });
-										}
-										await removeQueenAnnotation(annotation);
-									}}
-								>
-									<T>Reject</T>
-								</Button>
-							)}
-							<Button size="small" color="red" onClick={async () => { await removeQueenAnnotation(annotation); }}>
-								<T>Delete</T>
-							</Button>
-						</div>
-						);
-					})}
+								</div>
+							);
+						})}
+					</div>
 				</div>
 			)}
 

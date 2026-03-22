@@ -113,6 +113,36 @@
 	gap: 8px;
 }
 
+.queenMarkersGrid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	gap: 8px;
+}
+
+.queenMarkerCard {
+	border: 1px solid #d6dfeb;
+	border-radius: 10px;
+	background: #fff;
+	padding: 8px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	box-shadow: 0 2px 8px rgba(17, 39, 68, 0.06);
+}
+
+.queenMarkerTopRow {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	justify-content: space-between;
+}
+
+.queenMarkerActionsRow {
+	display: flex;
+	gap: 6px;
+	justify-content: flex-end;
+}
+
 .queenFamilySelectWrap {
 	display: inline-flex;
 	align-items: center;
@@ -123,6 +153,8 @@
 	padding: 4px 8px 4px 6px;
 	min-height: 34px;
 	box-shadow: 0 2px 8px rgba(17, 39, 68, 0.08);
+	flex: 1 1 auto;
+	min-width: 0;
 }
 
 .queenFamilyColor {
@@ -148,7 +180,8 @@
 	font-weight: 600;
 	padding: 4px 20px 4px 2px;
 	outline: none;
-	min-width: 150px;
+	min-width: 0;
+	width: 100%;
 }
 
 .queenFamilySelect:focus {

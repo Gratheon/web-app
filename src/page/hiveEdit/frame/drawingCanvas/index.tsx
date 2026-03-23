@@ -918,7 +918,7 @@ export default function DrawingCanvas({
 	);
 	const queenAnnotationsOnCanvas = allowDrawing ? editableQueenAnnotations : readOnlyQueenMarkers;
 	const showQueenCupsOnCanvas = allowDrawing ? showQueenCups : false;
-	const showVarroaOnCanvas = allowDrawing ? showVarroa : false;
+	const showVarroaOnCanvas = showVarroa;
 	const showDetectedCellsOnCanvas = allowDrawing ? true : showFrameCells;
 	const cellsOpacityFactor = allowDrawing
 		? cellsOpacityPercent / 100
@@ -1703,6 +1703,18 @@ export default function DrawingCanvas({
 						<Button size="small" style={layerToggleButtonStyle} onClick={() => setShowQueenAnnotations(!showQueenAnnotations)}>
 							<Checkbox on={showQueenAnnotations} color="#111" />
 							<span><T ctx="toggle queens visibility">Queens</T>{readOnlyQueenMarkers.length > 0 && ` (${readOnlyQueenMarkers.length})`}</span>
+						</Button>
+						<Button size="small" style={layerToggleButtonStyle} onClick={() => setShowVarroaVisibility(!showVarroa)}>
+							{
+								(
+									frameSideFile?.isVarroaDetectionComplete ||
+									(frameSideFile?.varroaCount || 0) > 0 ||
+									(detectedVarroa?.length || 0) > 0
+								)
+									? <Checkbox on={showVarroa} color="#111" />
+									: <Loader size={0} stroke="#111" />
+							}
+							<span><T ctx="toggle varroa mites visibility">Varroa mites</T>{frameSideFile?.varroaCount > 0 && ` (${frameSideFile.varroaCount})`}</span>
 						</Button>
 					</div>
 				</div>

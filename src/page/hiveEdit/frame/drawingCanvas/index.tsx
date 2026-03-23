@@ -220,11 +220,20 @@ function applyCellBrush(
 	sourceCells: any[],
 	center: { x: number; y: number },
 	selectedCellType: BrushCellType,
-	brushRadiusRatio: number
+	brushRadiusRatio: number,
+	canvasWidthToHeight: number
 ): { cells: any[]; changed: boolean } {
 	const inputCells = Array.isArray(sourceCells) ? sourceCells : [];
 	const result: any[] = [];
 	const brushRadius = brushRadiusRatio;
+	const safeCanvasWidthToHeight = Number.isFinite(canvasWidthToHeight) && canvasWidthToHeight > 0
+		? canvasWidthToHeight
+		: 1;
+	const xToBrushSpace = (xDelta: number) => xDelta * safeCanvasWidthToHeight;
+	const brushDistanceSq = (xDelta: number, yDelta: number) => {
+		const scaledDx = xToBrushSpace(xDelta);
+		return (scaledDx * scaledDx) + (yDelta * yDelta);
+	};
 	const brushRadiusSq = brushRadius * brushRadius;
 	let touchedCells = 0;
 	let changed = false;
@@ -265,7 +274,7 @@ function applyCellBrush(
 		const [cls, x, y, r, probability] = cell;
 		const dx = x - center.x;
 		const dy = y - center.y;
-		const isInsideBrush = (dx * dx + dy * dy) <= brushRadiusSq;
+		const isInsideBrush = brushDistanceSq(dx, dy) <= brushRadiusSq;
 
 		if (!isInsideBrush) {
 			result.push(cell);
@@ -290,7 +299,8 @@ function applyCellBrush(
 		const derivedRadius = deriveMedianRadius(inputCells);
 		const verticalStep = derivedRadius * Math.sqrt(3);
 		const horizontalStep = derivedRadius * 2;
-		const effectiveBrushRadius = Math.max(derivedRadius, brushRadius - derivedRadius);
+		const derivedRadiusInBrushSpace = derivedRadius * safeCanvasWidthToHeight;
+		const effectiveBrushRadius = Math.max(derivedRadiusInBrushSpace, brushRadius - derivedRadiusInBrushSpace);
 		let addedCells = 0;
 		const maxAddedCells = 120;
 
@@ -304,19 +314,21 @@ function applyCellBrush(
 			) {
 				const dxBrush = x - center.x;
 				const dyBrush = y - center.y;
-				// Keep full circle footprint inside brush disk.
-				if ((dxBrush * dxBrush + dyBrush * dyBrush) > (effectiveBrushRadius * effectiveBrushRadius)) {
+				// Keep full circle footprint inside brush disk in pixel-accurate brush space.
+				if (brushDistanceSq(dxBrush, dyBrush) > (effectiveBrushRadius * effectiveBrushRadius)) {
 					continue;
 				}
 
-				if (hasCircleCollision(result, x, y, derivedRadius)) {
+				const clampedX = clamp01(x);
+				const clampedY = clamp01(y);
+				if (hasCircleCollision(result, clampedX, clampedY, derivedRadius)) {
 					continue;
 				}
 
 				result.push([
 					selectedCellType,
-					clamp01(x),
-					clamp01(y),
+					clampedX,
+					clampedY,
 					derivedRadius,
 					100,
 				]);
@@ -1135,7 +1147,8 @@ export default function DrawingCanvas({
 						workingCells,
 						center,
 						selectedCellType,
-						brushRadiusRatio
+						brushRadiusRatio,
+						canvas.width / canvas.height
 					);
 
 					if (changed) {

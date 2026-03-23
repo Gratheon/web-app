@@ -1,8 +1,8 @@
 import {apiClient, gql} from '@/api'
 import {upsertPluralForm, upsertTranslation, upsertTranslationValue} from '@/models/translations'
 
-const getTranslationsQuery = gql`query getTranslations($inputs: [TranslationInput!]!){
-    getTranslations(inputs: $inputs){
+const getTranslationsQuery = gql`query getTranslations($inputs: [TranslationInput!]!, $langs: [String!]){
+    getTranslations(inputs: $inputs, langs: $langs){
         __typename
         id
         key
@@ -19,6 +19,7 @@ interface TranslationRequest {
   context?: string
   namespace?: string
   isPlural?: boolean
+  lang?: string
   resolve: (value: any) => void
   reject: (error: any) => void
 }
@@ -38,9 +39,15 @@ class NewTranslationBatcher {
     }
   }
 
-  async request(key: string, isPlural: boolean = false, context?: string, namespace?: string): Promise<any> {
+  async request(
+    key: string,
+    isPlural: boolean = false,
+    context?: string,
+    namespace?: string,
+    lang?: string
+  ): Promise<any> {
     return new Promise((resolve, reject) => {
-      this.queue.push({key, context, namespace, isPlural, resolve, reject})
+      this.queue.push({key, context, namespace, isPlural, lang, resolve, reject})
 
       if (this.timer) {
         clearTimeout(this.timer)
@@ -76,7 +83,20 @@ class NewTranslationBatcher {
         return input
       })
 
-      const result = await apiClient.query(getTranslationsQuery, {inputs}).toPromise()
+      const requestedLangs = Array.from(
+        new Set(
+          uniqueRequests
+            .map((req) => req.lang?.trim().toLowerCase())
+            .filter((lang): lang is string => Boolean(lang))
+        )
+      )
+
+      const variables: any = { inputs }
+      if (requestedLangs.length > 0) {
+        variables.langs = requestedLangs
+      }
+
+      const result = await apiClient.query(getTranslationsQuery, variables).toPromise()
 
       if (result.data?.getTranslations) {
         const persistedRecords = new Set<string>()
@@ -106,7 +126,7 @@ class NewTranslationBatcher {
     const seen = new Map<string, TranslationRequest>()
 
     for (const req of requests) {
-      const key = `${req.key}|${req.context || ''}|${req.namespace || ''}|${req.isPlural}`
+      const key = `${req.key}|${req.context || ''}|${req.namespace || ''}|${req.isPlural}|${req.lang || ''}`
       if (!seen.has(key)) {
         seen.set(key, req)
       }
@@ -168,6 +188,9 @@ class NewTranslationBatcher {
 
     if (trans.values) {
       for (const [lang, value] of Object.entries(trans.values)) {
+        if (req.lang && lang !== req.lang) {
+          continue
+        }
         await upsertTranslationValue({
           translationId: persistedTranslationId,
           lang,
@@ -176,6 +199,9 @@ class NewTranslationBatcher {
       }
     } else if (trans.plurals && !trans.values) {
       for (const [lang, pluralData] of Object.entries(trans.plurals)) {
+        if (req.lang && lang !== req.lang) {
+          continue
+        }
         const pd = pluralData as any
         const rawValue = pd?.other || pd?.few || pd?.many || pd?.one || pd?.zero || pd?.two || req.key
         const capitalizedValue = rawValue.charAt(0).toUpperCase() + rawValue.slice(1)
@@ -190,6 +216,9 @@ class NewTranslationBatcher {
 
     if (trans.plurals) {
       for (const [lang, pluralData] of Object.entries(trans.plurals)) {
+        if (req.lang && lang !== req.lang) {
+          continue
+        }
         await upsertPluralForm({
           translationId: persistedTranslationId,
           lang,

@@ -57,7 +57,7 @@ export async function fetchTranslationWithRemote(
 	}
 
 	try {
-		const trans = await newTranslationBatcher.request(key, false, context, namespace);
+		const trans = await newTranslationBatcher.request(key, false, context, namespace, lang);
 		return trans?.values?.[lang] || key;
 	} catch (error) {
 		console.error('[fetchTranslationWithRemote] Error:', error);
@@ -99,7 +99,7 @@ export async function fetchPluralWithRemote(
 	}
 
 	try {
-		const trans = await newTranslationBatcher.request(key, true, undefined, namespace);
+		const trans = await newTranslationBatcher.request(key, true, undefined, namespace, lang);
 		const pluralValue = trans?.plurals?.[lang]?.[pluralForm];
 		return pluralValue || key;
 	} catch (error) {
@@ -136,7 +136,7 @@ export async function fetchRemoteTranslation(
 	namespace?: string
 ): Promise<TranslationData | null> {
 	try {
-		const trans = await newTranslationBatcher.request(key, false, context, namespace);
+		const trans = await newTranslationBatcher.request(key, false, context, namespace, lang);
 		return trans || null;
 	} catch (error) {
 		console.error('[fetchRemoteTranslation] Error:', error);

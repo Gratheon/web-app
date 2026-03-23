@@ -100,7 +100,7 @@ describe('translationService', () => {
 			const result = await fetchTranslationWithRemote('delete', 'ru');
 
 			expect(result).toBe('Удалить');
-			expect(newTranslationBatcher.request).toHaveBeenCalledWith('delete', false, undefined, undefined);
+			expect(newTranslationBatcher.request).toHaveBeenCalledWith('delete', false, undefined, undefined, 'ru');
 		});
 
 		it('should return key as fallback when remote fails', async () => {
@@ -225,7 +225,7 @@ describe('translationService', () => {
 			const result = await fetchPluralWithRemote('hive', 'ru', 'many');
 
 			expect(result).toBe('ульев');
-			expect(newTranslationBatcher.request).toHaveBeenCalledWith('hive', true, undefined, undefined);
+			expect(newTranslationBatcher.request).toHaveBeenCalledWith('hive', true, undefined, undefined, 'ru');
 		});
 
 		it('should return key as fallback when remote fails', async () => {

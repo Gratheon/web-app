@@ -7,6 +7,7 @@ import hiveSystemsUrl from '@/assets/hive-systems.webp'
 import logoUrl from '@/assets/logo_v7.svg'
 import wideLogoUrl from '@/assets/logo_v7w.svg'
 import queenUrl from '@/assets/queen.webp'
+import queenPlaceholderUrls from '@/assets/queens/placeholders'
 import symbiosisUrl from '@/assets/symbiosis.png'
 import thinkerUrl from '@/assets/thinker.webp'
 
@@ -15,6 +16,7 @@ const UI_ASSET_URLS = [
 	wideLogoUrl,
 	thinkerUrl,
 	queenUrl,
+	...queenPlaceholderUrls,
 	devicesUrl,
 	hiveSystemsUrl,
 	alertsUrl,

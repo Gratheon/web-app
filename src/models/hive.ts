@@ -3,6 +3,8 @@ export { db };
 
 export type Hive = {
 	id: number
+	apiaryId?: number
+	apiary_id?: number
 	hiveType?: string
 	boxSystemId?: number | string
 	box_system_id?: number | string
@@ -91,6 +93,27 @@ export async function getHive(id: number): Promise<Hive | undefined> {
 	try {
 		// Ensure ID passed to Dexie is a number
 		return await db[TABLE_NAME].get(+id);
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
+}
+
+export async function getHivesByIds(ids: number[]): Promise<Hive[]> {
+	const normalized = Array.from(
+		new Set(
+			(ids || [])
+				.map((id) => Number(id))
+				.filter((id) => Number.isFinite(id) && id > 0)
+		)
+	)
+
+	if (!normalized.length) {
+		return []
+	}
+
+	try {
+		return await db[TABLE_NAME].where('id').anyOf(normalized).toArray()
 	} catch (e) {
 		console.error(e)
 		throw e

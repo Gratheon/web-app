@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useLiveQuery } from 'dexie-react-hooks'
 
 import { gql, useMutation, useQuery } from '@/api'
 import Button from '@/shared/button'
@@ -7,16 +8,38 @@ import ErrorMsg from '@/shared/messageError'
 import Loader from '@/shared/loader'
 import Modal from '@/shared/modal'
 import T from '@/shared/translate'
+import ListIcon from '@/icons/listIcon'
+import TableIcon from '@/icons/tableIcon'
 import queenImageURL from '@/assets/queen.webp'
+import queenPlaceholderUrls from '@/assets/queens/placeholders'
 import { getQueenColorFromYear } from '@/page/hiveEdit/hiveTopInfo/queenColor/utils'
+import { getAssignedFamilies, getFamiliesByIds, getUnassignedFamilies } from '@/models/family'
+import { getHivesByIds } from '@/models/hive'
 import styles from './queens.module.less'
 
-type WarehouseQueen = {
+type HiveLink = {
+	apiaryId: string
+	hiveId: string
+	hiveNumber?: number | null
+}
+
+type LastDetectedLink = {
+	frameId: string
+	frameSideId: string
+	boxId: string
+	fileId?: string
+}
+
+type QueenItem = {
 	id: string
 	name?: string | null
 	race?: string | null
 	added?: string | null
 	color?: string | null
+	previewImageUrl?: string | null
+	section: 'IN_HIVES' | 'WAREHOUSE'
+	hive?: HiveLink | null
+	lastDetected?: LastDetectedLink | null
 	lastHive?: {
 		id: string
 		hiveNumber?: number | null
@@ -25,8 +48,24 @@ type WarehouseQueen = {
 
 type SortColumn = 'NAME' | 'YEAR' | 'RACE' | 'COLOR'
 type SortOrder = 'ASC' | 'DESC'
+type ViewMode = 'LIST' | 'TABLE'
 
-const WAREHOUSE_QUEENS_QUERY = gql`
+function hashString(value: string): number {
+	let hash = 0
+	for (let i = 0; i < value.length; i++) {
+		hash = ((hash << 5) - hash) + value.charCodeAt(i)
+		hash |= 0
+	}
+	return Math.abs(hash)
+}
+
+function getRandomQueenPlaceholder(seed: string): string {
+	if (!queenPlaceholderUrls.length) return queenImageURL
+	const index = hashString(seed) % queenPlaceholderUrls.length
+	return queenPlaceholderUrls[index]
+}
+
+const QUEENS_QUERY = gql`
 {
 	warehouseQueens {
 		id
@@ -34,16 +73,6 @@ const WAREHOUSE_QUEENS_QUERY = gql`
 		race
 		added
 		color
-		lastHive {
-			id
-			hiveNumber
-		}
-	}
-	apiaries {
-		id
-		hives {
-			id
-		}
 	}
 }
 `
@@ -54,31 +83,189 @@ mutation deleteWarehouseQueen($familyId: ID!) {
 }
 `
 
+function sortQueens(items: QueenItem[], sortBy: SortColumn, sortOrder: SortOrder): QueenItem[] {
+	const entries = [...items]
+	entries.sort((a, b) => {
+		const aName = (a.name || '').trim()
+		const bName = (b.name || '').trim()
+		const aRace = (a.race || '').trim()
+		const bRace = (b.race || '').trim()
+		const aYear = Number.parseInt(a.added || '', 10)
+		const bYear = Number.parseInt(b.added || '', 10)
+		const aColor = (a.color || getQueenColorFromYear(a.added || '') || '').toLowerCase()
+		const bColor = (b.color || getQueenColorFromYear(b.added || '') || '').toLowerCase()
+
+		let compareValue = 0
+		switch (sortBy) {
+		case 'NAME':
+			compareValue = aName.localeCompare(bName, undefined, { sensitivity: 'base' })
+			break
+		case 'RACE':
+			compareValue = aRace.localeCompare(bRace, undefined, { sensitivity: 'base' })
+			break
+		case 'YEAR': {
+			const aHasYear = Number.isFinite(aYear)
+			const bHasYear = Number.isFinite(bYear)
+			if (!aHasYear && !bHasYear) {
+				compareValue = 0
+			} else if (!aHasYear) {
+				compareValue = 1
+			} else if (!bHasYear) {
+				compareValue = -1
+			} else {
+				compareValue = aYear - bYear
+			}
+			break
+		}
+		case 'COLOR':
+			compareValue = aColor.localeCompare(bColor, undefined, { sensitivity: 'base' })
+			break
+		default:
+			compareValue = 0
+		}
+
+		if (compareValue === 0) {
+			return aName.localeCompare(bName, undefined, { sensitivity: 'base' })
+		}
+
+		return sortOrder === 'ASC' ? compareValue : -compareValue
+	})
+	return entries
+}
+
 export default function WarehouseQueensPage() {
-	const { data, loading, error, reexecuteQuery } = useQuery(WAREHOUSE_QUEENS_QUERY)
+	const { data, loading, error, reexecuteQuery } = useQuery(QUEENS_QUERY)
 	const [deleteWarehouseQueen] = useMutation(DELETE_WAREHOUSE_QUEEN_MUTATION)
 	const [deletingId, setDeletingId] = useState<string | null>(null)
 	const [sortBy, setSortBy] = useState<SortColumn>('YEAR')
 	const [sortOrder, setSortOrder] = useState<SortOrder>('DESC')
-	const [selectedQueenId, setSelectedQueenId] = useState<string | null>(null)
+	const [viewMode, setViewMode] = useState<ViewMode>('LIST')
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-	const [queenToDelete, setQueenToDelete] = useState<WarehouseQueen | null>(null)
+	const [queenToDelete, setQueenToDelete] = useState<QueenItem | null>(null)
 
-	const queens: WarehouseQueen[] = data?.warehouseQueens || []
-	const hiveToApiary = useMemo(() => {
-		const nextMap: Record<string, string> = {}
-		for (const apiary of data?.apiaries || []) {
-			for (const hive of apiary?.hives || []) {
-				if (hive?.id) {
-					nextMap[String(hive.id)] = String(apiary.id)
-				}
-			}
+	const assignedFamilies = useLiveQuery(() => getAssignedFamilies(), [], [])
+	const unassignedFamilies = useLiveQuery(() => getUnassignedFamilies(), [], [])
+
+	const hiveIds = useMemo(() => {
+		const ids: number[] = []
+		for (const family of assignedFamilies || []) {
+			const hiveId = Number(family?.hiveId)
+			if (Number.isFinite(hiveId) && hiveId > 0) ids.push(hiveId)
 		}
-		return nextMap
-	}, [data?.apiaries])
+		return Array.from(new Set(ids))
+	}, [assignedFamilies])
+
+	const localHives = useLiveQuery(
+		() => getHivesByIds(hiveIds),
+		[hiveIds.join(',')],
+		[]
+	)
+
+	const hiveById = useMemo(() => {
+		const map = new Map<string, any>()
+		for (const hive of localHives || []) {
+			if (!hive?.id) continue
+			map.set(String(hive.id), hive)
+		}
+		return map
+	}, [localHives])
+
+	const familyIds = useMemo(() => {
+		const ids: number[] = []
+		for (const queen of data?.warehouseQueens || []) {
+			const id = Number(queen?.id)
+			if (Number.isFinite(id) && id > 0) ids.push(id)
+		}
+		for (const family of assignedFamilies || []) {
+			const id = Number(family?.id)
+			if (Number.isFinite(id) && id > 0) ids.push(id)
+		}
+		return Array.from(new Set(ids))
+	}, [assignedFamilies, data?.warehouseQueens])
+
+	const localFamilies = useLiveQuery(
+		() => getFamiliesByIds(familyIds),
+		[familyIds.join(',')],
+		[]
+	)
+
+	const localPreviewByFamilyId = useMemo(() => {
+		const map = new Map<string, string>()
+		for (const family of localFamilies || []) {
+			if (!family?.id || !family?.previewImageUrl) continue
+			map.set(String(family.id), String(family.previewImageUrl))
+		}
+		return map
+	}, [localFamilies])
+
+	const inHiveQueens = useMemo(() => {
+		const items: QueenItem[] = []
+		for (const family of assignedFamilies || []) {
+			if (!family?.id || !family?.hiveId) continue
+			const hiveId = String(family.hiveId)
+			const hive = hiveById.get(hiveId)
+			const apiaryId = String(hive?.apiaryId || hive?.apiary_id || '')
+			const lastDetected = (
+				family.lastSeenFrameId && family.lastSeenFrameSideId && family.lastSeenBoxId
+			) ? {
+				frameId: String(family.lastSeenFrameId),
+				frameSideId: String(family.lastSeenFrameSideId),
+				boxId: String(family.lastSeenBoxId),
+			} : null
+			items.push({
+				id: String(family.id),
+				name: family.name,
+				race: family.race,
+				added: family.added,
+				color: family.color,
+				previewImageUrl: family.previewImageUrl || localPreviewByFamilyId.get(String(family.id)),
+				section: 'IN_HIVES',
+				hive: {
+					apiaryId,
+					hiveId,
+					hiveNumber: hive?.hiveNumber,
+				},
+				lastDetected,
+			})
+		}
+		return sortQueens(items, sortBy, sortOrder)
+	}, [assignedFamilies, hiveById, localPreviewByFamilyId, sortBy, sortOrder])
+
+	const warehouseQueens = useMemo(() => {
+		const byId = new Map<string, QueenItem>()
+		for (const queen of data?.warehouseQueens || []) {
+			const id = String(queen.id)
+			byId.set(id, {
+				id,
+				name: queen.name,
+				race: queen.race,
+				added: queen.added,
+				color: queen.color,
+				previewImageUrl: localPreviewByFamilyId.get(id),
+				section: 'WAREHOUSE',
+				lastHive: queen.lastHive,
+			})
+		}
+		for (const family of unassignedFamilies || []) {
+			const id = String(family.id)
+			if (byId.has(id)) continue
+			byId.set(id, {
+				id,
+				name: family.name,
+				race: family.race,
+				added: family.added,
+				color: family.color,
+				previewImageUrl: family.previewImageUrl || localPreviewByFamilyId.get(id),
+				section: 'WAREHOUSE',
+			})
+		}
+		const items = Array.from(byId.values())
+		return sortQueens(items, sortBy, sortOrder)
+	}, [data?.warehouseQueens, localPreviewByFamilyId, sortBy, sortOrder, unassignedFamilies])
+
 	const errorMessage = String(error?.message || '')
 	const likelyBackendMismatch =
-		errorMessage.includes('lastHive') || errorMessage.includes('family_moves')
+		errorMessage.includes('lastHive') || errorMessage.includes('family_moves') || errorMessage.includes('previewImageUrl')
 
 	function onSort(nextSortBy: SortColumn) {
 		if (sortBy === nextSortBy) {
@@ -90,7 +277,7 @@ export default function WarehouseQueensPage() {
 		setSortOrder('ASC')
 	}
 
-	function requestDeleteQueen(queen: WarehouseQueen) {
+	function requestDeleteQueen(queen: QueenItem) {
 		setQueenToDelete(queen)
 		setIsDeleteModalOpen(true)
 	}
@@ -110,145 +297,6 @@ export default function WarehouseQueensPage() {
 		}
 	}
 
-	const sortedQueens = useMemo(() => {
-		const entries = [...queens]
-
-		entries.sort((a, b) => {
-			const aName = (a.name || '').trim()
-			const bName = (b.name || '').trim()
-			const aRace = (a.race || '').trim()
-			const bRace = (b.race || '').trim()
-			const aYear = Number.parseInt(a.added || '', 10)
-			const bYear = Number.parseInt(b.added || '', 10)
-			const aColor = (a.color || getQueenColorFromYear(a.added || '') || '').toLowerCase()
-			const bColor = (b.color || getQueenColorFromYear(b.added || '') || '').toLowerCase()
-
-			let compareValue = 0
-			switch (sortBy) {
-			case 'NAME':
-				compareValue = aName.localeCompare(bName, undefined, { sensitivity: 'base' })
-				break
-			case 'RACE':
-				compareValue = aRace.localeCompare(bRace, undefined, { sensitivity: 'base' })
-				break
-			case 'YEAR': {
-				const aHasYear = Number.isFinite(aYear)
-				const bHasYear = Number.isFinite(bYear)
-				if (!aHasYear && !bHasYear) {
-					compareValue = 0
-				} else if (!aHasYear) {
-					compareValue = 1
-				} else if (!bHasYear) {
-					compareValue = -1
-				} else {
-					compareValue = aYear - bYear
-				}
-				break
-			}
-			case 'COLOR':
-				compareValue = aColor.localeCompare(bColor, undefined, { sensitivity: 'base' })
-				break
-			default:
-				compareValue = 0
-			}
-
-			if (compareValue === 0) {
-				return aName.localeCompare(bName, undefined, { sensitivity: 'base' })
-			}
-
-			return sortOrder === 'ASC' ? compareValue : -compareValue
-		})
-
-		return entries
-	}, [queens, sortBy, sortOrder])
-
-	useEffect(() => {
-		if (sortedQueens.length === 0) {
-			setSelectedQueenId(null)
-			return
-		}
-
-		if (!selectedQueenId || !sortedQueens.some((queen) => queen.id === selectedQueenId)) {
-			setSelectedQueenId(sortedQueens[0].id)
-		}
-	}, [sortedQueens, selectedQueenId])
-
-	useEffect(() => {
-		const isTypingTarget = (target: EventTarget | null) => {
-			if (!target || !(target instanceof HTMLElement)) return false
-			const tagName = String(target.tagName || '').toLowerCase()
-			return (
-				target.isContentEditable ||
-				tagName === 'input' ||
-				tagName === 'textarea' ||
-				tagName === 'select'
-			)
-		}
-
-		const onKeyDown = async (event: KeyboardEvent) => {
-			if (isTypingTarget(event.target)) {
-				return
-			}
-
-			if (isDeleteModalOpen) {
-				if (deletingId) return
-
-				if (event.key === 'Escape') {
-					event.preventDefault()
-					event.stopPropagation()
-					setIsDeleteModalOpen(false)
-					return
-				}
-
-				if (event.key === 'Enter') {
-					event.preventDefault()
-					event.stopPropagation()
-					await onDeleteQueenConfirm()
-				}
-				return
-			}
-
-			if (!sortedQueens.length) {
-				return
-			}
-
-			if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
-				event.preventDefault()
-				event.stopPropagation()
-
-				const currentIndex = sortedQueens.findIndex((queen) => queen.id === selectedQueenId)
-				if (currentIndex === -1) {
-					setSelectedQueenId(
-						event.key === 'ArrowUp'
-							? sortedQueens[sortedQueens.length - 1].id
-							: sortedQueens[0].id
-					)
-					return
-				}
-
-				const nextIndex = event.key === 'ArrowUp'
-					? Math.max(0, currentIndex - 1)
-					: Math.min(sortedQueens.length - 1, currentIndex + 1)
-				setSelectedQueenId(sortedQueens[nextIndex].id)
-				return
-			}
-
-			if (event.key === 'Delete' || event.key === 'Del') {
-				if (!selectedQueenId) return
-				const selectedQueen = sortedQueens.find((queen) => queen.id === selectedQueenId)
-				if (!selectedQueen) return
-				event.preventDefault()
-				event.stopPropagation()
-				requestDeleteQueen(selectedQueen)
-			}
-		}
-
-		document.addEventListener('keydown', onKeyDown, true)
-		return () => {
-			document.removeEventListener('keydown', onKeyDown, true)
-		}
-	}, [deletingId, isDeleteModalOpen, selectedQueenId, sortedQueens])
-
 	if (loading) {
 		return <Loader />
 	}
@@ -260,79 +308,72 @@ export default function WarehouseQueensPage() {
 		return sortOrder === 'ASC' ? ' ↑' : ' ↓'
 	}
 
-	return (
-		<div className={styles.page}>
-			<div className={styles.headerRow}>
-				<h2><T>Warehouse Queens</T></h2>
-				<Button color="green" href="/warehouse/queens/create">
-					<T>Add Queen</T>
-				</Button>
-			</div>
-			<p className={styles.description}>
-				<T>Queens stored in warehouse and not assigned to any hive.</T>
-			</p>
-			<ErrorMsg error={error} />
+	const renderHiveLink = (queen: QueenItem) => {
+		if (queen.section === 'IN_HIVES' && queen.hive) {
+			if (!queen.hive.apiaryId) {
+				return queen.hive.hiveNumber ? `#${queen.hive.hiveNumber}` : `ID ${queen.hive.hiveId}`
+			}
+			return (
+				<Link className={styles.hiveLink} to={`/apiaries/${queen.hive.apiaryId}/hives/${queen.hive.hiveId}`}>
+					{queen.hive.hiveNumber ? `#${queen.hive.hiveNumber}` : `ID ${queen.hive.hiveId}`}
+				</Link>
+			)
+		}
 
-				{sortedQueens.length === 0 && !error ? (
-					<div className={styles.empty}>
-						<img src={queenImageURL} alt="Queen placeholder" className={styles.emptyImage} draggable={false} />
-						<T>No queens stored in warehouse.</T>
-					</div>
-				) : null}
+		if (queen.lastHive?.id) {
+			return queen.lastHive.hiveNumber ? `#${queen.lastHive.hiveNumber}` : `ID ${queen.lastHive.id}`
+		}
 
-				{sortedQueens.length === 0 && !!error ? (
-					<div className={styles.empty}>
-						<T>Unable to load warehouse queens.</T>
-						{likelyBackendMismatch ? (
-							<div className={styles.hint}>Backend schema/migrations may be outdated.</div>
-						) : null}
-					</div>
-				) : null}
+		return '-'
+	}
 
-				{sortedQueens.length > 0 ? (
-					<div className={styles.tableWrap}>
-							<table className={styles.table}>
-							<thead>
-								<tr>
-									<th className={`${styles.sortable} ${styles.colorColumn}`} onClick={() => onSort('COLOR')}><T>Color</T>{sortArrow('COLOR')}</th>
-									<th className={styles.sortable} onClick={() => onSort('NAME')}><T>Queen</T>{sortArrow('NAME')}</th>
-									<th className={styles.sortable} onClick={() => onSort('YEAR')}><T>Year</T>{sortArrow('YEAR')}</th>
-									<th className={styles.sortable} onClick={() => onSort('RACE')}><T>Race</T>{sortArrow('RACE')}</th>
-									<th><T>Last hive</T></th>
-									<th className={styles.actionsColumn}><T>Actions</T></th>
-								</tr>
-							</thead>
-							<tbody>
-									{sortedQueens.map((queen) => {
-										const color = queen.color || getQueenColorFromYear(queen.added || '')
-										const apiaryId = queen.lastHive?.id ? hiveToApiary[String(queen.lastHive.id)] : null
-										return (
-										<tr
-											key={queen.id}
-											className={selectedQueenId === queen.id ? styles.selectedRow : ''}
-											onMouseEnter={() => setSelectedQueenId(queen.id)}
-											onClick={() => setSelectedQueenId(queen.id)}
-										>
-											<td className={styles.colorColumn}>
-												<div className={styles.colorCell}>
-													<span className={styles.colorDot} style={{ backgroundColor: color }}></span>
-												</div>
-											</td>
-											<td>{queen.name || <T>Unnamed Queen</T>}</td>
-											<td>{queen.added || '-'}</td>
-											<td>{queen.race || <T>Race unknown</T>}</td>
-												<td>
-													{apiaryId && queen.lastHive?.id ? (
-														<Link
-															className={styles.hiveLink}
-															to={`/apiaries/${apiaryId}/hives/${queen.lastHive.id}`}
-														>
-															{queen.lastHive.hiveNumber ? `#${queen.lastHive.hiveNumber}` : `ID ${queen.lastHive.id}`}
-														</Link>
-												) : (
-													'-'
-												)}
-											</td>
+	const renderFrameLink = (queen: QueenItem) => {
+		if (!queen.hive || !queen.hive.apiaryId || !queen.lastDetected) return '-'
+		return (
+			<Link
+				className={styles.frameLink}
+				to={`/apiaries/${queen.hive.apiaryId}/hives/${queen.hive.hiveId}/box/${queen.lastDetected.boxId}/frame/${queen.lastDetected.frameId}/${queen.lastDetected.frameSideId}`}
+			>
+				<T>Open frame</T>
+			</Link>
+		)
+	}
+
+	const renderTableSection = (title: string, items: QueenItem[], allowDelete: boolean) => (
+		<div className={styles.section}>
+			<h3 className={styles.sectionTitle}><T>{title}</T> ({items.length})</h3>
+			{items.length === 0 ? (
+				<div className={styles.emptySection}><T>No queens in this section.</T></div>
+			) : (
+				<div className={styles.tableWrap}>
+					<table className={styles.table}>
+						<thead>
+							<tr>
+								<th className={`${styles.sortable} ${styles.colorColumn}`} onClick={() => onSort('COLOR')}><T>Color</T>{sortArrow('COLOR')}</th>
+								<th className={styles.sortable} onClick={() => onSort('NAME')}><T>Queen</T>{sortArrow('NAME')}</th>
+								<th className={styles.sortable} onClick={() => onSort('YEAR')}><T>Year</T>{sortArrow('YEAR')}</th>
+								<th className={styles.sortable} onClick={() => onSort('RACE')}><T>Race</T>{sortArrow('RACE')}</th>
+								<th><T>Hive</T></th>
+								<th><T>Last detected frame</T></th>
+								{allowDelete ? <th className={styles.actionsColumn}><T>Actions</T></th> : null}
+							</tr>
+						</thead>
+						<tbody>
+							{items.map((queen) => {
+								const color = queen.color || getQueenColorFromYear(queen.added || '')
+								return (
+									<tr key={`${queen.section}-${queen.id}`}>
+										<td className={styles.colorColumn}>
+											<div className={styles.colorCell}>
+												<span className={styles.colorDot} style={{ backgroundColor: color }}></span>
+											</div>
+										</td>
+										<td>{queen.name || <T>Unnamed Queen</T>}</td>
+										<td>{queen.added || '-'}</td>
+										<td>{queen.race || <T>Race unknown</T>}</td>
+										<td>{renderHiveLink(queen)}</td>
+										<td>{renderFrameLink(queen)}</td>
+										{allowDelete ? (
 											<td className={styles.actionsColumn}>
 												<Button
 													size="small"
@@ -343,13 +384,130 @@ export default function WarehouseQueensPage() {
 													<T>Delete</T>
 												</Button>
 											</td>
-										</tr>
-									)
-								})}
-							</tbody>
-						</table>
-					</div>
-				) : null}
+										) : null}
+									</tr>
+								)
+							})}
+						</tbody>
+					</table>
+				</div>
+			)}
+		</div>
+	)
+
+	const renderListSection = (title: string, items: QueenItem[], allowDelete: boolean) => (
+		<div className={styles.section}>
+			<h3 className={styles.sectionTitle}><T>{title}</T> ({items.length})</h3>
+			{items.length === 0 ? (
+				<div className={styles.emptySection}><T>No queens in this section.</T></div>
+			) : (
+				<div className={styles.cardsGrid}>
+					{items.map((queen) => {
+						const color = queen.color || getQueenColorFromYear(queen.added || '')
+						return (
+							<div className={styles.card} key={`${queen.section}-${queen.id}`}>
+								<div className={styles.cardImageWrap}>
+									<img
+										src={queen.previewImageUrl || getRandomQueenPlaceholder(`${queen.id}-${queen.name || ''}-${queen.added || ''}`)}
+										alt={queen.name || 'Queen'}
+										className={styles.cardImage}
+										draggable={false}
+									/>
+								</div>
+								<div className={styles.cardContent}>
+									<div className={styles.cardTitleRow}>
+										<span className={styles.colorDot} style={{ backgroundColor: color }}></span>
+										<strong>{queen.name || <T>Unnamed Queen</T>}</strong>
+									</div>
+									<div className={styles.cardMeta}><T>Year</T>: {queen.added || '-'}</div>
+									<div className={styles.cardMeta}><T>Race</T>: {queen.race || <T>Race unknown</T>}</div>
+									<div className={styles.cardMeta}><T>Hive</T>: {renderHiveLink(queen)}</div>
+									<div className={styles.cardMeta}><T>Last detected frame</T>: {renderFrameLink(queen)}</div>
+								</div>
+								{allowDelete ? (
+									<div className={styles.cardActions}>
+										<Button
+											size="small"
+											color="red"
+											loading={deletingId === queen.id}
+											onClick={() => requestDeleteQueen(queen)}
+										>
+											<T>Delete</T>
+										</Button>
+									</div>
+								) : null}
+							</div>
+						)
+					})}
+				</div>
+			)}
+		</div>
+	)
+
+	const hasAnyQueens = inHiveQueens.length > 0 || warehouseQueens.length > 0
+
+	return (
+		<div className={styles.page}>
+			<div className={styles.headerRow}>
+				<h2><T>Queens</T></h2>
+				<div className={styles.headerActions}>
+					<Button
+						size="small"
+						style={viewMode === 'LIST' ? { opacity: 1 } : { opacity: 0.8 }}
+						onClick={() => setViewMode('LIST')}
+					>
+						<ListIcon size={14} />
+						<T>List</T>
+					</Button>
+					<Button
+						size="small"
+						style={viewMode === 'TABLE' ? { opacity: 1 } : { opacity: 0.8 }}
+						onClick={() => setViewMode('TABLE')}
+					>
+						<TableIcon size={14} />
+						<T>Table</T>
+					</Button>
+					<Button color="green" href="/warehouse/queens/create">
+						<T>Add Queen</T>
+					</Button>
+				</div>
+			</div>
+			<p className={styles.description}>
+				<T>Browse queens in active hives and in warehouse storage. Open last detected frame to jump directly into hive frame view.</T>
+			</p>
+			<ErrorMsg error={error} />
+
+			{!hasAnyQueens && !error ? (
+				<div className={styles.empty}>
+					<img src={queenImageURL} alt="Queen placeholder" className={styles.emptyImage} draggable={false} />
+					<T>No queens available yet.</T>
+				</div>
+			) : null}
+
+			{!hasAnyQueens && !!error ? (
+				<div className={styles.empty}>
+					<T>Unable to load queens.</T>
+					{likelyBackendMismatch ? (
+						<div className={styles.hint}>Backend schema/migrations may be outdated.</div>
+					) : null}
+				</div>
+			) : null}
+
+			{hasAnyQueens ? (
+				<>
+					{viewMode === 'TABLE' ? (
+						<>
+							{renderTableSection('Queens in hives', inHiveQueens, false)}
+							{renderTableSection('Warehouse queens', warehouseQueens, true)}
+						</>
+					) : (
+						<>
+							{renderListSection('Queens in hives', inHiveQueens, false)}
+							{renderListSection('Warehouse queens', warehouseQueens, true)}
+						</>
+					)}
+				</>
+			) : null}
 
 			{isDeleteModalOpen && queenToDelete ? (
 				<Modal title={<T>Delete Queen</T>} onClose={() => setIsDeleteModalOpen(false)}>
@@ -379,7 +537,6 @@ export default function WarehouseQueensPage() {
 					</div>
 				</Modal>
 			) : null}
-
-			</div>
+		</div>
 	)
 }

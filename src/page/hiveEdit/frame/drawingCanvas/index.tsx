@@ -424,6 +424,10 @@ function drawDetectedBees(
 		if ((!showBees && (n === 0 || n === 2)) || (!showDrones && n === 1) || (!showQueens && n === 3)) {
 			return;
 		}
+		// AI queen candidates are rendered via queenAnnotations to enable approve/reject workflow.
+		if (n === 3) {
+			return;
+		}
 
 		const { style, text, lineWidthFactor } = getBeeStyle(n);
 		ctx.globalAlpha = 0.4 + dt.c;
@@ -565,21 +569,32 @@ function drawQueenAnnotations(
 
 		const radius = (Number.isFinite(radiusRatio) && radiusRatio > 0 ? radiusRatio : 0.02) * canvas.width * 1.5;
 		const isApproved = annotation?.status === 'approved';
+		const isAiCandidate = annotation?.source === 'ai' && !isApproved;
 		ctx.save();
 		ctx.globalAlpha = isApproved ? 0.85 : 0.65;
 		ctx.beginPath();
 		ctx.arc(x * canvas.width, y * canvas.height, radius, 0, 2 * Math.PI);
-		ctx.fillStyle = isApproved ? 'rgba(36, 112, 255, 0.18)' : 'rgba(36, 112, 255, 0.08)';
-		ctx.fill();
+		if (!isAiCandidate) {
+			ctx.fillStyle = isApproved ? 'rgba(36, 112, 255, 0.18)' : 'rgba(36, 112, 255, 0.08)';
+			ctx.fill();
+		}
 		// Layered ring: white base stroke + blue stroke on top to create inner/outer outline effect.
-		const blueStrokeWidth = Math.max(1, 1.2 * relPx);
-		const whiteStrokeWidth = blueStrokeWidth + Math.max(2, 1.8 * relPx);
-		ctx.lineWidth = whiteStrokeWidth;
-		ctx.strokeStyle = '#ffffff';
-		ctx.stroke();
-		ctx.lineWidth = blueStrokeWidth;
-		ctx.strokeStyle = isApproved ? '#1f5eff' : '#6fa2ff';
-		ctx.stroke();
+		const blueStrokeWidth = Math.max(1, 1.4 * relPx);
+		if (isAiCandidate) {
+			ctx.setLineDash([Math.max(5, 6 * relPx), Math.max(4, 5 * relPx)]);
+			ctx.lineWidth = Math.max(1.5, 1.8 * relPx);
+			ctx.strokeStyle = '#2f6dff';
+			ctx.stroke();
+			ctx.setLineDash([]);
+		} else {
+			const whiteStrokeWidth = blueStrokeWidth + Math.max(2, 1.8 * relPx);
+			ctx.lineWidth = whiteStrokeWidth;
+			ctx.strokeStyle = '#ffffff';
+			ctx.stroke();
+			ctx.lineWidth = blueStrokeWidth;
+			ctx.strokeStyle = isApproved ? '#1f5eff' : '#6fa2ff';
+			ctx.stroke();
+		}
 		const familyId = Number(annotation?.familyId);
 		const queenName = Number.isFinite(familyId) && familyId > 0 ? (familyNameById[familyId] || '') : '';
 		if (queenName) {
@@ -808,10 +823,35 @@ export default function DrawingCanvas({
 		await upsertQueenAnnotation(annotation.id, (current) => ({
 			...current,
 			familyId,
-			status: familyId ? 'approved' : current.status,
 			updatedAt: new Date().toISOString(),
 		}));
 	}, [upsertQueenAnnotation]);
+
+	const approveAiCandidate = useCallback(async (annotation: QueenAnnotation) => {
+		const selectedFamilyId = Number(annotation?.familyId);
+		if (!Number.isFinite(selectedFamilyId) || selectedFamilyId <= 0) {
+			window.alert('Select queen name before approving the AI candidate.');
+			return;
+		}
+
+		const replacementMarker: QueenAnnotation = {
+			id: `manual-${Date.now()}-${Math.round(Math.random() * 10000)}`,
+			x: Number(annotation?.x) || 0.5,
+			y: Number(annotation?.y) || 0.5,
+			radius: Number(annotation?.radius) > 0 ? Number(annotation.radius) : 0.022,
+			source: 'manual',
+			status: 'approved',
+			familyId: selectedFamilyId,
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
+		};
+
+		const next = [
+			...editableQueenAnnotations.filter((item) => item.id !== annotation.id),
+			replacementMarker,
+		];
+		await persistQueenAnnotations(next);
+	}, [editableQueenAnnotations, persistQueenAnnotations]);
 
 	const onStartMarkExistingQueen = useCallback(() => {
 		if (isAddingQueenMarker && pendingMarkerFamilyId === null) {
@@ -906,7 +946,7 @@ export default function DrawingCanvas({
 	);
 
 	const brushRadiusRatio = BRUSH_DIAMETER_BY_PRESET[brushSizePreset] / 2;
-	const showAiQueensOnCanvas = allowDrawing ? isAiQueenVisible : false;
+	const showAiQueensOnCanvas = false;
 	const canCellBrush = allowDrawing && activeControlTab === 'frame-cells';
 	const canStrokeDraw = allowDrawing && activeControlTab === 'free-draw';
 	const showQueenAnnotationsOnCanvas = showQueenAnnotations;
@@ -916,7 +956,10 @@ export default function DrawingCanvas({
 		),
 		[editableQueenAnnotations]
 	);
-	const queenAnnotationsOnCanvas = allowDrawing ? editableQueenAnnotations : readOnlyQueenMarkers;
+	const queenAnnotationsOnCanvas = (allowDrawing ? editableQueenAnnotations : readOnlyQueenMarkers)
+		.filter((annotation) => (
+			isAiQueenVisible || !(annotation?.source === 'ai' && annotation?.status !== 'approved')
+		));
 	const showQueenCupsOnCanvas = allowDrawing ? showQueenCups : false;
 	const showVarroaOnCanvas = showVarroa;
 	const showDetectedCellsOnCanvas = allowDrawing ? true : showFrameCells;
@@ -1990,14 +2033,15 @@ export default function DrawingCanvas({
 										</Button>
 									</div>
 									{isAiCandidate && (
+										<div style={{ fontSize: 12, color: '#2f6dff' }}>
+											<T>AI candidate</T>
+										</div>
+									)}
+									{isAiCandidate && (
 										<div className={styles.queenMarkerActionsRow}>
 											<Button
 												size="small"
-												onClick={() => void upsertQueenAnnotation(annotation.id, (current) => ({
-													...current,
-													status: 'approved',
-													updatedAt: new Date().toISOString(),
-												}))}
+												onClick={() => void approveAiCandidate(annotation)}
 											>
 												<T>Approve</T>
 											</Button>

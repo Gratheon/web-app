@@ -7,6 +7,7 @@ export type Family = {
 	race: string
 	added: string
 	color?: string
+	previewImageUrl?: string | null
 	age?: number
 	lastSeenFrameId?: number
 	lastSeenFrameSideId?: number
@@ -30,6 +31,20 @@ export async function getFamilyByHive(hiveId: number): Promise<Family | undefine
 	}
 }
 
+export async function getFamilyById(familyId: number): Promise<Family | undefined> {
+	if (!familyId || !Number.isFinite(familyId) || familyId <= 0) {
+		console.warn(`Attempted to get family with invalid familyId: ${familyId}`);
+		return undefined;
+	}
+
+	try {
+		return await db[TABLE_NAME].get(+familyId);
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
+}
+
 export async function getAllFamiliesByHive(hiveId: number): Promise<Family[]> {
 	if (!hiveId || !Number.isFinite(hiveId) || hiveId <= 0) {
 		console.warn(`Attempted to get families with invalid hiveId: ${hiveId}`);
@@ -40,6 +55,53 @@ export async function getAllFamiliesByHive(hiveId: number): Promise<Family[]> {
 		const families = await db[TABLE_NAME].where({ hiveId: +hiveId }).toArray();
 		console.log(`getAllFamiliesByHive(${hiveId}): found ${families.length} families`, families);
 		return families;
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
+}
+
+export async function getFamiliesByIds(ids: number[]): Promise<Family[]> {
+	const normalized = Array.from(
+		new Set(
+			(ids || [])
+				.map((id) => Number(id))
+				.filter((id) => Number.isFinite(id) && id > 0)
+		)
+	)
+
+	if (!normalized.length) {
+		return []
+	}
+
+	try {
+		return await db[TABLE_NAME].where('id').anyOf(normalized).toArray()
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
+}
+
+export async function getAssignedFamilies(): Promise<Family[]> {
+	try {
+		const families = await db[TABLE_NAME].toArray()
+		return families.filter((family) => {
+			const hiveId = Number(family?.hiveId)
+			return Number.isFinite(hiveId) && hiveId > 0
+		})
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
+}
+
+export async function getUnassignedFamilies(): Promise<Family[]> {
+	try {
+		const families = await db[TABLE_NAME].toArray()
+		return families.filter((family) => {
+			const hiveId = Number(family?.hiveId)
+			return !Number.isFinite(hiveId) || hiveId <= 0
+		})
 	} catch (e) {
 		console.error(e)
 		throw e

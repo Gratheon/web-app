@@ -739,7 +739,7 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                             setMoreVisible(false)
                         }}
                     >
-                        <T>Warehouse Queens</T>
+                        <T>Queens</T>
                     </NavLink>
                     <NavLink
                         to="/warehouse/box-systems"

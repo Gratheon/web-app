@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react' // Removed useSubscription
 import { useLiveQuery } from 'dexie-react-hooks'
-import { gql, useMutation } from '@/api' // Removed useSubscription
+import { gql, useMutation, useUploadMutation } from '@/api' // Removed useSubscription
 // Import only needed model functions and types
 import {
 	FrameSideFile, QueenAnnotation, getFrameSideFile, removeNearestDetectedQueen, updateDetectedCellsData, updateQueenAnnotationsData, updateStrokeHistoryData
@@ -10,7 +10,7 @@ import {
 	newFrameSideCells,
 	updateFrameSideCells
 } from '@/models/frameSideCells'
-import { getAllFamiliesByHive, updateFamily, updateFamilyLastSeen } from '@/models/family'
+import { getAllFamiliesByHive, getFamilyById, updateFamily, updateFamilyLastSeen } from '@/models/family'
 import { FrameSide as FrameSideType } from '@/models/frameSide' // Removed getFrameSide, upsertFrameSide
 import Loading from '@/shared/loader'
 import ErrorMessage from '@/shared/messageError'
@@ -35,6 +35,44 @@ interface FrameSideDrawingProps {
 	allowDrawing?: boolean
 	saveRequestId?: number
 	onCellEditsStateChange?: (state: { hasUnsaved: boolean; isSaving: boolean }) => void
+}
+
+async function loadImageElement(url: string): Promise<HTMLImageElement> {
+	return await new Promise((resolve, reject) => {
+		const img = new Image()
+		img.crossOrigin = 'anonymous'
+		img.onload = () => resolve(img)
+		img.onerror = (error) => reject(error)
+		img.src = url
+	})
+}
+
+async function cropQueenPreviewImage(imageUrl: string, annotation: QueenAnnotation): Promise<Blob | null> {
+	const x = Number(annotation?.x)
+	const y = Number(annotation?.y)
+	const radiusRatio = Number(annotation?.radius)
+	if (!Number.isFinite(x) || !Number.isFinite(y)) return null
+
+	const image = await loadImageElement(imageUrl)
+	const baseRadius = Number.isFinite(radiusRatio) && radiusRatio > 0 ? radiusRatio : 0.022
+	const cropSize = Math.max(120, Math.min(600, Math.round(image.width * baseRadius * 7)))
+
+	const centerX = Math.round(x * image.width)
+	const centerY = Math.round(y * image.height)
+	const sx = Math.max(0, Math.min(image.width - cropSize, centerX - Math.floor(cropSize / 2)))
+	const sy = Math.max(0, Math.min(image.height - cropSize, centerY - Math.floor(cropSize / 2)))
+
+	const canvas = document.createElement('canvas')
+	canvas.width = cropSize
+	canvas.height = cropSize
+	const ctx = canvas.getContext('2d')
+	if (!ctx) return null
+
+	ctx.drawImage(image, sx, sy, cropSize, cropSize, 0, 0, cropSize, cropSize)
+
+	return await new Promise((resolve) => {
+		canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.9)
+	})
 }
 
 export default function FrameSideDrawing({
@@ -77,6 +115,19 @@ export default function FrameSideDrawing({
 	const [frameSideCellsMutate] = useMutation(gql`
 		mutation updateFrameSideCells($cells: FrameSideCellsInput!) {
 			updateFrameSideCells(cells: $cells)
+		}
+	`)
+	const [uploadQueenPreviewMutate] = useUploadMutation(gql`
+		mutation uploadFrameSide($file: Upload!) {
+			uploadFrameSide(file: $file) {
+				id
+				url
+			}
+		}
+	`) as any
+	const [confirmFrameSideQueenMutate] = useMutation(gql`
+		mutation confirmFrameSideQueen($frameSideId: ID!, $isConfirmed: Boolean!) {
+			confirmFrameSideQueen(frameSideId: $frameSideId, isConfirmed: $isConfirmed)
 		}
 	`)
 	const [addQueenToHiveMutate] = useMutation(gql`
@@ -208,25 +259,88 @@ export default function FrameSideDrawing({
 		})
 	}, [frameSideId, frameSideCellsMutate, getRelativeCounts])
 
+	const uploadAndStoreQueenPreview = useCallback(async (familyId: number, annotation: QueenAnnotation) => {
+		const familyFromHive = (hiveFamilies || []).find((item) => Number(item?.id) === familyId)
+		const family = familyFromHive || (await getFamilyById(familyId))
+		if (family?.previewImageUrl) {
+			return
+		}
+
+		const previewBlob = await cropQueenPreviewImage(file.url, annotation)
+		if (!previewBlob) return
+
+		const previewFile = new File(
+			[previewBlob],
+			`queen-preview-${familyId}-${Date.now()}.jpg`,
+			{ type: 'image/jpeg' }
+		)
+
+		const uploadResult = await uploadQueenPreviewMutate({ file: previewFile })
+		if (uploadResult?.error) {
+			return
+		}
+		const previewImageUrl = uploadResult?.data?.uploadFrameSide?.url
+		if (!previewImageUrl) return
+
+		await updateFamily({
+			...(family || {}),
+			id: Number(familyId),
+			hiveId: Number(hiveId),
+			previewImageUrl,
+		})
+	}, [file.url, hiveFamilies, hiveId, uploadQueenPreviewMutate])
+
 	const onQueenAnnotationsUpdate = useCallback(async (queenAnnotations: QueenAnnotation[]) => {
 		const numericFrameSideId = +frameSideId
 		const numericFrameId = +frameId
 		const numericBoxId = boxId ? +boxId : undefined
 		const normalized = Array.isArray(queenAnnotations) ? queenAnnotations : []
 		await updateQueenAnnotationsData(numericFrameSideId, normalized)
+		const hasApprovedQueen = normalized.some((annotation) => annotation?.status === 'approved')
+		try {
+			await confirmFrameSideQueenMutate({
+				frameSideId: String(frameSideId),
+				isConfirmed: hasApprovedQueen,
+			})
+		} catch (error) {
+			console.error('Failed to persist confirmed queen presence:', error, {
+				frameSideId,
+				hasApprovedQueen,
+			})
+		}
 
 		const approvedWithFamily = normalized.filter(
 			(annotation) => annotation.status === 'approved' && annotation.familyId
 		)
+		const previewCandidateByFamily = new Map<number, QueenAnnotation>()
 		for (const annotation of approvedWithFamily) {
-			await updateFamilyLastSeen(Number(annotation.familyId), {
+			const familyId = Number(annotation.familyId)
+			await updateFamilyLastSeen(familyId, {
 				frameId: numericFrameId,
 				frameSideId: numericFrameSideId,
 				boxId: Number.isFinite(numericBoxId) ? numericBoxId : undefined,
 				seenAt: annotation.updatedAt || new Date().toISOString(),
 			})
+			const current = previewCandidateByFamily.get(familyId)
+			if (!current) {
+				previewCandidateByFamily.set(familyId, annotation)
+				continue
+			}
+			const currentUpdatedAt = Date.parse(String(current.updatedAt || ''))
+			const nextUpdatedAt = Date.parse(String(annotation.updatedAt || ''))
+			if (!Number.isFinite(currentUpdatedAt) || nextUpdatedAt > currentUpdatedAt) {
+				previewCandidateByFamily.set(familyId, annotation)
+			}
 		}
-	}, [frameSideId, frameId, boxId])
+
+		for (const [familyId, annotation] of previewCandidateByFamily.entries()) {
+			try {
+				await uploadAndStoreQueenPreview(familyId, annotation)
+			} catch (error) {
+				console.error('Failed to upload/store queen preview image:', error, { familyId, annotation })
+			}
+		}
+	}, [boxId, confirmFrameSideQueenMutate, frameId, frameSideId, uploadAndStoreQueenPreview])
 
 	const onCreateQueen = useCallback(async (queen: { name?: string; race?: string; added?: string; color?: string | null }) => {
 		const result = await addQueenToHiveMutate({
@@ -268,23 +382,50 @@ export default function FrameSideDrawing({
 	const hasStoredQueenAnnotations =
 		liveFrameSideFile &&
 		Object.prototype.hasOwnProperty.call(liveFrameSideFile, 'queenAnnotations')
-	const effectiveQueenAnnotations: QueenAnnotation[] = hasStoredQueenAnnotations
+	const storedQueenAnnotations: QueenAnnotation[] = hasStoredQueenAnnotations
 		? (Array.isArray(liveFrameSideFile?.queenAnnotations) ? liveFrameSideFile.queenAnnotations : [])
-		: (Array.isArray(liveFrameSideFile?.detectedBees)
-			? liveFrameSideFile.detectedBees
-				.filter((bee) => Number(bee?.n) === 3)
-				.map((bee, index) => ({
-					id: `ai-${index}`,
-					x: Number(bee?.x) || 0.5,
-					y: Number(bee?.y) || 0.5,
-					radius: Math.max(Number(bee?.w) || 0.03, Number(bee?.h) || 0.03) / 2,
+		: []
+	const aiQueenCandidates: QueenAnnotation[] = Array.isArray(liveFrameSideFile?.detectedBees)
+		? liveFrameSideFile.detectedBees
+			.filter((bee) => Number(bee?.n) === 3)
+			.map((bee) => {
+				const x = Number(bee?.x) || 0.5
+				const y = Number(bee?.y) || 0.5
+				const radius = Math.max(Number(bee?.w) || 0.03, Number(bee?.h) || 0.03) / 2
+				const id = `ai-${Math.round(x * 10000)}-${Math.round(y * 10000)}`
+				return {
+					id,
+					x,
+					y,
+					radius,
 					source: 'ai',
 					status: 'candidate',
 					familyId: null,
 					createdAt: new Date().toISOString(),
 					updatedAt: new Date().toISOString(),
-				}))
-			: [])
+				}
+			})
+		: []
+	const effectiveQueenAnnotations: QueenAnnotation[] = (() => {
+		if (!hasStoredQueenAnnotations) {
+			return aiQueenCandidates
+		}
+
+		const next = [...storedQueenAnnotations]
+		const proximity = 0.03
+		for (const aiCandidate of aiQueenCandidates) {
+			const duplicate = next.some((annotation) => {
+				const dx = Number(annotation?.x || 0) - aiCandidate.x
+				const dy = Number(annotation?.y || 0) - aiCandidate.y
+				return Math.sqrt((dx * dx) + (dy * dy)) <= proximity
+			})
+			if (!duplicate) {
+				next.push(aiCandidate)
+			}
+		}
+
+		return next
+	})()
 
 	return (
 		<div className={styles.frame}>

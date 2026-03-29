@@ -44,6 +44,10 @@ const BRUSH_DIAMETER_BY_PRESET: Record<BrushSizePreset, number> = {
 	large: DEFAULT_BRUSH_DIAMETER_RATIO * 1.4,
 };
 const DEFAULT_NEW_CELL_RADIUS_RATIO = 0.006;
+const DEFAULT_QUEEN_MARKER_RADIUS_RATIO = 0.022;
+const MIN_QUEEN_MARKER_RADIUS_RATIO = 0.004;
+const MAX_QUEEN_MARKER_RADIUS_RATIO = 0.12;
+const QUEEN_MARKER_RADIUS_MULTIPLIER = 1.5;
 const CELL_SHORTCUTS: Record<string, NonEraseBrushCellType> = {
 	n: 4,
 	y: 2,
@@ -64,6 +68,21 @@ const CELL_TYPE_HINTS: Record<NonEraseBrushCellType, string> = {
 	7: 'D',
 	5: 'U',
 };
+const CELLS_OPACITY_STORAGE_KEY = 'hiveEdit.cellsOpacityPercent';
+const DEFAULT_CELLS_OPACITY_PERCENT = 50;
+
+function normalizeCellsOpacityPercent(value: number) {
+	if (!Number.isFinite(value)) return DEFAULT_CELLS_OPACITY_PERCENT;
+	return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+function getStoredCellsOpacityPercent() {
+	if (typeof window === 'undefined') return DEFAULT_CELLS_OPACITY_PERCENT;
+	const rawValue = window.localStorage.getItem(CELLS_OPACITY_STORAGE_KEY);
+	if (rawValue === null) return DEFAULT_CELLS_OPACITY_PERCENT;
+	const parsedValue = Number(rawValue);
+	return normalizeCellsOpacityPercent(parsedValue);
+}
 
 let REL_PX = 1;
 let globalCameraZoom = 1;
@@ -553,6 +572,90 @@ interface DrawLayersParams {
 	brushRadiusRatio?: number;
 }
 
+type QueenResizeHit = {
+	annotationId: string;
+};
+
+type QueenMoveHit = {
+	annotationId: string;
+};
+
+function getQueenMarkerRadiusPx(annotation: QueenAnnotation, canvas: HTMLCanvasElement): number {
+	const radiusRatio = Number(annotation?.radius);
+	const safeRadiusRatio = Number.isFinite(radiusRatio) && radiusRatio > 0
+		? radiusRatio
+		: DEFAULT_QUEEN_MARKER_RADIUS_RATIO;
+	return safeRadiusRatio * canvas.width * QUEEN_MARKER_RADIUS_MULTIPLIER;
+}
+
+function findQueenResizeHandleHit(
+	queenAnnotations: QueenAnnotation[],
+	canvas: HTMLCanvasElement,
+	normalizedPos: { x: number; y: number }
+): QueenResizeHit | null {
+	if (!Array.isArray(queenAnnotations) || queenAnnotations.length === 0) {
+		return null;
+	}
+
+	const pointX = normalizedPos.x * canvas.width;
+	const pointY = normalizedPos.y * canvas.height;
+	const handleTolerancePx = Math.max(8, 10 * dpr);
+	let bestHit: { id: string; edgeDistance: number } | null = null;
+
+	for (const annotation of queenAnnotations) {
+		if (!annotation?.id) continue;
+		if (annotation?.source === 'ai' && annotation?.status !== 'approved') continue;
+		const centerX = Number(annotation?.x) * canvas.width;
+		const centerY = Number(annotation?.y) * canvas.height;
+		if (!Number.isFinite(centerX) || !Number.isFinite(centerY)) continue;
+
+		const radiusPx = getQueenMarkerRadiusPx(annotation, canvas);
+		const distanceToCenter = Math.hypot(pointX - centerX, pointY - centerY);
+		const edgeDistance = Math.abs(distanceToCenter - radiusPx);
+		if (edgeDistance > handleTolerancePx) continue;
+
+		if (!bestHit || edgeDistance < bestHit.edgeDistance) {
+			bestHit = { id: annotation.id, edgeDistance };
+		}
+	}
+
+	return bestHit ? { annotationId: bestHit.id } : null;
+}
+
+function findQueenMoveHit(
+	queenAnnotations: QueenAnnotation[],
+	canvas: HTMLCanvasElement,
+	normalizedPos: { x: number; y: number }
+): QueenMoveHit | null {
+	if (!Array.isArray(queenAnnotations) || queenAnnotations.length === 0) {
+		return null;
+	}
+
+	const pointX = normalizedPos.x * canvas.width;
+	const pointY = normalizedPos.y * canvas.height;
+	const handleTolerancePx = Math.max(8, 10 * dpr);
+	let bestHit: { id: string; centerDistance: number } | null = null;
+
+	for (const annotation of queenAnnotations) {
+		if (!annotation?.id) continue;
+		if (annotation?.source === 'ai' && annotation?.status !== 'approved') continue;
+		const centerX = Number(annotation?.x) * canvas.width;
+		const centerY = Number(annotation?.y) * canvas.height;
+		if (!Number.isFinite(centerX) || !Number.isFinite(centerY)) continue;
+
+		const radiusPx = getQueenMarkerRadiusPx(annotation, canvas);
+		const centerDistance = Math.hypot(pointX - centerX, pointY - centerY);
+		const innerRadius = Math.max(0, radiusPx - handleTolerancePx);
+		if (centerDistance > innerRadius) continue;
+
+		if (!bestHit || centerDistance < bestHit.centerDistance) {
+			bestHit = { id: annotation.id, centerDistance };
+		}
+	}
+
+	return bestHit ? { annotationId: bestHit.id } : null;
+}
+
 function drawQueenAnnotations(
 	queenAnnotations: QueenAnnotation[],
 	ctx: CanvasRenderingContext2D,
@@ -564,10 +667,9 @@ function drawQueenAnnotations(
 	queenAnnotations.forEach((annotation) => {
 		const x = Number(annotation?.x);
 		const y = Number(annotation?.y);
-		const radiusRatio = Number(annotation?.radius);
 		if (!Number.isFinite(x) || !Number.isFinite(y)) return;
 
-		const radius = (Number.isFinite(radiusRatio) && radiusRatio > 0 ? radiusRatio : 0.02) * canvas.width * 1.5;
+		const radius = getQueenMarkerRadiusPx(annotation, canvas);
 		const isApproved = annotation?.status === 'approved';
 		const isAiCandidate = annotation?.source === 'ai' && !isApproved;
 		ctx.save();
@@ -623,7 +725,7 @@ function drawQueenPlacementPreview(
 	ctx: CanvasRenderingContext2D,
 	canvas: HTMLCanvasElement,
 	brushCursor: { x: number; y: number },
-	radiusRatio = 0.022
+	radiusRatio = DEFAULT_QUEEN_MARKER_RADIUS_RATIO
 ) {
 	const relPx = calculateRelPx(canvas);
 	ctx.save();
@@ -745,7 +847,7 @@ export default function DrawingCanvas({
 	const [activeTool, setActiveTool] = useState<'cell-brush' | 'stroke'>('cell-brush');
 	const [selectedCellType, setSelectedCellType] = useState<BrushCellType>(2);
 	const [brushSizePreset, setBrushSizePreset] = useState<BrushSizePreset>('medium');
-	const [cellsOpacityPercent, setCellsOpacityPercent] = useState(50);
+	const [cellsOpacityPercent, setCellsOpacityPercent] = useState(getStoredCellsOpacityPercent);
 	const [hasUnsavedCellEdits, setHasUnsavedCellEdits] = useState(false);
 	const [isSavingCellEdits, setIsSavingCellEdits] = useState(false);
 	const [editableQueenAnnotations, setEditableQueenAnnotations] = useState<QueenAnnotation[]>(queenAnnotations || []);
@@ -765,11 +867,18 @@ export default function DrawingCanvas({
 		reexecuteQuery: reexecuteRandomNameQuery,
 	} = useQuery(RANDOM_QUEEN_NAME_QUERY, { variables: { language: nameSuggestionLang } });
 	const editableDetectedCellsRef = useRef<any[]>(detectedCells || []);
+	const editableQueenAnnotationsRef = useRef<QueenAnnotation[]>(queenAnnotations || []);
+	const queenResizeStateRef = useRef<{ annotationId: string; hasChanged: boolean } | null>(null);
+	const queenMoveStateRef = useRef<{ annotationId: string; hasChanged: boolean; offsetX: number; offsetY: number } | null>(null);
 	const lastHandledSaveRequestIdRef = useRef(0);
 	const brushCursorRef = useRef<{ x: number; y: number } | null>(null);
 	const lastBrushCenterRef = useRef<{ x: number; y: number } | null>(null);
 	const redrawRafRef = useRef<number | null>(null);
 	const cellEditChangedRef = useRef(false);
+	const [hoveredQueenResizeId, setHoveredQueenResizeId] = useState<string | null>(null);
+	const [hoveredQueenMoveId, setHoveredQueenMoveId] = useState<string | null>(null);
+	const [isQueenMarkerResizing, setIsQueenMarkerResizing] = useState(false);
+	const [isQueenMarkerMoving, setIsQueenMarkerMoving] = useState(false);
 
 	useEffect(() => {
 		if (hasUnsavedCellEdits) return;
@@ -796,8 +905,17 @@ export default function DrawingCanvas({
 	}, [randomNameData, randomNameLoading]);
 
 	useEffect(() => {
+		if (typeof window === 'undefined') return;
+		window.localStorage.setItem(CELLS_OPACITY_STORAGE_KEY, String(cellsOpacityPercent));
+	}, [cellsOpacityPercent]);
+
+	useEffect(() => {
 		setEditableQueenAnnotations(Array.isArray(queenAnnotations) ? queenAnnotations : []);
 	}, [queenAnnotations]);
+
+	useEffect(() => {
+		editableQueenAnnotationsRef.current = editableQueenAnnotations;
+	}, [editableQueenAnnotations]);
 
 	const persistQueenAnnotations = useCallback(async (nextAnnotations: QueenAnnotation[]) => {
 		setEditableQueenAnnotations(nextAnnotations);
@@ -838,7 +956,7 @@ export default function DrawingCanvas({
 			id: `manual-${Date.now()}-${Math.round(Math.random() * 10000)}`,
 			x: Number(annotation?.x) || 0.5,
 			y: Number(annotation?.y) || 0.5,
-			radius: Number(annotation?.radius) > 0 ? Number(annotation.radius) : 0.022,
+			radius: Number(annotation?.radius) > 0 ? Number(annotation.radius) : DEFAULT_QUEEN_MARKER_RADIUS_RATIO,
 			source: 'manual',
 			status: 'approved',
 			familyId: selectedFamilyId,
@@ -963,9 +1081,7 @@ export default function DrawingCanvas({
 	const showQueenCupsOnCanvas = allowDrawing ? showQueenCups : false;
 	const showVarroaOnCanvas = showVarroa;
 	const showDetectedCellsOnCanvas = allowDrawing ? true : showFrameCells;
-	const cellsOpacityFactor = allowDrawing
-		? cellsOpacityPercent / 100
-		: 0.5;
+	const cellsOpacityFactor = cellsOpacityPercent / 100;
 
 	const getThumbnailUrl = useCallback(() => {
 		let bestUrl = imageUrl;
@@ -1046,6 +1162,14 @@ export default function DrawingCanvas({
 		});
 	}, [redrawCurrentCanvas]);
 
+	const getDefaultCanvasCursor = useCallback(() => {
+		if (!allowDrawing) return 'default';
+		if (isAddingQueenMarker) return 'pointer';
+		if (activeControlTab === 'free-draw') return 'crosshair';
+		if (activeControlTab === 'frame-cells') return 'all-scroll';
+		return 'default';
+	}, [allowDrawing, activeControlTab, isAddingQueenMarker]);
+
 	useEffect(() => {
 		scheduleRedraw();
 	}, [detectedCells, scheduleRedraw]);
@@ -1053,18 +1177,32 @@ export default function DrawingCanvas({
 	useEffect(() => {
 		const canvas = ref.current;
 		if (!canvas || isPanning) return;
-		if (!allowDrawing) {
-			canvas.style.cursor = 'default';
-			return;
+		const isQueenResizeCursor =
+			activeControlTab === 'queens' &&
+			(isQueenMarkerResizing || Boolean(hoveredQueenResizeId));
+		const isQueenMoveCursor =
+			activeControlTab === 'queens' &&
+			(isQueenMarkerMoving || Boolean(hoveredQueenMoveId));
+		if (isQueenResizeCursor) {
+			canvas.style.cursor = 'nwse-resize';
+		} else if (isQueenMarkerMoving) {
+			canvas.style.cursor = 'grabbing';
+		} else if (isQueenMoveCursor) {
+			canvas.style.cursor = 'grab';
+		} else {
+			canvas.style.cursor = getDefaultCanvasCursor();
 		}
-		canvas.style.cursor = isAddingQueenMarker
-			? 'pointer'
-			: activeControlTab === 'free-draw'
-				? 'crosshair'
-				: activeControlTab === 'frame-cells'
-					? 'all-scroll'
-					: 'default';
-	}, [activeControlTab, isAddingQueenMarker, allowDrawing]);
+	}, [activeControlTab, hoveredQueenResizeId, hoveredQueenMoveId, isQueenMarkerResizing, isQueenMarkerMoving, getDefaultCanvasCursor]);
+
+	useEffect(() => {
+		if (activeControlTab === 'queens' && !isAddingQueenMarker) return;
+		setHoveredQueenResizeId(null);
+		setHoveredQueenMoveId(null);
+		queenResizeStateRef.current = null;
+		queenMoveStateRef.current = null;
+		setIsQueenMarkerResizing(false);
+		setIsQueenMarkerMoving(false);
+	}, [activeControlTab, isAddingQueenMarker]);
 
 	useEffect(() => {
 		// Reset camera state when switching frame image to avoid stale zoom/pan jumps.
@@ -1076,6 +1214,12 @@ export default function DrawingCanvas({
 		cellEditChangedRef.current = false;
 		brushCursorRef.current = null;
 		lastBrushCenterRef.current = null;
+		queenResizeStateRef.current = null;
+		queenMoveStateRef.current = null;
+		setHoveredQueenResizeId(null);
+		setHoveredQueenMoveId(null);
+		setIsQueenMarkerResizing(false);
+		setIsQueenMarkerMoving(false);
 	}, [imageUrl]);
 
 	useEffect(() => {
@@ -1154,6 +1298,46 @@ export default function DrawingCanvas({
 			scheduleRedraw();
 		};
 
+		const updateQueenResizeHover = (e: MouseEvent | TouchEvent) => {
+			if (!(e instanceof MouseEvent)) return;
+			if (isQueenMarkerResizing) {
+				canvas.style.cursor = 'nwse-resize';
+				return;
+			}
+			if (isQueenMarkerMoving) {
+				canvas.style.cursor = 'grabbing';
+				return;
+			}
+			if (activeControlTab !== 'queens' || isAddingQueenMarker) {
+				if (hoveredQueenResizeId !== null) {
+					setHoveredQueenResizeId(null);
+				}
+				if (hoveredQueenMoveId !== null) {
+					setHoveredQueenMoveId(null);
+				}
+				canvas.style.cursor = getDefaultCanvasCursor();
+				return;
+			}
+
+			const pos = getCanvasRelativePosition(canvas, e);
+			const normalizedPos = getNormalizedPosition(canvas, pos);
+			const resizeHit = findQueenResizeHandleHit(queenAnnotationsOnCanvas, canvas, normalizedPos);
+			const moveHit = resizeHit ? null : findQueenMoveHit(queenAnnotationsOnCanvas, canvas, normalizedPos);
+			const nextHoveredResizeId = resizeHit?.annotationId || null;
+			const nextHoveredMoveId = moveHit?.annotationId || null;
+			if (nextHoveredResizeId !== hoveredQueenResizeId) {
+				setHoveredQueenResizeId(nextHoveredResizeId);
+			}
+			if (nextHoveredMoveId !== hoveredQueenMoveId) {
+				setHoveredQueenMoveId(nextHoveredMoveId);
+			}
+			canvas.style.cursor = nextHoveredResizeId
+				? 'nwse-resize'
+				: nextHoveredMoveId
+					? 'grab'
+					: getDefaultCanvasCursor();
+		};
+
 		const applyBrushAtEvent = (e: MouseEvent | TouchEvent) => {
 			if (!canCellBrush || activeTool !== 'cell-brush') return;
 			const pos = getCanvasRelativePosition(canvas, e);
@@ -1220,6 +1404,48 @@ export default function DrawingCanvas({
 			if (isPanning || (e instanceof MouseEvent && e.button !== 0)) return;
 			e.preventDefault(); // Prevent scrolling on touch
 
+			if (!isAddingQueenMarker && activeControlTab === 'queens' && e instanceof MouseEvent) {
+				const pos = getCanvasRelativePosition(canvas, e);
+				const normalizedPos = getNormalizedPosition(canvas, pos);
+				const resizeHit = findQueenResizeHandleHit(queenAnnotationsOnCanvas, canvas, normalizedPos);
+				if (resizeHit) {
+					queenResizeStateRef.current = {
+						annotationId: resizeHit.annotationId,
+						hasChanged: false,
+					};
+					queenMoveStateRef.current = null;
+					isMousedown = true;
+					setIsQueenMarkerResizing(true);
+					setIsQueenMarkerMoving(false);
+					setHoveredQueenResizeId(resizeHit.annotationId);
+					setHoveredQueenMoveId(null);
+					canvas.style.cursor = 'nwse-resize';
+					return;
+				}
+				const moveHit = findQueenMoveHit(queenAnnotationsOnCanvas, canvas, normalizedPos);
+				if (moveHit) {
+					const movingAnnotation = editableQueenAnnotationsRef.current.find((item) => item.id === moveHit.annotationId);
+					if (movingAnnotation) {
+						const markerX = Number(movingAnnotation.x);
+						const markerY = Number(movingAnnotation.y);
+						queenMoveStateRef.current = {
+							annotationId: moveHit.annotationId,
+							hasChanged: false,
+							offsetX: clamp01(normalizedPos.x) - markerX,
+							offsetY: clamp01(normalizedPos.y) - markerY,
+						};
+						queenResizeStateRef.current = null;
+						isMousedown = true;
+						setIsQueenMarkerMoving(true);
+						setIsQueenMarkerResizing(false);
+						setHoveredQueenMoveId(moveHit.annotationId);
+						setHoveredQueenResizeId(null);
+						canvas.style.cursor = 'grabbing';
+						return;
+					}
+				}
+			}
+
 			if (isAddingQueenMarker) {
 				const pos = getCanvasRelativePosition(canvas, e);
 				const normalizedPos = getNormalizedPosition(canvas, pos);
@@ -1227,7 +1453,7 @@ export default function DrawingCanvas({
 					id: `manual-${Date.now()}-${Math.round(Math.random() * 10000)}`,
 					x: clamp01(normalizedPos.x),
 					y: clamp01(normalizedPos.y),
-					radius: 0.022,
+					radius: DEFAULT_QUEEN_MARKER_RADIUS_RATIO,
 					source: 'manual',
 					status: 'approved',
 					familyId: pendingMarkerFamilyId,
@@ -1266,6 +1492,80 @@ export default function DrawingCanvas({
 
 		const handleDrawMove = (e: MouseEvent | TouchEvent) => {
 			updateBrushCursor(e);
+			updateQueenResizeHover(e);
+			const queenMoveState = queenMoveStateRef.current;
+			if (isMousedown && queenMoveState && !isPanning) {
+				e.preventDefault();
+				const pos = getCanvasRelativePosition(canvas, e);
+				const normalizedPos = getNormalizedPosition(canvas, pos);
+				const pointerX = clamp01(normalizedPos.x);
+				const pointerY = clamp01(normalizedPos.y);
+				const activeAnnotation = editableQueenAnnotationsRef.current.find((item) => item.id === queenMoveState.annotationId);
+				if (!activeAnnotation) {
+					queenMoveStateRef.current = null;
+					setIsQueenMarkerMoving(false);
+					canvas.style.cursor = getDefaultCanvasCursor();
+					return;
+				}
+				const nextX = clamp01(pointerX - queenMoveState.offsetX);
+				const nextY = clamp01(pointerY - queenMoveState.offsetY);
+				const currentX = Number(activeAnnotation.x);
+				const currentY = Number(activeAnnotation.y);
+				if (Math.abs(nextX - currentX) > 0.0001 || Math.abs(nextY - currentY) > 0.0001) {
+					queenMoveStateRef.current = {
+						...queenMoveState,
+						hasChanged: true,
+					};
+					setEditableQueenAnnotations((previous) => previous.map((annotation) => (
+						annotation.id === queenMoveState.annotationId
+							? { ...annotation, x: nextX, y: nextY }
+							: annotation
+					)));
+					scheduleRedraw();
+				}
+				return;
+			}
+			const queenResizeState = queenResizeStateRef.current;
+			if (isMousedown && queenResizeState && !isPanning) {
+				e.preventDefault();
+				const pos = getCanvasRelativePosition(canvas, e);
+				const normalizedPos = getNormalizedPosition(canvas, pos);
+				const nextCursor = {
+					x: clamp01(normalizedPos.x),
+					y: clamp01(normalizedPos.y),
+				};
+				const activeAnnotation = editableQueenAnnotationsRef.current.find((item) => item.id === queenResizeState.annotationId);
+				if (!activeAnnotation) {
+					queenResizeStateRef.current = null;
+					setIsQueenMarkerResizing(false);
+					canvas.style.cursor = getDefaultCanvasCursor();
+					return;
+				}
+
+				const centerX = Number(activeAnnotation.x) * canvas.width;
+				const centerY = Number(activeAnnotation.y) * canvas.height;
+				const pointerX = nextCursor.x * canvas.width;
+				const pointerY = nextCursor.y * canvas.height;
+				const distancePx = Math.hypot(pointerX - centerX, pointerY - centerY);
+				const nextRadius = Math.max(
+					MIN_QUEEN_MARKER_RADIUS_RATIO,
+					Math.min(MAX_QUEEN_MARKER_RADIUS_RATIO, distancePx / (canvas.width * QUEEN_MARKER_RADIUS_MULTIPLIER))
+				);
+				const currentRadius = Number(activeAnnotation.radius) || DEFAULT_QUEEN_MARKER_RADIUS_RATIO;
+				if (Math.abs(nextRadius - currentRadius) > 0.0001) {
+					queenResizeStateRef.current = {
+						...queenResizeState,
+						hasChanged: true,
+					};
+					setEditableQueenAnnotations((previous) => previous.map((annotation) => (
+						annotation.id === queenResizeState.annotationId
+							? { ...annotation, radius: nextRadius }
+							: annotation
+					)));
+					scheduleRedraw();
+				}
+				return;
+			}
 			if (!isMousedown || isPanning) return;
 			if (!canCellBrush && !canStrokeDraw) return;
 			e.preventDefault();
@@ -1297,6 +1597,46 @@ export default function DrawingCanvas({
 			if (!isMousedown || isPanning || (e instanceof MouseEvent && e.button !== 0)) return;
 
 			isMousedown = false;
+			const queenMoveState = queenMoveStateRef.current;
+			if (queenMoveState) {
+				queenMoveStateRef.current = null;
+				setIsQueenMarkerMoving(false);
+				if (queenMoveState.hasChanged) {
+					const nowIso = new Date().toISOString();
+					const nextAnnotations = editableQueenAnnotationsRef.current.map((annotation) => (
+						annotation.id === queenMoveState.annotationId
+							? { ...annotation, updatedAt: nowIso }
+							: annotation
+					));
+					setEditableQueenAnnotations(nextAnnotations);
+					editableQueenAnnotationsRef.current = nextAnnotations;
+					if (onQueenAnnotationsUpdate) {
+						await onQueenAnnotationsUpdate(nextAnnotations);
+					}
+				}
+				canvas.style.cursor = getDefaultCanvasCursor();
+				return;
+			}
+			const queenResizeState = queenResizeStateRef.current;
+			if (queenResizeState) {
+				queenResizeStateRef.current = null;
+				setIsQueenMarkerResizing(false);
+				if (queenResizeState.hasChanged) {
+					const nowIso = new Date().toISOString();
+					const nextAnnotations = editableQueenAnnotationsRef.current.map((annotation) => (
+						annotation.id === queenResizeState.annotationId
+							? { ...annotation, updatedAt: nowIso }
+							: annotation
+					));
+					setEditableQueenAnnotations(nextAnnotations);
+					editableQueenAnnotationsRef.current = nextAnnotations;
+					if (onQueenAnnotationsUpdate) {
+						await onQueenAnnotationsUpdate(nextAnnotations);
+					}
+				}
+				canvas.style.cursor = getDefaultCanvasCursor();
+				return;
+			}
 			if (canCellBrush && activeTool === 'cell-brush') {
 				cellEditChangedRef.current = false;
 				lastBrushCenterRef.current = null;
@@ -1322,6 +1662,8 @@ export default function DrawingCanvas({
 		const handleDrawLeave = async (e: MouseEvent | TouchEvent) => {
 			brushCursorRef.current = null;
 			lastBrushCenterRef.current = null;
+			setHoveredQueenResizeId(null);
+			setHoveredQueenMoveId(null);
 			scheduleRedraw();
 			await handleDrawEnd(e);
 		};
@@ -1345,7 +1687,7 @@ export default function DrawingCanvas({
 			canvas.removeEventListener('touchend', handleDrawEnd);
 			canvas.removeEventListener('touchcancel', handleDrawEnd);
 		};
-	}, [allowDrawing, strokeHistory, onStrokeHistoryUpdate, currentLineWidth, activeTool, selectedCellType, scheduleRedraw, hasUnsavedCellEdits, brushRadiusRatio, isAddingQueenMarker, pendingMarkerFamilyId, editableQueenAnnotations, persistQueenAnnotations, canCellBrush, canStrokeDraw]); // Dependencies for drawing logic
+		}, [allowDrawing, strokeHistory, onStrokeHistoryUpdate, currentLineWidth, activeTool, selectedCellType, scheduleRedraw, hasUnsavedCellEdits, brushRadiusRatio, isAddingQueenMarker, pendingMarkerFamilyId, editableQueenAnnotations, persistQueenAnnotations, canCellBrush, canStrokeDraw, activeControlTab, queenAnnotationsOnCanvas, isQueenMarkerResizing, isQueenMarkerMoving, hoveredQueenResizeId, hoveredQueenMoveId, getDefaultCanvasCursor, onQueenAnnotationsUpdate]); // Dependencies for drawing logic
 
 	// Zoom and Pan Event Handlers
 	useLayoutEffect(() => {
@@ -1354,15 +1696,13 @@ export default function DrawingCanvas({
 		const ctx = canvas.getContext('2d');
 		if (!ctx) return;
 		const getIdleCursor = () => (
-			!allowDrawing
-				? 'default'
-				: isAddingQueenMarker
-				? 'pointer'
-				: activeControlTab === 'free-draw'
-					? 'crosshair'
-					: activeControlTab === 'frame-cells'
-						? 'all-scroll'
-						: 'default'
+			activeControlTab === 'queens' && (isQueenMarkerResizing || Boolean(hoveredQueenResizeId))
+				? 'nwse-resize'
+				: activeControlTab === 'queens' && isQueenMarkerMoving
+					? 'grabbing'
+					: activeControlTab === 'queens' && Boolean(hoveredQueenMoveId)
+						? 'grab'
+					: getDefaultCanvasCursor()
 		);
 
 			const handleScroll = (event: WheelEvent) => {
@@ -1489,7 +1829,7 @@ export default function DrawingCanvas({
 			window.removeEventListener('touchend', handlePanEnd);
 			canvas.removeEventListener('mouseleave', handlePanEnd);
 		};
-	}, [imageUrl, canvasUrl, redrawCurrentCanvas, zoomEnabled, activeControlTab, isAddingQueenMarker, allowDrawing]); // Re-attach if cursor mode changes
+		}, [imageUrl, canvasUrl, redrawCurrentCanvas, zoomEnabled, activeControlTab, isAddingQueenMarker, allowDrawing, isQueenMarkerResizing, isQueenMarkerMoving, hoveredQueenResizeId, hoveredQueenMoveId, getDefaultCanvasCursor]); // Re-attach if cursor mode changes
 
 	// Redraw when visibility toggles change
 	useEffect(() => {
@@ -1920,7 +2260,7 @@ export default function DrawingCanvas({
 								max={100}
 								onChange={(event: Event) => {
 									const nextValue = Number((event.target as HTMLInputElement | null)?.value);
-									setCellsOpacityPercent(Number.isFinite(nextValue) ? nextValue : 100);
+									setCellsOpacityPercent(normalizeCellsOpacityPercent(nextValue));
 								}}
 							/>
 							<span className={styles.toolbarSliderValue}>{cellsOpacityPercent}%</span>

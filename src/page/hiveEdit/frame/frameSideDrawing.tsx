@@ -259,10 +259,14 @@ export default function FrameSideDrawing({
 		})
 	}, [frameSideId, frameSideCellsMutate, getRelativeCounts])
 
-	const uploadAndStoreQueenPreview = useCallback(async (familyId: number, annotation: QueenAnnotation) => {
+	const uploadAndStoreQueenPreview = useCallback(async (
+		familyId: number,
+		annotation: QueenAnnotation,
+		options?: { force?: boolean }
+	) => {
 		const familyFromHive = (hiveFamilies || []).find((item) => Number(item?.id) === familyId)
 		const family = familyFromHive || (await getFamilyById(familyId))
-		if (family?.previewImageUrl) {
+		if (!options?.force && family?.previewImageUrl) {
 			return
 		}
 
@@ -312,6 +316,35 @@ export default function FrameSideDrawing({
 		const approvedWithFamily = normalized.filter(
 			(annotation) => annotation.status === 'approved' && annotation.familyId
 		)
+		const previousAnnotations: QueenAnnotation[] = Array.isArray(liveFrameSideFile?.queenAnnotations)
+			? liveFrameSideFile.queenAnnotations
+			: []
+		const previousById = new Map<string, QueenAnnotation>()
+		for (const annotation of previousAnnotations) {
+			if (!annotation?.id) continue
+			previousById.set(annotation.id, annotation)
+		}
+		const forcePreviewFamilyIds = new Set<number>()
+		for (const annotation of approvedWithFamily) {
+			const annotationId = String(annotation?.id || '')
+			const previous = previousById.get(annotationId)
+			if (!previous) continue
+			const prevX = Number(previous?.x)
+			const prevY = Number(previous?.y)
+			const prevRadius = Number(previous?.radius)
+			const nextX = Number(annotation?.x)
+			const nextY = Number(annotation?.y)
+			const nextRadius = Number(annotation?.radius)
+			const hasGeometryChange =
+				Math.abs(nextX - prevX) > 0.000001 ||
+				Math.abs(nextY - prevY) > 0.000001 ||
+				Math.abs(nextRadius - prevRadius) > 0.000001
+			if (!hasGeometryChange) continue
+			const familyId = Number(annotation.familyId)
+			if (Number.isFinite(familyId) && familyId > 0) {
+				forcePreviewFamilyIds.add(familyId)
+			}
+		}
 		const previewCandidateByFamily = new Map<number, QueenAnnotation>()
 		for (const annotation of approvedWithFamily) {
 			const familyId = Number(annotation.familyId)
@@ -335,12 +368,14 @@ export default function FrameSideDrawing({
 
 		for (const [familyId, annotation] of previewCandidateByFamily.entries()) {
 			try {
-				await uploadAndStoreQueenPreview(familyId, annotation)
+				await uploadAndStoreQueenPreview(familyId, annotation, {
+					force: forcePreviewFamilyIds.has(familyId),
+				})
 			} catch (error) {
 				console.error('Failed to upload/store queen preview image:', error, { familyId, annotation })
 			}
 		}
-	}, [boxId, confirmFrameSideQueenMutate, frameId, frameSideId, uploadAndStoreQueenPreview])
+	}, [boxId, confirmFrameSideQueenMutate, frameId, frameSideId, liveFrameSideFile?.queenAnnotations, uploadAndStoreQueenPreview])
 
 	const onCreateQueen = useCallback(async (queen: { name?: string; race?: string; added?: string; color?: string | null }) => {
 		const result = await addQueenToHiveMutate({

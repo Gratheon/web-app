@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 
@@ -283,7 +283,7 @@ export default function WarehouseQueensPage() {
 	}
 
 	async function onDeleteQueenConfirm() {
-		if (!queenToDelete?.id) return
+		if (!queenToDelete?.id || deletingId) return
 
 		setIsDeleteModalOpen(false)
 		setDeletingId(queenToDelete.id)
@@ -296,6 +296,21 @@ export default function WarehouseQueensPage() {
 			reexecuteQuery({ requestPolicy: 'network-only' })
 		}
 	}
+
+	useEffect(() => {
+		if (!isDeleteModalOpen || !queenToDelete || deletingId) return
+
+		const onKeyDown = (event: KeyboardEvent) => {
+			if (event.key !== 'Enter') return
+			event.preventDefault()
+			void onDeleteQueenConfirm()
+		}
+
+		document.addEventListener('keydown', onKeyDown)
+		return () => {
+			document.removeEventListener('keydown', onKeyDown)
+		}
+	}, [isDeleteModalOpen, queenToDelete, deletingId, onDeleteQueenConfirm])
 
 	if (loading) {
 		return <Loader />
@@ -328,7 +343,7 @@ export default function WarehouseQueensPage() {
 	}
 
 	const renderFrameLink = (queen: QueenItem) => {
-		if (!queen.hive || !queen.hive.apiaryId || !queen.lastDetected) return '-'
+		if (!queen.hive || !queen.hive.apiaryId || !queen.lastDetected) return <T>Not marked yet</T>
 		return (
 			<Link
 				className={styles.frameLink}
@@ -404,13 +419,18 @@ export default function WarehouseQueensPage() {
 				<div className={styles.cardsGrid}>
 					{items.map((queen) => {
 						const color = queen.color || getQueenColorFromYear(queen.added || '')
+						const hasRealPreview = Boolean(queen.previewImageUrl)
+						const imageSrc = hasRealPreview
+							? String(queen.previewImageUrl)
+							: getRandomQueenPlaceholder(`${queen.id}-${queen.name || ''}-${queen.added || ''}`)
 						return (
 							<div className={styles.card} key={`${queen.section}-${queen.id}`}>
-								<div className={styles.cardImageWrap}>
+								<div className={`${styles.cardImageWrap} ${hasRealPreview ? styles.cardImageWrapPreview : ''}`}>
 									<img
-										src={queen.previewImageUrl || getRandomQueenPlaceholder(`${queen.id}-${queen.name || ''}-${queen.added || ''}`)}
+										src={imageSrc}
 										alt={queen.name || 'Queen'}
-										className={styles.cardImage}
+										className={`${styles.cardImage} ${hasRealPreview ? styles.cardImagePreview : styles.cardImagePlaceholder}`}
+										style={hasRealPreview ? { borderColor: color } : undefined}
 										draggable={false}
 									/>
 								</div>
@@ -474,6 +494,9 @@ export default function WarehouseQueensPage() {
 			</div>
 			<p className={styles.description}>
 				<T>Browse queens in active hives and in warehouse storage. Open last detected frame to jump directly into hive frame view.</T>
+			</p>
+			<p className={styles.previewHint}>
+				<T>Tip: mark the queen on a frame in canvas view, and that marked area will be shown here as the queen preview image.</T>
 			</p>
 			<ErrorMsg error={error} />
 

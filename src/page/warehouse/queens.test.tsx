@@ -91,6 +91,15 @@ describe('WarehouseQueensPage', () => {
 			.mockReturnValueOnce([])
 			.mockReturnValueOnce([
 				{
+					id: '1',
+					name: 'Hera',
+					added: '2024',
+					color: '#ffffff',
+					hiveId: '10',
+				},
+			])
+			.mockReturnValueOnce([
+				{
 					id: '10',
 					apiaryId: '100',
 					hiveNumber: 3,
@@ -134,6 +143,26 @@ describe('WarehouseQueensPage', () => {
 				},
 			])
 			.mockReturnValueOnce([])
+			.mockReturnValueOnce([
+				{
+					id: '1',
+					name: 'Athena',
+					added: '2024',
+					color: '#ff6600',
+					hiveId: '10',
+					previewImageUrl: 'https://example.com/athena.jpg',
+					lastSeenFrameId: '4',
+					lastSeenFrameSideId: '8',
+					lastSeenBoxId: '12',
+				},
+				{
+					id: '2',
+					name: 'Hera',
+					added: '2023',
+					color: '#00aa88',
+					hiveId: '11',
+				},
+			])
 			.mockReturnValueOnce([
 				{
 					id: '10',

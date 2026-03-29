@@ -13,7 +13,7 @@ import TableIcon from '@/icons/tableIcon'
 import queenImageURL from '@/assets/queen.webp'
 import queenPlaceholderUrls from '@/assets/queens/placeholders'
 import { getQueenColorFromYear } from '@/page/hiveEdit/hiveTopInfo/queenColor/utils'
-import { getAssignedFamilies, getFamiliesByIds, getUnassignedFamilies } from '@/models/family'
+import { getAllFamilies, getAssignedFamilies, getFamiliesByIds, getUnassignedFamilies } from '@/models/family'
 import { getHivesByIds } from '@/models/hive'
 import styles from './queens.module.less'
 
@@ -36,6 +36,7 @@ type QueenItem = {
 	race?: string | null
 	added?: string | null
 	color?: string | null
+	parentId?: string | null
 	previewImageUrl?: string | null
 	section: 'IN_HIVES' | 'WAREHOUSE'
 	hive?: HiveLink | null
@@ -142,9 +143,11 @@ export default function WarehouseQueensPage() {
 	const [viewMode, setViewMode] = useState<ViewMode>('LIST')
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 	const [queenToDelete, setQueenToDelete] = useState<QueenItem | null>(null)
+	const [queenForAncestry, setQueenForAncestry] = useState<QueenItem | null>(null)
 
 	const assignedFamilies = useLiveQuery(() => getAssignedFamilies(), [], [])
 	const unassignedFamilies = useLiveQuery(() => getUnassignedFamilies(), [], [])
+	const allFamilies = useLiveQuery(() => getAllFamilies(), [], [])
 
 	const hiveIds = useMemo(() => {
 		const ids: number[] = []
@@ -218,6 +221,7 @@ export default function WarehouseQueensPage() {
 				race: family.race,
 				added: family.added,
 				color: family.color,
+				parentId: family.parentId != null ? String(family.parentId) : null,
 				previewImageUrl: family.previewImageUrl || localPreviewByFamilyId.get(String(family.id)),
 				section: 'IN_HIVES',
 				hive: {
@@ -241,6 +245,7 @@ export default function WarehouseQueensPage() {
 				race: queen.race,
 				added: queen.added,
 				color: queen.color,
+				parentId: queen.parentId != null ? String(queen.parentId) : null,
 				previewImageUrl: localPreviewByFamilyId.get(id),
 				section: 'WAREHOUSE',
 				lastHive: queen.lastHive,
@@ -255,6 +260,7 @@ export default function WarehouseQueensPage() {
 				race: family.race,
 				added: family.added,
 				color: family.color,
+				parentId: family.parentId != null ? String(family.parentId) : null,
 				previewImageUrl: family.previewImageUrl || localPreviewByFamilyId.get(id),
 				section: 'WAREHOUSE',
 			})
@@ -262,6 +268,63 @@ export default function WarehouseQueensPage() {
 		const items = Array.from(byId.values())
 		return sortQueens(items, sortBy, sortOrder)
 	}, [data?.warehouseQueens, localPreviewByFamilyId, sortBy, sortOrder, unassignedFamilies])
+
+	const queenById = useMemo(() => {
+		const byId = new Map<string, QueenItem>()
+		for (const queen of inHiveQueens) {
+			byId.set(String(queen.id), queen)
+		}
+		for (const queen of warehouseQueens) {
+			if (!byId.has(String(queen.id))) {
+				byId.set(String(queen.id), queen)
+			}
+		}
+		for (const family of allFamilies || []) {
+			const id = String(family?.id || '')
+			if (!id) continue
+			if (byId.has(id)) continue
+			byId.set(id, {
+				id,
+				name: family?.name,
+				race: family?.race,
+				added: family?.added,
+				color: family?.color,
+				parentId: family?.parentId != null ? String(family.parentId) : null,
+				previewImageUrl: family?.previewImageUrl || null,
+				section: 'WAREHOUSE',
+			})
+		}
+		return byId
+	}, [allFamilies, inHiveQueens, warehouseQueens])
+
+	const ancestryChain = useMemo(() => {
+		if (!queenForAncestry) return []
+		const chain: QueenItem[] = []
+		const visited = new Set<string>()
+		let current: QueenItem | null | undefined = queenForAncestry
+		for (let depth = 0; depth < 20 && current; depth++) {
+			const id = String(current.id)
+			if (visited.has(id)) break
+			visited.add(id)
+			chain.push(current)
+			const parentId = current.parentId ? String(current.parentId) : ''
+			if (!parentId) break
+			const knownParent = queenById.get(parentId)
+			if (!knownParent) {
+				chain.push({
+					id: parentId,
+					name: `#${parentId}`,
+					race: null,
+					added: null,
+					parentId: null,
+					section: 'WAREHOUSE',
+				})
+				break
+			}
+			current = knownParent
+		}
+		return chain
+	}, [queenById, queenForAncestry])
 
 	const errorMessage = String(error?.message || '')
 	const likelyBackendMismatch =
@@ -354,6 +417,24 @@ export default function WarehouseQueensPage() {
 		)
 	}
 
+	const renderQueenName = (queen: QueenItem) => {
+		if (!queen.parentId) {
+			return queen.name || <T>Unnamed Queen</T>
+		}
+		return (
+			<a
+				href="#"
+				className={styles.queenNameButton}
+				onClick={(event) => {
+					event.preventDefault()
+					setQueenForAncestry(queen)
+				}}
+			>
+				{queen.name || <T>Unnamed Queen</T>}
+			</a>
+		)
+	}
+
 	const renderTableSection = (title: string, items: QueenItem[], allowDelete: boolean) => (
 		<div className={styles.section}>
 			<h3 className={styles.sectionTitle}><T>{title}</T> ({items.length})</h3>
@@ -383,7 +464,7 @@ export default function WarehouseQueensPage() {
 												<span className={styles.colorDot} style={{ backgroundColor: color }}></span>
 											</div>
 										</td>
-										<td>{queen.name || <T>Unnamed Queen</T>}</td>
+										<td>{renderQueenName(queen)}</td>
 										<td>{queen.added || '-'}</td>
 										<td>{queen.race || <T>Race unknown</T>}</td>
 										<td>{renderHiveLink(queen)}</td>
@@ -437,7 +518,7 @@ export default function WarehouseQueensPage() {
 								<div className={styles.cardContent}>
 									<div className={styles.cardTitleRow}>
 										<span className={styles.colorDot} style={{ backgroundColor: color }}></span>
-										<strong>{queen.name || <T>Unnamed Queen</T>}</strong>
+										<strong>{renderQueenName(queen)}</strong>
 									</div>
 									<div className={styles.cardMeta}><T>Year</T>: {queen.added || '-'}</div>
 									<div className={styles.cardMeta}><T>Race</T>: {queen.race || <T>Race unknown</T>}</div>
@@ -557,6 +638,23 @@ export default function WarehouseQueensPage() {
 								<div className={styles.keyHint}>Enter</div>
 							</div>
 						</div>
+					</div>
+				</Modal>
+			) : null}
+
+			{queenForAncestry?.parentId ? (
+				<Modal title={<T>Queen ancestry</T>} onClose={() => setQueenForAncestry(null)}>
+					<div className={styles.ancestryWrap}>
+						{ancestryChain.map((queen, index) => (
+							<div key={`${queen.id}-${index}`} className={styles.ancestryNodeWrap}>
+								<div className={styles.ancestryNode}>
+									<div className={styles.ancestryNodeTitle}>{queen.name || <T>Unnamed Queen</T>}</div>
+									<div className={styles.ancestryNodeMeta}><T>Race</T>: {queen.race || <T>Race unknown</T>}</div>
+									<div className={styles.ancestryNodeMeta}><T>Year</T>: {queen.added || '-'}</div>
+								</div>
+								{index < ancestryChain.length - 1 ? <div className={styles.ancestryArrow}>↑</div> : null}
+							</div>
+						))}
 					</div>
 				</Modal>
 			) : null}

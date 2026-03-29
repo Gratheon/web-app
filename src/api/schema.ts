@@ -100,12 +100,15 @@ type Error {
 
 type Family {
   id: ID!
+  name: String
 
   #  freeform race of the queen
   race: String
 
   #  year when queen was added
   added: String
+  color: String
+  parentId: ID
 
   #  queen age in years, depends on added date
   age: Int
@@ -119,8 +122,11 @@ type Family {
 
 input FamilyInput {
   id: ID
+  name: String
   race: String
   added: String
+  color: String
+  parentId: ID
 }
 
 #  File is an abstraction of an uploaded photo of a frame.But we don't want to mix it with various properties in case we will have more uploads.for other purposes than for a frame. For example, hive bottom or hive entrance.

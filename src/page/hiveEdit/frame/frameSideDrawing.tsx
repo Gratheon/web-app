@@ -377,7 +377,7 @@ export default function FrameSideDrawing({
 		}
 	}, [boxId, confirmFrameSideQueenMutate, frameId, frameSideId, liveFrameSideFile?.queenAnnotations, uploadAndStoreQueenPreview])
 
-	const onCreateQueen = useCallback(async (queen: { name?: string; race?: string; added?: string; color?: string | null }) => {
+	const onCreateQueen = useCallback(async (queen: { name?: string; race?: string; added?: string; color?: string | null; parentId?: number | null }) => {
 		const result = await addQueenToHiveMutate({
 			hiveId: String(hiveId),
 			queen: {
@@ -398,6 +398,7 @@ export default function FrameSideDrawing({
 			race: createdQueen.race || '',
 			added: createdQueen.added || '',
 			color: createdQueen.color || null,
+			parentId: queen.parentId ?? null,
 		})
 		return +createdQueen.id
 	}, [addQueenToHiveMutate, hiveId])

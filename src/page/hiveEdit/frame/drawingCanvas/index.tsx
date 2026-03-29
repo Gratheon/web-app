@@ -802,7 +802,7 @@ interface DrawingCanvasProps {
 	onDetectedCellsUpdate?: (detectedCells: any[]) => void | Promise<void>;
 	onQueenAnnotationsUpdate?: (queenAnnotations: QueenAnnotation[]) => void | Promise<void>;
 	onRemoveDetectedQueenCandidate?: (target: { x: number; y: number }) => void | Promise<void>;
-	onCreateQueen?: (queen: { name?: string; race?: string; added?: string; color?: string | null }) => Promise<number | null>;
+	onCreateQueen?: (queen: { name?: string; race?: string; added?: string; color?: string | null; parentId?: number | null }) => Promise<number | null>;
 	frameSideFile: any;
 	hideControls?: boolean;
 	allowDrawing?: boolean;
@@ -858,6 +858,7 @@ export default function DrawingCanvas({
 	const [newQueenRace, setNewQueenRace] = useState('');
 	const [newQueenYear, setNewQueenYear] = useState(String(new Date().getFullYear()));
 	const [newQueenColor, setNewQueenColor] = useState<string | null>(null);
+	const [newQueenParentId, setNewQueenParentId] = useState('');
 	const [isCreatingQueen, setIsCreatingQueen] = useState(false);
 	const [nameSuggestionLang, setNameSuggestionLang] = useState('en');
 	const user = useLiveQuery(() => getUser(), [], null);
@@ -986,11 +987,15 @@ export default function DrawingCanvas({
 		setNewQueenRace('');
 		setNewQueenYear(String(new Date().getFullYear()));
 		setNewQueenColor(null);
+		const defaultParentId = Array.isArray(families) && families.length > 0
+			? String(families[0]?.id || '')
+			: '';
+		setNewQueenParentId(defaultParentId);
 		setIsCreateQueenModalOpen(true);
 		if (!suggestedName) {
 			reexecuteRandomNameQuery({ requestPolicy: 'network-only' });
 		}
-	}, [randomNameData, reexecuteRandomNameQuery]);
+	}, [families, randomNameData, reexecuteRandomNameQuery]);
 
 	const onRefreshQueenName = useCallback(() => {
 		reexecuteRandomNameQuery({ requestPolicy: 'network-only' });
@@ -1013,6 +1018,7 @@ export default function DrawingCanvas({
 				race: newQueenRace.trim() || undefined,
 				added: year || undefined,
 				color: newQueenColor,
+				parentId: newQueenParentId ? Number(newQueenParentId) : null,
 			});
 			if (!createdFamilyId) {
 				window.alert('Failed to create queen.');
@@ -1024,7 +1030,7 @@ export default function DrawingCanvas({
 		} finally {
 			setIsCreatingQueen(false);
 		}
-	}, [newQueenName, newQueenRace, newQueenYear, newQueenColor, onCreateQueen]);
+	}, [newQueenName, newQueenRace, newQueenYear, newQueenColor, newQueenParentId, onCreateQueen]);
 
 	const allDetectedBees = React.useMemo(() => {
 		const combined = [...(detectedBees || [])];
@@ -2468,6 +2474,21 @@ export default function DrawingCanvas({
 									/>
 								</div>
 							</div>
+						</div>
+						<div>
+							<label className={inputStyles.label}><T>Parent queen</T></label>
+							<select
+								className={inputStyles.input}
+								value={newQueenParentId}
+								onChange={(event) => setNewQueenParentId(String((event.target as HTMLSelectElement).value || ''))}
+							>
+								<option value=""><T>Unknown / not set</T></option>
+								{(families || []).map((family) => (
+									<option key={String(family.id)} value={String(family.id)}>
+										{family.name || `#${family.id}`}
+									</option>
+								))}
+							</select>
 						</div>
 						<div className={styles.createQueenModalButtons}>
 							<Button size="small" color="gray" onClick={() => setIsCreateQueenModalOpen(false)}>

@@ -7,6 +7,7 @@ export type Family = {
 	race: string
 	added: string
 	color?: string
+	parentId?: number | null
 	previewImageUrl?: string | null
 	age?: number
 	lastSeenFrameId?: number
@@ -102,6 +103,15 @@ export async function getUnassignedFamilies(): Promise<Family[]> {
 			const hiveId = Number(family?.hiveId)
 			return !Number.isFinite(hiveId) || hiveId <= 0
 		})
+	} catch (e) {
+		console.error(e)
+		throw e
+	}
+}
+
+export async function getAllFamilies(): Promise<Family[]> {
+	try {
+		return await db[TABLE_NAME].toArray()
 	} catch (e) {
 		console.error(e)
 		throw e

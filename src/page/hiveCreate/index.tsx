@@ -645,6 +645,7 @@ export default function HiveCreateForm() {
                 <div style={{ marginBottom: 12 }}>
                     <MessageSuccess
                         isWarning
+                        className={styles.warehouseWarning}
                         title={<T>Warehouse warning</T>}
                         message={
                             <>

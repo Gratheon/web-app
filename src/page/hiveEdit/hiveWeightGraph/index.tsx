@@ -3,8 +3,6 @@ import { useMemo } from 'react'
 import { gql, useQuery } from '@/api'
 
 import Loader from '@/shared/loader'
-import { useLiveQuery } from 'dexie-react-hooks'
-import { getUser } from '@/models/user'
 import ErrorMsg from '@/shared/messageError'
 import WeightChart from './WeightChart'
 import TemperatureChart from './TemperatureChart'
@@ -58,7 +56,6 @@ const WEIGHT_QUERY = gql`
 `
 
 export default function HiveWeightGraph({ hiveId }) {
-	let userStored = useLiveQuery(() => getUser(), [], null)
 	const { chartRefs, syncCharts } = useChartSync()
 
 	const { now, weekAgo } = useMemo(() => {
@@ -81,7 +78,7 @@ export default function HiveWeightGraph({ hiveId }) {
 		},
 	})
 
-	if (loading || !userStored) {
+	if (loading) {
 		return <Loader />
 	}
 

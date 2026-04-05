@@ -92,7 +92,9 @@ const expandCompactSeries = (series?: CompactSeries | null) => {
 	if (Number.isNaN(base)) return []
 	const stepMs = Math.max(1, series.stepHours) * 60 * 60 * 1000
 	return series.values.map((value, index) => ({
-		time: new Date(base + index * stepMs).toISOString().slice(0, 16),
+		// Keep timestamps explicitly in UTC so downstream chart parsing does not
+		// reinterpret them in local time and collapse DST transition hours.
+		time: new Date(base + index * stepMs).toISOString(),
 		value
 	}))
 }

@@ -5,7 +5,6 @@ import { gql, useQuery } from '../../api'
 
 import Button from '../../shared/button'
 import { getUser } from '@/models/user'
-import Loader from '../../shared/loader'
 import ErrorMsg from '../../shared/messageError'
 import T from '../../shared/translate'
 import useNetworkStatus from '@/hooks/useNetworkStatus'
@@ -13,6 +12,7 @@ import ServiceDegradedWarning from '@/shared/serviceDegradedWarning'
 
 import ApiaryListRow from './apiaryListRow'
 import ApiariesPlaceholder from './apiariesPlaceholder'
+import ApiaryListLoadingRows from './loadingRows'
 import { sortHives } from './hiveSort'
 import { normalizeApiaryType } from '@/models/apiary'
 import styles from './style.module.less'
@@ -41,6 +41,7 @@ const ALLOWED_SORT_COLUMNS = [
 	'QUEEN_RACE',
 ]
 const ALLOWED_SORT_ORDERS = ['ASC', 'DESC']
+const FORCE_APIARY_LIST_SKELETON = false
 
 export default function ApiaryList(props) {
 	let user = useLiveQuery(() => getUser(), [], null)
@@ -391,20 +392,33 @@ export default function ApiaryList(props) {
 		}))
 	}, [hiveSortBy, hiveSortOrder])
 
-	if (loading && apiaries.length === 0) {
-		return <Loader />
-	}
+	const showLoadingSkeleton = FORCE_APIARY_LIST_SKELETON || (loading && apiaries.length === 0)
+
 
 	return (
-		<div className={styles.page}>
+			<div className={styles.page}>
 			{isServiceDegraded && <ServiceDegradedWarning />}
 			<ErrorMsg error={error || errorNetwork} borderRadius={0} />
-			{apiaries !== null && apiaries?.length === 0 && <ApiariesPlaceholder />}
+			{showLoadingSkeleton && (
+				<ApiaryListLoadingRows
+					user={user}
+					sortBy={hiveSortBy}
+					sortOrder={hiveSortOrder}
+					onSortChange={handleHiveSortChange}
+					visibleColumns={visibleColumns}
+					onToggleColumn={toggleVisibleColumn}
+					selectedHiveApiaryId={selectedHive.apiaryId}
+					selectedHiveId={selectedHive.hiveId}
+					onSelectHive={selectHive}
+					onNavigateAcrossApiaries={handleNavigateAcrossApiaries}
+				/>
+			)}
+			{!showLoadingSkeleton && !loading && apiaries !== null && apiaries?.length === 0 && <ApiariesPlaceholder />}
 
-			{apiaries &&
-				apiaries.map((apiary, i) => (
-						<ApiaryListRow
-							key={i}
+			{!showLoadingSkeleton && !loading && apiaries &&
+					apiaries.map((apiary, i) => (
+							<ApiaryListRow
+								key={i}
 							apiary={apiary}
 							boxSystems={data?.boxSystems || []}
 							user={user}
@@ -421,7 +435,7 @@ export default function ApiaryList(props) {
 				/>
 			))}
 
-			<div style="text-align:center; margin: 15px 0;">
+			<div style={showLoadingSkeleton || loading ? { display: 'none' } : { textAlign: 'center', margin: '15px 0' }}>
 				<Button 
 					color={apiaries && apiaries.length === 0 ? 'green' : 'white'}
 					href="/apiaries/create"><T ctx="its a button">Setup new apiary</T></Button>

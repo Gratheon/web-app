@@ -19,6 +19,7 @@ import DateTimeAgo from '../../../shared/dateTimeAgo'
 import { sortHives } from '../hiveSort'
 import { getColonyStatusLabel, getHiveFamilies } from '../hivePresentation'
 import { apiaryTypes, normalizeApiaryType } from '@/models/apiary'
+import ApiaryListRowSkeleton from './skeleton'
 
 const BOX_SYSTEM_COLORS = ['#2f80ed', '#f2994a', '#27ae60', '#eb5757']
 
@@ -93,9 +94,20 @@ export default function apiaryListRow({
 	onSelectHive,
 	onNavigateAcrossApiaries,
 	hasMixedApiaryTypes,
+	isLoading = false,
+	forcedListType = null,
 }) {
+	const [listType, setListType] = React.useState(() => {
+		if (forcedListType) {
+			return forcedListType
+		}
 
-	const [listType, setListType] = React.useState(localStorage.getItem('apiaryListType.' + apiary.id) || 'list')
+		if (typeof window === 'undefined') {
+			return 'list'
+		}
+
+		return localStorage.getItem('apiaryListType.' + apiary.id) || 'list'
+	})
 	const [columnsPopupOpen, setColumnsPopupOpen] = React.useState(false)
 	const columnsPopupRef = React.useRef(null)
 	const rowRef = React.useRef(null)
@@ -104,6 +116,18 @@ export default function apiaryListRow({
 	const isMobileApiary = apiaryType === apiaryTypes.MOBILE
 
 	React.useEffect(() => {
+		if (!forcedListType) {
+			return
+		}
+
+		setListType(forcedListType)
+	}, [forcedListType])
+
+	React.useEffect(() => {
+		if (isLoading) {
+			return () => { }
+		}
+
 		const handleClickOutside = (event) => {
 			if (columnsPopupRef.current && !columnsPopupRef.current.contains(event.target)) {
 				setColumnsPopupOpen(false)
@@ -118,7 +142,7 @@ export default function apiaryListRow({
 		return () => {
 			document.removeEventListener('mousedown', handleClickOutside)
 		}
-	}, [])
+	}, [isLoading])
 
 	const renderSortArrow = (column) => {
 		if (sortBy !== column) {
@@ -415,6 +439,10 @@ export default function apiaryListRow({
 	}, [apiary.id, columnsPopupOpen, findNextListHive, focusHive, listType, moveToAdjacentApiary, selectedHiveApiaryId, selectedHiveId, sortedHives])
 
 	React.useEffect(() => {
+		if (isLoading) {
+			return () => { }
+		}
+
 		const handleGlobalKeyDown = (event) => {
 			const activeElement = document.activeElement
 			if (!rowRef.current || !activeElement) {
@@ -434,7 +462,19 @@ export default function apiaryListRow({
 		return () => {
 			document.removeEventListener('keydown', handleGlobalKeyDown, true)
 		}
-	}, [onRowKeyDown])
+	}, [isLoading, onRowKeyDown])
+
+	if (isLoading) {
+		return (
+			<ApiaryListRowSkeleton
+				listType={listType}
+				visibleColumns={visibleColumns}
+				showTypeIcon={hasMixedApiaryTypes}
+				hiveCount={Math.max(apiary?.hives?.length || 0, listType === 'table' ? 4 : 5)}
+				rowCount={Math.max(apiary?.hives?.length || 0, 4)}
+			/>
+		)
+	}
 
 	return (
 		<div

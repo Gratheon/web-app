@@ -15,6 +15,7 @@ type FrameSideImageProps = {
 	frameURL: string
 	dominantColor?: string | null
 	placeholderColor?: string
+	cellTexture?: 'foundation' | 'comb'
 	// Add new optional props for inspection view
 	frameSideData?: {
 		file?: {
@@ -37,6 +38,7 @@ export default function FrameSideImage({
 	frameURL,
 	dominantColor = null,
 	placeholderColor = 'transparent',
+	cellTexture = 'foundation',
 	// Destructure new props
 	frameSideData,
 	onImageClick,
@@ -121,8 +123,15 @@ export default function FrameSideImage({
 			)}
 			{!displayUrl && (
 				<div
-					className={styles.frameSideImageInternalSides}
-					style={{ backgroundColor: placeholderColor }}
+					className={`${styles.frameSideImageInternalSides} ${
+						cellTexture === 'comb' ? styles.combCells : styles.foundationCells
+					}`}
+					style={
+						{
+							'--frame-side-fill-color':
+								dominantColor ?? placeholderColor,
+						} as any
+					}
 				></div>
 			)}
 

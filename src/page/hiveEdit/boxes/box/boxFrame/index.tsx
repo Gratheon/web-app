@@ -122,6 +122,9 @@ export default function BoxFrame({
 							selected={+frameSideId == +frame.leftId}
 							editable={editable}
 							placeholderColor="var(--visual-frame-wax-color)"
+							cellTexture={
+								frame.type === frameTypes.EMPTY_COMB ? 'comb' : 'foundation'
+							}
 						/>
 
 						<FrameSideImage
@@ -134,6 +137,9 @@ export default function BoxFrame({
 							selected={+frameSideId == +frame.rightId}
 							editable={editable}
 							placeholderColor="var(--visual-frame-wax-color)"
+							cellTexture={
+								frame.type === frameTypes.EMPTY_COMB ? 'comb' : 'foundation'
+							}
 						/>
 					</div>
 				</div>

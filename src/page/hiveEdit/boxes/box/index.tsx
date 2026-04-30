@@ -25,6 +25,7 @@ import FRAMES_QUERY from './framesQuery.graphql.ts'
 import {
 	LIST_SLOT_WIDTH_PX,
 	LIST_SECTION_PADDING_X_PX,
+	VISUAL_FRAME_TOTAL_WIDTH_PX,
 	VISUAL_SECTION_PADDING_X_PX,
 } from './geometry'
 import {
@@ -185,7 +186,11 @@ export default function Box({
 
 	const boundaryIndicatorMap = new Map<
 		number,
-		{ count: number; hasLeftContribution: boolean; hasRightContribution: boolean }
+		{
+			count: number
+			hasLeftContribution: boolean
+			hasRightContribution: boolean
+		}
 	>()
 	for (const { frame, slotIndex } of positionedFrames) {
 		const leftBoundary = slotIndex
@@ -267,6 +272,8 @@ export default function Box({
 	}
 
 	let framesWrapped: any = framesDiv
+	let renderedSlotCount = 1
+	let renderedSlotStartIndex = slotRenderStartIndex
 	const listInnerStyle = {
 		'--hive-section-padding-x': `${LIST_SECTION_PADDING_X_PX}px`,
 	} as React.CSSProperties
@@ -647,8 +654,24 @@ export default function Box({
 		}
 		const listSlotStart = slotRenderStartIndex
 		const listSlotEnd = slotCapacity - 1
+		const occupiedSlotIndexes = [...frameBySlot.keys()].sort((a, b) => a - b)
+		const visualSlotStart = occupiedSlotIndexes.length
+			? occupiedSlotIndexes[0]
+			: listSlotStart
+		const visualSlotEnd = occupiedSlotIndexes.length
+			? occupiedSlotIndexes[occupiedSlotIndexes.length - 1]
+			: listSlotEnd
+		const renderSlotStart =
+			displayMode === 'visual' ? visualSlotStart : listSlotStart
+		const renderSlotEnd = displayMode === 'visual' ? visualSlotEnd : listSlotEnd
+		renderedSlotStartIndex = renderSlotStart
+		renderedSlotCount = renderSlotEnd - renderSlotStart + 1
+		const slotWidth =
+			displayMode === 'visual'
+				? VISUAL_FRAME_TOTAL_WIDTH_PX
+				: LIST_SLOT_WIDTH_PX
 
-		for (let i = listSlotStart; i <= listSlotEnd; i++) {
+		for (let i = renderSlotStart; i <= renderSlotEnd; i++) {
 			const frame = frameBySlot.get(i)
 			const isEmptySlot = !frame
 			const isFrameDragged =
@@ -668,10 +691,13 @@ export default function Box({
 						void onNativeDropAtIndex(event, i)
 					}}
 					style={{
-						display: 'inline-block',
-						flex: '0 0 auto',
-						width: LIST_SLOT_WIDTH_PX,
-						height: '100%',
+						display: displayMode === 'visual' ? 'block' : 'inline-block',
+						flex:
+							displayMode === 'visual'
+								? `0 1 ${VISUAL_FRAME_TOTAL_WIDTH_PX}px`
+								: '0 0 auto',
+						width: slotWidth,
+						height: displayMode === 'visual' ? 'auto' : '100%',
 						verticalAlign: 'top',
 						marginLeft: 0,
 						marginRight: 0,
@@ -685,8 +711,7 @@ export default function Box({
 							shouldShowSlots && slotIsHovered
 								? 'rgba(255,255,255,0.14)'
 								: 'transparent',
-						transition:
-							'background-color 120ms ease, outline-color 120ms ease',
+						transition: 'background-color 120ms ease, outline-color 120ms ease',
 					}}
 				>
 					{!isEmptySlot && (
@@ -702,6 +727,7 @@ export default function Box({
 							displayMode={displayMode}
 							frameSidesData={frameSidesData}
 							onFrameImageClick={onFrameImageClick}
+							fitVisualSlot={displayMode === 'visual'}
 							dragDropProps={
 								isListDragMode
 									? {
@@ -734,7 +760,10 @@ export default function Box({
 
 	// Keep vertical sections compact, but allow horizontal sections to fit full slot capacity.
 	let maxWidthStyle: any = {}
-	if (box.type === 'LARGE_HORIZONTAL_SECTION') {
+	const shouldScrollList =
+		displayMode === 'list' &&
+		(box.type === 'LARGE_HORIZONTAL_SECTION' || frames.length > 10)
+	if (displayMode === 'list' && box.type === 'LARGE_HORIZONTAL_SECTION') {
 		const slotCapacity = Math.max(
 			BOX_SLOT_CAPACITY[box.type] || 25,
 			(frames || []).reduce(
@@ -746,18 +775,26 @@ export default function Box({
 			minWidth: slotCapacity * LIST_SLOT_WIDTH_PX + 28,
 			maxWidth: 'none',
 		}
-	} else if (frames.length > 10) {
+	} else if (displayMode === 'list' && frames.length > 10) {
 		maxWidthStyle = {
 			maxWidth: 32 * 12 + 10,
 		}
 	}
 
 	if (displayMode == 'visual') {
+		function getVisualIndicatorLeftCss(boundarySlotIndex: number): string {
+			const relativeBoundary = boundarySlotIndex - renderedSlotStartIndex
+			const boundaryPercent = (relativeBoundary / renderedSlotCount) * 100
+			return `calc(${boundaryPercent}% + 3px)`
+		}
+
 		return (
 			<>
 				<ErrorMessage error={error} />
 				<div
-					className={`${styles.boxOuter} ${selected && styles.selected}`}
+					className={`${styles['boxType_' + box.type]} ${styles.boxOuter} ${
+						selected && styles.selected
+					}`}
 					style={maxWidthStyle}
 				>
 					<div className={styles.boxInnerVisual} style={visualInnerStyle}>
@@ -766,9 +803,8 @@ export default function Box({
 						<div className={styles.indicatorLayer}>
 							{displayIndicators.map((indicator) => {
 								if (indicator.count <= 0) return null
-								const leftPosition = getIndicatorLeft(
-									indicator,
-									'visual'
+								const leftPosition = getVisualIndicatorLeftCss(
+									indicator.boundarySlotIndex
 								)
 								const indicatorHeightPercent =
 									maxBeeCount > 0
@@ -778,7 +814,7 @@ export default function Box({
 									<div
 										key={`indicator-line-${indicator.key}`}
 										className={styles.betweenFrameIndicator}
-										style={{ left: `${leftPosition}px` }}
+										style={{ left: leftPosition }}
 									>
 										<div
 											className={styles.indicatorLine}
@@ -790,15 +826,14 @@ export default function Box({
 						</div>
 						{displayIndicators.map((indicator) => {
 							if (indicator.count <= 0) return null
-							const leftPosition = getIndicatorLeft(
-								indicator,
-								'visual'
+							const leftPosition = getVisualIndicatorLeftCss(
+								indicator.boundarySlotIndex
 							)
 							return (
 								<div
 									key={`indicator-count-${indicator.key}`}
 									className={styles.indicatorCount}
-									style={{ left: `${leftPosition}px` }}
+									style={{ left: leftPosition }}
 								>
 									{indicator.count}
 								</div>
@@ -819,20 +854,19 @@ export default function Box({
 				}`}
 				style={maxWidthStyle}
 			>
-					<div
-						className={styles.boxInner}
-						style={listInnerStyle}
-						{...boxInnerDragProps}
-					>
-						{!frames && <Loader size={1} />}
-						{framesWrapped}
-						<div className={styles.indicatorLayer} style={{ zIndex: 2 }}>
-							{displayIndicators.map((indicator) => {
-								if (indicator.count <= 0) return null
-								const leftPosition = getIndicatorLeft(
-									indicator,
-								'list'
-							)
+				<div
+					className={`${styles.boxInner} ${
+						shouldScrollList ? styles.boxInnerScrollable : ''
+					}`}
+					style={listInnerStyle}
+					{...boxInnerDragProps}
+				>
+					{!frames && <Loader size={1} />}
+					{framesWrapped}
+					<div className={styles.indicatorLayer} style={{ zIndex: 2 }}>
+						{displayIndicators.map((indicator) => {
+							if (indicator.count <= 0) return null
+							const leftPosition = getIndicatorLeft(indicator, 'list')
 							const indicatorHeightPercent =
 								maxBeeCount > 0
 									? Math.min(100, (indicator.count / maxBeeCount) * 100)
@@ -846,13 +880,13 @@ export default function Box({
 									<div
 										className={styles.indicatorLine}
 										style={{ height: `${indicatorHeightPercent}%` }}
-										/>
-									</div>
-								)
-							})}
-						</div>
+									/>
+								</div>
+							)
+						})}
 					</div>
 				</div>
+			</div>
 		</>
 	)
 }

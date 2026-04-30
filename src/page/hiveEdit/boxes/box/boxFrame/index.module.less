@@ -1,6 +1,5 @@
-@import "../../../../../layout.module.less";
+@import '../../../../../layout.module.less';
 @import '@/colors.module.less';
-
 
 .position {
 	line-height: 15px;
@@ -41,14 +40,15 @@
 // New style for the selected frame highlight and upward shift
 .frameSelected {
 	background: @color-selected-frame;
-	
-	.frame{
+
+	.frame {
 		margin-top: 2px;
 	}
 }
 
 .frame {
-	margin: var(--list-frame-margin-top, 10px) calc(var(--list-frame-gap, 8px) / 2) 0;
+	margin: var(--list-frame-margin-top, 10px)
+		calc(var(--list-frame-gap, 8px) / 2) 0;
 	width: var(--list-frame-body-width, 30px);
 	border-radius: 5px;
 	display: flex;
@@ -108,7 +108,6 @@
 	}
 }
 
-
 .left {
 	background: white;
 }
@@ -132,4 +131,56 @@
 	position: relative; // Allows absolute positioning of children
 	display: inline-block; // Or 'flex' if needed, keeps elements together
 	margin: 0;
+	width: var(--visual-frame-total-width, 132px);
+	box-sizing: border-box;
+	--visual-frame-wax-color: @foundationColor;
+}
+
+.fitVisualSlot {
+	display: block;
+	width: 100%;
+	padding: 0 3px;
+}
+
+.visualFrameType {
+	width: var(--visual-frame-total-width, 132px);
+	height: 40px;
+	box-sizing: border-box;
+	border: 2px solid @frameColor;
+	border-top-width: 5px;
+	border-radius: 2px;
+	cursor: pointer;
+}
+
+.visualFrameVoid {
+	background: transparent;
+}
+
+.visualFramePartition {
+	background: @frameColor;
+}
+
+.visualFrameFeeder {
+	position: relative;
+	overflow: hidden;
+	background: linear-gradient(
+		to bottom,
+		#f9f8e9 0,
+		#f9f8e9 38%,
+		rgb(255, 219, 127) 38%,
+		rgb(255, 219, 127) 100%
+	);
+	border-left-width: 5px;
+	border-right-width: 5px;
+}
+
+.visualFrameFeederFill {
+	position: absolute;
+	left: 20%;
+	right: 20%;
+	bottom: 5px;
+	height: 8px;
+	border-radius: 2px;
+	background: rgba(255, 225, 0, 0.8);
+	border: 1px solid rgba(31, 17, 0, 0.35);
 }

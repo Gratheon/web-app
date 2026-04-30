@@ -2,8 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { Box } from '@/models/boxes.ts'
-import { Frame } from '@/models/frames.ts'
-import { enrichFramesWithSides } from '@/models/frameSide.ts'
+import { Frame, frameTypes } from '@/models/frames.ts'
 import { getDominantResourceColorForFrameSide } from '@/models/frameSideCells.ts' // Import new function
 
 import styles from './index.module.less'
@@ -31,6 +30,7 @@ export default function BoxFrame({
 	frameSidesData,
 	onFrameImageClick,
 	dragDropProps,
+	fitVisualSlot = false,
 }: {
 	box: Box
 	apiaryId: number
@@ -45,6 +45,7 @@ export default function BoxFrame({
 	frameSidesData?: any[]
 	onFrameImageClick?: (imageUrl: string) => void
 	dragDropProps?: any
+	fitVisualSlot?: boolean
 }) {
 	if (!frame || !box) return null
 
@@ -90,8 +91,12 @@ export default function BoxFrame({
 		'--list-foundation-width': `${LIST_FOUNDATION_WIDTH_PX}px`,
 	} as React.CSSProperties
 	const visualFrameGeometryStyle = {
-		'--visual-frame-total-width': `${VISUAL_FRAME_TOTAL_WIDTH_PX}px`,
-		'--visual-frame-side-width': `${VISUAL_FRAME_SIDE_WIDTH_PX}px`,
+		'--visual-frame-total-width': fitVisualSlot
+			? '100%'
+			: `${VISUAL_FRAME_TOTAL_WIDTH_PX}px`,
+		'--visual-frame-side-width': fitVisualSlot
+			? 'calc((100% - var(--visual-frame-side-gap)) / 2)'
+			: `${VISUAL_FRAME_SIDE_WIDTH_PX}px`,
 		'--visual-frame-side-gap': `${VISUAL_FRAME_SIDE_GAP_PX}px`,
 	} as React.CSSProperties
 
@@ -100,7 +105,9 @@ export default function BoxFrame({
 			return (
 				// Added wrapper for relative positioning of overlay and indicator
 				<div
-					className={styles.listFrameIconWrapper}
+					className={`${styles.listFrameIconWrapper} ${
+						fitVisualSlot ? styles.fitVisualSlot : ''
+					}`}
 					data-frame-clickable="true"
 					style={visualFrameGeometryStyle}
 				>
@@ -114,6 +121,7 @@ export default function BoxFrame({
 							frameURL={`${frameURL}/${frame.leftId}`}
 							selected={+frameSideId == +frame.leftId}
 							editable={editable}
+							placeholderColor="var(--visual-frame-wax-color)"
 						/>
 
 						<FrameSideImage
@@ -125,14 +133,42 @@ export default function BoxFrame({
 							frameURL={`${frameURL}/${frame.rightId}`}
 							selected={+frameSideId == +frame.rightId}
 							editable={editable}
+							placeholderColor="var(--visual-frame-wax-color)"
 						/>
 					</div>
 				</div>
 			)
-		} else {
-			// TODO add more frame type renditions from the side
-			return
 		}
+
+		const visualFrameTypeClass =
+			frame.type === frameTypes.VOID
+				? styles.visualFrameVoid
+				: frame.type === frameTypes.PARTITION
+				? styles.visualFramePartition
+				: frame.type === frameTypes.FEEDER
+				? styles.visualFrameFeeder
+				: ''
+
+		return (
+			<div
+				className={`${styles.listFrameIconWrapper} ${
+					fitVisualSlot ? styles.fitVisualSlot : ''
+				}`}
+				data-frame-clickable="true"
+				style={visualFrameGeometryStyle}
+				onClick={() => {
+					if (editable) {
+						navigate(frameURL, { replace: true })
+					}
+				}}
+			>
+				<div className={`${styles.visualFrameType} ${visualFrameTypeClass}`}>
+					{frame.type === frameTypes.FEEDER && (
+						<div className={styles.visualFrameFeederFill} />
+					)}
+				</div>
+			</div>
+		)
 	}
 
 	if (frame.type === 'EMPTY_COMB') {

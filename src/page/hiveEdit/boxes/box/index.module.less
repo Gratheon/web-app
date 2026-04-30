@@ -1,4 +1,4 @@
-@import "@/layout.module.less";
+@import '@/layout.module.less';
 
 .boxOuter {
 	background: #606060;
@@ -26,7 +26,7 @@
 	height: 120px;
 }
 
-@media @desktop{
+@media @desktop {
 	.boxType_SUPER {
 		height: 120px;
 	}
@@ -44,11 +44,10 @@
 	background: #323232;
 	opacity: 1;
 
-	.boxInner{
+	.boxInner {
 		border-top: 1px solid #000;
 	}
 }
-
 
 .boxInner {
 	border-bottom: 1px solid #b3b3b3;
@@ -57,18 +56,30 @@
 	// min-width: 304px;
 	width: 100%;
 	cursor: pointer;
-	overflow-x: auto;
+	overflow-x: hidden;
 	overflow-y: hidden;
 	position: relative; // Ensure this is positioned for z-index stacking
 	z-index: 1; // Ensure frames are above the indicator layer
 }
 
+.boxInnerScrollable {
+	overflow-x: auto;
+}
+
 .boxInnerVisual {
-    display: flex;
-    flex-wrap: wrap;
-    padding: 0 var(--hive-section-padding-x, 5px);
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	align-content: flex-start;
+	row-gap: 6px;
+	padding: 0 var(--hive-section-padding-x, 5px);
 	position: relative; // Ensure this is positioned for z-index stacking
 	z-index: 1; // Ensure frames are above the indicator layer
+	width: 100%;
+	min-width: 0;
+	overflow-x: hidden;
+	overflow-y: auto;
+	box-sizing: border-box;
 }
 
 .frameOuter {
@@ -95,8 +106,8 @@
 .indicatorLayer {
 	position: absolute;
 	top: 0;
-	left: calc(var(--hive-section-padding-x, 0px) - 2px);
-	width: calc(100% - (var(--hive-section-padding-x, 0px) * 2) + 4px);
+	left: var(--hive-section-padding-x, 0px);
+	width: calc(100% - (var(--hive-section-padding-x, 0px) * 2));
 	height: 100%;
 	pointer-events: none; // Allow clicks to pass through to frames
 	z-index: 0; // Position behind the frame containers

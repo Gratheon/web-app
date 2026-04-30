@@ -42,8 +42,14 @@ const WAREHOUSE_BY_BOX_TYPE = {
 	[boxTypes.HORIZONTAL_FEEDER]: 'HORIZONTAL_FEEDER',
 }
 
-function resolveWarehouseModuleTypeForBox(boxType: string, hiveType?: string | null) {
-	if (boxType === boxTypes.DEEP && String(hiveType || '').toUpperCase() === 'NUCLEUS') {
+function resolveWarehouseModuleTypeForBox(
+	boxType: string,
+	hiveType?: string | null
+) {
+	if (
+		boxType === boxTypes.DEEP &&
+		String(hiveType || '').toUpperCase() === 'NUCLEUS'
+	) {
 		return 'NUCS'
 	}
 	return WAREHOUSE_BY_BOX_TYPE[boxType]
@@ -62,10 +68,15 @@ export default function HiveButtons({
 	const tSectionAdded = t('Section added')
 	let navigate = useNavigate()
 	const [adding, setAdding] = useState(false)
+	const [addBoxError, setAddBoxError] = useState<any>(null)
 	const [errorRemove, setErrorRemove] = useState(false)
 	const [removeBoxDialogVisible, setRemoveBoxDialogVisible] = useState(false)
-	const { decreaseWarehouseForType, increaseWarehouseForType, increaseWarehouseForFrameByFrameId } = useWarehouseAutoAdjust()
-	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId]);
+	const {
+		decreaseWarehouseForType,
+		increaseWarehouseForType,
+		increaseWarehouseForFrameByFrameId,
+	} = useWarehouseAutoAdjust()
+	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId])
 
 	const frames = useLiveQuery(
 		async () => {
@@ -91,16 +102,16 @@ export default function HiveButtons({
 }
 `)
 
-let [removeBoxMutation] = useMutation(`mutation deactivateBox($id: ID!) {
+	let [removeBoxMutation] = useMutation(`mutation deactivateBox($id: ID!) {
 	deactivateBox(id: $id)
 }
 `)
 
-let [swapBoxPositionsMutation, { error: errorSwap }] = useMutation(
-	`mutation swapBoxPositions($id: ID!, $id2: ID!) {swapBoxPositions(id: $id, id2: $id2)}`
-)
+	let [swapBoxPositionsMutation, { error: errorSwap }] = useMutation(
+		`mutation swapBoxPositions($id: ID!, $id2: ID!) {swapBoxPositions(id: $id, id2: $id2)}`
+	)
 
-const [removingBox, setRemovingBox] = useState(false);
+	const [removingBox, setRemovingBox] = useState(false)
 
 	useEffect(() => {
 		if (!removeBoxDialogVisible) return
@@ -165,8 +176,13 @@ const [removingBox, setRemovingBox] = useState(false);
 		})
 
 		if (mode === 'warehouse') {
-			const moduleType = resolveWarehouseModuleTypeForBox(removedBoxType, hive?.hiveType)
-			await increaseWarehouseForType(moduleType === 'NUCS' ? 'NUCS' : moduleType)
+			const moduleType = resolveWarehouseModuleTypeForBox(
+				removedBoxType,
+				hive?.hiveType
+			)
+			await increaseWarehouseForType(
+				moduleType === 'NUCS' ? 'NUCS' : moduleType
+			)
 			for (const frame of boxFrames) {
 				if (!frame?.id) continue
 				await increaseWarehouseForFrameByFrameId(frame.id)
@@ -180,200 +196,265 @@ const [removingBox, setRemovingBox] = useState(false);
 			replace: true,
 		})
 	}
-	async function onBoxAdd(type, placement: 'top' | 'bottom' | 'underRoof' = 'top') {
+	async function onBoxAdd(
+		type,
+		placement: 'top' | 'bottom' | 'underRoof' = 'top'
+	) {
 		setAdding(true)
-		const hiveBoxes = await getBoxes({ hiveId: +hiveId })
-		const positions = hiveBoxes.map((hiveBox) => hiveBox.position)
-		const maxPosition = positions.length > 0 ? Math.max(...positions) : 0
-		const minPosition = positions.length > 0 ? Math.min(...positions) : 0
-		const bottomBoardBox = hiveBoxes
-			.filter((hiveBox) => hiveBox.type === boxTypes.BOTTOM)
-			.sort((a, b) => a.position - b.position)[0]
-		const topRoofBox = hiveBoxes
-			.filter((hiveBox) => hiveBox.type === boxTypes.ROOF)
-			.sort((a, b) => b.position - a.position)[0]
-		const shouldPlaceUnderRoof = placement === 'underRoof' && topRoofBox
-		const shouldPlaceGateBeforeBottom = type === boxTypes.GATE && placement === 'bottom' && bottomBoardBox
-		const position = placement === 'bottom'
-			? minPosition - 1
-			: maxPosition + 1
+		setAddBoxError(null)
 
-		const {
-			data: {
-				addBox: { id },
-			},
-		} = await addBoxMutation({
-			hiveId: +hiveId,
-			position,
-			type,
-			holeCount: type === boxTypes.GATE ? GATE_HOLE_COUNT_DEFAULT : null,
-		})
+		try {
+			const hiveBoxes = await getBoxes({ hiveId: +hiveId })
+			const positions = hiveBoxes.map((hiveBox) => hiveBox.position)
+			const maxPosition = positions.length > 0 ? Math.max(...positions) : 0
+			const minPosition = positions.length > 0 ? Math.min(...positions) : 0
+			const bottomBoardBox = hiveBoxes
+				.filter((hiveBox) => hiveBox.type === boxTypes.BOTTOM)
+				.sort((a, b) => a.position - b.position)[0]
+			const topRoofBox = hiveBoxes
+				.filter((hiveBox) => hiveBox.type === boxTypes.ROOF)
+				.sort((a, b) => b.position - a.position)[0]
+			const shouldPlaceUnderRoof = placement === 'underRoof' && topRoofBox
+			const shouldPlaceGateBeforeBottom =
+				type === boxTypes.GATE && placement === 'bottom' && bottomBoardBox
+			const position =
+				placement === 'bottom' ? minPosition - 1 : maxPosition + 1
 
-		await addBox({
-			id: +id,
-			hiveId: +hiveId,
-			position,
-			type,
-			holeCount: type === boxTypes.GATE ? GATE_HOLE_COUNT_DEFAULT : undefined,
-			roofStyle: type === boxTypes.ROOF ? roofStyles.FLAT : undefined,
-		})
-
-		let finalPosition = position
-		if (shouldPlaceGateBeforeBottom) {
-			const { error } = await swapBoxPositionsMutation({
-				id: +id,
-				id2: +bottomBoardBox.id,
+			const result = await addBoxMutation({
+				hiveId: +hiveId,
+				position,
+				type,
+				holeCount: type === boxTypes.GATE ? GATE_HOLE_COUNT_DEFAULT : null,
 			})
-			if (error) {
-				setAdding(false)
+
+			if (result.error) {
+				setAddBoxError(result.error)
 				return
 			}
-			await swapBoxPositions(
-				{
-					id: +id,
-					hiveId: +hiveId,
-					position,
-					type,
-					holeCount: type === boxTypes.GATE ? GATE_HOLE_COUNT_DEFAULT : undefined,
-				},
-				{ ...bottomBoardBox }
-			)
-			finalPosition = +bottomBoardBox.position
-		}
-		if (shouldPlaceUnderRoof) {
-			const { error } = await swapBoxPositionsMutation({
-				id: +id,
-				id2: +topRoofBox.id,
-			})
-			if (error) {
-				setAdding(false)
+
+			const id = result.data?.addBox?.id
+			if (!id) {
+				setAddBoxError(
+					new Error('Could not add section: server returned no box id.')
+				)
 				return
 			}
-			await swapBoxPositions(
-				{
+
+			await addBox({
+				id: +id,
+				hiveId: +hiveId,
+				position,
+				type,
+				holeCount: type === boxTypes.GATE ? GATE_HOLE_COUNT_DEFAULT : undefined,
+				roofStyle: type === boxTypes.ROOF ? roofStyles.FLAT : undefined,
+			})
+
+			let finalPosition = position
+			if (shouldPlaceGateBeforeBottom) {
+				const { error } = await swapBoxPositionsMutation({
 					id: +id,
-					hiveId: +hiveId,
-					position,
-					type,
-					holeCount: type === boxTypes.GATE ? GATE_HOLE_COUNT_DEFAULT : undefined,
-				},
-				{ ...topRoofBox }
-			)
-			finalPosition = +topRoofBox.position
+					id2: +bottomBoardBox.id,
+				})
+				if (error) {
+					setAddBoxError(error)
+					return
+				}
+				await swapBoxPositions(
+					{
+						id: +id,
+						hiveId: +hiveId,
+						position,
+						type,
+						holeCount:
+							type === boxTypes.GATE ? GATE_HOLE_COUNT_DEFAULT : undefined,
+					},
+					{ ...bottomBoardBox }
+				)
+				finalPosition = +bottomBoardBox.position
+			}
+			if (shouldPlaceUnderRoof) {
+				const { error } = await swapBoxPositionsMutation({
+					id: +id,
+					id2: +topRoofBox.id,
+				})
+				if (error) {
+					setAddBoxError(error)
+					return
+				}
+				await swapBoxPositions(
+					{
+						id: +id,
+						hiveId: +hiveId,
+						position,
+						type,
+						holeCount:
+							type === boxTypes.GATE ? GATE_HOLE_COUNT_DEFAULT : undefined,
+					},
+					{ ...topRoofBox }
+				)
+				finalPosition = +topRoofBox.position
+			}
+
+			await addHiveLog({
+				hiveId: +hiveId,
+				action: hiveLogActions.STRUCTURE_ADD,
+				title: tSectionAdded,
+				details: `Added ${type} at position ${finalPosition}.`,
+			})
+			const moduleType = resolveWarehouseModuleTypeForBox(type, hive?.hiveType)
+			await decreaseWarehouseForType(moduleType)
+
+			metrics.trackBoxCreated()
+			navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${id}`, {
+				replace: true,
+			})
+		} catch (error) {
+			setAddBoxError(error)
+		} finally {
+			setAdding(false)
 		}
-
-		await addHiveLog({
-			hiveId: +hiveId,
-			action: hiveLogActions.STRUCTURE_ADD,
-			title: tSectionAdded,
-			details: `Added ${type} at position ${finalPosition}.`,
-		})
-		const moduleType = resolveWarehouseModuleTypeForBox(type, hive?.hiveType)
-		await decreaseWarehouseForType(moduleType)
-
-		setAdding(false)
-
-		metrics.trackBoxCreated()
-		navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${id}`, {
-			replace: true,
-		})
 	}
 
-	if(hive && !isEditable(hive)){
+	if (hive && !isEditable(hive)) {
 		return null
 	}
 
-	const showBulkUpload = mode !== 'removeOnly' && box && (
-		box.type === boxTypes.DEEP ||
-		box.type === boxTypes.SUPER ||
-		box.type === boxTypes.LARGE_HORIZONTAL_SECTION
-	) && frames && frames.length > 0 && !frameId
+	const showBulkUpload =
+		mode !== 'removeOnly' &&
+		box &&
+		(box.type === boxTypes.DEEP ||
+			box.type === boxTypes.SUPER ||
+			box.type === boxTypes.LARGE_HORIZONTAL_SECTION) &&
+		frames &&
+		frames.length > 0 &&
+		!frameId
 	const isNucleusHive = String(hive?.hiveType || '').toUpperCase() === 'NUCLEUS'
-	const showAddSectionButtons = mode !== 'removeOnly' && !box?.id && !isNucleusHive
+	const showAddSectionButtons =
+		mode !== 'removeOnly' && !box?.id && !isNucleusHive
 	const showRemoveButton = mode !== 'nonRemove' && box?.id
-	const buttonGroupClassName = mode === 'removeOnly'
-		? `${styles.hiveButtons} ${styles.removeOnlyGroup}`
-		: styles.hiveButtons
+	const buttonGroupClassName =
+		mode === 'removeOnly'
+			? `${styles.hiveButtons} ${styles.removeOnlyGroup}`
+			: styles.hiveButtons
 
 	return (
 		<>
-			<ErrorMessage error={errorAdd || errorSwap || errorRemove} />
+			<ErrorMessage
+				error={addBoxError || errorAdd || errorSwap || errorRemove}
+			/>
 
 			{(showAddSectionButtons || showRemoveButton) && (
 				<div className={buttonGroupClassName}>
 					{showAddSectionButtons && (
-					<>
-						<Button
-							className={styles.actionButton}
-							loading={adding}
-							color="white"
-							title="Add roof"
-							onClick={() => onBoxAdd(boxTypes.ROOF)}
-						>
-							<span><T ctx="this is a button to add top cover module of a hive, a roof that protects from weather">Add roof</T></span>
-						</Button>
-						<Button
-							className={styles.actionButton}
-							loading={adding}
-							color="white"
-							title="Add feeder"
-							onClick={() => onBoxAdd(boxTypes.HORIZONTAL_FEEDER, 'underRoof')}
-						>
-							<span><T ctx="this is a button to add tiny part of beehive, a horizontal box where sugar syrup can be poured to feed bees">Add feeder</T></span>
-						</Button>
-						<Button
-							className={styles.actionButton}
-							loading={adding}
-							color="white"
-							title="Add ventilation"
-							onClick={() => onBoxAdd(boxTypes.VENTILATION)}
-						>
-							<span><T ctx="this is a button to add tiny part of beehive, specifically holes on top for ventilation">Add inner lid</T></span>
-						</Button>
-						<Button
-							className={styles.actionButton}
-							loading={adding}
-							title="Add super on top"
-							onClick={() => onBoxAdd(boxTypes.SUPER)}
-						>
-							<AddSuperIcon /><span><T ctx="this is a button to add new section of beehive, a super box that is intended for honey frames">Add super</T></span>
-						</Button>
-						<Button
-							className={styles.actionButton}
-							loading={adding}
-							color="white"
-							title="Add queen excluder"
-							onClick={() => onBoxAdd(boxTypes.QUEEN_EXCLUDER)}
-						>
-							<span><T ctx="this is a button to add tiny part of beehive, a horizontal layer that prevents queen bee from moving through this">Add queen excluder</T></span>
-						</Button>
-						<Button
-							className={styles.actionButton}
-							title="Add box on top"
-							loading={adding}
-							color='black'
-							onClick={() => onBoxAdd(boxTypes.DEEP)}
-						>
-							<AddBoxIcon /><span><T ctx="this is a button to add new section of beehive, a deep box that is intended for brood frames">Add deep</T></span>
-						</Button>
-						<Button
-							className={styles.actionButton}
-							loading={adding}
-							title="Add entrance"
-							onClick={() => onBoxAdd(boxTypes.GATE, 'bottom')}
-						>
-							<GateIcon /><span><T ctx="this is a button to add new section of beehive, specifically holes, an entrance">Add entrance</T></span>
-						</Button>
-						<Button
-							className={styles.actionButton}
-							loading={adding}
-							color="white"
-							title="Add bottom board"
-							onClick={() => onBoxAdd(boxTypes.BOTTOM, 'bottom')}
-						>
-							<span><T ctx="this is a button to add bottom board of beehive with slideable white panel for varroa mite counting">Add bottom</T></span>
-						</Button>
-					</>
+						<>
+							<Button
+								className={styles.actionButton}
+								loading={adding}
+								color="white"
+								title="Add roof"
+								onClick={() => onBoxAdd(boxTypes.ROOF)}
+							>
+								<span>
+									<T ctx="this is a button to add top cover module of a hive, a roof that protects from weather">
+										Add roof
+									</T>
+								</span>
+							</Button>
+							<Button
+								className={styles.actionButton}
+								loading={adding}
+								color="white"
+								title="Add feeder"
+								onClick={() =>
+									onBoxAdd(boxTypes.HORIZONTAL_FEEDER, 'underRoof')
+								}
+							>
+								<span>
+									<T ctx="this is a button to add tiny part of beehive, a horizontal box where sugar syrup can be poured to feed bees">
+										Add feeder
+									</T>
+								</span>
+							</Button>
+							<Button
+								className={styles.actionButton}
+								loading={adding}
+								color="white"
+								title="Add ventilation"
+								onClick={() => onBoxAdd(boxTypes.VENTILATION)}
+							>
+								<span>
+									<T ctx="this is a button to add tiny part of beehive, specifically holes on top for ventilation">
+										Add inner lid
+									</T>
+								</span>
+							</Button>
+							<Button
+								className={styles.actionButton}
+								loading={adding}
+								title="Add super on top"
+								onClick={() => onBoxAdd(boxTypes.SUPER)}
+							>
+								<AddSuperIcon />
+								<span>
+									<T ctx="this is a button to add new section of beehive, a super box that is intended for honey frames">
+										Add super
+									</T>
+								</span>
+							</Button>
+							<Button
+								className={styles.actionButton}
+								loading={adding}
+								color="white"
+								title="Add queen excluder"
+								onClick={() => onBoxAdd(boxTypes.QUEEN_EXCLUDER)}
+							>
+								<span>
+									<T ctx="this is a button to add tiny part of beehive, a horizontal layer that prevents queen bee from moving through this">
+										Add queen excluder
+									</T>
+								</span>
+							</Button>
+							<Button
+								className={styles.actionButton}
+								title="Add box on top"
+								loading={adding}
+								color="black"
+								onClick={() => onBoxAdd(boxTypes.DEEP)}
+							>
+								<AddBoxIcon />
+								<span>
+									<T ctx="this is a button to add new section of beehive, a deep box that is intended for brood frames">
+										Add deep
+									</T>
+								</span>
+							</Button>
+							<Button
+								className={styles.actionButton}
+								loading={adding}
+								title="Add entrance"
+								onClick={() => onBoxAdd(boxTypes.GATE, 'bottom')}
+							>
+								<GateIcon />
+								<span>
+									<T ctx="this is a button to add new section of beehive, specifically holes, an entrance">
+										Add entrance
+									</T>
+								</span>
+							</Button>
+							<Button
+								className={styles.actionButton}
+								loading={adding}
+								color="white"
+								title="Add bottom board"
+								onClick={() => onBoxAdd(boxTypes.BOTTOM, 'bottom')}
+							>
+								<span>
+									<T ctx="this is a button to add bottom board of beehive with slideable white panel for varroa mite counting">
+										Add bottom
+									</T>
+								</span>
+							</Button>
+						</>
 					)}
 					{showRemoveButton && (
 						<Button
@@ -381,7 +462,9 @@ const [removingBox, setRemovingBox] = useState(false);
 							color="white"
 							loading={removingBox}
 							onClick={() => setRemoveBoxDialogVisible(true)}
-						><DeleteIcon /> <T>Remove box</T></Button>
+						>
+							<DeleteIcon /> <T>Remove box</T>
+						</Button>
 					)}
 				</div>
 			)}
@@ -405,7 +488,10 @@ const [removingBox, setRemovingBox] = useState(false);
 					</div>
 					<div className={styles.removeBoxActions}>
 						<div className={styles.actionWithHint}>
-							<Button color="gray" onClick={() => setRemoveBoxDialogVisible(false)}>
+							<Button
+								color="gray"
+								onClick={() => setRemoveBoxDialogVisible(false)}
+							>
 								<T>Cancel</T>
 							</Button>
 							<div className={styles.keyHint}>Esc</div>

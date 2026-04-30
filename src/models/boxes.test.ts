@@ -436,6 +436,22 @@ describe('Boxes Model', () => {
         expect(consoleErrorSpy).toHaveBeenCalledWith(error);
     });
 
+    it('should not throw if local cache put fails because IndexedDB quota is exceeded', async () => {
+      // ARRANGE
+      const newBox: Box = { id: 5, hiveId: 12, position: 1, type: boxTypes.SUPER };
+      const quotaError = new DOMException('QuotaExceededError', 'AbortError');
+      dbMocks.mockPut.mockRejectedValue(quotaError);
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      // ACT & ASSERT
+      await expect(addBox(newBox)).resolves.toBeUndefined();
+      expect(dbMocks.mockPut).toHaveBeenCalledTimes(1);
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        'IndexedDB quota exceeded while caching hive box; skipping local cache update',
+        quotaError
+      );
+    });
+
     it('normalizes holeCount for gate boxes before persisting', async () => {
       // ARRANGE
       const newGate: Box = { id: 6, hiveId: 12, position: 0, type: boxTypes.GATE, holeCount: 20 };
@@ -510,6 +526,22 @@ describe('Boxes Model', () => {
         await expect(updateBox(updatedBox)).rejects.toThrow(error);
         expect(dbMocks.mockPut).toHaveBeenCalledTimes(1);
         expect(consoleErrorSpy).toHaveBeenCalledWith(error);
+    });
+
+    it('should not throw if local cache update fails because IndexedDB quota is exceeded', async () => {
+      // ARRANGE
+      const updatedBox: Box = { id: 3, hiveId: 10, position: 0, type: boxTypes.GATE };
+      const quotaError = new DOMException('QuotaExceededError', 'AbortError');
+      dbMocks.mockPut.mockRejectedValue(quotaError);
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      // ACT & ASSERT
+      await expect(updateBox(updatedBox)).resolves.toBeUndefined();
+      expect(dbMocks.mockPut).toHaveBeenCalledTimes(1);
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        'IndexedDB quota exceeded while caching hive box; skipping local cache update',
+        quotaError
+      );
     });
 
     it('normalizes holeCount for gate updates before persisting', async () => {

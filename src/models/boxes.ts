@@ -1,5 +1,6 @@
 import { db } from './db'
 import { Frame } from './frames.ts'
+import { isIndexedDbQuotaError } from './indexedDbErrors'
 
 export type Box = {
 	id: number
@@ -52,6 +53,22 @@ export function normalizeRoofStyle(value: unknown): RoofStyle {
 }
 
 const TABLE_NAME = 'box'
+
+async function putBoxInLocalCache(box: Box): Promise<void> {
+	try {
+		await db[TABLE_NAME].put(box)
+	} catch (e) {
+		if (isIndexedDbQuotaError(e)) {
+			console.warn(
+				'IndexedDB quota exceeded while caching hive box; skipping local cache update',
+				e
+			)
+			return
+		}
+		console.error(e)
+		throw e
+	}
+}
 
 export async function getBox(id: number): Promise<Box | undefined> {
 	// Validate ID before querying
@@ -152,23 +169,18 @@ export async function addBox({
 	holeCount,
 	roofStyle,
 }: Box) {
-	try {
-		const normalizedHoleCount =
-			type === boxTypes.GATE ? normalizeGateHoleCount(holeCount) : undefined
-		const normalizedRoofStyle =
-			type === boxTypes.ROOF ? normalizeRoofStyle(roofStyle) : undefined
-		await db[TABLE_NAME].put({
-			id,
-			hiveId,
-			position,
-			type,
-			holeCount: normalizedHoleCount,
-			roofStyle: normalizedRoofStyle,
-		})
-	} catch (e) {
-		console.error(e)
-		throw e
-	}
+	const normalizedHoleCount =
+		type === boxTypes.GATE ? normalizeGateHoleCount(holeCount) : undefined
+	const normalizedRoofStyle =
+		type === boxTypes.ROOF ? normalizeRoofStyle(roofStyle) : undefined
+	await putBoxInLocalCache({
+		id,
+		hiveId,
+		position,
+		type,
+		holeCount: normalizedHoleCount,
+		roofStyle: normalizedRoofStyle,
+	})
 }
 
 export async function updateBox({
@@ -180,24 +192,19 @@ export async function updateBox({
 	holeCount,
 	roofStyle,
 }: Box) {
-	try {
-		const normalizedHoleCount =
-			type === boxTypes.GATE ? normalizeGateHoleCount(holeCount) : undefined
-		const normalizedRoofStyle =
-			type === boxTypes.ROOF ? normalizeRoofStyle(roofStyle) : undefined
-		await db[TABLE_NAME].put({
-			id,
-			hiveId,
-			color,
-			position,
-			type,
-			holeCount: normalizedHoleCount,
-			roofStyle: normalizedRoofStyle,
-		})
-	} catch (e) {
-		console.error(e)
-		throw e
-	}
+	const normalizedHoleCount =
+		type === boxTypes.GATE ? normalizeGateHoleCount(holeCount) : undefined
+	const normalizedRoofStyle =
+		type === boxTypes.ROOF ? normalizeRoofStyle(roofStyle) : undefined
+	await putBoxInLocalCache({
+		id,
+		hiveId,
+		color,
+		position,
+		type,
+		holeCount: normalizedHoleCount,
+		roofStyle: normalizedRoofStyle,
+	})
 }
 
 export async function swapBoxPositions(box1: Box, box2: Box) {
@@ -207,10 +214,9 @@ export async function swapBoxPositions(box1: Box, box2: Box) {
 	box2.position = tmp
 
 	try {
-		await db[TABLE_NAME].put(box1)
-		await db[TABLE_NAME].put(box2)
+		await putBoxInLocalCache(box1)
+		await putBoxInLocalCache(box2)
 	} catch (e) {
-		console.error(e)
 		throw e
 	}
 

@@ -1,4 +1,5 @@
 import { db } from './db'
+import { isIndexedDbQuotaError } from './indexedDbErrors'
 import { gatewayUri } from '@/uri'
 import { getShareToken, getToken } from '@/user'
 
@@ -45,7 +46,10 @@ type BackendHiveLog = {
 	relatedHives?: Array<{ id: string; hiveNumber?: number }>
 }
 
-async function callHiveLogAPI<T>(query: string, variables: Record<string, any>): Promise<T> {
+async function callHiveLogAPI<T>(
+	query: string,
+	variables: Record<string, any>
+): Promise<T> {
 	const token = getToken()
 	const shareToken = getShareToken()
 	const response = await fetch(gatewayUri(), {
@@ -59,7 +63,9 @@ async function callHiveLogAPI<T>(query: string, variables: Record<string, any>):
 	})
 
 	if (!response.ok) {
-		throw new Error(`Hive log API request failed with status ${response.status}`)
+		throw new Error(
+			`Hive log API request failed with status ${response.status}`
+		)
 	}
 
 	const payload = await response.json()
@@ -81,24 +87,97 @@ function fromBackendLog(log: BackendHiveLog): HiveLogEntry {
 		dedupeKey: log.dedupeKey,
 		createdAt: log.createdAt,
 		updatedAt: log.updatedAt,
-		relatedHives: (log.relatedHives || []).map((h) => ({ id: +h.id, hiveNumber: h.hiveNumber })),
+		relatedHives: (log.relatedHives || []).map((h) => ({
+			id: +h.id,
+			hiveNumber: h.hiveNumber,
+		})),
 	}
 }
 
-function toBackendRelatedHives(relatedHives?: Array<{ id: number; hiveNumber?: number }>) {
+function toBackendRelatedHives(
+	relatedHives?: Array<{ id: number; hiveNumber?: number }>
+) {
 	if (!relatedHives) return []
-	return relatedHives.map((h) => ({ id: String(h.id), hiveNumber: h.hiveNumber }))
+	return relatedHives.map((h) => ({
+		id: String(h.id),
+		hiveNumber: h.hiveNumber,
+	}))
 }
 
-export async function listHiveLogs(hiveId: number, limit = 300): Promise<HiveLogEntry[]> {
+async function pruneHiveLogCache(
+	hiveId: number,
+	keepRows = 150
+): Promise<number> {
+	const rows = (await db[HIVE_LOG_TABLE].where({ hiveId })
+		.reverse()
+		.sortBy('createdAt')) as HiveLogEntry[]
+	const idsToDelete = rows
+		.slice(keepRows)
+		.map((row) => row.id)
+		.filter((id): id is number => typeof id === 'number' && Number.isFinite(id))
+
+	if (idsToDelete.length === 0) {
+		return 0
+	}
+
+	await db[HIVE_LOG_TABLE].bulkDelete(idsToDelete)
+	return idsToDelete.length
+}
+
+async function addHiveLogToLocalCache(
+	entry: HiveLogEntry
+): Promise<number | undefined> {
+	try {
+		return +(await db[HIVE_LOG_TABLE].add(entry))
+	} catch (e) {
+		if (!isIndexedDbQuotaError(e)) {
+			console.error('Failed to store hive log in IndexedDB', e)
+			return undefined
+		}
+
+		console.warn(
+			'IndexedDB quota exceeded while storing hive log; pruning local hive log cache',
+			e
+		)
+		try {
+			await pruneHiveLogCache(entry.hiveId)
+			return +(await db[HIVE_LOG_TABLE].add(entry))
+		} catch (retryError) {
+			console.warn(
+				'Failed to store hive log after IndexedDB quota recovery; continuing without local cache',
+				retryError
+			)
+			return undefined
+		}
+	}
+}
+
+async function putHiveLogToLocalCache(entry: HiveLogEntry): Promise<void> {
+	try {
+		await db[HIVE_LOG_TABLE].put(entry)
+	} catch (e) {
+		if (isIndexedDbQuotaError(e)) {
+			console.warn(
+				'IndexedDB quota exceeded while caching backend hive log; skipping local cache update',
+				e
+			)
+			return
+		}
+		console.error('Failed to cache backend hive log in IndexedDB', e)
+	}
+}
+
+export async function listHiveLogs(
+	hiveId: number,
+	limit = 300
+): Promise<HiveLogEntry[]> {
 	if (!hiveId || !Number.isFinite(hiveId) || hiveId <= 0) {
 		console.warn(`Attempted to list hive logs with invalid hiveId: ${hiveId}`)
 		return []
 	}
 
 	try {
-		return await db[HIVE_LOG_TABLE]
-			.where({ hiveId: +hiveId })
+		return await db[HIVE_LOG_TABLE].where({ hiveId: +hiveId })
 			.reverse()
 			.sortBy('createdAt')
 			.then((rows: HiveLogEntry[]) => rows.slice(0, limit))
@@ -108,7 +187,10 @@ export async function listHiveLogs(hiveId: number, limit = 300): Promise<HiveLog
 	}
 }
 
-export async function syncHiveLogsFromBackend(hiveId: number, limit = 300): Promise<void> {
+export async function syncHiveLogsFromBackend(
+	hiveId: number,
+	limit = 300
+): Promise<void> {
 	if (!hiveId || !Number.isFinite(hiveId) || hiveId <= 0) return
 	try {
 		const data = await callHiveLogAPI<{ hiveLogs: BackendHiveLog[] }>(
@@ -154,21 +236,30 @@ export async function addHiveLog(input: {
 	relatedHives?: Array<{ id: number; hiveNumber?: number }>
 }): Promise<number | undefined> {
 	const hiveId = +input.hiveId
-	if (!hiveId || !Number.isFinite(hiveId) || hiveId <= 0 || !input.title?.trim()) {
+	if (
+		!hiveId ||
+		!Number.isFinite(hiveId) ||
+		hiveId <= 0 ||
+		!input.title?.trim()
+	) {
 		console.warn('Invalid hive log input', input)
 		return undefined
 	}
 
 	const dedupeKey = input.dedupeKey?.trim()
 	if (dedupeKey) {
-		const existing = await db[HIVE_LOG_TABLE].where({ dedupeKey }).first()
-		if (existing?.id) {
-			return +existing.id
+		try {
+			const existing = await db[HIVE_LOG_TABLE].where({ dedupeKey }).first()
+			if (existing?.id) {
+				return +existing.id
+			}
+		} catch (e) {
+			console.error('Failed to check hive log dedupe key in IndexedDB', e)
 		}
 	}
 
 	const now = new Date().toISOString()
-	const localId = await db[HIVE_LOG_TABLE].add({
+	const localEntry: HiveLogEntry = {
 		hiveId,
 		action: input.action,
 		title: input.title.trim(),
@@ -178,7 +269,8 @@ export async function addHiveLog(input: {
 		source: input.source || 'system',
 		dedupeKey: dedupeKey || undefined,
 		relatedHives: input.relatedHives || [],
-	})
+	}
+	const localId = await addHiveLogToLocalCache(localEntry)
 
 	try {
 		const data = await callHiveLogAPI<{ addHiveLog: BackendHiveLog }>(
@@ -217,17 +309,20 @@ export async function addHiveLog(input: {
 			if (localId && +localId !== backendEntry.id) {
 				await db[HIVE_LOG_TABLE].delete(+localId)
 			}
-			await db[HIVE_LOG_TABLE].put(backendEntry)
+			await putHiveLogToLocalCache(backendEntry)
 			return backendEntry.id
 		}
 	} catch (e) {
 		console.error('Failed to persist hive log on backend', e)
 	}
 
-	return +localId
+	return localId ? +localId : undefined
 }
 
-export async function addManualHiveLogEntry(hiveId: number, text: string): Promise<number | undefined> {
+export async function addManualHiveLogEntry(
+	hiveId: number,
+	text: string
+): Promise<number | undefined> {
 	const clean = (text || '').trim()
 	if (!clean) return undefined
 
@@ -270,7 +365,8 @@ export async function updateHiveLogEntry(
 				id: String(id),
 				log: {
 					title: updates.title !== undefined ? updates.title.trim() : null,
-					details: updates.details !== undefined ? updates.details.trim() : null,
+					details:
+						updates.details !== undefined ? updates.details.trim() : null,
 				},
 			}
 		)
@@ -337,8 +433,15 @@ export async function syncHiveLineageLogs(hive: any): Promise<void> {
 			action: hiveLogActions.LINEAGE,
 			title: 'Merged into another hive',
 			details: hive.mergeDate ? `Date: ${hive.mergeDate}` : '',
-			dedupeKey: `lineage:merged-into:${hiveId}:${hive.mergedIntoHive.id}:${hive.mergeDate || ''}`,
-			relatedHives: [{ id: +hive.mergedIntoHive.id, hiveNumber: hive.mergedIntoHive.hiveNumber }],
+			dedupeKey: `lineage:merged-into:${hiveId}:${hive.mergedIntoHive.id}:${
+				hive.mergeDate || ''
+			}`,
+			relatedHives: [
+				{
+					id: +hive.mergedIntoHive.id,
+					hiveNumber: hive.mergedIntoHive.hiveNumber,
+				},
+			],
 		})
 	}
 
@@ -350,7 +453,9 @@ export async function syncHiveLineageLogs(hive: any): Promise<void> {
 				action: hiveLogActions.LINEAGE,
 				title: 'Merged from another hive',
 				details: merged.mergeDate ? `Date: ${merged.mergeDate}` : '',
-				dedupeKey: `lineage:merged-from:${hiveId}:${merged.id}:${merged.mergeDate || ''}`,
+				dedupeKey: `lineage:merged-from:${hiveId}:${merged.id}:${
+					merged.mergeDate || ''
+				}`,
 				relatedHives: [{ id: +merged.id, hiveNumber: merged.hiveNumber }],
 			})
 		}

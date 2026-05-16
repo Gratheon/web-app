@@ -413,7 +413,7 @@ type Query {
   file(id: ID!): File
   hiveFiles(hiveId: ID!): [FrameSideFile]
   getExistingHiveAdvice(hiveID: ID): String
-  aiAdvisorUsage: AIAdvisorUsage!
+  aiAdvisorUsage: AIAdvisorUsage
   hiveFrameSideFile(frameSideId: ID!): FrameSideFile
   hiveFrameSideCells(frameSideId: ID!): FrameSideCells
 

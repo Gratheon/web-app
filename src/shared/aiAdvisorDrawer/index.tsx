@@ -753,6 +753,10 @@ export default function AIAdvisorDrawer() {
 		try {
 			setUsageLoading(true)
 			const usageResult = await apiClient.query(AI_ADVISOR_USAGE_QUERY, {}).toPromise()
+			if (usageResult?.error) {
+				setAiUsage(null)
+				return
+			}
 			setAiUsage(usageResult?.data?.aiAdvisorUsage || null)
 		} catch {
 			setAiUsage(null)

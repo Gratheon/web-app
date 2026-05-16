@@ -120,7 +120,7 @@ export function getUserLanguage(
 	}
 
 	if (typeof navigator !== 'undefined') {
-		const browserLang = navigator.language.substring(0, 2);
+		const browserLang = navigator.language.toLowerCase().substring(0, 2);
 		if (supportedLangs.includes(browserLang)) {
 			return browserLang;
 		}

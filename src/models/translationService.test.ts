@@ -310,6 +310,17 @@ describe('translationService', () => {
 			expect(result).toBe('zh');
 		});
 
+		it('should normalize uppercase browser language before matching', () => {
+			Object.defineProperty(navigator, 'language', {
+				value: 'PT-BR',
+				configurable: true
+			});
+
+			const result = getUserLanguage(null);
+
+			expect(result).toBe('pt');
+		});
+
 		it('should return en when browser language not supported', () => {
 			Object.defineProperty(navigator, 'language', {
 				value: 'ko-KR',

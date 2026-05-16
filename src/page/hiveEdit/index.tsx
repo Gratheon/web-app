@@ -36,18 +36,25 @@ import { getFamilyByHive } from '@/models/family.ts'
 import { Tab } from '@/shared/tab'
 import { TabBar } from '@/shared/tab'
 import InspectionList from '../inspectionList'
-import CollapseHiveModal from './CollapseHiveModal'; // Import the modal component
+import CollapseHiveModal from './CollapseHiveModal' // Import the modal component
+import { consumeHiveCreatedCelebrationPending } from '@/shared/welcomeFlow'
 
 export default function HiveEditForm() {
-	const { state } = useLocation()
+	const location = useLocation()
+	const { state } = location
 	const [displayMode, setDisplayMode] = useState('list')
 	const [topNotice, setTopNotice] = useState(null)
-	const location = useLocation()
 	let [mapTab, setMapTab] = useState('structure')
-	const [openFrameRemoveDialogSignal, setOpenFrameRemoveDialogSignal] = useState(0)
+	const [openFrameRemoveDialogSignal, setOpenFrameRemoveDialogSignal] =
+		useState(0)
 	const [openBoxRemoveDialogSignal, setOpenBoxRemoveDialogSignal] = useState(0)
 
 	let { apiaryId, hiveId, boxId, frameId, frameSideId } = useParams()
+	const [celebrateHiveCreated] = useState(() =>
+		state?.title === 'Hive added successfully'
+			? consumeHiveCreatedCelebrationPending(apiaryId, hiveId)
+			: false
+	)
 	let [error, onError] = useState(null)
 	const navigate = useNavigate()
 
@@ -65,7 +72,9 @@ export default function HiveEditForm() {
 
 		const isModalTarget = (target) => {
 			if (!target || typeof target.closest !== 'function') return false
-			return Boolean(target.closest('[class*="modalOverlay"], [class*="modalContent"]'))
+			return Boolean(
+				target.closest('[class*="modalOverlay"], [class*="modalContent"]')
+			)
 		}
 
 		const onKeyDown = (event: KeyboardEvent) => {
@@ -126,8 +135,8 @@ export default function HiveEditForm() {
 							currentIndex < 0
 								? 0
 								: currentIndex >= sortedBoxes.length - 1
-									? sortedBoxes.length - 1
-									: currentIndex + 1
+								? sortedBoxes.length - 1
+								: currentIndex + 1
 					} else {
 						nextIndex = currentIndex <= 0 ? 0 : currentIndex - 1
 					}
@@ -146,7 +155,9 @@ export default function HiveEditForm() {
 				;(async () => {
 					const frames = await getFrames({ boxId: +boxId })
 					if (!frames?.length) return
-					const sortedFrames = [...frames].sort((a, b) => a.position - b.position)
+					const sortedFrames = [...frames].sort(
+						(a, b) => a.position - b.position
+					)
 					const currentIndex = frameId
 						? sortedFrames.findIndex((f) => f.id === +frameId)
 						: -1
@@ -159,14 +170,15 @@ export default function HiveEditForm() {
 							currentIndex < 0
 								? 0
 								: currentIndex >= sortedFrames.length - 1
-									? sortedFrames.length - 1
-									: currentIndex + 1
+								? sortedFrames.length - 1
+								: currentIndex + 1
 					}
 
 					if (nextIndex === currentIndex || nextIndex < 0) return
 
 					const nextFrame = sortedFrames[nextIndex]
-					const currentFrame = currentIndex >= 0 ? sortedFrames[currentIndex] : null
+					const currentFrame =
+						currentIndex >= 0 ? sortedFrames[currentIndex] : null
 					const shouldStayOnRightSide =
 						Boolean(currentFrame) && +frameSideId === +currentFrame.rightId
 					const nextFrameSideId = shouldStayOnRightSide
@@ -236,18 +248,29 @@ export default function HiveEditForm() {
 
 	useEffect(() => {
 		if (!hive) return
-		syncHiveLineageLogs(hive).catch((e) => console.error('Failed to sync lineage logs', e))
-	}, [hive?.id, hive?.splitDate, hive?.mergeDate, hive?.parentHive?.id, hive?.mergedIntoHive?.id, hive?.childHives?.length, hive?.mergedFromHives?.length])
+		syncHiveLineageLogs(hive).catch((e) =>
+			console.error('Failed to sync lineage logs', e)
+		)
+	}, [
+		hive?.id,
+		hive?.splitDate,
+		hive?.mergeDate,
+		hive?.parentHive?.id,
+		hive?.mergedIntoHive?.id,
+		hive?.childHives?.length,
+		hive?.mergedFromHives?.length,
+	])
 
 	useEffect(() => {
 		if (boxId) return
 		if (!apiaryId || !hiveId) return
 		if (String(hive?.hiveType || '').toUpperCase() !== 'HORIZONTAL') return
-
 		;(async () => {
-				const boxes = await getBoxes({ hiveId: hiveIdNum })
+			const boxes = await getBoxes({ hiveId: hiveIdNum })
 			if (!boxes?.length) return
-			const targetBox = boxes.find((b) => b.type === boxTypes.LARGE_HORIZONTAL_SECTION)
+			const targetBox = boxes.find(
+				(b) => b.type === boxTypes.LARGE_HORIZONTAL_SECTION
+			)
 			if (!targetBox?.id) return
 			navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${targetBox.id}`, {
 				replace: true,
@@ -272,9 +295,9 @@ export default function HiveEditForm() {
 			loading,
 			error: errorGet,
 			errorNetwork,
-			} = useQuery(HIVE_QUERY, {
-				variables: { id: hiveIdNum || 0, apiaryId: apiaryIdNum || 0 },
-			}))
+		} = useQuery(HIVE_QUERY, {
+			variables: { id: hiveIdNum || 0, apiaryId: apiaryIdNum || 0 },
+		}))
 
 		if (loading) {
 			return <Loader />
@@ -306,9 +329,12 @@ export default function HiveEditForm() {
 		boxId,
 		frameId
 	)
-	const isHorizontalHive = String(hive?.hiveType || '').toUpperCase() === 'HORIZONTAL'
-	const useHorizontalStructureLayout = isHorizontalHive && mapTab === 'structure'
-	const useCompactStructureMiddle = mapTab === 'structure' && !boxId && !useHorizontalStructureLayout
+	const isHorizontalHive =
+		String(hive?.hiveType || '').toUpperCase() === 'HORIZONTAL'
+	const useHorizontalStructureLayout =
+		isHorizontalHive && mapTab === 'structure'
+	const useCompactStructureMiddle =
+		mapTab === 'structure' && !boxId && !useHorizontalStructureLayout
 
 	function onBoxClose(event) {
 		event.stopPropagation()
@@ -334,7 +360,13 @@ export default function HiveEditForm() {
 
 			<BreadCrumbs items={breadcrumbs} className={styles.breadcrumbsSky} />
 
-			<HiveEditDetails apiaryId={apiaryId} hiveId={hiveId} apiaryType={apiary?.type} onTopMessageChange={setTopNotice} />
+			<HiveEditDetails
+				apiaryId={apiaryId}
+				hiveId={hiveId}
+				apiaryType={apiary?.type}
+				onTopMessageChange={setTopNotice}
+				celebrateHiveCreated={celebrateHiveCreated}
+			/>
 
 			<div className={styles.tabsWrap}>
 				<TabBar>
@@ -401,7 +433,9 @@ export default function HiveEditForm() {
 								frameId={frameId}
 								mode="removeOnly"
 								openRemoveDialogSignal={openBoxRemoveDialogSignal}
-								onRemoveDialogSignalConsumed={() => setOpenBoxRemoveDialogSignal(0)}
+								onRemoveDialogSignalConsumed={() =>
+									setOpenBoxRemoveDialogSignal(0)
+								}
 							/>
 						</div>
 					</div>
@@ -422,7 +456,9 @@ export default function HiveEditForm() {
 
 					{mapTab === 'structure' && (
 						<div>
-							{box && box.type === boxTypes.GATE && <GateBox boxId={boxId} hiveId={hiveId} />}
+							{box && box.type === boxTypes.GATE && (
+								<GateBox boxId={boxId} hiveId={hiveId} />
+							)}
 							<Frame
 								box={box}
 								apiaryId={apiaryId}
@@ -432,13 +468,25 @@ export default function HiveEditForm() {
 								frameSideId={frameSideId}
 								extraButtons={null}
 								openRemoveDialogSignal={openFrameRemoveDialogSignal}
-								onRemoveDialogSignalConsumed={() => setOpenFrameRemoveDialogSignal(0)}
+								onRemoveDialogSignalConsumed={() =>
+									setOpenFrameRemoveDialogSignal(0)
+								}
 							/>
 
-							<HiveButtons apiaryId={apiaryId} hiveId={hiveId} box={box} frameId={frameId} mode="nonRemove" />
+							<HiveButtons
+								apiaryId={apiaryId}
+								hiveId={hiveId}
+								box={box}
+								frameId={frameId}
+								mode="nonRemove"
+							/>
 
-							{box && box.type === boxTypes.BOTTOM && <BottomBox boxId={boxId} hiveId={hiveId} />}
-							{box && box.type === boxTypes.ROOF && <RoofBox boxId={boxId} hiveId={hiveId} />}
+							{box && box.type === boxTypes.BOTTOM && (
+								<BottomBox boxId={boxId} hiveId={hiveId} />
+							)}
+							{box && box.type === boxTypes.ROOF && (
+								<RoofBox boxId={boxId} hiveId={hiveId} />
+							)}
 
 							{/* {!frameId && <Button
                             color="red"
@@ -485,11 +533,7 @@ function composeBreadCrumbs(
 	if (hive) {
 		breadcrumbs[1] = {
 			icon: <HiveIcon size={12} />,
-			name: (
-				<>
-					{hive.hiveNumber ? `#${hive.hiveNumber}` : <T>Hive</T>}
-				</>
-			),
+			name: <>{hive.hiveNumber ? `#${hive.hiveNumber}` : <T>Hive</T>}</>,
 			uri: `/apiaries/${apiaryId}/hives/${hiveId}`,
 		}
 	}

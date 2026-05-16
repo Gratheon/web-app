@@ -66,6 +66,29 @@
 	padding: @mobilePadPx;
 }
 
+.hiveCreatedBeeLayer {
+	position: fixed;
+	inset: 0;
+	z-index: 1000;
+	pointer-events: auto;
+	cursor: pointer;
+	overflow: hidden;
+}
+
+.hiveCreatedBee {
+	position: fixed;
+	pointer-events: none;
+	top: 0;
+	left: 0;
+	width: var(--size);
+	height: var(--size);
+	object-fit: contain;
+	opacity: 0;
+	transform-origin: center;
+	will-change: transform, opacity;
+	filter: drop-shadow(0 1px 1px rgba(50, 35, 0, 0.18));
+}
+
 .wrap4 {
 	@media @tabletAndUp {
 		display: flex;
@@ -177,7 +200,8 @@
 	color: #4a5568;
 	cursor: pointer;
 	padding: 0;
-	transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+	transition: background-color 0.15s ease, border-color 0.15s ease,
+		color 0.15s ease;
 
 	&:hover {
 		background: #111827;
@@ -227,7 +251,7 @@
 	color: #b22222;
 	font-weight: 600;
 
-	svg{
+	svg {
 		margin: 0 5px;
 	}
 }
@@ -324,4 +348,10 @@
 .qrErrorText {
 	margin: 0;
 	color: #b22222;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.hiveCreatedBeeLayer {
+		display: none;
+	}
 }

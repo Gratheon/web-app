@@ -51,6 +51,7 @@ export default function ApiaryList(props) {
 		hiveId: null,
 	})
 	const [showWelcomeCelebration, setShowWelcomeCelebration] = React.useState(false)
+	const [showWelcomeMessage, setShowWelcomeMessage] = React.useState(false)
 
 	const focusHiveElement = React.useCallback((apiaryId, hiveId) => {
 		if (typeof document === 'undefined' || !apiaryId || !hiveId) {
@@ -396,7 +397,7 @@ export default function ApiaryList(props) {
 
 	const showLoadingSkeleton = FORCE_APIARY_LIST_SKELETON || (loading && apiaries.length === 0)
 	const welcomeConfettiPieces = React.useMemo(() => (
-		Array.from({ length: 28 }).map((_, i) => ({
+		Array.from({ length: 56 }).map((_, i) => ({
 			key: i,
 			style: {
 				['--x' as any]: `${(i * 37) % 100}%`,
@@ -417,11 +418,20 @@ export default function ApiaryList(props) {
 		}
 
 		setShowWelcomeCelebration(true)
-		const timer = window.setTimeout(() => {
-			setShowWelcomeCelebration(false)
-		}, 4200)
+		setShowWelcomeMessage(false)
 
-		return () => window.clearTimeout(timer)
+		const messageTimer = window.setTimeout(() => {
+			setShowWelcomeMessage(true)
+		}, 5000)
+		const celebrationTimer = window.setTimeout(() => {
+			setShowWelcomeCelebration(false)
+			setShowWelcomeMessage(false)
+		}, 9200)
+
+		return () => {
+			window.clearTimeout(messageTimer)
+			window.clearTimeout(celebrationTimer)
+		}
 	}, [apiaries, loading, showLoadingSkeleton])
 
 
@@ -438,10 +448,12 @@ export default function ApiaryList(props) {
 								/>
 							))}
 						</div>
-						<div className={styles.welcomeCard}>
-							<strong><T>Welcome to Gratheon!</T></strong>
-							<span><T>Your account is ready. Set up your first apiary to get started.</T></span>
-						</div>
+						{showWelcomeMessage && (
+							<div className={styles.welcomeCard}>
+								<strong><T>Welcome to Gratheon!</T></strong>
+								<span><T>Your account is ready. Set up your first apiary to get started.</T></span>
+							</div>
+						)}
 					</div>
 				)}
 				{isServiceDegraded && <ServiceDegradedWarning />}

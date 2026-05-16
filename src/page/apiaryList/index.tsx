@@ -15,6 +15,7 @@ import ApiariesPlaceholder from './apiariesPlaceholder'
 import ApiaryListLoadingRows from './loadingRows'
 import { sortHives } from './hiveSort'
 import { normalizeApiaryType } from '@/models/apiary'
+import { consumeRegistrationWelcomePending } from '@/shared/welcomeFlow'
 import styles from './style.module.less'
 
 const TABLE_VISIBLE_COLUMNS_KEY = 'apiaryList.tableVisibleColumns'
@@ -49,6 +50,7 @@ export default function ApiaryList(props) {
 		apiaryId: null,
 		hiveId: null,
 	})
+	const [showWelcomeCelebration, setShowWelcomeCelebration] = React.useState(false)
 
 	const focusHiveElement = React.useCallback((apiaryId, hiveId) => {
 		if (typeof document === 'undefined' || !apiaryId || !hiveId) {
@@ -393,11 +395,56 @@ export default function ApiaryList(props) {
 	}, [hiveSortBy, hiveSortOrder])
 
 	const showLoadingSkeleton = FORCE_APIARY_LIST_SKELETON || (loading && apiaries.length === 0)
+	const welcomeConfettiPieces = React.useMemo(() => (
+		Array.from({ length: 28 }).map((_, i) => ({
+			key: i,
+			style: {
+				['--x' as any]: `${(i * 37) % 100}%`,
+				['--delay' as any]: `${(i % 9) * 0.08}s`,
+				['--duration' as any]: `${2.2 + (i % 5) * 0.18}s`,
+				['--rotate' as any]: `${(i * 53) % 360}deg`,
+			},
+		}))
+	), [])
+
+	React.useEffect(() => {
+		if (showLoadingSkeleton || loading || apiaries === null) {
+			return
+		}
+
+		if (!consumeRegistrationWelcomePending()) {
+			return
+		}
+
+		setShowWelcomeCelebration(true)
+		const timer = window.setTimeout(() => {
+			setShowWelcomeCelebration(false)
+		}, 4200)
+
+		return () => window.clearTimeout(timer)
+	}, [apiaries, loading, showLoadingSkeleton])
 
 
 	return (
 			<div className={styles.page}>
-			{isServiceDegraded && <ServiceDegradedWarning />}
+				{showWelcomeCelebration && (
+					<div className={styles.welcomeCelebration} aria-live="polite">
+						<div className={styles.confettiLayer} aria-hidden="true">
+							{welcomeConfettiPieces.map((piece) => (
+								<span
+									key={piece.key}
+									className={styles.confettiPiece}
+									style={piece.style}
+								/>
+							))}
+						</div>
+						<div className={styles.welcomeCard}>
+							<strong><T>Welcome to Gratheon!</T></strong>
+							<span><T>Your account is ready. Set up your first apiary to get started.</T></span>
+						</div>
+					</div>
+				)}
+				{isServiceDegraded && <ServiceDegradedWarning />}
 			<ErrorMsg error={error || errorNetwork} borderRadius={0} />
 			{showLoadingSkeleton && (
 				<ApiaryListLoadingRows

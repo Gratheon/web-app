@@ -5,3 +5,112 @@
 	max-width: @maxTabletWidthPx;
 	margin: 0 auto;
 }
+
+
+.welcomeCelebration {
+	position: fixed;
+	inset: 0;
+	z-index: 1000;
+	pointer-events: none;
+	overflow: hidden;
+}
+
+.confettiLayer {
+	position: absolute;
+	inset: 0;
+}
+
+.confettiPiece {
+	position: absolute;
+	top: -24px;
+	left: var(--x);
+	width: 10px;
+	height: 16px;
+	border-radius: 3px;
+	background: #f8c537;
+	opacity: 0;
+	animation: confettiFall var(--duration) ease-out var(--delay) forwards;
+	transform: rotate(var(--rotate));
+}
+
+.confettiPiece:nth-child(4n + 1) {
+	background: #46b67a;
+}
+
+.confettiPiece:nth-child(4n + 2) {
+	background: #f07f2f;
+	width: 8px;
+	height: 14px;
+}
+
+.confettiPiece:nth-child(4n + 3) {
+	background: #5aa9e6;
+	border-radius: 50%;
+}
+
+.welcomeCard {
+	position: absolute;
+	top: 24px;
+	left: 50%;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	max-width: min(420px, calc(100vw - 32px));
+	padding: 14px 18px;
+	border: 1px solid rgba(70, 182, 122, 0.28);
+	border-radius: 16px;
+	background: rgba(255, 255, 255, 0.96);
+	box-shadow: 0 14px 38px rgba(0, 0, 0, 0.16);
+	color: #1f3327;
+	text-align: center;
+	animation: welcomeCardIn 4.2s ease-in-out forwards;
+	transform: translateX(-50%);
+}
+
+.welcomeCard strong {
+	font-size: 18px;
+}
+
+.welcomeCard span {
+	font-size: 14px;
+	line-height: 1.35;
+}
+
+@keyframes confettiFall {
+	0% {
+		opacity: 0;
+		transform: translate3d(-12px, -24px, 0) rotate(var(--rotate));
+	}
+	12% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+		transform: translate3d(28px, 104vh, 0) rotate(calc(var(--rotate) + 560deg));
+	}
+}
+
+@keyframes welcomeCardIn {
+	0% {
+		opacity: 0;
+		transform: translate(-50%, -18px) scale(0.96);
+	}
+	12%, 82% {
+		opacity: 1;
+		transform: translate(-50%, 0) scale(1);
+	}
+	100% {
+		opacity: 0;
+		transform: translate(-50%, -12px) scale(0.98);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.confettiPiece {
+		display: none;
+	}
+
+	.welcomeCard {
+		animation: welcomeCardIn 3s ease-in-out forwards;
+	}
+}

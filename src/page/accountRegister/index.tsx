@@ -12,6 +12,7 @@ import T, { useTranslation } from '@/shared/translate'
 import { getUserLanguage } from '@/models/translationService'
 import { getBrowserLocale } from '@/shared/dateLocale'
 import metrics from '@/metrics'
+import { markRegistrationWelcomePending } from '@/shared/welcomeFlow'
 import styles from './styles.module.less'
 import logoURL from '@/assets/logo_v7.svg'
 
@@ -218,6 +219,7 @@ export default function AccountRegister() {
 		}
 
 		metrics.trackRegistration()
+		markRegistrationWelcomePending()
 		//@ts-ignore
 		window.location = getAppUri() + '/'
 		return <Loader />

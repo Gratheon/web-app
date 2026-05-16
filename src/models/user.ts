@@ -1,4 +1,4 @@
-import { db } from "./db";
+import { db, waitForDatabaseReset } from './db';
 import { persistLocale } from '@/shared/dateLocale';
 
 export type User = {
@@ -18,6 +18,18 @@ export type User = {
 
 const TABLE_NAME = 'user'
 let hasLoggedMissingUserTable = false
+
+function isDatabaseClosedError(error: unknown): boolean {
+	if (!error || typeof error !== 'object') return false
+
+	const dexieError = error as { name?: string; inner?: { name?: string } }
+	return (
+		dexieError.name === 'DatabaseClosedError' ||
+		dexieError.name === 'DatabaseClosed' ||
+		dexieError.inner?.name === 'DatabaseClosedError' ||
+		dexieError.inner?.name === 'DatabaseClosed'
+	)
+}
 
 export async function getUser(): Promise<User> {
 	try {
@@ -40,6 +52,15 @@ export async function getUser(): Promise<User> {
 		if (user) return user
 		else return null
 	} catch (e) {
+		if (isDatabaseClosedError(e)) {
+			try {
+				await waitForDatabaseReset()
+			} catch (resetError) {
+				console.warn('[models/user] IndexedDB reset failed while reading user', resetError)
+			}
+			return null
+		}
+
 		console.error(e)
 		console.error('[models/user] Failed to read user from IndexedDB', {
 			tableName: TABLE_NAME,

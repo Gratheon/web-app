@@ -12,6 +12,7 @@ const SCHEMA_SYNC_HMR_FLAG = `__gratheon_schema_synced_v${DB_VERSION}`
 const DB_EVENT_HOOKS_FLAG = '__gratheon_db_event_hooks_installed'
 const FRAME_SIDE_CELL_TABLE = 'files_frame_side_cells'
 const FRAME_SIDE_FILE_TABLE = 'frame_side_file'
+let databaseResetPromise: Promise<void> | null = null
 
 function shouldLogIndexedDbDebug() {
 	return (
@@ -52,8 +53,20 @@ if (
 }
 
 export async function dropDatabase() {
-	await db.delete()
-	await db.close()
+	if (!databaseResetPromise) {
+		databaseResetPromise = db.delete()
+			.then(() => db.open())
+			.then(() => undefined)
+			.finally(() => {
+				databaseResetPromise = null
+			})
+	}
+
+	return databaseResetPromise
+}
+
+export function waitForDatabaseReset() {
+	return databaseResetPromise || Promise.resolve()
 }
 
 const graphqlToTableMap = {

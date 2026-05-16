@@ -4,6 +4,7 @@ import { DB_VERSION } from './index'; // Import constant needed for mocks
 // Hoist all mock definitions
 const mocks = vi.hoisted(() => {
     const mockDbDelete = vi.fn();
+    const mockDbOpen = vi.fn();
     const mockDbClose = vi.fn();
     const mockDbStores = vi.fn();
     const mockDbVersion = vi.fn().mockReturnValue({ stores: mockDbStores });
@@ -15,6 +16,7 @@ const mocks = vi.hoisted(() => {
     // Mock the Dexie constructor behavior
     const MockDexie = vi.fn().mockImplementation(() => ({
         delete: mockDbDelete,
+        open: mockDbOpen,
         close: mockDbClose,
         version: mockDbVersion,
         table: vi.fn().mockReturnValue(mockDbTable), // Generic table access
@@ -27,7 +29,7 @@ const mocks = vi.hoisted(() => {
     }));
 
     return {
-        mockDbDelete, mockDbClose, mockDbStores, mockDbVersion,
+        mockDbDelete, mockDbClose, mockDbOpen, mockDbStores, mockDbVersion,
         mockDbGet, mockDbPut, mockDbTable, mockAddCustomIndexes,
         MockDexie
     };
@@ -71,6 +73,7 @@ describe('Database Index Functions (./index.ts)', () => {
   beforeEach(() => {
     // ARRANGE: Reset all mocks using the hoisted 'mocks' object
     mocks.mockDbDelete.mockReset();
+    mocks.mockDbOpen.mockReset().mockResolvedValue(undefined);
     mocks.mockDbClose.mockReset();
     mocks.mockDbVersion.mockReset().mockReturnValue({ stores: mocks.mockDbStores }); // Re-apply return value
     mocks.mockDbStores.mockReset();
@@ -89,27 +92,28 @@ describe('Database Index Functions (./index.ts)', () => {
   });
 
   describe('dropDatabase', () => {
-    it('should call db.delete() and then db.close()', async () => {
+    it('should delete and reopen the database', async () => {
     mocks.mockDbDelete.mockResolvedValue(undefined);
-    mocks.mockDbClose.mockResolvedValue(undefined);
+    mocks.mockDbOpen.mockResolvedValue(undefined);
     await dropDatabase();
     expect(mocks.mockDbDelete).toHaveBeenCalledTimes(1);
-    expect(mocks.mockDbClose).toHaveBeenCalledTimes(1);
+    expect(mocks.mockDbOpen).toHaveBeenCalledTimes(1);
+    expect(mocks.mockDbClose).not.toHaveBeenCalled();
   });
    it('should propagate error if db.delete() fails', async () => {
     const error = new Error('Delete failed');
     mocks.mockDbDelete.mockRejectedValue(error);
     await expect(dropDatabase()).rejects.toThrow(error);
     expect(mocks.mockDbDelete).toHaveBeenCalledTimes(1);
-    expect(mocks.mockDbClose).not.toHaveBeenCalled();
+    expect(mocks.mockDbOpen).not.toHaveBeenCalled();
   });
-   it('should propagate error if db.close() fails', async () => {
-    const error = new Error('Close failed');
+   it('should propagate error if db.open() fails', async () => {
+    const error = new Error('Open failed');
     mocks.mockDbDelete.mockResolvedValue(undefined);
-    mocks.mockDbClose.mockRejectedValue(error);
+    mocks.mockDbOpen.mockRejectedValue(error);
     await expect(dropDatabase()).rejects.toThrow(error);
     expect(mocks.mockDbDelete).toHaveBeenCalledTimes(1);
-    expect(mocks.mockDbClose).toHaveBeenCalledTimes(1);
+    expect(mocks.mockDbOpen).toHaveBeenCalledTimes(1);
   });
 });
 

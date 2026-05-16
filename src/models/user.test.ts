@@ -7,6 +7,7 @@ import { db } from './db'; // Import original db for type info if needed, but we
 vi.mock('./db', () => {
   const mockToArray = vi.fn();
   const mockPut = vi.fn();
+  const mockWaitForDatabaseReset = vi.fn().mockResolvedValue(undefined);
   return {
     db: {
       user: {
@@ -14,8 +15,9 @@ vi.mock('./db', () => {
         put: mockPut,
       },
       // Expose mocks for test access if needed, though direct import is usually better
-      __mocks: { mockToArray, mockPut }
+      __mocks: { mockToArray, mockPut, mockWaitForDatabaseReset }
     },
+    waitForDatabaseReset: mockWaitForDatabaseReset,
   };
 });
 

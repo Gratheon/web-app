@@ -33,6 +33,7 @@ import DeviceEditPage from './deviceEdit'
 import WarehousePage from './warehouse'
 import WarehouseItemViewPage from './warehouse/itemView'
 import WarehouseQueensPage from './warehouse/queens'
+import WarehouseQueenDetectorPage from './warehouse/queenDetector'
 import WarehouseQueensCreatePage from './warehouse/queensCreate'
 import WarehouseBoxSystemsPage from './warehouse/boxSystems'
 import WarehouseBoxSystemCreatePage from './warehouse/boxSystemCreate'
@@ -122,6 +123,7 @@ export default function Page() {
 			<Route path="/devices/:id" element={<LoggedInPage><ProfessionalTierGate><DeviceViewPage /></ProfessionalTierGate></LoggedInPage>} />
 			<Route path="/warehouse" element={<LoggedInPage><HobbyistTierGate><WarehousePage /></HobbyistTierGate></LoggedInPage>} />
 			<Route path="/warehouse/queens" element={<LoggedInPage><HobbyistTierGate><WarehouseQueensPage /></HobbyistTierGate></LoggedInPage>} />
+			<Route path="/warehouse/queens/detect" element={<LoggedInPage><HobbyistTierGate><WarehouseQueenDetectorPage /></HobbyistTierGate></LoggedInPage>} />
 			<Route path="/warehouse/queens/create" element={<LoggedInPage><HobbyistTierGate><WarehouseQueensCreatePage /></HobbyistTierGate></LoggedInPage>} />
 			<Route path="/warehouse/box-systems" element={<LoggedInPage><HobbyistTierGate><WarehouseBoxSystemsPage /></HobbyistTierGate></LoggedInPage>} />
 			<Route path="/warehouse/box-systems/create" element={<LoggedInPage><HobbyistTierGate><WarehouseBoxSystemCreatePage /></HobbyistTierGate></LoggedInPage>} />

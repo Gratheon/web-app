@@ -568,11 +568,14 @@ export default function WarehouseQueensPage() {
 						<TableIcon size={14} />
 						<T>Table</T>
 					</Button>
+					<Button color="green" href="/warehouse/queens/detect">
+						<T>Queen finder</T>
+					</Button>
 					<Button color="green" href="/warehouse/queens/create">
 						<T>Add Queen</T>
 					</Button>
+					</div>
 				</div>
-			</div>
 			<p className={styles.description}>
 				<T>Browse queens in active hives and in warehouse storage. Open last detected frame to jump directly into hive frame view.</T>
 			</p>

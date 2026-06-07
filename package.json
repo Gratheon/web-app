@@ -39,6 +39,7 @@
 		"lightweight-charts-react-components": "1.4.0",
 		"lodash": "4.17.23",
 		"md5": "2.3.0",
+		"onnxruntime-web": "1.26.0",
 		"posthog-js": "1.242.2",
 		"preact": "^10.29.0",
 		"proj4": "2.12.0",

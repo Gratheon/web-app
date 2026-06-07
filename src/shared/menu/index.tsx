@@ -477,6 +477,20 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                                 </span>
                             </span>
                         </NavLink>
+                        {isWarehouseQueensSection && (
+                            <ul className={styles.subMenu}>
+                                <li>
+                                    <NavLink
+                                        className={({isActive}) =>
+                                            isActive ? `${styles.subMenuLink} ${styles.active}` : styles.subMenuLink
+                                        }
+                                        to="/warehouse/queens/detect"
+                                    >
+                                        <T>Queen finder</T>
+                                    </NavLink>
+                                </li>
+                            </ul>
+                        )}
                     </li>
                     <li>
                         <NavLink
@@ -740,6 +754,14 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                         }}
                     >
                         <T>Queens</T>
+                    </NavLink>
+                    <NavLink
+                        to="/warehouse/queens/detect"
+                        onClick={() => {
+                            setMoreVisible(false)
+                        }}
+                    >
+                        <T>Queen finder</T>
                     </NavLink>
                     <NavLink
                         to="/warehouse/box-systems"

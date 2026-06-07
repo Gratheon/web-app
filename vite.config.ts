@@ -90,6 +90,24 @@ export default defineConfig({
 				globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,jpg,jpeg,woff,woff2}'],
 				runtimeCaching: [
 					{
+						// Cache the queen detector model and ONNX Runtime WASM after first use.
+						urlPattern: ({ url, sameOrigin }) =>
+							sameOrigin &&
+							(url.pathname === '/models/queen-bee-detector/best.onnx' ||
+								/^\/assets\/ort-.*\.wasm$/i.test(url.pathname)),
+						handler: 'CacheFirst',
+						options: {
+							cacheName: 'queen-finder-model-v1',
+							expiration: {
+								maxEntries: 4,
+								maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+							},
+							cacheableResponse: {
+								statuses: [0, 200],
+							},
+						},
+					},
+					{
 						// Cache local bundled images and static icon files.
 						urlPattern: ({ request, sameOrigin }) =>
 							request.destination === 'image' && sameOrigin,

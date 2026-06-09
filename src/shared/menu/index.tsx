@@ -9,13 +9,14 @@ import Avatar from '@/shared/avatar'
 import styles from './styles.module.less'
 import HiveIcon from '@/icons/hive'
 import { useEffect, useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
 import CryptoJS from 'crypto-js'
 import * as userModel from '@/models/user'
 import { TAWKTO_TOKEN } from '@/config'
 import CreditCard from '@/icons/creditCard'
 import KeyIcon from '@/icons/key'
 import wideLogoURL from '@/assets/logo_v7w.svg'
-
+import { isBillingTierAtLeast, normalizeBillingTier } from '@/shared/billingTier'
 const MOBILE_NAV_ICON_SIZE = 24
 const AI_ADVISOR_CONTEXT_KEY = 'ai-advisor-last-hive-context'
 const SHORTCUT_HINTS_EVENT = 'gratheon-shortcut-hints'
@@ -212,11 +213,40 @@ function LogoutIcon({ size = MOBILE_NAV_ICON_SIZE }) {
 }
 
 
+function combineClassNames(...classNames) {
+    return classNames.filter(Boolean).join(' ')
+}
+
 const navClassName = ({isActive}) => (isActive ? styles.active : '')
-const mobileNavClassName = ({isActive}) =>
-    isActive ? `${styles.mobileNavLink} ${styles.active}` : styles.mobileNavLink
+const menuLinkClassName = (isLocked = false) => ({isActive}) =>
+    combineClassNames(isActive && styles.active, isLocked && styles.lockedMenuLink)
+const sectionMenuLinkClassName = (isSectionActive, isLocked = false) => () =>
+    combineClassNames(isSectionActive && styles.active, isLocked && styles.lockedMenuLink)
+const subMenuLinkClassName = (isLocked = false) => ({isActive}) =>
+    combineClassNames(styles.subMenuLink, isActive && styles.active, isLocked && styles.lockedMenuLink)
+const mobileNavClassName = (isLocked = false) => ({isActive}) =>
+    combineClassNames(styles.mobileNavLink, isActive && styles.active, isLocked && styles.lockedMenuLink)
+const mobileSectionNavClassName = (isSectionActive, isLocked = false) => () =>
+    combineClassNames(styles.mobileNavLink, isSectionActive && styles.active, isLocked && styles.lockedMenuLink)
+const moreMenuLinkClassName = (isLocked = false) => ({isActive}) =>
+    combineClassNames(isActive && styles.active, isLocked && styles.lockedMenuLink)
 const utilityButtonClassName = (isSelected) =>
     isSelected ? `${styles.utilityButton} ${styles.utilityButtonSelected}` : styles.utilityButton
+
+function getLockedNavigationProps(isLocked, onUnlockedClick) {
+    if (!isLocked) {
+        return onUnlockedClick ? { onClick: onUnlockedClick } : {}
+    }
+
+    return {
+        'aria-disabled': 'true',
+        tabIndex: -1,
+        onClick: (event) => {
+            event.preventDefault()
+            event.stopPropagation()
+        },
+    }
+}
 
 function getCurrentHiveContext(pathname: string) {
     const matches = pathname.match(/^\/apiaries\/(\d+)\/hives\/(\d+)(?:\/|$)/)
@@ -274,12 +304,19 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
     }
 
 
-
-
     let [isMoreVisible, setMoreVisible] = useState(false)
     let [showShortcutHints, setShowShortcutHints] = useState(false)
     const location = useLocation()
     const navigate = useNavigate()
+    const user = useLiveQuery(() => userModel.getUser(), [], null)
+    const billingPlan = user?.billingPlan || 'free'
+    const isFreeTier = normalizeBillingTier(billingPlan) === 'free'
+    const isQueensLocked = !isBillingTierAtLeast(billingPlan, 'hobbyist')
+    const isWarehouseLocked = !isBillingTierAtLeast(billingPlan, 'hobbyist')
+    const isInsightsLocked = !isBillingTierAtLeast(billingPlan, 'professional')
+    const isDevicesLocked = !isBillingTierAtLeast(billingPlan, 'professional')
+    const isAlertsLocked = !isBillingTierAtLeast(billingPlan, 'professional')
+    const isAIAdvisorLocked = !isBillingTierAtLeast(billingPlan, 'starter')
 
     const isAlertsSection = location.pathname === '/alert-config' || location.pathname.startsWith('/alert-config/')
     const isWarehouseQueensSection = location.pathname === '/warehouse/queens' || location.pathname.startsWith('/warehouse/queens/')
@@ -353,13 +390,13 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                 !hasModifier && !event.shiftKey
                     ? {
                         '1': '/apiaries',
-                        '2': '/warehouse',
-                        '3': '/warehouse/queens',
-                        '4': '/devices',
-                        '5': '/time',
-                        '6': '/alert-config',
+                        '2': isFreeTier ? '/warehouse/queens/detect' : (isQueensLocked ? null : '/warehouse/queens'),
+                        '3': isInsightsLocked ? null : '/time',
+                        '4': isWarehouseLocked ? null : '/warehouse',
+                        '5': isDevicesLocked ? null : '/devices',
+                        '6': isAlertsLocked ? null : '/alert-config',
                         '7': '/account',
-                        '8': aiAdvisorPath,
+                        '8': isAIAdvisorLocked ? null : aiAdvisorPath,
                         '9': '/account/billing',
                         '0': '/account/tokens',
                     }[key]
@@ -379,6 +416,11 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
             if (isMenuToggleShortcut) {
                 event.preventDefault()
                 onSidebarToggle()
+                return
+            }
+
+            if (isAdvisorShortcut && isAIAdvisorLocked) {
+                event.preventDefault()
                 return
             }
 
@@ -406,7 +448,19 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
             document.removeEventListener('keydown', onKeyDown, true)
             window.removeEventListener('blur', onWindowBlur)
         }
-    }, [aiAdvisorPath, isAIAdvisorSection, navigate, onSidebarToggle])
+    }, [
+        aiAdvisorPath,
+        isAIAdvisorSection,
+        isAIAdvisorLocked,
+        isAlertsLocked,
+        isDevicesLocked,
+        isFreeTier,
+        isInsightsLocked,
+        isQueensLocked,
+        isWarehouseLocked,
+        navigate,
+        onSidebarToggle,
+    ])
 
 
     const onDesktopLogoClick = (event) => {
@@ -438,15 +492,84 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                             </span>
                         </NavLink>
                     </li>
+                    {/* Free users can use Queen finder but not full Queens yet, so keep the available tool at the root level. */}
+                    {isFreeTier ? (
+                        <li>
+                            <NavLink
+                                className={sectionMenuLinkClassName(isWarehouseQueensSection)}
+                                to="/warehouse/queens/detect">
+                                <span className={styles.menuItemContent}>
+                                    <span className={styles.menuItemIcon}><QueensIcon size={18} /></span>
+                                    <span className={styles.menuItemLabel}>
+                                        <span className={styles.menuItemText}><T>Queen finder</T></span>
+                                        {showShortcutHints && <span className={styles.keyHint}>2</span>}
+                                    </span>
+                                </span>
+                            </NavLink>
+                            <ul className={styles.subMenu}>
+                                <li>
+                                    <NavLink
+                                        className={subMenuLinkClassName(isQueensLocked)}
+                                        to="/warehouse/queens"
+                                        {...getLockedNavigationProps(isQueensLocked)}
+                                    >
+                                        <T>Queens</T>
+                                    </NavLink>
+                                </li>
+                            </ul>
+                        </li>
+                    ) : (
+                        <li>
+                            <NavLink
+                                className={sectionMenuLinkClassName(isWarehouseQueensSection, isQueensLocked)}
+                                to="/warehouse/queens"
+                                {...getLockedNavigationProps(isQueensLocked)}>
+                                <span className={styles.menuItemContent}>
+                                    <span className={styles.menuItemIcon}><QueensIcon size={18} /></span>
+                                    <span className={styles.menuItemLabel}>
+                                        <span className={styles.menuItemText}><T>Queens</T></span>
+                                        {showShortcutHints && <span className={styles.keyHint}>2</span>}
+                                    </span>
+                                </span>
+                            </NavLink>
+                            {isWarehouseQueensSection && (
+                                <ul className={styles.subMenu}>
+                                    <li>
+                                        <NavLink
+                                            className={subMenuLinkClassName()}
+                                            to="/warehouse/queens/detect"
+                                        >
+                                            <T>Queen finder</T>
+                                        </NavLink>
+                                    </li>
+                                </ul>
+                            )}
+                        </li>
+                    )}
                     <li>
                         <NavLink
-                            className={() => (isWarehouseSection ? styles.active : '')}
-                            to="/warehouse">
+                            className={menuLinkClassName(isInsightsLocked)}
+                            to="/time"
+                            {...getLockedNavigationProps(isInsightsLocked)}>
+                            <span className={styles.menuItemContent}>
+                                <span className={styles.menuItemIcon}><LightBulbIcon size={18} /></span>
+                                <span className={styles.menuItemLabel}>
+                                    <span className={styles.menuItemText}><T>Insights</T></span>
+                                    {showShortcutHints && <span className={styles.keyHint}>3</span>}
+                                </span>
+                            </span>
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink
+                            className={sectionMenuLinkClassName(isWarehouseSection, isWarehouseLocked)}
+                            to="/warehouse"
+                            {...getLockedNavigationProps(isWarehouseLocked)}>
                             <span className={styles.menuItemContent}>
                                 <span className={styles.menuItemIcon}><WarehouseIcon size={18} /></span>
                                 <span className={styles.menuItemLabel}>
                                     <span className={styles.menuItemText}><T>Warehouse</T></span>
-                                    {showShortcutHints && <span className={styles.keyHint}>2</span>}
+                                    {showShortcutHints && <span className={styles.keyHint}>4</span>}
                                 </span>
                             </span>
                         </NavLink>
@@ -454,10 +577,9 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                             <ul className={styles.subMenu}>
                                 <li>
                                     <NavLink
-                                        className={({isActive}) =>
-                                            isActive ? `${styles.subMenuLink} ${styles.active}` : styles.subMenuLink
-                                        }
+                                        className={subMenuLinkClassName(isWarehouseLocked)}
                                         to="/warehouse/box-systems"
+                                        {...getLockedNavigationProps(isWarehouseLocked)}
                                     >
                                         <T>Hive systems</T>
                                     </NavLink>
@@ -467,52 +589,13 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                     </li>
                     <li>
                         <NavLink
-                            className={() => (isWarehouseQueensSection ? styles.active : '')}
-                            to="/warehouse/queens">
-                            <span className={styles.menuItemContent}>
-                                <span className={styles.menuItemIcon}><QueensIcon size={18} /></span>
-                                <span className={styles.menuItemLabel}>
-                                    <span className={styles.menuItemText}><T>Queens</T></span>
-                                    {showShortcutHints && <span className={styles.keyHint}>3</span>}
-                                </span>
-                            </span>
-                        </NavLink>
-                        {isWarehouseQueensSection && (
-                            <ul className={styles.subMenu}>
-                                <li>
-                                    <NavLink
-                                        className={({isActive}) =>
-                                            isActive ? `${styles.subMenuLink} ${styles.active}` : styles.subMenuLink
-                                        }
-                                        to="/warehouse/queens/detect"
-                                    >
-                                        <T>Queen finder</T>
-                                    </NavLink>
-                                </li>
-                            </ul>
-                        )}
-                    </li>
-                    <li>
-                        <NavLink
-                            className={navClassName}
-                            to="/devices">
+                            className={menuLinkClassName(isDevicesLocked)}
+                            to="/devices"
+                            {...getLockedNavigationProps(isDevicesLocked)}>
                             <span className={styles.menuItemContent}>
                                 <span className={styles.menuItemIcon}><DeviceSignalIcon size={18} /></span>
                                 <span className={styles.menuItemLabel}>
                                     <span className={styles.menuItemText}><T>Devices</T></span>
-                                    {showShortcutHints && <span className={styles.keyHint}>4</span>}
-                                </span>
-                            </span>
-                        </NavLink>
-                    </li>
-                    <li>
-                        <NavLink
-                            className={navClassName}
-                            to="/time">
-                            <span className={styles.menuItemContent}>
-                                <span className={styles.menuItemIcon}><LightBulbIcon size={18} /></span>
-                                <span className={styles.menuItemLabel}>
-                                    <span className={styles.menuItemText}><T>Insights</T></span>
                                     {showShortcutHints && <span className={styles.keyHint}>5</span>}
                                 </span>
                             </span>
@@ -520,8 +603,9 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                     </li>
                     <li>
                         <NavLink
-                            className={() => (isAlertsSection ? styles.active : '')}
-                            to="/alert-config">
+                            className={sectionMenuLinkClassName(isAlertsSection, isAlertsLocked)}
+                            to="/alert-config"
+                            {...getLockedNavigationProps(isAlertsLocked)}>
                             <span className={styles.menuItemContent}>
                                 <span className={styles.menuItemIcon}><BearFaceIcon size={18} /></span>
                                 <span className={styles.menuItemLabel}>
@@ -534,20 +618,18 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                             <ul className={styles.subMenu}>
                                 <li>
                                     <NavLink
-                                        className={({isActive}) =>
-                                            isActive ? `${styles.subMenuLink} ${styles.active}` : styles.subMenuLink
-                                        }
+                                        className={subMenuLinkClassName(isAlertsLocked)}
                                         to="/alert-config/channels"
+                                        {...getLockedNavigationProps(isAlertsLocked)}
                                     >
                                         <T>Channels</T>
                                     </NavLink>
                                 </li>
                                 <li>
                                     <NavLink
-                                        className={({isActive}) =>
-                                            isActive ? `${styles.subMenuLink} ${styles.active}` : styles.subMenuLink
-                                        }
+                                        className={subMenuLinkClassName(isAlertsLocked)}
                                         to="/alert-config/rules"
+                                        {...getLockedNavigationProps(isAlertsLocked)}
                                     >
                                         <T>Rules</T>
                                     </NavLink>
@@ -574,8 +656,9 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                     </li>
                     <li>
                         <NavLink
-                            className={() => (isAIAdvisorSection ? styles.active : '')}
+                            className={sectionMenuLinkClassName(isAIAdvisorSection, isAIAdvisorLocked)}
                             to={aiAdvisorPath}
+                            {...getLockedNavigationProps(isAIAdvisorLocked)}
                         >
                             <span className={styles.menuItemContent}>
                                 <span className={styles.menuItemIcon}><AIAdvisorIcon size={18} /></span>
@@ -657,7 +740,7 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                 <ul className={styles.mobileBottomList}>
                     <li>
                         <NavLink
-                            className={mobileNavClassName}
+                            className={mobileNavClassName()}
                             to="/apiaries"
                             onClick={() => {
                                 setMoreVisible(false)
@@ -669,39 +752,41 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                     </li>
                     <li>
                         <NavLink
-                            end
-                            className={mobileNavClassName}
-                            to="/warehouse"
-                            onClick={() => {
+                            className={mobileSectionNavClassName(isWarehouseQueensSection, isQueensLocked && !isFreeTier)}
+                            to={isFreeTier ? "/warehouse/queens/detect" : "/warehouse/queens"}
+                            {...getLockedNavigationProps(isQueensLocked && !isFreeTier, () => {
                                 setMoreVisible(false)
-                            }}
-                        >
-                            <span className={styles.navIcon}><WarehouseIcon size={MOBILE_NAV_ICON_SIZE} /></span>
-                            <span className={styles.navLabel}><T>Warehouse</T></span>
-                        </NavLink>
-                    </li>
-                    <li>
-                        <NavLink
-                            className={mobileNavClassName}
-                            to="/warehouse/queens"
-                            onClick={() => {
-                                setMoreVisible(false)
-                            }}
+                            })}
                         >
                             <span className={styles.navIcon}><QueensIcon size={MOBILE_NAV_ICON_SIZE} /></span>
-                            <span className={styles.navLabel}><T>Queens</T></span>
+                            <span className={styles.navLabel}>
+                                {isFreeTier ? <T>Queen finder</T> : <T>Queens</T>}
+                            </span>
                         </NavLink>
                     </li>
                     <li>
                         <NavLink
-                            className={mobileNavClassName}
+                            className={mobileNavClassName(isInsightsLocked)}
                             to="/time"
-                            onClick={() => {
+                            {...getLockedNavigationProps(isInsightsLocked, () => {
                                 setMoreVisible(false)
-                            }}
+                            })}
                         >
                             <span className={styles.navIcon}><LightBulbIcon size={MOBILE_NAV_ICON_SIZE} /></span>
                             <span className={styles.navLabel}><T>Insights</T></span>
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink
+                            end
+                            className={mobileSectionNavClassName(isWarehouseSection, isWarehouseLocked)}
+                            to="/warehouse"
+                            {...getLockedNavigationProps(isWarehouseLocked, () => {
+                                setMoreVisible(false)
+                            })}
+                        >
+                            <span className={styles.navIcon}><WarehouseIcon size={MOBILE_NAV_ICON_SIZE} /></span>
+                            <span className={styles.navLabel}><T>Warehouse</T></span>
                         </NavLink>
                     </li>
                     <li>
@@ -724,58 +809,90 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                 <div className={styles.mobileMoreMenu}>
                     <NavLink
                         to={aiAdvisorPath}
-                        onClick={() => {
+                        className={moreMenuLinkClassName(isAIAdvisorLocked)}
+                        {...getLockedNavigationProps(isAIAdvisorLocked, () => {
                             setMoreVisible(false)
-                        }}
+                        })}
                     >
                         <T>AI Advisor</T>
                     </NavLink>
                     <NavLink
                         to="/alert-config"
-                        onClick={() => {
+                        className={moreMenuLinkClassName(isAlertsLocked)}
+                        {...getLockedNavigationProps(isAlertsLocked, () => {
                             setMoreVisible(false)
-                        }}
+                        })}
                     >
                         <T>Alerts</T>
                     </NavLink>
+                    {isFreeTier ? (
+                        <>
+                            <NavLink
+                                to="/warehouse/queens/detect"
+                                className={moreMenuLinkClassName()}
+                                onClick={() => {
+                                    setMoreVisible(false)
+                                }}
+                            >
+                                <T>Queen finder</T>
+                            </NavLink>
+                            <NavLink
+                                to="/warehouse/queens"
+                                className={moreMenuLinkClassName(isQueensLocked)}
+                                {...getLockedNavigationProps(isQueensLocked, () => {
+                                    setMoreVisible(false)
+                                })}
+                            >
+                                <span className={styles.mobileSubMenuItem}><T>Queens</T></span>
+                            </NavLink>
+                        </>
+                    ) : (
+                        <>
+                            <NavLink
+                                to="/warehouse/queens"
+                                className={moreMenuLinkClassName(isQueensLocked)}
+                                {...getLockedNavigationProps(isQueensLocked, () => {
+                                    setMoreVisible(false)
+                                })}
+                            >
+                                <T>Queens</T>
+                            </NavLink>
+                            <NavLink
+                                to="/warehouse/queens/detect"
+                                className={moreMenuLinkClassName()}
+                                onClick={() => {
+                                    setMoreVisible(false)
+                                }}
+                            >
+                                <span className={styles.mobileSubMenuItem}><T>Queen finder</T></span>
+                            </NavLink>
+                        </>
+                    )}
                     <NavLink
                         end
                         to="/warehouse"
-                        onClick={() => {
+                        className={moreMenuLinkClassName(isWarehouseLocked)}
+                        {...getLockedNavigationProps(isWarehouseLocked, () => {
                             setMoreVisible(false)
-                        }}
+                        })}
                     >
                         <T>Warehouse</T>
                     </NavLink>
                     <NavLink
-                        to="/warehouse/queens"
-                        onClick={() => {
-                            setMoreVisible(false)
-                        }}
-                    >
-                        <T>Queens</T>
-                    </NavLink>
-                    <NavLink
-                        to="/warehouse/queens/detect"
-                        onClick={() => {
-                            setMoreVisible(false)
-                        }}
-                    >
-                        <T>Queen finder</T>
-                    </NavLink>
-                    <NavLink
                         to="/warehouse/box-systems"
-                        onClick={() => {
+                        className={moreMenuLinkClassName(isWarehouseLocked)}
+                        {...getLockedNavigationProps(isWarehouseLocked, () => {
                             setMoreVisible(false)
-                        }}
+                        })}
                     >
-                        <T>Hive systems</T>
+                        <span className={styles.mobileSubMenuItem}><T>Hive systems</T></span>
                     </NavLink>
                     <NavLink
                         to="/devices"
-                        onClick={() => {
+                        className={moreMenuLinkClassName(isDevicesLocked)}
+                        {...getLockedNavigationProps(isDevicesLocked, () => {
                             setMoreVisible(false)
-                        }}
+                        })}
                     >
                         <T>Devices</T>
                     </NavLink>

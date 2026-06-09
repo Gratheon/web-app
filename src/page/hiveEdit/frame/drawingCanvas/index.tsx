@@ -115,7 +115,7 @@ function calculateRelPx(canvas: HTMLCanvasElement) {
 
 function drawStrokeSegment(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, stroke: DrawingPoint[]) {
 	ctx.strokeStyle = 'white';
-	ctx.lineCap = 'round';
+			ctx.lineCap = 'round';
 	ctx.lineJoin = 'round';
 	const l = stroke.length - 1;
 
@@ -680,16 +680,27 @@ function drawQueenAnnotations(
 			ctx.fillStyle = isApproved ? 'rgba(36, 112, 255, 0.18)' : 'rgba(36, 112, 255, 0.08)';
 			ctx.fill();
 		}
-		// Layered ring: white base stroke + blue stroke on top to create inner/outer outline effect.
-		const blueStrokeWidth = Math.max(1, 1.4 * relPx);
+		// Canvas backing store is DPR-scaled; keep queen outlines visibly 3-5 CSS px instead of a thin 1px-looking ring.
+		const blueStrokeWidth = Math.min(5 * dpr, Math.max(3 * dpr, 3 * relPx));
 		if (isAiCandidate) {
-			ctx.setLineDash([Math.max(5, 6 * relPx), Math.max(4, 5 * relPx)]);
-			ctx.lineWidth = Math.max(1.5, 1.8 * relPx);
-			ctx.strokeStyle = '#2f6dff';
+			const candidateBlueStrokeWidth = Math.min(8 * dpr, Math.max(6 * dpr, 5 * relPx));
+			const candidateWhiteStrokeWidth = candidateBlueStrokeWidth + Math.max(4 * dpr, 3 * relPx);
+			// Very short rounded dash segments create separated dots while preserving the thick white halo.
+			const candidateDotLength = Math.max(0.5 * dpr, 0.4 * relPx);
+			const candidateDotGap = Math.max(24 * dpr, 18 * relPx);
+			const candidateDash = [candidateDotLength, candidateDotGap];
+			ctx.setLineDash(candidateDash);
+			ctx.lineCap = 'round';
+			ctx.lineWidth = candidateWhiteStrokeWidth;
+			ctx.strokeStyle = '#ffffff';
+			ctx.stroke();
+			ctx.lineWidth = candidateBlueStrokeWidth;
+			ctx.strokeStyle = '#1f5eff';
 			ctx.stroke();
 			ctx.setLineDash([]);
+			ctx.lineCap = 'butt';
 		} else {
-			const whiteStrokeWidth = blueStrokeWidth + Math.max(2, 1.8 * relPx);
+			const whiteStrokeWidth = blueStrokeWidth + Math.max(2 * dpr, 1.8 * relPx);
 			ctx.lineWidth = whiteStrokeWidth;
 			ctx.strokeStyle = '#ffffff';
 			ctx.stroke();
@@ -841,7 +852,7 @@ export default function DrawingCanvas({
 	const [showVarroa, setShowVarroaVisibility] = useState(true);
 	const [showQueenAnnotations, setShowQueenAnnotations] = useState(true);
 	const [isAiQueenVisible, setIsAiQueenVisible] = useState(true);
-	const [showFrameCells, setShowFrameCells] = useState(true);
+	const [showFrameCells, setShowFrameCells] = useState(false);
 	const [activeControlTab, setActiveControlTab] = useState<CanvasControlTab>('frame-cells');
 	const [currentLineWidth, setCurrentLineWidth] = useState(0);
 	const [activeTool, setActiveTool] = useState<'cell-brush' | 'stroke'>('cell-brush');
@@ -1075,9 +1086,8 @@ export default function DrawingCanvas({
 	const canStrokeDraw = allowDrawing && activeControlTab === 'free-draw';
 	const showQueenAnnotationsOnCanvas = showQueenAnnotations;
 	const readOnlyQueenMarkers = React.useMemo(
-		() => (editableQueenAnnotations || []).filter(
-			(annotation) => !(annotation?.source === 'ai' && annotation?.status !== 'approved')
-		),
+		// Detail view is read-only, but AI candidates still need to be visible as dotted queen markers.
+		() => editableQueenAnnotations || [],
 		[editableQueenAnnotations]
 	);
 	const queenAnnotationsOnCanvas = (allowDrawing ? editableQueenAnnotations : readOnlyQueenMarkers)

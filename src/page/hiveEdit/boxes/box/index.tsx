@@ -775,10 +775,6 @@ export default function Box({
 			minWidth: slotCapacity * LIST_SLOT_WIDTH_PX + 28,
 			maxWidth: 'none',
 		}
-	} else if (displayMode === 'list' && frames.length > 10) {
-		maxWidthStyle = {
-			maxWidth: 32 * 12 + 10,
-		}
 	}
 
 	if (displayMode == 'visual') {

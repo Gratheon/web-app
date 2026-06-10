@@ -33,6 +33,7 @@
 
 @media @mobile {
 	.content {
-		padding-bottom: 86px;
+		// WHY: mobile bottom navigation includes safe-area/system UI insets; keep page content above it.
+		padding-bottom: calc(86px + env(safe-area-inset-bottom));
 	}
 }

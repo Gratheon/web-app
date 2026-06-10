@@ -1,6 +1,9 @@
 html {
 	height: 100%;
 	display: block;
+	/* WHY: mobile PWA system areas can use the root canvas color outside body. */
+	background: white;
+	color-scheme: light;
 }
 
 body {

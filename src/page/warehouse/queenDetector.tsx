@@ -336,14 +336,11 @@ export default function QueenDetectorPage() {
 						<T>Use the camera to detect a queen bee directly in the browser. Keep the frame steady and well lit.</T>
 					</p>
 				</div>
-				<div className={styles.actions}>
-					<Button href="/warehouse/queens"><T>Back to queens</T></Button>
-					{isCameraActive ? (
+				{isCameraActive && (
+					<div className={styles.actions}>
 						<Button color="red" onClick={stopCamera}><T>Stop camera</T></Button>
-					) : (
-						<Button color="green" onClick={startCamera} loading={isModelLoading}><T>Start camera</T></Button>
-					)}
-				</div>
+					</div>
+				)}
 			</div>
 
 			<ErrorMsg error={error} />
@@ -360,7 +357,13 @@ export default function QueenDetectorPage() {
 					<canvas ref={previewCanvasRef} className={styles.previewCanvas} />
 					{!isCameraActive && (
 						<div className={styles.placeholder}>
-							<T>Start the camera to begin queen detection.</T>
+							<p><T>Start the camera to begin queen detection.</T></p>
+							<Button color="green" onClick={startCamera} loading={isModelLoading}>
+								<T>Start camera</T>
+							</Button>
+							<p className={styles.privacyNote}>
+								<T>Your video stream is private and is not sent anywhere.</T>
+							</p>
 						</div>
 					)}
 				</div>

@@ -80,12 +80,25 @@
 	position: absolute;
 	inset: 0;
 	display: flex;
+	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+	gap: 12px;
 	padding: 20px;
 	text-align: center;
 	color: #e5e7eb;
 	background: linear-gradient(135deg, rgba(17, 24, 39, 0.95), rgba(55, 65, 81, 0.9));
+
+	p {
+		margin: 0;
+	}
+}
+
+.privacyNote {
+	max-width: 520px;
+	font-size: 14px;
+	line-height: 1.4;
+	color: #cbd5e1;
 }
 
 .resultsPanel {

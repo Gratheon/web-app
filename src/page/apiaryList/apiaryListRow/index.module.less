@@ -1,4 +1,5 @@
 @import '../../../colors.module.less';
+@import '../../../layout.module.less';
 
 table {
 	th {
@@ -292,10 +293,53 @@ table {
 	outline: none;
 }
 
-@media only screen and (max-width: 700px) {
+@media @mobile {
 	.apiary {
-		h1 {
-			font-size: 19px;
+		.apiaryHead {
+			align-items: flex-start;
+			gap: 8px;
+
+			h2 {
+				min-width: 0;
+				margin-top: 0;
+				font-size: 32px;
+				line-height: 1.15;
+				word-break: break-word;
+			}
+
+			.buttons {
+				flex-grow: 0;
+				flex-shrink: 0;
+				display: flex;
+				justify-content: flex-end;
+			}
 		}
+	}
+
+	// WHY: the mobile view is intentionally list-only, so the toggle wastes header space.
+	.viewModeToggle {
+		display: none;
+	}
+
+	.addHiveButton {
+		width: 40px;
+		padding: 0;
+		text-align: center;
+
+		svg {
+			margin-right: 0;
+		}
+	}
+
+	.addHiveButtonLabel {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
 	}
 }

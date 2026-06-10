@@ -236,6 +236,32 @@ export default function apiaryListRow({
 		return sortHives(apiary.hives, sortBy, sortOrder)
 	}, [apiary?.hives, sortBy, sortOrder])
 	const apiaryHives = Array.isArray(apiary?.hives) ? apiary.hives : []
+	const [isMobileLayout, setIsMobileLayout] = React.useState(() => {
+		if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+			return false
+		}
+
+		return window.matchMedia('(max-width: 576px)').matches
+	})
+	const effectiveListType = isMobileLayout ? 'list' : listType
+
+	React.useEffect(() => {
+		if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+			return () => { }
+		}
+
+		// WHY: mobile layout should stay simple and ignore a saved table preference,
+		// while wider layouts keep the user's existing list/table choice.
+		const mediaQuery = window.matchMedia('(max-width: 576px)')
+		const handleChange = () => setIsMobileLayout(mediaQuery.matches)
+
+		handleChange()
+		mediaQuery.addEventListener('change', handleChange)
+
+		return () => {
+			mediaQuery.removeEventListener('change', handleChange)
+		}
+	}, [])
 
 	const renderSortableHeader = (column, translationContext, label) => (
 		<th
@@ -370,9 +396,9 @@ export default function apiaryListRow({
 		}
 
 		const key = event.key
-		const canNavigateTable = listType === 'table' && (key === 'ArrowUp' || key === 'ArrowDown')
+		const canNavigateTable = effectiveListType === 'table' && (key === 'ArrowUp' || key === 'ArrowDown')
 		const canNavigateList =
-			listType === 'list' &&
+			effectiveListType === 'list' &&
 			(key === 'ArrowUp' || key === 'ArrowDown' || key === 'ArrowLeft' || key === 'ArrowRight')
 
 		if (!canNavigateTable && !canNavigateList) {
@@ -398,7 +424,7 @@ export default function apiaryListRow({
 			return
 		}
 
-		if (listType === 'table') {
+		if (effectiveListType === 'table') {
 			if (key === 'ArrowUp' && currentIndex === 0) {
 				moveToAdjacentApiary('prev')
 				return
@@ -415,7 +441,7 @@ export default function apiaryListRow({
 			return
 		}
 
-		if (listType === 'list') {
+		if (effectiveListType === 'list') {
 			const direction =
 				key === 'ArrowUp' ? 'up'
 					: key === 'ArrowDown' ? 'down'
@@ -436,7 +462,7 @@ export default function apiaryListRow({
 				focusHive(nextHive)
 			}
 		}
-	}, [apiary.id, columnsPopupOpen, findNextListHive, focusHive, listType, moveToAdjacentApiary, selectedHiveApiaryId, selectedHiveId, sortedHives])
+	}, [apiary.id, columnsPopupOpen, effectiveListType, findNextListHive, focusHive, moveToAdjacentApiary, selectedHiveApiaryId, selectedHiveId, sortedHives])
 
 	React.useEffect(() => {
 		if (isLoading) {
@@ -467,10 +493,10 @@ export default function apiaryListRow({
 	if (isLoading) {
 		return (
 			<ApiaryListRowSkeleton
-				listType={listType}
+				listType={effectiveListType}
 				visibleColumns={visibleColumns}
 				showTypeIcon={hasMixedApiaryTypes}
-				hiveCount={Math.max(apiary?.hives?.length || 0, listType === 'table' ? 4 : 5)}
+				hiveCount={Math.max(apiary?.hives?.length || 0, effectiveListType === 'table' ? 4 : 5)}
 				rowCount={Math.max(apiary?.hives?.length || 0, 4)}
 			/>
 		)
@@ -493,30 +519,34 @@ export default function apiaryListRow({
 				</h2>
 
 				<div className={styles.buttons}>
-					{listType == 'table' && apiaryHives.length > 0 && <Button onClick={() => {
+					{!isMobileLayout && effectiveListType == 'table' && apiaryHives.length > 0 && <Button className={styles.viewModeToggle} onClick={() => {
 						setListType('list')
 						localStorage.setItem('apiaryListType.' + apiary.id, 'list')
 					}}>
 						<ListIcon />
 					</Button>}
 
-					{listType == 'list' && apiaryHives.length > 0 && <Button onClick={() => {
+					{!isMobileLayout && effectiveListType == 'list' && apiaryHives.length > 0 && <Button className={styles.viewModeToggle} onClick={() => {
 						setListType('table')
 						localStorage.setItem('apiaryListType.' + apiary.id, 'table')
 					}}>
 						<TableIcon />
 					</Button>}
 
-						<Button href={`/apiaries/${apiary.id}/hives/add`}
-							color={apiaryHives.length == 0 ? 'green' : 'white'}>
-						<HiveIcon /><span><T ctx="button to add beehive">Add hive</T></span>
-					</Button>
+						<Button
+							href={`/apiaries/${apiary.id}/hives/add`}
+							color={apiaryHives.length == 0 ? 'green' : 'white'}
+							className={styles.addHiveButton}
+						>
+							<HiveIcon />
+							<span className={styles.addHiveButtonLabel}><T ctx="button to add beehive">Add hive</T></span>
+						</Button>
 				</div>
 			</div>
 
 			<div className={styles.hives}>
 					{apiaryHives.length == 0 && <HivesPlaceholder />}
-					{listType == 'list' && sortedHives &&
+					{effectiveListType == 'list' && sortedHives &&
 						sortedHives.map((hive, i) => {
 							const isHorizontalHive = (hive?.boxes || []).some((box) => box?.type === 'LARGE_HORIZONTAL_SECTION')
 							return (
@@ -549,7 +579,7 @@ export default function apiaryListRow({
 							)
 						})}
 
-					{listType == 'table' && apiaryHives.length > 0 &&
+					{effectiveListType == 'table' && apiaryHives.length > 0 &&
 					<table className={styles.hivesTable}>
 						<thead>
 							<tr>

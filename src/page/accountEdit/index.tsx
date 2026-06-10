@@ -209,10 +209,10 @@ export default function AccountEdit() {
 	)
 
 	return (
-		<PagePaddedCentered>
+		<PagePaddedCentered className={style.accountPage}>
 			<h2><T>Account</T></h2>
 			<ErrorMsg error={error || detectionSettingsError} />
-			<Card>
+			<Card className={style.accountFormCard}>
 				<div className={style.flexRow}>
 					<VisualForm 
 						className={style.visualForm} 

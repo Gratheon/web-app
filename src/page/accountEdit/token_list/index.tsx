@@ -9,7 +9,6 @@ import KeyIcon from '@/icons/key.tsx';
 
 import style from './style.module.less'
 import CopyButton from '@/shared/copyButton';
-import MaskedToken from '@/shared/maskedToken'
 
 const TOKEN_QUERY = gql`
 {
@@ -146,6 +145,7 @@ export default function TokenList() {
 	}
 
 	const [generatingToken, setGenerating] = useState(false)
+	const [visibleTokens, setVisibleTokens] = useState<Record<string, boolean>>({})
 
 	async function onGenerateToken() {
 		setGenerating(true);
@@ -199,22 +199,26 @@ export default function TokenList() {
 					<div className={style.list}>
 						{tokens.map((token) => {
 							const linkedDevice: any = deviceByToken.get(token.token)
+							const isVisible = visibleTokens[token.id] || false;
+							const displayToken = isVisible ? token.token : '*'.repeat(token.token.length);
 
 							return (
 							<div key={token.id} className={`${style.row} ${linkedDevice ? style.deviceTokenRow : ''}`}>
 								<div className={style.tokenContainer}>
 									<div className={style.tokenWrap}>
-										<MaskedToken token={token.token} tokenClassName={style.token} />
+										<div className={style.token}>{displayToken}</div>
 										{linkedDevice && (
 											<a className={style.deviceBadge} href="/devices">
 												<T>Device</T>: {linkedDevice.name}
 											</a>
 										)}
 									</div>
-
-									<CopyButton size='small' data={token.token} />
 								</div>
 								<div className={style.buttons}>
+									<Button size='small' onClick={() => setVisibleTokens(prev => ({...prev, [token.id]: !isVisible}))}>
+										<T>Toggle</T>
+									</Button>
+									<CopyButton size='small' data={token.token} />
 									<Button
 										size='small'
 										color='red'

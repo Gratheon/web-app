@@ -1,5 +1,24 @@
 @import '@/layout.module.less';
 
+.accountPage {
+	@media (max-width: 768px) {
+		// WHY: Account form controls are already full-width on mobile; removing the
+		// outer horizontal padding gives inputs the full viewport-safe content width.
+		&.accountPage {
+			padding: 0;
+		}
+	}
+}
+
+.accountFormCard {
+	@media (max-width: 768px) {
+		// WHAT: Keep a small readable inset while avoiding the old nested padding
+		// that made the account inputs overflow on phone-sized screens.
+		&.accountFormCard {
+			padding: 12px;
+		}
+	}
+}
 
 .flexRow {
 	display: flex;
@@ -16,8 +35,37 @@
 	}
 
 	@media (max-width: 768px) {
-		input:not([type="checkbox"]):not([type="radio"]) {
-			max-width: calc(100vw - 120px);
+		width: 100%;
+
+		// WHY: The shared VisualForm uses table rows/cells, and this account page has
+		// two inputs in one row. On narrow screens that table layout plus page/card
+		// padding can push fields outside the viewport, so we stack controls and let
+		// them size against their parent instead of 100vw.
+		&,
+		& > div,
+		& > div > label,
+		& > div > input,
+		& > div > textarea,
+		& > div > select,
+		& > div > div {
+			display: block;
+			width: 100%;
+			max-width: 100%;
+		}
+
+		& > div {
+			margin-bottom: 10px;
+		}
+
+		& > div > label {
+			padding: 0 0 4px;
+		}
+
+		input:not([type="checkbox"]):not([type="radio"]),
+		select {
+			width: 100%;
+			max-width: 100%;
+			box-sizing: border-box;
 		}
 	}
 }

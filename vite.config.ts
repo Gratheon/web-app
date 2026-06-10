@@ -35,6 +35,8 @@ export default defineConfig({
 				start_url: '.',
 				display: 'standalone',
 				background_color: '#ffffff',
+				// Keep installed PWA system bars/safe areas white instead of vite-plugin-pwa's default green.
+				theme_color: '#ffffff',
 				orientation: 'portrait',
 				icons: [
 					{

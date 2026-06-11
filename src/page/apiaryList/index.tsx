@@ -14,7 +14,7 @@ import ApiaryListRow from './apiaryListRow'
 import ApiariesPlaceholder from './apiariesPlaceholder'
 import ApiaryListLoadingRows from './loadingRows'
 import { sortHives } from './hiveSort'
-import { getCachedApiaryListData } from './cache'
+import { getCachedApiaryListData, getCachedApiaryListSnapshot } from './cache'
 import { normalizeApiaryType } from '@/models/apiary'
 import { consumeRegistrationWelcomePending } from '@/shared/welcomeFlow'
 import styles from './style.module.less'
@@ -166,7 +166,11 @@ export default function ApiaryList(props) {
 			}
 		}
 	`)
-	const cachedData = useLiveQuery(() => getCachedApiaryListData(), [], null)
+	const cachedData = useLiveQuery(
+		() => getCachedApiaryListData(),
+		[],
+		getCachedApiaryListSnapshot()
+	)
 	const hasNetworkApiaryData = Array.isArray(data?.apiaries)
 	const cachedApiaries = cachedData?.apiaries || []
 	const hasCachedApiaryData = cachedApiaries.length > 0

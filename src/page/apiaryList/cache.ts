@@ -5,6 +5,12 @@ export type CachedApiaryListData = {
 	boxSystems: any[]
 }
 
+let lastCachedApiaryListData: CachedApiaryListData | null = null
+
+export function getCachedApiaryListSnapshot(): CachedApiaryListData | null {
+	return lastCachedApiaryListData
+}
+
 async function readCachedRows(tableName: string): Promise<any[]> {
 	const table = db[tableName]
 	if (!table || typeof table.toArray !== 'function') {
@@ -62,7 +68,7 @@ export async function getCachedApiaryListData(): Promise<CachedApiaryListData> {
 		// WHY: GraphQL responses are cached in normalized Dexie tables. The apiary
 		// listing needs the nested shape, so rebuild it locally and let the network
 		// query refresh those same tables in the background.
-		return {
+		const data = {
 			apiaries: apiaries
 				.filter((apiary) => apiary?.id != null)
 				.map((apiary) => {
@@ -102,6 +108,8 @@ export async function getCachedApiaryListData(): Promise<CachedApiaryListData> {
 				}),
 			boxSystems,
 		}
+		lastCachedApiaryListData = data
+		return data
 	} catch (e) {
 		console.error('Failed to read cached apiary list from IndexedDB', e)
 		return { apiaries: [], boxSystems: [] }

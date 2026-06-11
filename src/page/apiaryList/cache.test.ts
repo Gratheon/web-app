@@ -18,7 +18,7 @@ vi.mock('@/models/db', () => ({
 	},
 }))
 
-import { getCachedApiaryListData } from './cache'
+import { getCachedApiaryListData, getCachedApiaryListSnapshot } from './cache'
 
 describe('apiary list cache', () => {
 	beforeEach(() => {
@@ -75,5 +75,6 @@ describe('apiary list cache', () => {
 			],
 			boxSystems: [{ id: 1, name: 'Dadant', isDefault: true }],
 		})
+			expect(getCachedApiaryListSnapshot()).toEqual(data)
 	})
 })

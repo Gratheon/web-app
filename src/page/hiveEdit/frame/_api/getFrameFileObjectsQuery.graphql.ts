@@ -28,6 +28,7 @@ export default gql`
 			isDroneDetectionComplete
 			detectedVarroa
 			varroaCount
+			isVarroaDetectionComplete
 			
 			detectedQueenCount
 			detectedWorkerBeeCount

@@ -238,6 +238,7 @@ type FrameSideFile {
   droneCount: Int
   detectedVarroa: JSON
   varroaCount: Int
+  isVarroaDetectionComplete: Boolean
 }
 
 type FrameSideInspection {

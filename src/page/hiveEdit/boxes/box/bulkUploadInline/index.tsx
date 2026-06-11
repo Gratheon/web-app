@@ -234,7 +234,9 @@ export default function BulkUploadInline({ hiveId, boxId, apiaryId, frames, onCo
 				detectedQueenCount: 0,
 				detectedWorkerBeeCount: 0,
 				detectedDroneCount: 0,
-				varroaCount: 0
+				varroaCount: 0,
+				// New upload starts async detection jobs, including varroa, so keep UI polling until it completes.
+				isVarroaDetectionComplete: false
 			})
 
 				uploadContext.markImageComplete(i, frameSide.frameSideId)

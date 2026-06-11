@@ -230,7 +230,9 @@ export default function BulkUpload({ hiveId, frames, onComplete }: BulkUploadPro
 				detectedQueenCount: 0,
 				detectedWorkerBeeCount: 0,
 				detectedDroneCount: 0,
-				varroaCount: 0
+				varroaCount: 0,
+				// New upload starts async detection jobs, including varroa, so keep UI polling until it completes.
+				isVarroaDetectionComplete: false
 			})
 
 				updatedImages[i] = { ...image, uploadProgress: 100, uploaded: true, frameSideId: frameSide.frameSideId }

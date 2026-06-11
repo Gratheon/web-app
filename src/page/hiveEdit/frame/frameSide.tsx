@@ -79,7 +79,8 @@ export default function FrameSide({
 			!frameSideFile.isBeeDetectionComplete ||
 			!frameSideFile.isCellsDetectionComplete ||
 			!frameSideFile.isQueenCupsDetectionComplete ||
-			!frameSideFile.isQueenDetectionComplete
+			!frameSideFile.isQueenDetectionComplete ||
+			!frameSideFile.isVarroaDetectionComplete
 
 		if (!isProcessing) {
 			return
@@ -89,12 +90,13 @@ export default function FrameSide({
 			console.debug('[FrameSide] polling frame state from backend', {
 				frameSideId,
 				fileId: frameSideFile.fileId,
-				flags: {
-					isBeeDetectionComplete: frameSideFile.isBeeDetectionComplete,
-					isCellsDetectionComplete: frameSideFile.isCellsDetectionComplete,
-					isQueenCupsDetectionComplete: frameSideFile.isQueenCupsDetectionComplete,
-					isQueenDetectionComplete: frameSideFile.isQueenDetectionComplete,
-				},
+					flags: {
+						isBeeDetectionComplete: frameSideFile.isBeeDetectionComplete,
+						isCellsDetectionComplete: frameSideFile.isCellsDetectionComplete,
+						isQueenCupsDetectionComplete: frameSideFile.isQueenCupsDetectionComplete,
+						isQueenDetectionComplete: frameSideFile.isQueenDetectionComplete,
+						isVarroaDetectionComplete: frameSideFile.isVarroaDetectionComplete,
+					},
 			})
 			reexecuteQuery({ requestPolicy: 'network-only' })
 		}, 5000)
@@ -106,6 +108,7 @@ export default function FrameSide({
 		frameSideFile?.isCellsDetectionComplete,
 		frameSideFile?.isQueenCupsDetectionComplete,
 		frameSideFile?.isQueenDetectionComplete,
+		frameSideFile?.isVarroaDetectionComplete,
 		reexecuteQuery,
 		frameSideId,
 	])
@@ -166,8 +169,9 @@ export default function FrameSide({
 			detectedWorkerBeeCount: 0,
 			detectedDroneCount: 0,
 			varroaCount: 0,
+			// New upload starts async detection jobs, including varroa, so keep UI polling until it completes.
+			isVarroaDetectionComplete: false,
 		})
-
 		metrics.trackFramePhotoUploaded()
 	}
 

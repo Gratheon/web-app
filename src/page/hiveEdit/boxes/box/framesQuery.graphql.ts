@@ -13,10 +13,30 @@ export default gql`
 					leftSide {
 						id
 						frameId
+						cells {
+							id
+							broodPercent
+							droneBroodPercent
+							cappedBroodPercent
+							eggsPercent
+							nectarPercent
+							pollenPercent
+							honeyPercent
+						}
 					}
 					rightSide {
 						id
 						frameId
+						cells {
+							id
+							broodPercent
+							droneBroodPercent
+							cappedBroodPercent
+							eggsPercent
+							nectarPercent
+							pollenPercent
+							honeyPercent
+						}
 					}
 				}
 			}

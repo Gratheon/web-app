@@ -39,12 +39,7 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 
 	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId]);
 	let boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId]);
-	let families = useLiveQuery(() => {
-		console.log('HiveTopEditForm: querying families for hive', hiveId)
-		return getAllFamiliesByHive(+hiveId)
-	}, [hiveId]);
-
-	console.log('HiveTopEditForm: families loaded:', families)
+	let families = useLiveQuery(() => getAllFamiliesByHive(+hiveId), [hiveId]);
 
 	if (!families) {
 		families = []

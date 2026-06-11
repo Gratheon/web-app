@@ -318,12 +318,26 @@ export default function DrawingCanvas({
 		scheduleRedraw();
 	}, [detectedCells, scheduleRedraw]);
 
+	const previousImageUrlRef = useRef(imageUrl);
+
 	useEffect(() => {
-		// WHY: HiveView can switch frame sides without remounting DrawingCanvas.
-		// WHAT: reset the bitmap source so the newly selected side loads its own photo instead of reusing the previous one.
+		if (previousImageUrlRef.current === imageUrl) {
+			return;
+		}
+
+		previousImageUrlRef.current = imageUrl;
+		// WHY: switching to another frame side must drop the previous bitmap immediately.
+		// WHAT: reset only when the original source image changes, not when resize metadata refreshes.
 		setLoadedImage(null);
-		setCanvasUrl(resolveCanvasUrlForZoom(1));
-	}, [resolveCanvasUrlForZoom]);
+		setCanvasUrl(initialCanvasUrl);
+	}, [imageUrl, initialCanvasUrl]);
+
+	useEffect(() => {
+		const nextCanvasUrl = resolveCanvasUrlForZoom(cameraRef.current.zoom || 1);
+		if (nextCanvasUrl && nextCanvasUrl !== canvasUrl) {
+			setCanvasUrl(nextCanvasUrl);
+		}
+	}, [canvasUrl, resolveCanvasUrlForZoom]);
 
 	useEffect(() => {
 		let isActive = true;

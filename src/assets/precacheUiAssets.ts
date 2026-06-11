@@ -1,14 +1,14 @@
 import alertsUrl from '@/assets/alerts.webp'
 import bearUrl from '@/assets/bear.webp'
-import beekeeperUrl from '@/assets/beekeeper.png'
+import beekeeperUrl from '@/assets/beekeeper.webp'
 import devicesUrl from '@/assets/devices.webp'
-import flowerUrl from '@/assets/flower.png'
+import flowerUrl from '@/assets/flower.webp'
 import hiveSystemsUrl from '@/assets/hive-systems.webp'
 import logoUrl from '@/assets/logo_v7.svg'
 import wideLogoUrl from '@/assets/logo_v7w.svg'
 import queenUrl from '@/assets/queen.webp'
 import queenPlaceholderUrls from '@/assets/queens/placeholders'
-import symbiosisUrl from '@/assets/symbiosis.png'
+import symbiosisUrl from '@/assets/symbiosis.webp'
 import thinkerUrl from '@/assets/thinker.webp'
 
 const UI_ASSET_URLS = [

@@ -1,5 +1,5 @@
 import T from "../translate"
-import beeURL from '@/assets/bee-worker.png'
+import beeURL from '@/assets/bee-worker.webp'
 
 export default function BeeCounter({count}) {
 	if (!count) {

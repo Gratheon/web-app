@@ -13,7 +13,7 @@ import { getUser } from '@/models/user'
 import { listInspections } from '@/models/inspections'
 import { listHiveLogs, syncHiveLogsFromBackend } from '@/models/hiveLog'
 
-import beekeeperURL from '@/assets/beekeeper.png'
+import beekeeperURL from '@/assets/beekeeper.webp'
 import styles from './styles.module.less'
 import AIAdvisorBillingNotice from '@/shared/aiAdvisorBillingNotice'
 import KeyboardHints from '@/shared/keyboardHints'

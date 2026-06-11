@@ -9,7 +9,7 @@ import MessageNotFound from '@/shared/messageNotFound'
 import T from '@/shared/translate'
 
 import HiveAdvisor from '@/page/hiveEdit/hiveAdvisor'
-import beekeeperURL from '@/assets/beekeeper.png'
+import beekeeperURL from '@/assets/beekeeper.webp'
 import styles from './index.module.less'
 
 const ADVISOR_CONTEXT_KEY = 'ai-advisor-last-hive-context'

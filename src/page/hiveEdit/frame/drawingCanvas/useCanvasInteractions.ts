@@ -5,7 +5,6 @@ import {
 	DEFAULT_QUEEN_MARKER_RADIUS_RATIO,
 	MAX_QUEEN_MARKER_RADIUS_RATIO,
 	MAX_ZOOM,
-	MED_ZOOM,
 	MIN_QUEEN_MARKER_RADIUS_RATIO,
 	MIN_ZOOM,
 	QUEEN_MARKER_RADIUS_MULTIPLIER,
@@ -35,9 +34,9 @@ type UseCanvasInteractionsParams = {
 	cameraRef: React.MutableRefObject<CanvasCameraState>;
 	canvasRef: React.RefObject<HTMLCanvasElement>;
 	image: HTMLImageElement | null;
-	imageUrl: string;
 	canvasUrl: string;
 	setCanvasUrl: (url: string) => void;
+	getCanvasUrlForZoom: (zoom: number) => string;
 	allowDrawing: boolean;
 	activeControlTab: CanvasControlTab;
 	activeTool: ActiveCanvasTool;
@@ -90,9 +89,9 @@ export function useCanvasInteractions({
 	cameraRef,
 	canvasRef,
 	image,
-	imageUrl,
 	canvasUrl,
 	setCanvasUrl,
+	getCanvasUrlForZoom,
 	allowDrawing,
 	activeControlTab,
 	activeTool,
@@ -200,7 +199,7 @@ export function useCanvasInteractions({
 		resetStrokeDraft();
 		clearBrushInteractionState();
 		resetMarkerInteractionState();
-	}, [imageUrl, clearBrushInteractionState, resetMarkerInteractionState, resetStrokeDraft]);
+		}, [clearBrushInteractionState, resetMarkerInteractionState, resetStrokeDraft]);
 
 	useEffect(() => {
 		return () => {
@@ -648,8 +647,9 @@ export function useCanvasInteractions({
 			const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, cameraRef.current.zoom * zoomFactor));
 			if (newZoom === cameraRef.current.zoom) return;
 
-			if (newZoom > MED_ZOOM && canvasUrl !== imageUrl) {
-				setCanvasUrl(imageUrl);
+			const nextCanvasUrl = getCanvasUrlForZoom(newZoom);
+			if (nextCanvasUrl && nextCanvasUrl !== canvasUrl) {
+				setCanvasUrl(nextCanvasUrl);
 			}
 
 			const mouseXInWorldBeforeZoom = (mousePos.x - cameraRef.current.offset.x) / cameraRef.current.zoom;
@@ -661,7 +661,7 @@ export function useCanvasInteractions({
 			}
 
 			// WHY: keep the pixel under the cursor fixed while zooming.
-			// Recomputing the camera offset from world coordinates prevents the image from "slipping" away.
+			// WHAT: recompute camera offset from world coordinates so the image does not slip away.
 			cameraRef.current.offset.x = mousePos.x - mouseXInWorldBeforeZoom * cameraRef.current.zoom;
 			cameraRef.current.offset.y = mousePos.y - mouseYInWorldBeforeZoom * cameraRef.current.zoom;
 			clampCameraOffset(canvas, cameraRef.current);
@@ -774,10 +774,10 @@ export function useCanvasInteractions({
 	}, [
 		canvasRef,
 		canvasUrl,
+		getCanvasUrlForZoom,
 		getDefaultCanvasCursor,
 		hoveredQueenMoveId,
 		hoveredQueenResizeId,
-		imageUrl,
 		isQueenMarkerMoving,
 		isQueenMarkerResizing,
 		activeControlTab,
@@ -785,7 +785,6 @@ export function useCanvasInteractions({
 		setCanvasUrl,
 		zoomEnabled,
 	]);
-
 	useEffect(() => {
 		if (!allowDrawing) return;
 

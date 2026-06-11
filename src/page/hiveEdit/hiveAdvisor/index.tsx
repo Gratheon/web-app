@@ -17,7 +17,7 @@ import { getFrameSideCells } from '@/models/frameSideCells'
 import { getFrameSideFile } from '@/models/frameSideFile'
 
 import style from './style.module.less'
-import beekeeperURL from '@/assets/beekeeper.png'
+import beekeeperURL from '@/assets/beekeeper.webp'
 
 type HiveAdvisorProps = {
 	hiveId: string | number

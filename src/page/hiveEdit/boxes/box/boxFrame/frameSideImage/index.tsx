@@ -4,6 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { File, getFile } from '../../../../../../models/files.ts'
 import { getFrameSideFile } from '../../../../../../models/frameSideFile.ts'
 import { getFileResizes } from '../../../../../../models/fileResize.ts'
+import { selectImageUrlForRequiredSize } from '@/shared/imageResizes'
 
 import styles from './index.module.less'
 
@@ -66,7 +67,6 @@ export default function FrameSideImage({
 		[frameSideFile?.fileId, !!frameSideData],
 		null
 	) // Re-run if frameSideData presence changes
-
 	// --- Determine Image URLs ---
 	let displayUrl: string | undefined = undefined
 	let originalUrl: string | undefined = undefined
@@ -74,24 +74,23 @@ export default function FrameSideImage({
 	if (frameSideData?.file) {
 		// Use data passed via props (inspection view)
 		originalUrl = frameSideData.file.url
-		const thumb = frameSideData.file.resizes?.find(
-			(r) => r.max_dimension_px === 512
-		)
-		displayUrl = thumb?.url || originalUrl
+		displayUrl = selectImageUrlForRequiredSize({
+			originalUrl,
+			resizes: frameSideData.file.resizes || [],
+			requiredDimensionPx: 128,
+			allowOriginal: false,
+			allowOriginalWhenNoResizes: false,
+		})
 	} else if (fileFromDexie) {
 		// Use data fetched from Dexie (editable view)
 		originalUrl = fileFromDexie.url
-		let selectedSize = 2000
-		displayUrl = originalUrl // Default to original
-		if (resizesFromDexie != null && resizesFromDexie.length > 0) {
-			for (let i = 0; i < resizesFromDexie.length; i++) {
-				// Prefer smaller resize for display
-				if (resizesFromDexie[i].max_dimension_px < selectedSize) {
-					selectedSize = resizesFromDexie[i].max_dimension_px
-					displayUrl = resizesFromDexie[i].url
-				}
-			}
-		}
+		displayUrl = selectImageUrlForRequiredSize({
+			originalUrl,
+			resizes: resizesFromDexie || [],
+			requiredDimensionPx: 128,
+			allowOriginal: false,
+			allowOriginalWhenNoResizes: false,
+		})
 	}
 
 	// --- Click Handler ---
@@ -135,7 +134,7 @@ export default function FrameSideImage({
 				></div>
 			)}
 
-			{/* Render image if URL exists */}
+			{/* Render image if a small resize exists. Do not fall back to original here: these thumbnails are tiny. */}
 			{displayUrl && (
 				<img
 					src={displayUrl}

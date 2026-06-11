@@ -41,14 +41,15 @@ export default gql`
 			isQueenCupsDetectionComplete
 			isQueenDetectionComplete
 
-			file{
-				id
-				url
-				resizes {
-					max_dimension_px
+				file{
+					id
 					url
+					resizes {
+						id
+						max_dimension_px
+						url
+					}
 				}
-			}
 		}
 	}
 `

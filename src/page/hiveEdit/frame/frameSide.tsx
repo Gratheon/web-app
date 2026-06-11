@@ -4,6 +4,7 @@ import { gql, useMutation, useQuery } from '../../../api'
 import { getFrameSide } from '../../../models/frameSide.ts'
 import { getFrameSideFile, updateFrameSideFile } from '../../../models/frameSideFile.ts'
 import { getFile } from '../../../models/files.ts'
+import { getFileResizes } from '../../../models/fileResize.ts'
 
 import Loading from '../../../shared/loader'
 import ErrorMessage from '../../../shared/messageError'
@@ -34,47 +35,54 @@ export default function FrameSide({
 	saveRequestId = 0,
 	onCellEditsStateChange = () => {},
 }: FrameSideProps) {
-
 	if (!frameId || !frameSideId) {
 		return
 	}
 
 	// Model function getFrameSide now handles invalid IDs
-	let frameSide = useLiveQuery(() => getFrameSide(+frameSideId), [frameSideId], null);
+	const frameSide = useLiveQuery(() => getFrameSide(+frameSideId), [frameSideId], null)
 
-	let frameSideFile = useLiveQuery(function () {
+	const frameSideFile = useLiveQuery(function () {
 		if (!frameSide) return null
 
 		return getFrameSideFile({
 			frameSideId: frameSide.id,
 		})
-	}, [frameSide?.id], null);
+	}, [frameSide?.id], null)
 
-	let file = useLiveQuery(function () {
+	const file = useLiveQuery(function () {
 		if (!frameSideFile?.fileId) return null
 
 		return getFile(frameSideFile.fileId)
-	}, [frameSideFile?.fileId], null);
+	}, [frameSideFile?.fileId], null)
 
+	const fileResizes = useLiveQuery(function () {
+		if (!frameSideFile?.fileId) return []
 
-	let { loading: loadingGet, reexecuteQuery } = useQuery(
+		return getFileResizes({ file_id: +frameSideFile.fileId })
+	}, [frameSideFile?.fileId], [])
+
+	const { data: frameSideQueryData, loading: loadingGet, reexecuteQuery } = useQuery(
 		FRAME_SIDE_QUERY,
 		{ variables: { frameSideId } }
 	)
 
+	const queryFileResizes = frameSideQueryData?.hiveFrameSideFile?.file?.resizes || []
+	const effectiveResizes = (fileResizes && fileResizes.length > 0 ? fileResizes : queryFileResizes) || []
+
 	React.useEffect(() => {
 		if (!frameSideFile?.fileId) {
-			return;
+			return
 		}
 
 		const isProcessing =
 			!frameSideFile.isBeeDetectionComplete ||
 			!frameSideFile.isCellsDetectionComplete ||
 			!frameSideFile.isQueenCupsDetectionComplete ||
-			!frameSideFile.isQueenDetectionComplete;
+			!frameSideFile.isQueenDetectionComplete
 
 		if (!isProcessing) {
-			return;
+			return
 		}
 
 		const intervalId = setInterval(() => {
@@ -87,11 +95,11 @@ export default function FrameSide({
 					isQueenCupsDetectionComplete: frameSideFile.isQueenCupsDetectionComplete,
 					isQueenDetectionComplete: frameSideFile.isQueenDetectionComplete,
 				},
-			});
-			reexecuteQuery({ requestPolicy: 'network-only' });
-		}, 5000);
+			})
+			reexecuteQuery({ requestPolicy: 'network-only' })
+		}, 5000)
 
-		return () => clearInterval(intervalId);
+		return () => clearInterval(intervalId)
 	}, [
 		frameSideFile?.fileId,
 		frameSideFile?.isBeeDetectionComplete,
@@ -99,61 +107,66 @@ export default function FrameSide({
 		frameSideFile?.isQueenCupsDetectionComplete,
 		frameSideFile?.isQueenDetectionComplete,
 		reexecuteQuery,
-	]);
+		frameSideId,
+	])
 
 	if (loadingGet && !frameSideFile) {
 		return <Loading />
 	}
 
 	if (!frameSide) {
-		return (<MessageNotFound msg={
-			<T ctx="A frame is a small beehive wooden rectangular plank with beewax comb on it">Frame not found</T>
-		}>
-			<div>
-				<T ctx="A frame is a small beehive wooden rectangular plank with beewax comb on it">
-					Either frame was deleted, URL is invalid or there is some error on our side
-				</T>
-			</div>
-		</MessageNotFound>)
+		return (
+			<MessageNotFound msg={
+				<T ctx="A frame is a small beehive wooden rectangular plank with beewax comb on it">Frame not found</T>
+			}>
+				<div>
+					<T ctx="A frame is a small beehive wooden rectangular plank with beewax comb on it">
+						Either frame was deleted, URL is invalid or there is some error on our side
+					</T>
+				</div>
+			</MessageNotFound>
+		)
 	}
 
-	let [frameSideMutate, { error: errorFrameSide }] = useMutation(
-		gql`mutation updateFrameSide($cells: FrameSideCellsInput!) { 
-			updateFrameSide(cells: $cells) 
-		}`)
+	const [, { error: errorFrameSide }] = useMutation(
+		gql`mutation updateFrameSide($cells: FrameSideCellsInput!) {
+			updateFrameSide(cells: $cells)
+		}`
+	)
 
-	let [linkFrameSideToFileMutation, { data: linkFrameSideToFileResult, error: errorFile }] = useMutation(
-		gql`mutation addFileToFrameSide($frameSideID: ID!, $fileID: ID!, $hiveID: ID!) { 
+	const [linkFrameSideToFileMutation, { error: errorFile }] = useMutation(
+		gql`mutation addFileToFrameSide($frameSideID: ID!, $fileID: ID!, $hiveID: ID!) {
 			addFileToFrameSide(frameSideId: $frameSideID, fileId: $fileID, hiveId: $hiveID)
 		}`
 	)
+
 	async function onUpload(data) {
 		if (!data) {
-			return;
+			return
 		}
 
 		await linkFrameSideToFileMutation({
 			frameSideID: frameSideId,
 			fileID: data.id,
-			hiveID: hiveId
+			hiveID: hiveId,
 		})
 
-	await updateFrameSideFile({
-		id: +frameSideId,
-		fileId: +data.id,
-		frameSideId: +frameSideId,
-		strokeHistory: [],
-		detectedBees: [],
-		detectedDrones: [],
-		detectedCells: [],
-		detectedQueenCups: [],
-		detectedVarroa: [],
-		counts: [],
-		detectedQueenCount: 0,
-		detectedWorkerBeeCount: 0,
-		detectedDroneCount: 0,
-		varroaCount: 0
-	});
+		await updateFrameSideFile({
+			id: +frameSideId,
+			fileId: +data.id,
+			frameSideId: +frameSideId,
+			strokeHistory: [],
+			detectedBees: [],
+			detectedDrones: [],
+			detectedCells: [],
+			detectedQueenCups: [],
+			detectedVarroa: [],
+			counts: [],
+			detectedQueenCount: 0,
+			detectedWorkerBeeCount: 0,
+			detectedDroneCount: 0,
+			varroaCount: 0,
+		})
 
 		metrics.trackFramePhotoUploaded()
 	}
@@ -169,16 +182,30 @@ export default function FrameSide({
 		)
 	}
 
-	return <FrameSideDrawing
-		file={file}
-		frameSide={frameSide}
-		frameSideFile={frameSideFile}
-		hiveId={hiveId}
-		boxId={boxId}
-		frameId={frameId}
-		frameSideId={frameSideId}
-		allowDrawing={allowDrawing}
-		saveRequestId={saveRequestId}
-		onCellEditsStateChange={onCellEditsStateChange}
-	/>
+	if (effectiveResizes.length === 0) {
+		return (
+			<div style={{ flexGrow: 10, padding: 15 }}>
+				{error}
+				<Loading />
+			</div>
+		)
+	}
+
+	return (
+		<FrameSideDrawing
+			file={{
+				...file,
+				resizes: effectiveResizes,
+			}}
+			frameSide={frameSide}
+			frameSideFile={frameSideFile}
+			hiveId={hiveId}
+			boxId={boxId}
+			frameId={frameId}
+			frameSideId={frameSideId}
+			allowDrawing={allowDrawing}
+			saveRequestId={saveRequestId}
+			onCellEditsStateChange={onCellEditsStateChange}
+		/>
+	)
 }

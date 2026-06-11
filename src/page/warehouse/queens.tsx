@@ -51,6 +51,9 @@ type SortColumn = 'NAME' | 'YEAR' | 'RACE' | 'COLOR'
 type SortOrder = 'ASC' | 'DESC'
 type ViewMode = 'LIST' | 'TABLE'
 
+// WHY: local queen placeholders were downscaled 4x, so img intrinsic dimensions should match the 225x225 assets.
+const QUEEN_PLACEHOLDER_IMAGE_SIZE = 225
+
 function hashString(value: string): number {
 	let hash = 0
 	for (let i = 0; i < value.length; i++) {
@@ -632,6 +635,8 @@ export default function WarehouseQueensPage() {
 										alt={queen.name || 'Queen'}
 										className={`${styles.cardImage} ${hasRealPreview ? styles.cardImagePreview : styles.cardImagePlaceholder}`}
 										style={hasRealPreview ? { borderColor: color } : undefined}
+										width={hasRealPreview ? undefined : QUEEN_PLACEHOLDER_IMAGE_SIZE}
+										height={hasRealPreview ? undefined : QUEEN_PLACEHOLDER_IMAGE_SIZE}
 										draggable={false}
 									/>
 								</div>

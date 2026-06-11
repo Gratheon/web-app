@@ -272,7 +272,7 @@ export default function WarehouseBoxSystemsPage() {
 
 				{hasOnlyDefaultSystem ? (
 					<>
-						<img src={hiveSystemsImageURL} alt="Single hive system placeholder" className={styles.singleSystemPlaceholderImage} draggable={false} />
+						<img src={hiveSystemsImageURL} alt="Single hive system placeholder" className={styles.singleSystemPlaceholderImage} width={768} height={512} draggable={false} />
 						<p className={styles.singleSystemPlaceholderText}>
 							<T>It's lucky that you have only one system for now.</T>
 						</p>

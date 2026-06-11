@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import T from '@/shared/translate';
-import { layerToggleButtonStyle } from './constants';
+import { selectImageUrlForRequiredSize } from '@/shared/imageResizes';
+import { layerToggleButtonStyle, MED_ZOOM } from './constants';
 import { type CanvasCameraState } from './canvasGeometry';
 import { drawCanvasLayers, loadImage } from './drawCanvasLayers';
 import CanvasControlTabs from './components/CanvasControlTabs';
@@ -16,30 +17,32 @@ import { useQueenAnnotations } from './useQueenAnnotations';
 
 export type { DrawingCanvasProps } from './types';
 
-function getResizeDimension(resize: ResizeLike | undefined) {
-	return Number(resize?.max_dimension_px ?? resize?.width ?? 0);
-}
+const INITIAL_CANVAS_REQUIRED_DIMENSION_PX = 1024;
 
-function resolveBestCanvasUrl(
-	imageUrl: string,
-	resizes: ResizeLike[] = []
-) {
-	let bestUrl = imageUrl;
-	let bestDimension = 0;
-
-	for (const resize of resizes || []) {
-		const dimension = getResizeDimension(resize);
-		if (!resize?.url || dimension <= 128) {
-			continue;
-		}
-
-		if (dimension >= bestDimension) {
-			bestDimension = dimension;
-			bestUrl = resize.url;
-		}
+function getCanvasRequiredDimension(canvas: HTMLCanvasElement | null, zoom = 1) {
+	if (!canvas) {
+		return INITIAL_CANVAS_REQUIRED_DIMENSION_PX * zoom;
 	}
 
-	return bestUrl;
+	return Math.max(canvas.width, canvas.height, INITIAL_CANVAS_REQUIRED_DIMENSION_PX) * zoom;
+}
+
+function resolveCanvasImageUrl(
+	imageUrl: string,
+	resizes: ResizeLike[] = [],
+	canvas: HTMLCanvasElement | null,
+	zoom = 1
+) {
+	// WHY: frame originals can be several MB; low zoom does not need native-resolution pixels.
+	// WHAT: use the smallest resize that covers visible canvas pixels and defer original until deep zoom.
+	return selectImageUrlForRequiredSize({
+		originalUrl: imageUrl,
+		resizes,
+		requiredDimensionPx: getCanvasRequiredDimension(canvas, zoom),
+		allowOriginal: zoom > MED_ZOOM,
+		allowOriginalWhenNoResizes: true,
+		minimumResizeDimensionPx: 128,
+	}) || imageUrl;
 }
 
 export default function DrawingCanvas({
@@ -77,11 +80,15 @@ export default function DrawingCanvas({
 	const [showFrameCells, setShowFrameCells] = useState(false);
 	const [activeControlTab, setActiveControlTab] = useState<CanvasControlTab>('frame-cells');
 	const [activeTool, setActiveTool] = useState<'cell-brush' | 'stroke'>('cell-brush');
-	const bestCanvasUrl = useMemo(
-		() => resolveBestCanvasUrl(imageUrl, resizes),
+	const initialCanvasUrl = useMemo(
+		() => resolveCanvasImageUrl(imageUrl, resizes, null, 1),
 		[imageUrl, resizes]
 	);
-	const [canvasUrl, setCanvasUrl] = useState(bestCanvasUrl);
+	const [canvasUrl, setCanvasUrl] = useState(initialCanvasUrl);
+	const resolveCanvasUrlForZoom = useCallback(
+		(zoom: number) => resolveCanvasImageUrl(imageUrl, resizes, canvasRef.current, zoom),
+		[imageUrl, resizes]
+	);
 
 	const {
 		selectedCellType,
@@ -265,9 +272,9 @@ export default function DrawingCanvas({
 		cameraRef,
 		canvasRef,
 		image: loadedImage,
-		imageUrl,
 		canvasUrl,
 		setCanvasUrl,
+		getCanvasUrlForZoom: resolveCanvasUrlForZoom,
 		allowDrawing,
 		activeControlTab,
 		activeTool,
@@ -315,8 +322,8 @@ export default function DrawingCanvas({
 		// WHY: HiveView can switch frame sides without remounting DrawingCanvas.
 		// WHAT: reset the bitmap source so the newly selected side loads its own photo instead of reusing the previous one.
 		setLoadedImage(null);
-		setCanvasUrl(bestCanvasUrl);
-	}, [bestCanvasUrl]);
+		setCanvasUrl(resolveCanvasUrlForZoom(1));
+	}, [resolveCanvasUrlForZoom]);
 
 	useEffect(() => {
 		let isActive = true;

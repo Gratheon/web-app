@@ -1,6 +1,6 @@
 import T from '../../../shared/translate'
 import React from 'react'
-import imageURL from '@/assets/flower.png'
+import imageURL from '@/assets/flower.webp'
 
 export default function () {
 	return (

@@ -1,6 +1,6 @@
 import React from 'react'
 import T from '../translate'
-import imageURL from '@/assets/symbiosis.png'
+import imageURL from '@/assets/symbiosis.webp'
 
 export default function () {
 	return (

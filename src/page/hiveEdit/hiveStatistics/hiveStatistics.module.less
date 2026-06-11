@@ -38,7 +38,8 @@
 
 .statFill {
 	height: 100%;
-	min-width: 0;
+	// WHY: Tiny non-zero chart values still need enough colored background to keep the count readable.
+	min-width: 40px;
 	display: flex;
 	align-items: center;
 	justify-content: center;

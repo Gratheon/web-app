@@ -296,7 +296,9 @@ table {
 @media @mobile {
 	.apiary {
 		.apiaryHead {
-			align-items: flex-start;
+			// WHY: on mobile the icon-only add-hive button looked visually higher than the large apiary title.
+			// WHAT: center header actions on the heading line instead of pinning them to the row top.
+			align-items: center;
 			gap: 8px;
 
 			h2 {

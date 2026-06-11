@@ -1,7 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { useLiveQuery } from 'dexie-react-hooks'
 import type * as Ort from 'onnxruntime-web/wasm'
 import ortWasmUrl from 'onnxruntime-web/ort-wasm-simd-threaded.wasm?url'
 
+import { gql, useMutation, useQuery, useUploadMutation } from '@/api'
+import { getAllFamiliesByHive, getFamilyById, updateFamily } from '@/models/family'
 import Button from '@/shared/button'
 import ErrorMsg from '@/shared/messageError'
 import T from '@/shared/translate'
@@ -27,12 +31,89 @@ type PreprocessedFrame = {
 	paddingY: number
 }
 
+type CapturedVideoFrame = {
+	canvas: HTMLCanvasElement
+	videoWidth: number
+	videoHeight: number
+}
+
+type BestCapture = {
+	imageBlob: Blob
+	imageUrl: string
+	detection: Detection
+	confidence: number
+	capturedAt: string
+	videoWidth: number
+	videoHeight: number
+}
+	name?: string | null
+	race?: string | null
+	added?: string | null
+	color?: string | null
+	source: 'HIVE' | 'WAREHOUSE'
+}
+
+type AssignMode = 'existing' | 'new'
+
 const CAPTURE_INTERVAL_MS = 700
 const MODEL_SIZE = 512
 const MODEL_URL = '/models/queen-bee-detector/best.onnx'
 const CONFIDENCE_THRESHOLD = 0.35
 const NMS_IOU_THRESHOLD = 0.45
 const MAX_DETECTIONS = 5
+
+const WAREHOUSE_QUEENS_QUERY = gql`
+query WarehouseQueensForDetector {
+	warehouseQueens {
+		id
+		name
+		race
+		added
+		color
+	}
+}
+`
+
+const ADD_WAREHOUSE_QUEEN_MUTATION = gql`
+mutation addWarehouseQueen($queen: FamilyInput!) {
+	addWarehouseQueen(queen: $queen) {
+		id
+	}
+}
+`
+
+const ADD_QUEEN_TO_HIVE_MUTATION = gql`
+mutation addQueenToHive($hiveId: ID!, $queen: FamilyInput!) {
+	addQueenToHive(hiveId: $hiveId, queen: $queen) {
+		id
+		name
+		race
+		added
+		color
+	}
+}
+`
+
+const ASSIGN_QUEEN_FROM_WAREHOUSE_MUTATION = gql`
+mutation assignQueenFromWarehouse($hiveId: ID!, $familyId: ID!) {
+	assignQueenFromWarehouse(hiveId: $hiveId, familyId: $familyId) {
+		id
+		name
+		race
+		added
+		color
+	}
+}
+`
+
+const UPLOAD_QUEEN_PREVIEW_MUTATION = gql`
+mutation uploadQueenPreview($file: Upload!) {
+	uploadFrameSide(file: $file) {
+		id
+		url
+	}
+}
+`
 
 function detectionLabel(detection: Detection) {
 	const confidence = Math.round(detection.confidence * 100)
@@ -162,7 +243,79 @@ async function createDetectorSession(): Promise<QueenDetectorSession> {
 	})
 }
 
+function captureVideoFrame(video: HTMLVideoElement): CapturedVideoFrame | null {
+	if (!video.videoWidth || !video.videoHeight) return null
+
+	const canvas = document.createElement('canvas')
+	canvas.width = video.videoWidth
+	canvas.height = video.videoHeight
+	const context = canvas.getContext('2d')
+	if (!context) return null
+
+	context.drawImage(video, 0, 0, canvas.width, canvas.height)
+	return {
+		canvas,
+		videoWidth: video.videoWidth,
+		videoHeight: video.videoHeight,
+	}
+}
+
+async function canvasToJpegBlob(canvas: HTMLCanvasElement): Promise<Blob | null> {
+	return await new Promise((resolve) => {
+		canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.9)
+	})
+}
+
+async function loadImageElement(url: string): Promise<HTMLImageElement> {
+	return await new Promise((resolve, reject) => {
+		const img = new Image()
+		img.onload = () => resolve(img)
+		img.onerror = (error) => reject(error)
+		img.src = url
+	})
+}
+
+async function cropBestCapture(capture: BestCapture): Promise<Blob | null> {
+	const image = await loadImageElement(capture.imageUrl)
+	const imageWidth = image.naturalWidth || capture.videoWidth
+	const imageHeight = image.naturalHeight || capture.videoHeight
+	const [x1, y1, x2, y2] = capture.detection.box
+	const boxWidth = Math.max(1, x2 - x1)
+	const boxHeight = Math.max(1, y2 - y1)
+	const centerX = Math.max(0, Math.min(imageWidth, (x1 + x2) / 2))
+	const centerY = Math.max(0, Math.min(imageHeight, (y1 + y2) / 2))
+	const cropSize = Math.min(
+		imageWidth,
+		imageHeight,
+		Math.max(160, Math.round(Math.max(boxWidth, boxHeight) * 2.4))
+	)
+	const sx = Math.max(0, Math.min(imageWidth - cropSize, Math.round(centerX - cropSize / 2)))
+	const sy = Math.max(0, Math.min(imageHeight - cropSize, Math.round(centerY - cropSize / 2)))
+
+	const canvas = document.createElement('canvas')
+	canvas.width = cropSize
+	canvas.height = cropSize
+	const context = canvas.getContext('2d')
+	if (!context) return null
+
+	context.drawImage(image, sx, sy, cropSize, cropSize, 0, 0, cropSize, cropSize)
+
+	return await new Promise((resolve) => {
+		canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.9)
+	})
+}
+
+function formatQueenOption(option: QueenOption) {
+	const name = option.name || `#${option.id}`
+	const year = option.added ? ` (${option.added})` : ''
+	const source = option.source === 'HIVE' ? ' — this hive' : ' — warehouse'
+	return `${name}${year}${source}`
+}
+
 export default function QueenDetectorPage() {
+	const [searchParams] = useSearchParams()
+	const inspectedHiveId = Number(searchParams.get('hiveId') || '')
+	const hasHiveContext = Number.isFinite(inspectedHiveId) && inspectedHiveId > 0
 	const videoRef = useRef<HTMLVideoElement | null>(null)
 	const previewCanvasRef = useRef<HTMLCanvasElement | null>(null)
 	const inferenceCanvasRef = useRef<HTMLCanvasElement | null>(null)
@@ -172,13 +325,99 @@ export default function QueenDetectorPage() {
 	const isDetectingRef = useRef(false)
 	const detectionsRef = useRef<Detection[]>([])
 	const sessionRef = useRef<QueenDetectorSession | null>(null)
+	const bestCaptureRef = useRef<BestCapture | null>(null)
+	const bestCaptureUrlRef = useRef<string | null>(null)
 
 	const [isCameraActive, setIsCameraActive] = useState(false)
 	const [isModelLoading, setIsModelLoading] = useState(false)
 	const [isDetecting, setIsDetecting] = useState(false)
 	const [detections, setDetections] = useState<Detection[]>([])
+	const [bestCapture, setBestCapture] = useState<BestCapture | null>(null)
+	const [assignmentMode, setAssignmentMode] = useState<AssignMode>('existing')
+	const [selectedQueenId, setSelectedQueenId] = useState('')
+	const [newQueenName, setNewQueenName] = useState('')
+	const [newQueenRace, setNewQueenRace] = useState('')
+	const [newQueenYear, setNewQueenYear] = useState(String(new Date().getFullYear()))
+	const [isSavingCapture, setIsSavingCapture] = useState(false)
+	const [savedFamilyId, setSavedFamilyId] = useState<string | null>(null)
+	const [savedPreviewUrl, setSavedPreviewUrl] = useState<string | null>(null)
+	const [assignmentError, setAssignmentError] = useState<any>(null)
 	const [error, setError] = useState<any>(null)
 	const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null)
+
+	const { data: warehouseData, error: warehouseError } = useQuery(WAREHOUSE_QUEENS_QUERY)
+	const hiveFamilies = useLiveQuery(
+		() => (hasHiveContext ? getAllFamiliesByHive(inspectedHiveId) : Promise.resolve([])),
+		[hasHiveContext, inspectedHiveId],
+		[]
+	)
+	const [addWarehouseQueen, { error: addWarehouseQueenError }] = useMutation(ADD_WAREHOUSE_QUEEN_MUTATION)
+	const [addQueenToHive, { error: addQueenToHiveError }] = useMutation(ADD_QUEEN_TO_HIVE_MUTATION)
+	const [assignQueenFromWarehouse, { error: assignQueenFromWarehouseError }] = useMutation(ASSIGN_QUEEN_FROM_WAREHOUSE_MUTATION)
+	const [uploadQueenPreview, uploadQueenPreviewResult] = useUploadMutation(UPLOAD_QUEEN_PREVIEW_MUTATION) as [any, any]
+	const uploadQueenPreviewError = uploadQueenPreviewResult.error
+
+	const queenOptions = useMemo<QueenOption[]>(() => {
+		const options: QueenOption[] = []
+		const seen = new Set<string>()
+
+		if (hasHiveContext) {
+			for (const family of hiveFamilies || []) {
+				if (!family?.id) continue
+				const id = String(family.id)
+				seen.add(id)
+				options.push({
+					id,
+					name: family.name,
+					race: family.race,
+					added: family.added,
+					color: family.color,
+					source: 'HIVE',
+				})
+			}
+		}
+
+		for (const queen of warehouseData?.warehouseQueens || []) {
+			const id = String(queen?.id || '')
+			if (!id || seen.has(id)) continue
+			seen.add(id)
+			options.push({
+				id,
+				name: queen.name,
+				race: queen.race,
+				added: queen.added,
+				color: queen.color,
+				source: 'WAREHOUSE',
+			})
+		}
+
+		return options
+	}, [hasHiveContext, hiveFamilies, warehouseData?.warehouseQueens])
+
+	useEffect(() => {
+		if (!queenOptions.length) {
+			if (assignmentMode === 'existing') {
+				setAssignmentMode('new')
+			}
+			setSelectedQueenId('')
+			return
+		}
+
+		if (!selectedQueenId || !queenOptions.some((option) => option.id === selectedQueenId)) {
+			setSelectedQueenId(queenOptions[0].id)
+		}
+	}, [assignmentMode, queenOptions, selectedQueenId])
+
+	const clearBestCapture = useCallback(() => {
+		if (bestCaptureUrlRef.current) {
+			URL.revokeObjectURL(bestCaptureUrlRef.current)
+		}
+		bestCaptureRef.current = null
+		bestCaptureUrlRef.current = null
+		setBestCapture(null)
+		setSavedFamilyId(null)
+		setSavedPreviewUrl(null)
+	}, [])
 
 	const drawPreview = useCallback((items: Detection[]) => {
 		const video = videoRef.current
@@ -253,6 +492,43 @@ export default function QueenDetectorPage() {
 		isDetectingRef.current = false
 	}, [stopPreviewLoop])
 
+	const captureBestFrameIfNeeded = useCallback(async (detection: Detection, frame: CapturedVideoFrame | null) => {
+		if (!frame) return false
+
+		const current = bestCaptureRef.current
+		if (current && detection.confidence <= current.confidence) {
+			return false
+		}
+
+		const imageBlob = await canvasToJpegBlob(frame.canvas)
+		if (!imageBlob) return false
+
+		if (bestCaptureUrlRef.current) {
+			URL.revokeObjectURL(bestCaptureUrlRef.current)
+		}
+
+		// WHY: keep the best frame only in browser memory until the user explicitly assigns it to a queen.
+		const nextCapture: BestCapture = {
+			imageBlob,
+			imageUrl: URL.createObjectURL(imageBlob),
+			videoWidth: frame.videoWidth,
+			videoHeight: frame.videoHeight,
+			detection: {
+				...detection,
+				box: [...detection.box] as [number, number, number, number],
+			},
+			confidence: detection.confidence,
+			capturedAt: new Date().toISOString(),
+		}
+
+		bestCaptureRef.current = nextCapture
+		bestCaptureUrlRef.current = nextCapture.imageUrl
+		setBestCapture(nextCapture)
+		setSavedFamilyId(null)
+		setSavedPreviewUrl(null)
+		return true
+	}, [])
+
 	const detectFrame = useCallback(async () => {
 		if (isDetectingRef.current) return
 
@@ -264,9 +540,13 @@ export default function QueenDetectorPage() {
 		isDetectingRef.current = true
 		setIsDetecting(true)
 
+		let sourceFrame: CapturedVideoFrame | null = null
+		let sourceFrameRetained = false
+
 		try {
 			const ort = await import('onnxruntime-web/wasm')
 			const preprocessed = preprocessFrame(video, canvas)
+			sourceFrame = await captureVideoFrame(video)
 			const inputName = session.inputNames[0]
 			const outputName = session.outputNames[0]
 			const feeds = {
@@ -274,6 +554,13 @@ export default function QueenDetectorPage() {
 			}
 			const output = await session.run(feeds)
 			const items = parseDetections(output[outputName], video.videoWidth, video.videoHeight, preprocessed)
+			const bestQueenDetection = items
+				.filter((item) => item.class_name.toLowerCase().includes('queen'))
+				.sort((a, b) => b.confidence - a.confidence)[0]
+
+			if (bestQueenDetection) {
+				sourceFrameRetained = await captureBestFrameIfNeeded(bestQueenDetection, sourceFrame)
+			}
 
 			detectionsRef.current = items
 			setDetections(items)
@@ -283,13 +570,18 @@ export default function QueenDetectorPage() {
 		} catch (e) {
 			setError(e)
 		} finally {
+			if (sourceFrame && !sourceFrameRetained) {
+				URL.revokeObjectURL(sourceFrame.imageUrl)
+			}
 			isDetectingRef.current = false
 			setIsDetecting(false)
 		}
-	}, [drawPreview])
+	}, [captureBestFrameIfNeeded, drawPreview])
 
 	const startCamera = useCallback(async () => {
 		try {
+			clearBestCapture()
+			setAssignmentError(null)
 			setError(null)
 			const stream = await navigator.mediaDevices.getUserMedia({
 				video: {
@@ -320,12 +612,174 @@ export default function QueenDetectorPage() {
 		} finally {
 			setIsModelLoading(false)
 		}
-	}, [detectFrame, startPreviewLoop, stopCamera])
+	}, [clearBestCapture, detectFrame, startPreviewLoop, stopCamera])
 
-	useEffect(() => stopCamera, [stopCamera])
+	useEffect(() => {
+		return () => {
+			stopCamera()
+			if (bestCaptureUrlRef.current) {
+				URL.revokeObjectURL(bestCaptureUrlRef.current)
+			}
+		}
+	}, [stopCamera])
+
+	const onSaveBestCapture = useCallback(async (event: any) => {
+		event.preventDefault()
+		if (!bestCapture || isSavingCapture) return
+
+		setAssignmentError(null)
+		setIsSavingCapture(true)
+		try {
+			if (assignmentMode === 'existing' && !selectedQueenId) {
+				throw new Error('Select a queen first.')
+			}
+
+			const year = newQueenYear.trim()
+			if (assignmentMode === 'new' && year && !/^\d{4}$/.test(year)) {
+				throw new Error('Year must be 4 digits (e.g. 2026).')
+			}
+
+			const croppedBlob = await cropBestCapture(bestCapture)
+			if (!croppedBlob) {
+				throw new Error('Could not crop the best queen capture.')
+			}
+
+			const croppedFile = new File(
+				[croppedBlob],
+				`queen-detection-preview-${Date.now()}.jpg`,
+				{ type: 'image/jpeg' }
+			)
+
+			const uploadResult = await uploadQueenPreview({ file: croppedFile })
+			const previewImageUrl = uploadResult?.data?.uploadFrameSide?.url
+			if (uploadResult?.error || !previewImageUrl) {
+				throw uploadResult?.error || new Error('Failed to upload queen preview image.')
+			}
+
+			let familyId = ''
+			let familyData: any = null
+
+			if (assignmentMode === 'new') {
+				const queenInput = {
+					name: newQueenName.trim() || null,
+					race: newQueenRace.trim() || null,
+					added: year || null,
+					color: null,
+				}
+
+				if (hasHiveContext) {
+					const result = await addQueenToHive({
+						hiveId: String(inspectedHiveId),
+						queen: queenInput,
+					})
+					const createdQueen = result?.data?.addQueenToHive
+					if (result?.error || !createdQueen?.id) {
+						throw result?.error || new Error('Failed to create queen in this hive.')
+					}
+					familyId = String(createdQueen.id)
+					familyData = {
+						id: Number(createdQueen.id),
+						hiveId: inspectedHiveId,
+						name: createdQueen.name || queenInput.name || '',
+						race: createdQueen.race || queenInput.race || '',
+						added: createdQueen.added || queenInput.added || '',
+						color: createdQueen.color || null,
+					}
+				} else {
+					const result = await addWarehouseQueen({ queen: queenInput })
+					const createdQueen = result?.data?.addWarehouseQueen
+					if (result?.error || !createdQueen?.id) {
+						throw result?.error || new Error('Failed to create warehouse queen.')
+					}
+					familyId = String(createdQueen.id)
+					familyData = {
+						id: Number(createdQueen.id),
+						name: queenInput.name || '',
+						race: queenInput.race || '',
+						added: queenInput.added || '',
+						color: null,
+					}
+				}
+			} else {
+				const selectedQueen = queenOptions.find((option) => option.id === selectedQueenId)
+				if (!selectedQueen) {
+					throw new Error('Selected queen was not found.')
+				}
+
+				if (hasHiveContext && selectedQueen.source === 'WAREHOUSE') {
+					const result = await assignQueenFromWarehouse({
+						hiveId: String(inspectedHiveId),
+						familyId: selectedQueen.id,
+					})
+					const assignedQueen = result?.data?.assignQueenFromWarehouse
+					if (result?.error || !assignedQueen?.id) {
+						throw result?.error || new Error('Failed to assign warehouse queen to this hive.')
+					}
+					familyId = String(assignedQueen.id)
+					familyData = {
+						id: Number(assignedQueen.id),
+						hiveId: inspectedHiveId,
+						name: assignedQueen.name || selectedQueen.name || '',
+						race: assignedQueen.race || selectedQueen.race || '',
+						added: assignedQueen.added || selectedQueen.added || '',
+						color: assignedQueen.color || selectedQueen.color || null,
+					}
+				} else {
+					familyId = selectedQueen.id
+					familyData = {
+						id: Number(selectedQueen.id),
+						...(hasHiveContext ? { hiveId: inspectedHiveId } : {}),
+						name: selectedQueen.name || '',
+						race: selectedQueen.race || '',
+						added: selectedQueen.added || '',
+						color: selectedQueen.color || null,
+					}
+				}
+			}
+
+			// WHY: image-splitter already persists the cropped image file; until GraphQL has a queen-image field,
+			// keep the queen-to-image relation in the local Family preview used by the Queens database UI.
+			const existingFamily = await getFamilyById(Number(familyId))
+			await updateFamily({
+				...(existingFamily || {}),
+				...familyData,
+				id: Number(familyId),
+				previewImageUrl,
+			})
+
+			setSavedFamilyId(familyId)
+			setSavedPreviewUrl(previewImageUrl)
+		} catch (e) {
+			setAssignmentError(e)
+		} finally {
+			setIsSavingCapture(false)
+		}
+	}, [
+		addQueenToHive,
+		addWarehouseQueen,
+		assignQueenFromWarehouse,
+		assignmentMode,
+		bestCapture,
+		hasHiveContext,
+		inspectedHiveId,
+		isSavingCapture,
+		newQueenName,
+		newQueenRace,
+		newQueenYear,
+		queenOptions,
+		selectedQueenId,
+		uploadQueenPreview,
+	])
 
 	const queenDetections = detections.filter((detection) => detection.class_name.toLowerCase().includes('queen'))
 	const statusText = isModelLoading ? <T>Loading queen detector model...</T> : isDetecting ? <T>Detecting frame...</T> : <T>Waiting for next frame</T>
+	const bestCaptureBoxStyle = bestCapture ? {
+		left: `${Math.max(0, (bestCapture.detection.box[0] / bestCapture.videoWidth) * 100)}%`,
+		top: `${Math.max(0, (bestCapture.detection.box[1] / bestCapture.videoHeight) * 100)}%`,
+		width: `${Math.max(0, ((bestCapture.detection.box[2] - bestCapture.detection.box[0]) / bestCapture.videoWidth) * 100)}%`,
+		height: `${Math.max(0, ((bestCapture.detection.box[3] - bestCapture.detection.box[1]) / bestCapture.videoHeight) * 100)}%`,
+	} : undefined
+	const selectedQueen = queenOptions.find((option) => option.id === selectedQueenId)
 
 	return (
 		<div className={styles.page}>
@@ -335,6 +789,11 @@ export default function QueenDetectorPage() {
 					<p className={styles.description}>
 						<T>Use the camera to detect a queen bee directly in the browser. Keep the frame steady and well lit.</T>
 					</p>
+					{hasHiveContext && (
+						<p className={styles.contextNote}>
+							<T>Inspection context</T>: <T>hive</T> #{inspectedHiveId}
+						</p>
+					)}
 				</div>
 				{isCameraActive && (
 					<div className={styles.actions}>
@@ -343,7 +802,7 @@ export default function QueenDetectorPage() {
 				)}
 			</div>
 
-			<ErrorMsg error={error} />
+			<ErrorMsg error={error || assignmentError || warehouseError || addWarehouseQueenError || addQueenToHiveError || assignQueenFromWarehouseError || uploadQueenPreviewError} />
 
 			{import.meta.env.DEV && (
 				<div className={styles.endpointNote}>
@@ -378,6 +837,11 @@ export default function QueenDetectorPage() {
 						<strong>{queenDetections.length}</strong>
 						<span><T>queen detections</T></span>
 					</div>
+					{bestCapture && (
+						<div className={styles.liveBest}>
+							<T>Best confidence capture</T>: <strong>{Math.round(bestCapture.confidence * 100)}%</strong>
+						</div>
+					)}
 					{lastUpdatedAt && <p className={styles.updated}><T>Last update</T>: {lastUpdatedAt}</p>}
 					<ul className={styles.detectionList}>
 						{detections.map((detection, index) => (
@@ -390,6 +854,125 @@ export default function QueenDetectorPage() {
 					</ul>
 				</aside>
 			</div>
+
+			{!isCameraActive && bestCapture && (
+				<section className={styles.bestCapturePanel}>
+					<div className={styles.bestCaptureHeader}>
+						<div>
+							<h3><T>Best confidence capture</T></h3>
+							<p>
+								<T>This frame stayed only in your browser until you assign it to a queen.</T>
+							</p>
+						</div>
+						<span className={styles.captureBadge}>{Math.round(bestCapture.confidence * 100)}%</span>
+					</div>
+
+					<div className={styles.bestCaptureContent}>
+						<div className={styles.bestCaptureFrame}>
+							<img className={styles.bestCaptureImage} src={bestCapture.imageUrl} alt="Best confidence queen capture" draggable={false} />
+							{bestCaptureBoxStyle && (
+								<div className={styles.bestCaptureBox} style={bestCaptureBoxStyle}>
+									<span>{detectionLabel(bestCapture.detection)}</span>
+								</div>
+							)}
+						</div>
+
+						<form className={styles.assignmentPanel} onSubmit={onSaveBestCapture}>
+							<h3><T>Assign this capture</T></h3>
+							<p className={styles.assignmentHint}>
+								{hasHiveContext ? (
+									<T>Save a cropped queen image for a new or existing queen in this hive.</T>
+								) : (
+									<T>Save a cropped queen image for a new or existing warehouse queen.</T>
+								)}
+							</p>
+
+							<div className={styles.modeSwitch}>
+								<Button
+									type="button"
+									className={`${styles.modeButton} ${assignmentMode === 'existing' ? styles.activeMode : ''}`}
+									disabled={!queenOptions.length}
+									onClick={() => setAssignmentMode('existing')}
+								>
+									<T>Existing queen</T>
+								</Button>
+								<Button
+									type="button"
+									className={`${styles.modeButton} ${assignmentMode === 'new' ? styles.activeMode : ''}`}
+									onClick={() => setAssignmentMode('new')}
+								>
+									<T>New queen</T>
+								</Button>
+							</div>
+
+							{assignmentMode === 'existing' ? (
+								<div className={styles.formField}>
+									<label><T>Select Queen</T></label>
+									<select
+										className={styles.assignmentInput}
+										value={selectedQueenId}
+										onChange={(event: any) => setSelectedQueenId(event.target.value)}
+									>
+										{queenOptions.map((option) => (
+											<option key={`${option.source}-${option.id}`} value={option.id}>
+												{formatQueenOption(option)}
+											</option>
+										))}
+									</select>
+									{selectedQueen && (
+										<p className={styles.captureMeta}>
+											<T>Selected</T>: {selectedQueen.name || `#${selectedQueen.id}`}
+										</p>
+									)}
+								</div>
+							) : (
+								<div className={styles.formGrid}>
+									<div className={styles.formField}>
+										<label><T>Queen Name</T></label>
+										<input
+											className={styles.assignmentInput}
+											value={newQueenName}
+											onChange={(event: any) => setNewQueenName(event.target.value)}
+											placeholder="Queen name"
+										/>
+									</div>
+									<div className={styles.formField}>
+										<label><T>Year</T></label>
+										<input
+											className={styles.assignmentInput}
+											value={newQueenYear}
+											maxLength={4}
+											onChange={(event: any) => setNewQueenYear(event.target.value)}
+											placeholder="YYYY"
+										/>
+									</div>
+									<div className={styles.formField}>
+										<label><T>Race</T></label>
+										<input
+											className={styles.assignmentInput}
+											value={newQueenRace}
+											onChange={(event: any) => setNewQueenRace(event.target.value)}
+											placeholder="e.g. Carniolan"
+										/>
+									</div>
+								</div>
+							)}
+
+							<div className={styles.assignmentControls}>
+								<Button type="submit" color="green" loading={isSavingCapture}>
+									<T>Save queen capture</T>
+								</Button>
+							</div>
+
+							{savedFamilyId && savedPreviewUrl && (
+								<div className={styles.saveResult}>
+									<T>Saved cropped queen preview for queen</T> #{savedFamilyId}.
+								</div>
+							)}
+						</form>
+					</div>
+				</section>
+			)}
 
 			<canvas ref={inferenceCanvasRef} className={styles.captureCanvas} />
 		</div>

@@ -160,8 +160,6 @@ a.active .menuItemIcon {
 }
 
 @media @mobile {
-	@mobileNavActiveText: #c88800;
-
 	.desktopMenu {
 		display: none !important;
 	}
@@ -239,7 +237,8 @@ a.active .menuItemIcon {
 	}
 
 	.mobileNavLink.active {
-		color: @mobileNavActiveText;
+		// Active mobile items are distinguished by filled icons; keep text color stable.
+		color: #666;
 		font-weight: 700;
 	}
 
@@ -274,7 +273,8 @@ a.active .menuItemIcon {
 	}
 
 	.utilityButtonSelected {
-		color: @mobileNavActiveText;
+		// The selected More button uses a filled hamburger icon instead of an accent color.
+		color: #666;
 		font-weight: 700;
 	}
 

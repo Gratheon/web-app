@@ -100,28 +100,67 @@ async function openSupportChat() {
     }
 }
 
-function HamburgerIcon({ size = MOBILE_NAV_ICON_SIZE }) {
+// Mobile nav icons accept `filled` so selection is conveyed by the icon shape, not by recoloring the item.
+function HamburgerIcon({ size = MOBILE_NAV_ICON_SIZE, filled = false }) {
     return (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="4" y="6" width="16" height="2.2" rx="1.1" fill="currentColor" />
-            <rect x="4" y="10.9" width="16" height="2.2" rx="1.1" fill="currentColor" />
-            <rect x="4" y="15.8" width="16" height="2.2" rx="1.1" fill="currentColor" />
+            {filled && <rect x="3.5" y="4.5" width="17" height="15" rx="3.5" fill="currentColor" />}
+            <rect x="6" y="8" width="12" height="2" rx="1" fill={filled ? 'white' : 'currentColor'} />
+            <rect x="6" y="11" width="12" height="2" rx="1" fill={filled ? 'white' : 'currentColor'} />
+            <rect x="6" y="14" width="12" height="2" rx="1" fill={filled ? 'white' : 'currentColor'} />
         </svg>
     )
 }
 
-function LightBulbIcon({ size = MOBILE_NAV_ICON_SIZE }) {
+function HiveNavIcon({ size = MOBILE_NAV_ICON_SIZE, filled = false }) {
+    const bodyFill = filled ? 'currentColor' : 'none'
+    const detailColor = filled ? 'white' : 'currentColor'
+
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="5" y="5" width="14" height="3.5" rx="0.8" fill={bodyFill} stroke="currentColor" stroke-width="2" />
+            <rect x="6" y="8.5" width="12" height="5" fill={bodyFill} stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+            <rect x="6" y="13.5" width="12" height="5" fill={bodyFill} stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+            <path d="M8 11.5H16" stroke={detailColor} stroke-width="1.6" stroke-linecap="round" />
+            <path d="M8 16.5H16" stroke={detailColor} stroke-width="1.6" stroke-linecap="round" />
+            <path d="M8 21H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+    )
+}
+
+function LightBulbIcon({ size = MOBILE_NAV_ICON_SIZE, filled = false }) {
     return (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M9.5 17H14.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
             <path d="M10 20H14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
             <path
                 d="M12 4C9.79 4 8 5.79 8 8C8 9.73 9.1 11.2 10.64 11.76C11.03 11.9 11.3 12.27 11.3 12.69V14H12.7V12.69C12.7 12.27 12.97 11.9 13.36 11.76C14.9 11.2 16 9.73 16 8C16 5.79 14.21 4 12 4Z"
+                fill={filled ? 'currentColor' : 'none'}
                 stroke="currentColor"
                 stroke-width="2"
                 stroke-linecap="round"
                 stroke-linejoin="round"
             />
+            {filled && <path d="M10.6 8.2L11.6 9.5L13.4 7.2" stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />}
+        </svg>
+    )
+}
+
+function QueenFinderIcon({ size = MOBILE_NAV_ICON_SIZE, filled = false }) {
+    const bodyFill = filled ? 'currentColor' : 'none'
+    const detailColor = filled ? 'white' : 'currentColor'
+
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="10" cy="10" r="6" stroke="currentColor" stroke-width="2" />
+            <path d="M14.5 14.5L20 20" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            <path d="M8.2 9.2C6.7 8.2 6.7 6.4 8.1 6.2C9.2 6.1 9.8 7.3 10 8.8" fill={bodyFill} fill-opacity={filled ? '0.24' : '1'} stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
+            <path d="M11.8 9.2C13.3 8.2 13.3 6.4 11.9 6.2C10.8 6.1 10.2 7.3 10 8.8" fill={bodyFill} fill-opacity={filled ? '0.24' : '1'} stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
+            <ellipse cx="10" cy="10.9" rx="2.35" ry="3.35" fill={bodyFill} stroke="currentColor" stroke-width="1.6" />
+            <path d="M8 10.3H12" stroke={detailColor} stroke-width="1.2" stroke-linecap="round" />
+            <path d="M8.3 12.1H11.7" stroke={detailColor} stroke-width="1.2" stroke-linecap="round" />
+            <path d="M8.7 7.1L7.7 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+            <path d="M11.3 7.1L12.3 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
         </svg>
     )
 }
@@ -158,24 +197,27 @@ function AIAdvisorIcon({ size = MOBILE_NAV_ICON_SIZE }) {
     )
 }
 
-function WarehouseIcon({ size = MOBILE_NAV_ICON_SIZE }) {
+function WarehouseIcon({ size = MOBILE_NAV_ICON_SIZE, filled = false }) {
+    const bodyFill = filled ? 'currentColor' : 'none'
+    const detailColor = filled ? 'white' : 'currentColor'
+
     return (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4 10.5L12 6L20 10.5V18.5C20 19.05 19.55 19.5 19 19.5H5C4.45 19.5 4 19.05 4 18.5V10.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
-            <path d="M4 10.5L12 15L20 10.5" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
-            <path d="M12 15V19.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            <path d="M4 10.5L12 6L20 10.5V18.5C20 19.05 19.55 19.5 19 19.5H5C4.45 19.5 4 19.05 4 18.5V10.5Z" fill={bodyFill} stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+            <path d="M4 10.5L12 15L20 10.5" stroke={detailColor} stroke-width="2" stroke-linejoin="round" />
+            <path d="M12 15V19.5" stroke={detailColor} stroke-width="2" stroke-linecap="round" />
         </svg>
     )
 }
 
-function QueensIcon({ size = MOBILE_NAV_ICON_SIZE }) {
+function QueensIcon({ size = MOBILE_NAV_ICON_SIZE, filled = false }) {
     return (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M5 18.5H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-            <path d="M6.5 18.5L8.5 9.5L12 13L15.5 9.5L17.5 18.5" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
-            <circle cx="8.5" cy="7.5" r="1.5" stroke="currentColor" stroke-width="2" />
-            <circle cx="12" cy="5.5" r="1.5" stroke="currentColor" stroke-width="2" />
-            <circle cx="15.5" cy="7.5" r="1.5" stroke="currentColor" stroke-width="2" />
+            <path d="M6.5 18.5L8.5 9.5L12 13L15.5 9.5L17.5 18.5" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+            <circle cx="8.5" cy="7.5" r="1.5" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" stroke-width="2" />
+            <circle cx="12" cy="5.5" r="1.5" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" stroke-width="2" />
+            <circle cx="15.5" cy="7.5" r="1.5" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" stroke-width="2" />
         </svg>
     )
 }
@@ -318,7 +360,9 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
     const isAlertsLocked = !isBillingTierAtLeast(billingPlan, 'professional')
     const isAIAdvisorLocked = !isBillingTierAtLeast(billingPlan, 'starter')
 
+    const isApiariesSection = location.pathname === '/' || location.pathname === '/apiaries' || location.pathname.startsWith('/apiaries/')
     const isAlertsSection = location.pathname === '/alert-config' || location.pathname.startsWith('/alert-config/')
+    const isInsightsSection = location.pathname === '/time' || location.pathname.startsWith('/time/')
     const isWarehouseQueensSection = location.pathname === '/warehouse/queens' || location.pathname.startsWith('/warehouse/queens/')
     const isWarehouseSection =
         (location.pathname === '/warehouse' || location.pathname.startsWith('/warehouse/')) &&
@@ -740,13 +784,13 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                 <ul className={styles.mobileBottomList}>
                     <li>
                         <NavLink
-                            className={mobileNavClassName()}
+                            className={mobileSectionNavClassName(isApiariesSection)}
                             to="/apiaries"
                             onClick={() => {
                                 setMoreVisible(false)
                             }}
                         >
-                            <span className={styles.navIcon}><HiveIcon size={MOBILE_NAV_ICON_SIZE} /></span>
+                            <span className={styles.navIcon}><HiveNavIcon size={MOBILE_NAV_ICON_SIZE} filled={isApiariesSection} /></span>
                             <span className={styles.navLabel}><T>Hives</T></span>
                         </NavLink>
                     </li>
@@ -758,22 +802,16 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                                 setMoreVisible(false)
                             })}
                         >
-                            <span className={styles.navIcon}><QueensIcon size={MOBILE_NAV_ICON_SIZE} /></span>
+                            <span className={styles.navIcon}>
+                                {isFreeTier ? (
+                                    <QueenFinderIcon size={MOBILE_NAV_ICON_SIZE} filled={isWarehouseQueensSection} />
+                                ) : (
+                                    <QueensIcon size={MOBILE_NAV_ICON_SIZE} filled={isWarehouseQueensSection} />
+                                )}
+                            </span>
                             <span className={styles.navLabel}>
                                 {isFreeTier ? <T>Queen finder</T> : <T>Queens</T>}
                             </span>
-                        </NavLink>
-                    </li>
-                    <li>
-                        <NavLink
-                            className={mobileNavClassName(isInsightsLocked)}
-                            to="/time"
-                            {...getLockedNavigationProps(isInsightsLocked, () => {
-                                setMoreVisible(false)
-                            })}
-                        >
-                            <span className={styles.navIcon}><LightBulbIcon size={MOBILE_NAV_ICON_SIZE} /></span>
-                            <span className={styles.navLabel}><T>Insights</T></span>
                         </NavLink>
                     </li>
                     <li>
@@ -785,8 +823,20 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                                 setMoreVisible(false)
                             })}
                         >
-                            <span className={styles.navIcon}><WarehouseIcon size={MOBILE_NAV_ICON_SIZE} /></span>
+                            <span className={styles.navIcon}><WarehouseIcon size={MOBILE_NAV_ICON_SIZE} filled={isWarehouseSection} /></span>
                             <span className={styles.navLabel}><T>Warehouse</T></span>
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink
+                            className={mobileSectionNavClassName(isInsightsSection, isInsightsLocked)}
+                            to="/time"
+                            {...getLockedNavigationProps(isInsightsLocked, () => {
+                                setMoreVisible(false)
+                            })}
+                        >
+                            <span className={styles.navIcon}><LightBulbIcon size={MOBILE_NAV_ICON_SIZE} filled={isInsightsSection} /></span>
+                            <span className={styles.navLabel}><T>Insights</T></span>
                         </NavLink>
                     </li>
                     <li>
@@ -798,13 +848,12 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                             type="button"
                             aria-label="More"
                         >
-                            <span className={styles.navIcon}><HamburgerIcon size={MOBILE_NAV_ICON_SIZE} /></span>
+                            <span className={styles.navIcon}><HamburgerIcon size={MOBILE_NAV_ICON_SIZE} filled={isMoreVisible} /></span>
                             <span className={styles.navLabel}><T>More</T></span>
                         </button>
                     </li>
                 </ul>
             </nav>
-
             {isMoreVisible && (
                 <div className={styles.mobileMoreMenu}>
                     <NavLink

@@ -21,7 +21,7 @@ import { useFrameSideSubscriptions } from '@/hooks/useFrameSideSubscriptions' //
  interface FilePropType {
 	id: number | string;
 	url: string;
-	resizes?: { width: number; url: string }[];
+	resizes?: { width?: number; max_dimension_px?: number; url: string }[];
 }
 
 interface FrameSideDrawingProps {

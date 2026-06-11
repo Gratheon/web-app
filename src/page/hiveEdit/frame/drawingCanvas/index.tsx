@@ -9,12 +9,38 @@ import FrameCellsToolbar from './components/FrameCellsToolbar';
 import FreeDrawToolbar from './components/FreeDrawToolbar';
 import QueenControlsPanel from './components/QueenControlsPanel';
 import ReadOnlyLayerPanel from './components/ReadOnlyLayerPanel';
-import type { CanvasControlTab, DrawingCanvasProps } from './types';
+import type { CanvasControlTab, DrawingCanvasProps, ResizeLike } from './types';
 import { useCanvasInteractions } from './useCanvasInteractions';
 import { useCellBrush } from './useCellBrush';
 import { useQueenAnnotations } from './useQueenAnnotations';
 
 export type { DrawingCanvasProps } from './types';
+
+function getResizeDimension(resize: ResizeLike | undefined) {
+	return Number(resize?.max_dimension_px ?? resize?.width ?? 0);
+}
+
+function resolveBestCanvasUrl(
+	imageUrl: string,
+	resizes: ResizeLike[] = []
+) {
+	let bestUrl = imageUrl;
+	let bestDimension = 0;
+
+	for (const resize of resizes || []) {
+		const dimension = getResizeDimension(resize);
+		if (!resize?.url || dimension <= 128) {
+			continue;
+		}
+
+		if (dimension >= bestDimension) {
+			bestDimension = dimension;
+			bestUrl = resize.url;
+		}
+	}
+
+	return bestUrl;
+}
 
 export default function DrawingCanvas({
 	imageUrl,
@@ -51,17 +77,11 @@ export default function DrawingCanvas({
 	const [showFrameCells, setShowFrameCells] = useState(false);
 	const [activeControlTab, setActiveControlTab] = useState<CanvasControlTab>('frame-cells');
 	const [activeTool, setActiveTool] = useState<'cell-brush' | 'stroke'>('cell-brush');
-	const [canvasUrl, setCanvasUrl] = useState(() => {
-		let bestUrl = imageUrl;
-		if (resizes && resizes.length > 0) {
-			for (let i = 0; i < resizes.length; i++) {
-				if (resizes[i].width > 128) {
-					bestUrl = resizes[i].url;
-				}
-			}
-		}
-		return bestUrl;
-	});
+	const bestCanvasUrl = useMemo(
+		() => resolveBestCanvasUrl(imageUrl, resizes),
+		[imageUrl, resizes]
+	);
+	const [canvasUrl, setCanvasUrl] = useState(bestCanvasUrl);
 
 	const {
 		selectedCellType,
@@ -290,6 +310,13 @@ export default function DrawingCanvas({
 	useEffect(() => {
 		scheduleRedraw();
 	}, [detectedCells, scheduleRedraw]);
+
+	useEffect(() => {
+		// WHY: HiveView can switch frame sides without remounting DrawingCanvas.
+		// WHAT: reset the bitmap source so the newly selected side loads its own photo instead of reusing the previous one.
+		setLoadedImage(null);
+		setCanvasUrl(bestCanvasUrl);
+	}, [bestCanvasUrl]);
 
 	useEffect(() => {
 		let isActive = true;

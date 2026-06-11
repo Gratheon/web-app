@@ -26,7 +26,10 @@ export type CanvasCellEditState = {
 };
 
 export type ResizeLike = {
-	width: number;
+	// WHY: resize metadata comes from different sources.
+	// WHAT: support both legacy `width` and GraphQL `max_dimension_px` fields.
+	width?: number;
+	max_dimension_px?: number;
 	url: string;
 };
 

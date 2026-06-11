@@ -782,7 +782,7 @@ export default function WarehouseQueensPage() {
 								<Button
 									size="small"
 									color="red"
-									loading={deletingId === queenToDelete.id}
+									loading={deletingQueenIds.includes(queenToDelete.id)}
 									onClick={onDeleteQueenConfirm}
 								>
 									<T>Delete</T>

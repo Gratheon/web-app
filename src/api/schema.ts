@@ -80,6 +80,12 @@ enum RoofStyle {
   ANGULAR
 }
 
+type BoxSystem {
+  id: ID!
+  name: String!
+  isDefault: Boolean!
+}
+
 union CancelSubscriptionResult = User | Error
 
 scalar DateTime
@@ -253,6 +259,8 @@ enum FrameType {
 type Hive {
   id: ID!
   boxSystemId: ID
+  hiveType: String
+  hiveNumber: Int
 
   # amount of bees detected on all frames. Includes all types (workers, drones, queens)
   beeCount: Int
@@ -260,6 +268,7 @@ type Hive {
   notes: String
   boxes: [Box]
   family: Family
+  families: [Family]
   boxCount: Int!
   inspectionCount: Int!
   status: String
@@ -422,6 +431,7 @@ type Query {
     frameSideIds: [ID]
     inspectionId: ID!
   ): [FrameSideInspection]
+  boxSystems: [BoxSystem]
   plants(lat: String!, lng: String!): [Plant]
   hive(id: ID!): Hive
   apiary(id: ID!): Apiary

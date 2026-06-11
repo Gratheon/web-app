@@ -14,6 +14,7 @@ import ApiaryListRow from './apiaryListRow'
 import ApiariesPlaceholder from './apiariesPlaceholder'
 import ApiaryListLoadingRows from './loadingRows'
 import { sortHives } from './hiveSort'
+import { getCachedApiaryListData } from './cache'
 import { normalizeApiaryType } from '@/models/apiary'
 import { consumeRegistrationWelcomePending } from '@/shared/welcomeFlow'
 import styles from './style.module.less'
@@ -165,11 +166,17 @@ export default function ApiaryList(props) {
 			}
 		}
 	`)
+	const cachedData = useLiveQuery(() => getCachedApiaryListData(), [], null)
+	const hasNetworkApiaryData = Array.isArray(data?.apiaries)
+	const cachedApiaries = cachedData?.apiaries || []
+	const hasCachedApiaryData = cachedApiaries.length > 0
+	const displayData = hasNetworkApiaryData || !hasCachedApiaryData ? data : cachedData
 
 	const apiaries = React.useMemo(
-		() => (data?.apiaries || []).filter((apiary) => apiary && apiary.id != null),
-		[data?.apiaries]
+		() => (displayData?.apiaries || []).filter((apiary) => apiary && apiary.id != null),
+		[displayData?.apiaries]
 	)
+	const boxSystems = displayData?.boxSystems || []
 	const isOnline = useNetworkStatus()
 	const isServiceDegraded = isOnline && (!!degradedService || !!degradedError)
 	const hasMixedApiaryTypes = React.useMemo(() => {
@@ -409,7 +416,7 @@ export default function ApiaryList(props) {
 	), [])
 
 	React.useEffect(() => {
-		if (showLoadingSkeleton || loading || apiaries === null) {
+		if (showLoadingSkeleton || apiaries === null) {
 			return
 		}
 
@@ -432,7 +439,7 @@ export default function ApiaryList(props) {
 			window.clearTimeout(messageTimer)
 			window.clearTimeout(celebrationTimer)
 		}
-	}, [apiaries, loading, showLoadingSkeleton])
+	}, [apiaries, showLoadingSkeleton])
 
 
 	return (
@@ -472,14 +479,14 @@ export default function ApiaryList(props) {
 					onNavigateAcrossApiaries={handleNavigateAcrossApiaries}
 				/>
 			)}
-			{!showLoadingSkeleton && !loading && apiaries !== null && apiaries?.length === 0 && <ApiariesPlaceholder />}
+			{!showLoadingSkeleton && apiaries !== null && apiaries?.length === 0 && <ApiariesPlaceholder />}
 
-			{!showLoadingSkeleton && !loading && apiaries &&
+			{!showLoadingSkeleton && apiaries &&
 					apiaries.map((apiary, i) => (
 							<ApiaryListRow
 								key={i}
 							apiary={apiary}
-							boxSystems={data?.boxSystems || []}
+							boxSystems={boxSystems}
 							user={user}
 						sortBy={hiveSortBy}
 						sortOrder={hiveSortOrder}
@@ -494,7 +501,7 @@ export default function ApiaryList(props) {
 				/>
 			))}
 
-			<div style={showLoadingSkeleton || loading ? { display: 'none' } : { textAlign: 'center', margin: '15px 0' }}>
+			<div style={showLoadingSkeleton ? { display: 'none' } : { textAlign: 'center', margin: '15px 0' }}>
 				<Button 
 					color={apiaries && apiaries.length === 0 ? 'green' : 'white'}
 					href="/apiaries/create"><T ctx="its a button">Setup new apiary</T></Button>

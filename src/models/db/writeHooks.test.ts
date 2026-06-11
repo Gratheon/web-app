@@ -94,6 +94,15 @@ describe('writeHooks', () => {
     });
   });
 
+  describe('BoxSystem', () => {
+    it('should call upsertEntityWithNumericID with "boxsystem" and the entity', async () => {
+      const mockEntity = { id: '1', name: 'Default', isDefault: true };
+      await (writeHooks.BoxSystem as any)(null, mockEntity, {} as any);
+      expect(mockUpsertEntityWithNumericID).toHaveBeenCalledTimes(1);
+      expect(mockUpsertEntityWithNumericID).toHaveBeenCalledWith('boxsystem', mockEntity);
+    });
+  });
+
   describe('Hive', () => {
     it('should call upsertEntityWithNumericID with "hive" and the entity', async () => {
       const mockEntity = { id: '10', name: 'Test Hive' };

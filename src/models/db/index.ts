@@ -7,7 +7,7 @@ import { addCustomIndexes } from './addCustomIndexes.ts'
 import { has } from 'lodash'
 
 const DB_NAME = 'gratheon'
-export const DB_VERSION = 105
+export const DB_VERSION = 106
 const SCHEMA_SYNC_HMR_FLAG = `__gratheon_schema_synced_v${DB_VERSION}`
 const DB_EVENT_HOOKS_FLAG = '__gratheon_db_event_hooks_installed'
 const FRAME_SIDE_CELL_TABLE = 'files_frame_side_cells'

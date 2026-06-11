@@ -54,7 +54,16 @@ export default {
 		const apiaries = await db.apiary.limit(100).toArray()
 		const allHives = await db.hive.limit(500).toArray()
 		const allBoxes = await db.box.limit(2000).toArray()
+		const allFamilies = await db.family.limit(2000).toArray()
 		const hasApiaryRelations = allHives.some((hive) => hive?.apiaryId != null || hive?.apiary_id != null)
+
+		const familiesByHiveId = new Map()
+		for (const family of allFamilies) {
+			const hiveId = family?.hiveId ?? family?.hive_id
+			if (hiveId == null) continue
+			const key = String(hiveId)
+			familiesByHiveId.set(key, [...(familiesByHiveId.get(key) || []), family])
+		}
 
 		const apiariesWithHives = []
 
@@ -73,13 +82,21 @@ export default {
 				const boxes = allBoxes
 					.filter((box) => String(box?.hiveId ?? box?.hive_id) === String(hive.id))
 					.sort((a, b) => Number(a?.position || 0) - Number(b?.position || 0))
-				return { ...hive, boxes }
+				const families = familiesByHiveId.get(String(hive.id)) || []
+				return { ...hive, boxes, family: families[0] || null, families }
 			})
 
 			apiariesWithHives.push({ ...apiary, hives: hivesWithBoxes })
 		}
 
 		return apiariesWithHives
+	},
+	boxSystems: async (_, { db }) => {
+		if (!db.boxsystem || typeof db.boxsystem.limit !== 'function') {
+			return []
+		}
+
+		return await db.boxsystem.limit(100).toArray()
 	},
 
 	hive: async (_, { db }, { variableValues: { id } }) => {

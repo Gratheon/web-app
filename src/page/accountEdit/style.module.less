@@ -7,6 +7,13 @@
 		&.accountPage {
 			padding: 0;
 		}
+
+		// WHY: container padding is zeroed above, so the heading needs its own
+		// horizontal inset to avoid sitting flush against the screen edge.
+		h2 {
+			padding-left: 16px;
+			padding-right: 16px;
+		}
 	}
 }
 

@@ -172,8 +172,8 @@ describe('api resolvers', () => {
 							hiveNumber: 1,
 							apiaryId: 1,
 							boxes: [
-								{ id: 100, hiveId: 10, position: 1 },
 								{ id: 101, hiveId: 10, position: 2 },
+								{ id: 100, hiveId: 10, position: 1 },
 							],
 							family: { id: 1000, hiveId: 10, name: 'Queen A' },
 							families: [{ id: 1000, hiveId: 10, name: 'Queen A' }],

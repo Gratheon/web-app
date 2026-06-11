@@ -66,8 +66,8 @@ describe('apiary list cache', () => {
 							family: { id: 1000, hiveId: 10, name: 'Queen A' },
 							families: [{ id: 1000, hiveId: 10, name: 'Queen A' }],
 							boxes: [
-								{ id: 100, hiveId: 10, position: 1 },
 								{ id: 101, hiveId: 10, position: 2 },
+								{ id: 100, hiveId: 10, position: 1 },
 							],
 						},
 					],

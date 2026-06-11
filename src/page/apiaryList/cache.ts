@@ -89,8 +89,10 @@ export async function getCachedApiaryListData(): Promise<CachedApiaryListData> {
 							const hiveBoxes = hiveId
 								? [...(boxesByHiveId.get(hiveId) || [])]
 								: []
+							// WHY: HiveIcon renders boxes in array order; higher positions are visually on top.
+							// Match the backend listing order so cached render does not flicker.
 							hiveBoxes.sort(
-								(a, b) => Number(a?.position || 0) - Number(b?.position || 0)
+								(a, b) => Number(b?.position || 0) - Number(a?.position || 0)
 							)
 
 							return {

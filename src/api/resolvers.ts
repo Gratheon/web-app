@@ -79,9 +79,11 @@ export default {
 			})
 
 			const hivesWithBoxes = apiaryHives.map((hive) => {
+				// WHY: keep offline resolver order identical to backend list order
+				// to avoid hive icon section reordering when network data arrives.
 				const boxes = allBoxes
 					.filter((box) => String(box?.hiveId ?? box?.hive_id) === String(hive.id))
-					.sort((a, b) => Number(a?.position || 0) - Number(b?.position || 0))
+					.sort((a, b) => Number(b?.position || 0) - Number(a?.position || 0))
 				const families = familiesByHiveId.get(String(hive.id)) || []
 				return { ...hive, boxes, family: families[0] || null, families }
 			})

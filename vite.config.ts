@@ -1,6 +1,6 @@
 /// <reference types="vitest" />
 /// <reference types="vitest" />
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import path from 'path'
 import svgr from 'vite-plugin-svgr'
 import preact from '@preact/preset-vite'
@@ -10,6 +10,49 @@ import { VitePWA } from 'vite-plugin-pwa'
 // https://vitejs.dev/config/
 const host = process.env.TAURI_DEV_HOST
 const pwaDevEnabled = process.env.VITE_PWA_DEV === '1'
+
+function inlineSmallEntryCss(maxBytes = 6 * 1024): Plugin {
+	return {
+		name: 'inline-small-entry-css',
+		apply: 'build',
+		enforce: 'post',
+		generateBundle(_options, bundle) {
+			const stylesheetPattern =
+				/<link rel="stylesheet" crossorigin href="\/([^"]+\.css)">/g
+			const assetsToDelete = new Set<string>()
+
+			for (const asset of Object.values(bundle)) {
+				if (asset.type !== 'asset' || !asset.fileName.endsWith('.html')) {
+					continue
+				}
+
+				let html = String(asset.source)
+				html = html.replace(stylesheetPattern, (tag, cssFileName: string) => {
+					const cssAsset = bundle[cssFileName]
+
+					if (cssAsset?.type !== 'asset') {
+						return tag
+					}
+
+					const css = String(cssAsset.source)
+
+					if (css.length > maxBytes) {
+						return tag
+					}
+
+					assetsToDelete.add(cssFileName)
+
+					return `<style>${css.replace(/<\/style/gi, '<\\/style')}</style>`
+				})
+				asset.source = html
+			}
+
+			for (const fileName of assetsToDelete) {
+				delete bundle[fileName]
+			}
+		},
+	}
+}
 
 export default defineConfig({
 	publicDir: 'static',
@@ -82,6 +125,7 @@ export default defineConfig({
 				],
 			},
 			registerType: 'autoUpdate',
+			injectRegister: 'script-defer',
 			devOptions: {
 				enabled: pwaDevEnabled,
 			},
@@ -147,6 +191,7 @@ export default defineConfig({
 		preact({
 			devtoolsInProd: true,
 		}),
+		inlineSmallEntryCss(),
 	],
 	// prevent vite from obscuring rust errors
 	clearScreen: false,

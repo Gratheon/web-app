@@ -104,7 +104,7 @@
 }
 
 a.active .menuItemIcon {
-	color: #5f6670;
+	color: #000;
 }
 
 .lockedMenuLink {
@@ -237,9 +237,11 @@ a.active .menuItemIcon {
 	}
 
 	.mobileNavLink.active {
-		// Active mobile items are distinguished by filled icons; keep text color stable.
-		color: #666;
 		font-weight: 700;
+	}
+
+	.mobileNavLink.active .navIcon {
+		color: #000;
 	}
 
 	.utilityButton {
@@ -273,58 +275,60 @@ a.active .menuItemIcon {
 	}
 
 	.utilityButtonSelected {
-		// The selected More button uses a filled hamburger icon instead of an accent color.
-		color: #666;
 		font-weight: 700;
 	}
 
-		.mobileMoreMenu {
-			position: fixed;
-			right: 8px;
-			bottom: calc(66px + env(safe-area-inset-bottom));
-			z-index: 1200;
-			display: flex;
-			flex-direction: column;
+	.utilityButtonSelected .navIcon {
+		color: #000;
+	}
+
+	.mobileMoreMenu {
+		position: fixed;
+		right: 8px;
+		bottom: calc(66px + env(safe-area-inset-bottom));
+		z-index: 1200;
+		display: flex;
+		flex-direction: column;
+		background: white;
+		border: 1px solid @color-gray-border;
+		border-radius: 10px;
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+		min-width: 180px;
+		overflow: hidden;
+
+		a,
+		button {
+			text-align: left;
+			padding: 12px 14px;
+			font-size: 14px;
+			color: black;
 			background: white;
-			border: 1px solid @color-gray-border;
-			border-radius: 10px;
-			box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-			min-width: 180px;
-			overflow: hidden;
-
-			a,
-			button {
-				text-align: left;
-				padding: 12px 14px;
-				font-size: 14px;
-				color: black;
-				background: white;
-				border: none;
-				border-bottom: 1px solid #efefef;
-				text-decoration: none;
-				cursor: pointer;
-			}
-
-			.lockedMenuLink {
-				color: #a6abb3 !important;
-				cursor: not-allowed !important;
-			}
-
-			button:last-child,
-			a:last-child {
-				border-bottom: none;
-			}
+			border: none;
+			border-bottom: 1px solid #efefef;
+			text-decoration: none;
+			cursor: pointer;
 		}
 
-		.mobileSubMenuItem {
-			display: inline-block;
-			padding-left: 14px;
+		.lockedMenuLink {
+			color: #a6abb3 !important;
+			cursor: not-allowed !important;
 		}
 
-		.collapsedLogoTrigger {
-			display: none !important;
+		button:last-child,
+		a:last-child {
+			border-bottom: none;
 		}
 	}
+
+	.mobileSubMenuItem {
+		display: inline-block;
+		padding-left: 14px;
+	}
+
+	.collapsedLogoTrigger {
+		display: none !important;
+	}
+}
 
 @media @tabletAndUp {
 	#menu.desktopMenu {

@@ -100,7 +100,7 @@ async function openSupportChat() {
     }
 }
 
-// Mobile nav icons accept `filled` so selection is conveyed by the icon shape, not by recoloring the item.
+// Mobile nav icons accept `filled` so selection is conveyed by the icon shape together with the active color.
 function HamburgerIcon({ size = MOBILE_NAV_ICON_SIZE, filled = false }) {
     return (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -112,21 +112,6 @@ function HamburgerIcon({ size = MOBILE_NAV_ICON_SIZE, filled = false }) {
     )
 }
 
-function HiveNavIcon({ size = MOBILE_NAV_ICON_SIZE, filled = false }) {
-    const bodyFill = filled ? 'currentColor' : 'none'
-    const detailColor = filled ? 'white' : 'currentColor'
-
-    return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="5" y="5" width="14" height="3.5" rx="0.8" fill={bodyFill} stroke="currentColor" stroke-width="2" />
-            <rect x="6" y="8.5" width="12" height="5" fill={bodyFill} stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
-            <rect x="6" y="13.5" width="12" height="5" fill={bodyFill} stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
-            <path d="M8 11.5H16" stroke={detailColor} stroke-width="1.6" stroke-linecap="round" />
-            <path d="M8 16.5H16" stroke={detailColor} stroke-width="1.6" stroke-linecap="round" />
-            <path d="M8 21H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-        </svg>
-    )
-}
 
 function LightBulbIcon({ size = MOBILE_NAV_ICON_SIZE, filled = false }) {
     return (
@@ -790,7 +775,7 @@ const Menu = ({isLoggedIn = false, isSidebarCollapsed = false, onSidebarToggle =
                                 setMoreVisible(false)
                             }}
                         >
-                            <span className={styles.navIcon}><HiveNavIcon size={MOBILE_NAV_ICON_SIZE} filled={isApiariesSection} /></span>
+                            <span className={styles.navIcon}><HiveIcon size={MOBILE_NAV_ICON_SIZE} selected={isApiariesSection} /></span>
                             <span className={styles.navLabel}><T>Hives</T></span>
                         </NavLink>
                     </li>

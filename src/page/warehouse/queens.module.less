@@ -25,6 +25,13 @@
 	flex-wrap: wrap;
 }
 
+.viewModeActions {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	flex-wrap: wrap;
+}
+
 :global([data-sidebar-collapsed='true']) .headerRow h2 {
 	padding: 10px 30px;
 }
@@ -235,6 +242,51 @@
 	padding: 0 10px 10px;
 }
 
+.swipeRow {
+	position: relative;
+	overflow: hidden;
+	border-radius: 10px;
+	background: transparent;
+}
+
+.swipeCard {
+	position: relative;
+	z-index: 1;
+	transition: transform 160ms ease;
+	touch-action: pan-y;
+}
+
+.mobileSwipeDelete {
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	width: 92px;
+	border: none;
+	background: #d83a2e;
+	color: #fff;
+	font-weight: 700;
+	cursor: pointer;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	z-index: 2;
+	pointer-events: none;
+}
+
+.mobileSwipeDelete:disabled {
+	cursor: default;
+}
+
+.swipeRowOpen .mobileSwipeDelete {
+	display: flex;
+	pointer-events: auto;
+}
+
+.swipeRowOpen .swipeCard {
+	transform: translateX(-92px);
+}
+
 .queenNameButton {
 	border: none;
 	background: none;
@@ -286,7 +338,6 @@
 	font-size: 13px;
 	color: #45566e;
 }
-
 .ancestryArrow {
 	padding: 4px 0;
 	font-size: 18px;
@@ -332,6 +383,90 @@
 @media @mobile {
 	.page {
 		padding: 0 14px;
+	}
+
+	.headerRow {
+		align-items: flex-start;
+
+		h2 {
+			width: 100%;
+			margin-bottom: 6px;
+		}
+	}
+
+	.headerActions {
+		width: 100%;
+	}
+
+	.cardsGrid {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.card {
+		min-height: 112px;
+		flex-direction: row;
+		align-items: stretch;
+		height: 100%;
+	}
+
+	.cardImageWrap,
+	.cardImageWrapPreview {
+		width: 86px;
+		min-width: 86px;
+		height: auto;
+		min-height: 112px;
+		border-right: 1px solid #e7ecf5;
+		border-bottom: none;
+		padding: 6px;
+	}
+
+	.cardImagePlaceholder {
+		max-width: 58px;
+		max-height: 58px;
+	}
+
+	.cardImagePreview {
+		width: 66px;
+		height: 66px;
+		max-width: 66px;
+		max-height: 66px;
+	}
+
+	.cardContent {
+		min-width: 0;
+		flex: 1;
+		gap: 3px;
+		padding: 8px 10px;
+	}
+
+	.cardTitleRow {
+		gap: 6px;
+		line-height: 1.2;
+	}
+
+	.cardTitleRow strong {
+		overflow-wrap: anywhere;
+	}
+
+	.cardMeta {
+		font-size: 12px;
+		line-height: 1.25;
+	}
+
+	.cardActions {
+		display: none;
+	}
+
+	.swipeRow {
+		min-height: 112px;
+	}
+
+	.mobileSwipeDelete {
+		height: 100%;
+		align-self: stretch;
+		border-radius: 0;
 	}
 
 	.keyHint {

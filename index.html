@@ -43,7 +43,9 @@
 
 <!--Tawk.to customer support-->
 <script type="text/javascript">
-    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    // WHY: Vite dev can run on LAN/custom hosts, so hostname checks alone still load Tawk locally.
+    // WHAT: keep customer support enabled for production builds while skipping the remote widget in dev mode.
+    if ('%MODE%' !== 'development' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
         var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
         Tawk_API.autoStart = false;
 

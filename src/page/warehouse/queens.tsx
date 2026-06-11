@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 
@@ -137,13 +137,24 @@ function sortQueens(items: QueenItem[], sortBy: SortColumn, sortOrder: SortOrder
 export default function WarehouseQueensPage() {
 	const { data, loading, error, reexecuteQuery } = useQuery(QUEENS_QUERY)
 	const [deleteWarehouseQueen] = useMutation(DELETE_WAREHOUSE_QUEEN_MUTATION)
-	const [deletingId, setDeletingId] = useState<string | null>(null)
+	const [deletingQueenIds, setDeletingQueenIds] = useState<string[]>([])
 	const [sortBy, setSortBy] = useState<SortColumn>('YEAR')
 	const [sortOrder, setSortOrder] = useState<SortOrder>('DESC')
 	const [viewMode, setViewMode] = useState<ViewMode>('LIST')
+	const [isMobileLayout, setIsMobileLayout] = useState(() => {
+		if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+			return false
+		}
+
+		return window.matchMedia('(max-width: 576px)').matches
+	})
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 	const [queenToDelete, setQueenToDelete] = useState<QueenItem | null>(null)
 	const [queenForAncestry, setQueenForAncestry] = useState<QueenItem | null>(null)
+	const [deleteError, setDeleteError] = useState<Error | null>(null)
+	const [optimisticallyHiddenQueenIds, setOptimisticallyHiddenQueenIds] = useState<string[]>([])
+	const [swipedQueenId, setSwipedQueenId] = useState<string | null>(null)
+	const swipeStartRef = useRef<{ queenId: string, x: number, y: number } | null>(null)
 
 	const assignedFamilies = useLiveQuery(() => getAssignedFamilies(), [], [])
 	const unassignedFamilies = useLiveQuery(() => getUnassignedFamilies(), [], [])
@@ -269,6 +280,12 @@ export default function WarehouseQueensPage() {
 		return sortQueens(items, sortBy, sortOrder)
 	}, [data?.warehouseQueens, localPreviewByFamilyId, sortBy, sortOrder, unassignedFamilies])
 
+	const optimisticallyHiddenQueenIdSet = useMemo(() => new Set(optimisticallyHiddenQueenIds), [optimisticallyHiddenQueenIds])
+	const visibleWarehouseQueens = useMemo(
+		() => warehouseQueens.filter((queen) => !optimisticallyHiddenQueenIdSet.has(queen.id)),
+		[optimisticallyHiddenQueenIdSet, warehouseQueens]
+	)
+
 	const queenById = useMemo(() => {
 		const byId = new Map<string, QueenItem>()
 		for (const queen of inHiveQueens) {
@@ -345,23 +362,113 @@ export default function WarehouseQueensPage() {
 		setIsDeleteModalOpen(true)
 	}
 
+	async function deleteQueen(queen: QueenItem | null) {
+		if (!queen?.id) return
+		if (deletingQueenIds.includes(queen.id)) return
+
+		// WHY: hide the row immediately on mobile delete so the action feels instant.
+		setDeleteError(null)
+		setSwipedQueenId((prev) => prev === queen.id ? null : prev)
+		setOptimisticallyHiddenQueenIds((prev) => prev.includes(queen.id) ? prev : [...prev, queen.id])
+		setDeletingQueenIds((prev) => prev.includes(queen.id) ? prev : [...prev, queen.id])
+
+		try {
+			const result = await deleteWarehouseQueen({
+				familyId: queen.id,
+			})
+
+			if (!result?.data?.deleteWarehouseQueen) {
+				throw (result?.error || new Error('Failed to delete queen'))
+			}
+
+			reexecuteQuery({ requestPolicy: 'network-only' })
+		} catch (nextDeleteError) {
+			setOptimisticallyHiddenQueenIds((prev) => prev.filter((id) => id !== queen.id))
+			const errorMessage =
+				nextDeleteError instanceof Error
+					? nextDeleteError.message
+					: String((nextDeleteError as any)?.message || 'Failed to delete queen')
+			setDeleteError(new Error(errorMessage))
+		} finally {
+			setDeletingQueenIds((prev) => prev.filter((id) => id !== queen.id))
+		}
+	}
+
 	async function onDeleteQueenConfirm() {
-		if (!queenToDelete?.id || deletingId) return
+		if (!queenToDelete?.id || deletingQueenIds.includes(queenToDelete.id)) return
 
 		setIsDeleteModalOpen(false)
-		setDeletingId(queenToDelete.id)
-		const result = await deleteWarehouseQueen({
-			familyId: queenToDelete.id,
-		})
-		setDeletingId(null)
+		setQueenToDelete(null)
+		await deleteQueen(queenToDelete)
+	}
 
-		if (result?.data?.deleteWarehouseQueen) {
-			reexecuteQuery({ requestPolicy: 'network-only' })
+	async function deleteQueenWithoutConfirmation(queen: QueenItem) {
+		// WHY: on mobile the revealed swipe action is explicit enough, so deleting should stay one tap.
+		setIsDeleteModalOpen(false)
+		setQueenToDelete(null)
+		await deleteQueen(queen)
+	}
+
+	function onQueenSwipeStart(queen: QueenItem, event: any) {
+		if (!isMobileLayout) return
+		const touch = event.touches?.[0]
+		if (!touch) return
+
+		swipeStartRef.current = {
+			queenId: queen.id,
+			x: touch.clientX,
+			y: touch.clientY,
+		}
+	}
+
+	function onQueenSwipeEnd(queen: QueenItem, event: any) {
+		if (!isMobileLayout) return
+		const touch = event.changedTouches?.[0]
+		const start = swipeStartRef.current
+		swipeStartRef.current = null
+		if (!touch || !start || start.queenId !== queen.id) return
+
+		const deltaX = touch.clientX - start.x
+		const deltaY = touch.clientY - start.y
+		if (Math.abs(deltaY) > Math.abs(deltaX)) return
+
+		// WHAT: left swipe reveals the delete action; right swipe closes an already revealed row.
+		if (deltaX < -45) {
+			setSwipedQueenId(queen.id)
+		} else if (deltaX > 35) {
+			setSwipedQueenId(null)
 		}
 	}
 
 	useEffect(() => {
-		if (!isDeleteModalOpen || !queenToDelete || deletingId) return
+		if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+			return () => { }
+		}
+
+		// WHY: mobile must ignore any desktop table preference and always use compact list rows.
+		const mediaQuery = window.matchMedia('(max-width: 576px)')
+		const handleChange = () => {
+			setIsMobileLayout(mediaQuery.matches)
+			if (!mediaQuery.matches) {
+				setSwipedQueenId(null)
+			}
+		}
+
+		handleChange()
+		mediaQuery.addEventListener('change', handleChange)
+
+		return () => {
+			mediaQuery.removeEventListener('change', handleChange)
+		}
+	}, [])
+
+	useEffect(() => {
+		const visibleQueenIds = new Set(warehouseQueens.map((queen) => queen.id))
+		setOptimisticallyHiddenQueenIds((prev) => prev.filter((id) => visibleQueenIds.has(id)))
+	}, [warehouseQueens])
+
+	useEffect(() => {
+		if (!isDeleteModalOpen || !queenToDelete || deletingQueenIds.includes(queenToDelete.id)) return
 
 		const onKeyDown = (event: KeyboardEvent) => {
 			if (event.key !== 'Enter') return
@@ -373,7 +480,7 @@ export default function WarehouseQueensPage() {
 		return () => {
 			document.removeEventListener('keydown', onKeyDown)
 		}
-	}, [isDeleteModalOpen, queenToDelete, deletingId, onDeleteQueenConfirm])
+	}, [isDeleteModalOpen, queenToDelete, deletingQueenIds, onDeleteQueenConfirm])
 
 	if (loading) {
 		return <Loader />
@@ -474,7 +581,7 @@ export default function WarehouseQueensPage() {
 												<Button
 													size="small"
 													color="red"
-													loading={deletingId === queen.id}
+													loading={deletingQueenIds.includes(queen.id)}
 													onClick={() => requestDeleteQueen(queen)}
 												>
 													<T>Delete</T>
@@ -504,8 +611,21 @@ export default function WarehouseQueensPage() {
 						const imageSrc = hasRealPreview
 							? String(queen.previewImageUrl)
 							: getRandomQueenPlaceholder(`${queen.id}-${queen.name || ''}-${queen.added || ''}`)
-						return (
-							<div className={styles.card} key={`${queen.section}-${queen.id}`}>
+						const isSwipeDeleteEnabled = allowDelete && isMobileLayout
+						const isSwipeOpen = swipedQueenId === queen.id
+						const cardClassName = [
+							styles.card,
+							isSwipeDeleteEnabled ? styles.swipeCard : '',
+						].filter(Boolean).join(' ')
+						const card = (
+							<div
+								key={`${queen.section}-${queen.id}-card`}
+								className={cardClassName}
+								onTouchStart={isSwipeDeleteEnabled ? (event) => onQueenSwipeStart(queen, event) : undefined}
+								onTouchEnd={isSwipeDeleteEnabled ? (event) => onQueenSwipeEnd(queen, event) : undefined}
+								onTouchCancel={isSwipeDeleteEnabled ? () => { swipeStartRef.current = null } : undefined}
+								onClick={isSwipeDeleteEnabled && isSwipeOpen ? () => setSwipedQueenId(null) : undefined}
+							>
 								<div className={`${styles.cardImageWrap} ${hasRealPreview ? styles.cardImageWrapPreview : ''}`}>
 									<img
 										src={imageSrc}
@@ -525,12 +645,12 @@ export default function WarehouseQueensPage() {
 									<div className={styles.cardMeta}><T>Hive</T>: {renderHiveLink(queen)}</div>
 									<div className={styles.cardMeta}><T>Last detected frame</T>: {renderFrameLink(queen)}</div>
 								</div>
-								{allowDelete ? (
+								{allowDelete && !isMobileLayout ? (
 									<div className={styles.cardActions}>
 										<Button
 											size="small"
 											color="red"
-											loading={deletingId === queen.id}
+											loading={deletingQueenIds.includes(queen.id)}
 											onClick={() => requestDeleteQueen(queen)}
 										>
 											<T>Delete</T>
@@ -539,35 +659,64 @@ export default function WarehouseQueensPage() {
 								) : null}
 							</div>
 						)
+
+						if (!isSwipeDeleteEnabled) {
+							return card
+						}
+
+							return (
+								<div
+									className={`${styles.swipeRow} ${isSwipeOpen ? styles.swipeRowOpen : ''}`}
+									key={`${queen.section}-${queen.id}`}
+								>
+									<button
+										type="button"
+										className={styles.mobileSwipeDelete}
+										disabled={!isSwipeOpen}
+										tabIndex={isSwipeOpen ? 0 : -1}
+										aria-hidden={!isSwipeOpen}
+										onClick={() => deleteQueenWithoutConfirmation(queen)}
+										aria-label={`Delete ${queen.name || 'queen'}`}
+									>
+										<T>Delete</T>
+									</button>
+									{card}
+								</div>
+							)
 					})}
 				</div>
 			)}
 		</div>
 	)
 
-	const hasAnyQueens = inHiveQueens.length > 0 || warehouseQueens.length > 0
+	const hasAnyQueens = inHiveQueens.length > 0 || visibleWarehouseQueens.length > 0
+	const effectiveViewMode = isMobileLayout ? 'LIST' : viewMode
 
 	return (
 		<div className={styles.page}>
 			<div className={styles.headerRow}>
 				<h2><T>Queens</T></h2>
 				<div className={styles.headerActions}>
-					<Button
-						size="small"
-						style={viewMode === 'LIST' ? { opacity: 1 } : { opacity: 0.8 }}
-						onClick={() => setViewMode('LIST')}
-					>
-						<ListIcon size={14} />
-						<T>List</T>
-					</Button>
-					<Button
-						size="small"
-						style={viewMode === 'TABLE' ? { opacity: 1 } : { opacity: 0.8 }}
-						onClick={() => setViewMode('TABLE')}
-					>
-						<TableIcon size={14} />
-						<T>Table</T>
-					</Button>
+					{!isMobileLayout ? (
+						<div className={styles.viewModeActions}>
+							<Button
+								size="small"
+								style={viewMode === 'LIST' ? { opacity: 1 } : { opacity: 0.8 }}
+								onClick={() => setViewMode('LIST')}
+							>
+								<ListIcon size={14} />
+								<T>List</T>
+							</Button>
+							<Button
+								size="small"
+								style={viewMode === 'TABLE' ? { opacity: 1 } : { opacity: 0.8 }}
+								onClick={() => setViewMode('TABLE')}
+							>
+								<TableIcon size={14} />
+								<T>Table</T>
+							</Button>
+						</div>
+					) : null}
 					<Button color="green" href="/warehouse/queens/detect">
 						<T>Queen finder</T>
 					</Button>
@@ -582,39 +731,39 @@ export default function WarehouseQueensPage() {
 			<p className={styles.previewHint}>
 				<T>Tip: mark the queen on a frame in canvas view, and that marked area will be shown here as the queen preview image.</T>
 			</p>
-			<ErrorMsg error={error} />
+				<ErrorMsg error={error || deleteError} />
 
-			{!hasAnyQueens && !error ? (
-				<div className={styles.empty}>
-					<img src={queenImageURL} alt="Queen placeholder" className={styles.emptyImage} draggable={false} />
-					<T>No queens available yet.</T>
-				</div>
-			) : null}
+				{!hasAnyQueens && !error && !deleteError ? (
+					<div className={styles.empty}>
+						<img src={queenImageURL} alt="Queen placeholder" className={styles.emptyImage} draggable={false} />
+						<T>No queens available yet.</T>
+					</div>
+				) : null}
 
-			{!hasAnyQueens && !!error ? (
-				<div className={styles.empty}>
-					<T>Unable to load queens.</T>
-					{likelyBackendMismatch ? (
-						<div className={styles.hint}>Backend schema/migrations may be outdated.</div>
-					) : null}
-				</div>
-			) : null}
+				{!hasAnyQueens && !!error ? (
+					<div className={styles.empty}>
+						<T>Unable to load queens.</T>
+						{likelyBackendMismatch ? (
+							<div className={styles.hint}>Backend schema/migrations may be outdated.</div>
+						) : null}
+					</div>
+				) : null}
 
-			{hasAnyQueens ? (
-				<>
-					{viewMode === 'TABLE' ? (
-						<>
-							{renderTableSection('Queens in hives', inHiveQueens, false)}
-							{renderTableSection('Warehouse queens', warehouseQueens, true)}
-						</>
-					) : (
-						<>
-							{renderListSection('Queens in hives', inHiveQueens, false)}
-							{renderListSection('Warehouse queens', warehouseQueens, true)}
-						</>
-					)}
-				</>
-			) : null}
+				{hasAnyQueens ? (
+					<>
+						{effectiveViewMode === 'TABLE' ? (
+							<>
+								{renderTableSection('Queens in hives', inHiveQueens, false)}
+								{renderTableSection('Warehouse queens', visibleWarehouseQueens, true)}
+							</>
+						) : (
+							<>
+								{renderListSection('Queens in hives', inHiveQueens, false)}
+								{renderListSection('Warehouse queens', visibleWarehouseQueens, true)}
+							</>
+						)}
+					</>
+				) : null}
 
 			{isDeleteModalOpen && queenToDelete ? (
 				<Modal title={<T>Delete Queen</T>} onClose={() => setIsDeleteModalOpen(false)}>

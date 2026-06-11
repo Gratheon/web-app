@@ -801,12 +801,6 @@ export default function QueenDetectorPage() {
 
 			<ErrorMsg error={error || assignmentError || warehouseError || addWarehouseQueenError || addQueenToHiveError || assignQueenFromWarehouseError || uploadQueenPreviewError} />
 
-			{import.meta.env.DEV && (
-				<div className={styles.endpointNote}>
-					<T>Detector model</T>: <code>{MODEL_URL}</code>
-				</div>
-			)}
-
 			<div className={styles.cameraPanel}>
 				<div className={styles.videoWrap}>
 					<video ref={videoRef} className={styles.sourceVideo} muted playsInline />

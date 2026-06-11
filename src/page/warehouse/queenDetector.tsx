@@ -46,6 +46,9 @@ type BestCapture = {
 	videoWidth: number
 	videoHeight: number
 }
+
+type QueenOption = {
+	id: string
 	name?: string | null
 	race?: string | null
 	added?: string | null
@@ -540,13 +543,10 @@ export default function QueenDetectorPage() {
 		isDetectingRef.current = true
 		setIsDetecting(true)
 
-		let sourceFrame: CapturedVideoFrame | null = null
-		let sourceFrameRetained = false
-
 		try {
 			const ort = await import('onnxruntime-web/wasm')
 			const preprocessed = preprocessFrame(video, canvas)
-			sourceFrame = await captureVideoFrame(video)
+			const sourceFrame = await captureVideoFrame(video)
 			const inputName = session.inputNames[0]
 			const outputName = session.outputNames[0]
 			const feeds = {
@@ -559,7 +559,7 @@ export default function QueenDetectorPage() {
 				.sort((a, b) => b.confidence - a.confidence)[0]
 
 			if (bestQueenDetection) {
-				sourceFrameRetained = await captureBestFrameIfNeeded(bestQueenDetection, sourceFrame)
+				await captureBestFrameIfNeeded(bestQueenDetection, sourceFrame)
 			}
 
 			detectionsRef.current = items
@@ -570,9 +570,6 @@ export default function QueenDetectorPage() {
 		} catch (e) {
 			setError(e)
 		} finally {
-			if (sourceFrame && !sourceFrameRetained) {
-				URL.revokeObjectURL(sourceFrame.imageUrl)
-			}
 			isDetectingRef.current = false
 			setIsDetecting(false)
 		}

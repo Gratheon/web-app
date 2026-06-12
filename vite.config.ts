@@ -189,7 +189,7 @@ export default defineConfig({
 			},
 		}),
 		preact({
-			devtoolsInProd: true,
+			devtoolsInProd: false,
 		}),
 		inlineSmallEntryCss(),
 	],

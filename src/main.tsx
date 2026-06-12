@@ -1,19 +1,36 @@
 import './index.css'
 import App from './app'
-import posthog from 'posthog-js'
-import { PostHogProvider } from 'posthog-js/react'
 
 import { hydrate, prerender as ssr } from 'preact-iso'
 import { initializeEnvironment } from './env'
+import metrics from './metrics'
 
 const isDev = import.meta.env.MODE === 'development' || import.meta.env.DEV;
 
-// Initialize PostHog only in production
-if (!isDev && typeof window !== 'undefined') {
-	posthog.init('phc_cYQZSQ8ZJ8PjGGiT67gLusRp55EjZT41z2pHX6xtPZv', {
-		api_host: 'https://eu.i.posthog.com',
-		person_profiles: 'identified_only',
-	})
+function scheduleAfterPageLoad(callback: () => void) {
+	if (typeof window === 'undefined') {
+		return
+	}
+
+	const runWhenIdle = () => {
+		if ('requestIdleCallback' in window) {
+			window.requestIdleCallback(callback, { timeout: 2_000 })
+			return
+		}
+
+		globalThis.setTimeout(callback, 0)
+	}
+
+	const runAfterLoad = () => {
+		globalThis.setTimeout(runWhenIdle, 3_000)
+	}
+
+	if (document.readyState === 'complete') {
+		runAfterLoad()
+		return
+	}
+
+	window.addEventListener('load', runAfterLoad, { once: true })
 }
 
 if (typeof window !== 'undefined') {
@@ -22,27 +39,21 @@ if (typeof window !== 'undefined') {
 
 		const appElement = <App />;
 
-		const wrappedApp = isDev ? appElement : (
-			<PostHogProvider client={posthog}>
-				{appElement}
-			</PostHogProvider>
-		);
+		hydrate(appElement, document.getElementById('app'))
 
-		hydrate(wrappedApp, document.getElementById('app'))
+		if (!isDev) {
+			scheduleAfterPageLoad(() => {
+				void metrics.init()
+			})
+		}
 	})()
 }
 
 export async function prerender(data: any) {
 	const appElement = <App />;
 
-	const wrappedApp = isDev ? appElement : (
-		<PostHogProvider client={posthog}>
-			{appElement}
-		</PostHogProvider>
-	);
-
 	// @ts-ignore
-	const { html, links: discoveredLinks } = ssr(wrappedApp)
+	const { html, links: discoveredLinks } = ssr(appElement)
 
 	return {
 		html,

@@ -4,7 +4,6 @@ import Dexie from 'dexie'
 import isDev from '@/isDev'
 
 import { addCustomIndexes } from './addCustomIndexes.ts'
-import { has } from 'lodash'
 
 const DB_NAME = 'gratheon'
 export const DB_VERSION = 106
@@ -162,7 +161,7 @@ export function syncGraphqlSchemaToIndexDB(schemaObject) {
 				dbVersion: DB_VERSION,
 				tableCount: Object.keys(dbSchema).length,
 				tables: Object.keys(dbSchema),
-				hasUserTable: has(dbSchema, 'user'),
+				hasUserTable: Object.prototype.hasOwnProperty.call(dbSchema, 'user'),
 				userSchema: dbSchema.user,
 			})
 		}

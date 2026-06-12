@@ -55,7 +55,7 @@ function getRequestHeaders(): Record<string, string> {
 const graphqlWsClient = createClient({
 	url: subscriptionUri(),
 	keepAlive: 5_000,
-	lazy: false,
+	lazy: true,
 	shouldRetry: () => true,
 
 	// Dynamically set connection params based on available token
@@ -81,7 +81,7 @@ const graphqlWsClient = createClient({
 const apiClient = createUrqlClient({
 	url: uri,
 	exchanges: [
-		devtoolsExchange, // Add devtoolsExchange (includes logging)
+		...(import.meta.env.DEV ? [devtoolsExchange] : []),
 		dedupExchange,
 
 		//@ts-ignore

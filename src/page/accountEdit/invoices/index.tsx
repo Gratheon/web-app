@@ -1,4 +1,4 @@
-import { format } from 'date-fns'
+import format from 'date-fns/format'
 
 import { gql, useQuery } from '../../../api'
 import Loading from '../../../shared/loader'

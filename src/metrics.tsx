@@ -46,6 +46,12 @@ function initPostHog() {
 				posthog.init(posthogKey, {
 					api_host: 'https://eu.i.posthog.com',
 					person_profiles: 'identified_only',
+					advanced_disable_decide: true,
+					autocapture: false,
+					capture_pageleave: false,
+					capture_pageview: false,
+					disable_session_recording: true,
+					disable_surveys: true,
 				})
 
 				return posthog

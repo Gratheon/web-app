@@ -1,6 +1,7 @@
 /// <reference types="vitest" />
 /// <reference types="vitest" />
 import { defineConfig, type Plugin } from 'vite'
+import fs from 'node:fs'
 import path from 'path'
 import svgr from 'vite-plugin-svgr'
 import preact from '@preact/preset-vite'
@@ -52,6 +53,29 @@ function inlineSmallEntryCss(maxBytes = 6 * 1024): Plugin {
 			}
 		},
 	}
+}
+
+type PrecacheManifestEntry = {
+	revision: string | null
+	size: number
+	url: string
+}
+
+function excludePostHogFromPrecache(manifestEntries: PrecacheManifestEntry[]) {
+	const manifest = manifestEntries.filter((entry) => {
+		if (!/^assets\/.+\.js$/.test(entry.url)) {
+			return true
+		}
+
+		try {
+			const source = fs.readFileSync(path.resolve(__dirname, 'dist', entry.url), 'utf8')
+			return !(source.includes('LIB_VERSION') && source.includes('PostHog') && source.includes('posthog'))
+		} catch {
+			return true
+		}
+	})
+
+	return { manifest, warnings: [] }
 }
 
 export default defineConfig({
@@ -134,6 +158,7 @@ export default defineConfig({
 				// Include emitted build images (including src/assets/*.webp) in precache.
 				// This allows placeholders to render offline without requiring a prior runtime fetch.
 				globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,jpg,jpeg,woff,woff2}'],
+				manifestTransforms: [excludePostHogFromPrecache],
 				runtimeCaching: [
 					{
 						// Cache the queen detector model and ONNX Runtime WASM after first use.

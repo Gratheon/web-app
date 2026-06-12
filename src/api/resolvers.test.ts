@@ -195,4 +195,21 @@ describe('api resolvers', () => {
 			expect(result).toEqual([{ id: 1, name: 'Dadant', isDefault: true }])
 		})
 	})
+
+	describe('warehouseQueens resolver', () => {
+		it('returns cached families that are not assigned to a hive', async () => {
+			mocks.mockFamilyToArray.mockResolvedValue([
+				{ id: 1, hiveId: 10, name: 'Hive Queen' },
+				{ id: 2, name: 'Warehouse Queen' },
+				{ id: 3, hive_id: null, name: 'Legacy Warehouse Queen' },
+			])
+
+			const result = await resolvers.warehouseQueens(null, { db })
+
+			expect(result).toEqual([
+				{ id: 2, name: 'Warehouse Queen' },
+				{ id: 3, hive_id: null, name: 'Legacy Warehouse Queen' },
+			])
+		})
+	})
 })

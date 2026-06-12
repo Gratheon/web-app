@@ -4,6 +4,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import styles from './queens.module.less'
 import WarehouseQueensPage from './queens'
 
+const emptyQueenCache = {
+	assignedFamilies: [],
+	unassignedFamilies: [],
+	allFamilies: [],
+	hives: [],
+}
+
 const mocks = vi.hoisted(() => ({
 	useQuery: vi.fn(),
 	useMutation: vi.fn(),
@@ -19,6 +26,13 @@ function setMobileLayout(matches: boolean) {
 			addEventListener: vi.fn(),
 			removeEventListener: vi.fn(),
 		})),
+	})
+}
+
+function mockQueenCache(overrides = {}) {
+	mocks.useLiveQuery.mockReturnValue({
+		...emptyQueenCache,
+		...overrides,
 	})
 }
 
@@ -91,38 +105,72 @@ describe('WarehouseQueensPage', () => {
 			error: null,
 			reexecuteQuery: vi.fn(),
 		})
+		mockQueenCache()
+	})
+
+	it('renders cached warehouse queens while the network query is still loading', () => {
+		mocks.useQuery.mockReturnValue({
+			data: undefined,
+			loading: true,
+			error: null,
+			reexecuteQuery: vi.fn(),
+		})
+		mockQueenCache({
+			unassignedFamilies: [
+				{
+					id: '77',
+					name: 'Cached Queen',
+					added: '2025',
+					color: '#ffffff',
+					race: 'Italian',
+				},
+			],
+			allFamilies: [
+				{
+					id: '77',
+					name: 'Cached Queen',
+					added: '2025',
+					color: '#ffffff',
+					race: 'Italian',
+				},
+			],
+		})
+
+		const container = document.createElement('div')
+		document.body.appendChild(container)
+		renderPreact(<WarehouseQueensPage />, container)
+
+		expect(container.textContent).not.toContain('loading')
+		expect(container.textContent).toContain('Cached Queen')
+		expect(container.textContent).toContain('Warehouse queens')
+
+		renderPreact(null, container)
+		container.remove()
 	})
 
 	it('shows preview hint and "Not marked yet" for queens without frame marker', () => {
-		mocks.useLiveQuery
-			.mockReturnValueOnce([
-				{
-					id: '1',
-					name: 'Hera',
-					added: '2024',
-					color: '#ffffff',
-					hiveId: '10',
-				},
-			])
-			.mockReturnValueOnce([])
-			.mockReturnValueOnce([
-				{
-					id: '1',
-					name: 'Hera',
-					added: '2024',
-					color: '#ffffff',
-					hiveId: '10',
-				},
-			])
-			.mockReturnValueOnce([
+		const family = {
+			id: '1',
+			name: 'Hera',
+			added: '2024',
+			color: '#ffffff',
+			hiveId: '10',
+		}
+		mockQueenCache({
+			assignedFamilies: [
+				family,
+			],
+			allFamilies: [
+				family,
+			],
+			hives: [
 				{
 					id: '10',
 					apiaryId: '100',
 					hiveNumber: 3,
 				},
-			])
-			.mockReturnValueOnce([])
-			.mockReturnValue([])
+			],
+		})
 
 		const container = document.createElement('div')
 		document.body.appendChild(container)
@@ -137,49 +185,34 @@ describe('WarehouseQueensPage', () => {
 	})
 
 	it('renders real preview as styled preview image and fallback as placeholder image', () => {
-		mocks.useLiveQuery
-			.mockReturnValueOnce([
-				{
-					id: '1',
-					name: 'Athena',
-					added: '2024',
-					color: '#ff6600',
-					hiveId: '10',
-					previewImageUrl: 'https://example.com/athena.jpg',
-					lastSeenFrameId: '4',
-					lastSeenFrameSideId: '8',
-					lastSeenBoxId: '12',
-				},
-				{
-					id: '2',
-					name: 'Hera',
-					added: '2023',
-					color: '#00aa88',
-					hiveId: '11',
-				},
-			])
-			.mockReturnValueOnce([])
-			.mockReturnValueOnce([
-				{
-					id: '1',
-					name: 'Athena',
-					added: '2024',
-					color: '#ff6600',
-					hiveId: '10',
-					previewImageUrl: 'https://example.com/athena.jpg',
-					lastSeenFrameId: '4',
-					lastSeenFrameSideId: '8',
-					lastSeenBoxId: '12',
-				},
-				{
-					id: '2',
-					name: 'Hera',
-					added: '2023',
-					color: '#00aa88',
-					hiveId: '11',
-				},
-			])
-			.mockReturnValueOnce([
+		const athena = {
+			id: '1',
+			name: 'Athena',
+			added: '2024',
+			color: '#ff6600',
+			hiveId: '10',
+			previewImageUrl: 'https://example.com/athena.jpg',
+			lastSeenFrameId: '4',
+			lastSeenFrameSideId: '8',
+			lastSeenBoxId: '12',
+		}
+		const hera = {
+			id: '2',
+			name: 'Hera',
+			added: '2023',
+			color: '#00aa88',
+			hiveId: '11',
+		}
+		mockQueenCache({
+			assignedFamilies: [
+				athena,
+				hera,
+			],
+			allFamilies: [
+				athena,
+				hera,
+			],
+			hives: [
 				{
 					id: '10',
 					apiaryId: '100',
@@ -190,9 +223,8 @@ describe('WarehouseQueensPage', () => {
 					apiaryId: '100',
 					hiveNumber: 4,
 				},
-			])
-			.mockReturnValueOnce([])
-			.mockReturnValue([])
+			],
+		})
 
 		const container = document.createElement('div')
 		document.body.appendChild(container)
@@ -233,13 +265,7 @@ describe('WarehouseQueensPage', () => {
 			error: null,
 			reexecuteQuery: vi.fn(),
 		})
-		mocks.useLiveQuery
-			.mockReturnValueOnce([])
-			.mockReturnValueOnce([])
-			.mockReturnValueOnce([])
-			.mockReturnValueOnce([])
-			.mockReturnValueOnce([])
-			.mockReturnValue([])
+		mockQueenCache()
 
 		const container = document.createElement('div')
 		document.body.appendChild(container)
@@ -275,13 +301,7 @@ describe('WarehouseQueensPage', () => {
 			error: null,
 			reexecuteQuery,
 		})
-		mocks.useLiveQuery
-			.mockReturnValueOnce([])
-			.mockReturnValueOnce([])
-			.mockReturnValueOnce([])
-			.mockReturnValueOnce([])
-			.mockReturnValueOnce([])
-			.mockReturnValue([])
+		mockQueenCache()
 
 		const container = document.createElement('div')
 		document.body.appendChild(container)
@@ -335,13 +355,7 @@ describe('WarehouseQueensPage', () => {
 			error: null,
 			reexecuteQuery: vi.fn(),
 		})
-		mocks.useLiveQuery
-			.mockReturnValueOnce([])
-			.mockReturnValueOnce([])
-			.mockReturnValueOnce([])
-			.mockReturnValueOnce([])
-			.mockReturnValueOnce([])
-			.mockReturnValue([])
+		mockQueenCache()
 
 		const container = document.createElement('div')
 		document.body.appendChild(container)
@@ -394,13 +408,7 @@ describe('WarehouseQueensPage', () => {
 			error: null,
 			reexecuteQuery,
 		})
-		mocks.useLiveQuery
-			.mockReturnValueOnce([])
-			.mockReturnValueOnce([])
-			.mockReturnValueOnce([])
-			.mockReturnValueOnce([])
-			.mockReturnValueOnce([])
-			.mockReturnValue([])
+		mockQueenCache()
 
 		const container = document.createElement('div')
 		document.body.appendChild(container)

@@ -25,8 +25,12 @@ export const writeHooks = {
 		entity.hiveId = +parent.id
 		await upsertEntityWithNumericID('box', entity)
 	},
-	Family: async ({ id }, entity) => {
-		entity.hiveId = +id
+	Family: async (parent, entity) => {
+		if (parent?.id != null) {
+			entity.hiveId = +parent.id
+		} else if (entity.hiveId === undefined && entity.hive_id === undefined) {
+			entity.hiveId = null
+		}
 		await upsertEntityWithNumericID('family', entity)
 	},
 	Frame: async (parent, value: Frame, { originalValue: frame }) => {

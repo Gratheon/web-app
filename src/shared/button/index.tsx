@@ -19,6 +19,7 @@ type ButtonProps = {
 	type?: 'button' | 'submit' | 'reset' | undefined
 	children?: any
 	href?: string | null
+	[key: string]: any
 }
 
 export default function Button({
@@ -35,7 +36,8 @@ export default function Button({
 	onMouseOver = () => { },
 	onMouseOut = () => { },
 	children = null,
-	href = null
+	href = null,
+	...buttonProps
 }: ButtonProps) {
 	let navigate = useNavigate()
 
@@ -78,6 +80,7 @@ export default function Button({
 
 	return (
 		<button
+			{...buttonProps}
 			style={style}
 			disabled={disabled || loading}
 			type={type}

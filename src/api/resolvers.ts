@@ -100,6 +100,13 @@ export default {
 
 		return await db.boxsystem.limit(100).toArray()
 	},
+	warehouseQueens: async (_, { db }) => {
+		const families = await db.family.limit(2000).toArray()
+		return families.filter((family) => {
+			const hiveId = Number(family?.hiveId ?? family?.hive_id)
+			return !Number.isFinite(hiveId) || hiveId <= 0
+		})
+	},
 
 	hive: async (_, { db }, { variableValues: { id } }) => {
 		const hive = await db.hive.where({ id }).first()

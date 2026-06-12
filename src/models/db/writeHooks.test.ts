@@ -155,6 +155,13 @@ describe('writeHooks', () => {
       expect(mockUpsertEntityWithNumericID).toHaveBeenCalledTimes(1);
       expect(mockUpsertEntityWithNumericID).toHaveBeenCalledWith('family', expectedEntity);
     });
+    it('should cache root-level warehouse families as unassigned', async () => {
+      const mockEntity = { id: '31', name: 'Warehouse Queen' };
+      const expectedEntity = { ...mockEntity, hiveId: null };
+      await (writeHooks.Family as any)(null, mockEntity, {} as any);
+      expect(mockUpsertEntityWithNumericID).toHaveBeenCalledTimes(1);
+      expect(mockUpsertEntityWithNumericID).toHaveBeenCalledWith('family', expectedEntity);
+    });
      it('should propagate errors from upsertEntityWithNumericID', async () => {
        const mockParent = { id: '7' };
        const mockEntity = { id: '30', queen_status: 'present' };

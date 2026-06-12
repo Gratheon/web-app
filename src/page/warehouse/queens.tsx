@@ -13,8 +13,7 @@ import TableIcon from '@/icons/tableIcon'
 import queenImageURL from '@/assets/queen.webp'
 import queenPlaceholderUrls from '@/assets/queens/placeholders'
 import { getQueenColorFromYear } from '@/page/hiveEdit/hiveTopInfo/queenColor/utils'
-import { getAllFamilies, getAssignedFamilies, getFamiliesByIds, getUnassignedFamilies } from '@/models/family'
-import { getHivesByIds } from '@/models/hive'
+import { getCachedQueenListData, getCachedQueenListSnapshot } from './queens.cache'
 import styles from './queens.module.less'
 
 type HiveLink = {
@@ -159,24 +158,16 @@ export default function WarehouseQueensPage() {
 	const [swipedQueenId, setSwipedQueenId] = useState<string | null>(null)
 	const swipeStartRef = useRef<{ queenId: string, x: number, y: number } | null>(null)
 
-	const assignedFamilies = useLiveQuery(() => getAssignedFamilies(), [], [])
-	const unassignedFamilies = useLiveQuery(() => getUnassignedFamilies(), [], [])
-	const allFamilies = useLiveQuery(() => getAllFamilies(), [], [])
-
-	const hiveIds = useMemo(() => {
-		const ids: number[] = []
-		for (const family of assignedFamilies || []) {
-			const hiveId = Number(family?.hiveId)
-			if (Number.isFinite(hiveId) && hiveId > 0) ids.push(hiveId)
-		}
-		return Array.from(new Set(ids))
-	}, [assignedFamilies])
-
-	const localHives = useLiveQuery(
-		() => getHivesByIds(hiveIds),
-		[hiveIds.join(',')],
-		[]
+	const cachedQueenListData = useLiveQuery(
+		() => getCachedQueenListData(),
+		[],
+		getCachedQueenListSnapshot()
 	)
+	const hasResolvedLocalCache = cachedQueenListData !== null && cachedQueenListData !== undefined
+	const assignedFamilies = cachedQueenListData?.assignedFamilies || []
+	const unassignedFamilies = cachedQueenListData?.unassignedFamilies || []
+	const allFamilies = cachedQueenListData?.allFamilies || []
+	const localHives = cachedQueenListData?.hives || []
 
 	const hiveById = useMemo(() => {
 		const map = new Map<string, any>()
@@ -187,33 +178,14 @@ export default function WarehouseQueensPage() {
 		return map
 	}, [localHives])
 
-	const familyIds = useMemo(() => {
-		const ids: number[] = []
-		for (const queen of data?.warehouseQueens || []) {
-			const id = Number(queen?.id)
-			if (Number.isFinite(id) && id > 0) ids.push(id)
-		}
-		for (const family of assignedFamilies || []) {
-			const id = Number(family?.id)
-			if (Number.isFinite(id) && id > 0) ids.push(id)
-		}
-		return Array.from(new Set(ids))
-	}, [assignedFamilies, data?.warehouseQueens])
-
-	const localFamilies = useLiveQuery(
-		() => getFamiliesByIds(familyIds),
-		[familyIds.join(',')],
-		[]
-	)
-
 	const localPreviewByFamilyId = useMemo(() => {
 		const map = new Map<string, string>()
-		for (const family of localFamilies || []) {
+		for (const family of allFamilies || []) {
 			if (!family?.id || !family?.previewImageUrl) continue
 			map.set(String(family.id), String(family.previewImageUrl))
 		}
 		return map
-	}, [localFamilies])
+	}, [allFamilies])
 
 	const inHiveQueens = useMemo(() => {
 		const items: QueenItem[] = []
@@ -485,7 +457,10 @@ export default function WarehouseQueensPage() {
 		}
 	}, [isDeleteModalOpen, queenToDelete, deletingQueenIds, onDeleteQueenConfirm])
 
-	if (loading) {
+	const hasAnyQueens = inHiveQueens.length > 0 || visibleWarehouseQueens.length > 0
+	const shouldShowInitialLoader = loading && !hasResolvedLocalCache && !hasAnyQueens
+
+	if (shouldShowInitialLoader) {
 		return <Loader />
 	}
 
@@ -694,7 +669,6 @@ export default function WarehouseQueensPage() {
 		</div>
 	)
 
-	const hasAnyQueens = inHiveQueens.length > 0 || visibleWarehouseQueens.length > 0
 	const effectiveViewMode = isMobileLayout ? 'LIST' : viewMode
 
 	return (

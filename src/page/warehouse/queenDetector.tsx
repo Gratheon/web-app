@@ -5,10 +5,11 @@ import type * as Ort from 'onnxruntime-web/wasm'
 import ortWasmUrl from 'onnxruntime-web/ort-wasm-simd-threaded.wasm?url'
 
 import { gql, useMutation, useQuery, useUploadMutation } from '@/api'
+import RefreshIcon from '@/icons/RefreshIcon'
 import { getAllFamiliesByHive, getFamilyById, updateFamily } from '@/models/family'
 import Button from '@/shared/button'
 import ErrorMsg from '@/shared/messageError'
-import T from '@/shared/translate'
+import T, { useTranslation } from '@/shared/translate'
 import styles from './queenDetector.module.less'
 
 type Detection = {
@@ -64,6 +65,22 @@ const MODEL_URL = '/models/queen-bee-detector/best.onnx'
 const CONFIDENCE_THRESHOLD = 0.35
 const NMS_IOU_THRESHOLD = 0.45
 const MAX_DETECTIONS = 5
+const VIRTUAL_CAMERA_LABEL_PATTERNS = [
+	/\bvirtual\b/i,
+	/\bobs\b/i,
+	/snap camera/i,
+	/manycam/i,
+	/xsplit/i,
+	/\bndi\b/i,
+	/camtwist/i,
+	/mmhmm/i,
+	/youcam/i,
+	/droidcam/i,
+	/epoccam/i,
+	/\bcamo\b/i,
+	/ecamm/i,
+	/webcamoid/i,
+]
 
 const WAREHOUSE_QUEENS_QUERY = gql`
 query WarehouseQueensForDetector {
@@ -121,6 +138,85 @@ mutation uploadQueenPreview($file: Upload!) {
 function detectionLabel(detection: Detection) {
 	const confidence = Math.round(detection.confidence * 100)
 	return `${detection.class_name} ${confidence}%`
+}
+
+function normalizeCameraLabel(label: string) {
+	return label.trim().toLowerCase().replace(/^default\s*[-:]\s*/, '')
+}
+
+function isVirtualCamera(device: MediaDeviceInfo) {
+	const label = normalizeCameraLabel(device.label || '')
+	if (!label) return false
+
+	return VIRTUAL_CAMERA_LABEL_PATTERNS.some((pattern) => pattern.test(label))
+}
+
+function isSelectablePhysicalCamera(device: MediaDeviceInfo) {
+	return (
+		device.kind === 'videoinput' &&
+		Boolean(device.deviceId) &&
+		device.deviceId !== 'default' &&
+		device.deviceId !== 'communications' &&
+		!isVirtualCamera(device)
+	)
+}
+
+function dedupeCameraDevices(cameras: MediaDeviceInfo[]) {
+	const seen = new Set<string>()
+
+	return cameras.filter((camera) => {
+		const key = camera.deviceId || `${normalizeCameraLabel(camera.label)}-${camera.groupId}`
+		if (!key || seen.has(key)) return false
+
+		seen.add(key)
+		return true
+	})
+}
+
+async function listPhysicalCameraDevices() {
+	if (!navigator.mediaDevices?.enumerateDevices) return []
+
+	const devices = await navigator.mediaDevices.enumerateDevices()
+	return dedupeCameraDevices(devices.filter(isSelectablePhysicalCamera))
+}
+
+function resolveActiveCameraDeviceId(
+	cameras: MediaDeviceInfo[],
+	stream: MediaStream,
+	requestedCameraDeviceId?: string
+) {
+	const [track] = stream.getVideoTracks()
+	const settingsDeviceId = track?.getSettings?.().deviceId
+	if (settingsDeviceId && cameras.some((camera) => camera.deviceId === settingsDeviceId)) {
+		return settingsDeviceId
+	}
+
+	if (requestedCameraDeviceId && cameras.some((camera) => camera.deviceId === requestedCameraDeviceId)) {
+		return requestedCameraDeviceId
+	}
+
+	const activeLabel = normalizeCameraLabel(track?.label || '')
+	if (activeLabel) {
+		const activeCamera = cameras.find((camera) => normalizeCameraLabel(camera.label || '') === activeLabel)
+		if (activeCamera) return activeCamera.deviceId
+	}
+
+	return cameras[0]?.deviceId || null
+}
+
+function getVideoConstraints(cameraDeviceId?: string): MediaTrackConstraints {
+	const constraints: MediaTrackConstraints = {
+		width: { ideal: 1280 },
+		height: { ideal: 720 },
+	}
+
+	if (cameraDeviceId) {
+		constraints.deviceId = { exact: cameraDeviceId }
+	} else {
+		constraints.facingMode = { ideal: 'environment' }
+	}
+
+	return constraints
 }
 
 function getOutputValue(data: Float32Array, boxIndex: number, fieldIndex: number, boxCount: number) {
@@ -334,6 +430,9 @@ export default function QueenDetectorPage() {
 	const [isCameraActive, setIsCameraActive] = useState(false)
 	const [isModelLoading, setIsModelLoading] = useState(false)
 	const [isDetecting, setIsDetecting] = useState(false)
+	const [cameraDevices, setCameraDevices] = useState<MediaDeviceInfo[]>([])
+	const [selectedCameraDeviceId, setSelectedCameraDeviceId] = useState<string | null>(null)
+	const [isSwitchingCamera, setIsSwitchingCamera] = useState(false)
 	const [detections, setDetections] = useState<Detection[]>([])
 	const [bestCapture, setBestCapture] = useState<BestCapture | null>(null)
 	const [assignmentMode, setAssignmentMode] = useState<AssignMode>('existing')
@@ -347,6 +446,7 @@ export default function QueenDetectorPage() {
 	const [assignmentError, setAssignmentError] = useState<any>(null)
 	const [error, setError] = useState<any>(null)
 	const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null)
+	const switchCameraTitle = useTranslation('Switch camera')
 
 	const { data: warehouseData, error: warehouseError } = useQuery(WAREHOUSE_QUEENS_QUERY)
 	const hiveFamilies = useLiveQuery(
@@ -575,17 +675,16 @@ export default function QueenDetectorPage() {
 		}
 	}, [captureBestFrameIfNeeded, drawPreview])
 
-	const startCamera = useCallback(async () => {
+	const startCamera = useCallback(async (cameraDeviceId?: string, shouldResetCapture = true) => {
 		try {
-			clearBestCapture()
+			stopCamera()
+			if (shouldResetCapture) {
+				clearBestCapture()
+			}
 			setAssignmentError(null)
 			setError(null)
 			const stream = await navigator.mediaDevices.getUserMedia({
-				video: {
-					facingMode: { ideal: 'environment' },
-					width: { ideal: 1280 },
-					height: { ideal: 720 },
-				},
+				video: getVideoConstraints(cameraDeviceId),
 				audio: false,
 			})
 
@@ -596,6 +695,14 @@ export default function QueenDetectorPage() {
 			}
 
 			setIsCameraActive(true)
+			try {
+				const cameras = await listPhysicalCameraDevices()
+				setCameraDevices(cameras)
+				setSelectedCameraDeviceId(resolveActiveCameraDeviceId(cameras, stream, cameraDeviceId))
+			} catch {
+				setCameraDevices([])
+				setSelectedCameraDeviceId(null)
+			}
 			startPreviewLoop()
 			setIsModelLoading(true)
 			sessionRef.current = sessionRef.current || (await createDetectorSession())
@@ -610,6 +717,22 @@ export default function QueenDetectorPage() {
 			setIsModelLoading(false)
 		}
 	}, [clearBestCapture, detectFrame, startPreviewLoop, stopCamera])
+
+	const switchCamera = useCallback(async () => {
+		if (cameraDevices.length <= 1 || isModelLoading || isSwitchingCamera) return
+
+		const currentIndex = cameraDevices.findIndex((camera) => camera.deviceId === selectedCameraDeviceId)
+		const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % cameraDevices.length : 0
+		const nextCamera = cameraDevices[nextIndex]
+		if (!nextCamera?.deviceId) return
+
+		setIsSwitchingCamera(true)
+		try {
+			await startCamera(nextCamera.deviceId, false)
+		} finally {
+			setIsSwitchingCamera(false)
+		}
+	}, [cameraDevices, isModelLoading, isSwitchingCamera, selectedCameraDeviceId, startCamera])
 
 	useEffect(() => {
 		return () => {
@@ -770,6 +893,8 @@ export default function QueenDetectorPage() {
 
 	const queenDetections = detections.filter((detection) => detection.class_name.toLowerCase().includes('queen'))
 	const statusText = isModelLoading ? <T>Loading queen detector model...</T> : isDetecting ? <T>Detecting frame...</T> : <T>Waiting for next frame</T>
+	const canSwitchCameras = isCameraActive && cameraDevices.length > 1
+	const cameraSwitchTitle = cameraDevices.length > 1 ? `${switchCameraTitle} (${cameraDevices.length})` : switchCameraTitle
 	const bestCaptureBoxStyle = bestCapture ? {
 		left: `${Math.max(0, (bestCapture.detection.box[0] / bestCapture.videoWidth) * 100)}%`,
 		top: `${Math.max(0, (bestCapture.detection.box[1] / bestCapture.videoHeight) * 100)}%`,
@@ -805,10 +930,22 @@ export default function QueenDetectorPage() {
 				<div className={styles.videoWrap}>
 					<video ref={videoRef} className={styles.sourceVideo} muted playsInline />
 					<canvas ref={previewCanvasRef} className={styles.previewCanvas} />
+					{canSwitchCameras && (
+						<Button
+							className={styles.cameraSwitchButton}
+							iconOnly
+							title={cameraSwitchTitle}
+							onClick={switchCamera}
+							loading={isSwitchingCamera}
+							disabled={isModelLoading}
+						>
+							<RefreshIcon width={20} height={20} />
+						</Button>
+					)}
 					{!isCameraActive && (
 						<div className={styles.placeholder}>
 							<p><T>Start the camera to begin queen detection.</T></p>
-							<Button color="green" onClick={startCamera} loading={isModelLoading}>
+							<Button color="green" onClick={() => startCamera(selectedCameraDeviceId || undefined)} loading={isModelLoading}>
 								<T>Start camera</T>
 							</Button>
 							<p className={styles.privacyNote}>

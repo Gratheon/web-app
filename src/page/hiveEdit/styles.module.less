@@ -6,10 +6,15 @@
 }
 
 .breadcrumbsSky {
-	background: #3f8fd6;
-	color: #ffffff;
-	border-bottom-color: #3278b8;
-	font-size: 14px;
+	// WHY: code-splitting can load the shared breadcrumbs CSS after this page CSS.
+	// Duplicating the class raises specificity so the sky variant keeps its blue bar
+	// instead of ending up with white links on the default gray breadcrumbs background.
+	&& {
+		background-color: #3f8fd6;
+		color: #ffffff;
+		border-bottom-color: #3278b8;
+		font-size: 14px;
+	}
 
 	a {
 		color: #ffffff !important;

@@ -114,6 +114,7 @@ export default function apiaryListRow({
 	const listItemRefs = React.useRef({})
 	const apiaryType = normalizeApiaryType(apiary?.type)
 	const isMobileApiary = apiaryType === apiaryTypes.MOBILE
+	const dateTimeLang = user?.lang || (typeof navigator !== 'undefined' ? navigator.language : 'en')
 
 	React.useEffect(() => {
 		if (!forcedListType) {
@@ -697,20 +698,20 @@ export default function apiaryListRow({
 												})()}
 											</td>
 										)}
-										{visibleColumns.includes('LAST_TREATMENT') && (
-											<td>
-												{primaryFamily?.lastTreatment
-													? <DateTimeAgo dateString={primaryFamily.lastTreatment} lang={user.lang} />
-													: '-'}
-											</td>
-										)}
-										{visibleColumns.includes('LAST_INSPECTION') && (
-											<td>
-												{hive?.lastInspection
-													? <DateTimeAgo dateString={hive?.lastInspection} lang={user.lang} />
-													: '-'}
-											</td>
-										)}
+											{visibleColumns.includes('LAST_TREATMENT') && (
+												<td>
+													{primaryFamily?.lastTreatment
+														? <DateTimeAgo dateString={primaryFamily.lastTreatment} lang={dateTimeLang} />
+														: '-'}
+												</td>
+											)}
+											{visibleColumns.includes('LAST_INSPECTION') && (
+												<td>
+													{hive?.lastInspection
+														? <DateTimeAgo dateString={hive?.lastInspection} lang={dateTimeLang} />
+														: '-'}
+												</td>
+											)}
 												</>
 											)
 										})()}

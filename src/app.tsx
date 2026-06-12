@@ -1,7 +1,6 @@
 import Helmet from 'react-helmet'
 import { BrowserRouter } from 'react-router-dom'
 import { Provider } from 'urql'
-import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect } from 'preact/hooks'
 
 import { apiClient } from './api'
@@ -11,10 +10,7 @@ import GlobalErrorHandler from './error_handler'
 import { syncGraphqlSchemaToIndexDB } from './models/db'
 import { schemaObject } from './api/schema'
 import { UploadProvider } from './contexts/UploadContext'
-import { getUser } from './models/user'
-import { getUserLanguage } from './models/translationService'
 import { SUPPORTED_LANGUAGES } from './config/languages'
-import metrics from './metrics'
 import OfflineWarning from './shared/offlineWarning'
 import { precacheUiAssets } from './assets/precacheUiAssets'
 
@@ -76,20 +72,14 @@ export default function App() {
 		return
 	}
 
-	const user = useLiveQuery(() => getUser(), [], null)
-	const lang = getUserLanguage(user, SUPPORTED_LANGUAGES)
+	const browserLang = navigator.language.toLowerCase().substring(0, 2)
+	const lang = SUPPORTED_LANGUAGES.includes(browserLang as any) ? browserLang : 'en'
 
 	useEffect(() => {
 		if (typeof document !== 'undefined') {
 			document.documentElement.setAttribute('lang', lang)
 		}
 	}, [lang])
-
-	useEffect(() => {
-		if (user?.id) {
-			metrics.setUser(user)
-		}
-	}, [user])
 
 	useEffect(() => {
 		precacheUiAssets()

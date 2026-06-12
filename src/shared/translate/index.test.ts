@@ -5,12 +5,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 const mocks = vi.hoisted(() => ({
 	currentUser: null as { lang?: string } | null,
 	cachedTranslations: new Map<string, { translationId: number; value: string | null } | null>(),
-	useLiveQueryMock: vi.fn(),
 	fetchTranslationWithRemoteMock: vi.fn(),
-}))
-
-vi.mock('dexie-react-hooks', () => ({
-	useLiveQuery: (...args: unknown[]) => mocks.useLiveQueryMock(...args),
+	isDev: false,
+	apiClientMutationMock: vi.fn(),
+	mutationToPromiseMock: vi.fn(),
 }))
 
 vi.mock('@/models/user', () => ({
@@ -21,6 +19,7 @@ vi.mock('@/models/translations', () => ({
 	getTranslation: vi.fn(),
 	getTranslationValue: vi.fn(),
 	getPluralForms: vi.fn(),
+	upsertTranslation: vi.fn(),
 	upsertTranslationValue: vi.fn(),
 }))
 
@@ -40,18 +39,28 @@ vi.mock('@/models/translationService', () => ({
 }))
 
 vi.mock('@/isDev', () => ({
-	default: () => false,
+	default: () => mocks.isDev,
 }))
 
 vi.mock('@/api', () => ({
-	useMutation: () => [vi.fn()],
+	apiClient: {
+		mutation: (...args: unknown[]) => mocks.apiClientMutationMock(...args),
+	},
 }))
 
 vi.mock('@/config/languages', () => ({
 	SUPPORTED_LANGUAGES: ['en', 'ru'],
 }))
 
-import { useTranslation } from './index'
+import T, { useTranslation } from './index'
+import { getUser } from '@/models/user'
+import {
+	getTranslation,
+	getTranslationValue,
+	getPluralForms,
+	upsertTranslation,
+	upsertTranslationValue,
+} from '@/models/translations'
 
 function TranslationProbe({ tick }: { tick: number }) {
 	const value = useTranslation('Delete')
@@ -62,43 +71,67 @@ describe('useTranslation', () => {
 	let container: HTMLDivElement
 
 	beforeEach(() => {
+		vi.useFakeTimers()
 		container = document.createElement('div')
 		document.body.appendChild(container)
 
 		mocks.currentUser = null
+		mocks.isDev = false
 		mocks.cachedTranslations.clear()
 		mocks.cachedTranslations.set('en', { translationId: 1, value: 'Delete' })
 		mocks.cachedTranslations.set('ru', { translationId: 1, value: 'Удалить' })
 		mocks.fetchTranslationWithRemoteMock.mockReset()
-		mocks.useLiveQueryMock.mockReset()
+		mocks.apiClientMutationMock.mockReset()
+		mocks.mutationToPromiseMock.mockReset()
+		mocks.apiClientMutationMock.mockReturnValue({
+			toPromise: mocks.mutationToPromiseMock,
+		})
+		mocks.mutationToPromiseMock.mockResolvedValue({
+			data: {
+				updateTranslationValue: {
+					id: 1,
+					key: 'Delete',
+					namespace: null,
+					values: { ru: 'Убрать' },
+				},
+			},
+		})
 
-		mocks.useLiveQueryMock.mockImplementation(
-			(query: unknown, deps: unknown[] | undefined, initialValue: unknown) => {
-				if (Array.isArray(deps) && deps.length === 0) {
-					return mocks.currentUser
-				}
-
-				const lang = Array.isArray(deps) ? String(deps[1] ?? '') : ''
-				return mocks.cachedTranslations.get(lang) ?? initialValue
-			}
-		)
+		vi.mocked(getUser).mockImplementation(async () => mocks.currentUser)
+		vi.mocked(getTranslation).mockResolvedValue({ id: 1, key: 'Delete' })
+		vi.mocked(getTranslationValue).mockImplementation(async (_translationId, lang) => (
+			mocks.cachedTranslations.get(String(lang))?.value || null
+		))
+		vi.mocked(getPluralForms).mockResolvedValue(null)
+		vi.mocked(upsertTranslation).mockResolvedValue(1)
+		vi.mocked(upsertTranslationValue).mockResolvedValue(undefined)
 	})
 
 	afterEach(() => {
+		vi.useRealTimers()
 		render(null, container)
 		container.remove()
 	})
 
-	it('keeps resolved user language when user query temporarily returns null', async () => {
+	async function flushPostLoadQueries() {
+		for (let i = 0; i < 4; i += 1) {
+			await act(async () => {
+				window.dispatchEvent(new Event('load'))
+				await vi.runOnlyPendingTimersAsync()
+				await Promise.resolve()
+			})
+		}
+	}
+
+	it('renders source text first, then resolves cached translation after post-load IndexedDB read', async () => {
+		mocks.currentUser = { lang: 'ru' }
+
 		await act(async () => {
 			render(h(TranslationProbe, { tick: 0 }), container)
 		})
 		expect(container.textContent).toBe('Delete')
 
-		mocks.currentUser = { lang: 'ru' }
-		await act(async () => {
-			render(h(TranslationProbe, { tick: 1 }), container)
-		})
+		await flushPostLoadQueries()
 		expect(container.textContent).toBe('Удалить')
 
 		mocks.currentUser = null
@@ -108,5 +141,62 @@ describe('useTranslation', () => {
 		expect(container.textContent).toBe('Удалить')
 
 		expect(mocks.fetchTranslationWithRemoteMock).not.toHaveBeenCalled()
+	})
+
+	it('keeps dev translation editing lazy and updates local text after save', async () => {
+		mocks.isDev = true
+		mocks.currentUser = { lang: 'ru' }
+
+		await act(async () => {
+			render(h(T, null, 'Delete'), container)
+		})
+		await flushPostLoadQueries()
+		expect(container.textContent).toBe('Удалить')
+
+		const translationSpan = container.querySelector('span')
+		expect(translationSpan).not.toBeNull()
+
+		await act(async () => {
+			translationSpan?.dispatchEvent(new MouseEvent('click', {
+				bubbles: true,
+				ctrlKey: true,
+			}))
+		})
+
+		const input = container.querySelector('input') as HTMLInputElement | null
+		expect(input).not.toBeNull()
+
+		await act(async () => {
+			input!.value = 'Убрать'
+			input!.dispatchEvent(new InputEvent('input', { bubbles: true }))
+		})
+
+		await act(async () => {
+			input!.dispatchEvent(new KeyboardEvent('keydown', {
+				bubbles: true,
+				key: 'Enter',
+			}))
+
+			await vi.dynamicImportSettled()
+			for (let i = 0; i < 4; i += 1) {
+				await Promise.resolve()
+			}
+		})
+
+		expect(mocks.apiClientMutationMock).toHaveBeenCalledWith(
+			expect.stringContaining('updateTranslationValue'),
+			{
+				key: 'Delete',
+				lang: 'ru',
+				value: 'Убрать',
+				namespace: null,
+			}
+		)
+		expect(upsertTranslationValue).toHaveBeenCalledWith({
+			translationId: 1,
+			lang: 'ru',
+			value: 'Убрать',
+		})
+		expect(container.textContent).toBe('Убрать')
 	})
 })

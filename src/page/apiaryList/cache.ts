@@ -39,7 +39,12 @@ function groupByRelation(
 			continue
 		}
 
-		grouped.set(key, [...(grouped.get(key) || []), row])
+		const group = grouped.get(key)
+		if (group) {
+			group.push(row)
+		} else {
+			grouped.set(key, [row])
+		}
 	}
 
 	return grouped
@@ -58,6 +63,11 @@ export async function getCachedApiaryListData(): Promise<CachedApiaryListData> {
 		const hasApiaryRelations = hives.some(
 			(hive) => hive?.apiaryId != null || hive?.apiary_id != null
 		)
+		const hivesByApiaryId = hasApiaryRelations
+			? groupByRelation(hives, (hive) =>
+					relationId(hive?.apiaryId ?? hive?.apiary_id)
+			  )
+			: new Map<string, any[]>()
 		const boxesByHiveId = groupByRelation(boxes, (box) =>
 			relationId(box?.hiveId ?? box?.hive_id)
 		)
@@ -73,14 +83,10 @@ export async function getCachedApiaryListData(): Promise<CachedApiaryListData> {
 				.filter((apiary) => apiary?.id != null)
 				.map((apiary) => {
 					const apiaryId = relationId(apiary.id)
-					const apiaryHives = hives
-						.filter((hive) => {
-							if (!hasApiaryRelations && apiaries.length === 1) {
-								return true
-							}
-
-							return relationId(hive?.apiaryId ?? hive?.apiary_id) === apiaryId
-						})
+					const hivesForApiary = !hasApiaryRelations && apiaries.length === 1
+						? hives
+						: hivesByApiaryId.get(apiaryId || '') || []
+					const apiaryHives = hivesForApiary
 						.map((hive) => {
 							const hiveId = relationId(hive?.id)
 							const hiveFamilies = hiveId

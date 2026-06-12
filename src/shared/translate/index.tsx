@@ -1,24 +1,9 @@
 import { h } from 'preact'
 import { useEffect, useState, useRef, useMemo, useCallback } from 'preact/hooks'
-import { useLiveQuery } from 'dexie-react-hooks'
 
-import { getUser } from '@/models/user'
-import {
-	getTranslation,
-	getTranslationValue,
-	getPluralForms,
-	upsertTranslationValue,
-} from '@/models/translations'
-import {
-	fetchTranslationWithRemote,
-	fetchPluralWithRemote,
-	getUserLanguage,
-	fetchRemoteTranslation,
-	type TranslationData,
-} from '@/models/translationService'
+import type { TranslationData } from '@/models/translationService'
 import { getPluralForm } from './pluralRules'
 import isDev from '@/isDev'
-import { useMutation } from '@/api'
 import { SUPPORTED_LANGUAGES } from '@/config/languages'
 
 function isTranslationDebugEnabled(): boolean {
@@ -32,20 +17,144 @@ function debugTranslation(...args: any[]) {
 }
 
 const runtimeTranslationCache = new Map<string, string>()
+const translationCacheDelayMs = import.meta.env.MODE === 'test' ? 0 : 500
+const translationIdleTimeoutMs = import.meta.env.MODE === 'test' ? 0 : 1_000
+const shouldWaitForPaint = import.meta.env.MODE !== 'test'
+let userLanguagePromise: Promise<string> | null = null
+let cachedUserLanguage: string | null = null
 
 function getCacheKey(key: string, lang: string, ctx?: string, ns?: string): string {
 	return `${lang}|${ns || ''}|${ctx || ''}|${key}`
 }
 
+function getUserLanguage(
+	user: { lang?: string } | null,
+	supportedLangs: readonly string[] = SUPPORTED_LANGUAGES
+): string {
+	if (user && user.lang) {
+		const normalizedUserLang = user.lang.toLowerCase().substring(0, 2)
+		if (supportedLangs.includes(normalizedUserLang)) {
+			return normalizedUserLang
+		}
+	}
+
+	if (typeof navigator !== 'undefined') {
+		const browserLang = navigator.language.toLowerCase().substring(0, 2)
+		if (supportedLangs.includes(browserLang)) {
+			return browserLang
+		}
+	}
+
+	return 'en'
+}
+
+function readUserLanguageOnce(): Promise<string> {
+	if (cachedUserLanguage) {
+		return Promise.resolve(cachedUserLanguage)
+	}
+
+	if (!userLanguagePromise) {
+		userLanguagePromise = import('@/models/user')
+			.then(({ getUser }) => getUser())
+			.then((user) => {
+				cachedUserLanguage = getUserLanguage(user, SUPPORTED_LANGUAGES)
+				return cachedUserLanguage
+			})
+			.catch((error) => {
+				userLanguagePromise = null
+				throw error
+			})
+	}
+
+	return userLanguagePromise
+}
+
+function scheduleAfterInitialRender(callback: () => void) {
+	if (typeof window === 'undefined') {
+		return () => {}
+	}
+
+	let cancelled = false
+	let timeoutId: ReturnType<typeof setTimeout> | undefined
+	let animationFrameId: number | undefined
+	let idleId: number | undefined
+
+	const runWhenIdle = () => {
+		if (cancelled) return
+
+		if ('requestIdleCallback' in window) {
+			idleId = window.requestIdleCallback(() => {
+				if (!cancelled) callback()
+			}, { timeout: translationIdleTimeoutMs })
+			return
+		}
+
+		timeoutId = globalThis.setTimeout(() => {
+			if (!cancelled) callback()
+		}, 0)
+	}
+
+	const runAfterDelay = () => {
+		timeoutId = globalThis.setTimeout(runWhenIdle, translationCacheDelayMs)
+	}
+
+	const runAfterPaint = () => {
+		if (shouldWaitForPaint && 'requestAnimationFrame' in window) {
+			animationFrameId = window.requestAnimationFrame(() => {
+				if (!cancelled) {
+					animationFrameId = window.requestAnimationFrame(runAfterDelay)
+				}
+			})
+			return
+		}
+
+		runAfterDelay()
+	}
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', runAfterPaint, { once: true })
+	} else {
+		runAfterPaint()
+	}
+
+	return () => {
+		cancelled = true
+		document.removeEventListener('DOMContentLoaded', runAfterPaint)
+		if (timeoutId) globalThis.clearTimeout(timeoutId)
+		if (animationFrameId && 'cancelAnimationFrame' in window) {
+			window.cancelAnimationFrame(animationFrameId)
+		}
+		if (idleId && 'cancelIdleCallback' in window) {
+			window.cancelIdleCallback(idleId)
+		}
+	}
+}
+
 function useStableUserLanguage() {
-	const user = useLiveQuery(() => getUser(), [], null)
-	const [lang, setLang] = useState(() => getUserLanguage(user, SUPPORTED_LANGUAGES))
+	const [lang, setLang] = useState(() => getUserLanguage(null, SUPPORTED_LANGUAGES))
 
 	useEffect(() => {
-		if (user?.lang) {
-			setLang(getUserLanguage(user, SUPPORTED_LANGUAGES))
+		let cancelled = false
+
+		const cleanup = scheduleAfterInitialRender(() => {
+			void readUserLanguageOnce()
+				.then((userLang) => {
+					if (!cancelled) {
+						setLang(userLang)
+					}
+				})
+				.catch((error) => {
+					if (!cancelled) {
+						console.warn('[translate] Failed to read user language', error)
+					}
+				})
+		})
+
+		return () => {
+			cancelled = true
+			cleanup()
 		}
-	}, [user?.lang])
+	}, [])
 
 	return lang
 }
@@ -73,6 +182,7 @@ function TRemote({
 
 		const fetchTranslation = async () => {
 			try {
+				const { fetchRemoteTranslation } = await import('@/models/translationService')
 				const trans = await fetchRemoteTranslation(children, lang, ctx, ns)
 				if (!cancelled) {
 					setTranslation(trans)
@@ -121,31 +231,48 @@ export default function T({ children, ctx, ns }: TProps) {
 	const inputRef = useRef<HTMLInputElement>(null)
 	const devMode = isDev()
 
-	const [updateTranslationMutation] = useMutation(`
-		mutation updateTranslationValue($key: String!, $lang: String!, $value: String!, $namespace: String) {
-			updateTranslationValue(key: $key, lang: $lang, value: $value, namespace: $namespace) {
-				id
-				key
-				namespace
-				values
-			}
+	const [translationData, setTranslationData] = useState<{
+		exists: boolean
+		value: string | null
+	} | null>(null)
+
+	useEffect(() => {
+		let cancelled = false
+
+		setTranslationData(null)
+		setShouldShowRemote(false)
+		setHasAttemptedFetch(false)
+
+		const cleanup = scheduleAfterInitialRender(() => {
+			void import('@/models/translations')
+				.then(async ({ getTranslation, getTranslationValue }) => {
+					const trans = await getTranslation(children, ns, ctx)
+
+					if (!trans) {
+						return { exists: false, value: null }
+					}
+
+					const value = await getTranslationValue(trans.id, lang)
+					return { exists: true, value }
+				})
+				.then((data) => {
+					if (!cancelled) {
+						setTranslationData(data)
+					}
+				})
+				.catch((error) => {
+					if (!cancelled) {
+						console.warn('[translate] Failed to read cached translation', error)
+						setTranslationData({ exists: false, value: null })
+					}
+				})
+		})
+
+		return () => {
+			cancelled = true
+			cleanup()
 		}
-	`)
-
-	let translationData = useLiveQuery(
-		async () => {
-			const trans = await getTranslation(children, ns, ctx)
-
-			if (!trans) {
-				return { exists: false, value: null }
-			}
-
-			const value = await getTranslationValue(trans.id, lang)
-			return { exists: true, value }
-		},
-		[children, lang, ns, ctx],
-		null
-	)
+	}, [children, lang, ns, ctx])
 
 	const translation = translationData?.value || null
 	const translationExists = translationData?.exists ?? false
@@ -206,24 +333,44 @@ export default function T({ children, ctx, ns }: TProps) {
 		setIsSaving(true)
 
 		try {
+			const [{ apiClient }, { getTranslation, upsertTranslation, upsertTranslationValue }] = await Promise.all([
+				import('@/api'),
+				import('@/models/translations'),
+			])
 			const trans = await getTranslation(children, ns, ctx)
-			const translationId = trans?.id
 
-			await updateTranslationMutation({
+			await apiClient.mutation(`
+				mutation updateTranslationValue($key: String!, $lang: String!, $value: String!, $namespace: String) {
+					updateTranslationValue(key: $key, lang: $lang, value: $value, namespace: $namespace) {
+						id
+						key
+						namespace
+						values
+					}
+				}
+			`, {
 				key: children,
 				lang: lang,
 				value: editValue,
 				namespace: ns || null,
+			}).toPromise()
+
+			const translationId = trans?.id ?? (await upsertTranslation({
+				key: children,
+				namespace: ns,
+				context: ctx,
+			}))
+
+			await upsertTranslationValue({
+				translationId,
+				lang,
+				value: editValue,
 			})
 
-			if (translationId) {
-				await upsertTranslationValue({
-					translationId,
-					lang,
-					value: editValue,
-				})
-			}
-
+			runtimeTranslationCache.set(cacheKey, editValue)
+			setTranslationData({ exists: true, value: editValue })
+			setShouldShowRemote(false)
+			setHasAttemptedFetch(false)
 			setIsEditing(false)
 		} catch (error) {
 			console.error('Failed to update translation:', error)
@@ -318,20 +465,50 @@ export default function T({ children, ctx, ns }: TProps) {
 export function useTranslation(key: string, ctx?: string, ns?: string) {
 	const [translatedText, setTranslatedText] = useState(key)
 	const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false)
+	const [cacheResolved, setCacheResolved] = useState(false)
 	const lang = useStableUserLanguage()
 	const cacheKey = getCacheKey(key, lang, ctx, ns)
 
-	let cachedTranslation = useLiveQuery(
-		async () => {
-			const translation = await getTranslation(key, ns, ctx)
-			if (!translation) return null
+	const [cachedTranslation, setCachedTranslation] = useState<{
+		translationId: number
+		value: string | null
+	} | null>(null)
 
-			const value = await getTranslationValue(translation.id, lang)
-			return { translationId: translation.id, value }
-		},
-		[key, lang, ns, ctx],
-		null
-	)
+	useEffect(() => {
+		let cancelled = false
+
+		setCachedTranslation(null)
+		setCacheResolved(false)
+
+		const cleanup = scheduleAfterInitialRender(() => {
+			void import('@/models/translations')
+				.then(async ({ getTranslation, getTranslationValue }) => {
+					const translation = await getTranslation(key, ns, ctx)
+					if (!translation) return null
+
+					const value = await getTranslationValue(translation.id, lang)
+					return { translationId: translation.id, value }
+				})
+				.then((translation) => {
+					if (!cancelled) {
+						setCachedTranslation(translation)
+						setCacheResolved(true)
+					}
+				})
+				.catch((error) => {
+					if (!cancelled) {
+						console.warn('[translate] Failed to read cached translation', error)
+						setCachedTranslation(null)
+						setCacheResolved(true)
+					}
+				})
+		})
+
+		return () => {
+			cancelled = true
+			cleanup()
+		}
+	}, [key, lang, ns, ctx])
 
 	useEffect(() => {
 		const runtimeValue = runtimeTranslationCache.get(cacheKey)
@@ -350,6 +527,7 @@ export function useTranslation(key: string, ctx?: string, ns?: string) {
 		}
 
 		if (
+			cacheResolved &&
 			(cachedTranslation === null || cachedTranslation?.value === null) &&
 			!hasAttemptedFetch
 		) {
@@ -358,7 +536,10 @@ export function useTranslation(key: string, ctx?: string, ns?: string) {
 
 			let cancelled = false
 
-				fetchTranslationWithRemote(key, lang, ctx, ns)
+			import('@/models/translationService')
+				.then(({ fetchTranslationWithRemote }) =>
+					fetchTranslationWithRemote(key, lang, ctx, ns)
+				)
 					.then((text) => {
 						if (!cancelled) {
 							runtimeTranslationCache.set(cacheKey, text)
@@ -376,7 +557,7 @@ export function useTranslation(key: string, ctx?: string, ns?: string) {
 				cancelled = true
 			}
 		}
-	}, [cachedTranslation, key, lang, ctx, ns, hasAttemptedFetch, cacheKey])
+	}, [cacheResolved, cachedTranslation, key, lang, ctx, ns, hasAttemptedFetch, cacheKey])
 
 	return translatedText
 }
@@ -384,20 +565,50 @@ export function useTranslation(key: string, ctx?: string, ns?: string) {
 export function usePlural(count: number, key: string, ns?: string) {
 	const [translatedText, setTranslatedText] = useState(key)
 	const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false)
+	const [pluralCacheResolved, setPluralCacheResolved] = useState(false)
 	const lang = useStableUserLanguage()
 	const pluralForm = getPluralForm(count, lang)
 
-	let cachedPlural = useLiveQuery(
-		async () => {
-			const translation = await getTranslation(key, ns)
-			if (!translation) return null
+	const [cachedPlural, setCachedPlural] = useState<{
+		translationId: number
+		pluralData: Record<string, string> | null
+	} | null>(null)
 
-			const pluralData = await getPluralForms(translation.id, lang)
-			return { translationId: translation.id, pluralData }
-		},
-		[key, lang, ns],
-		null
-	)
+	useEffect(() => {
+		let cancelled = false
+
+		setCachedPlural(null)
+		setPluralCacheResolved(false)
+
+		const cleanup = scheduleAfterInitialRender(() => {
+			void import('@/models/translations')
+				.then(async ({ getTranslation, getPluralForms }) => {
+					const translation = await getTranslation(key, ns)
+					if (!translation) return null
+
+					const pluralData = await getPluralForms(translation.id, lang)
+					return { translationId: translation.id, pluralData }
+				})
+				.then((plural) => {
+					if (!cancelled) {
+						setCachedPlural(plural)
+						setPluralCacheResolved(true)
+					}
+				})
+				.catch((error) => {
+					if (!cancelled) {
+						console.warn('[translate] Failed to read cached plural', error)
+						setCachedPlural(null)
+						setPluralCacheResolved(true)
+					}
+				})
+		})
+
+		return () => {
+			cancelled = true
+			cleanup()
+		}
+	}, [key, lang, ns])
 
 	useEffect(() => {
 		setHasAttemptedFetch(false)
@@ -410,6 +621,7 @@ export function usePlural(count: number, key: string, ns?: string) {
 		}
 
 		if (
+			pluralCacheResolved &&
 			(cachedPlural === null || cachedPlural?.pluralData === null) &&
 			!hasAttemptedFetch
 		) {
@@ -417,7 +629,10 @@ export function usePlural(count: number, key: string, ns?: string) {
 
 			let cancelled = false
 
-			fetchPluralWithRemote(key, lang, pluralForm, ns)
+			import('@/models/translationService')
+				.then(({ fetchPluralWithRemote }) =>
+					fetchPluralWithRemote(key, lang, pluralForm, ns)
+				)
 				.then((text) => {
 					if (!cancelled) {
 						setTranslatedText(text)
@@ -433,7 +648,7 @@ export function usePlural(count: number, key: string, ns?: string) {
 				cancelled = true
 			}
 		}
-	}, [cachedPlural, key, lang, pluralForm, ns, hasAttemptedFetch])
+	}, [pluralCacheResolved, cachedPlural, key, lang, pluralForm, ns, hasAttemptedFetch])
 
 	return translatedText
 }

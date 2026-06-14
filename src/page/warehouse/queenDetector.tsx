@@ -429,11 +429,9 @@ export default function QueenDetectorPage() {
 
 	const [isCameraActive, setIsCameraActive] = useState(false)
 	const [isModelLoading, setIsModelLoading] = useState(false)
-	const [isDetecting, setIsDetecting] = useState(false)
 	const [cameraDevices, setCameraDevices] = useState<MediaDeviceInfo[]>([])
 	const [selectedCameraDeviceId, setSelectedCameraDeviceId] = useState<string | null>(null)
 	const [isSwitchingCamera, setIsSwitchingCamera] = useState(false)
-	const [detections, setDetections] = useState<Detection[]>([])
 	const [bestCapture, setBestCapture] = useState<BestCapture | null>(null)
 	const [assignmentMode, setAssignmentMode] = useState<AssignMode>('existing')
 	const [selectedQueenId, setSelectedQueenId] = useState('')
@@ -445,7 +443,6 @@ export default function QueenDetectorPage() {
 	const [savedPreviewUrl, setSavedPreviewUrl] = useState<string | null>(null)
 	const [assignmentError, setAssignmentError] = useState<any>(null)
 	const [error, setError] = useState<any>(null)
-	const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null)
 	const switchCameraTitle = useTranslation('Switch camera')
 
 	const { data: warehouseData, error: warehouseError } = useQuery(WAREHOUSE_QUEENS_QUERY)
@@ -522,6 +519,11 @@ export default function QueenDetectorPage() {
 		setSavedPreviewUrl(null)
 	}, [])
 
+	const clearSaveResult = useCallback(() => {
+		setSavedFamilyId(null)
+		setSavedPreviewUrl(null)
+	}, [])
+
 	const drawPreview = useCallback((items: Detection[]) => {
 		const video = videoRef.current
 		const canvas = previewCanvasRef.current
@@ -589,9 +591,7 @@ export default function QueenDetectorPage() {
 		streamRef.current?.getTracks().forEach((track) => track.stop())
 		streamRef.current = null
 		detectionsRef.current = []
-		setDetections([])
 		setIsCameraActive(false)
-		setIsDetecting(false)
 		isDetectingRef.current = false
 	}, [stopPreviewLoop])
 
@@ -641,7 +641,6 @@ export default function QueenDetectorPage() {
 		if (!video || !canvas || !session || !video.videoWidth || !video.videoHeight) return
 
 		isDetectingRef.current = true
-		setIsDetecting(true)
 
 		try {
 			const ort = await import('onnxruntime-web/wasm')
@@ -663,15 +662,12 @@ export default function QueenDetectorPage() {
 			}
 
 			detectionsRef.current = items
-			setDetections(items)
 			drawPreview(items)
-			setLastUpdatedAt(new Date().toLocaleTimeString())
 			setError(null)
 		} catch (e) {
 			setError(e)
 		} finally {
 			isDetectingRef.current = false
-			setIsDetecting(false)
 		}
 	}, [captureBestFrameIfNeeded, drawPreview])
 
@@ -891,16 +887,21 @@ export default function QueenDetectorPage() {
 		uploadQueenPreview,
 	])
 
-	const queenDetections = detections.filter((detection) => detection.class_name.toLowerCase().includes('queen'))
-	const statusText = isModelLoading ? <T>Loading queen detector model...</T> : isDetecting ? <T>Detecting frame...</T> : <T>Waiting for next frame</T>
 	const canSwitchCameras = isCameraActive && cameraDevices.length > 1
 	const cameraSwitchTitle = cameraDevices.length > 1 ? `${switchCameraTitle} (${cameraDevices.length})` : switchCameraTitle
-	const bestCaptureBoxStyle = bestCapture ? {
-		left: `${Math.max(0, (bestCapture.detection.box[0] / bestCapture.videoWidth) * 100)}%`,
-		top: `${Math.max(0, (bestCapture.detection.box[1] / bestCapture.videoHeight) * 100)}%`,
-		width: `${Math.max(0, ((bestCapture.detection.box[2] - bestCapture.detection.box[0]) / bestCapture.videoWidth) * 100)}%`,
-		height: `${Math.max(0, ((bestCapture.detection.box[3] - bestCapture.detection.box[1]) / bestCapture.videoHeight) * 100)}%`,
-	} : undefined
+	const bestCaptureBoxStyle = bestCapture ? (() => {
+		const left = Math.max(0, Math.min(100, (bestCapture.detection.box[0] / bestCapture.videoWidth) * 100))
+		const top = Math.max(0, Math.min(100, (bestCapture.detection.box[1] / bestCapture.videoHeight) * 100))
+		const width = Math.max(0, Math.min(100 - left, ((bestCapture.detection.box[2] - bestCapture.detection.box[0]) / bestCapture.videoWidth) * 100))
+		const height = Math.max(0, Math.min(100 - top, ((bestCapture.detection.box[3] - bestCapture.detection.box[1]) / bestCapture.videoHeight) * 100))
+
+		return {
+			left: `${left}%`,
+			top: `${top}%`,
+			width: `${width}%`,
+			height: `${height}%`,
+		}
+	})() : undefined
 	const selectedQueen = queenOptions.find((option) => option.id === selectedQueenId)
 	const hasCompletedDetection = !isCameraActive && Boolean(bestCapture)
 
@@ -956,7 +957,7 @@ export default function QueenDetectorPage() {
 				</div>
 			</div>
 				{hasCompletedDetection && bestCapture && (
-				<section className={styles.bestCapturePanel}>
+					<section className={styles.bestCapturePanel}>
 					<div className={styles.bestCaptureHeader}>
 						<div>
 							<h3><T>Best confidence capture</T></h3>
@@ -987,76 +988,94 @@ export default function QueenDetectorPage() {
 								)}
 							</p>
 
-							<div className={styles.modeSwitch}>
-								<Button
-									type="button"
-									className={`${styles.modeButton} ${assignmentMode === 'existing' ? styles.activeMode : ''}`}
-									disabled={!queenOptions.length}
-									onClick={() => setAssignmentMode('existing')}
-								>
-									<T>Existing queen</T>
-								</Button>
-								<Button
-									type="button"
-									className={`${styles.modeButton} ${assignmentMode === 'new' ? styles.activeMode : ''}`}
-									onClick={() => setAssignmentMode('new')}
-								>
-									<T>New queen</T>
-								</Button>
-							</div>
-
-							{assignmentMode === 'existing' ? (
-								<div className={styles.formField}>
-									<label><T>Select Queen</T></label>
-									<select
-										className={styles.assignmentInput}
-										value={selectedQueenId}
-										onChange={(event: any) => setSelectedQueenId(event.target.value)}
+								<div className={styles.modeSwitch}>
+									<Button
+										type="button"
+										className={`${styles.modeButton} ${assignmentMode === 'existing' ? styles.activeMode : ''}`}
+										disabled={!queenOptions.length}
+										onClick={() => {
+											clearSaveResult()
+											setAssignmentMode('existing')
+										}}
 									>
-										{queenOptions.map((option) => (
-											<option key={`${option.source}-${option.id}`} value={option.id}>
-												{formatQueenOption(option)}
-											</option>
-										))}
-									</select>
-									{selectedQueen && (
-										<p className={styles.captureMeta}>
-											<T>Selected</T>: {selectedQueen.name || `#${selectedQueen.id}`}
-										</p>
-									)}
+										<T>Existing queen</T>
+									</Button>
+									<Button
+										type="button"
+										className={`${styles.modeButton} ${assignmentMode === 'new' ? styles.activeMode : ''}`}
+										onClick={() => {
+											clearSaveResult()
+											setAssignmentMode('new')
+										}}
+									>
+										<T>New queen</T>
+									</Button>
 								</div>
-							) : (
-								<div className={styles.formGrid}>
+
+								{assignmentMode === 'existing' ? (
 									<div className={styles.formField}>
-										<label><T>Queen Name</T></label>
-										<input
+										<label><T>Select Queen</T></label>
+										<select
 											className={styles.assignmentInput}
-											value={newQueenName}
-											onChange={(event: any) => setNewQueenName(event.target.value)}
-											placeholder="Queen name"
-										/>
+											value={selectedQueenId}
+											onChange={(event: any) => {
+												clearSaveResult()
+												setSelectedQueenId(event.target.value)
+											}}
+										>
+											{queenOptions.map((option) => (
+												<option key={`${option.source}-${option.id}`} value={option.id}>
+													{formatQueenOption(option)}
+												</option>
+											))}
+										</select>
+										{selectedQueen && (
+											<p className={styles.captureMeta}>
+												<T>Selected</T>: {selectedQueen.name || `#${selectedQueen.id}`}
+											</p>
+										)}
 									</div>
-									<div className={styles.formField}>
-										<label><T>Year</T></label>
-										<input
-											className={styles.assignmentInput}
-											value={newQueenYear}
-											maxLength={4}
-											onChange={(event: any) => setNewQueenYear(event.target.value)}
-											placeholder="YYYY"
-										/>
+								) : (
+									<div className={styles.formGrid}>
+										<div className={styles.formField}>
+											<label><T>Queen Name</T></label>
+											<input
+												className={styles.assignmentInput}
+												value={newQueenName}
+												onChange={(event: any) => {
+													clearSaveResult()
+													setNewQueenName(event.target.value)
+												}}
+												placeholder="Queen name"
+											/>
+										</div>
+										<div className={styles.formField}>
+											<label><T>Year</T></label>
+											<input
+												className={styles.assignmentInput}
+												value={newQueenYear}
+												maxLength={4}
+												onChange={(event: any) => {
+													clearSaveResult()
+													setNewQueenYear(event.target.value)
+												}}
+												placeholder="YYYY"
+											/>
+										</div>
+										<div className={styles.formField}>
+											<label><T>Race</T></label>
+											<input
+												className={styles.assignmentInput}
+												value={newQueenRace}
+												onChange={(event: any) => {
+													clearSaveResult()
+													setNewQueenRace(event.target.value)
+												}}
+												placeholder="e.g. Carniolan"
+											/>
+										</div>
 									</div>
-									<div className={styles.formField}>
-										<label><T>Race</T></label>
-										<input
-											className={styles.assignmentInput}
-											value={newQueenRace}
-											onChange={(event: any) => setNewQueenRace(event.target.value)}
-											placeholder="e.g. Carniolan"
-										/>
-									</div>
-								</div>
-							)}
+								)}
 
 							<div className={styles.assignmentControls}>
 								<Button type="submit" color="green" loading={isSavingCapture}>

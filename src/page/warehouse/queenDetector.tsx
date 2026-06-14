@@ -902,6 +902,7 @@ export default function QueenDetectorPage() {
 		height: `${Math.max(0, ((bestCapture.detection.box[3] - bestCapture.detection.box[1]) / bestCapture.videoHeight) * 100)}%`,
 	} : undefined
 	const selectedQueen = queenOptions.find((option) => option.id === selectedQueenId)
+	const hasCompletedDetection = !isCameraActive && Boolean(bestCapture)
 
 	return (
 		<div className={styles.page}>
@@ -914,9 +915,8 @@ export default function QueenDetectorPage() {
 			)}
 
 			<ErrorMsg error={error || assignmentError || warehouseError || addWarehouseQueenError || addQueenToHiveError || assignQueenFromWarehouseError || uploadQueenPreviewError} />
-
 			<div className={styles.cameraPanel}>
-				<div className={styles.videoWrap}>
+				<div className={`${styles.videoWrap} ${hasCompletedDetection ? styles.videoWrapCompact : ''}`}>
 					<video ref={videoRef} className={styles.sourceVideo} muted playsInline />
 					<canvas ref={previewCanvasRef} className={styles.previewCanvas} />
 					{isCameraActive && (
@@ -937,21 +937,25 @@ export default function QueenDetectorPage() {
 						</Button>
 					)}
 					{!isCameraActive && (
-						<div className={styles.placeholder}>
-							<p className={styles.privacyNote}>
-								<T>Use the camera to detect a queen bee directly in the browser. Keep the frame steady and well lit.</T>
-							</p>
+						<div className={`${styles.placeholder} ${hasCompletedDetection ? styles.placeholderCompact : ''}`}>
+							{!hasCompletedDetection && (
+								<p className={styles.privacyNote}>
+									<T>Use the camera to detect a queen bee directly in the browser. Keep the frame steady and well lit.</T>
+								</p>
+							)}
 							<Button color="green" onClick={() => startCamera(selectedCameraDeviceId || undefined)} loading={isModelLoading}>
-								<T>Start camera</T>
+								<T>Detect queen</T>
 							</Button>
-							<p className={styles.privacyNote}>
-								<T>Your video stream is private and is not sent anywhere.</T>
-							</p>
+							{!hasCompletedDetection && (
+								<p className={styles.privacyNote}>
+									<T>Your video stream is private and is not sent anywhere.</T>
+								</p>
+							)}
 						</div>
 					)}
 				</div>
 			</div>
-			{!isCameraActive && bestCapture && (
+				{hasCompletedDetection && bestCapture && (
 				<section className={styles.bestCapturePanel}>
 					<div className={styles.bestCaptureHeader}>
 						<div>

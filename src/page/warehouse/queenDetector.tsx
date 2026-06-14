@@ -537,7 +537,7 @@ export default function QueenDetectorPage() {
 
 		context.clearRect(0, 0, canvas.width, canvas.height)
 		context.drawImage(video, 0, 0, canvas.width, canvas.height)
-		context.lineWidth = Math.max(3, canvas.width / 220)
+		context.lineWidth = Math.max(6, canvas.width / 100)
 		context.font = `${Math.max(14, Math.round(canvas.width / 42))}px sans-serif`
 
 		items.forEach((detection) => {
@@ -917,11 +917,6 @@ export default function QueenDetectorPage() {
 						</p>
 					)}
 				</div>
-				{isCameraActive && (
-					<div className={styles.actions}>
-						<Button color="red" onClick={stopCamera}><T>Stop camera</T></Button>
-					</div>
-				)}
 			</div>
 
 			<ErrorMsg error={error || assignmentError || warehouseError || addWarehouseQueenError || addQueenToHiveError || assignQueenFromWarehouseError || uploadQueenPreviewError} />
@@ -930,9 +925,13 @@ export default function QueenDetectorPage() {
 				<div className={styles.videoWrap}>
 					<video ref={videoRef} className={styles.sourceVideo} muted playsInline />
 					<canvas ref={previewCanvasRef} className={styles.previewCanvas} />
+					{isCameraActive && (
+						<div className={styles.cameraControls}>
+							<Button color="red" onClick={stopCamera}><T>Stop camera</T></Button>
+						</div>
+					)}
 					{canSwitchCameras && (
 						<Button
-							className={styles.cameraSwitchButton}
 							iconOnly
 							title={cameraSwitchTitle}
 							onClick={switchCamera}

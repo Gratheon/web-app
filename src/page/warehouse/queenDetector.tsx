@@ -905,19 +905,13 @@ export default function QueenDetectorPage() {
 
 	return (
 		<div className={styles.page}>
-			<div className={styles.headerRow}>
-				<div>
-					<h2><T>Queen finder</T></h2>
-					<p className={styles.description}>
-						<T>Use the camera to detect a queen bee directly in the browser. Keep the frame steady and well lit.</T>
+			{hasHiveContext && (
+				<div className={styles.headerRow}>
+					<p className={styles.contextNote}>
+						<T>Inspection context</T>: <T>hive</T> #{inspectedHiveId}
 					</p>
-					{hasHiveContext && (
-						<p className={styles.contextNote}>
-							<T>Inspection context</T>: <T>hive</T> #{inspectedHiveId}
-						</p>
-					)}
 				</div>
-			</div>
+			)}
 
 			<ErrorMsg error={error || assignmentError || warehouseError || addWarehouseQueenError || addQueenToHiveError || assignQueenFromWarehouseError || uploadQueenPreviewError} />
 
@@ -932,6 +926,7 @@ export default function QueenDetectorPage() {
 					)}
 					{canSwitchCameras && (
 						<Button
+							className={styles.cameraSwitchButton}
 							iconOnly
 							title={cameraSwitchTitle}
 							onClick={switchCamera}
@@ -943,7 +938,9 @@ export default function QueenDetectorPage() {
 					)}
 					{!isCameraActive && (
 						<div className={styles.placeholder}>
-							<p><T>Start the camera to begin queen detection.</T></p>
+							<p className={styles.privacyNote}>
+								<T>Use the camera to detect a queen bee directly in the browser. Keep the frame steady and well lit.</T>
+							</p>
 							<Button color="green" onClick={() => startCamera(selectedCameraDeviceId || undefined)} loading={isModelLoading}>
 								<T>Start camera</T>
 							</Button>
@@ -953,35 +950,7 @@ export default function QueenDetectorPage() {
 						</div>
 					)}
 				</div>
-
-				<aside className={styles.resultsPanel}>
-					<h3><T>Live results</T></h3>
-					<div className={styles.statusRow}>
-						<span className={isDetecting || isModelLoading ? styles.statusActive : styles.statusIdle} />
-						{statusText}
-					</div>
-					<div className={styles.metric}>
-						<strong>{queenDetections.length}</strong>
-						<span><T>queen detections</T></span>
-					</div>
-					{bestCapture && (
-						<div className={styles.liveBest}>
-							<T>Best confidence capture</T>: <strong>{Math.round(bestCapture.confidence * 100)}%</strong>
-						</div>
-					)}
-					{lastUpdatedAt && <p className={styles.updated}><T>Last update</T>: {lastUpdatedAt}</p>}
-					<ul className={styles.detectionList}>
-						{detections.map((detection, index) => (
-							<li key={`${detection.class_name}-${index}`}>
-								<span>{detection.class_name}</span>
-								<strong>{Math.round(detection.confidence * 100)}%</strong>
-							</li>
-						))}
-						{detections.length === 0 && <li><T>No detections yet.</T></li>}
-					</ul>
-				</aside>
 			</div>
-
 			{!isCameraActive && bestCapture && (
 				<section className={styles.bestCapturePanel}>
 					<div className={styles.bestCaptureHeader}>

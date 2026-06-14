@@ -12,17 +12,6 @@
 	justify-content: space-between;
 	gap: 16px;
 	flex-wrap: wrap;
-
-	h2 {
-		padding: 10px 0;
-		margin-bottom: 0;
-	}
-}
-
-.description {
-	margin: 4px 0 0;
-	color: #666;
-	max-width: 760px;
 }
 
 .contextNote {
@@ -55,17 +44,20 @@
 
 .cameraPanel {
 	display: grid;
-	grid-template-columns: minmax(0, 1fr) 280px;
+	grid-template-columns: 1fr;
 	gap: 14px;
 	align-items: start;
+	width: 100vw;
+	margin-left: calc(50% - 50vw);
+	margin-right: calc(50% - 50vw);
 }
 
 .videoWrap {
 	position: relative;
-	height: calc(100vh - 280px);
+	height: 100vh;
+	height: 100dvh;
 	min-height: 420px;
 	background: #111827;
-	border-radius: 12px;
 	overflow: hidden;
 	box-shadow: 0 10px 28px rgba(15, 23, 42, 0.18);
 }
@@ -119,6 +111,8 @@
 }
 
 .placeholder {
+	position: absolute;
+	inset: 0;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -425,6 +419,14 @@
 	.formGrid,
 	.modeSwitch {
 		grid-template-columns: 1fr;
+	}
+}
+
+@media @mobile {
+	.videoWrap {
+		height: calc(100vh - 122px - env(safe-area-inset-bottom));
+		height: calc(100dvh - 122px - env(safe-area-inset-bottom));
+		min-height: 0;
 	}
 }
 

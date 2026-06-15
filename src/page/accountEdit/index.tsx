@@ -15,6 +15,7 @@ import PagePaddedCentered from '@/shared/pagePaddedCentered'
 import DangerZone from './danger_zone'
 import Card from '@/shared/pagePaddedCentered/card'
 import { formatDateTimeByLocale, getBrowserLocale } from '@/shared/dateLocale'
+import { LANGUAGE_NAMES, SUPPORTED_LANGUAGES } from '@/config/languages'
 
 const DETECTION_CONFIDENCE_OPTIONS = [40, 50, 60, 70, 80, 90]
 
@@ -37,6 +38,12 @@ const LOCALE_OPTIONS = [
 	'es-ES',
 	'et-EE',
 	'fr-FR',
+	'lv-LV',
+	'lt-LT',
+	'hu-HU',
+	'uk-UA',
+	'it-IT',
+	'ro-RO',
 	'pl-PL',
 	'pt-PT',
 	'ru-RU',
@@ -251,22 +258,10 @@ export default function AccountEdit() {
 						</div>
 						<div>
 							<label htmlFor="last_name"><T>Language</T></label>
-							<select name="lang" onInput={onInput}>
-                <option value="en" selected={user.lang == "en"}>English</option>
-                <option value="zh" selected={user.lang == "zh"}>简体中文</option>
-                <option value="hi" selected={user.lang == "hi"}>हिन्दी</option>
-                <option value="es" selected={user.lang == "es"}>Español</option>
-                <option value="fr" selected={user.lang == "fr"}>Français</option>
-                <option value="ar" selected={user.lang == "ar"}>العربية</option>
-                <option value="bn" selected={user.lang == "bn"}>বাংলা</option>
-                <option value="pt" selected={user.lang == "pt"}>Português</option>
-                <option value="ru" selected={user.lang == "ru"}>Русский</option>
-                <option value="ja" selected={user.lang == "ja"}>日本語</option>
-
-                <option value="de" selected={user.lang == "de"}>Deutsch</option>
-                <option value="pl" selected={user.lang == "pl"}>Polski</option>
-                <option value="tr" selected={user.lang == "tr"}>Türkçe</option>
-                <option value="et" selected={user.lang == "et"}>Eesti</option>
+							<select name="lang" value={user.lang || 'en'} onInput={onInput}>
+								{SUPPORTED_LANGUAGES.map((lang) => (
+									<option key={lang} value={lang}>{LANGUAGE_NAMES[lang]}</option>
+								))}
 							</select>
 						</div>
 						<div>

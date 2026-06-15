@@ -12,11 +12,17 @@ const dateLocaleLoaders = {
 	et: () => import('date-fns/esm/locale/et/index.js'),
 	fr: () => import('date-fns/esm/locale/fr/index.js'),
 	hi: () => import('date-fns/esm/locale/hi/index.js'),
+	hu: () => import('date-fns/esm/locale/hu/index.js'),
+	it: () => import('date-fns/esm/locale/it/index.js'),
 	ja: () => import('date-fns/esm/locale/ja/index.js'),
+	lt: () => import('date-fns/esm/locale/lt/index.js'),
+	lv: () => import('date-fns/esm/locale/lv/index.js'),
 	pl: () => import('date-fns/esm/locale/pl/index.js'),
 	pt: () => import('date-fns/esm/locale/pt/index.js'),
+	ro: () => import('date-fns/esm/locale/ro/index.js'),
 	ru: () => import('date-fns/esm/locale/ru/index.js'),
 	tr: () => import('date-fns/esm/locale/tr/index.js'),
+	uk: () => import('date-fns/esm/locale/uk/index.js'),
 	zh: () => import('date-fns/esm/locale/zh-CN/index.js'),
 }
 

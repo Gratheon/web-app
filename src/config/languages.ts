@@ -6,6 +6,12 @@ export const SUPPORTED_LANGUAGES = [
 	'pl',
 	'de',
 	'fr',
+	'lv',
+	'lt',
+	'hu',
+	'uk',
+	'it',
+	'ro',
 	'zh',
 	'hi',
 	'es',
@@ -31,6 +37,12 @@ export const LANGUAGE_NAMES: Record<SupportedLanguage, string> = {
 	de: 'Deutsch',
 	et: 'Eesti',
 	pl: 'Polski',
-	tr: 'Türkçe'
+	tr: 'Türkçe',
+	lv: 'Latviešu',
+	lt: 'Lietuvių',
+	hu: 'Magyar',
+	uk: 'Українська',
+	it: 'Italiano',
+	ro: 'Română'
 };
 

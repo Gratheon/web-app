@@ -345,6 +345,12 @@ type Locale {
   pl: String
   de: String
   fr: String
+  lv: String
+  lt: String
+  hu: String
+  uk: String
+  it: String
+  ro: String
   key: String
 }
 
@@ -539,7 +545,7 @@ type User {
   first_name: String
   last_name: String
 
-  # Language code: en, ru, tr, et, pl
+  # Language code: en, ru, et, tr, pl, de, fr, lv, lt, hu, uk, it, ro, zh, hi, es, ar, bn, pt, ja
   lang: String
   locale: String
   date_added: DateTime

@@ -50,6 +50,12 @@ vi.mock('@/api', () => ({
 
 vi.mock('@/config/languages', () => ({
 	SUPPORTED_LANGUAGES: ['en', 'ru'],
+	normalizeSupportedLanguage: (lang?: string | null, supportedLangs: readonly string[] = ['en', 'ru']) => {
+		if (!lang) return null
+		const normalizedLang = lang.trim().toLowerCase().substring(0, 2)
+		return supportedLangs.includes(normalizedLang) ? normalizedLang : null
+	},
+	getPreferredLanguage: () => 'en',
 }))
 
 import T, { useTranslation } from './index'

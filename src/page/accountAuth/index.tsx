@@ -1,5 +1,5 @@
 import React, {useState} from 'react'
-import {Link} from 'react-router-dom'
+import {Link, useLocation} from 'react-router-dom'
 import {useNavigate} from 'react-router'
 
 import isDev from '@/isDev'
@@ -31,6 +31,8 @@ export default function AccountAuth() {
     })
 
     const navigate = useNavigate()
+    const location = useLocation()
+    const registerPath = `/account/register${location.search}`
     let [loading, setLoading] = useState(false)
 
     function onInput(e: any) {
@@ -196,7 +198,7 @@ export default function AccountAuth() {
                     <div className={style.balancer}></div>
                 </div>
                 <div className={style.linkToRegister}>
-                    <Link to="/account/register"><T>Create new account</T></Link>
+                    <Link to={registerPath}><T>Create new account</T></Link>
                 </div>
             </div>
         </div>

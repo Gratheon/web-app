@@ -16,7 +16,7 @@ import { markRegistrationWelcomePending } from '@/shared/welcomeFlow'
 import styles from './styles.module.less'
 import logoURL from '@/assets/logo_v7.svg'
 
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import isDev from '@/isDev'
 import { computeProofOfWork } from '@/shared/proofOfWork'
 
@@ -47,6 +47,8 @@ export default function AccountRegister() {
 	let [currentNonce, setCurrentNonce] = useState<string | null>(null)
 	let [userTriedSubmit, setUserTriedSubmit] = useState(false)
 	let navigate = useNavigate()
+	const location = useLocation()
+	const authPath = `/account/authenticate${location.search}`
 
 	let tFirstName = useTranslation('First name')
 	let tLastName = useTranslation('Last name')
@@ -341,10 +343,10 @@ export default function AccountRegister() {
 					</form>
 					<p>
 						<T>Already with us?</T> <a onClick={(e) => {
-							navigate('/account/authenticate/', { replace: false })
+							navigate(authPath, { replace: false })
 							e.preventDefault()
 							return false;
-						}} href="/account/authenticate/"><T>Sign in</T></a>
+						}} href={authPath}><T>Sign in</T></a>
 					</p>
 				</div>
 			</div>

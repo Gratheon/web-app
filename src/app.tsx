@@ -10,7 +10,7 @@ import GlobalErrorHandler from './error_handler'
 import { syncGraphqlSchemaToIndexDB } from './models/db'
 import { schemaObject } from './api/schema'
 import { UploadProvider } from './contexts/UploadContext'
-import { SUPPORTED_LANGUAGES } from './config/languages'
+import { getPreferredLanguage } from './config/languages'
 import OfflineWarning from './shared/offlineWarning'
 import { precacheUiAssets } from './assets/precacheUiAssets'
 
@@ -72,8 +72,7 @@ export default function App() {
 		return
 	}
 
-	const browserLang = navigator.language.toLowerCase().substring(0, 2)
-	const lang = SUPPORTED_LANGUAGES.includes(browserLang as any) ? browserLang : 'en'
+	const lang = getPreferredLanguage()
 
 	useEffect(() => {
 		if (typeof document !== 'undefined') {

@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, useMemo, useCallback } from 'preact/hooks'
 import type { TranslationData } from '@/models/translationService'
 import { getPluralForm } from './pluralRules'
 import isDev from '@/isDev'
-import { SUPPORTED_LANGUAGES } from '@/config/languages'
+import { getPreferredLanguage, normalizeSupportedLanguage, SUPPORTED_LANGUAGES } from '@/config/languages'
 
 function isTranslationDebugEnabled(): boolean {
 	return typeof window !== 'undefined' && Boolean((window as any).__DEBUG_TRANSLATIONS__)
@@ -31,21 +31,12 @@ function getUserLanguage(
 	user: { lang?: string } | null,
 	supportedLangs: readonly string[] = SUPPORTED_LANGUAGES
 ): string {
-	if (user && user.lang) {
-		const normalizedUserLang = user.lang.toLowerCase().substring(0, 2)
-		if (supportedLangs.includes(normalizedUserLang)) {
-			return normalizedUserLang
-		}
+	const userLang = normalizeSupportedLanguage(user?.lang, supportedLangs)
+	if (userLang) {
+		return userLang
 	}
 
-	if (typeof navigator !== 'undefined') {
-		const browserLang = navigator.language.toLowerCase().substring(0, 2)
-		if (supportedLangs.includes(browserLang)) {
-			return browserLang
-		}
-	}
-
-	return 'en'
+	return getPreferredLanguage(supportedLangs)
 }
 
 function readUserLanguageOnce(): Promise<string> {

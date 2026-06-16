@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
 	currentUser: null as { lang?: string } | null,
 	cachedTranslations: new Map<string, { translationId: number; value: string | null } | null>(),
 	fetchTranslationWithRemoteMock: vi.fn(),
+	fetchRemoteTranslationMock: vi.fn(),
 	isDev: false,
 	apiClientMutationMock: vi.fn(),
 	mutationToPromiseMock: vi.fn(),
@@ -49,8 +50,8 @@ vi.mock('@/api', () => ({
 }))
 
 vi.mock('@/config/languages', () => ({
-	SUPPORTED_LANGUAGES: ['en', 'ru'],
-	normalizeSupportedLanguage: (lang?: string | null, supportedLangs: readonly string[] = ['en', 'ru']) => {
+	SUPPORTED_LANGUAGES: ['en', 'ru', 'et'],
+	normalizeSupportedLanguage: (lang?: string | null, supportedLangs: readonly string[] = ['en', 'ru', 'et']) => {
 		if (!lang) return null
 		const normalizedLang = lang.trim().toLowerCase().substring(0, 2)
 		return supportedLangs.includes(normalizedLang) ? normalizedLang : null
@@ -88,6 +89,7 @@ describe('useTranslation', () => {
 		mocks.cachedTranslations.set('ru', { translationId: 1, value: 'Удалить' })
 		mocks.fetchTranslationWithRemoteMock.mockReset()
 		mocks.apiClientMutationMock.mockReset()
+			mocks.fetchRemoteTranslationMock.mockReset()
 		mocks.mutationToPromiseMock.mockReset()
 		mocks.apiClientMutationMock.mockReturnValue({
 			toPromise: mocks.mutationToPromiseMock,

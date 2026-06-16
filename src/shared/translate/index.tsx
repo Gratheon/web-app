@@ -266,7 +266,6 @@ export default function T({ children, ctx, ns }: TProps) {
 	}, [children, lang, ns, ctx])
 
 	const translation = translationData?.value || null
-	const translationExists = translationData?.exists ?? false
 	const cachedRuntimeValue = runtimeTranslationCache.get(cacheKey) || null
 
 	if (translation) {
@@ -274,17 +273,18 @@ export default function T({ children, ctx, ns }: TProps) {
 	}
 
 	useEffect(() => {
-		// Only fetch if translation record doesn't exist in IndexedDB at all
-		if (!hasAttemptedFetch && translationData && !translationExists) {
+		if (!hasAttemptedFetch && translationData && !translation) {
 			debugTranslation('rendering remote fallback', { key: children, context: ctx, namespace: ns, lang })
 			setShouldShowRemote(true)
 		}
 	}, [
 		translation,
-		translationExists,
 		translationData,
 		hasAttemptedFetch,
 		children,
+		ctx,
+		ns,
+		lang,
 	])
 
 	useEffect(() => {

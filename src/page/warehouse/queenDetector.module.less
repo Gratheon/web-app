@@ -145,6 +145,8 @@
 }
 
 .bestCapturePanel {
+	box-sizing: border-box;
+	width: 100%;
 	margin-top: 18px;
 	padding: 16px;
 	background: #fff;
@@ -181,13 +183,6 @@
 	color: #fff;
 	font-weight: 700;
 	white-space: nowrap;
-}
-
-.bestCaptureContent {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr) 360px;
-	gap: 16px;
-	align-items: start;
 }
 
 .bestCaptureFrame {
@@ -228,10 +223,9 @@
 }
 
 .assignmentPanel {
-	padding: 14px;
-	border: 1px solid #e7ecf5;
-	border-radius: 12px;
-	background: #f8fafc;
+	box-sizing: border-box;
+	width: 100%;
+	margin-top: 16px;
 
 	h3 {
 		margin: 0 0 8px;
@@ -259,6 +253,8 @@
 	background: #fff !important;
 	border: 1px solid #d1d9e6 !important;
 	color: #334155 !important;
+	text-align: center;
+	white-space: normal;
 }
 
 .activeMode {
@@ -291,6 +287,8 @@
 }
 
 .assignmentInput {
+	box-sizing: border-box;
+	width: 100%;
 	min-height: 38px;
 	padding: 8px 10px;
 	border: 1px solid #cbd5e1;
@@ -304,6 +302,12 @@
 	display: flex;
 	justify-content: flex-end;
 	margin-top: 12px;
+
+	button {
+		max-width: 100%;
+		text-align: center;
+		white-space: normal;
+	}
 }
 
 .saveResult {
@@ -317,12 +321,6 @@
 
 .captureCanvas {
 	display: none;
-}
-
-@media (max-width: 1100px) {
-	.bestCaptureContent {
-		grid-template-columns: 1fr;
-	}
 }
 
 @media (max-width: 900px) {
@@ -347,4 +345,3 @@
 		min-height: 0;
 	}
 }
-

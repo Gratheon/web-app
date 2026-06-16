@@ -79,157 +79,150 @@ export default function QueenDetectorAssignmentPanel({
 				</span>
 			</div>
 
-			<div className={styles.bestCaptureContent}>
-				<div className={styles.bestCaptureFrame}>
-					<img
-						className={styles.bestCaptureImage}
-						src={bestCapture.imageUrl}
-						alt="Best confidence queen capture"
-						draggable={false}
-					/>
-					{bestCaptureBoxStyle && (
-						<div className={styles.bestCaptureBox} style={bestCaptureBoxStyle}>
-							<span>{detectionLabel(bestCapture.detection)}</span>
-						</div>
+			<div className={styles.bestCaptureFrame}>
+				<img
+					className={styles.bestCaptureImage}
+					src={bestCapture.imageUrl}
+					alt="Best confidence queen capture"
+					draggable={false}
+				/>
+				{bestCaptureBoxStyle && (
+					<div className={styles.bestCaptureBox} style={bestCaptureBoxStyle}>
+						<span>{detectionLabel(bestCapture.detection)}</span>
+					</div>
+				)}
+			</div>
+
+			<form className={styles.assignmentPanel} onSubmit={onSaveBestCapture}>
+				<h3>
+					<T>Assign this capture</T>
+				</h3>
+				<p className={styles.assignmentHint}>
+					{hasHiveContext ? (
+						<T>
+							Save a cropped queen image for a new or existing queen in this
+							hive.
+						</T>
+					) : (
+						<T>
+							Save a cropped queen image for a new or existing warehouse queen.
+						</T>
 					)}
+				</p>
+
+				<div className={styles.modeSwitch}>
+					<Button
+						type="button"
+						className={`${styles.modeButton} ${
+							assignmentMode === 'existing' ? styles.activeMode : ''
+						}`}
+						disabled={!queenOptions.length}
+						onClick={() => {
+							clearSaveResult()
+							setAssignmentMode('existing')
+						}}
+					>
+						<T>Existing queen</T>
+					</Button>
+					<Button
+						type="button"
+						className={`${styles.modeButton} ${
+							assignmentMode === 'new' ? styles.activeMode : ''
+						}`}
+						onClick={() => {
+							clearSaveResult()
+							setAssignmentMode('new')
+						}}
+					>
+						<T>New queen</T>
+					</Button>
 				</div>
 
-				<form className={styles.assignmentPanel} onSubmit={onSaveBestCapture}>
-					<h3>
-						<T>Assign this capture</T>
-					</h3>
-					<p className={styles.assignmentHint}>
-						{hasHiveContext ? (
-							<T>
-								Save a cropped queen image for a new or existing queen in this
-								hive.
-							</T>
-						) : (
-							<T>
-								Save a cropped queen image for a new or existing warehouse
-								queen.
-							</T>
+				{assignmentMode === 'existing' ? (
+					<div className={styles.formField}>
+						<label>
+							<T>Select Queen</T>
+						</label>
+						<select
+							className={styles.assignmentInput}
+							value={selectedQueenId}
+							onChange={(event: any) => {
+								clearSaveResult()
+								setSelectedQueenId(event.target.value)
+							}}
+						>
+							{queenOptions.map((option) => (
+								<option key={`${option.source}-${option.id}`} value={option.id}>
+									{formatQueenOption(option)}
+								</option>
+							))}
+						</select>
+						{selectedQueen && (
+							<p className={styles.captureMeta}>
+								<T>Selected</T>: {selectedQueen.name || `#${selectedQueen.id}`}
+							</p>
 						)}
-					</p>
-
-					<div className={styles.modeSwitch}>
-						<Button
-							type="button"
-							className={`${styles.modeButton} ${
-								assignmentMode === 'existing' ? styles.activeMode : ''
-							}`}
-							disabled={!queenOptions.length}
-							onClick={() => {
-								clearSaveResult()
-								setAssignmentMode('existing')
-							}}
-						>
-							<T>Existing queen</T>
-						</Button>
-						<Button
-							type="button"
-							className={`${styles.modeButton} ${
-								assignmentMode === 'new' ? styles.activeMode : ''
-							}`}
-							onClick={() => {
-								clearSaveResult()
-								setAssignmentMode('new')
-							}}
-						>
-							<T>New queen</T>
-						</Button>
 					</div>
-
-					{assignmentMode === 'existing' ? (
+				) : (
+					<div className={styles.formGrid}>
 						<div className={styles.formField}>
 							<label>
-								<T>Select Queen</T>
+								<T>Queen Name</T>
 							</label>
-							<select
+							<input
 								className={styles.assignmentInput}
-								value={selectedQueenId}
+								value={newQueenName}
 								onChange={(event: any) => {
 									clearSaveResult()
-									setSelectedQueenId(event.target.value)
+									setNewQueenName(event.target.value)
 								}}
-							>
-								{queenOptions.map((option) => (
-									<option
-										key={`${option.source}-${option.id}`}
-										value={option.id}
-									>
-										{formatQueenOption(option)}
-									</option>
-								))}
-							</select>
-							{selectedQueen && (
-								<p className={styles.captureMeta}>
-									<T>Selected</T>:{' '}
-									{selectedQueen.name || `#${selectedQueen.id}`}
-								</p>
-							)}
+								placeholder="Queen name"
+							/>
 						</div>
-					) : (
-						<div className={styles.formGrid}>
-							<div className={styles.formField}>
-								<label>
-									<T>Queen Name</T>
-								</label>
-								<input
-									className={styles.assignmentInput}
-									value={newQueenName}
-									onChange={(event: any) => {
-										clearSaveResult()
-										setNewQueenName(event.target.value)
-									}}
-									placeholder="Queen name"
-								/>
-							</div>
-							<div className={styles.formField}>
-								<label>
-									<T>Year</T>
-								</label>
-								<input
-									className={styles.assignmentInput}
-									value={newQueenYear}
-									maxLength={4}
-									onChange={(event: any) => {
-										clearSaveResult()
-										setNewQueenYear(event.target.value)
-									}}
-									placeholder="YYYY"
-								/>
-							</div>
-							<div className={styles.formField}>
-								<label>
-									<T>Race</T>
-								</label>
-								<input
-									className={styles.assignmentInput}
-									value={newQueenRace}
-									onChange={(event: any) => {
-										clearSaveResult()
-										setNewQueenRace(event.target.value)
-									}}
-									placeholder="e.g. Carniolan"
-								/>
-							</div>
+						<div className={styles.formField}>
+							<label>
+								<T>Year</T>
+							</label>
+							<input
+								className={styles.assignmentInput}
+								value={newQueenYear}
+								maxLength={4}
+								onChange={(event: any) => {
+									clearSaveResult()
+									setNewQueenYear(event.target.value)
+								}}
+								placeholder="YYYY"
+							/>
 						</div>
-					)}
-
-					<div className={styles.assignmentControls}>
-						<Button type="submit" color="green" loading={isSavingCapture}>
-							<T>Save queen capture</T>
-						</Button>
+						<div className={styles.formField}>
+							<label>
+								<T>Race</T>
+							</label>
+							<input
+								className={styles.assignmentInput}
+								value={newQueenRace}
+								onChange={(event: any) => {
+									clearSaveResult()
+									setNewQueenRace(event.target.value)
+								}}
+								placeholder="e.g. Carniolan"
+							/>
+						</div>
 					</div>
+				)}
 
-					{savedFamilyId && savedPreviewUrl && (
-						<div className={styles.saveResult}>
-							<T>Saved cropped queen preview for queen</T> #{savedFamilyId}.
-						</div>
-					)}
-				</form>
-			</div>
+				<div className={styles.assignmentControls}>
+					<Button type="submit" color="green" loading={isSavingCapture}>
+						<T>Save queen capture</T>
+					</Button>
+				</div>
+
+				{savedFamilyId && savedPreviewUrl && (
+					<div className={styles.saveResult}>
+						<T>Saved cropped queen preview for queen</T> #{savedFamilyId}.
+					</div>
+				)}
+			</form>
 		</section>
 	)
 }

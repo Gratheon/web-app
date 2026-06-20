@@ -26,6 +26,10 @@
 	padding: 10px 10px 20px 10px;
 }
 
+.hiveNumberLabel {
+	width: 100px;
+}
+
 .buttons {
 	padding: 0 10px;
 	display: flex;
@@ -48,6 +52,36 @@
 	align-self: flex-start;
 }
 
+.newQueenButton,
+.existingQueenButton {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	height: 40px;
+	padding: 0 14px;
+	font-size: 16px;
+	box-sizing: border-box;
+}
+
+.newQueenButton {
+	background: #111827;
+	color: #fff;
+	font-weight: 600;
+}
+
+.newQueenButton:hover {
+	background: #374151;
+}
+
+.existingQueenButton {
+	background: #4b5563;
+	color: #fff;
+}
+
+.existingQueenButton:hover {
+	background: #374151;
+}
+
 .iconBlock {
 	padding: 10px 10px 0 10px;
 	display: flex;
@@ -64,6 +98,19 @@
 
 .hiveColorLabel {
 	width: 100px;
+}
+
+@media all and (min-width: 576px) {
+	.hiveColorLabel {
+		width: 180px;
+	}
+
+	.hiveDetailsForm {
+		> div > label,
+		.hiveNumberLabel {
+			width: 180px;
+		}
+	}
 }
 
 .validationError {

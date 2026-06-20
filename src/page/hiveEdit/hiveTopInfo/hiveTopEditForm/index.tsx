@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'preact/hooks'
+import { useMemo, useState, useEffect, useRef } from 'preact/hooks'
 import debounce from 'lodash/debounce'
 import { useLiveQuery } from 'dexie-react-hooks'
 
@@ -26,6 +26,7 @@ import Button from '@/shared/button'
 import ErrorMessage from '@/shared/messageError'
 import BeeCounter from '@/shared/beeCounter'
 import MessageSuccess from '@/shared/messageSuccess'
+import PlusIcon from '@/icons/plusIcon'
 
 import styles from './styles.module.less'
 import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
@@ -84,9 +85,10 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 	`)
 
 	let [noteInput, setNoteInput] = useState('')
+	const lastLocalNoteRef = useRef<string | null>(null)
 
 	useEffect(() => {
-		if (hive) {
+		if (hive && hive.notes !== lastLocalNoteRef.current && document.activeElement?.id !== 'notes') {
 			setNoteInput(hive.notes || '')
 		}
 	}, [hive])
@@ -194,13 +196,12 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 		[hiveId]
 	)
 
-	const onNotesChange = useMemo(
+	const saveNotesChange = useMemo(
 		() =>
-			debounce(async function (v) {
-				setNoteInput(v.target.value)
-
+			debounce(async function (notes: string) {
 				const hive = await getHive(+hiveId)
-				hive.notes = v.target.value
+				hive.notes = notes
+				lastLocalNoteRef.current = notes
 
 				let family = await getFamilyByHive(+hiveId)
 				if (!family) {
@@ -225,8 +226,17 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 				})
 				await updateHive(hive)
 			}, 300),
-		[]
+		[hiveId, mutateHive]
 	)
+
+	useEffect(() => () => saveNotesChange.flush(), [saveNotesChange])
+
+	const onNotesChange = (v) => {
+		const notes = v.target.value
+		lastLocalNoteRef.current = notes
+		setNoteInput(notes)
+		saveNotesChange(notes)
+	}
 
 	async function onColorChange(box: Box) {
 		await mutateBoxColor({
@@ -449,9 +459,9 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 
 			<div className={styles.form}>
 				<div>
-					<VisualForm>
+					<VisualForm className={styles.hiveDetailsForm}>
 						<div>
-							<label htmlFor="hiveNumber" style="width:100px;"><T>Hive Number</T></label>
+							<label htmlFor="hiveNumber" className={styles.hiveNumberLabel}><T>Hive Number</T></label>
 							<div style="width: 100%;">
 								<input
 									name="hiveNumber"
@@ -506,13 +516,18 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 									onDragEnd={() => setIsDraggingQueen(false)}
 								/>
 								<div className={styles.queenActionButtons}>
-									<Button type="button" size="small" color="green" onClick={handleAddNewQueen}>
-										<T>Introduce New Queen</T>
-									</Button>
-									<Button type="button" size="small" onClick={handleAddQueenFromWarehouse}>
-										<T>Add From Warehouse</T>
-									</Button>
-								</div>
+										<Button
+											type="button"
+											className={styles.newQueenButton}
+											onClick={handleAddNewQueen}
+										>
+											<PlusIcon size={18} />
+											<T>Introduce New Queen</T>
+										</Button>
+										<Button type="button" className={styles.existingQueenButton} onClick={handleAddQueenFromWarehouse}>
+											<T>Add Existing Queen</T>
+										</Button>
+									</div>
 							</div>
 						</div>
 

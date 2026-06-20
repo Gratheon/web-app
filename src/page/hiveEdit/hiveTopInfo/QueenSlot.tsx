@@ -289,8 +289,8 @@ export default function QueenSlot({
                       }}
                       style={{ cursor: editable ? 'pointer' : 'default' }}
                   >
-										{family.added || <T>Unknown Year</T>}
-                    {family.age && <> ({family.age} <T>years</T>)</>}
+											{family.added || <T>Unknown Year</T>}
+											{Number(family.age) > 0 && <> ({family.age} <T>years</T>)</>}
 									</span>
 
 									<span

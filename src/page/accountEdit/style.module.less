@@ -36,7 +36,7 @@
 	width: auto;
 	flex-grow: 1;
 
-	input:not([type="checkbox"]):not([type="radio"]) {
+	input:not([type='checkbox']):not([type='radio']) {
 		width: 280px;
 		max-width: calc(100vw - 180px);
 	}
@@ -68,7 +68,7 @@
 			padding: 0 0 4px;
 		}
 
-		input:not([type="checkbox"]):not([type="radio"]),
+		input:not([type='checkbox']):not([type='radio']),
 		select {
 			width: 100%;
 			max-width: 100%;
@@ -110,6 +110,12 @@
 	@media (max-width: 768px) {
 		max-width: calc(100vw - 120px);
 	}
+}
+
+.localePreview {
+	margin-top: 6px;
+	font-size: 0.9rem;
+	color: #666;
 }
 
 .detectionSettingsGrid {
@@ -219,7 +225,7 @@
 }
 
 .detectionSettingsOptions .confidenceChip:nth-child(4) {
-	background: linear-gradient(180deg, #aecaFF 0%, #a0c0ff 100%);
+	background: linear-gradient(180deg, #aecaff 0%, #a0c0ff 100%);
 }
 
 .detectionSettingsOptions .confidenceChip:nth-child(5) {

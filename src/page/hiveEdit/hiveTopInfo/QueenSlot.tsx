@@ -8,6 +8,7 @@ import QueenColor from '@/page/hiveEdit/hiveTopInfo/queenColor'
 import { getQueenColorFromYear } from '@/page/hiveEdit/hiveTopInfo/queenColor/utils'
 import { Family } from '@/models/family'
 import { useConfirm } from '@/hooks/useConfirm'
+import BeeRaceCombobox from './BeeRaceCombobox'
 import styles from './QueenSlot.module.less'
 
 //@ts-ignore
@@ -209,8 +210,9 @@ export default function QueenSlot({
 								/>
 							)}
 							{editable && editingId === family.id ? (
-								<div
-									onBlur={(e: any) => {
+									<div
+										className={styles.editInputsRow}
+										onBlur={(e: any) => {
 										if (!e.currentTarget.contains(e.relatedTarget)) {
 											finishEditing(family.id)
 										}
@@ -251,11 +253,11 @@ export default function QueenSlot({
 										placeholder="Year"
 										maxLength={4}
 									/>
-									<input
-										type="text"
-										className={styles.raceInput}
+									<BeeRaceCombobox
 										value={editRace}
-										onChange={(e: any) => setEditRace(e.target.value)}
+										onChange={setEditRace}
+										className={styles.raceCombobox}
+										inputClassName={styles.raceInput}
 										onKeyDown={(e: any) => {
 											if (e.key === 'Enter') {
 												finishEditing(family.id)

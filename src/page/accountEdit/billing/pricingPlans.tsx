@@ -12,8 +12,12 @@ interface PricingPlansProps {
 	onPlanChange?: (plan: string, cycle: string) => void
 }
 
+type BillingCycle = 'monthly' | 'yearly'
+type PaidPlan = 'hobbyist' | 'starter' | 'professional'
+
 export default function PricingPlans({ currentPlan = 'free', onPlanChange }: PricingPlansProps) {
 	const [sessionError, setSessionError] = useState<Error | null>(null)
+	const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly')
 
 	const [createCheckoutSession, { error }] = useMutation(gql`
 		mutation createCheckoutSession($plan: String, $cycle: String) {
@@ -21,7 +25,7 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 		}
 	`)
 
-	const handlePlanSelect = async (plan: string, cycle?: 'monthly' | 'yearly') => {
+	const handlePlanSelect = async (plan: string, cycle?: BillingCycle) => {
 		if (onPlanChange) {
 			onPlanChange(plan, cycle || 'one-time')
 			return
@@ -44,12 +48,38 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 		}
 	}
 
-	const getPlanStatus = (planName: string) => {
-		if (currentPlan === 'addon') return 'current'
-		if (currentPlan === 'free' && planName === 'hobbyist') return 'upgrade'
-		if (currentPlan === 'hobbyist' && planName === 'starter') return 'upgrade'
-		if (currentPlan === 'starter' && planName === 'professional') return 'upgrade'
-		return 'available'
+	const getPlanPricing = (plan: PaidPlan) => {
+		const tier = BILLING_TIERS[plan]
+
+		if (billingCycle === 'yearly' && 'yearly' in tier) {
+			return {
+				cycle: 'yearly' as const,
+				amount: tier.yearly.pricePerYear,
+				period: 'year' as const
+			}
+		}
+
+		return {
+			cycle: 'monthly' as const,
+			amount: tier.monthly.price,
+			period: 'month' as const
+		}
+	}
+
+	const renderPrice = (plan: PaidPlan) => {
+		const pricing = getPlanPricing(plan)
+
+		return (
+			<div className="price-row">
+				<span className="price-amount">€{pricing.amount}</span>
+				<span className="price-period">
+					/{pricing.period === 'year' ? <T>year</T> : <T>month</T>}
+				</span>
+				<Button onClick={() => handlePlanSelect(plan, pricing.cycle)}>
+					<T>Buy</T>
+				</Button>
+			</div>
+		)
 	}
 
 	return (
@@ -57,8 +87,29 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 			{error && <MessageError error={error} />}
 			{sessionError && <MessageError error={sessionError} />}
 
-				<div className="plans-grid">
-					<div className="plan-card-wrapper">
+			<div className="billing-cycle-toggle" aria-label="Billing cycle">
+				<div className="billing-cycle-toggle-group" data-cycle={billingCycle}>
+					<button
+						type="button"
+						className={billingCycle === 'monthly' ? 'active' : ''}
+						onClick={() => setBillingCycle('monthly')}
+						aria-pressed={billingCycle === 'monthly'}
+					>
+						<span className="billing-cycle-label"><T>month</T></span>
+					</button>
+					<button
+						type="button"
+						className={billingCycle === 'yearly' ? 'active' : ''}
+						onClick={() => setBillingCycle('yearly')}
+						aria-pressed={billingCycle === 'yearly'}
+					>
+						<span className="billing-cycle-label"><T>year</T></span>
+					</button>
+				</div>
+			</div>
+
+			<div className="plans-grid">
+				<div className="plan-card-wrapper">
 					<div className="plan-indicator-slot">
 						{currentPlan === 'free' && (
 							<div className="current-plan-arrow">
@@ -104,72 +155,57 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 							</div>
 						</div>
 					</div>
-					</div>
+				</div>
 
-					<div className="plan-card-wrapper">
-						<div className="plan-indicator-slot">
-							{currentPlan === 'hobbyist' && (
-								<div className="current-plan-arrow">
-									<T>Current plan</T> ↓
-								</div>
-							)}
-						</div>
-						<div className={`plan-card ${currentPlan === 'hobbyist' ? 'current' : ''}`}>
-							<div className="plan-header plan-header-hobbyist">
-								<h3 className="plan-name">{BILLING_TIERS.hobbyist.name}</h3>
-								<div className="plan-description">
-									<T>For taking the notes</T>
-								</div>
+				<div className="plan-card-wrapper">
+					<div className="plan-indicator-slot">
+						{currentPlan === 'hobbyist' && (
+							<div className="current-plan-arrow">
+								<T>Current plan</T> ↓
 							</div>
+						)}
+					</div>
+					<div className={`plan-card ${currentPlan === 'hobbyist' ? 'current' : ''}`}>
+						<div className="plan-header plan-header-hobbyist">
+							<h3 className="plan-name">{BILLING_TIERS.hobbyist.name}</h3>
+							<div className="plan-description">
+								<T>For taking the notes</T>
+							</div>
+						</div>
 
-							<div className="plan-body">
-								<div className="plan-pricing-options">
-									<div className="price-row">
-										<div className="price-info">
-											<span className="price-amount">€{BILLING_TIERS.hobbyist.monthly.price}</span>
-											<span className="price-period">/<T>month</T></span>
-										</div>
-										<Button
-											onClick={() => handlePlanSelect('hobbyist', 'monthly')}
-										>
-											<T>Buy</T>
-										</Button>
-									</div>
-									<div className="price-note" style={{ textAlign: 'center', marginTop: '-0.2rem' }}>
-										☕ <T>About the price of a cup of coffee</T>
-									</div>
+						<div className="plan-body">
+							{renderPrice('hobbyist')}
+							<div className="plan-details">
+								<div className="plan-details-section">
+									<h4><T>Features</T></h4>
+									<ul className="plan-details-list">
+										<li><T>Basic data management in database</T></li>
+										<li><T>Frame photo upload and storage</T></li>
+										<li><T>Hive placement planner</T></li>
+										<li><T>Inspection notes and treatment diary</T></li>
+										<li><T>Colony split management</T></li>
+										<li><T>Colony joining tool</T></li>
+										<li><T>Warehouse inventory management</T></li>
+									</ul>
 								</div>
-								<div className="plan-details">
-									<div className="plan-details-section">
-										<h4><T>Features</T></h4>
-										<ul className="plan-details-list">
-											<li><T>Basic data management in database</T></li>
-											<li><T>Frame photo upload and storage</T></li>
-											<li><T>Hive placement planner</T></li>
-											<li><T>Inspection notes and treatment diary</T></li>
-											<li><T>Colony split management</T></li>
-											<li><T>Colony joining tool</T></li>
-											<li><T>Warehouse inventory management</T></li>
-										</ul>
-									</div>
-									<div className="plan-details-section">
-										<h4><T>Limits</T></h4>
-										<ul className="plan-details-list">
-											<li><T>Up to 15 hives</T></li>
-											<li><T>1 user account</T></li>
-											<li><T>No AI image processing features</T></li>
-											<li><T>1 year image retention</T></li>
-										</ul>
-									</div>
+								<div className="plan-details-section">
+									<h4><T>Limits</T></h4>
+									<ul className="plan-details-list">
+										<li><T>Up to 15 hives</T></li>
+										<li><T>1 user account</T></li>
+										<li><T>No AI image processing features</T></li>
+										<li><T>1 year image retention</T></li>
+									</ul>
 								</div>
 							</div>
 						</div>
 					</div>
+				</div>
 
-					<div className="plan-card-wrapper">
-						<div className="plan-indicator-slot">
-							{currentPlan === 'starter' && (
-								<div className="current-plan-arrow">
+				<div className="plan-card-wrapper">
+					<div className="plan-indicator-slot">
+						{currentPlan === 'starter' && (
+							<div className="current-plan-arrow">
 								<T>Current plan</T> ↓
 							</div>
 						)}
@@ -183,33 +219,7 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 						</div>
 
 						<div className="plan-body">
-							<div className="plan-pricing-options">
-								<div className="price-row">
-									<div className="price-info">
-										<span className="price-amount">€{BILLING_TIERS.starter.monthly.price}</span>
-										<span className="price-period">/<T>month</T></span>
-									</div>
-									<Button
-										onClick={() => handlePlanSelect('starter', 'monthly')}
-									>
-										<T>Buy</T>
-									</Button>
-								</div>
-
-								<div className="price-row recommended">
-									<div className="price-info">
-										<span className="price-amount">€{BILLING_TIERS.starter.yearly.price}</span>
-										<span className="price-period">/<T>month</T></span>
-										<span className="price-note">(€{BILLING_TIERS.starter.yearly.pricePerYear}/<T>year</T>)</span>
-										<span className="savings-badge"><T>Save</T> {BILLING_TIERS.starter.yearly.savings}</span>
-									</div>
-									<Button
-										onClick={() => handlePlanSelect('starter', 'yearly')}
-									>
-										<T>Buy</T>
-									</Button>
-								</div>
-							</div>
+							{renderPrice('starter')}
 							<div className="plan-details">
 								<div className="plan-details-section">
 									<h4><T>Features</T></h4>
@@ -255,33 +265,7 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 						</div>
 
 						<div className="plan-body">
-							<div className="plan-pricing-options">
-								<div className="price-row">
-									<div className="price-info">
-										<span className="price-amount">€{BILLING_TIERS.professional.monthly.price}</span>
-										<span className="price-period">/<T>month</T></span>
-									</div>
-									<Button
-										onClick={() => handlePlanSelect('professional', 'monthly')}
-									>
-										<T>Buy</T>
-									</Button>
-								</div>
-
-								<div className="price-row recommended">
-									<div className="price-info">
-										<span className="price-amount">€{BILLING_TIERS.professional.yearly.price}</span>
-										<span className="price-period">/<T>month</T></span>
-										<span className="price-note">(€{BILLING_TIERS.professional.yearly.pricePerYear}/<T>year</T>)</span>
-										<span className="savings-badge"><T>Save</T> {BILLING_TIERS.professional.yearly.savings}</span>
-									</div>
-									<Button
-										onClick={() => handlePlanSelect('professional', 'yearly')}
-									>
-										<T>Buy</T>
-									</Button>
-								</div>
-							</div>
+							{renderPrice('professional')}
 							<div className="plan-details">
 								<div className="plan-details-section">
 									<h4><T>Features</T></h4>

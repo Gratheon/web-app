@@ -12,6 +12,7 @@ import { updateFamily } from '@/models/family'
 import { getUser } from '@/models/user'
 import { SUPPORTED_LANGUAGES } from '@/config/languages'
 import RefreshIcon from '@/icons/RefreshIcon'
+import BeeRaceCombobox from './BeeRaceCombobox'
 import styles from './AddQueenModal.module.less'
 import inputStyles from '@/shared/input/styles.module.less'
 import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
@@ -322,14 +323,14 @@ export default function AddQueenModal({
 								<RefreshIcon />
 							</Button>
 						</div>
-
-						<label className={inputStyles.label}><T>Race</T></label>
-						<input
-							className={inputStyles.input}
-							type="text"
-							value={race}
-							onChange={(e: h.JSX.TargetedEvent<HTMLInputElement, Event>) => setRace((e.target as HTMLInputElement).value)}
-							placeholder="e.g. Carniolan, Italian, etc."
+							<label className={inputStyles.label}><T>Race</T></label>
+							<BeeRaceCombobox
+								className={styles.raceCombobox}
+								inputClassName={inputStyles.input}
+								value={race}
+								onChange={setRace}
+								placeholder="e.g. Carniolan, Italian, etc."
+							/>
 						/>
 
 						<div className={styles.yearInputWrapper}>

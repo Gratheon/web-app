@@ -8,7 +8,10 @@ import { getFamilyByHive } from '@/models/family'
 import { getBoxes, boxTypes, normalizeGateHoleCount } from '@/models/boxes'
 import { getFrames } from '@/models/frames'
 import { getFrameSideCells } from '@/models/frameSideCells'
-import { getFrameSideFile, getFrameSidePreviewImage } from '@/models/frameSideFile'
+import {
+	getFrameSideFile,
+	getFrameSidePreviewImage,
+} from '@/models/frameSideFile'
 import { getUser } from '@/models/user'
 import { listInspections } from '@/models/inspections'
 import { listHiveLogs, syncHiveLogsFromBackend } from '@/models/hiveLog'
@@ -98,7 +101,12 @@ function canUseAIAdvisor(plan?: string | null) {
 }
 
 const METRICS_QUERY = gql`
-	query advisorMetrics($hiveId: ID!, $timeRangeMin: Int, $timeFrom: DateTime!, $timeTo: DateTime!) {
+	query advisorMetrics(
+		$hiveId: ID!
+		$timeRangeMin: Int
+		$timeFrom: DateTime!
+		$timeTo: DateTime!
+	) {
 		weightKg(hiveId: $hiveId, timeRangeMin: $timeRangeMin) {
 			... on MetricFloatList {
 				metrics {
@@ -141,8 +149,16 @@ const METRICS_QUERY = gql`
 `
 
 const GENERATE_ADVICE_MUTATION = gql`
-	mutation generateHiveAdvice($hiveID: ID, $adviceContext: JSON, $langCode: String) {
-		generateHiveAdvice(hiveID: $hiveID, adviceContext: $adviceContext, langCode: $langCode)
+	mutation generateHiveAdvice(
+		$hiveID: ID
+		$adviceContext: JSON
+		$langCode: String
+	) {
+		generateHiveAdvice(
+			hiveID: $hiveID
+			adviceContext: $adviceContext
+			langCode: $langCode
+		)
 	}
 `
 
@@ -315,8 +331,12 @@ function pickOptimizedImage(file?: any) {
 		}
 	}
 
-	resizes.sort((a, b) => (a?.max_dimension_px || 0) - (b?.max_dimension_px || 0))
-	const preferred = resizes.find((resize) => (resize?.max_dimension_px || 0) >= 512) || resizes[resizes.length - 1]
+	resizes.sort(
+		(a, b) => (a?.max_dimension_px || 0) - (b?.max_dimension_px || 0)
+	)
+	const preferred =
+		resizes.find((resize) => (resize?.max_dimension_px || 0) >= 512) ||
+		resizes[resizes.length - 1]
 	return {
 		url: preferred?.url || file?.url || null,
 		maxDimensionPx: preferred?.max_dimension_px || null,
@@ -353,8 +373,12 @@ function findSelectedFramePayload(
 ) {
 	if (!frameRouteContext) return null
 
-	const framesInBox = Object.values(framesByBox[String(frameRouteContext.boxId)] || {})
-	const selectedFrame = framesInBox.find((frame: any) => +frame?.id === frameRouteContext.frameId)
+	const framesInBox = Object.values(
+		framesByBox[String(frameRouteContext.boxId)] || {}
+	)
+	const selectedFrame = framesInBox.find(
+		(frame: any) => +frame?.id === frameRouteContext.frameId
+	)
 
 	if (!selectedFrame) return null
 
@@ -366,17 +390,34 @@ function findSelectedFrameRaw(
 	frameRouteContext: FrameRouteContext | null
 ) {
 	if (!frameRouteContext) return null
-	const framesInBox = Object.values(framesByBox[String(frameRouteContext.boxId)] || {})
-	return framesInBox.find((frame: any) => +frame?.id === frameRouteContext.frameId) || null
+	const framesInBox = Object.values(
+		framesByBox[String(frameRouteContext.boxId)] || {}
+	)
+	return (
+		framesInBox.find(
+			(frame: any) => +frame?.id === frameRouteContext.frameId
+		) || null
+	)
 }
 
-function getViewContext(pathname: string, labels: DrawerTranslations): ViewContext {
+function getViewContext(
+	pathname: string,
+	labels: DrawerTranslations
+): ViewContext {
 	const isHiveDetailView = /^\/apiaries\/\d+\/hives\/\d+(?:\/|$)/.test(pathname)
 	const isApiaryOverviewView = /^\/apiaries\/\d+\/?$/.test(pathname)
-	const isFrameView = /^\/apiaries\/\d+\/hives\/\d+\/box\/\d+\/frame\/\d+(?:\/\d+)?\/?$/.test(pathname)
-	const isCanvasEditView = /^\/apiaries\/\d+\/hives\/\d+\/box\/\d+\/frame\/\d+\/\d+\/canvas-edit(?:\/|$)/.test(pathname)
-	const isHiveListView = pathname === '/' || pathname === '/apiaries' || pathname === '/apiaries/'
-	const isWarehouseQueenListView = pathname === '/warehouse/queens' || pathname === '/warehouse/queens/'
+	const isFrameView =
+		/^\/apiaries\/\d+\/hives\/\d+\/box\/\d+\/frame\/\d+(?:\/\d+)?\/?$/.test(
+			pathname
+		)
+	const isCanvasEditView =
+		/^\/apiaries\/\d+\/hives\/\d+\/box\/\d+\/frame\/\d+\/\d+\/canvas-edit(?:\/|$)/.test(
+			pathname
+		)
+	const isHiveListView =
+		pathname === '/' || pathname === '/apiaries' || pathname === '/apiaries/'
+	const isWarehouseQueenListView =
+		pathname === '/warehouse/queens' || pathname === '/warehouse/queens/'
 	const isDeviceListView = pathname === '/devices' || pathname === '/devices/'
 
 	if (isCanvasEditView) {
@@ -385,13 +426,22 @@ function getViewContext(pathname: string, labels: DrawerTranslations): ViewConte
 			description: labels.canvasEditViewDescription,
 			shortcuts: [
 				{ keys: 'Shift + ?', action: labels.shortcutsActionOpenAdvisor },
-				{ keys: 'M', action: labels.shortcutsActionToggleLeftMenu },
-				{ keys: '1-9 / 0', action: labels.shortcutsActionGoToLeftMenuItemByNumber },
+				{ keys: 'Ctrl + M', action: labels.shortcutsActionToggleLeftMenu },
+				{
+					keys: '1-9 / 0',
+					action: labels.shortcutsActionGoToLeftMenuItemByNumber,
+				},
 				{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
 				{ keys: 'A', action: labels.shortcutsActionGoToApiaryView },
 				{ keys: 'H', action: labels.shortcutsActionGoToHiveListView },
-				{ keys: 'Arrow Left / Arrow Right', action: labels.shortcutsActionSwitchSelectedHiveFrames },
-				{ keys: 'Arrow Up / Arrow Down', action: labels.shortcutsActionSwitchSelectedHiveSections },
+				{
+					keys: 'Arrow Left / Arrow Right',
+					action: labels.shortcutsActionSwitchSelectedHiveFrames,
+				},
+				{
+					keys: 'Arrow Up / Arrow Down',
+					action: labels.shortcutsActionSwitchSelectedHiveSections,
+				},
 				{ keys: 'C', action: labels.shortcutsActionSwitchToCellBrush },
 				{ keys: 'F', action: labels.shortcutsActionSwitchToFreeDraw },
 				{ keys: 'X', action: labels.shortcutsActionSwitchToCellEraser },
@@ -416,14 +466,26 @@ function getViewContext(pathname: string, labels: DrawerTranslations): ViewConte
 			description: labels.frameViewDescription,
 			shortcuts: [
 				{ keys: 'Shift + ?', action: labels.shortcutsActionOpenAdvisor },
-				{ keys: 'M', action: labels.shortcutsActionToggleLeftMenu },
-				{ keys: '1-9 / 0', action: labels.shortcutsActionGoToLeftMenuItemByNumber },
+				{ keys: 'Ctrl + M', action: labels.shortcutsActionToggleLeftMenu },
+				{
+					keys: '1-9 / 0',
+					action: labels.shortcutsActionGoToLeftMenuItemByNumber,
+				},
 				{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
 				{ keys: 'A', action: labels.shortcutsActionGoToApiaryView },
 				{ keys: 'H', action: labels.shortcutsActionGoToHiveListView },
-				{ keys: 'Arrow Left / Arrow Right', action: labels.shortcutsActionSwitchSelectedHiveFrames },
-				{ keys: 'Arrow Up / Arrow Down', action: labels.shortcutsActionSwitchSelectedHiveSections },
-				{ keys: 'Tab / Shift + Tab', action: labels.shortcutsActionMoveFocusAcrossControls },
+				{
+					keys: 'Arrow Left / Arrow Right',
+					action: labels.shortcutsActionSwitchSelectedHiveFrames,
+				},
+				{
+					keys: 'Arrow Up / Arrow Down',
+					action: labels.shortcutsActionSwitchSelectedHiveSections,
+				},
+				{
+					keys: 'Tab / Shift + Tab',
+					action: labels.shortcutsActionMoveFocusAcrossControls,
+				},
 			],
 		}
 	}
@@ -432,22 +494,40 @@ function getViewContext(pathname: string, labels: DrawerTranslations): ViewConte
 		return {
 			name: labels.hiveDetailViewName,
 			description: labels.hiveDetailViewDescription,
-				shortcuts: [
-					{ keys: 'Shift + ?', action: labels.shortcutsActionOpenAdvisor },
-					{ keys: 'M', action: labels.shortcutsActionToggleLeftMenu },
-					{ keys: '1-9 / 0', action: labels.shortcutsActionGoToLeftMenuItemByNumber },
-					{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
-					{ keys: 'A', action: labels.shortcutsActionGoToApiaryView },
-					{ keys: 'H', action: labels.shortcutsActionGoToHiveListView },
-					{ keys: 'E', action: labels.shortcutsActionEditHiveMainInfo },
-					{ keys: 'Arrow Left / Arrow Right', action: labels.shortcutsActionSwitchSelectedHiveFrames },
-					{ keys: 'Arrow Up / Arrow Down', action: labels.shortcutsActionSwitchSelectedHiveSections },
-					{ keys: 'Backspace', action: labels.shortcutsActionDeleteSelectedHiveSection },
-					{ keys: 'Del', action: labels.shortcutsActionDeleteSelectedHiveFrame },
-					{ keys: 'Tab / Shift + Tab', action: labels.shortcutsActionMoveFocusAcrossControls },
-					{ keys: 'Enter', action: labels.shortcutsActionConfirmFocusedDialogAction },
-				],
-			}
+			shortcuts: [
+				{ keys: 'Shift + ?', action: labels.shortcutsActionOpenAdvisor },
+				{ keys: 'Ctrl + M', action: labels.shortcutsActionToggleLeftMenu },
+				{
+					keys: '1-9 / 0',
+					action: labels.shortcutsActionGoToLeftMenuItemByNumber,
+				},
+				{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
+				{ keys: 'A', action: labels.shortcutsActionGoToApiaryView },
+				{ keys: 'H', action: labels.shortcutsActionGoToHiveListView },
+				{ keys: 'E', action: labels.shortcutsActionEditHiveMainInfo },
+				{
+					keys: 'Arrow Left / Arrow Right',
+					action: labels.shortcutsActionSwitchSelectedHiveFrames,
+				},
+				{
+					keys: 'Arrow Up / Arrow Down',
+					action: labels.shortcutsActionSwitchSelectedHiveSections,
+				},
+				{
+					keys: 'Backspace',
+					action: labels.shortcutsActionDeleteSelectedHiveSection,
+				},
+				{ keys: 'Del', action: labels.shortcutsActionDeleteSelectedHiveFrame },
+				{
+					keys: 'Tab / Shift + Tab',
+					action: labels.shortcutsActionMoveFocusAcrossControls,
+				},
+				{
+					keys: 'Enter',
+					action: labels.shortcutsActionConfirmFocusedDialogAction,
+				},
+			],
+		}
 	}
 
 	if (isApiaryOverviewView) {
@@ -456,11 +536,17 @@ function getViewContext(pathname: string, labels: DrawerTranslations): ViewConte
 			description: labels.apiaryOverviewViewDescription,
 			shortcuts: [
 				{ keys: 'Shift + ?', action: labels.shortcutsActionOpenAdvisor },
-				{ keys: 'M', action: labels.shortcutsActionToggleLeftMenu },
-				{ keys: '1-9 / 0', action: labels.shortcutsActionGoToLeftMenuItemByNumber },
+				{ keys: 'Ctrl + M', action: labels.shortcutsActionToggleLeftMenu },
+				{
+					keys: '1-9 / 0',
+					action: labels.shortcutsActionGoToLeftMenuItemByNumber,
+				},
 				{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
 				{ keys: 'H', action: labels.shortcutsActionGoToHiveListView },
-				{ keys: 'Tab / Shift + Tab', action: labels.shortcutsActionMoveFocusAcrossPageControls },
+				{
+					keys: 'Tab / Shift + Tab',
+					action: labels.shortcutsActionMoveFocusAcrossPageControls,
+				},
 			],
 		}
 	}
@@ -471,11 +557,20 @@ function getViewContext(pathname: string, labels: DrawerTranslations): ViewConte
 			description: labels.hiveListViewDescription,
 			shortcuts: [
 				{ keys: 'Shift + ?', action: labels.shortcutsActionOpenAdvisor },
-				{ keys: 'M', action: labels.shortcutsActionToggleLeftMenu },
-				{ keys: '1-9 / 0', action: labels.shortcutsActionGoToLeftMenuItemByNumber },
+				{ keys: 'Ctrl + M', action: labels.shortcutsActionToggleLeftMenu },
+				{
+					keys: '1-9 / 0',
+					action: labels.shortcutsActionGoToLeftMenuItemByNumber,
+				},
 				{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
-				{ keys: 'Tab / Shift + Tab', action: labels.shortcutsActionMoveFocusAcrossPageControls },
-				{ keys: 'Arrow keys', action: labels.shortcutsActionMoveHiveFocusInListTable },
+				{
+					keys: 'Tab / Shift + Tab',
+					action: labels.shortcutsActionMoveFocusAcrossPageControls,
+				},
+				{
+					keys: 'Arrow keys',
+					action: labels.shortcutsActionMoveHiveFocusInListTable,
+				},
 			],
 		}
 	}
@@ -486,13 +581,28 @@ function getViewContext(pathname: string, labels: DrawerTranslations): ViewConte
 			description: labels.warehouseQueenListViewDescription,
 			shortcuts: [
 				{ keys: 'Shift + ?', action: labels.shortcutsActionOpenAdvisor },
-				{ keys: 'M', action: labels.shortcutsActionToggleLeftMenu },
-				{ keys: '1-9 / 0', action: labels.shortcutsActionGoToLeftMenuItemByNumber },
+				{ keys: 'Ctrl + M', action: labels.shortcutsActionToggleLeftMenu },
+				{
+					keys: '1-9 / 0',
+					action: labels.shortcutsActionGoToLeftMenuItemByNumber,
+				},
 				{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
-				{ keys: 'Arrow Up / Arrow Down', action: labels.shortcutsActionMoveQueenFocusInTable },
-				{ keys: 'Del', action: labels.shortcutsActionDeleteSelectedWarehouseQueen },
-				{ keys: 'Esc', action: labels.shortcutsActionCancelFocusedDialogAction },
-				{ keys: 'Enter', action: labels.shortcutsActionConfirmFocusedDialogAction },
+				{
+					keys: 'Arrow Up / Arrow Down',
+					action: labels.shortcutsActionMoveQueenFocusInTable,
+				},
+				{
+					keys: 'Del',
+					action: labels.shortcutsActionDeleteSelectedWarehouseQueen,
+				},
+				{
+					keys: 'Esc',
+					action: labels.shortcutsActionCancelFocusedDialogAction,
+				},
+				{
+					keys: 'Enter',
+					action: labels.shortcutsActionConfirmFocusedDialogAction,
+				},
 			],
 		}
 	}
@@ -503,13 +613,25 @@ function getViewContext(pathname: string, labels: DrawerTranslations): ViewConte
 			description: labels.deviceListViewDescription,
 			shortcuts: [
 				{ keys: 'Shift + ?', action: labels.shortcutsActionOpenAdvisor },
-				{ keys: 'M', action: labels.shortcutsActionToggleLeftMenu },
-				{ keys: '1-9 / 0', action: labels.shortcutsActionGoToLeftMenuItemByNumber },
+				{ keys: 'Ctrl + M', action: labels.shortcutsActionToggleLeftMenu },
+				{
+					keys: '1-9 / 0',
+					action: labels.shortcutsActionGoToLeftMenuItemByNumber,
+				},
 				{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
-				{ keys: 'Arrow Up / Arrow Down', action: labels.shortcutsActionMoveDeviceFocusInList },
+				{
+					keys: 'Arrow Up / Arrow Down',
+					action: labels.shortcutsActionMoveDeviceFocusInList,
+				},
 				{ keys: 'Del', action: labels.shortcutsActionDeleteSelectedDevice },
-				{ keys: 'Esc', action: labels.shortcutsActionCancelFocusedDialogAction },
-				{ keys: 'Enter', action: labels.shortcutsActionConfirmFocusedDialogAction },
+				{
+					keys: 'Esc',
+					action: labels.shortcutsActionCancelFocusedDialogAction,
+				},
+				{
+					keys: 'Enter',
+					action: labels.shortcutsActionConfirmFocusedDialogAction,
+				},
 			],
 		}
 	}
@@ -519,10 +641,16 @@ function getViewContext(pathname: string, labels: DrawerTranslations): ViewConte
 		description: labels.currentViewDescription,
 		shortcuts: [
 			{ keys: 'Shift + ?', action: labels.shortcutsActionOpenAdvisor },
-			{ keys: 'M', action: labels.shortcutsActionToggleLeftMenu },
-			{ keys: '1-9 / 0', action: labels.shortcutsActionGoToLeftMenuItemByNumber },
+			{ keys: 'Ctrl + M', action: labels.shortcutsActionToggleLeftMenu },
+			{
+				keys: '1-9 / 0',
+				action: labels.shortcutsActionGoToLeftMenuItemByNumber,
+			},
 			{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
-			{ keys: 'Tab / Shift + Tab', action: labels.shortcutsActionMoveFocusAcrossPageControls },
+			{
+				keys: 'Tab / Shift + Tab',
+				action: labels.shortcutsActionMoveFocusAcrossPageControls,
+			},
 		],
 	}
 }
@@ -541,40 +669,78 @@ export default function AIAdvisorDrawer() {
 	const currentViewLabel = t('Current view')
 	const keyboardShortcutsLabel = t('Keyboard shortcuts')
 	const hiveDetailViewName = t('Hive detail view')
-	const hiveDetailViewDescription = t('Detailed hive workflow with sections, frames, inspections, and metrics.')
+	const hiveDetailViewDescription = t(
+		'Detailed hive workflow with sections, frames, inspections, and metrics.'
+	)
 	const apiaryOverviewViewName = t('Apiary overview view')
-	const apiaryOverviewViewDescription = t('Apiary-level overview with colony list, placement, and local conditions context.')
+	const apiaryOverviewViewDescription = t(
+		'Apiary-level overview with colony list, placement, and local conditions context.'
+	)
 	const frameViewName = t('Frame view')
-	const frameViewDescription = t('Single frame-side view focused on detected cells, bees, queens, and varroa signals.')
+	const frameViewDescription = t(
+		'Single frame-side view focused on detected cells, bees, queens, and varroa signals.'
+	)
 	const canvasEditViewName = t('Frame canvas edit view')
-	const canvasEditViewDescription = t('Frame-side canvas editor with tool switching, cell brush typing, and brush size controls.')
+	const canvasEditViewDescription = t(
+		'Frame-side canvas editor with tool switching, cell brush typing, and brush size controls.'
+	)
 	const hiveListViewName = t('Hive list view')
-	const hiveListViewDescription = t('Apiary overview with list and table hive navigation modes.')
+	const hiveListViewDescription = t(
+		'Apiary overview with list and table hive navigation modes.'
+	)
 	const warehouseQueenListViewName = t('Warehouse queen list view')
-	const warehouseQueenListViewDescription = t('Warehouse queen table with keyboard row selection and deletion flow.')
+	const warehouseQueenListViewDescription = t(
+		'Warehouse queen table with keyboard row selection and deletion flow.'
+	)
 	const deviceListViewName = t('Device list view')
-	const deviceListViewDescription = t('Device list with keyboard row selection and deletion flow.')
+	const deviceListViewDescription = t(
+		'Device list with keyboard row selection and deletion flow.'
+	)
 	const currentViewName = t('Current view')
-	const currentViewDescription = t('Page-level context and shortcuts are available here.')
+	const currentViewDescription = t(
+		'Page-level context and shortcuts are available here.'
+	)
 	const shortcutsActionOpenAdvisor = t('Open AI Advisor')
 	const shortcutsActionToggleLeftMenu = t('Toggle left menu')
-	const shortcutsActionGoToLeftMenuItemByNumber = t('Go to left menu item by number')
+	const shortcutsActionGoToLeftMenuItemByNumber = t(
+		'Go to left menu item by number'
+	)
 	const shortcutsActionCloseDrawer = t('Close AI Advisor drawer')
 	const shortcutsActionGoToApiaryView = t('Go to apiary view')
 	const shortcutsActionGoToHiveListView = t('Go to hive list view')
 	const shortcutsActionEditHiveMainInfo = t('Edit hive main info')
 	const shortcutsActionMoveFocusAcrossControls = t('Move focus across controls')
-	const shortcutsActionConfirmFocusedDialogAction = t('Confirm focused dialog action')
-	const shortcutsActionCancelFocusedDialogAction = t('Cancel focused dialog action')
-	const shortcutsActionMoveFocusAcrossPageControls = t('Move focus across page controls')
-	const shortcutsActionMoveHiveFocusInListTable = t('Move hive focus in list/table view')
-	const shortcutsActionMoveQueenFocusInTable = t('Move queen focus in table view')
-	const shortcutsActionMoveDeviceFocusInList = t('Move device focus in list view')
-	const shortcutsActionSwitchSelectedHiveFrames = t('Switch selected hive frames')
-	const shortcutsActionSwitchSelectedHiveSections = t('Switch selected hive sections')
+	const shortcutsActionConfirmFocusedDialogAction = t(
+		'Confirm focused dialog action'
+	)
+	const shortcutsActionCancelFocusedDialogAction = t(
+		'Cancel focused dialog action'
+	)
+	const shortcutsActionMoveFocusAcrossPageControls = t(
+		'Move focus across page controls'
+	)
+	const shortcutsActionMoveHiveFocusInListTable = t(
+		'Move hive focus in list/table view'
+	)
+	const shortcutsActionMoveQueenFocusInTable = t(
+		'Move queen focus in table view'
+	)
+	const shortcutsActionMoveDeviceFocusInList = t(
+		'Move device focus in list view'
+	)
+	const shortcutsActionSwitchSelectedHiveFrames = t(
+		'Switch selected hive frames'
+	)
+	const shortcutsActionSwitchSelectedHiveSections = t(
+		'Switch selected hive sections'
+	)
 	const shortcutsActionDeleteSelectedHiveFrame = t('Delete selected hive frame')
-	const shortcutsActionDeleteSelectedHiveSection = t('Delete selected hive section')
-	const shortcutsActionDeleteSelectedWarehouseQueen = t('Delete selected warehouse queen')
+	const shortcutsActionDeleteSelectedHiveSection = t(
+		'Delete selected hive section'
+	)
+	const shortcutsActionDeleteSelectedWarehouseQueen = t(
+		'Delete selected warehouse queen'
+	)
 	const shortcutsActionDeleteSelectedDevice = t('Delete selected device')
 	const shortcutsActionSwitchToCellBrush = t('Switch to cell brush')
 	const shortcutsActionSwitchToFreeDraw = t('Switch to free draw')
@@ -584,16 +750,24 @@ export default function AIAdvisorDrawer() {
 	const shortcutsActionSetCellTypePollen = t('Set cell type to pollen')
 	const shortcutsActionSetCellTypeEggs = t('Set cell type to eggs')
 	const shortcutsActionSetCellTypeBrood = t('Set cell type to brood')
-	const shortcutsActionSetCellTypeCappedBrood = t('Set cell type to capped brood')
+	const shortcutsActionSetCellTypeCappedBrood = t(
+		'Set cell type to capped brood'
+	)
 	const shortcutsActionSetCellTypeDroneBrood = t('Set cell type to drone brood')
 	const shortcutsActionSetCellTypeEmpty = t('Set cell type to empty')
 	const shortcutsActionIncreaseBrushSize = t('Increase brush size')
 	const shortcutsActionDecreaseBrushSize = t('Decrease brush size')
 	const shortcutsActionUndoStroke = t('Undo stroke')
-	const openHiveDetailMessage = t('Open a hive detail page or apiary overview page to run AI analysis.')
+	const openHiveDetailMessage = t(
+		'Open a hive detail page or apiary overview page to run AI analysis.'
+	)
 	const advisorThinkingMessage = t('AI Advisor is thinking...')
-	const summaryUnavailableMessage = t('AI Advisor did not return a summary yet. Backend endpoint may still be unavailable.')
-	const failedAdvisoryMessage = t('Failed to complete AI advisory run. Please try again in a moment.')
+	const summaryUnavailableMessage = t(
+		'AI Advisor did not return a summary yet. Backend endpoint may still be unavailable.'
+	)
+	const failedAdvisoryMessage = t(
+		'Failed to complete AI advisory run. Please try again in a moment.'
+	)
 	const askAdvisorPlaceholder = t('Ask AI Advisor about this hive...')
 	const sendButtonLabel = t('Send')
 	const closeAiAdvisorLabel = t('Close AI Advisor')
@@ -608,18 +782,34 @@ export default function AIAdvisorDrawer() {
 	const [draftMessage, setDraftMessage] = useState('')
 	const [isSendingUserMessage, setIsSendingUserMessage] = useState(false)
 	const [adviceContext, setAdviceContext] = useState<any | null>(null)
-	const [advisorTargetHiveID, setAdvisorTargetHiveID] = useState<number | undefined>(undefined)
-	const [advisorLangCode, setAdvisorLangCode] = useState<string | undefined>(undefined)
+	const [advisorTargetHiveID, setAdvisorTargetHiveID] = useState<
+		number | undefined
+	>(undefined)
+	const [advisorLangCode, setAdvisorLangCode] = useState<string | undefined>(
+		undefined
+	)
 	const [billingLocked, setBillingLocked] = useState(false)
 	const [usageLoading, setUsageLoading] = useState(false)
 	const [aiUsage, setAiUsage] = useState<any | null>(null)
 	const [generateAdvice] = useMutation(GENERATE_ADVICE_MUTATION)
 
-	const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search])
+	const searchParams = useMemo(
+		() => new URLSearchParams(location.search),
+		[location.search]
+	)
 	const isOpen = searchParams.get('aiAdvisor') === '1'
-	const hiveContext = useMemo(() => getHiveContext(location.pathname), [location.pathname])
-	const apiaryOverviewContext = useMemo(() => getApiaryOverviewContext(location.pathname), [location.pathname])
-	const frameRouteContext = useMemo(() => getFrameRouteContext(location.pathname), [location.pathname])
+	const hiveContext = useMemo(
+		() => getHiveContext(location.pathname),
+		[location.pathname]
+	)
+	const apiaryOverviewContext = useMemo(
+		() => getApiaryOverviewContext(location.pathname),
+		[location.pathname]
+	)
+	const frameRouteContext = useMemo(
+		() => getFrameRouteContext(location.pathname),
+		[location.pathname]
+	)
 	const viewContext = useMemo(
 		() =>
 			getViewContext(location.pathname, {
@@ -631,49 +821,49 @@ export default function AIAdvisorDrawer() {
 				frameViewDescription,
 				canvasEditViewName,
 				canvasEditViewDescription,
-					hiveListViewName,
-					hiveListViewDescription,
-					warehouseQueenListViewName,
-					warehouseQueenListViewDescription,
-					deviceListViewName,
-					deviceListViewDescription,
-						currentViewName,
-						currentViewDescription,
-					shortcutsActionOpenAdvisor,
-					shortcutsActionToggleLeftMenu,
-					shortcutsActionGoToLeftMenuItemByNumber,
-					shortcutsActionCloseDrawer,
-					shortcutsActionGoToApiaryView,
-					shortcutsActionGoToHiveListView,
-					shortcutsActionEditHiveMainInfo,
-					shortcutsActionMoveFocusAcrossControls,
-					shortcutsActionConfirmFocusedDialogAction,
-					shortcutsActionCancelFocusedDialogAction,
-						shortcutsActionMoveFocusAcrossPageControls,
-						shortcutsActionMoveHiveFocusInListTable,
-						shortcutsActionMoveQueenFocusInTable,
-						shortcutsActionMoveDeviceFocusInList,
-						shortcutsActionSwitchSelectedHiveFrames,
-						shortcutsActionSwitchSelectedHiveSections,
-						shortcutsActionDeleteSelectedHiveFrame,
-						shortcutsActionDeleteSelectedHiveSection,
-						shortcutsActionDeleteSelectedWarehouseQueen,
-						shortcutsActionDeleteSelectedDevice,
-						shortcutsActionSwitchToCellBrush,
-						shortcutsActionSwitchToFreeDraw,
-						shortcutsActionSwitchToCellEraser,
-						shortcutsActionSetCellTypeNectar,
-						shortcutsActionSetCellTypeHoney,
-						shortcutsActionSetCellTypePollen,
-						shortcutsActionSetCellTypeEggs,
-						shortcutsActionSetCellTypeBrood,
-						shortcutsActionSetCellTypeCappedBrood,
-						shortcutsActionSetCellTypeDroneBrood,
-						shortcutsActionSetCellTypeEmpty,
-						shortcutsActionIncreaseBrushSize,
-						shortcutsActionDecreaseBrushSize,
-						shortcutsActionUndoStroke,
-					}),
+				hiveListViewName,
+				hiveListViewDescription,
+				warehouseQueenListViewName,
+				warehouseQueenListViewDescription,
+				deviceListViewName,
+				deviceListViewDescription,
+				currentViewName,
+				currentViewDescription,
+				shortcutsActionOpenAdvisor,
+				shortcutsActionToggleLeftMenu,
+				shortcutsActionGoToLeftMenuItemByNumber,
+				shortcutsActionCloseDrawer,
+				shortcutsActionGoToApiaryView,
+				shortcutsActionGoToHiveListView,
+				shortcutsActionEditHiveMainInfo,
+				shortcutsActionMoveFocusAcrossControls,
+				shortcutsActionConfirmFocusedDialogAction,
+				shortcutsActionCancelFocusedDialogAction,
+				shortcutsActionMoveFocusAcrossPageControls,
+				shortcutsActionMoveHiveFocusInListTable,
+				shortcutsActionMoveQueenFocusInTable,
+				shortcutsActionMoveDeviceFocusInList,
+				shortcutsActionSwitchSelectedHiveFrames,
+				shortcutsActionSwitchSelectedHiveSections,
+				shortcutsActionDeleteSelectedHiveFrame,
+				shortcutsActionDeleteSelectedHiveSection,
+				shortcutsActionDeleteSelectedWarehouseQueen,
+				shortcutsActionDeleteSelectedDevice,
+				shortcutsActionSwitchToCellBrush,
+				shortcutsActionSwitchToFreeDraw,
+				shortcutsActionSwitchToCellEraser,
+				shortcutsActionSetCellTypeNectar,
+				shortcutsActionSetCellTypeHoney,
+				shortcutsActionSetCellTypePollen,
+				shortcutsActionSetCellTypeEggs,
+				shortcutsActionSetCellTypeBrood,
+				shortcutsActionSetCellTypeCappedBrood,
+				shortcutsActionSetCellTypeDroneBrood,
+				shortcutsActionSetCellTypeEmpty,
+				shortcutsActionIncreaseBrushSize,
+				shortcutsActionDecreaseBrushSize,
+				shortcutsActionUndoStroke,
+			}),
 		[
 			location.pathname,
 			hiveDetailViewName,
@@ -734,7 +924,9 @@ export default function AIAdvisorDrawer() {
 		const nextParams = new URLSearchParams(location.search)
 		nextParams.delete('aiAdvisor')
 		const nextSearch = nextParams.toString()
-		navigate(`${location.pathname}${nextSearch ? `?${nextSearch}` : ''}`, { replace: true })
+		navigate(`${location.pathname}${nextSearch ? `?${nextSearch}` : ''}`, {
+			replace: true,
+		})
 	}
 
 	function addMessage(msg: ChatMessage) {
@@ -742,7 +934,9 @@ export default function AIAdvisorDrawer() {
 	}
 
 	function updateMessage(id: string, patch: Partial<ChatMessage>) {
-		setMessages((prev) => prev.map((msg) => (msg.id === id ? { ...msg, ...patch } : msg)))
+		setMessages((prev) =>
+			prev.map((msg) => (msg.id === id ? { ...msg, ...patch } : msg))
+		)
 	}
 
 	function removeMessage(id: string) {
@@ -752,7 +946,9 @@ export default function AIAdvisorDrawer() {
 	const fetchAiUsage = useCallback(async () => {
 		try {
 			setUsageLoading(true)
-			const usageResult = await apiClient.query(AI_ADVISOR_USAGE_QUERY, {}).toPromise()
+			const usageResult = await apiClient
+				.query(AI_ADVISOR_USAGE_QUERY, {})
+				.toPromise()
 			if (usageResult?.error) {
 				setAiUsage(null)
 				return
@@ -805,65 +1001,73 @@ export default function AIAdvisorDrawer() {
 				await fetchAiUsage()
 				if (runRef.current !== runId) return
 
-					if (!hiveContext && !apiaryOverviewContext) {
-						addMessage({
-							id: buildId('context'),
-							role: 'system',
-							text: openHiveDetailMessage,
+				if (!hiveContext && !apiaryOverviewContext) {
+					addMessage({
+						id: buildId('context'),
+						role: 'system',
+						text: openHiveDetailMessage,
+					})
+					return
+				}
+				if (apiaryOverviewContext && !hiveContext) {
+					const localApiary = await getApiary(apiaryOverviewContext.apiaryId)
+					const apiaryResult = await apiClient
+						.query(APIARY_ADVISOR_QUERY, { id: apiaryOverviewContext.apiaryId })
+						.toPromise()
+					const placementResult = await apiClient
+						.query(APIARY_PLACEMENT_QUERY, {
+							apiaryId: apiaryOverviewContext.apiaryId,
 						})
-						return
+						.toPromise()
+
+					if (runRef.current !== runId) return
+
+					const apiary = apiaryResult?.data?.apiary || localApiary || null
+					const hives = Array.isArray(apiary?.hives) ? apiary.hives : []
+					const placements = placementResult?.data?.hivePlacements || []
+					const obstacles = placementResult?.data?.apiaryObstacles || []
+					const lat = Number(apiary?.lat || 0)
+					const lng = Number(apiary?.lng || 0)
+					const hasCoordinates =
+						!!lat && !!lng && !Number.isNaN(lat) && !Number.isNaN(lng)
+
+					let weatherPayload = null
+					if (hasCoordinates) {
+						const weatherResult = await apiClient
+							.query(APIARY_WEATHER_QUERY, { lat: `${lat}`, lng: `${lng}` })
+							.toPromise()
+						weatherPayload = weatherResult?.data?.weather || null
 					}
-					if (apiaryOverviewContext && !hiveContext) {
-						const localApiary = await getApiary(apiaryOverviewContext.apiaryId)
-						const apiaryResult = await apiClient
-							.query(APIARY_ADVISOR_QUERY, { id: apiaryOverviewContext.apiaryId })
-							.toPromise()
-						const placementResult = await apiClient
-							.query(APIARY_PLACEMENT_QUERY, { apiaryId: apiaryOverviewContext.apiaryId })
-							.toPromise()
 
-						if (runRef.current !== runId) return
+					if (runRef.current !== runId) return
 
-						const apiary = apiaryResult?.data?.apiary || localApiary || null
-						const hives = Array.isArray(apiary?.hives) ? apiary.hives : []
-						const placements = placementResult?.data?.hivePlacements || []
-						const obstacles = placementResult?.data?.apiaryObstacles || []
-						const lat = Number(apiary?.lat || 0)
-						const lng = Number(apiary?.lng || 0)
-						const hasCoordinates = !!lat && !!lng && !Number.isNaN(lat) && !Number.isNaN(lng)
+					const weather = {
+						temperature: weatherPayload?.current_weather?.temperature ?? null,
+						windSpeed: weatherPayload?.current_weather?.windspeed ?? null,
+						windDirection:
+							weatherPayload?.current_weather?.winddirection ??
+							weatherPayload?.current?.wind_direction_10m ??
+							weatherPayload?.hourly?.winddirection_10m?.[0] ??
+							null,
+						rain:
+							weatherPayload?.current?.precipitation ??
+							weatherPayload?.hourly?.rain?.[0] ??
+							null,
+						pressure:
+							weatherPayload?.current?.surface_pressure ??
+							weatherPayload?.current?.pressure_msl ??
+							weatherPayload?.hourly?.surface_pressure?.[0] ??
+							weatherPayload?.hourly?.pressure_msl?.[0] ??
+							null,
+						elevation: weatherPayload?.elevation ?? null,
+					}
 
-						let weatherPayload = null
-						if (hasCoordinates) {
-							const weatherResult = await apiClient
-								.query(APIARY_WEATHER_QUERY, { lat: `${lat}`, lng: `${lng}` })
-								.toPromise()
-							weatherPayload = weatherResult?.data?.weather || null
-						}
-
-						if (runRef.current !== runId) return
-
-						const weather = {
-							temperature: weatherPayload?.current_weather?.temperature ?? null,
-							windSpeed: weatherPayload?.current_weather?.windspeed ?? null,
-							windDirection:
-								weatherPayload?.current_weather?.winddirection
-								?? weatherPayload?.current?.wind_direction_10m
-								?? weatherPayload?.hourly?.winddirection_10m?.[0]
-								?? null,
-							rain: weatherPayload?.current?.precipitation ?? weatherPayload?.hourly?.rain?.[0] ?? null,
-							pressure:
-								weatherPayload?.current?.surface_pressure
-								?? weatherPayload?.current?.pressure_msl
-								?? weatherPayload?.hourly?.surface_pressure?.[0]
-								?? weatherPayload?.hourly?.pressure_msl?.[0]
-								?? null,
-							elevation: weatherPayload?.elevation ?? null,
-						}
-
-						const hivePlacements = hives.map((hive: any) => {
-							const placement = placements.find((entry: any) => String(entry?.hiveId) === String(hive?.id))
-							const nearbyObstacles = placement
-								? obstacles
+					const hivePlacements = hives.map((hive: any) => {
+						const placement = placements.find(
+							(entry: any) => String(entry?.hiveId) === String(hive?.id)
+						)
+						const nearbyObstacles = placement
+							? obstacles
 									.map((obstacle: any) => {
 										const obstacleDistance = distance2d(
 											Number(placement.x),
@@ -871,7 +1075,8 @@ export default function AIAdvisorDrawer() {
 											Number(obstacle?.x || 0),
 											Number(obstacle?.y || 0)
 										)
-										const obstacleKind = obstacle?.type === 'CIRCLE' ? 'tree' : 'building'
+										const obstacleKind =
+											obstacle?.type === 'CIRCLE' ? 'tree' : 'building'
 										return {
 											id: obstacle?.id,
 											kind: obstacleKind,
@@ -880,118 +1085,124 @@ export default function AIAdvisorDrawer() {
 										}
 									})
 									.filter((obstacle: any) => obstacle.distancePx <= 150)
-								: []
+							: []
 
-							const facingDirectionDeg = placement?.rotation ?? null
-							const windDirectionDeg = weather.windDirection
-							const windAngleDeltaDeg =
-								facingDirectionDeg === null || windDirectionDeg === null
-									? null
-									: Math.round(angularDelta(+facingDirectionDeg, +windDirectionDeg))
+						const facingDirectionDeg = placement?.rotation ?? null
+						const windDirectionDeg = weather.windDirection
+						const windAngleDeltaDeg =
+							facingDirectionDeg === null || windDirectionDeg === null
+								? null
+								: Math.round(
+										angularDelta(+facingDirectionDeg, +windDirectionDeg)
+								  )
 
-							return {
-								hiveId: hive?.id,
-								hiveNumber: hive?.hiveNumber,
-								familyName: hive?.family?.name || null,
-								boxCount: hive?.boxCount ?? null,
-								position: placement
-									? {
+						return {
+							hiveId: hive?.id,
+							hiveNumber: hive?.hiveNumber,
+							familyName: hive?.family?.name || null,
+							boxCount: hive?.boxCount ?? null,
+							position: placement
+								? {
 										x: placement.x,
 										y: placement.y,
-									}
-									: null,
-								facingDirectionDeg,
-								windDirectionDeg,
-								windAngleDeltaDeg,
-								nearbyObstacles,
-							}
-						})
-
-						const adviceContext: any = {
-							mode: 'apiary-overview',
-							apiary: {
-								id: apiary?.id,
-								name: apiary?.name,
-								type: apiary?.type,
-								lat: apiary?.lat,
-								lng: apiary?.lng,
-							},
-							weather,
-							hivePlacements,
-							obstacles: obstacles.map((obstacle: any) => ({
-								id: obstacle?.id,
-								type: obstacle?.type,
-								label: obstacle?.label,
-								x: obstacle?.x,
-								y: obstacle?.y,
-								width: obstacle?.width,
-								height: obstacle?.height,
-								radius: obstacle?.radius,
-								rotation: obstacle?.rotation,
-							})),
-							currentView: {
-								pathname: location.pathname,
-								view: viewContext.name,
-								apiarySelection: apiaryOverviewContext,
-							},
+								  }
+								: null,
+							facingDirectionDeg,
+							windDirectionDeg,
+							windAngleDeltaDeg,
+							nearbyObstacles,
 						}
-						setAdviceContext(adviceContext)
-						setAdvisorTargetHiveID(undefined)
+					})
 
-						const payloadOverview = {
-							scope: 'apiary-context',
-							selection: apiaryOverviewContext,
-							counts: {
-								hives: hives.length,
-								placements: placements.length,
-								obstacles: obstacles.length,
-							},
-							weatherSummary: {
-								temperature: weather.temperature,
-								windSpeed: weather.windSpeed,
-								windDirection: weather.windDirection,
-								rain: weather.rain,
-							},
-							contextPreview: pruneForPreview(adviceContext),
-						}
-
-						addMessage({
-							id: buildId('payload'),
-							role: 'system',
-							payloadOverview,
-						})
-
-						pendingReplyId = buildId('reply-loading')
-						addMessage({
-							id: pendingReplyId,
-							role: 'assistant',
-							text: advisorThinkingMessage,
-							loading: true,
-						})
-
-						const response = await generateAdvice({
-							hiveID: undefined,
-							langCode: user?.lang,
-							adviceContext,
-						})
-
-						if (runRef.current !== runId) return
-
-						const adviceHtml = response?.data?.generateHiveAdvice
-						if (adviceHtml) {
-							removeMessage(pendingReplyId)
-							addMessage({ id: buildId('reply'), role: 'assistant', html: adviceHtml })
-						} else {
-							removeMessage(pendingReplyId)
-							addMessage({
-								id: buildId('reply'),
-								role: 'error',
-								text: summaryUnavailableMessage,
-							})
-						}
-						await fetchAiUsage()
-						return
+					const adviceContext: any = {
+						mode: 'apiary-overview',
+						apiary: {
+							id: apiary?.id,
+							name: apiary?.name,
+							type: apiary?.type,
+							lat: apiary?.lat,
+							lng: apiary?.lng,
+						},
+						weather,
+						hivePlacements,
+						obstacles: obstacles.map((obstacle: any) => ({
+							id: obstacle?.id,
+							type: obstacle?.type,
+							label: obstacle?.label,
+							x: obstacle?.x,
+							y: obstacle?.y,
+							width: obstacle?.width,
+							height: obstacle?.height,
+							radius: obstacle?.radius,
+							rotation: obstacle?.rotation,
+						})),
+						currentView: {
+							pathname: location.pathname,
+							view: viewContext.name,
+							apiarySelection: apiaryOverviewContext,
+						},
 					}
+					setAdviceContext(adviceContext)
+					setAdvisorTargetHiveID(undefined)
+
+					const payloadOverview = {
+						scope: 'apiary-context',
+						selection: apiaryOverviewContext,
+						counts: {
+							hives: hives.length,
+							placements: placements.length,
+							obstacles: obstacles.length,
+						},
+						weatherSummary: {
+							temperature: weather.temperature,
+							windSpeed: weather.windSpeed,
+							windDirection: weather.windDirection,
+							rain: weather.rain,
+						},
+						contextPreview: pruneForPreview(adviceContext),
+					}
+
+					addMessage({
+						id: buildId('payload'),
+						role: 'system',
+						payloadOverview,
+					})
+
+					pendingReplyId = buildId('reply-loading')
+					addMessage({
+						id: pendingReplyId,
+						role: 'assistant',
+						text: advisorThinkingMessage,
+						loading: true,
+					})
+
+					const response = await generateAdvice({
+						hiveID: undefined,
+						langCode: user?.lang,
+						adviceContext,
+					})
+
+					if (runRef.current !== runId) return
+
+					const adviceHtml = response?.data?.generateHiveAdvice
+					if (adviceHtml) {
+						removeMessage(pendingReplyId)
+						addMessage({
+							id: buildId('reply'),
+							role: 'assistant',
+							html: adviceHtml,
+						})
+					} else {
+						removeMessage(pendingReplyId)
+						addMessage({
+							id: buildId('reply'),
+							role: 'error',
+							text: summaryUnavailableMessage,
+						})
+					}
+					await fetchAiUsage()
+					return
+				}
 
 				const [apiary, hive, family, boxes] = await Promise.all([
 					getApiary(hiveContext.apiaryId),
@@ -1012,22 +1223,34 @@ export default function AIAdvisorDrawer() {
 
 				const framesByBox = {}
 				for (let i in boxesForAdvice) {
-					const frames = Object.assign({}, await getFrames({ boxId: +boxesForAdvice[i].id }))
+					const frames = Object.assign(
+						{},
+						await getFrames({ boxId: +boxesForAdvice[i].id })
+					)
 
 					for (let j in frames) {
 						if (!frames[j].leftSide || !frames[j].rightSide) continue
-
-						;(frames[j].leftSide as any).cells = compactCellSummary(await getFrameSideCells(+frames[j].leftId))
-						;(frames[j].rightSide as any).cells = compactCellSummary(await getFrameSideCells(+frames[j].rightId))
+						;(frames[j].leftSide as any).cells = compactCellSummary(
+							await getFrameSideCells(+frames[j].leftId)
+						)
+						;(frames[j].rightSide as any).cells = compactCellSummary(
+							await getFrameSideCells(+frames[j].rightId)
+						)
 						const leftSide = frames[j].leftSide as any
 						const rightSide = frames[j].rightSide as any
 
-						const leftFile = await getFrameSideFile({ frameSideId: +frames[j].leftId })
-						leftSide.detectedQueenCupsCount = leftFile?.detectedQueenCups?.length || 0
+						const leftFile = await getFrameSideFile({
+							frameSideId: +frames[j].leftId,
+						})
+						leftSide.detectedQueenCupsCount =
+							leftFile?.detectedQueenCups?.length || 0
 						leftSide.isQueenDetected = leftFile?.queenDetected || false
 
-						const rightFile = await getFrameSideFile({ frameSideId: +frames[j].rightId })
-						rightSide.detectedQueenCupsCount = rightFile?.detectedQueenCups?.length || 0
+						const rightFile = await getFrameSideFile({
+							frameSideId: +frames[j].rightId,
+						})
+						rightSide.detectedQueenCupsCount =
+							rightFile?.detectedQueenCups?.length || 0
 						rightSide.isQueenDetected = rightFile?.queenDetected || false
 					}
 
@@ -1043,9 +1266,9 @@ export default function AIAdvisorDrawer() {
 
 				if (runRef.current !== runId) return
 
-					const now = new Date()
-					const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-					const metricsResult = await apiClient
+				const now = new Date()
+				const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+				const metricsResult = await apiClient
 					.query(METRICS_QUERY, {
 						hiveId: hiveContext.hiveId,
 						timeRangeMin: 7 * 24 * 60,
@@ -1054,104 +1277,120 @@ export default function AIAdvisorDrawer() {
 					})
 					.toPromise()
 
-					if (runRef.current !== runId) return
+				if (runRef.current !== runId) return
 
-					const hasFrameSideContext = Boolean(frameRouteContext?.frameSideId)
-					let selectedFrameImage: any = null
-					if (hasFrameSideContext) {
-						const frameImageResult = await apiClient
-							.query(FRAME_SIDE_IMAGE_QUERY, { frameSideId: frameRouteContext.frameSideId })
-							.toPromise()
-						let frameFile = frameImageResult?.data?.hiveFrameSideFile?.file
-						if (!frameFile) {
-							// Fallback to local cache (Dexie) when backend query is temporarily missing.
-							frameFile = await getFrameSidePreviewImage(frameRouteContext.frameSideId as number)
-						}
-						const optimizedImage = pickOptimizedImage(frameFile)
-
-						selectedFrameImage = {
+				const hasFrameSideContext = Boolean(frameRouteContext?.frameSideId)
+				let selectedFrameImage: any = null
+				if (hasFrameSideContext) {
+					const frameImageResult = await apiClient
+						.query(FRAME_SIDE_IMAGE_QUERY, {
 							frameSideId: frameRouteContext.frameSideId,
-							originalUrl: frameFile?.url || null,
-							optimizedUrl: optimizedImage?.url || null,
-							optimizedMaxDimensionPx: optimizedImage?.maxDimensionPx ?? null,
-							source: optimizedImage?.source || null,
-						}
+						})
+						.toPromise()
+					let frameFile = frameImageResult?.data?.hiveFrameSideFile?.file
+					if (!frameFile) {
+						// Fallback to local cache (Dexie) when backend query is temporarily missing.
+						frameFile = await getFrameSidePreviewImage(
+							frameRouteContext.frameSideId as number
+						)
 					}
+					const optimizedImage = pickOptimizedImage(frameFile)
 
-					const selectedFrameRaw = findSelectedFrameRaw(framesByBox, frameRouteContext)
-					const framesForAdvice = hasFrameSideContext
-						? {
+					selectedFrameImage = {
+						frameSideId: frameRouteContext.frameSideId,
+						originalUrl: frameFile?.url || null,
+						optimizedUrl: optimizedImage?.url || null,
+						optimizedMaxDimensionPx: optimizedImage?.maxDimensionPx ?? null,
+						source: optimizedImage?.source || null,
+					}
+				}
+
+				const selectedFrameRaw = findSelectedFrameRaw(
+					framesByBox,
+					frameRouteContext
+				)
+				const framesForAdvice = hasFrameSideContext
+					? {
 							[String(frameRouteContext?.boxId || '')]: selectedFrameRaw
 								? { [String((selectedFrameRaw as any).id)]: selectedFrameRaw }
 								: {},
-						}
-						: framesByBox
+					  }
+					: framesByBox
 
-					const adviceContext: any = {
-						mode: hasFrameSideContext ? 'frame-focus' : 'hive-overview',
-						apiary,
-						hive,
-						family,
+				const adviceContext: any = {
+					mode: hasFrameSideContext ? 'frame-focus' : 'hive-overview',
+					apiary,
+					hive,
+					family,
 					boxes: boxesForAdvice,
 					frames: framesForAdvice,
 					inspections: inspections.slice(0, 40),
-					changeHistory: changeHistory.map((entry) => ({
-						id: entry.id,
-						action: entry.action,
-						title: entry.title,
-						details: truncateText(entry.details, 500),
-						source: entry.source,
-						createdAt: entry.createdAt,
-						relatedHives: entry.relatedHives || [],
-					})).slice(0, 60),
+					changeHistory: changeHistory
+						.map((entry) => ({
+							id: entry.id,
+							action: entry.action,
+							title: entry.title,
+							details: truncateText(entry.details, 500),
+							source: entry.source,
+							createdAt: entry.createdAt,
+							relatedHives: entry.relatedHives || [],
+						}))
+						.slice(0, 60),
 					metrics: metricsResult?.data,
-						currentView: {
-							pathname: location.pathname,
-							view: viewContext.name,
-							frameSelection: frameRouteContext,
-						},
-						frameFocusPrompt: hasFrameSideContext
-							? 'Given hive context and the attached optimized frame-side image, analyze this specific frame and provide practical beekeeping advice.'
-							: null,
-					}
-					const selectedFramePayload = findSelectedFramePayload(framesByBox, frameRouteContext)
-					if (selectedFramePayload) {
-						adviceContext.selectedFrame = selectedFramePayload
-					}
-					if (selectedFrameImage) {
-						adviceContext.selectedFrameImage = selectedFrameImage
-					}
-					setAdviceContext(adviceContext)
-					setAdvisorTargetHiveID(hiveContext.hiveId)
+					currentView: {
+						pathname: location.pathname,
+						view: viewContext.name,
+						frameSelection: frameRouteContext,
+					},
+					frameFocusPrompt: hasFrameSideContext
+						? 'Given hive context and the attached optimized frame-side image, analyze this specific frame and provide practical beekeeping advice.'
+						: null,
+				}
+				const selectedFramePayload = findSelectedFramePayload(
+					framesByBox,
+					frameRouteContext
+				)
+				if (selectedFramePayload) {
+					adviceContext.selectedFrame = selectedFramePayload
+				}
+				if (selectedFrameImage) {
+					adviceContext.selectedFrameImage = selectedFrameImage
+				}
+				setAdviceContext(adviceContext)
+				setAdvisorTargetHiveID(hiveContext.hiveId)
 
 				const payloadOverview = {
 					scope: hasFrameSideContext ? 'hive-frame-context' : 'hive-context',
 					selection: frameRouteContext || null,
-						counts: {
-							boxes: boxesForAdvice.length,
-							inspections: inspections.length,
-							changeHistoryEntries: changeHistory.length,
-							frames: Object.values(framesByBox).reduce(
-								(total: number, byBox: any) => total + Object.keys(byBox || {}).length,
-								0
+					counts: {
+						boxes: boxesForAdvice.length,
+						inspections: inspections.length,
+						changeHistoryEntries: changeHistory.length,
+						frames: Object.values(framesByBox).reduce(
+							(total: number, byBox: any) =>
+								total + Object.keys(byBox || {}).length,
+							0
 						),
 					},
 					selectedFrame: selectedFramePayload,
-						metricsSummary: {
-							weightPoints: metricsResult?.data?.weightKg?.metrics?.length || 0,
-							temperaturePoints: metricsResult?.data?.temperatureCelsius?.metrics?.length || 0,
-							entrancePoints: metricsResult?.data?.entranceMovement?.metrics?.length || 0,
-						},
-						selectedFrameImage: selectedFrameImage
-							? {
+					metricsSummary: {
+						weightPoints: metricsResult?.data?.weightKg?.metrics?.length || 0,
+						temperaturePoints:
+							metricsResult?.data?.temperatureCelsius?.metrics?.length || 0,
+						entrancePoints:
+							metricsResult?.data?.entranceMovement?.metrics?.length || 0,
+					},
+					selectedFrameImage: selectedFrameImage
+						? {
 								frameSideId: selectedFrameImage.frameSideId,
 								optimizedUrl: selectedFrameImage.optimizedUrl,
-								optimizedMaxDimensionPx: selectedFrameImage.optimizedMaxDimensionPx,
+								optimizedMaxDimensionPx:
+									selectedFrameImage.optimizedMaxDimensionPx,
 								source: selectedFrameImage.source,
-							}
-							: null,
-						contextPreview: pruneForPreview(adviceContext),
-					}
+						  }
+						: null,
+					contextPreview: pruneForPreview(adviceContext),
+				}
 
 				addMessage({
 					id: buildId('payload'),
@@ -1179,7 +1418,11 @@ export default function AIAdvisorDrawer() {
 				const responseErrorMessage = response?.error?.message
 				if (adviceHtml) {
 					removeMessage(pendingReplyId)
-					addMessage({ id: buildId('reply'), role: 'assistant', html: adviceHtml })
+					addMessage({
+						id: buildId('reply'),
+						role: 'assistant',
+						html: adviceHtml,
+					})
 				} else {
 					removeMessage(pendingReplyId)
 					addMessage({
@@ -1204,30 +1447,35 @@ export default function AIAdvisorDrawer() {
 
 		run()
 
-			return () => {
-				runRef.current = 0
-			}
-			}, [
-				hiveContext,
-				apiaryOverviewContext,
-				shouldRender,
-			viewContext,
-			generateAdvice,
-				currentViewLabel,
-				keyboardShortcutsLabel,
-				openHiveDetailMessage,
-				advisorThinkingMessage,
-				summaryUnavailableMessage,
-				failedAdvisoryMessage,
-				location.pathname,
-			viewContext.name,
-			frameRouteContext,
-			fetchAiUsage,
-		])
+		return () => {
+			runRef.current = 0
+		}
+	}, [
+		hiveContext,
+		apiaryOverviewContext,
+		shouldRender,
+		viewContext,
+		generateAdvice,
+		currentViewLabel,
+		keyboardShortcutsLabel,
+		openHiveDetailMessage,
+		advisorThinkingMessage,
+		summaryUnavailableMessage,
+		failedAdvisoryMessage,
+		location.pathname,
+		viewContext.name,
+		frameRouteContext,
+		fetchAiUsage,
+	])
 
 	const onSendUserMessage = async () => {
 		const chatMessage = draftMessage.trim()
-		if (!chatMessage || billingLocked || !adviceContext || isSendingUserMessage) {
+		if (
+			!chatMessage ||
+			billingLocked ||
+			!adviceContext ||
+			isSendingUserMessage
+		) {
 			return
 		}
 
@@ -1236,7 +1484,12 @@ export default function AIAdvisorDrawer() {
 		const nextMessages = [
 			...messages,
 			{ id: userMessageId, role: 'user' as const, text: chatMessage },
-			{ id: pendingReplyId, role: 'assistant' as const, text: advisorThinkingMessage, loading: true },
+			{
+				id: pendingReplyId,
+				role: 'assistant' as const,
+				text: advisorThinkingMessage,
+				loading: true,
+			},
 		]
 		setMessages(nextMessages)
 		setDraftMessage('')
@@ -1244,7 +1497,9 @@ export default function AIAdvisorDrawer() {
 
 		try {
 			const chatHistory = nextMessages
-				.filter((message) => message.role === 'user' || message.role === 'assistant')
+				.filter(
+					(message) => message.role === 'user' || message.role === 'assistant'
+				)
 				.slice(-12)
 				.map((message) => ({
 					role: message.role,
@@ -1265,7 +1520,11 @@ export default function AIAdvisorDrawer() {
 			const responseErrorMessage = response?.error?.message
 			if (adviceHtml) {
 				removeMessage(pendingReplyId)
-				addMessage({ id: buildId('reply'), role: 'assistant', html: adviceHtml })
+				addMessage({
+					id: buildId('reply'),
+					role: 'assistant',
+					html: adviceHtml,
+				})
 			} else {
 				removeMessage(pendingReplyId)
 				addMessage({
@@ -1287,14 +1546,22 @@ export default function AIAdvisorDrawer() {
 		}
 	}
 
-	const aiUsagePercent = Math.max(0, Math.min(100, Number(aiUsage?.percentUsed || 0)))
+	const aiUsagePercent = Math.max(
+		0,
+		Math.min(100, Number(aiUsage?.percentUsed || 0))
+	)
 	const aiUsageRemaining = Math.max(0, 100 - aiUsagePercent)
-	const batteryColor = aiUsageRemaining > 60 ? '#2f8b0b' : aiUsageRemaining > 30 ? '#d49d0f' : '#b22222'
+	const batteryColor =
+		aiUsageRemaining > 60
+			? '#2f8b0b'
+			: aiUsageRemaining > 30
+			? '#d49d0f'
+			: '#b22222'
 	const aiUsageSubtitle = usageLoading
 		? `${aiUsageRemainingLabel}: ...`
 		: aiUsage
-			? `${aiUsageRemainingLabel}: ${aiUsageRemaining}%`
-			: `${aiUsageRemainingLabel}: ${aiUsageUnavailableLabel}`
+		? `${aiUsageRemainingLabel}: ${aiUsageRemaining}%`
+		: `${aiUsageRemainingLabel}: ${aiUsageUnavailableLabel}`
 
 	useEffect(() => {
 		if (!shouldRender) {
@@ -1318,23 +1585,36 @@ export default function AIAdvisorDrawer() {
 	return (
 		<div className={styles.drawer}>
 			<div className={styles.header}>
-				<img className={styles.avatar} src={beekeeperURL} alt={aiAdvisorAvatarAlt} />
+				<img
+					className={styles.avatar}
+					src={beekeeperURL}
+					alt={aiAdvisorAvatarAlt}
+				/>
 				<div className={styles.headerText}>
-					<h3 className={styles.title}><T>AI Advisor</T></h3>
+					<h3 className={styles.title}>
+						<T>AI Advisor</T>
+					</h3>
 					<p className={styles.subtitle}>{viewContext.name}</p>
 					{!billingLocked && (
 						<div className={styles.usageRow}>
 							<p className={styles.usage}>{aiUsageSubtitle}</p>
 							{aiUsage && (
-								<span className={styles.battery} aria-label={`${aiUsageRemainingLabel}: ${aiUsageRemaining}%`}>
+								<span
+									className={styles.battery}
+									aria-label={`${aiUsageRemainingLabel}: ${aiUsageRemaining}%`}
+								>
 									{Array.from({ length: 8 }).map((_, index) => {
 										const threshold = ((index + 1) / 8) * 100
 										const isOn = aiUsageRemaining >= threshold
 										return (
 											<span
 												key={`battery-segment-${index}`}
-												className={`${styles.batterySegment} ${isOn ? styles.on : ''}`}
-												style={isOn ? { backgroundColor: batteryColor } : undefined}
+												className={`${styles.batterySegment} ${
+													isOn ? styles.on : ''
+												}`}
+												style={
+													isOn ? { backgroundColor: batteryColor } : undefined
+												}
 											/>
 										)
 									})}
@@ -1343,8 +1623,13 @@ export default function AIAdvisorDrawer() {
 							)}
 						</div>
 					)}
-					</div>
-				<button className={styles.closeBtn} type="button" onClick={closeDrawer} aria-label={closeAiAdvisorLabel}>
+				</div>
+				<button
+					className={styles.closeBtn}
+					type="button"
+					onClick={closeDrawer}
+					aria-label={closeAiAdvisorLabel}
+				>
 					×
 				</button>
 			</div>
@@ -1354,21 +1639,26 @@ export default function AIAdvisorDrawer() {
 						message.role === 'assistant'
 							? styles.assistant
 							: message.role === 'user'
-								? styles.user
+							? styles.user
 							: message.role === 'error'
-								? styles.error
-								: styles.system
+							? styles.error
+							: styles.system
 					return (
 						<div key={message.id} className={`${styles.message} ${roleClass}`}>
 							{message.shortcuts ? (
 								<div>
-									<strong>{message.shortcutsTitle || keyboardShortcutsLabel}:</strong>
+									<strong>
+										{message.shortcutsTitle || keyboardShortcutsLabel}:
+									</strong>
 									<ul className={styles.shortcutList}>
 										{message.shortcuts.map((item, index) => (
-												<li key={`${message.id}-${index}`} className={styles.shortcutItem}>
-													<KeyboardHints
-														keys={formatShortcutHintKeys(item.keys)}
-														absolute={false}
+											<li
+												key={`${message.id}-${index}`}
+												className={styles.shortcutItem}
+											>
+												<KeyboardHints
+													keys={formatShortcutHintKeys(item.keys)}
+													absolute={false}
 													alwaysVisible
 													className={styles.inlineHint}
 												/>
@@ -1379,7 +1669,9 @@ export default function AIAdvisorDrawer() {
 								</div>
 							) : message.payloadOverview ? (
 								<details className={styles.payloadDetails}>
-									<summary className={styles.payloadSummary}>AI payload overview</summary>
+									<summary className={styles.payloadSummary}>
+										AI payload overview
+									</summary>
 									<pre className={styles.payloadPre}>
 										{JSON.stringify(message.payloadOverview, null, 2)}
 									</pre>
@@ -1399,8 +1691,8 @@ export default function AIAdvisorDrawer() {
 								</div>
 							)}
 						</div>
-						)
-					})}
+					)
+				})}
 				{billingLocked && <AIAdvisorBillingNotice compact />}
 			</div>
 			<div className={styles.composer}>

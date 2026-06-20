@@ -65,15 +65,16 @@ export default function ApiaryEditForm() {
 			{errorMsg}
 
 			<div className={style.apiary}>
-				<form onSubmit={onSubmit} style="display:flex">
-					<h2 style="width:30%;"><T ctx="this is a headline to create new apiary form">New apiary</T></h2>
-
+				<form onSubmit={onSubmit} className={style.form}>
+					<h2 className={style.title}>
+						<T ctx="this is a headline to create new apiary form">New apiary</T>
+					</h2>
 
 					<input
 						name="name"
 						id="name"
 						placeholder={tName}
-						style="margin: 0 10px;flex-grow:1;height: 40px;padding: 0 10px;"
+						className={style.nameInput}
 						autoFocus
 						value={name}
 						onInput={(e: any) => {
@@ -85,13 +86,17 @@ export default function ApiaryEditForm() {
 						name="type"
 						id="type"
 						value={type}
-						style="margin: 0 10px; height: 40px; padding: 0 10px;"
+						className={style.typeSelect}
 						onChange={(e: any) => {
 							setType(e.target.value as ApiaryType)
 						}}
 					>
-						<option value={apiaryTypes.STATIC}><T>Static apiary</T></option>
-						<option value={apiaryTypes.MOBILE}><T>Mobile apiary</T></option>
+						<option value={apiaryTypes.STATIC}>
+							<T>Static apiary</T>
+						</option>
+						<option value={apiaryTypes.MOBILE}>
+							<T>Mobile apiary</T>
+						</option>
 					</select>
 
 					<Button type="submit" color="green">

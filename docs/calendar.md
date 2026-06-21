@@ -194,13 +194,24 @@ Current treatment data is too thin for safe automatic reminder generation. Befor
 - optional product/name/notes fields that are informational only and do not encode veterinary or regulatory instructions.
 - reminder enablement/status rules, either stateless generation or persisted state in `calendar_reminder_states`.
 
-#### Queen milestone data contract before implementation
+#### Queen milestone data contract (Approved)
 
-Current queen/family `added` is a year string, which is enough for approximate age display but not enough for precise date milestones. Before implementing queen milestone reminders, approve whether queen/family records will store:
+Current queen/family `added` is a year string, which is enough for approximate age display but not enough for precise date milestones. The family/queen logging flow and `families` table will be updated to support:
 
-- exact `introduced_at` date for date-specific milestones, or
-- year-only annual milestones with intentionally approximate due dates, or
-- user-entered milestone due dates.
+- `introduced_at`: An exact date for when the queen/family was introduced, required for precise date-based milestones.
+- `due_at`: An explicit, user-entered due date for custom milestones.
+- `template_key`: A selected milestone template key from an approved set (e.g., `QUEEN_CELL_HATCH_CHECK`, `QUEEN_MATING_CHECK`, `QUEEN_REPLACEMENT_REMINDER`).
+
+Reminder generation will use **stateless generation** and represent **future reminders** (active tasks) rather than passive status. Persistent state in `calendar_reminder_states` (like DISMISSED or SNOOZED status) is explicitly deferred for Calendar v1. Milestones are generated dynamically for families having a `due_at` or a calculated milestone from `introduced_at` that falls within the queried Calendar date range.
+
+#### Localization and Copy Requirements
+
+- Queen milestone reminder text must be localized in the web-app using the `template_key`.
+- Copy must be actionable (e.g., "Check queen cell hatching") and use existing translation patterns (`T`-wrapped strings).
+
+#### Item Identity Conventions
+
+Stateless queen milestones will use a stable ID convention: `queen-milestone:{familyId}:{templateKey}:{due_at}`. Source metadata must include `familyId`, `hiveId`, and `apiaryId` to ensure predictable diffs and allow the user to open the relevant hive and queen context directly from the calendar.
 
 ### Proposed GraphQL contract in `swarm-api`
 
@@ -330,7 +341,7 @@ Calendar item IDs should be stable and deterministic so the web-app can diff ite
 - [x] REQ-F-007 Limit Calendar v1 item sources to inspections, hive log entries, treatment-generated reminders, and queen milestone reminders. Verification: source filtering tests.
 - [x] REQ-F-008 Distinguish generated reminders/tasks from historical records visually and textually. Verification: UI acceptance tests.
 - [x] REQ-F-009 Define treatment reminder generation rules before implementation. Verification: approved specification update and reminder rule tests.
-- [ ] REQ-F-010 Define queen milestone generation rules before implementation. Verification: approved specification update and milestone rule tests.
+- [x] REQ-F-010 Define queen milestone generation rules before implementation. Verification: approved specification update and milestone rule tests.
 - [x] REQ-F-011 Keep seasonal tasks, administrative tasks, external calendar provider integrations, notification delivery redesign, generic workflow engines, broad brainstorm features, and replacement of existing TimeView telemetry/charting out of Calendar v1 unless later approved. Verification: code review and scope review.
 - [x] REQ-F-012 Show inspection recency in Calendar v1 by displaying the latest known inspection date for the relevant hive/apiary context, even when that inspection falls outside the currently selected calendar date range. The recency indicator is based on an inspection source record, links to the related source context when available, and must not be presented as a future task. Verification: inspection recency UI and mapping tests.
 - [x] REQ-F-013 Expose Calendar v1 data through a `swarm-api` GraphQL aggregate query that returns a normalized `CalendarPayload` for a requested bounded range and optional hive/apiary/source filters. Verification: GraphQL integration tests.

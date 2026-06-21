@@ -331,7 +331,6 @@ export default function AddQueenModal({
 								onChange={setRace}
 								placeholder="e.g. Carniolan, Italian, etc."
 							/>
-						/>
 
 						<div className={styles.yearInputWrapper}>
 							<div>

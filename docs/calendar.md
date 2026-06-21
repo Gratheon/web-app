@@ -415,6 +415,7 @@ Calendar item IDs should be stable and deterministic so the web-app can diff ite
 - [x] DEC-017 Proposed: Add a single `swarm-api` GraphQL aggregate query for Calendar instead of composing Calendar from multiple existing page-specific queries in the web-app. Approval required before implementation.
 - [ ] DEC-018 Proposed: Keep generated reminder template definitions as server code/config initially, expose stable `templateKey` values through GraphQL, and localize user-visible reminder copy in the web-app. Approval required before implementation.
 - [x] DEC-019 Proposed: Re-evaluate a separate Calendar/reminder service only after external calendar sync, notification orchestration, recurring workflows, high-volume async generation, or independent Calendar data ownership is approved. Approval required before implementation.
+- [x] DEC-020 The `/insights` route will be displayed in the UI as "Analytics" while preserving the route contract.
 
 ## Known risks
 

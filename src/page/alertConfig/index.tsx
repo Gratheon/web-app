@@ -19,7 +19,7 @@ const ALERTS_SERVICE_LIVENESS_QUERY = gql`
 			id
 		}
 	}
-`;
+`
 
 const ALERT_CHANNELS_QUERY = gql`
 	query alertChannels {
@@ -63,7 +63,7 @@ const ALERT_CHANNELS_QUERY = gql`
 			}
 		}
 	}
-`;
+`
 
 const CREATE_ALERT_RULE_MUTATION = gql`
 	mutation createAlertRule($rule: AlertRuleInput!) {
@@ -77,7 +77,7 @@ const CREATE_ALERT_RULE_MUTATION = gql`
 			enabled
 		}
 	}
-`;
+`
 
 const UPDATE_ALERT_RULE_MUTATION = gql`
 	mutation updateAlertRule($id: ID!, $rule: AlertRuleInput!) {
@@ -91,13 +91,13 @@ const UPDATE_ALERT_RULE_MUTATION = gql`
 			enabled
 		}
 	}
-`;
+`
 
 const DELETE_ALERT_RULE_MUTATION = gql`
 	mutation deleteAlertRule($id: ID!) {
 		deleteAlertRule(id: $id)
 	}
-`;
+`
 
 const SET_ALERT_CHANNEL_MUTATION = gql`
 	mutation setAlertChannel($config: AlertChannelInput!) {
@@ -112,60 +112,79 @@ const SET_ALERT_CHANNEL_MUTATION = gql`
 			enabled
 		}
 	}
-`;
+`
 
 const DELETE_ALERT_CHANNEL_MUTATION = gql`
 	mutation deleteAlertChannel($channelType: String!) {
 		deleteAlertChannel(channelType: $channelType)
 	}
-`;
+`
 
-function getChartTypeFromMetricType(metricType: string | null | undefined): string | null {
-	if (!metricType) return null;
+function getChartTypeFromMetricType(
+	metricType: string | null | undefined
+): string | null {
+	if (!metricType) return null
 
 	const metricTypeMap: Record<string, string> = {
-		'WEIGHT': 'weight',
-		'TEMPERATURE': 'temperature',
-		'ENTRANCE_MOVEMENT': 'entrance',
-		'ENTRANCE_SPEED': 'entranceSpeed',
-		'ENTRANCE_DETECTED': 'entranceDetected',
-		'ENTRANCE_STATIONARY': 'entranceStationary',
-		'ENTRANCE_INTERACTIONS': 'entranceInteractions'
-	};
+		WEIGHT: 'weight',
+		TEMPERATURE: 'temperature',
+		ENTRANCE_MOVEMENT: 'entrance',
+		ENTRANCE_SPEED: 'entranceSpeed',
+		ENTRANCE_DETECTED: 'entranceDetected',
+		ENTRANCE_STATIONARY: 'entranceStationary',
+		ENTRANCE_INTERACTIONS: 'entranceInteractions',
+	}
 
-	return metricTypeMap[metricType] || null;
+	return metricTypeMap[metricType] || null
 }
 
-export default function AlertConfig({ section = 'history' }: { section?: AlertConfigSection }) {
+export default function AlertConfig({
+	section = 'history',
+}: {
+	section?: AlertConfigSection
+}) {
 	const { confirm, ConfirmDialog } = useConfirm()
-	const { data: alertsServiceLiveness, error: alertsServiceError } = useQuery(ALERTS_SERVICE_LIVENESS_QUERY);
-	const { data, error: pageQueryError, reexecuteQuery } = useQuery(ALERT_CHANNELS_QUERY);
-	const [setAlertChannel, { error: mutationError }] = useMutation(SET_ALERT_CHANNEL_MUTATION);
-	const [deleteAlertChannel] = useMutation(DELETE_ALERT_CHANNEL_MUTATION);
-	const [createAlertRule] = useMutation(CREATE_ALERT_RULE_MUTATION);
-	const [updateAlertRule] = useMutation(UPDATE_ALERT_RULE_MUTATION);
-	const [deleteAlertRule] = useMutation(DELETE_ALERT_RULE_MUTATION);
+	const { data: alertsServiceLiveness, error: alertsServiceError } = useQuery(
+		ALERTS_SERVICE_LIVENESS_QUERY
+	)
+	const {
+		data,
+		error: pageQueryError,
+		reexecuteQuery,
+	} = useQuery(ALERT_CHANNELS_QUERY)
+	const [setAlertChannel, { error: mutationError }] = useMutation(
+		SET_ALERT_CHANNEL_MUTATION
+	)
+	const [deleteAlertChannel] = useMutation(DELETE_ALERT_CHANNEL_MUTATION)
+	const [createAlertRule] = useMutation(CREATE_ALERT_RULE_MUTATION)
+	const [updateAlertRule] = useMutation(UPDATE_ALERT_RULE_MUTATION)
+	const [deleteAlertRule] = useMutation(DELETE_ALERT_RULE_MUTATION)
 
-	const channels = data?.alertChannels || [];
-	const alerts = data?.alerts || [];
-	const alertRules = data?.alertRules || [];
-	const apiaries = data?.apiaries || [];
+	const channels = data?.alertChannels || []
+	const alerts = data?.alerts || []
+	const alertRules = data?.alertRules || []
+	const apiaries = data?.apiaries || []
 
 	const hiveMap = React.useMemo(() => {
-		const map: Record<string, { name: string; apiaryId: string; apiaryName: string }> = {};
-		apiaries.forEach(apiary => {
-			apiary.hives?.forEach(hive => {
+		const map: Record<
+			string,
+			{ name: string; apiaryId: string; apiaryName: string }
+		> = {}
+		apiaries.forEach((apiary) => {
+			apiary.hives?.forEach((hive) => {
 				map[hive.id] = {
-					name: hive.hiveNumber ? `Hive #${hive.hiveNumber}` : `Hive ${hive.id}`,
+					name: hive.hiveNumber
+						? `Hive #${hive.hiveNumber}`
+						: `Hive ${hive.id}`,
 					apiaryId: apiary.id,
-					apiaryName: apiary.name
-				};
-			});
-		});
-		return map;
-	}, [apiaries]);
+					apiaryName: apiary.name,
+				}
+			})
+		})
+		return map
+	}, [apiaries])
 
-	const [selectedChannel, setSelectedChannel] = useState('SMS');
+	const [selectedChannel, setSelectedChannel] = useState('SMS')
 	const [channelConfig, setChannelConfig] = useState({
 		phoneNumber: '',
 		email: '',
@@ -173,9 +192,9 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 		timeStart: '09:00',
 		timeEnd: '22:00',
 		enabled: true,
-	});
-	const [saving, setSaving] = useState(false);
-	const [showSuccess, setShowSuccess] = useState(false);
+	})
+	const [saving, setSaving] = useState(false)
+	const [showSuccess, setShowSuccess] = useState(false)
 	const inText = t('in')
 	const forText = t('for')
 	const minText = t('min')
@@ -199,9 +218,8 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 	const enableEmailAlertsText = t('Enable Email Alerts')
 	const enableTelegramAlertsText = t('Enable Telegram Alerts')
 
-
 	React.useEffect(() => {
-		const existing = channels.find(ch => ch.channelType === selectedChannel);
+		const existing = channels.find((ch) => ch.channelType === selectedChannel)
 		if (existing) {
 			setChannelConfig({
 				phoneNumber: existing.phoneNumber || '',
@@ -210,7 +228,7 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 				timeStart: existing.timeStart || '09:00',
 				timeEnd: existing.timeEnd || '22:00',
 				enabled: existing.enabled !== false,
-			});
+			})
 		} else {
 			setChannelConfig({
 				phoneNumber: '',
@@ -219,37 +237,41 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 				timeStart: '09:00',
 				timeEnd: '22:00',
 				enabled: true,
-			});
+			})
 		}
-	}, [selectedChannel, channels]);
+	}, [selectedChannel, channels])
 
 	function onConfigChange(e) {
-		const { name, value, type, checked } = e.target;
+		const { name, value, type, checked } = e.target
 		setChannelConfig((prev) => ({
 			...prev,
 			[name]: type === 'checkbox' ? checked : value,
-		}));
-		setShowSuccess(false);
+		}))
+		setShowSuccess(false)
 	}
 
 	async function onSave(e) {
-		e.preventDefault();
-		setSaving(true);
+		e.preventDefault()
+		setSaving(true)
 		await setAlertChannel({
 			config: {
 				channelType: selectedChannel,
-				phoneNumber: selectedChannel === 'SMS' ? channelConfig.phoneNumber : null,
+				phoneNumber:
+					selectedChannel === 'SMS' ? channelConfig.phoneNumber : null,
 				email: selectedChannel === 'EMAIL' ? channelConfig.email : null,
-				telegramUsername: selectedChannel === 'TELEGRAM' ? channelConfig.telegramUsername : null,
+				telegramUsername:
+					selectedChannel === 'TELEGRAM'
+						? channelConfig.telegramUsername
+						: null,
 				timeStart: channelConfig.timeStart,
 				timeEnd: channelConfig.timeEnd,
 				enabled: channelConfig.enabled,
-			}
-		});
-		reexecuteQuery();
-		setSaving(false);
-		setShowSuccess(true);
-		setTimeout(() => setShowSuccess(false), 2000);
+			},
+		})
+		reexecuteQuery()
+		setSaving(false)
+		setShowSuccess(true)
+		setTimeout(() => setShowSuccess(false), 2000)
 	}
 
 	async function onDelete() {
@@ -257,21 +279,21 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 			selectedChannel === 'SMS'
 				? deleteSmsAlertChannelPrompt
 				: selectedChannel === 'EMAIL'
-					? deleteEmailAlertChannelPrompt
-					: deleteTelegramAlertChannelPrompt
+				? deleteEmailAlertChannelPrompt
+				: deleteTelegramAlertChannelPrompt
 
-		const confirmed = await confirm(
-			deleteChannelPrompt,
-			{ confirmText: deleteText, isDangerous: true }
-		)
+		const confirmed = await confirm(deleteChannelPrompt, {
+			confirmText: deleteText,
+			isDangerous: true,
+		})
 
-		if (!confirmed) return;
-		await deleteAlertChannel({ channelType: selectedChannel });
-		reexecuteQuery();
+		if (!confirmed) return
+		await deleteAlertChannel({ channelType: selectedChannel })
+		reexecuteQuery()
 	}
 
 	if (!alertsServiceLiveness && !alertsServiceError) {
-		return <Loader />;
+		return <Loader />
 	}
 
 	if (alertsServiceError) {
@@ -283,15 +305,18 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 						<T>Alerts service is currently unavailable.</T>
 					</p>
 					<p>
-						<T>Configuring alert channels and listing alerts is temporarily not possible.</T>
+						<T>
+							Configuring alert channels and listing alerts is temporarily not
+							possible.
+						</T>
 					</p>
 				</div>
 			</div>
-		);
+		)
 	}
 
 	if (!data && !pageQueryError) {
-		return <Loader />;
+		return <Loader />
 	}
 
 	if (!data && pageQueryError) {
@@ -299,140 +324,180 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 			<div className={styles.page}>
 				<ErrorMsg error={pageQueryError} />
 			</div>
-		);
+		)
 	}
 
-	const existingChannel = channels.find(ch => ch.channelType === selectedChannel);
+	const existingChannel = channels.find(
+		(ch) => ch.channelType === selectedChannel
+	)
 	const enableChannelAlertsLabel =
 		selectedChannel === 'SMS'
 			? enableSmsAlertsText
 			: selectedChannel === 'EMAIL'
-				? enableEmailAlertsText
-				: enableTelegramAlertsText
+			? enableEmailAlertsText
+			: enableTelegramAlertsText
 
 	return (
 		<div className={styles.page}>
-			{showSuccess && <MessageSuccess title={<T>Saved!</T>} message={<T>Alert channel settings saved successfully.</T>} />}
+			{showSuccess && (
+				<MessageSuccess
+					title={<T>Saved!</T>}
+					message={<T>Alert channel settings saved successfully.</T>}
+				/>
+			)}
 			<ErrorMsg error={pageQueryError || mutationError || null} />
 
 			<div>
 				{section === 'channels' && (
 					<>
 						<div className={styles.panelSection}>
-						<h2 className={styles.sectionTitle}>
-							<T>Configure Alert Channels</T>
-						</h2>
-						<p style={{ color: '#666', margin: '16px 0' }}>
-							<T>Configure how you want to receive alerts. You can enable multiple channels.</T>
-						</p>
+							<h2 className={styles.sectionTitle}>
+								<T>Configure Alert Channels</T>
+							</h2>
+							<p style={{ color: '#666', margin: '16px 0' }}>
+								<T>
+									Configure how you want to receive alerts. You can enable
+									multiple channels.
+								</T>
+							</p>
 
-						<TabBar>
-							<Tab isSelected={selectedChannel === 'SMS'} onClick={() => setSelectedChannel('SMS')}>
-								{smsLabel}
-							</Tab>
-							<Tab isSelected={selectedChannel === 'EMAIL'} onClick={() => setSelectedChannel('EMAIL')}>
-								{emailLabel}
-							</Tab>
-							<Tab isSelected={selectedChannel === 'TELEGRAM'} onClick={() => setSelectedChannel('TELEGRAM')}>
-								{telegramLabel}
-							</Tab>
-						</TabBar>
+							<TabBar>
+								<Tab
+									isSelected={selectedChannel === 'SMS'}
+									onClick={() => setSelectedChannel('SMS')}
+								>
+									{smsLabel}
+								</Tab>
+								<Tab
+									isSelected={selectedChannel === 'EMAIL'}
+									onClick={() => setSelectedChannel('EMAIL')}
+								>
+									{emailLabel}
+								</Tab>
+								<Tab
+									isSelected={selectedChannel === 'TELEGRAM'}
+									onClick={() => setSelectedChannel('TELEGRAM')}
+								>
+									{telegramLabel}
+								</Tab>
+							</TabBar>
 
-				<form onSubmit={onSave} className={styles.configForm} style={{ marginTop: '16px' }}>
-					{selectedChannel === 'SMS' && (
-						<div className={styles.formRow}>
-							<label htmlFor="phoneNumber" className={styles.configLabel}><T>Phone Number</T>:</label>
-							<input
-								className={`${styles.configInput} ${styles.phoneInput}`}
-								id="phoneNumber"
-								type="text"
-								name="phoneNumber"
-								value={channelConfig.phoneNumber}
-								onChange={onConfigChange}
-								placeholder="+1234567890"
-								required
-							/>
-						</div>
-					)}
+							<form
+								onSubmit={onSave}
+								className={styles.configForm}
+								style={{ marginTop: '16px' }}
+							>
+								{selectedChannel === 'SMS' && (
+									<div className={styles.formRow}>
+										<label htmlFor="phoneNumber" className={styles.configLabel}>
+											<T>Phone Number</T>:
+										</label>
+										<input
+											className={`${styles.configInput} ${styles.phoneInput}`}
+											id="phoneNumber"
+											type="text"
+											name="phoneNumber"
+											value={channelConfig.phoneNumber}
+											onChange={onConfigChange}
+											placeholder="+1234567890"
+											required
+										/>
+									</div>
+								)}
 
-					{selectedChannel === 'EMAIL' && (
-						<div className={styles.formRow}>
-							<label htmlFor="email" className={styles.configLabel}><T>Email Address</T>:</label>
-							<input
-								className={`${styles.configInput} ${styles.phoneInput}`}
-								id="email"
-								type="email"
-								name="email"
-								value={channelConfig.email}
-								onChange={onConfigChange}
-								placeholder="you@example.com"
-								required
-							/>
-						</div>
-					)}
+								{selectedChannel === 'EMAIL' && (
+									<div className={styles.formRow}>
+										<label htmlFor="email" className={styles.configLabel}>
+											<T>Email Address</T>:
+										</label>
+										<input
+											className={`${styles.configInput} ${styles.phoneInput}`}
+											id="email"
+											type="email"
+											name="email"
+											value={channelConfig.email}
+											onChange={onConfigChange}
+											placeholder="you@example.com"
+											required
+										/>
+									</div>
+								)}
 
-					{selectedChannel === 'TELEGRAM' && (
-						<div className={styles.formRow}>
-							<label htmlFor="telegramUsername" className={styles.configLabel}><T>Telegram Username</T>:</label>
-							<input
-								className={`${styles.configInput} ${styles.phoneInput}`}
-								id="telegramUsername"
-								type="text"
-								name="telegramUsername"
-								value={channelConfig.telegramUsername}
-								onChange={onConfigChange}
-								placeholder="@username"
-								required
-							/>
-						</div>
-					)}
+								{selectedChannel === 'TELEGRAM' && (
+									<div className={styles.formRow}>
+										<label
+											htmlFor="telegramUsername"
+											className={styles.configLabel}
+										>
+											<T>Telegram Username</T>:
+										</label>
+										<input
+											className={`${styles.configInput} ${styles.phoneInput}`}
+											id="telegramUsername"
+											type="text"
+											name="telegramUsername"
+											value={channelConfig.telegramUsername}
+											onChange={onConfigChange}
+											placeholder="@username"
+											required
+										/>
+									</div>
+								)}
 
-					<div className={styles.formRow}>
-						<label htmlFor="timeStart" className={styles.configLabel}><T>Time Window</T>:</label>
-						<input
-							className={`${styles.configInput} ${styles.timeInput}`}
-							id="timeStart"
-							type="time"
-							name="timeStart"
-							value={channelConfig.timeStart}
-							onChange={onConfigChange}
-						/>
-						<span className={styles.toText}><T>to</T></span>
-						<input
-							className={`${styles.configInput} ${styles.timeInput}`}
-							id="timeEnd"
-							type="time"
-							name="timeEnd"
-							value={channelConfig.timeEnd}
-							onChange={onConfigChange}
-						/>
-					</div>
+								<div className={styles.formRow}>
+									<label htmlFor="timeStart" className={styles.configLabel}>
+										<T>Time Window</T>:
+									</label>
+									<input
+										className={`${styles.configInput} ${styles.timeInput}`}
+										id="timeStart"
+										type="time"
+										name="timeStart"
+										value={channelConfig.timeStart}
+										onChange={onConfigChange}
+									/>
+									<span className={styles.toText}>
+										<T>to</T>
+									</span>
+									<input
+										className={`${styles.configInput} ${styles.timeInput}`}
+										id="timeEnd"
+										type="time"
+										name="timeEnd"
+										value={channelConfig.timeEnd}
+										onChange={onConfigChange}
+									/>
+								</div>
 
-					<div className={styles.formRow}>
-						<input
-							className={styles.checkboxInput}
-							id="enabled"
-							type="checkbox"
-							name="enabled"
-							checked={channelConfig.enabled}
-							onChange={onConfigChange}
-						/>
-						<label htmlFor="enabled" className={styles.configLabel} style={{ fontWeight: 500 }}>
-							{enableChannelAlertsLabel}
-						</label>
-					</div>
+								<div className={styles.formRow}>
+									<input
+										className={styles.checkboxInput}
+										id="enabled"
+										type="checkbox"
+										name="enabled"
+										checked={channelConfig.enabled}
+										onChange={onConfigChange}
+									/>
+									<label
+										htmlFor="enabled"
+										className={styles.configLabel}
+										style={{ fontWeight: 500 }}
+									>
+										{enableChannelAlertsLabel}
+									</label>
+								</div>
 
-					<div className={styles.buttonRow}>
-						<Button type="submit" color="green" loading={saving}>
-							<T>Save</T>
-						</Button>
-						{existingChannel && (
-							<Button type="button" color="red" onClick={onDelete}>
-								<T>Delete</T>
-							</Button>
-						)}
-					</div>
-				</form>
+								<div className={styles.buttonRow}>
+									<Button type="submit" color="green" loading={saving}>
+										<T>Save</T>
+									</Button>
+									{existingChannel && (
+										<Button type="button" color="red" onClick={onDelete}>
+											<T>Delete</T>
+										</Button>
+									)}
+								</div>
+							</form>
 						</div>
 					</>
 				)}
@@ -443,75 +508,92 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 							<T>Configure Alert Rules</T>
 						</h2>
 						<p style={{ color: '#666', marginBottom: '16px' }}>
-							<T>Alert rules define when you should be notified about specific conditions in your hives.</T>
+							<T>
+								Alert rules define when you should be notified about specific
+								conditions in your hives.
+							</T>
 						</p>
 
 						{alertRules.length === 0 ? (
 							<p style={{ color: '#999' }}>
-								<T>No alert rules configured yet. Alert rules are created from specific charts in the time view.</T>
+								<T>
+									No alert rules configured yet. Alert rules are created from
+									specific charts in the time view.
+								</T>
 							</p>
 						) : (
 							<div className={styles.alertList}>
 								{alertRules.map((rule) => {
-									const chartType = getChartTypeFromMetricType(rule.metricType);
-									const hiveInfo = rule.hiveId ? hiveMap[rule.hiveId] : null;
-									const apiary = rule.apiaryId ? apiaries.find(a => a.id === rule.apiaryId) : (hiveInfo ? apiaries.find(a => a.id === hiveInfo.apiaryId) : null);
+									const chartType = getChartTypeFromMetricType(rule.metricType)
+									const hiveInfo = rule.hiveId ? hiveMap[rule.hiveId] : null
+									const apiary = rule.apiaryId
+										? apiaries.find((a) => a.id === rule.apiaryId)
+										: hiveInfo
+										? apiaries.find((a) => a.id === hiveInfo.apiaryId)
+										: null
 
 									const timeViewUrl = chartType
 										? rule.hiveId
-											? `/time?hiveId=${rule.hiveId}&chartType=${chartType}&scrollTo=${chartType}`
+											? `/insights?hiveId=${rule.hiveId}&chartType=${chartType}&scrollTo=${chartType}`
 											: rule.apiaryId
-												? `/time?apiaryId=${rule.apiaryId}&chartType=${chartType}`
-												: `/time?chartType=${chartType}`
-										: null;
+											? `/time?apiaryId=${rule.apiaryId}&chartType=${chartType}`
+											: `/time?chartType=${chartType}`
+										: null
 
 									const hiveViewUrl = hiveInfo
 										? `/apiaries/${hiveInfo.apiaryId}/hives/${rule.hiveId}`
-										: null;
+										: null
 
-									const apiaryViewUrl = apiary
-										? `/apiaries/${apiary.id}`
-										: null;
+									const apiaryViewUrl = apiary ? `/apiaries/${apiary.id}` : null
 
 									return (
 										<div key={rule.id} className={styles.alertItem}>
 											<div className={styles.alertContent}>
-									<div className={styles.alertText}>
-													<strong>{rule.metricType}</strong>
-													{' '}
+												<div className={styles.alertText}>
+													<strong>{rule.metricType}</strong>{' '}
 													{rule.conditionType === 'GREATER_THAN' && '>'}
 													{rule.conditionType === 'LESS_THAN' && '<'}
-													{rule.conditionType === 'EQUALS' && '='}
-													{' '}
+													{rule.conditionType === 'EQUALS' && '='}{' '}
 													{rule.thresholdValue}
-													{rule.durationMinutes > 0 && ` ${forText} ${rule.durationMinutes} ${minText}`}
+													{rule.durationMinutes > 0 &&
+														` ${forText} ${rule.durationMinutes} ${minText}`}
 												</div>
 												<div className={styles.alertMeta}>
 													{rule.hiveId ? (
 														hiveInfo ? (
 															<>
-																<a href={hiveViewUrl} className={styles.viewChartLink}>
+																<a
+																	href={hiveViewUrl}
+																	className={styles.viewChartLink}
+																>
 																	{hiveInfo.name}
-																</a>
-																{' '}
-																{inText}
-																{' '}
+																</a>{' '}
+																{inText}{' '}
 																{apiary && apiaryViewUrl ? (
-																	<a href={apiaryViewUrl} className={styles.viewChartLink}>
+																	<a
+																		href={apiaryViewUrl}
+																		className={styles.viewChartLink}
+																	>
 																		{apiary.name}
 																	</a>
 																) : (
-																	<span style={{ color: '#666' }}>{hiveInfo.apiaryName}</span>
+																	<span style={{ color: '#666' }}>
+																		{hiveInfo.apiaryName}
+																	</span>
 																)}
 															</>
 														) : (
-															<>{hiveIdText}: {rule.hiveId}</>
+															<>
+																{hiveIdText}: {rule.hiveId}
+															</>
 														)
 													) : apiary && apiaryViewUrl ? (
 														<>
-															{allHivesInText}
-															{' '}
-															<a href={apiaryViewUrl} className={styles.viewChartLink}>
+															{allHivesInText}{' '}
+															<a
+																href={apiaryViewUrl}
+																className={styles.viewChartLink}
+															>
 																{apiary.name}
 															</a>
 														</>
@@ -519,13 +601,20 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 														<>{allHivesText}</>
 													)}
 													{' | '}
-													<span style={{ color: rule.enabled ? 'green' : 'red' }}>
-														{rule.enabled ? `✓ ${enabledText}` : `✗ ${disabledText}`}
+													<span
+														style={{ color: rule.enabled ? 'green' : 'red' }}
+													>
+														{rule.enabled
+															? `✓ ${enabledText}`
+															: `✗ ${disabledText}`}
 													</span>
 													{timeViewUrl && (
 														<>
 															{' | '}
-															<a href={timeViewUrl} className={styles.viewChartLink}>
+															<a
+																href={timeViewUrl}
+																className={styles.viewChartLink}
+															>
 																<T>View Chart</T> →
 															</a>
 														</>
@@ -536,14 +625,14 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 												<button
 													className={styles.deleteRuleBtn}
 													onClick={async () => {
-														const confirmed = await confirm(
-															deleteRulePrompt,
-															{ confirmText: deleteText, isDangerous: true }
-														)
+														const confirmed = await confirm(deleteRulePrompt, {
+															confirmText: deleteText,
+															isDangerous: true,
+														})
 
 														if (confirmed) {
-															await deleteAlertRule({ id: rule.id });
-															reexecuteQuery();
+															await deleteAlertRule({ id: rule.id })
+															reexecuteQuery()
 														}
 													}}
 													title={deleteRuleTitle}
@@ -552,7 +641,7 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 												</button>
 											</div>
 										</div>
-									);
+									)
 								})}
 							</div>
 						)}
@@ -561,56 +650,72 @@ export default function AlertConfig({ section = 'history' }: { section?: AlertCo
 
 				{section === 'history' && (
 					<div className={styles.panelSection}>
-					<h2 className={styles.sectionTitle}>
-						<T>Alert History</T>
-					</h2>
-					{alerts.length === 0 ? (
+						<h2 className={styles.sectionTitle}>
+							<T>Alert History</T>
+						</h2>
+						{alerts.length === 0 ? (
 							<div className={styles.historyPlaceholder}>
-								<img className={styles.placeholderImage} src={imageURL} alt={alertsIllustrationAlt} draggable={false} />
-								<p><T>No alerts yet</T></p>
+								<img
+									className={styles.placeholderImage}
+									src={imageURL}
+									alt={alertsIllustrationAlt}
+									draggable={false}
+								/>
+								<p>
+									<T>No alerts yet</T>
+								</p>
 								<p className={styles.placeholderHint}>
 									<T>Triggered alerts from your hives will appear here.</T>
 								</p>
 							</div>
 						) : (
-						<div className={styles.alertList}>
-							{alerts.map((alert) => {
-								const chartType = getChartTypeFromMetricType(alert.metricType);
-								const timeViewUrl = alert.hiveId && chartType
-									? `/time?hiveId=${alert.hiveId}&chartType=${chartType}&scrollTo=${chartType}`
-									: null;
+							<div className={styles.alertList}>
+								{alerts.map((alert) => {
+									const chartType = getChartTypeFromMetricType(alert.metricType)
+									const timeViewUrl =
+										alert.hiveId && chartType
+											? `/time?hiveId=${alert.hiveId}&chartType=${chartType}&scrollTo=${chartType}`
+											: null
 
-								return (
-									<div key={alert.id} className={styles.alertItem}>
-										<div className={styles.alertContent}>
-											<div className={styles.alertText}>{alert.text}</div>
-											{alert.hiveId && (
-												<div className={styles.alertMeta}>
-													{hiveLabel}: {alert.hiveId} | {alert.metricType}: {alert.metricValue}
-													{timeViewUrl && (
-														<>
-															{' | '}
-															<a href={timeViewUrl} className={styles.viewChartLink}>
-																<T>View Chart</T> →
-															</a>
-														</>
-													)}
-												</div>
-											)}
+									return (
+										<div key={alert.id} className={styles.alertItem}>
+											<div className={styles.alertContent}>
+												<div className={styles.alertText}>{alert.text}</div>
+												{alert.hiveId && (
+													<div className={styles.alertMeta}>
+														{hiveLabel}: {alert.hiveId} | {alert.metricType}:{' '}
+														{alert.metricValue}
+														{timeViewUrl && (
+															<>
+																{' | '}
+																<a
+																	href={timeViewUrl}
+																	className={styles.viewChartLink}
+																>
+																	<T>View Chart</T> →
+																</a>
+															</>
+														)}
+													</div>
+												)}
+											</div>
+											<div className={styles.alertTime}>
+												<DateTimeFormat datetime={alert.date_added} />
+												{alert.delivered && (
+													<span style={{ color: 'green', marginLeft: '8px' }}>
+														✓
+													</span>
+												)}
+											</div>
 										</div>
-										<div className={styles.alertTime}>
-											<DateTimeFormat datetime={alert.date_added} />
-											{alert.delivered && <span style={{ color: 'green', marginLeft: '8px' }}>✓</span>}
-										</div>
-									</div>
-								);
-							})}
-						</div>
-					)}
-				</div>
+									)
+								})}
+							</div>
+						)}
+					</div>
 				)}
 			</div>
 			{ConfirmDialog}
 		</div>
-	);
-} 
+	)
+}

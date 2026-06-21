@@ -107,4 +107,33 @@ describe('newTranslationBatcher', () => {
 		expect(inputs[0]).toEqual({ key: 'Varroa mites', context: 'toggle varroa mites visibility' })
 		expect(inputs[1]).toEqual({ key: 'Varroa mites', context: 'hive stats label' })
 	})
+
+	it('falls back to legacy translate query when getTranslations is unavailable', async () => {
+		mocks.toPromiseMock
+			.mockResolvedValueOnce({
+				data: null,
+				error: new Error('Cannot query field "getTranslations" on type "Query".'),
+			})
+			.mockResolvedValueOnce({
+				data: {
+					translate: {
+						id: '31',
+						en: 'Log In',
+						et: 'Logi sisse',
+						key: 'Log In',
+					},
+				},
+			})
+
+		const result = await newTranslationBatcher.request('Log In', false, undefined, undefined, 'et')
+
+		expect(result.values.et).toBe('Logi sisse')
+		expect(mocks.queryMock).toHaveBeenCalledTimes(2)
+		expect(mocks.queryMock.mock.calls[1][1]).toEqual({ en: 'Log In', tc: '' })
+		expect(mocks.upsertTranslationValueMock).toHaveBeenCalledWith({
+			translationId: 1,
+			lang: 'et',
+			value: 'Logi sisse',
+		})
+	})
 })

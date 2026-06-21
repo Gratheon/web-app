@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, useMemo, useCallback } from 'preact/hooks'
 import type { TranslationData } from '@/models/translationService'
 import { getPluralForm } from './pluralRules'
 import isDev from '@/isDev'
-import { getPreferredLanguage, normalizeSupportedLanguage, SUPPORTED_LANGUAGES } from '@/config/languages'
+import { getPreferredLanguage, getQueryParamLanguage, normalizeSupportedLanguage, SUPPORTED_LANGUAGES } from '@/config/languages'
 
 function isTranslationDebugEnabled(): boolean {
 	return typeof window !== 'undefined' && Boolean((window as any).__DEBUG_TRANSLATIONS__)
@@ -23,6 +23,19 @@ const shouldWaitForPaint = import.meta.env.MODE !== 'test'
 let userLanguagePromise: Promise<string> | null = null
 let cachedUserLanguage: string | null = null
 
+function shouldDeferTranslationWork(): boolean {
+	if (typeof window === 'undefined') {
+		return true
+	}
+
+	const hasCookieToken = typeof document !== 'undefined' && /(?:^|;\s*)token=/.test(document.cookie)
+	const hasStoredToken = Boolean(
+		window.localStorage.getItem('authToken') || window.localStorage.getItem('shareToken')
+	)
+
+	return hasCookieToken || hasStoredToken
+}
+
 function getCacheKey(key: string, lang: string, ctx?: string, ns?: string): string {
 	return `${lang}|${ns || ''}|${ctx || ''}|${key}`
 }
@@ -31,6 +44,11 @@ function getUserLanguage(
 	user: { lang?: string } | null,
 	supportedLangs: readonly string[] = SUPPORTED_LANGUAGES
 ): string {
+	const queryLang = getQueryParamLanguage(supportedLangs)
+	if (queryLang) {
+		return queryLang
+	}
+
 	const userLang = normalizeSupportedLanguage(user?.lang, supportedLangs)
 	if (userLang) {
 		return userLang
@@ -40,6 +58,11 @@ function getUserLanguage(
 }
 
 function readUserLanguageOnce(): Promise<string> {
+	const queryLang = getQueryParamLanguage(SUPPORTED_LANGUAGES)
+	if (queryLang) {
+		return Promise.resolve(queryLang)
+	}
+
 	if (cachedUserLanguage) {
 		return Promise.resolve(cachedUserLanguage)
 	}
@@ -86,6 +109,11 @@ function scheduleAfterInitialRender(callback: () => void) {
 	}
 
 	const runAfterDelay = () => {
+		if (!shouldDeferTranslationWork()) {
+			runWhenIdle()
+			return
+		}
+
 		timeoutId = globalThis.setTimeout(runWhenIdle, translationCacheDelayMs)
 	}
 
@@ -155,13 +183,13 @@ function TRemote({
 	children,
 	ctx,
 	ns,
-	onFetched,
+	onMiss,
 }: {
 	lang: string
 	children: string
 	ctx?: string
 	ns?: string
-	onFetched?: () => void
+	onMiss?: () => void
 }) {
 	const [translation, setTranslation] = useState<TranslationData | null>(null)
 	const [fetched, setFetched] = useState(false)
@@ -178,7 +206,9 @@ function TRemote({
 				if (!cancelled) {
 					setTranslation(trans)
 					setFetched(true)
-					onFetched?.()
+					if (!trans?.values?.[lang]) {
+						onMiss?.()
+					}
 				}
 			} catch (error) {
 				if (!cancelled) {
@@ -187,7 +217,7 @@ function TRemote({
 						error
 					)
 					setFetched(true)
-					onFetched?.()
+					onMiss?.()
 				}
 			}
 		}
@@ -386,7 +416,7 @@ export default function T({ children, ctx, ns }: TProps) {
 		[devMode]
 	)
 
-	const handleFetched = useCallback(() => {
+	const handleRemoteMiss = useCallback(() => {
 		setShouldShowRemote(false)
 		setHasAttemptedFetch(true)
 	}, [])
@@ -440,7 +470,7 @@ export default function T({ children, ctx, ns }: TProps) {
 
 	if (shouldShowRemote && !hasAttemptedFetch) {
 		return (
-			<TRemote lang={lang} ctx={ctx} ns={ns} onFetched={handleFetched}>
+			<TRemote lang={lang} ctx={ctx} ns={ns} onMiss={handleRemoteMiss}>
 				{children}
 			</TRemote>
 		)

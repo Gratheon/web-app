@@ -845,142 +845,40 @@ export default function HiveCreateForm() {
 					</Button>
 				}
 			>
-				{hiveType !== 'horizontal' ? (
 					<div className={styles.formField}>
 						<label className={styles.formLabel}>
-							<T>Box System</T>
+							<T>Hive Type</T>
 						</label>
-						<div className={styles.boxSystemPicker} ref={boxSystemPickerRef}>
-							<div
-								className={`${styles.boxSystemSelectTrigger} ${
-									!boxSystems.length
-										? styles.boxSystemSelectTriggerDisabled
-										: ''
-								}`}
-								aria-haspopup="listbox"
-								aria-expanded={isBoxSystemOpen}
-								aria-disabled={!boxSystems.length}
-								role="button"
-								tabIndex={0}
-								onClick={() => {
-									if (!boxSystems.length) return
-									setIsBoxSystemOpen((open) => !open)
-								}}
-								onKeyDown={(event) => {
-									if (!boxSystems.length) return
-									if (event.key === 'Enter' || event.key === ' ') {
-										event.preventDefault()
-										setIsBoxSystemOpen((open) => !open)
-									}
-									if (event.key === 'Escape') setIsBoxSystemOpen(false)
-								}}
-							>
-								{selectedBoxSystem ? (
-									<span className={styles.boxSystemTriggerValue}>
-										<span
-											className={styles.boxSystemOptionDot}
-											style={{
-												backgroundColor:
-													BOX_SYSTEM_COLORS[
-														boxSystems.findIndex(
-															(s: any) => s.id === selectedBoxSystem.id
-														) % BOX_SYSTEM_COLORS.length
-													].accent,
-											}}
-										></span>
-										<span>
-											{selectedBoxSystem.name}
-											{selectedBoxSystem.isDefault ? ' (Default)' : ''}
-										</span>
-									</span>
-								) : (
-									<span>
-										<T>No hive systems</T>
-									</span>
-								)}
-								<span className={styles.boxSystemChevron}>▾</span>
-							</div>
-							{isBoxSystemOpen && boxSystems.length ? (
-								<div className={styles.boxSystemDropdown} role="listbox">
-									{boxSystems.map((system: any, index: number) => {
-										const isActive = system.id === boxSystemId
-										return (
-											<div
-												key={system.id}
-												role="option"
-												aria-selected={isActive}
-												tabIndex={0}
-												className={`${styles.boxSystemOption} ${
-													isActive ? styles.boxSystemOptionActive : ''
-												}`}
-												onClick={() => {
-													setBoxSystemId(system.id)
-													setIsBoxSystemOpen(false)
-												}}
-												onKeyDown={(event) => {
-													if (event.key === 'Enter' || event.key === ' ') {
-														event.preventDefault()
-														setBoxSystemId(system.id)
-														setIsBoxSystemOpen(false)
-													}
-													if (event.key === 'Escape') setIsBoxSystemOpen(false)
-												}}
-											>
-												<span
-													className={styles.boxSystemOptionDot}
-													style={{
-														backgroundColor:
-															BOX_SYSTEM_COLORS[
-																index % BOX_SYSTEM_COLORS.length
-															].accent,
-													}}
-												></span>
-												<span>
-													{system.name}
-													{system.isDefault ? ' (Default)' : ''}
-												</span>
-											</div>
-										)
-									})}
-								</div>
-							) : null}
+						<div className={styles.radioGroup}>
+							<label className={styles.radioLabel}>
+								<input
+									type="radio"
+									value="vertical"
+									checked={hiveType === 'vertical'}
+									onChange={handleHiveTypeChange}
+								/>
+								<T>Vertical</T>
+							</label>
+							<label className={styles.radioLabel}>
+								<input
+									type="radio"
+									value="horizontal"
+									checked={hiveType === 'horizontal'}
+									onChange={handleHiveTypeChange}
+								/>
+								<T>Horizontal</T>
+							</label>
+							<label className={styles.radioLabel}>
+								<input
+									type="radio"
+									value="nucleus"
+									checked={hiveType === 'nucleus'}
+									onChange={handleHiveTypeChange}
+								/>
+								<T>Nucleus (Nuc)</T>
+							</label>
 						</div>
 					</div>
-				) : null}
-				<div className={styles.formField}>
-					<label className={styles.formLabel}>
-						<T>Hive Type</T>
-					</label>
-					<div>
-						<label>
-							<input
-								type="radio"
-								value="vertical"
-								checked={hiveType === 'vertical'}
-								onChange={handleHiveTypeChange}
-							/>
-							<T>Vertical</T>
-						</label>
-						<label style={{ marginLeft: '10px' }}>
-							<input
-								type="radio"
-								value="horizontal"
-								checked={hiveType === 'horizontal'}
-								onChange={handleHiveTypeChange}
-							/>
-							<T>Horizontal</T>
-						</label>
-						<label style={{ marginLeft: '10px' }}>
-							<input
-								type="radio"
-								value="nucleus"
-								checked={hiveType === 'nucleus'}
-								onChange={handleHiveTypeChange}
-							/>
-							<T>Nucleus (Nuc)</T>
-						</label>
-					</div>
-				</div>
 
 				<div className={styles.formField}>
 					<label htmlFor="hiveNumber" className={styles.formLabel}>
@@ -1009,7 +907,7 @@ export default function HiveCreateForm() {
 						<input
 							name="name"
 							id="name"
-							className={styles.flexInput}
+							className={styles.nameInput}
 							autoFocus
 							value={name}
 							onInput={(e: any) => setName(e.target.value)}
@@ -1122,6 +1020,109 @@ export default function HiveCreateForm() {
 						disabled={hiveType === 'nucleus'}
 					/>
 				</div>
+
+					{hiveType !== 'horizontal' ? (
+						<div className={styles.formField}>
+							<label className={styles.formLabel}>
+								<T>Box System</T>
+							</label>
+							<div className={styles.boxSystemPicker} ref={boxSystemPickerRef}>
+								<div
+									className={`${styles.boxSystemSelectTrigger} ${
+										!boxSystems.length
+											? styles.boxSystemSelectTriggerDisabled
+											: ''
+									}`}
+									aria-haspopup="listbox"
+									aria-expanded={isBoxSystemOpen}
+									aria-disabled={!boxSystems.length}
+									role="button"
+									tabIndex={0}
+									onClick={() => {
+										if (!boxSystems.length) return
+										setIsBoxSystemOpen((open) => !open)
+									}}
+									onKeyDown={(event) => {
+										if (!boxSystems.length) return
+										if (event.key === 'Enter' || event.key === ' ') {
+											event.preventDefault()
+											setIsBoxSystemOpen((open) => !open)
+										}
+										if (event.key === 'Escape') setIsBoxSystemOpen(false)
+									}}
+								>
+									{selectedBoxSystem ? (
+										<span className={styles.boxSystemTriggerValue}>
+											<span
+												className={styles.boxSystemOptionDot}
+												style={{
+													backgroundColor:
+														BOX_SYSTEM_COLORS[
+															boxSystems.findIndex(
+																(s: any) => s.id === selectedBoxSystem.id
+															) % BOX_SYSTEM_COLORS.length
+														].accent,
+												}}
+											></span>
+											<span>
+												{selectedBoxSystem.name}
+												{selectedBoxSystem.isDefault ? ' (Default)' : ''}
+											</span>
+										</span>
+									) : (
+										<span>
+											<T>No hive systems</T>
+										</span>
+									)}
+									<span className={styles.boxSystemChevron}>▾</span>
+								</div>
+								{isBoxSystemOpen && boxSystems.length ? (
+									<div className={styles.boxSystemDropdown} role="listbox">
+										{boxSystems.map((system: any, index: number) => {
+											const isActive = system.id === boxSystemId
+											return (
+												<div
+													key={system.id}
+													role="option"
+													aria-selected={isActive}
+													tabIndex={0}
+													className={`${styles.boxSystemOption} ${
+														isActive ? styles.boxSystemOptionActive : ''
+													}`}
+													onClick={() => {
+														setBoxSystemId(system.id)
+														setIsBoxSystemOpen(false)
+													}}
+													onKeyDown={(event) => {
+														if (event.key === 'Enter' || event.key === ' ') {
+															event.preventDefault()
+															setBoxSystemId(system.id)
+															setIsBoxSystemOpen(false)
+														}
+														if (event.key === 'Escape') setIsBoxSystemOpen(false)
+													}}
+												>
+													<span
+														className={styles.boxSystemOptionDot}
+														style={{
+															backgroundColor:
+																BOX_SYSTEM_COLORS[
+																	index % BOX_SYSTEM_COLORS.length
+																].accent,
+														}}
+													></span>
+													<span>
+														{system.name}
+														{system.isDefault ? ' (Default)' : ''}
+													</span>
+												</div>
+											)
+										})}
+									</div>
+								) : null}
+							</div>
+						</div>
+					) : null}
 			</VisualForm>
 		</PagePaddedCentered>
 	)

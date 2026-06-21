@@ -14,6 +14,29 @@ const getTranslationsQuery = gql`query getTranslations($inputs: [TranslationInpu
     }
 }`
 
+const legacyTranslateQuery = gql`query translate($en: String!, $tc: String){
+    translate(en: $en, tc: $tc){
+        __typename
+        id
+        en
+        ru
+        et
+        tr
+        pl
+        de
+        fr
+        lv
+        lt
+        hu
+        uk
+        it
+        ro
+        key
+    }
+}`
+
+const legacyLocaleLangs = ['en', 'ru', 'et', 'tr', 'pl', 'de', 'fr', 'lv', 'lt', 'hu', 'uk', 'it', 'ro'] as const
+
 interface TranslationRequest {
   key: string
   context?: string
@@ -28,6 +51,7 @@ class NewTranslationBatcher {
   private queue: TranslationRequest[] = []
   private timer: ReturnType<typeof setTimeout> | null = null
   private batchDelay: number = 150
+  private shouldUseLegacyTranslate = false
 
   private isDebugEnabled(): boolean {
     return typeof window !== 'undefined' && Boolean((window as any).__DEBUG_TRANSLATIONS__)
@@ -66,59 +90,127 @@ class NewTranslationBatcher {
 
     try {
       const uniqueRequests = this.deduplicateRequests(batch)
-      const inputs = uniqueRequests.map(req => {
-        const input: any = {
-          key: req.key
-        }
+      const translations = this.shouldUseLegacyTranslate
+        ? await this.fetchLegacyTranslations(uniqueRequests)
+        : await this.fetchTranslations(uniqueRequests)
 
-        if (req.context) {
-          input.context = req.context
-        }
-
-        // Only include namespace if it's actually set
-        if (req.namespace) {
-          input.namespace = req.namespace
-        }
-
-        return input
-      })
-
-      const requestedLangs = Array.from(
-        new Set(
-          uniqueRequests
-            .map((req) => req.lang?.trim().toLowerCase())
-            .filter((lang): lang is string => Boolean(lang))
-        )
-      )
-
-      const variables: any = { inputs }
-      if (requestedLangs.length > 0) {
-        variables.langs = requestedLangs
-      }
-
-      const result = await apiClient.query(getTranslationsQuery, variables).toPromise()
-
-      if (result.data?.getTranslations) {
-        const persistedRecords = new Set<string>()
-
-        for (const req of batch) {
-          const translation = result.data.getTranslations.find((trans: any) =>
-            this.isTranslationMatch(req, trans)
-          )
-
-          if (!translation) {
-            req.reject(new Error('Translation not found'))
-            continue
-          }
-
-          await this.persistTranslationForRequest(req, translation, persistedRecords)
-          req.resolve(translation)
-        }
-      } else {
-        batch.forEach(req => req.reject(new Error('No translation data')))
-      }
+      await this.resolveBatch(batch, translations)
     } catch (error) {
       batch.forEach(req => req.reject(error))
+    }
+  }
+
+  private async fetchTranslations(uniqueRequests: TranslationRequest[]): Promise<any[]> {
+    const inputs = uniqueRequests.map(req => {
+      const input: any = {
+        key: req.key
+      }
+
+      if (req.context) {
+        input.context = req.context
+      }
+
+      // Only include namespace if it's actually set
+      if (req.namespace) {
+        input.namespace = req.namespace
+      }
+
+      return input
+    })
+
+    const requestedLangs = Array.from(
+      new Set(
+        uniqueRequests
+          .map((req) => req.lang?.trim().toLowerCase())
+          .filter((lang): lang is string => Boolean(lang))
+      )
+    )
+
+    const variables: any = { inputs }
+    if (requestedLangs.length > 0) {
+      variables.langs = requestedLangs
+    }
+
+    const result = await apiClient.query(getTranslationsQuery, variables).toPromise()
+
+    if (result.data?.getTranslations) {
+      return result.data.getTranslations
+    }
+
+    this.shouldUseLegacyTranslate = true
+    this.debugLog('getTranslations unavailable, falling back to legacy translate query', {
+      error: result.error,
+      variables,
+    })
+
+    return await this.fetchLegacyTranslations(uniqueRequests)
+  }
+
+  private async fetchLegacyTranslations(uniqueRequests: TranslationRequest[]): Promise<any[]> {
+    const translations: any[] = []
+
+    for (const req of uniqueRequests) {
+      const result = await apiClient.query(legacyTranslateQuery, {
+        en: req.key,
+        tc: req.context || '',
+      }).toPromise()
+
+      if (result.data?.translate) {
+        translations.push(this.mapLegacyLocaleToTranslation(req, result.data.translate))
+      } else {
+        this.debugLog('legacy translate returned no data', {
+          key: req.key,
+          context: req.context,
+          namespace: req.namespace,
+          error: result.error,
+        })
+      }
+    }
+
+    return translations
+  }
+
+  private mapLegacyLocaleToTranslation(req: TranslationRequest, locale: any): any {
+    const values: Record<string, string> = {}
+
+    for (const lang of legacyLocaleLangs) {
+      if (typeof locale?.[lang] === 'string' && locale[lang]) {
+        values[lang] = locale[lang]
+      }
+    }
+
+    return {
+      __typename: 'Translation',
+      id: locale.id,
+      key: req.key,
+      namespace: req.namespace ?? null,
+      context: req.context ?? null,
+      values,
+      plurals: null,
+      isPlural: false,
+    }
+  }
+
+  private async resolveBatch(batch: TranslationRequest[], translations: any[]) {
+    if (translations.length === 0) {
+      batch.forEach(req => req.reject(new Error('No translation data')))
+      return
+    }
+
+    const persistedRecords = new Set<string>()
+
+    for (const req of batch) {
+      const translation = translations.find((trans: any) =>
+        this.isTranslationMatch(req, trans)
+      )
+
+      if (!translation) {
+        req.reject(new Error('Translation not found'))
+        continue
+      }
+
+      await this.persistTranslationForRequest(req, translation, persistedRecords)
+      req.resolve(translation)
     }
   }
 
@@ -204,7 +296,7 @@ class NewTranslationBatcher {
         }
         const pd = pluralData as any
         const rawValue = pd?.other || pd?.few || pd?.many || pd?.one || pd?.zero || pd?.two || req.key
-        const capitalizedValue = rawValue.charAt(0).toUpperCase() + rawValue.slice(1)
+        const capitalizedValue = rawValue.charAt(0) + rawValue.slice(1)
 
         await upsertTranslationValue({
           translationId: persistedTranslationId,

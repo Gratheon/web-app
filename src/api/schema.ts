@@ -345,10 +345,22 @@ type Locale {
   pl: String
   de: String
   fr: String
+  lv: String
+  lt: String
+  hu: String
+  uk: String
+  it: String
+  ro: String
   key: String
 }
 
 union LoginResult = UserSession | Error
+
+union PasswordResetResult = PasswordResetRequestResult | Error
+
+type PasswordResetRequestResult {
+  ok: Boolean!
+}
 
 # The mutation type, represents all updates we can make to our data
 type Mutation {
@@ -388,6 +400,8 @@ type Mutation {
   treatBox(treatment: TreatmentOfBoxInput!): Boolean
   register(input: RegisterInput!): LoginResult
   login(email: String!, password: String!): LoginResult
+  requestPasswordReset(email: String!): PasswordResetRequestResult!
+  resetPassword(token: String!, password: String!): PasswordResetResult
   generateApiToken: APIToken
   generateShareToken(name: String!, scopes: JSON!, sourceUrl: URL!): ShareToken
   validateApiToken(token: String): ValidateTokenResult
@@ -539,7 +553,7 @@ type User {
   first_name: String
   last_name: String
 
-  # Language code: en, ru, tr, et, pl
+  # Language code: en, ru, et, tr, pl, de, fr, lv, lt, hu, uk, it, ro, zh, hi, es, ar, bn, pt, ja
   lang: String
   locale: String
   date_added: DateTime

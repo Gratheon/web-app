@@ -288,6 +288,50 @@ describe('translationService', () => {
 			expect(result).toBe('fr');
 		});
 
+			it('should prefer query param language over browser language', () => {
+				Object.defineProperty(navigator, 'language', {
+					value: 'ru-RU',
+					configurable: true
+				});
+
+				const result = getUserLanguage(null, ['en', 'ru', 'uk'], '?lang=uk');
+
+				expect(result).toBe('uk');
+			});
+
+			it('should keep user language above query param language', () => {
+				Object.defineProperty(navigator, 'language', {
+					value: 'en-US',
+					configurable: true
+				});
+
+				const result = getUserLanguage({ lang: 'ru' }, ['en', 'ru', 'et'], '?lang=et');
+
+				expect(result).toBe('ru');
+			});
+
+			it('should normalize query param language with region before matching', () => {
+				Object.defineProperty(navigator, 'language', {
+					value: 'en-US',
+					configurable: true
+				});
+
+				const result = getUserLanguage(null, ['en', 'et'], '?lang=ET-ee');
+
+				expect(result).toBe('et');
+			});
+
+			it('should ignore unsupported query param language and fallback to browser language', () => {
+				Object.defineProperty(navigator, 'language', {
+					value: 'fr-FR',
+					configurable: true
+				});
+
+				const result = getUserLanguage(null, ['en', 'fr'], '?lang=ko');
+
+				expect(result).toBe('fr');
+			});
+
 		it('should return browser language when user has no language', () => {
 			Object.defineProperty(navigator, 'language', {
 				value: 'ru-RU',

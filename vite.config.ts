@@ -149,11 +149,15 @@ export default defineConfig({
 				],
 			},
 			registerType: 'autoUpdate',
-			injectRegister: 'script-defer',
+			injectRegister: 'auto',
 			devOptions: {
 				enabled: pwaDevEnabled,
 			},
 			workbox: {
+				skipWaiting: true,
+				clientsClaim: true,
+				cleanupOutdatedCaches: true,
+				importScripts: ['sw-reload-clients.js'],
 				maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
 				// Include emitted build images (including src/assets/*.webp) in precache.
 				// This allows placeholders to render offline without requiring a prior runtime fetch.

@@ -4,8 +4,51 @@
 	padding: @mobilePadPx;
 }
 
-h2 {
+.form {
+	display: flex;
+	align-items: stretch;
+	gap: 10px;
+	max-width: 100%;
+	box-sizing: border-box;
+}
+
+.title {
+	box-sizing: border-box;
+	flex: 0 0 30%;
 	padding: 10px;
+}
+
+.nameInput {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.nameInput,
+.typeSelect {
+	height: 40px;
+	padding: 0 10px;
+	box-sizing: border-box;
+}
+
+@media @mobile {
+	.form {
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.title,
+	.nameInput,
+	.typeSelect,
+	.form button {
+		width: 100%;
+		max-width: 100%;
+		box-sizing: border-box;
+	}
+
+	.title {
+		flex-basis: auto;
+		padding: 0 0 2px;
+	}
 }
 
 @media @desktop {

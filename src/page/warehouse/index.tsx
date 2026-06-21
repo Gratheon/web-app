@@ -5,7 +5,7 @@ import { gql, useMutation, useQuery } from '@/api'
 import Button from '@/shared/button'
 import ErrorMsg from '@/shared/messageError'
 import Loader from '@/shared/loader'
-import T from '@/shared/translate'
+import T, { useTranslation } from '@/shared/translate'
 import { getWarehouseItemIcon } from './iconMap'
 import { stripWarehouseSuffix } from './labels'
 import styles from './style.module.less'
@@ -206,6 +206,8 @@ export default function WarehousePage() {
 	const [savingItem, setSavingItem] = useState<string | null>(null)
 	const [autoUpdateFromHives, setAutoUpdateFromHives] = useState(true)
 	const [savingAutoUpdate, setSavingAutoUpdate] = useState(false)
+	const decreaseTitle = useTranslation('Decrease')
+	const increaseTitle = useTranslation('Increase')
 
 	const { data, loading, error } = useQuery(WAREHOUSE_QUERY)
 	const [setWarehouseInventoryCount, { error: mutationError }] = useMutation(SET_WAREHOUSE_INVENTORY_COUNT_MUTATION)
@@ -530,15 +532,15 @@ export default function WarehousePage() {
 																	<span className={styles.itemIcon}>{icon}</span>
 																</span>
 															)}
-																<span className={styles.itemTitle}>{matrixItem.id === 'DEEP' ? 'Nest sections' : matrixItem.label}</span>
+																<span className={styles.itemTitle}><T>{matrixItem.id === 'DEEP' ? 'Nest sections' : matrixItem.label}</T></span>
 														</div>
-														<div className={styles.itemDescription}>{matrixItem.description}</div>
+														<div className={styles.itemDescription}><T>{matrixItem.description}</T></div>
 													</div>
 													{matrixItem.standaloneSectionItem ? (
 														<div className={styles.controls}>
 															<Button
 																size="small"
-																title="Decrease"
+																title={decreaseTitle}
 																onClick={() => updateCount(matrixItem.standaloneSectionItem!.key, -1)}
 																disabled={(counts[matrixItem.standaloneSectionItem!.key] || 0) <= 0 || savingItem === matrixItem.standaloneSectionItem!.key}
 															>
@@ -563,7 +565,7 @@ export default function WarehousePage() {
 															/>
 															<Button
 																size="small"
-																title="Increase"
+																title={increaseTitle}
 																onClick={() => updateCount(matrixItem.standaloneSectionItem!.key, 1)}
 																disabled={savingItem === matrixItem.standaloneSectionItem!.key}
 															>
@@ -641,7 +643,7 @@ export default function WarehousePage() {
 																		>
 																			<Button
 																				size="small"
-																				title="Decrease"
+																				title={decreaseTitle}
 																				onClick={() => updateCount(sectionItem.key, -1)}
 																				disabled={count <= 0 || savingItem === sectionItem.key}
 																			>
@@ -666,7 +668,7 @@ export default function WarehousePage() {
 																			/>
 																			<Button
 																				size="small"
-																				title="Increase"
+																				title={increaseTitle}
 																				onClick={() => updateCount(sectionItem.key, 1)}
 																				disabled={savingItem === sectionItem.key}
 																			>
@@ -734,7 +736,7 @@ export default function WarehousePage() {
 																			>
 																				<Button
 																					size="small"
-																					title="Decrease"
+																					title={decreaseTitle}
 																					onClick={() => updateCount(sectionItem.key, -1)}
 																					disabled={count <= 0 || savingItem === sectionItem.key}
 																				>
@@ -759,7 +761,7 @@ export default function WarehousePage() {
 																				/>
 																				<Button
 																					size="small"
-																					title="Increase"
+																					title={increaseTitle}
 																					onClick={() => updateCount(sectionItem.key, 1)}
 																					disabled={savingItem === sectionItem.key}
 																				>
@@ -784,7 +786,7 @@ export default function WarehousePage() {
 																				const frameIcon = firstItem ? getWarehouseItemIcon(firstItem, 15) : null
 																				return frameIcon ? <span className={styles.matrixItemIcon} aria-hidden="true">{frameIcon}</span> : null
 																			})()}
-																			<span>{frameRow.label}</span>
+																			<span><T>{frameRow.label}</T></span>
 																		</span>
 																		{(() => {
 																			const colorSquares = buildSystemColorSquares(
@@ -832,7 +834,7 @@ export default function WarehousePage() {
 																		>
 																		<Button
 																			size="small"
-																			title="Decrease"
+																			title={decreaseTitle}
 																			onClick={() => updateCount(rowItem.key, -1)}
 																			disabled={count <= 0 || savingItem === rowItem.key}
 																		>
@@ -857,7 +859,7 @@ export default function WarehousePage() {
 																		/>
 																		<Button
 																			size="small"
-																			title="Increase"
+																			title={increaseTitle}
 																			onClick={() => updateCount(rowItem.key, 1)}
 																			disabled={savingItem === rowItem.key}
 																		>
@@ -912,7 +914,7 @@ export default function WarehousePage() {
 																							{getWarehouseItemIcon(row.iconItem, 15)}
 																						</span>
 																					) : null}
-																					<span>{row.label}</span>
+																					<span><T>{row.label}</T></span>
 																				</span>
 																				{(() => {
 																					const colorSquares = buildSystemColorSquares(
@@ -956,7 +958,7 @@ export default function WarehousePage() {
 																				>
 																				<Button
 																					size="small"
-																					title="Decrease"
+																					title={decreaseTitle}
 																					onClick={() => updateCount(rowItem.key, -1)}
 																					disabled={count <= 0 || savingItem === rowItem.key}
 																				>
@@ -981,7 +983,7 @@ export default function WarehousePage() {
 																				/>
 																				<Button
 																					size="small"
-																					title="Increase"
+																					title={increaseTitle}
 																					onClick={() => updateCount(rowItem.key, 1)}
 																					disabled={savingItem === rowItem.key}
 																				>
@@ -1014,10 +1016,10 @@ export default function WarehousePage() {
 																	</span>
 																)}
 																<Link to={itemPath} className={styles.itemTitleLink}>
-																	<span className={styles.itemTitle}>{stripWarehouseSuffix(rowItem.title)}</span>
+																	<span className={styles.itemTitle}><T>{stripWarehouseSuffix(rowItem.title)}</T></span>
 																</Link>
 															</div>
-															<div className={styles.itemDescription}>{rowItem.description}</div>
+															<div className={styles.itemDescription}><T>{rowItem.description}</T></div>
 														</div>
 
 														<div className={styles.controls}>
@@ -1034,7 +1036,7 @@ export default function WarehousePage() {
 															</div>
 															<Button
 																size="small"
-																title="Decrease"
+																title={decreaseTitle}
 																onClick={() => updateCount(rowItem.key, -1)}
 																disabled={count <= 0 || savingItem === rowItem.key}
 															>
@@ -1059,7 +1061,7 @@ export default function WarehousePage() {
 															/>
 															<Button
 																size="small"
-																title="Increase"
+																title={increaseTitle}
 																onClick={() => updateCount(rowItem.key, 1)}
 																disabled={savingItem === rowItem.key}
 															>
@@ -1081,9 +1083,9 @@ export default function WarehousePage() {
 																<span className={styles.itemIcon}>{getWarehouseItemIcon(matrixItem.iconItem, 14)}</span>
 															</span>
 														) : null}
-														<span className={styles.itemTitle}>{matrixItem.label}</span>
+														<span className={styles.itemTitle}><T>{matrixItem.label}</T></span>
 													</div>
-													<div className={styles.itemDescription}>{matrixItem.description}</div>
+													<div className={styles.itemDescription}><T>{matrixItem.description}</T></div>
 												</div>
 											</div>
 											{matrixItem.rows.length > 0 ? (
@@ -1112,7 +1114,7 @@ export default function WarehousePage() {
 																			<span className={styles.matrixItemIcon} aria-hidden="true">
 																				{getWarehouseItemIcon(iconItem, 15)}
 																			</span>
-																			<span>{frameRow.label}</span>
+																			<span><T>{frameRow.label}</T></span>
 																		</span>
 																		<div className={styles.squareStack} title={`${Math.min(count, MAX_VISUAL_SQUARES)} / ${count}`}>
 																			{Array.from({
@@ -1130,7 +1132,7 @@ export default function WarehousePage() {
 																<div className={styles.matrixCell}>
 																	<Button
 																		size="small"
-																		title="Decrease"
+																		title={decreaseTitle}
 																		onClick={() => updateHorizontalFrameRowCount(rowItems, -1)}
 																		disabled={count <= 0}
 																	>
@@ -1144,7 +1146,7 @@ export default function WarehousePage() {
 																	/>
 																	<Button
 																		size="small"
-																		title="Increase"
+																		title={increaseTitle}
 																		onClick={() => updateHorizontalFrameRowCount(rowItems, 1)}
 																	>
 																		+
@@ -1173,10 +1175,10 @@ export default function WarehousePage() {
 														</span>
 													)}
 													<Link to={itemPath} className={styles.itemTitleLink}>
-														<span className={styles.itemTitle}>{stripWarehouseSuffix(rowItem.title)}</span>
+														<span className={styles.itemTitle}><T>{stripWarehouseSuffix(rowItem.title)}</T></span>
 													</Link>
 												</div>
-												<div className={styles.itemDescription}>{rowItem.description}</div>
+												<div className={styles.itemDescription}><T>{rowItem.description}</T></div>
 											</div>
 
 											<div className={styles.controls}>
@@ -1193,7 +1195,7 @@ export default function WarehousePage() {
 												</div>
 												<Button
 													size="small"
-													title="Decrease"
+													title={decreaseTitle}
 													onClick={() => updateCount(rowItem.key, -1)}
 													disabled={count <= 0 || savingItem === rowItem.key}
 												>
@@ -1218,7 +1220,7 @@ export default function WarehousePage() {
 												/>
 												<Button
 													size="small"
-													title="Increase"
+													title={increaseTitle}
 													onClick={() => updateCount(rowItem.key, 1)}
 													disabled={savingItem === rowItem.key}
 												>

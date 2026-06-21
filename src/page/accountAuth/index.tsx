@@ -1,5 +1,5 @@
 import React, {useState} from 'react'
-import {Link} from 'react-router-dom'
+import {Link, useLocation} from 'react-router-dom'
 import {useNavigate} from 'react-router'
 
 import isDev from '@/isDev'
@@ -31,6 +31,9 @@ export default function AccountAuth() {
     })
 
     const navigate = useNavigate()
+    const location = useLocation()
+    const registerPath = `/account/register${location.search}`
+    const forgotPasswordPath = `/account/forgot-password${location.search}`
     let [loading, setLoading] = useState(false)
 
     function onInput(e: any) {
@@ -165,6 +168,9 @@ export default function AccountAuth() {
                                 value={account.password}
                                 onChange={onInput}
                             />
+                            <div className={style.forgotPasswordLink}>
+                                <Link to={forgotPasswordPath}><T>Forgot password?</T></Link>
+                            </div>
 
 
                             <div style="display: flex;margin:10px 0 8px;">
@@ -196,7 +202,7 @@ export default function AccountAuth() {
                     <div className={style.balancer}></div>
                 </div>
                 <div className={style.linkToRegister}>
-                    <Link to="/account/register"><T>Create new account</T></Link>
+                    <Link to={registerPath}><T>Create new account</T></Link>
                 </div>
             </div>
         </div>

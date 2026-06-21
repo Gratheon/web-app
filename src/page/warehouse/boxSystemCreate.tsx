@@ -6,7 +6,7 @@ import Button from '@/shared/button'
 import ErrorMsg from '@/shared/messageError'
 import Loader from '@/shared/loader'
 import PagePaddedCentered from '@/shared/pagePaddedCentered'
-import T from '@/shared/translate'
+import T, { useTranslation } from '@/shared/translate'
 import VisualForm from '@/shared/visualForm'
 import {
 	applyFrameSourceToAllBoxTypes,
@@ -179,6 +179,7 @@ export default function WarehouseBoxSystemCreatePage() {
 	const sourceSystems: BoxSystem[] = useMemo(() => data?.boxSystems || [], [data?.boxSystems])
 	const defaultSourceSystemId = sourceSystems[0]?.id || ''
 	const showSectionDimensionRows = useOwnBoxProfile
+	const namePlaceholder = useTranslation('Examples: National, Warre, Dadant')
 	const showFrameDimensionRows = useOwnFrameProfile
 	const showReferenceDimensions = showSectionDimensionRows || showFrameDimensionRows
 	const dimensionValidationByType = useMemo(() => {
@@ -300,7 +301,7 @@ export default function WarehouseBoxSystemCreatePage() {
 							<input
 								className={`${styles.flexInput} ${styles.nameInput}`}
 								type="text"
-								placeholder="Examples: National, Warre, Dadant"
+								placeholder={namePlaceholder}
 								value={name}
 								onInput={(event: any) => setName(event.target.value)}
 								autoFocus
@@ -414,7 +415,7 @@ export default function WarehouseBoxSystemCreatePage() {
 									const sectionTitle = boxType === 'DEEP' ? 'Deep' : 'Super'
 									return (
 										<div key={`create-dim-${boxType}`} className={styles.dimensionTypeSection}>
-											<div className={styles.dimensionTypeTitle}>{sectionTitle}</div>
+											<div className={styles.dimensionTypeTitle}><T>{sectionTitle}</T></div>
 											<div className={styles.dimensionTable}>
 												<div className={styles.dimensionHeaderRow}>
 													<div className={styles.dimensionHeaderCell}><T>Type</T></div>

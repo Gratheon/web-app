@@ -4,7 +4,7 @@ import {
 	getPluralForms
 } from './translations';
 import { newTranslationBatcher } from '@/shared/translate/newBatch';
-import { SUPPORTED_LANGUAGES } from '@/config/languages';
+import { getPreferredLanguage, normalizeSupportedLanguage, SUPPORTED_LANGUAGES } from '@/config/languages';
 
 export interface TranslationResult {
 	value: string | null;
@@ -110,23 +110,15 @@ export async function fetchPluralWithRemote(
 
 export function getUserLanguage(
 	user: { lang?: string } | null,
-	supportedLangs: readonly string[] = SUPPORTED_LANGUAGES
+	supportedLangs: readonly string[] = SUPPORTED_LANGUAGES,
+	search?: string
 ): string {
-	if (user && user.lang) {
-		const normalizedUserLang = user.lang.toLowerCase().substring(0, 2);
-		if (supportedLangs.includes(normalizedUserLang)) {
-			return normalizedUserLang;
-		}
+	const userLang = normalizeSupportedLanguage(user?.lang, supportedLangs);
+	if (userLang) {
+		return userLang;
 	}
 
-	if (typeof navigator !== 'undefined') {
-		const browserLang = navigator.language.toLowerCase().substring(0, 2);
-		if (supportedLangs.includes(browserLang)) {
-			return browserLang;
-		}
-	}
-
-	return 'en';
+	return getPreferredLanguage(supportedLangs, search);
 }
 
 export async function fetchRemoteTranslation(

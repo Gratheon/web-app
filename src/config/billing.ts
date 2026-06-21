@@ -24,10 +24,10 @@ export const BILLING_TIERS = {
 			stripePrice: 'price_starter_monthly'
 		},
 		yearly: {
-			price: 12,
-			pricePerYear: 144,
+			price: 11,
+			pricePerYear: 132,
 			currency: 'EUR',
-			savings: '45%',
+			savings: '50%',
 			stripePrice: 'price_starter_yearly'
 		}
 	},
@@ -41,10 +41,10 @@ export const BILLING_TIERS = {
 			stripePrice: 'price_professional_monthly'
 		},
 		yearly: {
-			price: 33,
-			pricePerYear: 396,
+			price: 27.5,
+			pricePerYear: 330,
 			currency: 'EUR',
-			savings: '40%',
+			savings: '50%',
 			stripePrice: 'price_professional_yearly'
 		}
 	},

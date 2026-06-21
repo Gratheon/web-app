@@ -55,6 +55,34 @@
 	margin-top: 12px;
 	flex-wrap: wrap;
 }
+.tabs {
+	display: flex;
+	gap: 8px;
+	border-bottom: 1px solid #ddd;
+}
+.tabs button {
+	appearance: none;
+	border: 0;
+	border-bottom: 3px solid transparent;
+	background: transparent;
+	padding: 10px 14px;
+	cursor: pointer;
+	font: inherit;
+	color: #555;
+}
+.tabs button:hover,
+.tabs button:focus-visible {
+	color: #111;
+}
+.activeTab {
+	border-bottom-color: #0066cc !important;
+	color: #111 !important;
+	font-weight: 600;
+}
+.tabPanel {
+	display: grid;
+	gap: 16px;
+}
 .grid {
 	display: grid;
 	grid-template-columns: repeat(7, minmax(0, 1fr));

@@ -1,4 +1,5 @@
 import { render as renderPreact } from 'preact'
+import { act } from 'react-dom/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import CalendarPage from './index'
 
@@ -82,9 +83,22 @@ describe('CalendarPage', () => {
 		expect(container.innerHTML).toContain('Historical hive activity')
 	})
 
-	it('renders items and source links', () => {
+	it('keeps chronology items and source links on the chronology tab', () => {
 		renderPreact(<CalendarPage />, container)
+
 		expect(container.innerHTML).toContain('Inspection')
+		expect(container.innerHTML).not.toContain(
+			'/apiaries/a1/hives/h1/inspections/i1'
+		)
+
+		const chronologyTab = container.querySelector(
+			'#chronology-tab'
+		) as HTMLButtonElement
+		act(() => {
+			chronologyTab.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+		})
+
+		expect(container.innerHTML).toContain('Chronology')
 		expect(container.innerHTML).toContain(
 			'/apiaries/a1/hives/h1/inspections/i1'
 		)

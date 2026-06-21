@@ -112,6 +112,9 @@ export default function CalendarPage() {
 	const [apiaryId, setApiaryId] = React.useState<string | null>(null)
 	const [hiveId, setHiveId] = React.useState<string | null>(null)
 	const [sourceTypes, setSourceTypes] = React.useState<string[]>([])
+	const [activeTab, setActiveTab] = React.useState<'calendar' | 'chronology'>(
+		'calendar'
+	)
 
 	const { data: hivesData } = useQuery(HIVES_QUERY)
 	const apiaries = hivesData?.apiaries || []
@@ -307,91 +310,134 @@ export default function CalendarPage() {
 					<T>Calendar could not be loaded.</T> {error.message}
 				</p>
 			)}
-			<section className={styles.grid} aria-label="Calendar month grid">
-				{days.map((day) => {
-					const date = new Date(day)
-					const isToday = dayKey(new Date().toISOString()) === day
-					const dayOfMonth = date.getDate()
-					return (
-						<div
-							key={day}
-							className={`${styles.day} ${isToday ? styles.today : ''}`}
-						>
-							<strong>
-								{dayOfMonth}
-								{dayOfMonth === 1 && (
-									<span className={styles.monthLabel}> {monthLabel(day)}</span>
-								)}
-							</strong>
-							{(grouped.get(day) || []).slice(0, 3).map((item) => (
-								<span
-									key={item.id}
-									className={
-										item.kind === 'GENERATED_REMINDER'
-											? styles.reminderDot
-											: styles.recordDot
-									}
+			<div className={styles.tabs} role="tablist" aria-label="Calendar views">
+				<button
+					type="button"
+					role="tab"
+					aria-selected={activeTab === 'calendar'}
+					aria-controls="calendar-tab-panel"
+					id="calendar-tab"
+					className={activeTab === 'calendar' ? styles.activeTab : ''}
+					onClick={() => setActiveTab('calendar')}
+				>
+					<T>Calendar</T>
+				</button>
+				<button
+					type="button"
+					role="tab"
+					aria-selected={activeTab === 'chronology'}
+					aria-controls="chronology-tab-panel"
+					id="chronology-tab"
+					className={activeTab === 'chronology' ? styles.activeTab : ''}
+					onClick={() => setActiveTab('chronology')}
+				>
+					<T>Chronology</T>
+				</button>
+			</div>
+			{activeTab === 'calendar' && (
+				<div
+					id="calendar-tab-panel"
+					role="tabpanel"
+					aria-labelledby="calendar-tab"
+					className={styles.tabPanel}
+				>
+					<section className={styles.grid} aria-label="Calendar month grid">
+						{days.map((day) => {
+							const date = new Date(day)
+							const isToday = dayKey(new Date().toISOString()) === day
+							const dayOfMonth = date.getDate()
+							return (
+								<div
+									key={day}
+									className={`${styles.day} ${isToday ? styles.today : ''}`}
 								>
-									{item.label.fallback}
-								</span>
-							))}
-						</div>
-					)
-				})}
-			</section>
-			<section className={styles.timeline}>
-				<h2>
-					<T>Timeline</T>
-				</h2>
-				{items.map((item) => {
-					const href = sourceHref(item)
-					return (
-						<article
-							key={item.id}
-							className={
-								item.kind === 'GENERATED_REMINDER'
-									? styles.reminderItem
-									: styles.recordItem
-							}
-						>
-							<time>{new Date(item.date).toLocaleString()}</time>
-							<h3>{item.label.fallback}</h3>
-							<p>
-								{item.details?.fallback ||
-									(item.kind === 'GENERATED_REMINDER'
-										? t('Generated reminder')
-										: t('Historical record'))}
+									<strong>
+										{dayOfMonth}
+										{dayOfMonth === 1 && (
+											<span className={styles.monthLabel}>
+												{' '}
+												{monthLabel(day)}
+											</span>
+										)}
+									</strong>
+									{(grouped.get(day) || []).slice(0, 3).map((item) => (
+										<span
+											key={item.id}
+											className={
+												item.kind === 'GENERATED_REMINDER'
+													? styles.reminderDot
+													: styles.recordDot
+											}
+										>
+											{item.label.fallback}
+										</span>
+									))}
+								</div>
+							)
+						})}
+					</section>
+					<section className={styles.recency}>
+						<h2>
+							<T>Inspection recency</T>
+						</h2>
+						{(payload?.inspectionRecency || []).map((entry) => (
+							<p key={entry.hive.id}>
+								<T>Hive</T> {entry.hive.hiveNumber || entry.hive.id}:{' '}
+								{entry.latestAt ? (
+									new Date(entry.latestAt).toLocaleDateString()
+								) : (
+									<T>No inspections yet</T>
+								)}{' '}
+								{!entry.isInsideSelectedRange && entry.latestAt ? (
+									<span>
+										{' '}
+										(<T>outside selected range</T>)
+									</span>
+								) : null}
 							</p>
-							{href && (
-								<a href={href}>
-									<T>Open source context</T>
-								</a>
-							)}
-						</article>
-					)
-				})}
-			</section>
-			<section className={styles.recency}>
-				<h2>
-					<T>Inspection recency</T>
-				</h2>
-				{(payload?.inspectionRecency || []).map((entry) => (
-					<p key={entry.hive.id}>
-						<T>Hive</T> {entry.hive.hiveNumber || entry.hive.id}:{' '}
-						{entry.latestAt ? (
-							new Date(entry.latestAt).toLocaleDateString()
-						) : (
-							<T>No inspections yet</T>
-						)}{' '}
-						{!entry.isInsideSelectedRange && entry.latestAt ? (
-							<span>
-								{' '}
-								(<T>outside selected range</T>)
-							</span>
-						) : null}
-					</p>
-				))}
-			</section>
+						))}
+					</section>
+				</div>
+			)}
+			{activeTab === 'chronology' && (
+				<section
+					id="chronology-tab-panel"
+					role="tabpanel"
+					aria-labelledby="chronology-tab"
+					className={`${styles.timeline} ${styles.tabPanel}`}
+				>
+					<h2>
+						<T>Chronology</T>
+					</h2>
+					{items.map((item) => {
+						const href = sourceHref(item)
+						return (
+							<article
+								key={item.id}
+								className={
+									item.kind === 'GENERATED_REMINDER'
+										? styles.reminderItem
+										: styles.recordItem
+								}
+							>
+								<time>{new Date(item.date).toLocaleString()}</time>
+								<h3>{item.label.fallback}</h3>
+								<p>
+									{item.details?.fallback ||
+										(item.kind === 'GENERATED_REMINDER'
+											? t('Generated reminder')
+											: t('Historical record'))}
+								</p>
+								{href && (
+									<a href={href}>
+										<T>Open source context</T>
+									</a>
+								)}
+							</article>
+						)
+					})}
+				</section>
+			)}
 		</main>
 	)
 }

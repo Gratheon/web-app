@@ -1,0 +1,156 @@
+@import '@/layout.module.less';
+
+.calendarPage {
+	display: grid;
+	gap: 24px;
+	width: 100%;
+	box-sizing: border-box;
+	padding: 0 @desktopPadPx 80px;
+}
+.header {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+.header p {
+	color: #555;
+}
+.warning {
+	color: #9a5b00;
+}
+.error {
+	color: #d00000;
+}
+.loading {
+	color: #0066cc;
+}
+.filters {
+	display: flex;
+	gap: 12px;
+	align-items: center;
+	flex-wrap: wrap;
+	padding: 12px;
+	background: #f5f5f5;
+	border-radius: 8px;
+}
+.select {
+	padding: 8px;
+	border-radius: 4px;
+	border: 1px solid #ccc;
+}
+.checkboxGroup {
+	display: flex;
+	gap: 12px;
+	align-items: center;
+}
+.checkboxGroup label {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	cursor: pointer;
+}
+.controls {
+	display: flex;
+	gap: 12px;
+	margin-top: 12px;
+	flex-wrap: wrap;
+}
+.tabs {
+	display: flex;
+	gap: 8px;
+	border-bottom: 1px solid #ddd;
+}
+.tabs button {
+	appearance: none;
+	border: 0;
+	border-bottom: 3px solid transparent;
+	background: transparent;
+	padding: 10px 14px;
+	cursor: pointer;
+	font: inherit;
+	color: #555;
+}
+.tabs button:hover,
+.tabs button:focus-visible {
+	color: #111;
+}
+.activeTab {
+	border-bottom-color: #0066cc !important;
+	color: #111 !important;
+	font-weight: 600;
+}
+.tabPanel {
+	display: grid;
+	gap: 16px;
+}
+.grid {
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+	gap: 6px;
+}
+.day {
+	min-height: 76px;
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	padding: 6px;
+	background: white;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+.monthLabel {
+	color: #555;
+	font-size: 0.85em;
+	font-weight: 600;
+	text-transform: capitalize;
+}
+.today {
+	border-color: #0066cc;
+	background: #f0f8ff;
+}
+.recordDot,
+.reminderDot {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	border-radius: 8px;
+	padding: 2px 5px;
+	font-size: 12px;
+}
+.recordDot {
+	background: #eef5ff;
+}
+.reminderDot {
+	background: #fff4d6;
+}
+.timeline {
+	display: grid;
+	gap: 12px;
+}
+.recordItem,
+.reminderItem {
+	border-left: 4px solid #6ca0dc;
+	padding: 12px;
+	background: white;
+	border-radius: 8px;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+.reminderItem {
+	border-left-color: #d99b00;
+}
+.recordItem h3,
+.reminderItem h3 {
+	margin: 4px 0;
+}
+.recency {
+	border-top: 1px solid #ddd;
+	padding-top: 12px;
+}
+@media (max-width: 700px) {
+	.calendarPage {
+		padding: 0 @mobilePadPx 80px;
+	}
+	.grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}

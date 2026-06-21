@@ -302,6 +302,17 @@ type Inspection {
   added: DateTime!
 }
 
+enum CalendarItemKind { HISTORICAL_RECORD GENERATED_REMINDER }
+enum CalendarItemSourceType { INSPECTION HIVE_LOG TREATMENT_REMINDER QUEEN_MILESTONE }
+enum CalendarReminderStatus { SCHEDULED DONE DISMISSED SNOOZED }
+input CalendarInput { from: DateTime! to: DateTime! apiaryId: ID hiveId: ID sourceTypes: [CalendarItemSourceType!] }
+type CalendarRange { from: DateTime! to: DateTime! capped: Boolean! }
+type CalendarSourceContext { sourceType: CalendarItemSourceType! sourceId: ID hiveId: ID apiaryId: ID familyId: ID templateKey: String }
+type CalendarItemLabel { translationKey: String! fallback: String! args: JSON }
+type CalendarItem { id: ID! kind: CalendarItemKind! sourceType: CalendarItemSourceType! date: DateTime! label: CalendarItemLabel! details: CalendarItemLabel hive: Hive apiary: Apiary source: CalendarSourceContext! templateKey: String reminderStateId: ID reminderStatus: CalendarReminderStatus legalDisclaimerKey: String }
+type CalendarInspectionRecency { hive: Hive! latestInspection: Inspection latestAt: DateTime isInsideSelectedRange: Boolean! }
+type CalendarPayload { range: CalendarRange! items: [CalendarItem!]! inspectionRecency: [CalendarInspectionRecency!]! }
+
 input InspectionInput {
   hiveId: Int!
   data: JSON!
@@ -455,6 +466,7 @@ type Query {
   apiaries: [Apiary]
   inspection(inspectionId: ID!): Inspection
   inspections(hiveId: ID!, limit: Int): [Inspection]
+  calendar(input: CalendarInput!): CalendarPayload!
   user: User
   invoices: [Invoice]
   billingHistory: [BillingHistoryEvent]

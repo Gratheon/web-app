@@ -16,6 +16,7 @@ import { TAWKTO_TOKEN } from '@/config'
 import isDev from '@/isDev'
 import CreditCard from '@/icons/creditCard'
 import KeyIcon from '@/icons/key'
+import CalendarIcon from '@/icons/calendar'
 import wideLogoURL from '@/assets/logo_v7w.svg'
 import {
 	isBillingTierAtLeast,
@@ -832,7 +833,8 @@ const Menu = ({
 		location.pathname === '/alert-config' ||
 		location.pathname.startsWith('/alert-config/')
 	const isInsightsSection =
-		location.pathname === '/time' || location.pathname.startsWith('/time/')
+		location.pathname === '/insights' ||
+		location.pathname.startsWith('/insights/')
 	const isWarehouseQueensSection =
 		location.pathname === '/warehouse/queens' ||
 		location.pathname.startsWith('/warehouse/queens/')
@@ -922,7 +924,7 @@ const Menu = ({
 								: isQueensLocked
 								? null
 								: '/warehouse/queens',
-							'3': isInsightsLocked ? null : '/time',
+							'3': isInsightsLocked ? null : '/insights',
 							'4': isWarehouseLocked ? null : '/warehouse',
 							'5': isDevicesLocked ? null : '/devices',
 							'6': isAlertsLocked ? null : '/alert-config',
@@ -1101,9 +1103,23 @@ const Menu = ({
 							</li>
 						)}
 						<li>
+							<NavLink className={navClassName} to="/calendar">
+								<span className={styles.menuItemContent}>
+									<span className={styles.menuItemIcon}>
+										<CalendarIcon size={18} />
+									</span>
+									<span className={styles.menuItemLabel}>
+										<span className={styles.menuItemText}>
+											<T>Calendar</T>
+										</span>
+									</span>
+								</span>
+							</NavLink>
+						</li>
+						<li>
 							<NavLink
 								className={menuLinkClassName(isInsightsLocked)}
-								to="/time"
+								to="/insights"
 								{...getLockedNavigationProps(isInsightsLocked)}
 							>
 								<span className={styles.menuItemContent}>
@@ -1112,7 +1128,7 @@ const Menu = ({
 									</span>
 									<span className={styles.menuItemLabel}>
 										<span className={styles.menuItemText}>
-											<T>Insights</T>
+											<T>Analytics</T>
 										</span>
 										{showShortcutHints && (
 											<span className={styles.keyHint}>3</span>
@@ -1431,7 +1447,7 @@ const Menu = ({
 								isInsightsSection,
 								isInsightsLocked
 							)}
-							to="/time"
+							to="/insights"
 							{...getLockedNavigationProps(isInsightsLocked, () => {
 								setMoreVisible(false)
 							})}
@@ -1443,7 +1459,7 @@ const Menu = ({
 								/>
 							</span>
 							<span className={styles.navLabel}>
-								<T>Insights</T>
+								<T>Analytics</T>
 							</span>
 						</NavLink>
 					</li>
@@ -1471,6 +1487,14 @@ const Menu = ({
 			</nav>
 			{isMoreVisible && (
 				<div className={styles.mobileMoreMenu}>
+					<NavLink
+						to="/calendar"
+						onClick={() => {
+							setMoreVisible(false)
+						}}
+					>
+						<T>Calendar</T>
+					</NavLink>
 					<NavLink
 						to={aiAdvisorPath}
 						className={moreMenuLinkClassName(isAIAdvisorLocked)}

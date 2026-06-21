@@ -33,6 +33,7 @@ export default function AccountAuth() {
     const navigate = useNavigate()
     const location = useLocation()
     const registerPath = `/account/register${location.search}`
+    const forgotPasswordPath = `/account/forgot-password${location.search}`
     let [loading, setLoading] = useState(false)
 
     function onInput(e: any) {
@@ -167,6 +168,9 @@ export default function AccountAuth() {
                                 value={account.password}
                                 onChange={onInput}
                             />
+                            <div className={style.forgotPasswordLink}>
+                                <Link to={forgotPasswordPath}><T>Forgot password?</T></Link>
+                            </div>
 
 
                             <div style="display: flex;margin:10px 0 8px;">

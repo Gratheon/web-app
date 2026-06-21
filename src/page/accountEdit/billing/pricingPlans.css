@@ -282,18 +282,16 @@
   margin-bottom: 0.35rem;
 }
 
-.price-row {
+.price-line {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 1rem;
-  background: #f9f9f9;
-  border-radius: 8px;
-  gap: 0.4rem;
+  align-items: baseline;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+  white-space: nowrap;
 }
 
-.price-row button {
-  margin-top: 0.5rem;
+.plan-buy-button {
+  margin: 0;
 }
 
 .price-amount {

@@ -25,6 +25,8 @@ const AccountBilling = React.lazy(() => import('./accountBilling'))
 const AccountTokens = React.lazy(() => import('./accountTokens'))
 const AccountAuth = React.lazy(() => import('./accountAuth'))
 const AccountRegister = React.lazy(() => import('./accountRegister'))
+const AccountForgotPassword = React.lazy(() => import('./accountForgotPassword'))
+const AccountResetPassword = React.lazy(() => import('./accountResetPassword'))
 const Grafana = React.lazy(() => import('./grafana'))
 const InspectionShare = React.lazy(() => import('./inspectionShare'))
 const AlertConfig = React.lazy(() => import('./alertConfig'))
@@ -122,6 +124,8 @@ export default function Page() {
 			<Routes>
 				<Route path="/account/authenticate" element={<LoggedOutPage><AccountAuth /></LoggedOutPage>} />
 				<Route path="/account/register" element={<LoggedOutPage><AccountRegister /></LoggedOutPage>} />
+				<Route path="/account/forgot-password" element={<LoggedOutPage><AccountForgotPassword /></LoggedOutPage>} />
+				<Route path="/account/reset-password" element={<LoggedOutPage><AccountResetPassword /></LoggedOutPage>} />
 
 				<Route path="/time" element={<LoggedInPage><ProfessionalTierGate blockWheel><TimeView /></ProfessionalTierGate></LoggedInPage>} />
 				<Route path="/devices" element={<LoggedInPage><ProfessionalTierGate><DevicesPage /></ProfessionalTierGate></LoggedInPage>} />

@@ -70,15 +70,17 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 		const pricing = getPlanPricing(plan)
 
 		return (
-			<div className="price-row">
-				<span className="price-amount">€{pricing.amount}</span>
-				<span className="price-period">
-					/{pricing.period === 'year' ? <T>year</T> : <T>month</T>}
-				</span>
-				<Button onClick={() => handlePlanSelect(plan, pricing.cycle)}>
+			<>
+				<div className="price-line">
+					<span className="price-amount">€{pricing.amount}</span>
+					<span className="price-period">
+						{' / '}{pricing.period === 'year' ? <T>year</T> : <T>month</T>}
+					</span>
+				</div>
+				<Button className="plan-buy-button" onClick={() => handlePlanSelect(plan, pricing.cycle)}>
 					<T>Buy</T>
 				</Button>
-			</div>
+			</>
 		)
 	}
 

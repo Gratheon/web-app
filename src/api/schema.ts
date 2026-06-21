@@ -356,6 +356,12 @@ type Locale {
 
 union LoginResult = UserSession | Error
 
+union PasswordResetResult = PasswordResetRequestResult | Error
+
+type PasswordResetRequestResult {
+  ok: Boolean!
+}
+
 # The mutation type, represents all updates we can make to our data
 type Mutation {
   uploadGateVideo(file: Upload!, boxId: ID!): Boolean
@@ -394,6 +400,8 @@ type Mutation {
   treatBox(treatment: TreatmentOfBoxInput!): Boolean
   register(input: RegisterInput!): LoginResult
   login(email: String!, password: String!): LoginResult
+  requestPasswordReset(email: String!): PasswordResetRequestResult!
+  resetPassword(token: String!, password: String!): PasswordResetResult
   generateApiToken: APIToken
   generateShareToken(name: String!, scopes: JSON!, sourceUrl: URL!): ShareToken
   validateApiToken(token: String): ValidateTokenResult

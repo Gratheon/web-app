@@ -130,7 +130,7 @@ erDiagram
 - Existing source tables remain the source of truth for historical Calendar records. Calendar v1 must not copy inspections or hive logs into a separate `calendar_events` table for display-only history.
 - `swarm-api` should add read-oriented SQL queries and indexes for bounded date ranges instead of requiring the web-app to fan out through multiple existing page-specific GraphQL queries.
 - Generated treatment and queen reminder templates may be represented as server-side code/config with stable `templateKey` values first. User-visible copy should remain localized in the web-app using existing translation patterns.
-- A persistent `calendar_reminder_states` table is only needed when generated reminders need user-specific lifecycle state such as dismissed, done, or snoozed. It should store state for generated reminders, not duplicate historical source records.
+- A persistent `calendar_reminder_states` table is approved and required to track user-specific lifecycle state (such as DONE, DISMISSED, or SNOOZED) for generated reminders. It stores state for generated reminders, not duplicate historical source records.
 - Calendar v1 should avoid a generic recurrence table or workflow engine unless future scope explicitly approves that expansion.
 
 ### Proposed database changes in `swarm-api`
@@ -202,7 +202,7 @@ Current queen/family `added` is a year string, which is enough for approximate a
 - `due_at`: An explicit, user-entered due date for custom milestones.
 - `template_key`: A selected milestone template key from an approved set (e.g., `QUEEN_CELL_HATCH_CHECK`, `QUEEN_MATING_CHECK`, `QUEEN_REPLACEMENT_REMINDER`).
 
-Reminder generation will use **stateless generation** and represent **future reminders** (active tasks) rather than passive status. Persistent state in `calendar_reminder_states` (like DISMISSED or SNOOZED status) is explicitly deferred for Calendar v1. Milestones are generated dynamically for families having a `due_at` or a calculated milestone from `introduced_at` that falls within the queried Calendar date range.
+Reminder generation will use **stateful generation** to represent **future reminders** (active tasks). Persistent state in `calendar_reminder_states` is approved. Milestones are generated dynamically for families having a `due_at` or a calculated milestone from `introduced_at` that falls within the queried Calendar date range, with status joined from the state table.
 
 #### Localization and Copy Requirements
 
@@ -301,7 +301,7 @@ calendar(input: CalendarInput!): CalendarPayload!
 
 The API should return stable `translationKey`, `templateKey`, and argument metadata so the web-app can keep user-visible labels localized with existing translation patterns. `fallback` is for safe display/debugging and should not replace localization review for generated reminder copy.
 
-No Calendar mutation is required for read-only Calendar v1. If persistent reminder lifecycle state is approved later, add narrowly scoped mutations instead of a generic scheduler API:
+Persistent reminder lifecycle state is approved. A narrowly scoped mutation is provided to update the reminder status instead of a generic scheduler API:
 
 ```graphql
 input SetCalendarReminderStatusInput {
@@ -411,7 +411,7 @@ Calendar item IDs should be stable and deterministic so the web-app can diff ite
 - [x] DEC-013 Use a default Calendar load window of the last 4 weeks plus the next 4 weeks, and cap user-expanded loading to ±1 year from today; Calendar v1 item volume is bounded by the approved sources within the selected date range rather than by loading all historical records.
 - [x] DEC-014 Add an inspection recency indicator to Calendar v1 so the user can see the last time inspections were performed without expanding the calendar date range or adding a new Calendar v1 source type.
 - [x] DEC-015 Proposed: Implement Calendar v1 backend data aggregation in `swarm-api` rather than creating a dedicated Calendar microservice. Approval required before implementation.
-- [x] DEC-016 Proposed: Use existing source tables as the system of record, add Calendar-oriented indexes, and add persistent reminder state only when generated reminder lifecycle behavior is approved. Approval required before implementation.
+- [x] DEC-016 Approved: Use existing source tables as the system of record, add Calendar-oriented indexes, and implement `calendar_reminder_states` for generated reminder lifecycle management.
 - [x] DEC-017 Proposed: Add a single `swarm-api` GraphQL aggregate query for Calendar instead of composing Calendar from multiple existing page-specific queries in the web-app. Approval required before implementation.
 - [ ] DEC-018 Proposed: Keep generated reminder template definitions as server code/config initially, expose stable `templateKey` values through GraphQL, and localize user-visible reminder copy in the web-app. Approval required before implementation.
 - [x] DEC-019 Proposed: Re-evaluate a separate Calendar/reminder service only after external calendar sync, notification orchestration, recurring workflows, high-volume async generation, or independent Calendar data ownership is approved. Approval required before implementation.
@@ -440,7 +440,7 @@ Calendar item IDs should be stable and deterministic so the web-app can diff ite
 - [ ] AC-011 Queen milestone behavior is accepted only after generation rules, templates, and required source dates are explicitly defined.
 - [x] AC-012 Calendar data for the month grid, timeline, and inspection recency is served by a bounded `swarm-api` GraphQL aggregate query rather than unbounded client-side fan-out. Approval of DEC-015 through DEC-017 required.
 - [x] AC-013 Every Calendar item returned by the aggregate query has a stable ID, item kind, source type, date, display label, and source context metadata. Approval of DEC-017 required.
-- [x] AC-014 The `swarm-api` migration path includes Calendar read indexes and defers persistent reminder state tables unless generated reminder lifecycle behavior is approved. Approval of DEC-016 required.
+- [ ] AC-014 The `swarm-api` migration path includes Calendar read indexes and creates the `calendar_reminder_states` table for generated reminder lifecycle state.
 
 ## Tasks
 
@@ -449,7 +449,6 @@ Links/prompts generated from this spec:
 - [x] TASK-001 Implement route migration by adding `/calendar`, moving current TimeView from `/time` to `/insights`, removing the old Grafana `/insights` route, and updating root navigation. Verify with route/menu tests.
 - [x] TASK-002 Implement Calendar v1 item mapping for inspections and hive log entries with bounded initial loading, historical item labels, source-context links, inspection recency indicators, and empty/populated acceptance coverage.
 - [x] TASK-003 If DEC-015 through DEC-017 are approved, implement the `swarm-api` Calendar aggregate GraphQL query, normalized Calendar item types, source-context metadata, server-side range caps, and integration tests.
-- [x] TASK-004 If DEC-016 is approved, add `swarm-api` database migrations for Calendar read indexes; add `calendar_reminder_states` only if reminder lifecycle state is approved.
+- [ ] TASK-004 Add `swarm-api` database migrations for Calendar read indexes and create the `calendar_reminder_states` table for reminder lifecycle state.
 - [ ] TASK-005 Define and implement treatment-generated reminder rules after REQ-F-009 is resolved, including required treatment data fields, legally cautious localized copy, generated-item labels, and tests.
 - [ ] TASK-006 Define and implement queen milestone reminder rules after REQ-F-010 is resolved, including required source dates, milestone templates, generated-item labels, and tests.
-tests.

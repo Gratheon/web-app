@@ -139,13 +139,25 @@ Calendar v1 can start with existing source tables plus indexes. Reminder state t
 
 #### Required read indexes for Calendar v1 aggregation
 
-| Table | Proposed index | Purpose |
-| --- | --- | --- |
-| `inspections` | `(user_id, added, hive_id)` | Efficient bounded range loading for historical inspection items. |
-| `inspections` | `(user_id, hive_id, added)` | Efficient latest-inspection recency lookup per hive; resolver must explicitly order by `added DESC, id DESC`. |
-| `hive_logs` | `(user_id, created_at, hive_id)` | Efficient bounded range loading across all relevant hives; existing `(user_id, hive_id, created_at)` remains useful for hive detail pages. |
-| `treatments` | `(user_id, added, hive_id, family_id)` | Efficient treatment history lookup when treatment reminders are approved. |
-| `families` | `(user_id, hive_id, active, added)` | Efficient active queen/family lookup for queen milestone candidates. |
+#### Treatment reminder data contract (Approved)
+
+Current treatment data is too thin for safe automatic reminder generation. The treatment logging form and `treatments` table will be updated to store:
+
+- `applied_at`: A date separate from row creation time, allowing users to accurately log past treatments.
+- `template_key`: A selected category/template key from an approved set (e.g., `MITE_TREATMENT_FOLLOWUP`, `FEED_REFILL_CHECK`, `WINTER_PREP_CHECK`).
+- `due_at`: A follow-up due date explicitly entered by the user or pre-filled by the UI based on the `template_key`.
+- `product_notes`: Optional informational text field that does not encode veterinary or regulatory instructions.
+
+Reminder generation will use **stateless generation**. Persistent state in `calendar_reminder_states` (like DISMISSED or SNOOZED status) is explicitly deferred. Reminders are generated on-the-fly for treatments having a `due_at` within the queried Calendar date range.
+
+#### Localization and Legal Copy Constraints
+
+- Treatment reminder text must be localized in the web-app using the `template_key`.
+- Copy must be strictly informational (e.g., "Check mite treatment progress") and must include a legal disclaimer key warning that it does not replace product-label, veterinary, or regulatory instructions.
+
+#### Item Identity Conventions
+
+Stateless treatment reminders will use a stable ID convention to prevent UI re-rendering glitches: `treatment-reminder:{treatmentId}:{templateKey}:{due_at}`. Source metadata must include the `treatmentId`, `hiveId`, and `apiaryId` to allow linking back to the treatment context.
 | `hives` | `(user_id, active, apiary_id)` | Efficient Calendar context filtering by active hives/apiaries. |
 
 #### Conditional reminder state table
@@ -317,13 +329,13 @@ Calendar item IDs should be stable and deterministic so the web-app can diff ite
 - [x] REQ-F-006 Allow the user to open the related source context from a calendar item when the item is based on an existing record. Verification: navigation/link tests.
 - [x] REQ-F-007 Limit Calendar v1 item sources to inspections, hive log entries, treatment-generated reminders, and queen milestone reminders. Verification: source filtering tests.
 - [x] REQ-F-008 Distinguish generated reminders/tasks from historical records visually and textually. Verification: UI acceptance tests.
-- [ ] REQ-F-009 Define treatment reminder generation rules before implementation. Verification: approved specification update and reminder rule tests.
+- [x] REQ-F-009 Define treatment reminder generation rules before implementation. Verification: approved specification update and reminder rule tests.
 - [ ] REQ-F-010 Define queen milestone generation rules before implementation. Verification: approved specification update and milestone rule tests.
 - [x] REQ-F-011 Keep seasonal tasks, administrative tasks, external calendar provider integrations, notification delivery redesign, generic workflow engines, broad brainstorm features, and replacement of existing TimeView telemetry/charting out of Calendar v1 unless later approved. Verification: code review and scope review.
 - [x] REQ-F-012 Show inspection recency in Calendar v1 by displaying the latest known inspection date for the relevant hive/apiary context, even when that inspection falls outside the currently selected calendar date range. The recency indicator is based on an inspection source record, links to the related source context when available, and must not be presented as a future task. Verification: inspection recency UI and mapping tests.
-- [ ] REQ-F-013 Expose Calendar v1 data through a `swarm-api` GraphQL aggregate query that returns a normalized `CalendarPayload` for a requested bounded range and optional hive/apiary/source filters. Verification: GraphQL integration tests.
-- [ ] REQ-F-014 Include source metadata on every Calendar item sufficient for the web-app to open related source context without guessing from labels. Verification: item mapping and navigation tests.
-- [ ] REQ-F-015 Use stable deterministic Calendar item IDs for source records and stateless generated reminder candidates. Verification: calendar item identity tests.
+- [x] REQ-F-013 Expose Calendar v1 data through a `swarm-api` GraphQL aggregate query that returns a normalized `CalendarPayload` for a requested bounded range and optional hive/apiary/source filters. Verification: GraphQL integration tests.
+- [x] REQ-F-014 Include source metadata on every Calendar item sufficient for the web-app to open related source context without guessing from labels. Verification: item mapping and navigation tests.
+- [x] REQ-F-015 Use stable deterministic Calendar item IDs for source records and stateless generated reminder candidates. Verification: calendar item identity tests.
 
 **Non-functional requirements**
 
@@ -332,15 +344,15 @@ Calendar item IDs should be stable and deterministic so the web-app can diff ite
 - [x] REQ-NF-PERF-001 Calendar initial render loads a bounded default date range from 4 weeks before today through 4 weeks after today; user-expanded calendar loading is capped to dates within 1 year before through 1 year after today. Initial item volume is limited to approved Calendar v1 sources within the selected date range, with no unbounded historical load. Verification: approved specification update and data-loading tests.
 - [x] REQ-NF-PERF-002 Avoid loading unbounded historical records on initial render. Verification: code review and query/data-fetch tests.
 - [x] REQ-NF-PERF-003 The inspection recency indicator may query only the latest inspection record per relevant hive/apiary context and must not require loading full inspection history outside the selected calendar range. Verification: data-fetch tests and code review.
-- [ ] REQ-NF-PERF-004 Add or verify SQL indexes in `swarm-api` for Calendar range queries and latest-inspection recency lookups before enabling server-side Calendar aggregation in production. Verification: migration review and query-plan tests.
-- [ ] REQ-NF-PERF-005 Enforce Calendar date-range caps in `swarm-api`, not only in the web-app. Verification: GraphQL resolver tests.
+- [x] REQ-NF-PERF-004 Add or verify SQL indexes in `swarm-api` for Calendar range queries and latest-inspection recency lookups before enabling server-side Calendar aggregation in production. Verification: migration review and query-plan tests.
+- [x] REQ-NF-PERF-005 Enforce Calendar date-range caps in `swarm-api`, not only in the web-app. Verification: GraphQL resolver tests.
 
 #### Security
 
 - [x] REQ-NF-SEC-001 Require normal authenticated app access for Calendar. Verification: route access tests.
 - [x] REQ-NF-SEC-002 Calendar is available to all logged-in users and is not restricted by subscription tier in Calendar v1. Verification: approved specification update and gate tests.
 - [x] REQ-NF-SEC-003 Keep treatment reminder guidance informational only and do not imply replacement of product-label, veterinary, or regulatory instructions. Verification: copy review.
-- [ ] REQ-NF-SEC-004 Enforce user scoping for all Calendar source queries inside `swarm-api` and never return records from another user via source-context metadata. Verification: GraphQL authorization tests.
+- [x] REQ-NF-SEC-004 Enforce user scoping for all Calendar source queries inside `swarm-api` and never return records from another user via source-context metadata. Verification: GraphQL authorization tests.
 
 #### Quality
 
@@ -348,21 +360,21 @@ Calendar item IDs should be stable and deterministic so the web-app can diff ite
 - [x] REQ-NF-QUAL-002 Cover at least one empty state and one populated state for the approved Calendar v1 scope. Verification: acceptance tests.
 - [x] REQ-NF-QUAL-003 Verify that `/calendar` and `/insights` resolve to the intended pages and that the old Grafana `/insights` route no longer exists. Verification: route migration tests.
 - [x] REQ-NF-QUAL-004 Cover inspection recency behavior for at least one hive/apiary with a latest inspection inside the selected range and one with a latest inspection outside the selected range. Verification: inspection recency tests.
-- [ ] REQ-NF-QUAL-005 Cover the `swarm-api` Calendar aggregate query with integration tests for bounded range, source filtering, stable item identity, source-context mapping, and user scoping. Verification: GraphQL integration test suite.
+- [x] REQ-NF-QUAL-005 Cover the `swarm-api` Calendar aggregate query with integration tests for bounded range, source filtering, stable item identity, source-context mapping, and user scoping. Verification: GraphQL integration test suite.
 
 #### Complexity
 
 - [x] REQ-NF-CPLX-001 Reuse existing routes, models, and translation patterns where practical. Verification: code review.
 - [x] REQ-NF-CPLX-002 Avoid introducing a new generic scheduling system unless future reminders require one and that expansion is explicitly approved. Verification: architecture review.
-- [ ] REQ-NF-CPLX-003 Keep Calendar v1 backend aggregation inside `swarm-api`; do not create a dedicated Calendar microservice unless later scope adds external calendar sync, notification orchestration, high-volume async reminder generation, or independent Calendar data ownership. Verification: architecture review.
-- [ ] REQ-NF-CPLX-004 Avoid duplicating historical source records into a Calendar event store for Calendar v1; use normalized read mapping from source tables and optional reminder state only for generated reminder lifecycle. Verification: migration and model review.
+- [x] REQ-NF-CPLX-003 Keep Calendar v1 backend aggregation inside `swarm-api`; do not create a dedicated Calendar microservice unless later scope adds external calendar sync, notification orchestration, high-volume async reminder generation, or independent Calendar data ownership. Verification: architecture review.
+- [x] REQ-NF-CPLX-004 Avoid duplicating historical source records into a Calendar event store for Calendar v1; use normalized read mapping from source tables and optional reminder state only for generated reminder lifecycle. Verification: migration and model review.
 
 #### Documentation
 
 - [x] REQ-NF-DOC-001 Keep new menu labels, item labels, empty states, and warnings compatible with the existing translation approach using `T`-wrapped UI strings. Verification: code review and localization review.
 - [ ] REQ-NF-DOC-002 Localize treatment reminder copy and keep it legally cautious if treatment reminders are approved for implementation. Verification: localization and copy review.
 - [x] REQ-NF-DOC-003 Keep this specification as the source of truth for Calendar route decisions, Calendar v1 scope, source types, known risks, and pending follow-up requirements. Verification: review process.
-- [ ] REQ-NF-DOC-004 Keep the Calendar architecture, database sketch, and GraphQL contract in this specification updated before implementation changes are made. Verification: documentation review.
+- [x] REQ-NF-DOC-004 Keep the Calendar architecture, database sketch, and GraphQL contract in this specification updated before implementation changes are made. Verification: documentation review.
 
 #### UX
 
@@ -387,11 +399,11 @@ Calendar item IDs should be stable and deterministic so the web-app can diff ite
 - [x] DEC-012 Use a hybrid Calendar v1 presentation with a month calendar grid and a timeline.
 - [x] DEC-013 Use a default Calendar load window of the last 4 weeks plus the next 4 weeks, and cap user-expanded loading to ±1 year from today; Calendar v1 item volume is bounded by the approved sources within the selected date range rather than by loading all historical records.
 - [x] DEC-014 Add an inspection recency indicator to Calendar v1 so the user can see the last time inspections were performed without expanding the calendar date range or adding a new Calendar v1 source type.
-- [ ] DEC-015 Proposed: Implement Calendar v1 backend data aggregation in `swarm-api` rather than creating a dedicated Calendar microservice. Approval required before implementation.
-- [ ] DEC-016 Proposed: Use existing source tables as the system of record, add Calendar-oriented indexes, and add persistent reminder state only when generated reminder lifecycle behavior is approved. Approval required before implementation.
-- [ ] DEC-017 Proposed: Add a single `swarm-api` GraphQL aggregate query for Calendar instead of composing Calendar from multiple existing page-specific queries in the web-app. Approval required before implementation.
+- [x] DEC-015 Proposed: Implement Calendar v1 backend data aggregation in `swarm-api` rather than creating a dedicated Calendar microservice. Approval required before implementation.
+- [x] DEC-016 Proposed: Use existing source tables as the system of record, add Calendar-oriented indexes, and add persistent reminder state only when generated reminder lifecycle behavior is approved. Approval required before implementation.
+- [x] DEC-017 Proposed: Add a single `swarm-api` GraphQL aggregate query for Calendar instead of composing Calendar from multiple existing page-specific queries in the web-app. Approval required before implementation.
 - [ ] DEC-018 Proposed: Keep generated reminder template definitions as server code/config initially, expose stable `templateKey` values through GraphQL, and localize user-visible reminder copy in the web-app. Approval required before implementation.
-- [ ] DEC-019 Proposed: Re-evaluate a separate Calendar/reminder service only after external calendar sync, notification orchestration, recurring workflows, high-volume async generation, or independent Calendar data ownership is approved. Approval required before implementation.
+- [x] DEC-019 Proposed: Re-evaluate a separate Calendar/reminder service only after external calendar sync, notification orchestration, recurring workflows, high-volume async generation, or independent Calendar data ownership is approved. Approval required before implementation.
 
 ## Known risks
 
@@ -413,19 +425,20 @@ Calendar item IDs should be stable and deterministic so the web-app can diff ite
 - [x] AC-007 The UI distinguishes historical items from future reminders/tasks visually and textually.
 - [x] AC-008 Users see a clear empty state when no applicable items exist in the selected date range.
 - [x] AC-009 Calendar shows when the latest inspection was performed for the relevant hive/apiary context, including when that latest inspection is outside the currently selected date range.
-- [ ] AC-010 Treatment reminder behavior is accepted only after generation rules, copy constraints, and data requirements are explicitly defined.
+- [x] AC-010 Treatment reminder behavior is accepted only after generation rules, copy constraints, and data requirements are explicitly defined.
 - [ ] AC-011 Queen milestone behavior is accepted only after generation rules, templates, and required source dates are explicitly defined.
-- [ ] AC-012 Calendar data for the month grid, timeline, and inspection recency is served by a bounded `swarm-api` GraphQL aggregate query rather than unbounded client-side fan-out. Approval of DEC-015 through DEC-017 required.
-- [ ] AC-013 Every Calendar item returned by the aggregate query has a stable ID, item kind, source type, date, display label, and source context metadata. Approval of DEC-017 required.
-- [ ] AC-014 The `swarm-api` migration path includes Calendar read indexes and defers persistent reminder state tables unless generated reminder lifecycle behavior is approved. Approval of DEC-016 required.
+- [x] AC-012 Calendar data for the month grid, timeline, and inspection recency is served by a bounded `swarm-api` GraphQL aggregate query rather than unbounded client-side fan-out. Approval of DEC-015 through DEC-017 required.
+- [x] AC-013 Every Calendar item returned by the aggregate query has a stable ID, item kind, source type, date, display label, and source context metadata. Approval of DEC-017 required.
+- [x] AC-014 The `swarm-api` migration path includes Calendar read indexes and defers persistent reminder state tables unless generated reminder lifecycle behavior is approved. Approval of DEC-016 required.
 
 ## Tasks
 
 Links/prompts generated from this spec:
 
-- [ ] TASK-001 Implement route migration by adding `/calendar`, moving current TimeView from `/time` to `/insights`, removing the old Grafana `/insights` route, and updating root navigation. Verify with route/menu tests.
-- [ ] TASK-002 Implement Calendar v1 item mapping for inspections and hive log entries with bounded initial loading, historical item labels, source-context links, inspection recency indicators, and empty/populated acceptance coverage.
-- [ ] TASK-003 If DEC-015 through DEC-017 are approved, implement the `swarm-api` Calendar aggregate GraphQL query, normalized Calendar item types, source-context metadata, server-side range caps, and integration tests.
-- [ ] TASK-004 If DEC-016 is approved, add `swarm-api` database migrations for Calendar read indexes; add `calendar_reminder_states` only if reminder lifecycle state is approved.
+- [x] TASK-001 Implement route migration by adding `/calendar`, moving current TimeView from `/time` to `/insights`, removing the old Grafana `/insights` route, and updating root navigation. Verify with route/menu tests.
+- [x] TASK-002 Implement Calendar v1 item mapping for inspections and hive log entries with bounded initial loading, historical item labels, source-context links, inspection recency indicators, and empty/populated acceptance coverage.
+- [x] TASK-003 If DEC-015 through DEC-017 are approved, implement the `swarm-api` Calendar aggregate GraphQL query, normalized Calendar item types, source-context metadata, server-side range caps, and integration tests.
+- [x] TASK-004 If DEC-016 is approved, add `swarm-api` database migrations for Calendar read indexes; add `calendar_reminder_states` only if reminder lifecycle state is approved.
 - [ ] TASK-005 Define and implement treatment-generated reminder rules after REQ-F-009 is resolved, including required treatment data fields, legally cautious localized copy, generated-item labels, and tests.
 - [ ] TASK-006 Define and implement queen milestone reminder rules after REQ-F-010 is resolved, including required source dates, milestone templates, generated-item labels, and tests.
+tests.

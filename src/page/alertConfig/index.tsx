@@ -1,141 +1,36 @@
 import React, { useState } from 'react'
-import { gql, useMutation, useQuery } from '@/api'
+import { useMutation, useQuery } from '@/api'
 import { useConfirm } from '@/hooks/useConfirm'
 import Loader from '@/shared/loader'
 import ErrorMsg from '@/shared/messageError'
-import Button from '@/shared/button'
 import T, { useTranslation as t } from '@/shared/translate'
 import styles from './styles.module.less'
 import MessageSuccess from '@/shared/messageSuccess'
-import DateTimeFormat from '@/shared/dateTimeFormat'
-import { Tab, TabBar } from '@/shared/tab'
-import imageURL from '@/assets/alerts.webp'
+import { ChannelsSection } from './ChannelsSection'
+import { HistorySection } from './HistorySection'
+import { RulesSection } from './RulesSection'
+import {
+	ALERT_CHANNELS_QUERY,
+	ALERTS_SERVICE_LIVENESS_QUERY,
+	CREATE_ALERT_RULE_MUTATION,
+	DELETE_ALERT_CHANNEL_MUTATION,
+	DELETE_ALERT_RULE_MUTATION,
+	SET_ALERT_CHANNEL_MUTATION,
+	UPDATE_ALERT_RULE_MUTATION,
+} from './graphql'
+import type {
+	AlertChannelConfig,
+	AlertChannelType,
+	AlertConfigSection,
+} from './types'
 
-type AlertConfigSection = 'history' | 'channels' | 'rules'
-
-const ALERTS_SERVICE_LIVENESS_QUERY = gql`
-	query alertsServiceLiveness {
-		alertChannels {
-			id
-		}
-	}
-`
-
-const ALERT_CHANNELS_QUERY = gql`
-	query alertChannels {
-		alertChannels {
-			id
-			channelType
-			phoneNumber
-			email
-			telegramUsername
-			timeStart
-			timeEnd
-			enabled
-		}
-		alerts {
-			id
-			text
-			date_added
-			hiveId
-			metricType
-			metricValue
-			delivered
-		}
-		alertRules {
-			id
-			hiveId
-			apiaryId
-			metricType
-			conditionType
-			thresholdValue
-			durationMinutes
-			enabled
-			createdAt
-			updatedAt
-		}
-		apiaries {
-			id
-			name
-			hives {
-				id
-				hiveNumber
-			}
-		}
-	}
-`
-
-const CREATE_ALERT_RULE_MUTATION = gql`
-	mutation createAlertRule($rule: AlertRuleInput!) {
-		createAlertRule(rule: $rule) {
-			id
-			hiveId
-			metricType
-			conditionType
-			thresholdValue
-			durationMinutes
-			enabled
-		}
-	}
-`
-
-const UPDATE_ALERT_RULE_MUTATION = gql`
-	mutation updateAlertRule($id: ID!, $rule: AlertRuleInput!) {
-		updateAlertRule(id: $id, rule: $rule) {
-			id
-			hiveId
-			metricType
-			conditionType
-			thresholdValue
-			durationMinutes
-			enabled
-		}
-	}
-`
-
-const DELETE_ALERT_RULE_MUTATION = gql`
-	mutation deleteAlertRule($id: ID!) {
-		deleteAlertRule(id: $id)
-	}
-`
-
-const SET_ALERT_CHANNEL_MUTATION = gql`
-	mutation setAlertChannel($config: AlertChannelInput!) {
-		setAlertChannel(config: $config) {
-			id
-			channelType
-			phoneNumber
-			email
-			telegramUsername
-			timeStart
-			timeEnd
-			enabled
-		}
-	}
-`
-
-const DELETE_ALERT_CHANNEL_MUTATION = gql`
-	mutation deleteAlertChannel($channelType: String!) {
-		deleteAlertChannel(channelType: $channelType)
-	}
-`
-
-function getChartTypeFromMetricType(
-	metricType: string | null | undefined
-): string | null {
-	if (!metricType) return null
-
-	const metricTypeMap: Record<string, string> = {
-		WEIGHT: 'weight',
-		TEMPERATURE: 'temperature',
-		ENTRANCE_MOVEMENT: 'entrance',
-		ENTRANCE_SPEED: 'entranceSpeed',
-		ENTRANCE_DETECTED: 'entranceDetected',
-		ENTRANCE_STATIONARY: 'entranceStationary',
-		ENTRANCE_INTERACTIONS: 'entranceInteractions',
-	}
-
-	return metricTypeMap[metricType] || null
+const DEFAULT_CHANNEL_CONFIG: AlertChannelConfig = {
+	phoneNumber: '',
+	email: '',
+	telegramUsername: '',
+	timeStart: '09:00',
+	timeEnd: '22:00',
+	enabled: true,
 }
 
 export default function AlertConfig({
@@ -184,15 +79,9 @@ export default function AlertConfig({
 		return map
 	}, [apiaries])
 
-	const [selectedChannel, setSelectedChannel] = useState('SMS')
-	const [channelConfig, setChannelConfig] = useState({
-		phoneNumber: '',
-		email: '',
-		telegramUsername: '',
-		timeStart: '09:00',
-		timeEnd: '22:00',
-		enabled: true,
-	})
+	const [selectedChannel, setSelectedChannel] =
+		useState<AlertChannelType>('SMS')
+	const [channelConfig, setChannelConfig] = useState(DEFAULT_CHANNEL_CONFIG)
 	const [saving, setSaving] = useState(false)
 	const [showSuccess, setShowSuccess] = useState(false)
 	const inText = t('in')
@@ -230,14 +119,7 @@ export default function AlertConfig({
 				enabled: existing.enabled !== false,
 			})
 		} else {
-			setChannelConfig({
-				phoneNumber: '',
-				email: '',
-				telegramUsername: '',
-				timeStart: '09:00',
-				timeEnd: '22:00',
-				enabled: true,
-			})
+			setChannelConfig(DEFAULT_CHANNEL_CONFIG)
 		}
 	}, [selectedChannel, channels])
 
@@ -349,370 +231,50 @@ export default function AlertConfig({
 
 			<div>
 				{section === 'channels' && (
-					<>
-						<div className={styles.panelSection}>
-							<h2 className={styles.sectionTitle}>
-								<T>Configure Alert Channels</T>
-							</h2>
-							<p style={{ color: '#666', margin: '16px 0' }}>
-								<T>
-									Configure how you want to receive alerts. You can enable
-									multiple channels.
-								</T>
-							</p>
-
-							<TabBar>
-								<Tab
-									isSelected={selectedChannel === 'SMS'}
-									onClick={() => setSelectedChannel('SMS')}
-								>
-									{smsLabel}
-								</Tab>
-								<Tab
-									isSelected={selectedChannel === 'EMAIL'}
-									onClick={() => setSelectedChannel('EMAIL')}
-								>
-									{emailLabel}
-								</Tab>
-								<Tab
-									isSelected={selectedChannel === 'TELEGRAM'}
-									onClick={() => setSelectedChannel('TELEGRAM')}
-								>
-									{telegramLabel}
-								</Tab>
-							</TabBar>
-
-							<form
-								onSubmit={onSave}
-								className={styles.configForm}
-								style={{ marginTop: '16px' }}
-							>
-								{selectedChannel === 'SMS' && (
-									<div className={styles.formRow}>
-										<label htmlFor="phoneNumber" className={styles.configLabel}>
-											<T>Phone Number</T>:
-										</label>
-										<input
-											className={`${styles.configInput} ${styles.phoneInput}`}
-											id="phoneNumber"
-											type="text"
-											name="phoneNumber"
-											value={channelConfig.phoneNumber}
-											onChange={onConfigChange}
-											placeholder="+1234567890"
-											required
-										/>
-									</div>
-								)}
-
-								{selectedChannel === 'EMAIL' && (
-									<div className={styles.formRow}>
-										<label htmlFor="email" className={styles.configLabel}>
-											<T>Email Address</T>:
-										</label>
-										<input
-											className={`${styles.configInput} ${styles.phoneInput}`}
-											id="email"
-											type="email"
-											name="email"
-											value={channelConfig.email}
-											onChange={onConfigChange}
-											placeholder="you@example.com"
-											required
-										/>
-									</div>
-								)}
-
-								{selectedChannel === 'TELEGRAM' && (
-									<div className={styles.formRow}>
-										<label
-											htmlFor="telegramUsername"
-											className={styles.configLabel}
-										>
-											<T>Telegram Username</T>:
-										</label>
-										<input
-											className={`${styles.configInput} ${styles.phoneInput}`}
-											id="telegramUsername"
-											type="text"
-											name="telegramUsername"
-											value={channelConfig.telegramUsername}
-											onChange={onConfigChange}
-											placeholder="@username"
-											required
-										/>
-									</div>
-								)}
-
-								<div className={styles.formRow}>
-									<label htmlFor="timeStart" className={styles.configLabel}>
-										<T>Time Window</T>:
-									</label>
-									<input
-										className={`${styles.configInput} ${styles.timeInput}`}
-										id="timeStart"
-										type="time"
-										name="timeStart"
-										value={channelConfig.timeStart}
-										onChange={onConfigChange}
-									/>
-									<span className={styles.toText}>
-										<T>to</T>
-									</span>
-									<input
-										className={`${styles.configInput} ${styles.timeInput}`}
-										id="timeEnd"
-										type="time"
-										name="timeEnd"
-										value={channelConfig.timeEnd}
-										onChange={onConfigChange}
-									/>
-								</div>
-
-								<div className={styles.formRow}>
-									<input
-										className={styles.checkboxInput}
-										id="enabled"
-										type="checkbox"
-										name="enabled"
-										checked={channelConfig.enabled}
-										onChange={onConfigChange}
-									/>
-									<label
-										htmlFor="enabled"
-										className={styles.configLabel}
-										style={{ fontWeight: 500 }}
-									>
-										{enableChannelAlertsLabel}
-									</label>
-								</div>
-
-								<div className={styles.buttonRow}>
-									<Button type="submit" color="green" loading={saving}>
-										<T>Save</T>
-									</Button>
-									{existingChannel && (
-										<Button type="button" color="red" onClick={onDelete}>
-											<T>Delete</T>
-										</Button>
-									)}
-								</div>
-							</form>
-						</div>
-					</>
+					<ChannelsSection
+						selectedChannel={selectedChannel}
+						setSelectedChannel={setSelectedChannel}
+						channelConfig={channelConfig}
+						onConfigChange={onConfigChange}
+						onSave={onSave}
+						onDelete={onDelete}
+						existingChannel={existingChannel}
+						saving={saving}
+						enableChannelAlertsLabel={enableChannelAlertsLabel}
+						smsLabel={smsLabel}
+						emailLabel={emailLabel}
+						telegramLabel={telegramLabel}
+					/>
 				)}
 
 				{section === 'rules' && (
-					<div className={styles.panelSection}>
-						<h2 className={styles.sectionTitle}>
-							<T>Configure Alert Rules</T>
-						</h2>
-						<p style={{ color: '#666', marginBottom: '16px' }}>
-							<T>
-								Alert rules define when you should be notified about specific
-								conditions in your hives.
-							</T>
-						</p>
-
-						{alertRules.length === 0 ? (
-							<p style={{ color: '#999' }}>
-								<T>
-									No alert rules configured yet. Alert rules are created from
-									specific charts in the time view.
-								</T>
-							</p>
-						) : (
-							<div className={styles.alertList}>
-								{alertRules.map((rule) => {
-									const chartType = getChartTypeFromMetricType(rule.metricType)
-									const hiveInfo = rule.hiveId ? hiveMap[rule.hiveId] : null
-									const apiary = rule.apiaryId
-										? apiaries.find((a) => a.id === rule.apiaryId)
-										: hiveInfo
-										? apiaries.find((a) => a.id === hiveInfo.apiaryId)
-										: null
-
-									const timeViewUrl = chartType
-										? rule.hiveId
-											? `/insights?hiveId=${rule.hiveId}&chartType=${chartType}&scrollTo=${chartType}`
-											: rule.apiaryId
-											? `/time?apiaryId=${rule.apiaryId}&chartType=${chartType}`
-											: `/time?chartType=${chartType}`
-										: null
-
-									const hiveViewUrl = hiveInfo
-										? `/apiaries/${hiveInfo.apiaryId}/hives/${rule.hiveId}`
-										: null
-
-									const apiaryViewUrl = apiary ? `/apiaries/${apiary.id}` : null
-
-									return (
-										<div key={rule.id} className={styles.alertItem}>
-											<div className={styles.alertContent}>
-												<div className={styles.alertText}>
-													<strong>{rule.metricType}</strong>{' '}
-													{rule.conditionType === 'GREATER_THAN' && '>'}
-													{rule.conditionType === 'LESS_THAN' && '<'}
-													{rule.conditionType === 'EQUALS' && '='}{' '}
-													{rule.thresholdValue}
-													{rule.durationMinutes > 0 &&
-														` ${forText} ${rule.durationMinutes} ${minText}`}
-												</div>
-												<div className={styles.alertMeta}>
-													{rule.hiveId ? (
-														hiveInfo ? (
-															<>
-																<a
-																	href={hiveViewUrl}
-																	className={styles.viewChartLink}
-																>
-																	{hiveInfo.name}
-																</a>{' '}
-																{inText}{' '}
-																{apiary && apiaryViewUrl ? (
-																	<a
-																		href={apiaryViewUrl}
-																		className={styles.viewChartLink}
-																	>
-																		{apiary.name}
-																	</a>
-																) : (
-																	<span style={{ color: '#666' }}>
-																		{hiveInfo.apiaryName}
-																	</span>
-																)}
-															</>
-														) : (
-															<>
-																{hiveIdText}: {rule.hiveId}
-															</>
-														)
-													) : apiary && apiaryViewUrl ? (
-														<>
-															{allHivesInText}{' '}
-															<a
-																href={apiaryViewUrl}
-																className={styles.viewChartLink}
-															>
-																{apiary.name}
-															</a>
-														</>
-													) : (
-														<>{allHivesText}</>
-													)}
-													{' | '}
-													<span
-														style={{ color: rule.enabled ? 'green' : 'red' }}
-													>
-														{rule.enabled
-															? `✓ ${enabledText}`
-															: `✗ ${disabledText}`}
-													</span>
-													{timeViewUrl && (
-														<>
-															{' | '}
-															<a
-																href={timeViewUrl}
-																className={styles.viewChartLink}
-															>
-																<T>View Chart</T> →
-															</a>
-														</>
-													)}
-												</div>
-											</div>
-											<div className={styles.alertTime}>
-												<button
-													className={styles.deleteRuleBtn}
-													onClick={async () => {
-														const confirmed = await confirm(deleteRulePrompt, {
-															confirmText: deleteText,
-															isDangerous: true,
-														})
-
-														if (confirmed) {
-															await deleteAlertRule({ id: rule.id })
-															reexecuteQuery()
-														}
-													}}
-													title={deleteRuleTitle}
-												>
-													🗑️
-												</button>
-											</div>
-										</div>
-									)
-								})}
-							</div>
-						)}
-					</div>
+					<RulesSection
+						alertRules={alertRules}
+						hiveMap={hiveMap}
+						apiaries={apiaries}
+						confirm={confirm}
+						deleteAlertRule={deleteAlertRule}
+						reexecuteQuery={reexecuteQuery}
+						inText={inText}
+						forText={forText}
+						minText={minText}
+						hiveIdText={hiveIdText}
+						allHivesInText={allHivesInText}
+						allHivesText={allHivesText}
+						enabledText={enabledText}
+						disabledText={disabledText}
+						deleteRulePrompt={deleteRulePrompt}
+						deleteText={deleteText}
+						deleteRuleTitle={deleteRuleTitle}
+					/>
 				)}
 
 				{section === 'history' && (
-					<div className={styles.panelSection}>
-						<h2 className={styles.sectionTitle}>
-							<T>Alert History</T>
-						</h2>
-						{alerts.length === 0 ? (
-							<div className={styles.historyPlaceholder}>
-								<img
-									className={styles.placeholderImage}
-									src={imageURL}
-									alt={alertsIllustrationAlt}
-									draggable={false}
-								/>
-								<p>
-									<T>No alerts yet</T>
-								</p>
-								<p className={styles.placeholderHint}>
-									<T>Triggered alerts from your hives will appear here.</T>
-								</p>
-							</div>
-						) : (
-							<div className={styles.alertList}>
-								{alerts.map((alert) => {
-									const chartType = getChartTypeFromMetricType(alert.metricType)
-									const timeViewUrl =
-										alert.hiveId && chartType
-											? `/time?hiveId=${alert.hiveId}&chartType=${chartType}&scrollTo=${chartType}`
-											: null
-
-									return (
-										<div key={alert.id} className={styles.alertItem}>
-											<div className={styles.alertContent}>
-												<div className={styles.alertText}>{alert.text}</div>
-												{alert.hiveId && (
-													<div className={styles.alertMeta}>
-														{hiveLabel}: {alert.hiveId} | {alert.metricType}:{' '}
-														{alert.metricValue}
-														{timeViewUrl && (
-															<>
-																{' | '}
-																<a
-																	href={timeViewUrl}
-																	className={styles.viewChartLink}
-																>
-																	<T>View Chart</T> →
-																</a>
-															</>
-														)}
-													</div>
-												)}
-											</div>
-											<div className={styles.alertTime}>
-												<DateTimeFormat datetime={alert.date_added} />
-												{alert.delivered && (
-													<span style={{ color: 'green', marginLeft: '8px' }}>
-														✓
-													</span>
-												)}
-											</div>
-										</div>
-									)
-								})}
-							</div>
-						)}
-					</div>
+					<HistorySection
+						alerts={alerts}
+						alertsIllustrationAlt={alertsIllustrationAlt}
+						hiveLabel={hiveLabel}
+					/>
 				)}
 			</div>
 			{ConfirmDialog}

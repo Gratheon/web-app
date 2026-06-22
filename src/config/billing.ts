@@ -12,6 +12,13 @@ export const BILLING_TIERS = {
 			price: 5,
 			currency: 'EUR',
 			stripePrice: 'price_hobbyist_monthly'
+		},
+		yearly: {
+			price: 2.5,
+			pricePerYear: 30,
+			currency: 'EUR',
+			savings: '50%',
+			stripePrice: 'price_hobbyist_yearly'
 		}
 	},
 	starter: {

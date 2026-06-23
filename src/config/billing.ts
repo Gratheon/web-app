@@ -9,9 +9,16 @@ export const BILLING_TIERS = {
 		color: '#FFD900',
 		textColor: '#000',
 		monthly: {
-			price: 5,
+			price: 7,
 			currency: 'EUR',
 			stripePrice: 'price_hobbyist_monthly'
+		},
+		yearly: {
+			price: 3.5,
+			pricePerYear: 42,
+			currency: 'EUR',
+			savings: '50%',
+			stripePrice: 'price_hobbyist_yearly'
 		}
 	},
 	starter: {

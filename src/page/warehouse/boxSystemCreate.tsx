@@ -32,6 +32,13 @@ type BoxSpecDimensionDraft = {
 	frameHeightMm: string
 }
 
+type HiveSystemTemplate = {
+	name: string
+	aliases?: string[]
+	description: string
+	dimensionsByType: Record<EditableBoxType, BoxSpecDimensionDraft>
+}
+
 const EDITABLE_BOX_TYPES: EditableBoxType[] = ['DEEP', 'SUPER']
 
 const INITIAL_DIMENSIONS_BY_TYPE: Record<EditableBoxType, BoxSpecDimensionDraft> = {
@@ -53,6 +60,134 @@ const INITIAL_DIMENSIONS_BY_TYPE: Record<EditableBoxType, BoxSpecDimensionDraft>
 		frameWidthMm: '',
 		frameHeightMm: '',
 	},
+}
+
+// WHY: creation should work without another API round-trip; these public hive templates
+// prefill reference dimensions while still allowing users to override every value.
+const HIVE_SYSTEM_TEMPLATES: HiveSystemTemplate[] = [
+	{
+		name: 'Langstroth',
+		description: 'Deep frame 448×232 mm, super frame 448×159 mm; prefilled values are editable',
+		dimensionsByType: {
+			DEEP: {
+				internalWidthMm: '465',
+				internalLengthMm: '375',
+				internalHeightMm: '244',
+				externalWidthMm: '',
+				externalLengthMm: '',
+				frameWidthMm: '448',
+				frameHeightMm: '232',
+			},
+			SUPER: {
+				internalWidthMm: '465',
+				internalLengthMm: '375',
+				internalHeightMm: '168',
+				externalWidthMm: '',
+				externalLengthMm: '',
+				frameWidthMm: '448',
+				frameHeightMm: '159',
+			},
+		},
+	},
+	{
+		name: 'National',
+		aliases: ['British National'],
+		description: 'British National: brood frame 356×216 mm, super frame 356×140 mm; editable',
+		dimensionsByType: {
+			DEEP: {
+				internalWidthMm: '460',
+				internalLengthMm: '460',
+				internalHeightMm: '225',
+				externalWidthMm: '',
+				externalLengthMm: '',
+				frameWidthMm: '356',
+				frameHeightMm: '216',
+			},
+			SUPER: {
+				internalWidthMm: '460',
+				internalLengthMm: '460',
+				internalHeightMm: '150',
+				externalWidthMm: '',
+				externalLengthMm: '',
+				frameWidthMm: '356',
+				frameHeightMm: '140',
+			},
+		},
+	},
+	{
+		name: 'Dadant-Blatt',
+		aliases: ['Dadant'],
+		description: 'Dadant-Blatt: brood frame 435×300 mm, super frame 435×160 mm; editable',
+		dimensionsByType: {
+			DEEP: {
+				internalWidthMm: '450',
+				internalLengthMm: '450',
+				internalHeightMm: '310',
+				externalWidthMm: '',
+				externalLengthMm: '',
+				frameWidthMm: '435',
+				frameHeightMm: '300',
+			},
+			SUPER: {
+				internalWidthMm: '450',
+				internalLengthMm: '450',
+				internalHeightMm: '170',
+				externalWidthMm: '',
+				externalLengthMm: '',
+				frameWidthMm: '435',
+				frameHeightMm: '160',
+			},
+		},
+	},
+	{
+		name: 'Warré',
+		aliases: ['Warre'],
+		description: 'Warré: frame/top-bar reference 300×210 mm',
+		dimensionsByType: {
+			DEEP: {
+				internalWidthMm: '300',
+				internalLengthMm: '300',
+				internalHeightMm: '210',
+				externalWidthMm: '',
+				externalLengthMm: '',
+				frameWidthMm: '300',
+				frameHeightMm: '210',
+			},
+			SUPER: {
+				internalWidthMm: '300',
+				internalLengthMm: '300',
+				internalHeightMm: '210',
+				externalWidthMm: '',
+				externalLengthMm: '',
+				frameWidthMm: '300',
+				frameHeightMm: '210',
+			},
+		},
+	},
+]
+
+function normalizeTemplateName(value: string): string {
+	return value
+		.trim()
+		.toLowerCase()
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+}
+
+function findHiveSystemTemplate(value: string): HiveSystemTemplate | undefined {
+	const normalized = normalizeTemplateName(value)
+	if (!normalized) return undefined
+	return HIVE_SYSTEM_TEMPLATES.find((template) => {
+		const names = [template.name, ...(template.aliases || [])]
+		return names.some((candidate) => normalizeTemplateName(candidate) === normalized)
+	})
+}
+
+function cloneTemplateDimensions(template: HiveSystemTemplate): Record<EditableBoxType, BoxSpecDimensionDraft> {
+	return {
+		DEEP: { ...template.dimensionsByType.DEEP },
+		SUPER: { ...template.dimensionsByType.SUPER },
+	}
 }
 
 function fromDraftValue(value: string): number | null {
@@ -178,8 +313,9 @@ export default function WarehouseBoxSystemCreatePage() {
 
 	const sourceSystems: BoxSystem[] = useMemo(() => data?.boxSystems || [], [data?.boxSystems])
 	const defaultSourceSystemId = sourceSystems[0]?.id || ''
+	const selectedTemplate = useMemo(() => findHiveSystemTemplate(name), [name])
 	const showSectionDimensionRows = useOwnBoxProfile
-	const namePlaceholder = useTranslation('Examples: National, Warre, Dadant')
+	const namePlaceholder = useTranslation('Select a template or type a custom hive system name')
 	const showFrameDimensionRows = useOwnFrameProfile
 	const showReferenceDimensions = showSectionDimensionRows || showFrameDimensionRows
 	const dimensionValidationByType = useMemo(() => {
@@ -301,11 +437,30 @@ export default function WarehouseBoxSystemCreatePage() {
 							<input
 								className={`${styles.flexInput} ${styles.nameInput}`}
 								type="text"
+								list="hive-system-template-options"
 								placeholder={namePlaceholder}
 								value={name}
-								onInput={(event: any) => setName(event.target.value)}
+								onInput={(event: any) => {
+									const nextName = String(event.target.value || '')
+									setName(nextName)
+
+									const template = findHiveSystemTemplate(nextName)
+									if (template) {
+										setBoxSpecDimensionDraftByType(cloneTemplateDimensions(template))
+										setUseOwnBoxProfile(true)
+										setUseOwnFrameProfile(true)
+									}
+								}}
 								autoFocus
 							/>
+							<datalist id="hive-system-template-options">
+								{HIVE_SYSTEM_TEMPLATES.map((template) => (
+									<option key={template.name} value={template.name}>{template.description}</option>
+								))}
+							</datalist>
+							<div className={styles.templateHint}>
+								{selectedTemplate ? selectedTemplate.description : <T>Pick an existing hive system template to prefill reference dimensions.</T>}
+							</div>
 						</div>
 					</div>
 

@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react'
 import { gql, useUploadMutation, useMutation } from '@/api'
 import { useConfirm } from '@/hooks/useConfirm'
-import { updateFile } from '@/models/files.ts'
+import { updateFile, getPhotoTimestamps } from '@/models/files.ts'
 import { updateFrameSideFile } from '@/models/frameSideFile.ts'
 import ErrorMessage from '@/shared/messageError'
 import Modal from '@/shared/modal'
@@ -193,11 +193,12 @@ export default function BulkUpload({ hiveId, frames, onComplete }: BulkUploadPro
 				updatedImages[i] = { ...image, uploadProgress: 50 }
 				setImages([...updatedImages])
 
-				await updateFile({
-					id: +uploadData.id,
-					url: uploadData.url,
-					resizes: uploadData.resizes || []
-				})
+					await updateFile({
+						id: +uploadData.id,
+						url: uploadData.url,
+						resizes: uploadData.resizes || [],
+						...getPhotoTimestamps(image.file),
+					})
 
 				updatedImages[i] = { ...image, uploadProgress: 70 }
 				setImages([...updatedImages])

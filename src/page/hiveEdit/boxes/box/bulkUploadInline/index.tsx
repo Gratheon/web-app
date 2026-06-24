@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'preact/hooks'
 import { gql, useUploadMutation, useMutation } from '@/api'
-import { updateFile } from '@/models/files.ts'
+import { updateFile, getPhotoTimestamps } from '@/models/files.ts'
 import { updateFrameSideFile } from '@/models/frameSideFile.ts'
 import { useUploadContext } from '@/contexts/UploadContext'
 import ErrorMessage from '@/shared/messageError'
@@ -199,11 +199,12 @@ export default function BulkUploadInline({ hiveId, boxId, apiaryId, frames, onCo
 
 				uploadContext.updateImageProgress(i, 50)
 
-				await updateFile({
-					id: +uploadData.id,
-					url: uploadData.url,
-					resizes: uploadData.resizes || []
-				})
+					await updateFile({
+						id: +uploadData.id,
+						url: uploadData.url,
+						resizes: uploadData.resizes || [],
+						...getPhotoTimestamps(image.file),
+					})
 
 				uploadContext.updateImageProgress(i, 70)
 

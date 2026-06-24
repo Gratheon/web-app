@@ -316,6 +316,7 @@ type CalendarPayload { range: CalendarRange! items: [CalendarItem!]! inspectionR
 input InspectionInput {
   hiveId: Int!
   data: JSON!
+  added: DateTime
 }
 
 input RegisterInput {

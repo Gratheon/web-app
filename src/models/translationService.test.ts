@@ -283,7 +283,7 @@ describe('translationService', () => {
 				configurable: true
 			});
 
-			const result = getUserLanguage({ lang: 'ko-KR' });
+			const result = getUserLanguage({ lang: 'id-ID' });
 
 			expect(result).toBe('fr');
 		});
@@ -367,7 +367,7 @@ describe('translationService', () => {
 
 		it('should return en when browser language not supported', () => {
 			Object.defineProperty(navigator, 'language', {
-				value: 'ko-KR',
+				value: 'id-ID',
 				configurable: true
 			});
 

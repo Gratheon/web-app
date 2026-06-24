@@ -18,7 +18,10 @@ export const SUPPORTED_LANGUAGES = [
 	'ar',
 	'bn',
 	'pt',
-	'ja'
+	'ja',
+	'he',
+	'ko',
+	'nl'
 ] as const;
 
 export type SupportedLanguage = typeof SUPPORTED_LANGUAGES[number];
@@ -74,9 +77,12 @@ export const LANGUAGE_NAMES: Record<SupportedLanguage, string> = {
 	es: 'Español',
 	pt: 'Português',
 	ar: 'العربية',
+	he: 'עברית',
+	ko: '한국어',
 	fr: 'Français',
 	ru: 'Русский',
 	de: 'Deutsch',
+	nl: 'Nederlands',
 	et: 'Eesti',
 	pl: 'Polski',
 	tr: 'Türkçe',

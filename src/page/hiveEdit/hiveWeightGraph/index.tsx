@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
 
 import { gql, useQuery } from '@/api'
 
@@ -8,6 +9,8 @@ import WeightChart from './WeightChart'
 import TemperatureChart from './TemperatureChart'
 import EntranceMovementChart from './EntranceMovementChart'
 import { useChartSync } from '@/shared/charts/useChartSync'
+import { getUser } from '@/models/user'
+import { getPreferredTemperatureUnit } from '@/shared/temperatureUnit'
 
 const WEIGHT_QUERY = gql`
 	query hiveWeight($hiveId: ID!, $timeRangeMin: Int, $timeFrom: DateTime!, $timeTo: DateTime!) {
@@ -57,6 +60,8 @@ const WEIGHT_QUERY = gql`
 
 export default function HiveWeightGraph({ hiveId }) {
 	const { chartRefs, syncCharts } = useChartSync()
+	const user = useLiveQuery(() => getUser(), [], null)
+	const temperatureUnit = getPreferredTemperatureUnit(user)
 
 	const { now, weekAgo } = useMemo(() => {
 		const now = new Date()
@@ -97,6 +102,7 @@ export default function HiveWeightGraph({ hiveId }) {
 				temperatureData={data.temperatureCelsius}
 				chartRefs={chartRefs}
 				syncCharts={syncCharts}
+				temperatureUnit={temperatureUnit}
 			/>
 			<EntranceMovementChart
 				movementData={data.entranceMovement}

@@ -27,6 +27,7 @@ import WeatherSection from './components/WeatherSection'
 import ApiarySelector from './components/ApiarySelector'
 import T, { useTranslation as t } from '@/shared/translate'
 import { isBillingTierLessThan } from '@/shared/billingTier'
+import { getPreferredTemperatureUnit } from '@/shared/temperatureUnit'
 
 const LS_KEYS = {
 	SELECTED_APIARY: 'timeView.selectedApiaryId',
@@ -146,6 +147,7 @@ export default function TimeView() {
 	const scrollHandledRef = useRef(false)
 	const hiveLabel = t('Hive')
 	const user = useLiveQuery(() => getUser(), [], null)
+	const temperatureUnit = getPreferredTemperatureUnit(user)
 	const isPaywalled = isBillingTierLessThan(user?.billingPlan, 'professional')
 
 	const defaultFiltersExpanded = () => {

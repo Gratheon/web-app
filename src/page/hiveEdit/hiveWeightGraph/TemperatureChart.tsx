@@ -6,6 +6,7 @@ import ChartContainer from '@/shared/charts/ChartContainer'
 import { formatMetricData } from '@/shared/charts/formatters'
 import InfoIcon from '@/shared/infoIcon'
 import { formatDateTimeByLocale } from '@/shared/dateLocale'
+import { convertFromCelsius, convertMetricSeriesFromCelsius, formatTemperatureFromCelsius, type TemperatureUnit } from '@/shared/temperatureUnit'
 
 const red = 'rgba(255,211,174,0.42)'
 const green = 'rgba(126,207,36,0.83)'
@@ -19,31 +20,32 @@ interface TemperatureChartProps {
 	}
 	chartRefs: React.MutableRefObject<any[]>
 	syncCharts: (sourceChart: any) => void
+	temperatureUnit?: TemperatureUnit
 }
 
-export default function TemperatureChart({ temperatureData, chartRefs, syncCharts }: TemperatureChartProps) {
-	const { sortedTemperatureData, lastTemperature, temperatureColor, tableData } = useMemo(() => {
-		if (!temperatureData || temperatureData.code || !temperatureData.metrics || temperatureData.metrics.length === 0) {
-			return { sortedTemperatureData: [], lastTemperature: 0, temperatureColor: green, tableData: [] }
-		}
+export default function TemperatureChart({ temperatureData, chartRefs, syncCharts, temperatureUnit = 'celsius' }: TemperatureChartProps) {
+		const { sortedTemperatureData, lastTemperatureCelsius, temperatureColor, tableData } = useMemo(() => {
+			if (!temperatureData || temperatureData.code || !temperatureData.metrics || temperatureData.metrics.length === 0) {
+				return { sortedTemperatureData: [], lastTemperatureCelsius: 0, temperatureColor: green, tableData: [] }
+			}
 
-		const sortedTemperatureData = formatMetricData(temperatureData.metrics)
-		const lastTemperature = Math.round(100 * temperatureData.metrics[temperatureData.metrics.length - 1].v) / 100
+		const sortedTemperatureData = convertMetricSeriesFromCelsius(formatMetricData(temperatureData.metrics), temperatureUnit)
+			const lastTemperatureCelsius = temperatureData.metrics[temperatureData.metrics.length - 1].v
 
-		let temperatureColor = green
-		if (lastTemperature < 13) {
+			let temperatureColor = green
+		if (lastTemperatureCelsius < 13) {
 			temperatureColor = blue
-		} else if (lastTemperature > 38) {
+		} else if (lastTemperatureCelsius > 38) {
 			temperatureColor = red
 		}
 
 		const tableData = sortedTemperatureData.map(item => ({
 			label: formatDateTimeByLocale(new Date(item.time * 1000), { dateStyle: 'medium', timeStyle: 'short' }),
-			value: `${item.value} °C`
+			value: `${Math.round(item.value * 10) / 10}${temperatureUnit === 'fahrenheit' ? '°F' : '°C'}`
 		}))
 
-		return { sortedTemperatureData, lastTemperature, temperatureColor, tableData }
-	}, [temperatureData])
+			return { sortedTemperatureData, lastTemperatureCelsius, temperatureColor, tableData }
+	}, [temperatureData, temperatureUnit])
 
 	if (!temperatureData || temperatureData.code || sortedTemperatureData.length === 0) {
 		return (
@@ -77,7 +79,7 @@ export default function TemperatureChart({ temperatureData, chartRefs, syncChart
 	return (
 		<ChartContainer
 			title={t('Hive internal temperature') + ' 🌡️'}
-			value={`${lastTemperature} °C`}
+			value={formatTemperatureFromCelsius(lastTemperatureCelsius, temperatureUnit)}
 			info={t('High or low temperature makes bees inefficient')}
 			chartRefs={chartRefs}
 			syncCharts={syncCharts}
@@ -93,8 +95,8 @@ export default function TemperatureChart({ temperatureData, chartRefs, syncChart
 					lineWidth: 2,
 				}}
 			>
-				<PriceLine price={13} options={{ color: 'blue', lineStyle: 2, lineWidth: 1 }} />
-				<PriceLine price={38} options={{ color: 'red', lineStyle: 2, lineWidth: 1 }} />
+				<PriceLine price={convertFromCelsius(13, temperatureUnit) ?? 13} options={{ color: 'blue', lineStyle: 2, lineWidth: 1 }} />
+				<PriceLine price={convertFromCelsius(38, temperatureUnit) ?? 38} options={{ color: 'red', lineStyle: 2, lineWidth: 1 }} />
 			</AreaSeries>
 		</ChartContainer>
 	)

@@ -3,6 +3,9 @@ import WindChart from './WindChart'
 import RainHumidityChart, { calculateMedian } from './RainHumidityChart'
 import styles from './index.module.less'
 import T from '@/shared/translate'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { getUser } from '@/models/user'
+import { getPreferredTemperatureUnit } from '@/shared/temperatureUnit'
 
 type ForecastProps = {
     data: any
@@ -11,6 +14,8 @@ type ForecastProps = {
 }
 
 export default function Forecast({ data, chartRefs, syncCharts }: ForecastProps) {
+    const user = useLiveQuery(() => getUser(), [], null)
+    const temperatureUnit = getPreferredTemperatureUnit(user)
     const formattedData: any[] = []
     const windData: any[] = []
     const rain: any[] = []
@@ -79,6 +84,7 @@ export default function Forecast({ data, chartRefs, syncCharts }: ForecastProps)
                 currentTemperature={data.weather?.current_weather.temperature}
                 chartRefs={chartRefs}
                 syncCharts={syncCharts}
+                temperatureUnit={temperatureUnit}
             />
 
             <WindChart

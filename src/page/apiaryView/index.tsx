@@ -17,6 +17,7 @@ import ServiceDegradedWarning from '@/shared/serviceDegradedWarning'
 
 import HivePlacement from '@/page/apiaryEdit/hivePlacement'
 import { getUser } from '@/models/user'
+import { formatTemperatureFromCelsius, getPreferredTemperatureUnit } from '@/shared/temperatureUnit'
 import styles from './index.module.less'
 
 type WeatherSnapshot = {
@@ -300,6 +301,7 @@ export default function ApiaryView() {
 		}
 	}, [hasCoordinates, weatherQueryData?.weather])
 
+	const temperatureUnit = getPreferredTemperatureUnit(user)
 	const temperatureStatus = classifyTemperature(weather.temperature)
 	const windStatus = classifyWind(weather.windSpeed)
 	const rainStatus = classifyRain(weather.rain)
@@ -357,7 +359,7 @@ export default function ApiaryView() {
 						<div className={styles.statLabel}><T>Temperature</T></div>
 						<div className={styles.statIcon}><WeatherIcon kind={temperatureStatus.icon} /></div>
 					</div>
-					<div className={styles.statValue}>{formatValue(weather.temperature, '°C')}</div>
+					<div className={styles.statValue}>{formatTemperatureFromCelsius(weather.temperature, temperatureUnit)}</div>
 					<div className={`${styles.statTag} ${styles[`${temperatureStatus.tone}Tag`]}`}>{temperatureStatus.label}</div>
 					<div className={styles.statHint}>{temperatureStatus.hint}</div>
 				</div>

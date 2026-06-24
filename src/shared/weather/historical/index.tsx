@@ -2,6 +2,9 @@ import {gql, useQuery} from '@/api'
 import Loading from '@/shared/loader'
 import ErrorMsg from '@/shared/messageError'
 import { useMemo } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { getUser } from '@/models/user'
+import { getPreferredTemperatureUnit } from '@/shared/temperatureUnit'
 import TemperatureChart from './TemperatureChart'
 import WindChart from './WindChart'
 import RainChart from './RainChart'
@@ -143,6 +146,8 @@ export default function HistoricalWeather({lat, lng, days, chartRefs, syncCharts
 		}
 	}, [days])
 	const stepHours = 1
+	const user = useLiveQuery(() => getUser(), [], null)
+	const temperatureUnit = getPreferredTemperatureUnit(user)
 
 	const {loading, error, data} = useQuery(HISTORICAL_WEATHER_QUERY, {
 		variables: {

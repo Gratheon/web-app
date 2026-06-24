@@ -16,6 +16,12 @@ import DangerZone from './danger_zone'
 import Card from '@/shared/pagePaddedCentered/card'
 import { formatDateTimeByLocale, getBrowserLocale } from '@/shared/dateLocale'
 import { LANGUAGE_NAMES, SUPPORTED_LANGUAGES } from '@/config/languages'
+import {
+	getDefaultTemperatureUnitForLocale,
+	getPreferredTemperatureUnit,
+	TEMPERATURE_UNITS,
+	type TemperatureUnit,
+} from '@/shared/temperatureUnit'
 
 const DETECTION_CONFIDENCE_OPTIONS = [40, 50, 60, 70, 80, 90]
 
@@ -89,10 +95,20 @@ export default function AccountEdit() {
 	function onInput(e: any) {
 		const { name, value } = e.target
 
-		setUser((prevState) => ({
-			...prevState,
-			[name]: value,
-		}))
+		setUser((prevState) => {
+			const nextUser = {
+				...prevState,
+				[name]: value,
+			}
+
+			// WHY: US users expect Fahrenheit by locale; for all other locales Celsius remains default.
+			// Explicit temperature unit changes still override this automatic locale-derived default.
+			if (name === 'locale') {
+				nextUser.temperatureUnit = getDefaultTemperatureUnitForLocale(value)
+			}
+
+			return nextUser
+		})
 	}
 
 	let { loading, data } = useQuery(gql`
@@ -105,6 +121,7 @@ export default function AccountEdit() {
 					last_name
 					lang
 					locale
+					temperatureUnit
 					date_expiration
 					date_added
 					hasSubscription
@@ -175,6 +192,7 @@ export default function AccountEdit() {
 				last_name: user?.last_name,
 				lang: user?.lang,
 				locale: user?.locale,
+				temperatureUnit: getPreferredTemperatureUnit(user),
 			},
 		})
 
@@ -191,14 +209,16 @@ export default function AccountEdit() {
 		await updateUser({
 			...userStored,
 			...user,
+			temperatureUnit: getPreferredTemperatureUnit(user),
 		})
 		setSaving(false)
 	}
-
 	if (userStored && !user.id) {
+		const locale = userStored?.locale || getBrowserLocale()
 		setUser({
 			...userStored,
-			locale: userStored?.locale || getBrowserLocale(),
+			locale,
+			temperatureUnit: userStored?.temperatureUnit || getDefaultTemperatureUnitForLocale(locale),
 		})
 	}
 
@@ -316,6 +336,23 @@ export default function AccountEdit() {
 								</div>
 							</div>
 						</div>
+							<div>
+								<label htmlFor="temperatureUnit">
+									<T>Temperature unit</T>
+								</label>
+								<select
+									name="temperatureUnit"
+									id="temperatureUnit"
+									value={getPreferredTemperatureUnit(user)}
+									onInput={onInput}
+								>
+									{TEMPERATURE_UNITS.map((unit: TemperatureUnit) => (
+										<option key={unit} value={unit}>
+											{unit === 'fahrenheit' ? 'Fahrenheit (°F)' : 'Celsius (°C)'}
+										</option>
+									))}
+								</select>
+							</div>
 					</VisualForm>
 				</div>
 			</Card>

@@ -22,6 +22,7 @@ import AIAdvisorBillingNotice from '@/shared/aiAdvisorBillingNotice'
 import KeyboardHints from '@/shared/keyboardHints'
 import T, { useTranslation as t } from '@/shared/translate'
 import { isBillingTierAtLeast } from '@/shared/billingTier'
+import { convertFromCelsius, getPreferredTemperatureUnit, temperatureUnitSymbol } from '@/shared/temperatureUnit'
 
 type ChatMessage = {
 	id: string
@@ -991,6 +992,7 @@ export default function AIAdvisorDrawer() {
 			let pendingReplyId: string | null = null
 			try {
 				const user = await getUser()
+					const temperatureUnit = getPreferredTemperatureUnit(user)
 				setAdvisorLangCode(user?.lang)
 				if (runRef.current !== runId) return
 
@@ -1042,7 +1044,8 @@ export default function AIAdvisorDrawer() {
 					if (runRef.current !== runId) return
 
 					const weather = {
-						temperature: weatherPayload?.current_weather?.temperature ?? null,
+						temperature: convertFromCelsius(weatherPayload?.current_weather?.temperature, temperatureUnit),
+						temperatureUnit: temperatureUnitSymbol(temperatureUnit),
 						windSpeed: weatherPayload?.current_weather?.windspeed ?? null,
 						windDirection:
 							weatherPayload?.current_weather?.winddirection ??

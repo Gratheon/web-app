@@ -568,6 +568,7 @@ type User {
   # Language code: en, ru, et, tr, pl, de, fr, lv, lt, hu, uk, it, ro, zh, hi, es, ar, bn, pt, ja
   lang: String
   locale: String
+  temperatureUnit: String
   date_added: DateTime
   date_expiration: DateTime
   hasSubscription: Boolean
@@ -587,6 +588,7 @@ input UserUpdateInput {
   last_name: String
   lang: String
   locale: String
+  temperatureUnit: String
 }
 
 union ValidateTokenResult = TokenUser | Error

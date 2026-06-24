@@ -4,6 +4,13 @@ import { useMemo } from 'react'
 import T, { useTranslation as t, usePlural } from '@/shared/translate'
 import ChartContainer from './ChartContainer'
 import { formatMetricData } from './formatters'
+import {
+	convertFromCelsius,
+	convertMetricSeriesFromCelsius,
+	formatTemperatureFromCelsius,
+	temperatureUnitSymbol,
+	type TemperatureUnit,
+} from '@/shared/temperatureUnit'
 import { gql, useQuery } from '@/api'
 import InfoIcon from '@/shared/infoIcon'
 import { formatDateTimeByLocale } from '@/shared/dateLocale'
@@ -32,9 +39,10 @@ interface MultiHiveTemperatureChartProps {
 	chartRefs: React.MutableRefObject<any[]>
 	syncCharts: (sourceChart: any) => void
 	selectedApiaryId?: string | null
+	temperatureUnit?: TemperatureUnit
 }
 
-export default function MultiHiveTemperatureChart({ temperatureDataByHive, chartRefs, syncCharts, selectedApiaryId }: MultiHiveTemperatureChartProps) {
+export default function MultiHiveTemperatureChart({ temperatureDataByHive, chartRefs, syncCharts, selectedApiaryId, temperatureUnit = 'celsius' }: MultiHiveTemperatureChartProps) {
 	const { data: alertRulesData } = useQuery(ALERT_RULES_QUERY, {
 		variables: { metricType: 'TEMPERATURE' }
 	})
@@ -54,7 +62,7 @@ export default function MultiHiveTemperatureChart({ temperatureDataByHive, chart
 
 			if (!data || data.code || !data.metrics || data.metrics.length === 0) return
 
-			const formattedData = formatMetricData(data.metrics)
+			const formattedData = convertMetricSeriesFromCelsius(formatMetricData(data.metrics), temperatureUnit)
 			if (formattedData.length > 0) {
 				seriesData[hiveId] = {
 					data: formattedData,
@@ -66,7 +74,7 @@ export default function MultiHiveTemperatureChart({ temperatureDataByHive, chart
 					tableData.push({
 						Hive: hiveName,
 						Time: formatDateTimeByLocale(new Date(item.time * 1000), { dateStyle: 'medium', timeStyle: 'short' }),
-						'Temperature (°C)': item.value
+						[`${t('Temperature')} (${temperatureUnitSymbol(temperatureUnit)})`]: item.value
 					})
 					minValue = Math.min(minValue, item.value)
 					maxValue = Math.max(maxValue, item.value)
@@ -87,7 +95,7 @@ export default function MultiHiveTemperatureChart({ temperatureDataByHive, chart
 			minValue: minValue === Infinity ? 0 : Math.max(0, minValue - padding),
 			maxValue: maxValue === -Infinity ? 50 : maxValue + padding
 		}
-	}, [temperatureDataByHive])
+	}, [temperatureDataByHive, temperatureUnit])
 
 	if (!hasData) {
 		return (
@@ -162,19 +170,22 @@ export default function MultiHiveTemperatureChart({ temperatureDataByHive, chart
 							title: hiveName,
 						}}
 					>
-						{isFirstSeries && relevantRules.map((rule: any) => (
-							<PriceLine
-								key={`threshold-${rule.id}`}
-								price={rule.thresholdValue}
-								options={{
-									color: 'rgba(255, 82, 82, 0.8)',
-									lineWidth: 2,
-									lineStyle: 2,
-									axisLabelVisible: true,
-									title: `${rule.conditionType} ${rule.thresholdValue}°C`
-								}}
-							/>
-						))}
+						{isFirstSeries && relevantRules.map((rule: any) => {
+							const convertedThreshold = convertFromCelsius(Number(rule.thresholdValue), temperatureUnit)
+							return (
+								<PriceLine
+									key={`threshold-${rule.id}`}
+									price={convertedThreshold ?? Number(rule.thresholdValue)}
+									options={{
+										color: 'rgba(255, 82, 82, 0.8)',
+										lineWidth: 2,
+										lineStyle: 2,
+										axisLabelVisible: true,
+										title: `${rule.conditionType} ${formatTemperatureFromCelsius(Number(rule.thresholdValue), temperatureUnit)}`
+									}}
+								/>
+							)
+						})}
 					</LineSeries>
 				)
 			})}

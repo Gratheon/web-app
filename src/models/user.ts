@@ -8,6 +8,7 @@ export type User = {
 	last_name?: string
 	lang?: string
 	locale?: string
+	temperatureUnit?: string
 	date_expiration?: string
 	date_added?: string
 

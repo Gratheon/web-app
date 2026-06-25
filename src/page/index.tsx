@@ -38,6 +38,7 @@ const AlertConfig = React.lazy(() => import('./alertConfig'))
 const TimeView = React.lazy(() => import('./time'))
 const CalendarPage = React.lazy(() => import('./calendar'))
 const AIAdvisorPage = React.lazy(() => import('./aiAdvisor'))
+const DesignSystemPage = React.lazy(() => import('./designSystem'))
 const DevicesPage = React.lazy(() => import('./devices'))
 const DevicesCreatePage = React.lazy(() => import('./devicesCreate'))
 const DeviceViewPage = React.lazy(() => import('./deviceView'))
@@ -167,6 +168,9 @@ export default function Page() {
 						</LoggedOutPage>
 					}
 				/>
+
+				{/* Public reference page so contributors can inspect shared UI components without app data. */}
+				<Route path="/design-system" element={<DesignSystemPage />} />
 
 				<Route
 					path="/calendar"

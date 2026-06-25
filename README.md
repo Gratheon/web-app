@@ -53,6 +53,7 @@ Users can manage their apiaries and hives, log detailed inspections, upload and 
 *   Real-time Updates (GraphQL Subscriptions via WebSockets)
 *   Image Upload and Annotation Capabilities
 *   **Hive Edit View:** Visual representation of hive boxes and frames, including indicators for bee population density calculated between adjacent frames.
+*   **Design System:** Shared UI components and visual tokens are documented in the app at [`/design-system`](http://localhost:8080/design-system) when running locally.
 
 ## Getting Started
 

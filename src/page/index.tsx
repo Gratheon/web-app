@@ -75,7 +75,7 @@ function LoggedInPage({ children }) {
 		return null
 	}
 
-	return PageWithMenu({ children })
+	return <PageWithMenu>{children}</PageWithMenu>
 }
 
 function PageWithMenu({ children }) {

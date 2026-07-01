@@ -1,4 +1,7 @@
 // @ts-nocheck
+import styles from './styles.module.less'
+
+const AI_ADVISOR_CONTEXT_KEY = 'ai-advisor-last-hive-context'
 
 function combineClassNames(...classNames) {
 	return classNames.filter(Boolean).join(' ')

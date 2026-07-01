@@ -25,6 +25,7 @@ import {
 	AIAdvisorIcon,
 	BearFaceIcon,
 	DeviceSignalIcon,
+	LightBulbIcon,
 	LogoutIcon,
 	QueensIcon,
 	SupportIcon,

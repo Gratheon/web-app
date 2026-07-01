@@ -5,6 +5,8 @@ import Button from '@/shared/button'
 import T from '@/shared/translate'
 import AlertRulesPanel from './AlertRulesPanel'
 
+const isDisposedChartError = (error: unknown) => error instanceof Error && error.message === 'Object is disposed'
+
 interface ChartContainerProps {
 	title: string
 	emoji?: string
@@ -54,32 +56,46 @@ export default function ChartContainer({
 }: ChartContainerProps) {
 	const chartApiRef = useRef(null)
 	const chartWrapperRef = useRef<HTMLDivElement>(null)
+	const isChartDisposedRef = useRef(false)
 	const [showTableView, setShowTableView] = useState(false)
 	const [showAlertView, setShowAlertView] = useState(false)
 	const [alertCount, setAlertCount] = useState(0)
 
 	const chartHeight = Number(chartOptions?.height) || 300
+	useEffect(() => {
+		return () => {
+			isChartDisposedRef.current = true
+			chartApiRef.current = null
+		}
+	}, [])
 
 	useEffect(() => {
 		if (chartApiRef.current && chartRefs && syncCharts) {
-			chartRefs.current.push(chartApiRef.current)
+			const currentChart = chartApiRef.current
+			isChartDisposedRef.current = false
+			chartRefs.current.push(currentChart)
 
 			const handleVisibleTimeRangeChange = () => {
-				if (chartApiRef.current) {
-					const range = chartApiRef.current.timeScale().getVisibleRange()
+				if (isChartDisposedRef.current) return
+				try {
+					const range = currentChart.timeScale().getVisibleRange()
 					if (!suspendTimeRangeSync) {
-						syncCharts(chartApiRef.current)
+						syncCharts(currentChart)
 						onVisibleTimeRangeChange?.(range)
 					} else {
 						console.debug('[weather-zoom] sync suspended for chart', { title, range })
 					}
+				} catch (e) {
+					if (!isDisposedChartError(e)) {
+						console.error('Failed to handle chart time range change:', e)
+					}
 				}
 			}
 
-			chartApiRef.current.timeScale().subscribeVisibleTimeRangeChange(handleVisibleTimeRangeChange)
+			currentChart.timeScale().subscribeVisibleTimeRangeChange(handleVisibleTimeRangeChange)
 
 			return () => {
-				const currentChart = chartApiRef.current
+				isChartDisposedRef.current = true
 				if (chartRefs && chartRefs.current) {
 					chartRefs.current = chartRefs.current.filter(c => c !== currentChart)
 				}
@@ -87,14 +103,17 @@ export default function ChartContainer({
 					try {
 						currentChart.timeScale().unsubscribeVisibleTimeRangeChange(handleVisibleTimeRangeChange)
 					} catch (e) {
-						console.error('Failed to unsubscribe:', e)
+						if (!isDisposedChartError(e)) {
+							console.error('Failed to unsubscribe:', e)
+						}
 					}
 				}
 			}
 		}
-	}, [chartApiRef.current, chartRefs, syncCharts, onVisibleTimeRangeChange, suspendTimeRangeSync])
+	}, [chartApiRef.current, chartRefs, syncCharts, onVisibleTimeRangeChange, suspendTimeRangeSync, title])
 
 	const handleChartInit = (chart: any) => {
+		isChartDisposedRef.current = false
 		chartApiRef.current = chart
 	}
 
@@ -102,15 +121,32 @@ export default function ChartContainer({
 		const wrapper = chartWrapperRef.current
 		if (!wrapper || typeof ResizeObserver === 'undefined') return
 
+		let animationFrameId: number | null = null
+
 		const handleResize = () => {
+			if (isChartDisposedRef.current) return
 			const chart = chartApiRef.current
 			if (!chart) return
 			const nextWidth = Math.max(1, Math.floor(wrapper.clientWidth))
-			chart.resize(nextWidth, chartHeight)
+			try {
+				chart.resize(nextWidth, chartHeight)
+			} catch (e) {
+				if (!isDisposedChartError(e)) {
+					console.error('Failed to resize chart:', e)
+				}
+			}
 		}
 
 		const resizeObserver = new ResizeObserver(() => {
-			handleResize()
+			// WHY: ResizeObserver can fire after React starts route cleanup. Running resize in
+			// the next animation frame lets cleanup cancel stale callbacks before they touch a disposed chart.
+			if (animationFrameId !== null) {
+				cancelAnimationFrame(animationFrameId)
+			}
+			animationFrameId = requestAnimationFrame(() => {
+				animationFrameId = null
+				handleResize()
+			})
 		})
 
 		resizeObserver.observe(wrapper)
@@ -118,6 +154,9 @@ export default function ChartContainer({
 
 		return () => {
 			resizeObserver.disconnect()
+			if (animationFrameId !== null) {
+				cancelAnimationFrame(animationFrameId)
+			}
 		}
 	}, [chartHeight, showTableView])
 

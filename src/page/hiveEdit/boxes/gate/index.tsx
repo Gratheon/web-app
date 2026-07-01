@@ -1,4 +1,5 @@
 import React, { useMemo, useRef, useState, useEffect } from 'react';
+import T from '@/shared/translate';
 import style from './style.module.less';
 import beeURL from "@/assets/bee-side.png"
 import { gql, useMutation, useQuery } from '@/api';
@@ -10,6 +11,7 @@ import {
 	GATE_HOLE_COUNT_MIN,
 } from '@/models/boxes';
 
+const formatBeeCount = (value?: number | null) => new Intl.NumberFormat().format(value || 0);
 const Bee = ({ position, intervalMs = 3000 }) => {
 	const [left, setLeft] = useState(position);
 
@@ -171,17 +173,21 @@ export default function Gate({ hiveId, box, boxId }) {
 
 	return (
 		<div className={`${style.gate} ${boxId === box.id && style.selected}`}>
-			<div style="color:white;font-size:12px;font-weight:bold;margin-bottom:10px;">
-				{beesIn} {indicatorIn}
+			<div className={style.movementStats}>
+				<span className={style.movementItem} title="Incoming bees today">
+					<span className={style.movementLabel}><T>Incoming bees today</T></span>
+					<span className={style.movementValue}>{formatBeeCount(beesIn)} {indicatorIn}</span>
+				</span>
+				<span className={style.movementItem} title="Outgoing bees today">
+					<span className={style.movementLabel}><T>Outgoing bees today</T></span>
+					<span className={style.movementValue}>{indicatorOut} {formatBeeCount(beesOut)}</span>
+				</span>
 			</div>
 			<Bee key={1} position={40 + Math.random() * 10} intervalMs={4000 + (Math.random() * 3000)} />
 			<Bee key={2} position={40 + Math.random() * 10} intervalMs={3000 + (Math.random() * 3000)} />
 			<Bee key={3} position={40 + Math.random() * 10} intervalMs={4000 + (Math.random() * 3000)} />
 			<Bee key={4} position={40 + Math.random() * 10} intervalMs={5000 + (Math.random() * 3000)} />
 
-			<div style="color:white;font-size:12px;font-weight:bold;margin-bottom:10px;">
-				{indicatorOut} {beesOut}
-			</div>
 			<div
 				ref={entranceRef}
 				className={style.entranceViewport}

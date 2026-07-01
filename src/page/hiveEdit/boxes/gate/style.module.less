@@ -4,11 +4,45 @@
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	padding: 14px 0 0;
+	padding: 10px 0 0;
 	position: relative;
 	cursor: pointer;
 	flex-grow: 1;
 	border-radius: 3px;
+}
+
+.movementStats {
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	width: calc(100% - 20px);
+	margin-bottom: 8px;
+	color: white;
+	font-size: 12px;
+	font-weight: 700;
+	line-height: 1.15;
+	white-space: nowrap;
+}
+
+.movementItem {
+	display: inline-flex;
+	align-items: baseline;
+	gap: 4px;
+	min-width: 0;
+}
+
+.movementLabel {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-size: 10px;
+	font-weight: 600;
+	opacity: 0.9;
+}
+
+.movementValue {
+	font-variant-numeric: tabular-nums;
 }
 
 .entranceViewport {

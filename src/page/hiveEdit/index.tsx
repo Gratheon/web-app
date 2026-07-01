@@ -79,7 +79,7 @@ export default function HiveEditForm() {
 
 		const onKeyDown = (event: KeyboardEvent) => {
 			if (event.defaultPrevented) return
-			if (event.ctrlKey || event.metaKey || event.altKey) return
+			if (event.altKey) return
 			if (event.repeat) return
 			if (isTypingTarget(event.target)) return
 			if (isModalTarget(event.target)) return
@@ -99,6 +99,7 @@ export default function HiveEditForm() {
 				return
 			}
 
+			if (event.ctrlKey || event.metaKey) return
 			if (mapTab !== 'structure') return
 
 			if (key === 'Backspace') {

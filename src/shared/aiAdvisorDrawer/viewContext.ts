@@ -32,8 +32,14 @@ export function getViewContext(
 					action: labels.shortcutsActionGoToLeftMenuItemByNumber,
 				},
 				{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
-				{ keys: 'A', action: labels.shortcutsActionGoToApiaryView },
-				{ keys: 'H', action: labels.shortcutsActionGoToHiveListView },
+				{
+					keys: 'A / Ctrl + A / Cmd + A',
+					action: labels.shortcutsActionGoToApiaryView,
+				},
+				{
+					keys: 'H / Ctrl + H / Cmd + H',
+					action: labels.shortcutsActionGoToHiveListView,
+				},
 				{
 					keys: 'Arrow Left / Arrow Right',
 					action: labels.shortcutsActionSwitchSelectedHiveFrames,
@@ -72,8 +78,14 @@ export function getViewContext(
 					action: labels.shortcutsActionGoToLeftMenuItemByNumber,
 				},
 				{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
-				{ keys: 'A', action: labels.shortcutsActionGoToApiaryView },
-				{ keys: 'H', action: labels.shortcutsActionGoToHiveListView },
+				{
+					keys: 'A / Ctrl + A / Cmd + A',
+					action: labels.shortcutsActionGoToApiaryView,
+				},
+				{
+					keys: 'H / Ctrl + H / Cmd + H',
+					action: labels.shortcutsActionGoToHiveListView,
+				},
 				{
 					keys: 'Arrow Left / Arrow Right',
 					action: labels.shortcutsActionSwitchSelectedHiveFrames,
@@ -102,9 +114,18 @@ export function getViewContext(
 					action: labels.shortcutsActionGoToLeftMenuItemByNumber,
 				},
 				{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
-				{ keys: 'A', action: labels.shortcutsActionGoToApiaryView },
-				{ keys: 'H', action: labels.shortcutsActionGoToHiveListView },
-				{ keys: 'E', action: labels.shortcutsActionEditHiveMainInfo },
+				{
+					keys: 'A / Ctrl + A / Cmd + A',
+					action: labels.shortcutsActionGoToApiaryView,
+				},
+				{
+					keys: 'H / Ctrl + H / Cmd + H',
+					action: labels.shortcutsActionGoToHiveListView,
+				},
+				{
+					keys: 'E / Ctrl + E / Cmd + E',
+					action: labels.shortcutsActionEditHiveMainInfo,
+				},
 				{
 					keys: 'Arrow Left / Arrow Right',
 					action: labels.shortcutsActionSwitchSelectedHiveFrames,
@@ -142,7 +163,10 @@ export function getViewContext(
 					action: labels.shortcutsActionGoToLeftMenuItemByNumber,
 				},
 				{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
-				{ keys: 'H', action: labels.shortcutsActionGoToHiveListView },
+				{
+					keys: 'H / Ctrl + H / Cmd + H',
+					action: labels.shortcutsActionGoToHiveListView,
+				},
 				{
 					keys: 'Tab / Shift + Tab',
 					action: labels.shortcutsActionMoveFocusAcrossPageControls,

@@ -227,7 +227,7 @@ export default function HiveEditDetails({
 
 		const onKeyDown = (event: KeyboardEvent) => {
 			if (event.defaultPrevented) return
-			if (event.ctrlKey || event.metaKey || event.altKey) return
+			if (event.altKey) return
 			if (isTypingTarget(event.target)) return
 			if (String(event.key || '').toLowerCase() !== 'e') return
 			if (!hive || !isEditable(hive) || isCollapsed(hive)) return

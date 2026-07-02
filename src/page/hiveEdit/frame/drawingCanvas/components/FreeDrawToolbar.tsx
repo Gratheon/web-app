@@ -18,7 +18,7 @@ export default function FreeDrawToolbar({ onUndo, onClear }: Props) {
 				<Button style={{ opacity: 1 }}>
 					<FreeDrawIcon size={14} />
 					<T>Free draw</T>
-					<KeyboardHints keys="F" />
+					<KeyboardHints keys="Shift+F" />
 				</Button>
 				<Button onClick={onUndo}>
 					<UndoStrokeIcon size={14} />

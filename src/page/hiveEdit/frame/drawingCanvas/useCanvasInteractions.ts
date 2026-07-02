@@ -833,29 +833,29 @@ export function useCanvasInteractions({
 				return;
 			}
 
-			if (!event.altKey && !event.shiftKey) {
-				const nextCellType = CELL_SHORTCUTS[lowerKey];
-				if (nextCellType !== undefined) {
-					setActiveControlTab('frame-cells');
-					setSelectedCellType(nextCellType);
-					handled = true;
+				if (!event.altKey && event.shiftKey) {
+					const nextCellType = CELL_SHORTCUTS[lowerKey];
+					if (nextCellType !== undefined) {
+						setActiveControlTab('frame-cells');
+						setSelectedCellType(nextCellType);
+						handled = true;
+					}
 				}
-			}
 
-			if (!event.altKey && !event.shiftKey) {
-				if (lowerKey === 'f') {
-					setActiveControlTab('free-draw');
-					handled = true;
-				} else if (lowerKey === 'c') {
-					setActiveControlTab('frame-cells');
-					setSelectedCellType((prev) => (prev === 'erase' ? 2 : prev));
-					handled = true;
-				} else if (lowerKey === 'x') {
-					setActiveControlTab('frame-cells');
-					setSelectedCellType('erase');
-					handled = true;
+				if (!event.altKey && event.shiftKey) {
+					if (lowerKey === 'f') {
+						setActiveControlTab('free-draw');
+						handled = true;
+					} else if (lowerKey === 'c') {
+						setActiveControlTab('frame-cells');
+						setSelectedCellType((prev) => (prev === 'erase' ? 2 : prev));
+						handled = true;
+					} else if (lowerKey === 'x') {
+						setActiveControlTab('frame-cells');
+						setSelectedCellType('erase');
+						handled = true;
+					}
 				}
-			}
 
 			const isIncreaseKey = key === '+' || key === '=' || event.code === 'NumpadAdd';
 			const isDecreaseKey = key === '-' || event.code === 'NumpadSubtract';

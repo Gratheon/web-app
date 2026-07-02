@@ -33,11 +33,11 @@ export function getViewContext(
 				},
 				{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
 				{
-					keys: 'A / Ctrl + A / Cmd + A',
+					keys: 'Ctrl + A / Cmd + A',
 					action: labels.shortcutsActionGoToApiaryView,
 				},
 				{
-					keys: 'H / Ctrl + H / Cmd + H',
+					keys: 'Ctrl + H / Cmd + H',
 					action: labels.shortcutsActionGoToHiveListView,
 				},
 				{
@@ -48,17 +48,17 @@ export function getViewContext(
 					keys: 'Arrow Up / Arrow Down',
 					action: labels.shortcutsActionSwitchSelectedHiveSections,
 				},
-				{ keys: 'C', action: labels.shortcutsActionSwitchToCellBrush },
-				{ keys: 'F', action: labels.shortcutsActionSwitchToFreeDraw },
-				{ keys: 'X', action: labels.shortcutsActionSwitchToCellEraser },
-				{ keys: 'N', action: labels.shortcutsActionSetCellTypeNectar },
-				{ keys: 'Y', action: labels.shortcutsActionSetCellTypeHoney },
-				{ keys: 'P', action: labels.shortcutsActionSetCellTypePollen },
-				{ keys: 'G', action: labels.shortcutsActionSetCellTypeEggs },
-				{ keys: 'B', action: labels.shortcutsActionSetCellTypeBrood },
-				{ keys: 'K', action: labels.shortcutsActionSetCellTypeCappedBrood },
-				{ keys: 'D', action: labels.shortcutsActionSetCellTypeDroneBrood },
-				{ keys: 'U', action: labels.shortcutsActionSetCellTypeEmpty },
+				{ keys: 'Shift + C', action: labels.shortcutsActionSwitchToCellBrush },
+				{ keys: 'Shift + F', action: labels.shortcutsActionSwitchToFreeDraw },
+				{ keys: 'Shift + X', action: labels.shortcutsActionSwitchToCellEraser },
+				{ keys: 'Shift + N', action: labels.shortcutsActionSetCellTypeNectar },
+				{ keys: 'Shift + Y', action: labels.shortcutsActionSetCellTypeHoney },
+				{ keys: 'Shift + P', action: labels.shortcutsActionSetCellTypePollen },
+				{ keys: 'Shift + G', action: labels.shortcutsActionSetCellTypeEggs },
+				{ keys: 'Shift + B', action: labels.shortcutsActionSetCellTypeBrood },
+				{ keys: 'Shift + K', action: labels.shortcutsActionSetCellTypeCappedBrood },
+				{ keys: 'Shift + D', action: labels.shortcutsActionSetCellTypeDroneBrood },
+				{ keys: 'Shift + U', action: labels.shortcutsActionSetCellTypeEmpty },
 				{ keys: '+ / =', action: labels.shortcutsActionIncreaseBrushSize },
 				{ keys: '-', action: labels.shortcutsActionDecreaseBrushSize },
 				{ keys: 'Ctrl + Z', action: labels.shortcutsActionUndoStroke },
@@ -79,11 +79,11 @@ export function getViewContext(
 				},
 				{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
 				{
-					keys: 'A / Ctrl + A / Cmd + A',
+					keys: 'Ctrl + A / Cmd + A',
 					action: labels.shortcutsActionGoToApiaryView,
 				},
 				{
-					keys: 'H / Ctrl + H / Cmd + H',
+					keys: 'Ctrl + H / Cmd + H',
 					action: labels.shortcutsActionGoToHiveListView,
 				},
 				{
@@ -115,15 +115,15 @@ export function getViewContext(
 				},
 				{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
 				{
-					keys: 'A / Ctrl + A / Cmd + A',
+					keys: 'Ctrl + A / Cmd + A',
 					action: labels.shortcutsActionGoToApiaryView,
 				},
 				{
-					keys: 'H / Ctrl + H / Cmd + H',
+					keys: 'Ctrl + H / Cmd + H',
 					action: labels.shortcutsActionGoToHiveListView,
 				},
 				{
-					keys: 'E / Ctrl + E / Cmd + E',
+					keys: 'Ctrl + E / Cmd + E',
 					action: labels.shortcutsActionEditHiveMainInfo,
 				},
 				{
@@ -164,7 +164,7 @@ export function getViewContext(
 				},
 				{ keys: 'Esc', action: labels.shortcutsActionCloseDrawer },
 				{
-					keys: 'H / Ctrl + H / Cmd + H',
+					keys: 'Ctrl + H / Cmd + H',
 					action: labels.shortcutsActionGoToHiveListView,
 				},
 				{

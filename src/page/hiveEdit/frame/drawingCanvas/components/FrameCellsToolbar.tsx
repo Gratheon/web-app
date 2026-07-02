@@ -34,7 +34,7 @@ export default function FrameCellsToolbar({
 					<Button style={{ opacity: 1 }}>
 						<CellBrushIcon size={14} />
 						<T>Cell brush</T>
-						<KeyboardHints keys="C" />
+						<KeyboardHints keys="Shift+C" />
 					</Button>
 				</div>
 				<div className={`${styles.toolbarGroup} ${styles.toolbarMid}`}>
@@ -88,7 +88,7 @@ export default function FrameCellsToolbar({
 					>
 						<EraserIcon size={14} color="#fff" />
 						<T>Eraser</T>
-						<KeyboardHints keys="X" />
+						<KeyboardHints keys="Shift+X" />
 					</Button>
 				</div>
 			</div>

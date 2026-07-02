@@ -229,8 +229,9 @@ export default function HiveEditDetails({
 			if (event.defaultPrevented) return
 			if (event.altKey) return
 			if (isTypingTarget(event.target)) return
-			if (String(event.key || '').toLowerCase() !== 'e') return
-			if (!hive || !isEditable(hive) || isCollapsed(hive)) return
+				const key = String(event.key || '').toLowerCase()
+				if (!(event.ctrlKey || event.metaKey) || key !== 'e') return
+				if (!hive || !isEditable(hive) || isCollapsed(hive)) return
 
 			event.preventDefault()
 			navigate(`/apiaries/${apiaryId}/hives/${hiveId}/edit`, {

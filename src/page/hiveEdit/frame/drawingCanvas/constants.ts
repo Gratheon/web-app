@@ -27,14 +27,14 @@ export const CELL_SHORTCUTS: Record<string, NonEraseBrushCellType> = {
 };
 
 export const CELL_TYPE_HINTS: Record<NonEraseBrushCellType, string> = {
-	4: 'N',
-	2: 'Y',
-	6: 'P',
-	1: 'G',
-	3: 'B',
-	0: 'K',
-	7: 'D',
-	5: 'U',
+	4: 'Shift+N',
+	2: 'Shift+Y',
+	6: 'Shift+P',
+	1: 'Shift+G',
+	3: 'Shift+B',
+	0: 'Shift+K',
+	7: 'Shift+D',
+	5: 'Shift+U',
 };
 
 export const CELL_TYPE_OPTIONS: Array<{ value: BrushCellType; label: string }> = [

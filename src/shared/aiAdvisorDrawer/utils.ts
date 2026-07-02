@@ -40,6 +40,74 @@ export function compactCellSummary(cells: any) {
 		droneBroodPercent: cells.droneBroodPercent ?? 0,
 	}
 }
+export function compactEntity(value: any, allowedKeys: string[]) {
+	if (!value || typeof value !== 'object') return value || null
+	return allowedKeys.reduce((out: Record<string, any>, key) => {
+		if (value[key] !== undefined) out[key] = value[key]
+		return out
+	}, {})
+}
+
+export function buildInspectionSummaries(inspections: any[], limit = 10) {
+	if (!Array.isArray(inspections)) return []
+
+	return inspections.slice(0, limit).map((inspection) => {
+		let summary: Record<string, any> = {}
+		try {
+			const parsed =
+				typeof inspection?.data === 'string'
+					? JSON.parse(inspection.data)
+					: inspection?.data
+			if (parsed?.hive) {
+				summary.hiveStatus = parsed.hive.status
+				summary.beeCount = parsed.hive.beeCount
+				summary.boxCount = parsed.hive.boxCount
+			}
+			if (parsed?.family) {
+				summary.familyName = parsed.family.name
+				summary.queenRace = parsed.family.race
+			}
+			if (parsed?.cellStats) {
+				summary.cellStats = compactCellSummary(parsed.cellStats)
+			}
+		} catch (_) {
+			// WHY: inspection.data is historical JSON and may be malformed. Keep a small text fallback instead of sending the full snapshot.
+			summary.rawPreview = truncateText(inspection?.data, 200)
+		}
+
+		return {
+			id: inspection?.id,
+			hiveId: inspection?.hiveId,
+			added: inspection?.added,
+			...summary,
+		}
+	})
+}
+
+function sampleEvenly(values: any[], maxPoints: number) {
+	if (!Array.isArray(values)) return []
+	if (values.length <= maxPoints) return values
+	const step = (values.length - 1) / (maxPoints - 1)
+	return Array.from({ length: maxPoints }, (_, index) => {
+		return values[Math.round(index * step)]
+	})
+}
+
+export function buildCompactMetricSeries(metricResult: any, maxPoints = 48) {
+	const metrics = Array.isArray(metricResult?.metrics) ? metricResult.metrics : []
+	const sample = sampleEvenly(metrics, maxPoints)
+	const numericValues = metrics
+		.map((entry) => Number(entry?.v ?? entry?.netFlow ?? entry?.beesIn ?? 0))
+		.filter((value) => Number.isFinite(value))
+
+	return {
+		points: metrics.length,
+		latest: metrics[metrics.length - 1] || null,
+		min: numericValues.length ? Math.min(...numericValues) : null,
+		max: numericValues.length ? Math.max(...numericValues) : null,
+		sample,
+	}
+}
 
 export function pickOptimizedImage(file?: any) {
 	if (!file) return null

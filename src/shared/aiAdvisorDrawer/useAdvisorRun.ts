@@ -32,8 +32,11 @@ import {
 import {
 	angularDelta,
 	buildId,
+	buildCompactMetricSeries,
+	buildInspectionSummaries,
 	canUseAIAdvisor,
 	compactCellSummary,
+	compactEntity,
 	distance2d,
 	findSelectedFramePayload,
 	findSelectedFrameRaw,
@@ -436,43 +439,75 @@ export function useAdvisorRun({
 					framesByBox,
 					frameRouteContext
 				)
-				const framesForAdvice = hasFrameSideContext
-					? {
-							[String(frameRouteContext?.boxId || '')]: selectedFrameRaw
-								? { [String((selectedFrameRaw as any).id)]: selectedFrameRaw }
-								: {},
-					  }
-					: framesByBox
+					const framesForAdvice = hasFrameSideContext
+						? {
+								[String(frameRouteContext?.boxId || '')]: selectedFrameRaw
+									? { [String((selectedFrameRaw as any).id)]: selectedFrameRaw }
+									: {},
+						  }
+						: framesByBox
+					const compactMetrics = {
+						weightKg: buildCompactMetricSeries(metricsResult?.data?.weightKg),
+						temperatureCelsius: buildCompactMetricSeries(
+							metricsResult?.data?.temperatureCelsius
+						),
+						entranceMovement: buildCompactMetricSeries(
+							metricsResult?.data?.entranceMovement,
+							24
+						),
+					}
 
-				const adviceContext: any = {
-					mode: hasFrameSideContext ? 'frame-focus' : 'hive-overview',
-					apiary,
-					hive,
-					family,
-					boxes: boxesForAdvice,
-					frames: framesForAdvice,
-					inspections: inspections.slice(0, 40),
-					changeHistory: changeHistory
-						.map((entry) => ({
-							id: entry.id,
-							action: entry.action,
-							title: entry.title,
-							details: truncateText(entry.details, 500),
-							source: entry.source,
-							createdAt: entry.createdAt,
-							relatedHives: entry.relatedHives || [],
-						}))
-						.slice(0, 60),
-					metrics: metricsResult?.data,
-					currentView: {
-						pathname: location.pathname,
-						view: viewContext.name,
-						frameSelection: frameRouteContext,
-					},
-					frameFocusPrompt: hasFrameSideContext
-						? 'Given hive context and the attached optimized frame-side image, analyze this specific frame and provide practical beekeeping advice.'
-						: null,
-				}
+					const adviceContext: any = {
+						mode: hasFrameSideContext ? 'frame-focus' : 'hive-overview',
+						apiary: compactEntity(apiary, ['id', 'name', 'type', 'lat', 'lng']),
+						hive: compactEntity(hive, [
+							'id',
+							'hiveType',
+							'boxSystemId',
+							'hiveNumber',
+							'beeCount',
+							'status',
+							'isNew',
+							'apiaryId',
+							'notes',
+							'inspectionCount',
+							'collapse_date',
+							'collapse_cause',
+						]),
+						family: compactEntity(family, [
+							'id',
+							'name',
+							'race',
+							'added',
+							'hiveId',
+							'age',
+						]),
+						boxes: boxesForAdvice,
+						frames: framesForAdvice,
+						// WHY: raw inspection.data stores complete hive snapshots and can exceed GraphQL body limits.
+						inspections: buildInspectionSummaries(inspections),
+						changeHistory: changeHistory
+							.map((entry) => ({
+								id: entry.id,
+								action: entry.action,
+								title: entry.title,
+								details: truncateText(entry.details, 500),
+								source: entry.source,
+								createdAt: entry.createdAt,
+								relatedHives: entry.relatedHives || [],
+							}))
+							.slice(0, 60),
+						// WHAT: include metric summaries and sparse samples instead of thousands of telemetry rows.
+						metrics: compactMetrics,
+						currentView: {
+							pathname: location.pathname,
+							view: viewContext.name,
+							frameSelection: frameRouteContext,
+						},
+						frameFocusPrompt: hasFrameSideContext
+							? 'Given hive context and the attached optimized frame-side image, analyze this specific frame and provide practical beekeeping advice.'
+							: null,
+					}
 				const selectedFramePayload = findSelectedFramePayload(
 					framesByBox,
 					frameRouteContext

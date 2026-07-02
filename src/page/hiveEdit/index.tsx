@@ -84,22 +84,23 @@ export default function HiveEditForm() {
 			if (isTypingTarget(event.target)) return
 			if (isModalTarget(event.target)) return
 
-			const key = event.key
+				const key = event.key
+				const isNavigationModifier = event.ctrlKey || event.metaKey
 
-			if (key.toLowerCase() === 'a') {
-				if (!apiaryId) return
-				event.preventDefault()
-				navigate(`/apiaries/${apiaryId}`, { replace: true })
-				return
-			}
+				if (isNavigationModifier && key.toLowerCase() === 'a') {
+					if (!apiaryId) return
+					event.preventDefault()
+					navigate(`/apiaries/${apiaryId}`, { replace: true })
+					return
+				}
 
-			if (key.toLowerCase() === 'h') {
-				event.preventDefault()
-				navigate('/apiaries', { replace: true })
-				return
-			}
+				if (isNavigationModifier && key.toLowerCase() === 'h') {
+					event.preventDefault()
+					navigate('/apiaries', { replace: true })
+					return
+				}
 
-			if (event.ctrlKey || event.metaKey) return
+				if (event.ctrlKey || event.metaKey) return
 			if (mapTab !== 'structure') return
 
 			if (key === 'Backspace') {

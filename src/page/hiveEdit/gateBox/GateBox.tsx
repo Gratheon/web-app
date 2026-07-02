@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { gql, useQuery } from '../../../api';
 import { useMutation } from '../../../api';
+import DeviceStreamPlayback from '@/shared/deviceStreamPlayback';
 import Button from '@/shared/button';
 import T from '@/shared/translate';
 import VisualForm from '@/shared/visualForm';
@@ -121,6 +122,11 @@ export default function GateBox({ boxId, hiveId }) {
 			{error ? <div className={styles.connectionError}>{error.message}</div> : null}
 			{updateError ? <div className={styles.connectionError}>{updateError.message}</div> : null}
 			{connectionMessage ? <div className={styles.connectionHint}>{connectionMessage}</div> : null}
+			<DeviceStreamPlayback
+				boxId={connectedDevice?.boxId || null}
+				className={styles.connectedDevicePlayback}
+				emptyMessage={<T>The connected device has not uploaded video recordings yet.</T>}
+			/>
 		</div>
 	);
 

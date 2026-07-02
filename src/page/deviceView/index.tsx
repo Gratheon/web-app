@@ -4,13 +4,13 @@ import { useParams } from 'react-router'
 import { gql, useQuery } from '@/api'
 import Button from '@/shared/button'
 import CopyButton from '@/shared/copyButton'
+import DeviceStreamPlayback from '@/shared/deviceStreamPlayback'
 import DeviceVideoStream from '@/shared/deviceVideoStream'
 import ErrorMsg from '@/shared/messageError'
 import Loader from '@/shared/loader'
 import MaskedToken from '@/shared/maskedToken'
 import T from '@/shared/translate'
 import PagePaddedCentered from '@/shared/pagePaddedCentered'
-import StreamPlayer from '@/page/hiveEdit/gateBox/streamPlayer'
 
 import styles from './styles.module.less'
 
@@ -35,19 +35,6 @@ const DEVICE_QUERY = gql`
 				roofStyle
 			}
 		}
-	}
-}
-`
-
-const DEVICE_STREAMS_QUERY = gql`
-query deviceStreams($boxIds: [ID]!) {
-	videoStreams(boxIds: $boxIds) {
-		id
-		maxSegment
-		playlistURL
-		startTime
-		endTime
-		active
 	}
 }
 `
@@ -101,12 +88,6 @@ export default function DeviceViewPage() {
 		}
 		return null
 	}, [data?.apiaries, device?.hiveId, device?.boxId])
-	const streamBoxIds = useMemo(
-		() => (device?.type === 'VIDEO_CAMERA' && device?.boxId ? [+device.boxId] : []),
-		[device?.type, device?.boxId]
-	)
-	const { data: streamsData } = useQuery(DEVICE_STREAMS_QUERY, { variables: { boxIds: streamBoxIds } })
-	const videoStreams = streamsData?.videoStreams || []
 
 	if (loading) return <Loader />
 	if (error) return <ErrorMsg error={error} />
@@ -152,17 +133,16 @@ export default function DeviceViewPage() {
 				</div>
 			</section>
 
-			{device.type === 'VIDEO_CAMERA' && (
-				<section className={styles.section}>
-					<DeviceVideoStream boxId={device.boxId || null} />
-					{videoStreams.length > 0 && (
-						<div style={{ marginTop: 20 }}>
-							<h3><T>Past stream playback</T></h3>
-							<StreamPlayer videoStreams={videoStreams} />
-						</div>
-					)}
-				</section>
-			)}
+				{device.type === 'VIDEO_CAMERA' && (
+					<section className={styles.section}>
+						<DeviceVideoStream boxId={device.boxId || null} />
+						<DeviceStreamPlayback
+							boxId={device.boxId || null}
+							className={styles.streamPlayback}
+							title={<T>Past stream playback</T>}
+						/>
+					</section>
+				)}
 		</PagePaddedCentered>
 	)
 }

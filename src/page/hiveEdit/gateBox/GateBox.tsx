@@ -16,18 +16,19 @@ mutation updateDevice($id: ID!, $device: DeviceUpdateInput!) {
 
 export default function GateBox({ boxId, hiveId }) {
 	let {
-		loading, data,
+		loading, error, data,
+		reexecuteQuery,
 	} = useQuery(gql`
-	query boxStreams($boxIds: [ID]!) {
-		devices {
-			id
-			name
-			type
-			hiveId
-			boxId
+		{
+			devices {
+				id
+				name
+				type
+				hiveId
+				boxId
+			}
 		}
-	}
-`, { variables: { boxIds: [+boxId] } });
+	`);
 	const [updateDevice, { error: updateError }] = useMutation(UPDATE_DEVICE_MUTATION)
 	const [selectedDeviceId, setSelectedDeviceId] = useState('')
 	const [isSavingConnection, setIsSavingConnection] = useState(false)
@@ -83,6 +84,7 @@ export default function GateBox({ boxId, hiveId }) {
 				setConnectionMessage('Entrance device was disconnected.')
 			}
 		} finally {
+			reexecuteQuery()
 			setIsSavingConnection(false)
 		}
 	}
@@ -116,6 +118,7 @@ export default function GateBox({ boxId, hiveId }) {
 					</Button>
 				</div>
 			</VisualForm>
+			{error ? <div className={styles.connectionError}>{error.message}</div> : null}
 			{updateError ? <div className={styles.connectionError}>{updateError.message}</div> : null}
 			{connectionMessage ? <div className={styles.connectionHint}>{connectionMessage}</div> : null}
 		</div>

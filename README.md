@@ -55,6 +55,15 @@ Users can manage their apiaries and hives, log detailed inspections, upload and 
 *   **Hive Edit View:** Visual representation of hive boxes and frames, including indicators for bee population density calculated between adjacent frames.
 *   **Design System:** Shared UI components and visual tokens are documented in the app at [`/design-system`](http://localhost:8080/design-system) when running locally.
 
+### Entrance live session MVP
+
+The hive entrance view now includes a dedicated live session card backed by `entranceLiveStreamSession`, `startEntranceLiveStream`, `keepEntranceLiveStreamAlive`, and `stopEntranceLiveStream`.
+
+- The browser talks only to the federated GraphQL API exposed through `graphql-router` and implemented by `gate-video-stream`.
+- The UI must not depend on private Jetson or LAN playback URLs.
+- Session states are shown explicitly: requested, offline, starting, active, stopped, and failed.
+- While relay playback is still MVP-only, the app renders a clear status-oriented placeholder instead of pretending that a production-ready embedded live player already exists.
+
 ## Getting Started
 
 ### Prerequisites

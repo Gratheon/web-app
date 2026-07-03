@@ -90,6 +90,48 @@ union CancelSubscriptionResult = User | Error
 
 scalar DateTime
 
+enum EntranceLiveStreamStatus {
+  REQUESTED
+  DEVICE_OFFLINE
+  STARTING
+  ACTIVE
+  STOPPING
+  STOPPED
+  FAILED
+}
+
+type EntranceLiveRelayDetails {
+  relayProtocol: String!
+  placeholder: Boolean
+  publisherUrl: URL
+  publishToken: String
+  signalingToken: String
+  playbackUrl: URL
+  frameContentType: String
+  playbackContentType: String
+}
+
+type EntranceLiveStreamSession {
+  id: ID!
+  boxId: ID!
+  status: EntranceLiveStreamStatus!
+  playbackUrl: URL
+  signalingToken: String
+  expiresAt: DateTime!
+  qualityProfile: String!
+  recordingMode: String!
+  relayProtocol: String!
+  publisherUrl: URL
+  publishToken: String
+  clipHandoffEnabled: Boolean!
+  handoffStreamId: ID
+  lastKeepaliveAt: DateTime
+  lastDeviceSeenAt: DateTime
+  lastErrorCode: String
+  lastErrorMessage: String
+  relayDetails: EntranceLiveRelayDetails
+}
+
 input DetectionStats {
   beesIn: Int
   beesOut: Int
@@ -381,6 +423,13 @@ type Mutation {
     id: ID!
     detectionStats: DetectionStats!
   ): Boolean
+  startEntranceLiveStream(
+    boxId: ID!
+    qualityProfile: String
+    recordingMode: String
+  ): EntranceLiveStreamSession!
+  stopEntranceLiveStream(sessionId: ID!): Boolean!
+  keepEntranceLiveStreamAlive(sessionId: ID!): EntranceLiveStreamSession!
   generateHiveAdvice(hiveID: ID, adviceContext: JSON, langCode: String): String
   uploadFrameSide(file: Upload!): File
   uploadApiaryPhoto(file: Upload!, apiaryId: ID!): File
@@ -446,6 +495,7 @@ type PlantImage {
 type Query {
   videoStreams(boxIds: [ID], active: Boolean): [VideoStream]
   fetchNextUnprocessedVideoSegment: VideoSegment
+  entranceLiveStreamSession(boxId: ID!): EntranceLiveStreamSession
   file(id: ID!): File
   hiveFiles(hiveId: ID!): [FrameSideFile]
   getExistingHiveAdvice(hiveID: ID): String

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { gql, useQuery } from '../../../api';
 import { useMutation } from '../../../api';
 import DeviceStreamPlayback from '@/shared/deviceStreamPlayback';
+import EntranceLiveSessionCard from './EntranceLiveSessionCard';
 import Button from '@/shared/button';
 import T from '@/shared/translate';
 import VisualForm from '@/shared/visualForm';
@@ -122,6 +123,10 @@ export default function GateBox({ boxId, hiveId }) {
 			{error ? <div className={styles.connectionError}>{error.message}</div> : null}
 			{updateError ? <div className={styles.connectionError}>{updateError.message}</div> : null}
 			{connectionMessage ? <div className={styles.connectionHint}>{connectionMessage}</div> : null}
+			<EntranceLiveSessionCard
+				boxId={boxId}
+				hasConnectedDevice={Boolean(connectedDevice?.id)}
+			/>
 			<DeviceStreamPlayback
 				boxId={connectedDevice?.boxId || null}
 				className={styles.connectedDevicePlayback}

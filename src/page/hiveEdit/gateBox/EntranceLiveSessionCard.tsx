@@ -192,6 +192,7 @@ function findJpegStart(bytes: Uint8Array, frameEnd: number) {
 function MjpegLivePreview({ playbackUrl, isActive }: { playbackUrl: string; isActive: boolean }) {
 	const [frameUrl, setFrameUrl] = useState('')
 	const [previewError, setPreviewError] = useState('')
+	const [retryAttempt, setRetryAttempt] = useState(0)
 
 	useEffect(() => {
 		if (!isActive || !playbackUrl) {
@@ -205,9 +206,17 @@ function MjpegLivePreview({ playbackUrl, isActive }: { playbackUrl: string; isAc
 			setPreviewError('Please sign in again to view the live camera.')
 			return
 		}
-
 		const controller = new AbortController()
 		let buffer = new Uint8Array(0)
+		let reconnectTimer: number | null = null
+
+		function scheduleReconnect(message?: string) {
+			if (controller.signal.aborted) return
+			if (message) setPreviewError(message)
+			reconnectTimer = window.setTimeout(() => {
+				setRetryAttempt((attempt) => attempt + 1)
+			}, 2500)
+		}
 
 		function updateFrame(nextFrame: Uint8Array) {
 			const nextObjectUrl = URL.createObjectURL(new Blob([nextFrame], { type: 'image/jpeg' }))
@@ -226,7 +235,7 @@ function MjpegLivePreview({ playbackUrl, isActive }: { playbackUrl: string; isAc
 				})
 
 				if (!response.ok || !response.body) {
-					setPreviewError('Live camera is not ready yet. Try refreshing in a moment.')
+					scheduleReconnect('Live camera is not ready yet. Reconnecting...')
 					return
 				}
 
@@ -251,9 +260,13 @@ function MjpegLivePreview({ playbackUrl, isActive }: { playbackUrl: string; isAc
 					// WHY: keep malformed multipart data from growing memory forever while waiting for the next JPEG.
 					if (buffer.length > 2_000_000) buffer = buffer.slice(-200_000)
 				}
+
+				if (!controller.signal.aborted) {
+					scheduleReconnect('Live camera connection closed. Reconnecting...')
+				}
 			} catch (error) {
 				if (!controller.signal.aborted) {
-					setPreviewError('Live camera preview is temporarily unavailable.')
+					scheduleReconnect('Live camera preview is temporarily unavailable. Reconnecting...')
 				}
 			}
 		}
@@ -262,12 +275,13 @@ function MjpegLivePreview({ playbackUrl, isActive }: { playbackUrl: string; isAc
 
 		return () => {
 			controller.abort()
+			if (reconnectTimer) window.clearTimeout(reconnectTimer)
 			setFrameUrl((previousUrl) => {
 				if (previousUrl) URL.revokeObjectURL(previousUrl)
 				return ''
 			})
 		}
-	}, [isActive, playbackUrl])
+	}, [isActive, playbackUrl, retryAttempt])
 
 	return (
 		<div className={styles.livePreviewFrame}>

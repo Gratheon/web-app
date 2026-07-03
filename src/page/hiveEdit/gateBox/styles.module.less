@@ -8,7 +8,6 @@
 
 		select {
 			padding: 5px;
-			margin: 0 10px;
 		}
 	}
 }
@@ -18,18 +17,22 @@
 }
 
 .connectionRow {
-	display: flex;
-	flex-wrap: wrap;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
 	align-items: center;
-	gap: 8px;
+	gap: 8px 10px;
+	max-width: 100%;
 }
 
 .connectionRow label {
+	grid-column: 1 / -1;
 	font-weight: 600;
 }
 
 .connectionRow select {
-	min-width: 240px;
+	width: 100%;
+	min-width: 0;
+	max-width: 100%;
 	height: 38px;
 	padding: 0 10px;
 	border: 1px solid #c9d8eb;
@@ -50,6 +53,39 @@
 	margin-top: 16px;
 }
 
+
+.videoTabs {
+	display: inline-flex;
+	gap: 4px;
+	margin-top: 16px;
+	padding: 4px;
+	border: 1px solid #d7e3f0;
+	border-radius: 999px;
+	background: #eef4fb;
+}
+
+.videoTab,
+.videoTabActive {
+	padding: 8px 14px;
+	border: 0;
+	border-radius: 999px;
+	background: transparent;
+	color: #334155;
+	cursor: pointer;
+	font-weight: 700;
+}
+
+.videoTab:hover,
+.videoTab:focus-visible {
+	background: #dde9f6;
+	outline: none;
+}
+
+.videoTabActive {
+	background: #1f7a0f;
+	color: #fff;
+	box-shadow: 0 2px 8px rgba(31, 122, 15, 0.22);
+}
 .liveSessionCard {
 	margin-top: 16px;
 	padding: 16px;
@@ -80,7 +116,45 @@
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
-	margin-bottom: 14px;
+	margin-top: 14px;
+}
+
+.livePreviewFrame {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	min-height: 260px;
+	margin: 12px 0 14px;
+	overflow: hidden;
+	border: 1px solid #d9e2ef;
+	border-radius: 12px;
+	background: #0f172a;
+}
+
+.livePreviewFrame img {
+	display: block;
+	width: 100%;
+	max-height: 520px;
+	object-fit: contain;
+}
+
+.livePreviewPlaceholder {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	min-height: 220px;
+	padding: 20px;
+	color: #e2e8f0;
+	text-align: center;
+}
+
+.livePreviewPlaceholder span {
+	max-width: 420px;
+	color: #cbd5e1;
+	font-size: 14px;
 }
 
 .statusBadge {
@@ -128,58 +202,6 @@
 	color: #9f2a2a;
 }
 
-.liveSessionMetaGrid {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-	gap: 10px;
-}
-
-.liveSessionMetaItem {
-	padding: 10px 12px;
-	border-radius: 10px;
-	background: white;
-	border: 1px solid #e2ebf5;
-}
-
-.liveSessionMetaLabel {
-	font-size: 12px;
-	font-weight: 700;
-	text-transform: uppercase;
-	letter-spacing: 0.03em;
-	color: #607080;
-	margin-bottom: 4px;
-}
-
-.liveSessionMetaValue {
-	color: #1f2c38;
-	word-break: break-word;
-}
-
-.liveSessionMvpState {
-	margin-top: 14px;
-	padding: 14px;
-	border-radius: 10px;
-	background: #fff8e8;
-	border: 1px solid #f2dda6;
-}
-
-.liveSessionMvpState h4 {
-	margin: 0 0 8px;
-}
-
-.liveSessionMvpState p {
-	margin: 0;
-	color: #55472a;
-}
-
-.liveSessionUrlWrap {
-	margin-top: 10px !important;
-}
-
-.liveSessionUrlWrap a {
-	word-break: break-all;
-}
-
 .holeControl {
 	margin-top: 18px;
 	padding-top: 14px;
@@ -202,4 +224,18 @@
 	min-width: 30px;
 	font-weight: 700;
 	text-align: right;
+}
+
+@media all and (max-width: 576px) {
+	.connectionRow {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.connectionRow button {
+		width: 100%;
+	}
+
+	.livePreviewFrame {
+		min-height: 190px;
+	}
 }

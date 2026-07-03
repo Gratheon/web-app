@@ -1,9 +1,7 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { useLiveQuery } from 'dexie-react-hooks'
+import React, { useEffect, useRef, useState } from 'react'
 
 import { gql, useMutation, useQuery } from '@/api'
-import { getUser } from '@/models/user'
-import { formatDateTimeByLocale, resolveLocale } from '@/shared/dateLocale'
+import { getToken } from '@/user'
 import Button from '@/shared/button'
 import T from '@/shared/translate'
 
@@ -116,9 +114,16 @@ type EntranceLiveSessionCardProps = {
 	hasConnectedDevice: boolean
 }
 
-function formatOptionalDate(value?: string | null, locale?: string | null) {
-	if (!value) return ' - '
-	return formatDateTimeByLocale(value, { dateStyle: 'medium', timeStyle: 'short' }, locale)
+function getLiveStatusText(status: LiveSessionStatus) {
+	return {
+		REQUESTED: <T>Connecting</T>,
+		DEVICE_OFFLINE: <T>Camera offline</T>,
+		STARTING: <T>Starting camera</T>,
+		ACTIVE: <T>Live</T>,
+		STOPPING: <T>Stopping</T>,
+		STOPPED: <T>Not live</T>,
+		FAILED: <T>Needs attention</T>,
+	}[status]
 }
 
 function LiveStatusBadge({ status }: { status: LiveSessionStatus }) {
@@ -132,17 +137,7 @@ function LiveStatusBadge({ status }: { status: LiveSessionStatus }) {
 		FAILED: styles.statusFailed,
 	}[status]
 
-	const label = {
-		REQUESTED: <T>Requested</T>,
-		DEVICE_OFFLINE: <T>Offline</T>,
-		STARTING: <T>Starting</T>,
-		ACTIVE: <T>Active</T>,
-		STOPPING: <T>Stopping</T>,
-		STOPPED: <T>Stopped</T>,
-		FAILED: <T>Failed</T>,
-	}[status]
-
-	return <span className={`${styles.statusBadge} ${className}`}>{label}</span>
+	return <span className={`${styles.statusBadge} ${className}`}>{getLiveStatusText(status)}</span>
 }
 
 function LiveStatusDescription({
@@ -154,28 +149,143 @@ function LiveStatusDescription({
 }) {
 	switch (status) {
 		case 'REQUESTED':
-			return <T>gate-video-stream created the live session and is waiting for the entrance device to pick up the start command.</T>
+			return <T>We are asking the entrance camera to start. This usually takes a few seconds.</T>
 		case 'DEVICE_OFFLINE':
 			return hasConnectedDevice
-				? <T>The entrance device has not checked in recently. Keep the session open and it will continue once the device comes back online.</T>
-				: <T>No entrance device is linked in the app right now, so this live session will remain offline until a device is connected and checks in.</T>
+				? <T>The connected camera is offline. Check that the device is powered on and connected to the internet.</T>
+				: <T>Connect a camera device above to start live viewing for this entrance.</T>
 		case 'STARTING':
-			return <T>The entrance device acknowledged the request and gate-video-stream is waiting for the relay to become playable.</T>
+			return <T>The camera is starting. The live image will appear here when the first frame arrives.</T>
 		case 'ACTIVE':
-			return <T>The live session is active through gate-video-stream. This UI does not rely on any private Jetson URL.</T>
+			return <T>The entrance camera is live. Watch the latest image directly on this page.</T>
 		case 'STOPPING':
-			return <T>The stop command was sent. Waiting for gate-video-stream to close the current live session.</T>
+			return <T>Stopping the live view.</T>
 		case 'FAILED':
-			return <T>The live session failed or disappeared before playback was confirmed. You can try starting a new session.</T>
+			return <T>The live view could not start. Please try again or check the camera device.</T>
 		case 'STOPPED':
 		default:
-			return <T>No live session is open right now. Start one when you want to request entrance camera streaming.</T>
+			return <T>No live view is running right now. Start it when you want to check the entrance.</T>
 	}
 }
 
+function appendBytes(previous: Uint8Array, next: Uint8Array) {
+	const merged = new Uint8Array(previous.length + next.length)
+	merged.set(previous)
+	merged.set(next, previous.length)
+	return merged
+}
+
+function findJpegEnd(bytes: Uint8Array) {
+	for (let index = 1; index < bytes.length; index += 1) {
+		if (bytes[index - 1] === 0xff && bytes[index] === 0xd9) return index + 1
+	}
+	return -1
+}
+
+function findJpegStart(bytes: Uint8Array, frameEnd: number) {
+	for (let index = 0; index < frameEnd - 1; index += 1) {
+		if (bytes[index] === 0xff && bytes[index + 1] === 0xd8) return index
+	}
+	return -1
+}
+
+function MjpegLivePreview({ playbackUrl, isActive }: { playbackUrl: string; isActive: boolean }) {
+	const [frameUrl, setFrameUrl] = useState('')
+	const [previewError, setPreviewError] = useState('')
+
+	useEffect(() => {
+		if (!isActive || !playbackUrl) {
+			setFrameUrl('')
+			setPreviewError('')
+			return
+		}
+
+		const token = getToken()
+		if (!token) {
+			setPreviewError('Please sign in again to view the live camera.')
+			return
+		}
+
+		const controller = new AbortController()
+		let buffer = new Uint8Array(0)
+
+		function updateFrame(nextFrame: Uint8Array) {
+			const nextObjectUrl = URL.createObjectURL(new Blob([nextFrame], { type: 'image/jpeg' }))
+			setFrameUrl((previousUrl) => {
+				if (previousUrl) URL.revokeObjectURL(previousUrl)
+				return nextObjectUrl
+			})
+		}
+
+		async function readStream() {
+			try {
+				setPreviewError('')
+				const response = await fetch(playbackUrl, {
+					headers: { token },
+					signal: controller.signal,
+				})
+
+				if (!response.ok || !response.body) {
+					setPreviewError('Live camera is not ready yet. Try refreshing in a moment.')
+					return
+				}
+
+				const reader = response.body.getReader()
+				while (!controller.signal.aborted) {
+					const { done, value } = await reader.read()
+					if (done) break
+					if (!value) continue
+
+					buffer = appendBytes(buffer, value)
+
+					let frameEnd = findJpegEnd(buffer)
+					while (frameEnd > -1) {
+						const frameStart = findJpegStart(buffer, frameEnd)
+						if (frameStart > -1 && frameStart < frameEnd) {
+							updateFrame(buffer.slice(frameStart, frameEnd))
+						}
+						buffer = buffer.slice(frameEnd)
+						frameEnd = findJpegEnd(buffer)
+					}
+
+					// WHY: keep malformed multipart data from growing memory forever while waiting for the next JPEG.
+					if (buffer.length > 2_000_000) buffer = buffer.slice(-200_000)
+				}
+			} catch (error) {
+				if (!controller.signal.aborted) {
+					setPreviewError('Live camera preview is temporarily unavailable.')
+				}
+			}
+		}
+
+		void readStream()
+
+		return () => {
+			controller.abort()
+			setFrameUrl((previousUrl) => {
+				if (previousUrl) URL.revokeObjectURL(previousUrl)
+				return ''
+			})
+		}
+	}, [isActive, playbackUrl])
+
+	return (
+		<div className={styles.livePreviewFrame}>
+			{frameUrl ? (
+				<img src={frameUrl} alt="Live entrance camera preview" />
+			) : (
+				<div className={styles.livePreviewPlaceholder}>
+					<strong><T>Waiting for camera image</T></strong>
+					<span>
+						{previewError || <T>The live view will appear here as soon as the camera sends a frame.</T>}
+					</span>
+				</div>
+			)}
+		</div>
+	)
+}
+
 export default function EntranceLiveSessionCard({ boxId, hasConnectedDevice }: EntranceLiveSessionCardProps) {
-	const userStored = useLiveQuery(() => getUser(), [], null)
-	const locale = resolveLocale(userStored?.locale, userStored?.lang)
 	const { data, loading, error, reexecuteQuery } = useQuery(ENTRANCE_LIVE_SESSION_QUERY, {
 		variables: { boxId: `${boxId}` },
 	})
@@ -205,8 +315,7 @@ export default function EntranceLiveSessionCard({ boxId, hasConnectedDevice }: E
 		}
 
 		// WHY: entranceLiveStreamSession only returns active or in-progress sessions.
-		// Once the backend stops exposing a known session, keep a clear terminal MVP state
-		// instead of pretending that embedded playback still exists.
+		// Once the backend stops exposing a known session, show a user-facing failure state.
 		hadSessionRef.current = false
 		setSession(null)
 		if (stopRequestedRef.current) {
@@ -216,7 +325,7 @@ export default function EntranceLiveSessionCard({ boxId, hasConnectedDevice }: E
 		}
 
 		setTerminalStatus('FAILED')
-		setStatusMessage('The live session is no longer available from gate-video-stream. It may have expired, failed, or been closed by the device.')
+		setStatusMessage('The live view ended before the camera image was available. Please try again.')
 	}, [loading, queriedSession])
 
 	useEffect(() => {
@@ -242,7 +351,7 @@ export default function EntranceLiveSessionCard({ boxId, hasConnectedDevice }: E
 				const result = await keepLiveStreamAlive({ sessionId: session.id })
 				if (result?.error) {
 					setTerminalStatus('FAILED')
-					setStatusMessage(result.error.message || 'Failed to keep the live session alive.')
+					setStatusMessage(result.error.message || 'Failed to keep the live view open.')
 					return
 				}
 
@@ -264,27 +373,11 @@ export default function EntranceLiveSessionCard({ boxId, hasConnectedDevice }: E
 
 	const displayStatus: LiveSessionStatus = terminalStatus || session?.status || 'STOPPED'
 	const playbackUrl = session?.relayDetails?.playbackUrl || session?.playbackUrl || ''
-	const isPlaceholderPlayback = Boolean(session?.relayDetails?.placeholder)
 	const isSessionOpen = Boolean(session?.id)
 	const isBusy = startLoading || stopLoading
 	const canStart = !isSessionOpen && !isBusy
 	const canStop = isSessionOpen && displayStatus !== 'STOPPING' && !isBusy
 	const combinedErrorMessage = error?.message || startError?.message || stopError?.message || statusMessage
-
-	const sessionMeta = useMemo(() => {
-		if (!session && displayStatus === 'STOPPED') return []
-
-		return [
-			{ label: 'Quality profile', value: session?.qualityProfile || 'inspect' },
-			{ label: 'Recording mode', value: session?.recordingMode || 'off' },
-			{ label: 'Relay protocol', value: session?.relayDetails?.relayProtocol || session?.relayProtocol || 'mjpeg' },
-			{ label: 'Playback endpoint', value: playbackUrl || 'Not published yet' },
-			{ label: 'Session expires', value: formatOptionalDate(session?.expiresAt, locale) },
-			{ label: 'Last device seen', value: formatOptionalDate(session?.lastDeviceSeenAt, locale) },
-			{ label: 'Last keepalive', value: formatOptionalDate(session?.lastKeepaliveAt, locale) },
-			{ label: 'Last error code', value: session?.lastErrorCode || ' - ' },
-		]
-	}, [displayStatus, locale, playbackUrl, session])
 
 	const onRefresh = async () => {
 		await reexecuteQuery({ requestPolicy: 'network-only' })
@@ -304,7 +397,7 @@ export default function EntranceLiveSessionCard({ boxId, hasConnectedDevice }: E
 		if (result?.error) {
 			setSession(null)
 			setTerminalStatus('FAILED')
-			setStatusMessage(result.error.message || 'Failed to start the live session.')
+			setStatusMessage(result.error.message || 'Failed to start the live view.')
 			return
 		}
 
@@ -335,7 +428,7 @@ export default function EntranceLiveSessionCard({ boxId, hasConnectedDevice }: E
 				status: session.status,
 			})
 			setTerminalStatus('FAILED')
-			setStatusMessage(result?.error?.message || 'Failed to stop the live session.')
+			setStatusMessage(result?.error?.message || 'Failed to stop the live view.')
 			return
 		}
 
@@ -346,9 +439,9 @@ export default function EntranceLiveSessionCard({ boxId, hasConnectedDevice }: E
 		<div className={styles.liveSessionCard}>
 			<div className={styles.liveSessionHeader}>
 				<div>
-					<h3><T>Entrance live session</T></h3>
+					<h3><T>Live entrance camera</T></h3>
 					<p className={styles.liveSessionIntro}>
-						<T>This flow uses the federated GraphQL API behind graphql-router and gate-video-stream only. No private Jetson playback URL is required in the browser.</T>
+						<T>Start a live view to check what is happening at the hive entrance.</T>
 					</p>
 				</div>
 				<LiveStatusBadge status={displayStatus} />
@@ -358,48 +451,24 @@ export default function EntranceLiveSessionCard({ boxId, hasConnectedDevice }: E
 				<LiveStatusDescription status={displayStatus} hasConnectedDevice={hasConnectedDevice} />
 			</p>
 
+			{displayStatus === 'ACTIVE' && playbackUrl ? (
+				<MjpegLivePreview playbackUrl={playbackUrl} isActive={displayStatus === 'ACTIVE'} />
+			) : null}
+
 			<div className={styles.liveSessionActions}>
 				<Button color="green" onClick={onStart} loading={startLoading} disabled={!canStart}>
-					<T>Start live session</T>
+					<T>Start live view</T>
 				</Button>
 				<Button color="red" onClick={onStop} loading={stopLoading} disabled={!canStop}>
-					<T>Stop live session</T>
+					<T>Stop live view</T>
 				</Button>
 				<Button color="white" onClick={onRefresh} disabled={loading || isBusy}>
-					<T>Refresh status</T>
+					<T>Refresh</T>
 				</Button>
 			</div>
 
 			{combinedErrorMessage ? (
 				<div className={styles.connectionError}>{combinedErrorMessage}</div>
-			) : null}
-
-			<div className={styles.liveSessionMetaGrid}>
-				{sessionMeta.map((item) => (
-					<div key={item.label} className={styles.liveSessionMetaItem}>
-						<div className={styles.liveSessionMetaLabel}>{item.label}</div>
-						<div className={styles.liveSessionMetaValue}>{item.value}</div>
-					</div>
-				))}
-			</div>
-
-			{displayStatus === 'ACTIVE' ? (
-				<div className={styles.liveSessionMvpState}>
-					<h4><T>Live playback MVP state</T></h4>
-					<p>
-						{isPlaceholderPlayback ? (
-							<T>gate-video-stream reports a placeholder relay for this session. The live session is active, but the web-app intentionally shows a clear MVP state instead of pretending that full in-browser video already exists.</T>
-						) : (
-							<T>The relay session is active and published by gate-video-stream, but embedded browser playback is still intentionally limited in this MVP. Use the status information here as the source of truth instead of expecting a production-ready player yet.</T>
-						)}
-					</p>
-					{playbackUrl ? (
-						<p className={styles.liveSessionUrlWrap}>
-							<strong><T>Relay URL:</T></strong>{' '}
-							<a href={playbackUrl} target="_blank" rel="noreferrer">{playbackUrl}</a>
-						</p>
-					) : null}
-				</div>
 			) : null}
 		</div>
 	)

@@ -35,6 +35,7 @@ export default function GateBox({ boxId, hiveId }) {
 	const [selectedDeviceId, setSelectedDeviceId] = useState('')
 	const [isSavingConnection, setIsSavingConnection] = useState(false)
 	const [connectionMessage, setConnectionMessage] = useState('')
+	const [activeVideoTab, setActiveVideoTab] = useState<'live' | 'replay'>('live')
 
 	const videoDevices = useMemo(
 		() => (data?.devices || []).filter((device) => device.type === 'VIDEO_CAMERA'),
@@ -120,18 +121,41 @@ export default function GateBox({ boxId, hiveId }) {
 					</Button>
 				</div>
 			</VisualForm>
-			{error ? <div className={styles.connectionError}>{error.message}</div> : null}
-			{updateError ? <div className={styles.connectionError}>{updateError.message}</div> : null}
-			{connectionMessage ? <div className={styles.connectionHint}>{connectionMessage}</div> : null}
-			<EntranceLiveSessionCard
-				boxId={boxId}
-				hasConnectedDevice={Boolean(connectedDevice?.id)}
-			/>
-			<DeviceStreamPlayback
-				boxId={connectedDevice?.boxId || null}
-				className={styles.connectedDevicePlayback}
-				emptyMessage={<T>The connected device has not uploaded video recordings yet.</T>}
-			/>
+				{error ? <div className={styles.connectionError}>{error.message}</div> : null}
+				{updateError ? <div className={styles.connectionError}>{updateError.message}</div> : null}
+				{connectionMessage ? <div className={styles.connectionHint}>{connectionMessage}</div> : null}
+				<div className={styles.videoTabs} role="tablist" aria-label="Entrance camera views">
+					<button
+						type="button"
+						role="tab"
+						aria-selected={activeVideoTab === 'live'}
+						className={activeVideoTab === 'live' ? styles.videoTabActive : styles.videoTab}
+						onClick={() => setActiveVideoTab('live')}
+					>
+						<T>Live view</T>
+					</button>
+					<button
+						type="button"
+						role="tab"
+						aria-selected={activeVideoTab === 'replay'}
+						className={activeVideoTab === 'replay' ? styles.videoTabActive : styles.videoTab}
+						onClick={() => setActiveVideoTab('replay')}
+					>
+						<T>Recordings</T>
+					</button>
+				</div>
+				{activeVideoTab === 'live' ? (
+					<EntranceLiveSessionCard
+						boxId={boxId}
+						hasConnectedDevice={Boolean(connectedDevice?.id)}
+					/>
+				) : (
+					<DeviceStreamPlayback
+						boxId={connectedDevice?.boxId || null}
+						className={styles.connectedDevicePlayback}
+						emptyMessage={<T>The connected device has not uploaded video recordings yet.</T>}
+					/>
+				)}
 		</div>
 	);
 

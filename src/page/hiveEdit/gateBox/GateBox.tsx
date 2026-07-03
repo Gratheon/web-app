@@ -3,6 +3,7 @@ import { gql, useQuery } from '../../../api';
 import { useMutation } from '../../../api';
 import DeviceStreamPlayback from '@/shared/deviceStreamPlayback';
 import EntranceLiveSessionCard from './EntranceLiveSessionCard';
+import EntranceHeatmapViewer from './EntranceHeatmapViewer';
 import Button from '@/shared/button';
 import T from '@/shared/translate';
 import VisualForm from '@/shared/visualForm';
@@ -35,7 +36,7 @@ export default function GateBox({ boxId, hiveId }) {
 	const [selectedDeviceId, setSelectedDeviceId] = useState('')
 	const [isSavingConnection, setIsSavingConnection] = useState(false)
 	const [connectionMessage, setConnectionMessage] = useState('')
-	const [activeVideoTab, setActiveVideoTab] = useState<'live' | 'replay'>('live')
+	const [activeVideoTab, setActiveVideoTab] = useState<'live' | 'replay' | 'heatmaps'>('live')
 
 	const videoDevices = useMemo(
 		() => (data?.devices || []).filter((device) => device.type === 'VIDEO_CAMERA'),
@@ -134,28 +135,41 @@ export default function GateBox({ boxId, hiveId }) {
 					>
 						<T>Live view</T>
 					</button>
-					<button
-						type="button"
-						role="tab"
-						aria-selected={activeVideoTab === 'replay'}
-						className={activeVideoTab === 'replay' ? styles.videoTabActive : styles.videoTab}
-						onClick={() => setActiveVideoTab('replay')}
-					>
-						<T>Recordings</T>
-					</button>
-				</div>
-				{activeVideoTab === 'live' ? (
-					<EntranceLiveSessionCard
-						boxId={boxId}
-						hasConnectedDevice={Boolean(connectedDevice?.id)}
-					/>
-				) : (
-					<DeviceStreamPlayback
-						boxId={connectedDevice?.boxId || null}
-						className={styles.connectedDevicePlayback}
-						emptyMessage={<T>The connected device has not uploaded video recordings yet.</T>}
-					/>
-				)}
+						<button
+							type="button"
+							role="tab"
+							aria-selected={activeVideoTab === 'replay'}
+							className={activeVideoTab === 'replay' ? styles.videoTabActive : styles.videoTab}
+							onClick={() => setActiveVideoTab('replay')}
+						>
+							<T>Recordings</T>
+						</button>
+						<button
+							type="button"
+							role="tab"
+							aria-selected={activeVideoTab === 'heatmaps'}
+							className={activeVideoTab === 'heatmaps' ? styles.videoTabActive : styles.videoTab}
+							onClick={() => setActiveVideoTab('heatmaps')}
+						>
+							<T>Heatmaps</T>
+						</button>
+					</div>
+					{activeVideoTab === 'live' ? (
+						<EntranceLiveSessionCard
+							boxId={boxId}
+							hasConnectedDevice={Boolean(connectedDevice?.id)}
+						/>
+					) : null}
+					{activeVideoTab === 'replay' ? (
+						<DeviceStreamPlayback
+							boxId={connectedDevice?.boxId || null}
+							className={styles.connectedDevicePlayback}
+							emptyMessage={<T>The connected device has not uploaded video recordings yet.</T>}
+						/>
+					) : null}
+					{activeVideoTab === 'heatmaps' ? (
+						<EntranceHeatmapViewer boxId={connectedDevice?.boxId || null} />
+					) : null}
 		</div>
 	);
 

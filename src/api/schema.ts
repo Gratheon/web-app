@@ -494,6 +494,7 @@ type PlantImage {
 # The query type, represents all of the entry points into our object graph
 type Query {
   videoStreams(boxIds: [ID], active: Boolean): [VideoStream]
+  entranceHeatmaps(boxIds: [ID]!, date: String, limit: Int): [EntranceHeatmap]
   fetchNextUnprocessedVideoSegment: VideoSegment
   entranceLiveStreamSession(boxId: ID!): EntranceLiveStreamSession
   file(id: ID!): File
@@ -649,6 +650,19 @@ type VideoSegment {
   addTime: DateTime
   URL: URL
   filename: String
+}
+
+type EntranceHeatmap {
+  id: ID!
+  boxId: ID!
+  date: String!
+  imageURL: URL
+  width: Int
+  height: Int
+  trajectoryCount: Int
+  pointCount: Int
+  lastSampleAt: DateTime
+  updatedAt: DateTime
 }
 
 type VideoStream {

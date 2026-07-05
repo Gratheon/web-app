@@ -1,33 +1,15 @@
-import { useEffect, useMemo, useRef, useState } from 'preact/hooks'
+import { useEffect, useMemo, useState } from 'preact/hooks'
 import debounce from 'lodash/debounce'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate } from 'react-router-dom'
 
 import T from '@/shared/translate'
-import HiveIcon from '@/shared/hive'
-
-import QRCode from 'qrcode'
-import { gql, useMutation, useQuery } from '@/api'
-
-import InspectionIcon from '@/icons/inspection'
+import { useMutation, useQuery } from '@/api'
 import Loader from '@/shared/loader'
-import Button from '@/shared/button'
-import QrCodeIcon from '@/icons/qrCodeIcon'
-import SkullIcon from '@/icons/SkullIcon'
-import { PopupButton, PopupButtonGroup } from '@/shared/popupButton'
 import { InspectionSnapshot } from '@/models/inspections'
-import BeeCounter from '@/shared/beeCounter'
 import MessageSuccess from '@/shared/messageSuccess'
-import VisualFormSubmit from '@/shared/visualForm/submit'
-import Modal from '@/shared/modal'
 
-import {
-	updateHive,
-	getHive,
-	isCollapsed,
-	isEditable,
-	isMerged,
-} from '@/models/hive'
+import { updateHive, getHive, isCollapsed, isEditable } from '@/models/hive'
 import { getUser } from '@/models/user'
 import { getBoxes } from '@/models/boxes'
 import { getFamilyByHive, getAllFamiliesByHive } from '@/models/family'
@@ -37,110 +19,36 @@ import {
 } from '@/models/frameSideCells'
 import { getFramesByHive } from '@/models/frames'
 import { collectFrameSideIDsFromFrames } from '@/models/frameSide'
-import { db } from '@/models/db'
 import { deleteFilesByFrameSideIDs } from '@/models/frameSideFile'
-
-import DeactivateButton from '@/page/hiveEdit/deleteButton'
-import QueenSlot from '@/page/hiveEdit/hiveTopInfo/QueenSlot'
-import HiveStatistics from '@/page/hiveEdit/hiveStatistics'
-import styles from '@/page/hiveEdit/hiveTopInfo/styles.module.less'
-import logoUrl from '@/assets/logo-v7.png'
-import beeSideUrl from '@/assets/bee-side.png'
 
 import HiveTopEditForm from '@/page/hiveEdit/hiveTopInfo/hiveTopEditForm'
 import CollapseHiveModal from '@/page/hiveEdit/CollapseHiveModal'
 import SplitHiveModal from '@/page/hiveEdit/SplitHiveModal'
 import JoinColonyModal from '@/page/hiveEdit/JoinColonyModal'
-import DateFormat from '@/shared/dateFormat'
 import { isBillingTierLessThan } from '@/shared/billingTier'
-import HivePlacementMiniMap from './HivePlacementMiniMap'
 import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
 import { apiaryTypes, normalizeApiaryType } from '@/models/apiary'
 
-const BOX_SYSTEMS_FOR_HIVE_LABEL_QUERY = gql`
-	query HiveTopInfoBoxSystems {
-		boxSystems {
-			id
-			name
-			isDefault
-		}
-	}
-`
-
-const BOX_SYSTEM_COLORS = ['#2f80ed', '#f2994a', '#27ae60', '#eb5757']
-const HIVE_CREATED_ANIMATION_MS = 3000
-const HIVE_CREATED_BEE_COUNT = 220
-const HIVE_CREATED_CLICK_SPEEDUP_MS = 900
-
-const hiveCreatedBeeSwarm = Array.from({ length: HIVE_CREATED_BEE_COUNT }).map(
-	(_, i) => {
-		const edge = i % 4
-		const sideOffset = (i * 37) % 100
-		const size = 10 + (i % 6)
-
-		return {
-			key: i,
-			startXPercent: edge === 0 ? 2 : edge === 1 ? 98 : sideOffset,
-			startYPercent: edge === 2 ? 2 : edge === 3 ? 98 : sideOffset,
-			delay: (i % 44) * 24,
-			duration: 2150 + (i % 18) * 38,
-			turns: 1.45 + (i % 7) * 0.2,
-			direction: i % 2 === 0 ? 1 : -1,
-			finalScale: 0.08 + (i % 7) * 0.018,
-			style: {
-				['--size' as any]: `${size}px`,
-			} as any,
-		}
-	}
-)
-const clamp01 = (value: number) => Math.max(0, Math.min(1, value))
-
-function toDateInputValue(date: Date) {
-	if (Number.isNaN(date.getTime())) {
-		return toDateInputValue(new Date())
-	}
-
-	return date.toISOString().slice(0, 10)
-}
-
-function toStartOfDayIso(dateValue: string) {
-	const parsed = new Date(`${dateValue}T00:00:00`)
-	return Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString()
-}
-
-function getOldestPhotoDateInputValue(records: any[]) {
-	const timestamps = records
-		.map((record) => record?.capturedAt || record?.uploadedAt)
-		.map((value) => new Date(value).getTime())
-		.filter((value) => Number.isFinite(value))
-
-	if (timestamps.length === 0) {
-		return toDateInputValue(new Date())
-	}
-
-	return toDateInputValue(new Date(Math.min(...timestamps)))
-}
-
-async function getSuggestedInspectionDate(frameSideIDs: number[]) {
-	if (frameSideIDs.length === 0) {
-		return toDateInputValue(new Date())
-	}
-
-	const frameSideFiles = await db['frame_side_file']
-		.where('frameSideId')
-		.anyOf(frameSideIDs)
-		.toArray()
-	const fileIds = frameSideFiles
-		.map((record) => Number(record?.fileId))
-		.filter((fileId) => Number.isFinite(fileId) && fileId > 0)
-
-	if (fileIds.length === 0) {
-		return getOldestPhotoDateInputValue(frameSideFiles)
-	}
-
-	const files = await db['file'].where('id').anyOf(fileIds).toArray()
-	return getOldestPhotoDateInputValue([...frameSideFiles, ...files])
-}
+import {
+	BOX_SYSTEM_COLORS,
+	BOX_SYSTEMS_FOR_HIVE_LABEL_QUERY,
+} from './constants'
+import {
+	getSuggestedInspectionDate,
+	toDateInputValue,
+	toStartOfDayIso,
+} from './inspectionDates'
+import {
+	downloadHiveQrSticker,
+	generateHiveQrStickerDataUrl,
+} from './qrSticker'
+import HiveActionButtons from './HiveActionButtons'
+import HiveCreatedAnimation, {
+	useHiveCreatedAnimation,
+} from './HiveCreatedAnimation'
+import HiveInspectionModal from './HiveInspectionModal'
+import HiveQrStickerModal from './HiveQrStickerModal'
+import HiveReadOnlyView from './HiveReadOnlyView'
 
 export default function HiveEditDetails({
 	apiaryId,
@@ -149,25 +57,27 @@ export default function HiveEditDetails({
 	onTopMessageChange,
 	celebrateHiveCreated,
 }) {
-	let [editable, setEditable] = useState(false)
+	const [editable] = useState(false)
 	let [creatingInspection, setCreatingInspection] = useState(false)
 	let [okMsg, setOkMsg] = useState(null)
-		const [inspectionModalVisible, setInspectionModalVisible] = useState(false)
-		const [inspectionDate, setInspectionDate] = useState(toDateInputValue(new Date()))
+	const [inspectionModalVisible, setInspectionModalVisible] = useState(false)
+	const [inspectionDate, setInspectionDate] = useState(
+		toDateInputValue(new Date())
+	)
 	let [showCollapseSuccess, setShowCollapseSuccess] = useState(false)
 	const [showQRModal, setShowQRModal] = useState(false)
 	const [qrStickerDataUrl, setQrStickerDataUrl] = useState<string | null>(null)
 	const [isGeneratingQR, setIsGeneratingQR] = useState(false)
-	const [showHiveCreatedAnimation, setShowHiveCreatedAnimation] =
-		useState(false)
-	const hasPlayedHiveCreatedAnimation = useRef(false)
-	const hiveCreatedIconRef = useRef(null)
-	const hiveCreatedBeeRefs = useRef<any[]>([])
-	const hiveCreatedSpeedupRef = useRef(0)
 	let navigate = useNavigate()
 	const [showCollapseModal, setShowCollapseModal] = useState(false)
 	const [splitModalOpen, setSplitModalOpen] = useState(false)
-	const [joinModalOpen, setJoinModalOpen] = useState(false) // Add state for collapse modal
+	const [joinModalOpen, setJoinModalOpen] = useState(false)
+	const {
+		showHiveCreatedAnimation,
+		hiveCreatedIconRef,
+		hiveCreatedBeeRefs,
+		speedUpHiveCreatedAnimation,
+	} = useHiveCreatedAnimation(celebrateHiveCreated)
 
 	// Model functions now handle invalid IDs
 	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId])
@@ -210,9 +120,6 @@ export default function HiveEditDetails({
 		[]
 	)
 
-	const collapsed = hive ? isCollapsed(hive) : false
-	const editableHive = hive ? isEditable(hive) : false // Expose for UI
-
 	useEffect(() => {
 		const isTypingTarget = (target) => {
 			if (!target) return false
@@ -229,9 +136,9 @@ export default function HiveEditDetails({
 			if (event.defaultPrevented) return
 			if (event.altKey) return
 			if (isTypingTarget(event.target)) return
-				const key = String(event.key || '').toLowerCase()
-				if (!(event.ctrlKey || event.metaKey) || key !== 'e') return
-				if (!hive || !isEditable(hive) || isCollapsed(hive)) return
+			const key = String(event.key || '').toLowerCase()
+			if (!(event.ctrlKey || event.metaKey) || key !== 'e') return
+			if (!hive || !isEditable(hive) || isCollapsed(hive)) return
 
 			event.preventDefault()
 			navigate(`/apiaries/${apiaryId}/hives/${hiveId}/edit`, {
@@ -245,194 +152,103 @@ export default function HiveEditDetails({
 		}
 	}, [apiaryId, hive, hiveId, navigate])
 
-		useEffect(() => {
-			if (!celebrateHiveCreated || hasPlayedHiveCreatedAnimation.current) {
-				return
-			}
-
-			hasPlayedHiveCreatedAnimation.current = true
-
-			if (
-				typeof window !== 'undefined' &&
-				window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-			) {
-				return
-			}
-
-			setShowHiveCreatedAnimation(true)
-			hiveCreatedSpeedupRef.current = 0
-
-			let animationFrame = 0
-			const startedAt = performance.now()
-
-			const animate = (now: number) => {
-				const elapsed = now - startedAt + hiveCreatedSpeedupRef.current
-				const targetElement = hiveCreatedIconRef.current as HTMLElement | null
-				const targetRect = targetElement?.getBoundingClientRect()
-				const targetX = targetRect
-					? targetRect.left + targetRect.width / 2
-					: window.innerWidth / 2
-				const targetY = targetRect
-					? targetRect.top + targetRect.height / 2
-					: window.innerHeight / 2
-				const viewportWidth = window.innerWidth
-				const viewportHeight = window.innerHeight
-
-				hiveCreatedBeeSwarm.forEach((bee) => {
-					const element = hiveCreatedBeeRefs.current[
-						bee.key
-					] as HTMLElement | null
-					if (!element) return
-
-					const progress = clamp01((elapsed - bee.delay) / bee.duration)
-					const startX = (bee.startXPercent / 100) * viewportWidth
-					const startY = (bee.startYPercent / 100) * viewportHeight
-					const dx = startX - targetX
-					const dy = startY - targetY
-					const distance = Math.hypot(dx, dy)
-					const startAngle = Math.atan2(dy, dx)
-					const spiralAngle =
-						startAngle + bee.direction * bee.turns * Math.PI * 2 * progress
-					const radius = distance * (1 - progress)
-					const x = targetX + Math.cos(spiralAngle) * radius
-					const y = targetY + Math.sin(spiralAngle) * radius
-					const scale = 1 - (1 - bee.finalScale) * Math.pow(progress, 1.15)
-					const opacity =
-						progress <= 0
-							? 0
-							: progress < 0.05
-							? progress / 0.05
-							: progress > 0.9
-							? (1 - progress) / 0.1
-							: 1
-
-					element.style.opacity = String(Math.max(0, opacity))
-					element.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) rotate(${
-						spiralAngle + Math.PI / 2
-					}rad) scale(${scale})`
-				})
-
-				if (elapsed < HIVE_CREATED_ANIMATION_MS) {
-					animationFrame = requestAnimationFrame(animate)
-					return
-				}
-
-				setShowHiveCreatedAnimation(false)
-			}
-
-			animationFrame = requestAnimationFrame(animate)
-			const cleanupTimer = window.setTimeout(() => {
-				cancelAnimationFrame(animationFrame)
-				setShowHiveCreatedAnimation(false)
-			}, HIVE_CREATED_ANIMATION_MS + 250)
-
-			return () => {
-				cancelAnimationFrame(animationFrame)
-				window.clearTimeout(cleanupTimer)
-			}
-		}, [celebrateHiveCreated])
-
-		function speedUpHiveCreatedAnimation() {
-			hiveCreatedSpeedupRef.current += HIVE_CREATED_CLICK_SPEEDUP_MS
+	let [mutateInspection, { error: errorInspection }] =
+		useMutation(`	mutation addInspection($inspection: InspectionInput!) {
+		addInspection(inspection: $inspection) {
+			id
 		}
+	}`)
+	let [cloneFramesForInspection, { error: errorInspection2 }] =
+		useMutation(`mutation cloneFramesForInspection($frameSideIDs: [ID], $inspectionId: ID!) {
+		cloneFramesForInspection(frameSideIDs: $frameSideIDs, inspectionId: $inspectionId)
+	}`)
 
-		let [mutateInspection, { error: errorInspection }] =
-			useMutation(`	mutation addInspection($inspection: InspectionInput!) {
-			addInspection(inspection: $inspection) {
-				id
-			}
-		}`)
-		let [cloneFramesForInspection, { error: errorInspection2 }] =
-			useMutation(`mutation cloneFramesForInspection($frameSideIDs: [ID], $inspectionId: ID!) {
-			cloneFramesForInspection(frameSideIDs: $frameSideIDs, inspectionId: $inspectionId)
-		}`)
+	function goToHiveView(event) {
+		event.stopPropagation()
+		navigate(`/apiaries/${apiaryId}/hives/${hiveId}`, {
+			replace: true,
+		})
+	}
 
-		function goToHiveView(event) {
-			event.stopPropagation()
-			navigate(`/apiaries/${apiaryId}/hives/${hiveId}`, {
-				replace: true,
-			})
-		}
+	async function openInspectionModal() {
+		const frames = await getFramesByHive(+hiveId)
+		const frameSideIDs = collectFrameSideIDsFromFrames(frames)
+		setInspectionDate(await getSuggestedInspectionDate(frameSideIDs))
+		setInspectionModalVisible(true)
+	}
 
-		async function openInspectionModal() {
-			const frames = await getFramesByHive(+hiveId)
-			const frameSideIDs = collectFrameSideIDsFromFrames(frames)
-			setInspectionDate(await getSuggestedInspectionDate(frameSideIDs))
-			setInspectionModalVisible(true)
-		}
+	const onCreateInspection = useMemo(
+		() =>
+			debounce(async function (dateValue: string) {
+				setCreatingInspection(true)
+				setInspectionModalVisible(false)
 
-		const onCreateInspection = useMemo(
-			() =>
-				debounce(async function (dateValue: string) {
-					setCreatingInspection(true)
-					setInspectionModalVisible(false)
+				try {
+					let hive = await getHive(+hiveId)
+					let boxes = await getBoxes({ hiveId: +hiveId })
+					let family = await getFamilyByHive(+hiveId)
+					let frames = await getFramesByHive(+hiveId)
+					let frameSideIDs = collectFrameSideIDsFromFrames(frames)
+					let cellStats = await getHiveInspectionStats(frames)
 
-					try {
-						let hive = await getHive(+hiveId)
-						let boxes = await getBoxes({ hiveId: +hiveId })
-						let family = await getFamilyByHive(+hiveId)
-						let frames = await getFramesByHive(+hiveId)
-						let frameSideIDs = collectFrameSideIDsFromFrames(frames)
-						let cellStats = await getHiveInspectionStats(frames)
-
-						let inspectionSnapshot: InspectionSnapshot = {
-							hive,
-							family,
-							boxes,
-							frames,
-							cellStats,
-						}
-						const inspectionAdded = toStartOfDayIso(dateValue)
-
-						let createdInspection = await mutateInspection({
-							inspection: {
-								hiveId: +hiveId,
-								data: JSON.stringify(inspectionSnapshot),
-								added: inspectionAdded,
-							},
-						})
-						const inspectionId = createdInspection?.data?.addInspection?.id
-						if (!inspectionId) {
-							throw new Error('Inspection was not created.')
-						}
-
-						await cloneFramesForInspection({
-							inspectionId,
-							frameSideIDs,
-						})
-						await addHiveLog({
-							hiveId: +hiveId,
-							action: hiveLogActions.INSPECTION,
-							title: 'Inspection created',
-							details: `Inspection #${inspectionId} captured for ${dateValue}.`,
-							dedupeKey: `inspection:${inspectionId}`,
-						})
-
-						deleteCellsByFrameSideIDs(frameSideIDs)
-						deleteFilesByFrameSideIDs(frameSideIDs)
-
-						hive.inspectionCount = (hive.inspectionCount || 0) + 1
-						updateHive(hive)
-
-						setOkMsg(
-							<MessageSuccess
-								title={<T>Inspection created</T>}
-								message={
-									<>
-										<T>All frame statistics is reset for the new state</T>.
-										<T>Try sharing the inspection with others</T>!
-									</>
-								}
-							/>
-						)
-					} catch (error) {
-						console.error('Failed to complete inspection', error)
-					} finally {
-						setCreatingInspection(false)
+					let inspectionSnapshot: InspectionSnapshot = {
+						hive,
+						family,
+						boxes,
+						frames,
+						cellStats,
 					}
-				}, 1000),
-			[hiveId]
-		)
+					const inspectionAdded = toStartOfDayIso(dateValue)
+
+					let createdInspection = await mutateInspection({
+						inspection: {
+							hiveId: +hiveId,
+							data: JSON.stringify(inspectionSnapshot),
+							added: inspectionAdded,
+						},
+					})
+					const inspectionId = createdInspection?.data?.addInspection?.id
+					if (!inspectionId) {
+						throw new Error('Inspection was not created.')
+					}
+
+					await cloneFramesForInspection({
+						inspectionId,
+						frameSideIDs,
+					})
+					await addHiveLog({
+						hiveId: +hiveId,
+						action: hiveLogActions.INSPECTION,
+						title: 'Inspection created',
+						details: `Inspection #${inspectionId} captured for ${dateValue}.`,
+						dedupeKey: `inspection:${inspectionId}`,
+					})
+
+					deleteCellsByFrameSideIDs(frameSideIDs)
+					deleteFilesByFrameSideIDs(frameSideIDs)
+
+					hive.inspectionCount = (hive.inspectionCount || 0) + 1
+					updateHive(hive)
+
+					setOkMsg(
+						<MessageSuccess
+							title={<T>Inspection created</T>}
+							message={
+								<>
+									<T>All frame statistics is reset for the new state</T>.
+									<T>Try sharing the inspection with others</T>!
+								</>
+							}
+						/>
+					)
+				} catch (error) {
+					console.error('Failed to complete inspection', error)
+				} finally {
+					setCreatingInspection(false)
+				}
+			}, 1000),
+		[hiveId]
+	)
 
 	useEffect(() => {
 		if (typeof onTopMessageChange !== 'function') return
@@ -491,399 +307,120 @@ export default function HiveEditDetails({
 		  ]
 		: '#6b7280'
 
-	const SplitIcon = () => (
-		<svg
-			width="16"
-			height="16"
-			viewBox="0 0 16 16"
-			fill="currentColor"
-			style="margin-right: 4px"
-		>
-			<path
-				d="M8 2L8 6M8 6L6 4M8 6L10 4M8 10L8 14M8 10L6 12M8 10L10 12M3 8L6 8M10 8L13 8"
-				stroke="currentColor"
-				fill="none"
-				stroke-width="1.5"
-				stroke-linecap="round"
-			/>
-		</svg>
-	)
-
-	const JoinIcon = () => (
-		<svg
-			width="16"
-			height="16"
-			viewBox="0 0 16 16"
-			fill="currentColor"
-			style="margin-right: 4px"
-		>
-			<path
-				d="M2 6L5 8L2 10M14 6L11 8L14 10M5 8L11 8"
-				stroke="currentColor"
-				fill="none"
-				stroke-width="1.5"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-			/>
-		</svg>
-	)
+	const goToHiveEdit = () =>
+		navigate(`/apiaries/${apiaryId}/hives/${hiveId}/edit`)
+	const openSplitModal = () => setSplitModalOpen(true)
+	const openJoinModal = () => setJoinModalOpen(true)
+	const openCollapseModal = () => setShowCollapseModal(true)
 
 	let buttons = (
-		<div>
-			<VisualFormSubmit>
-				{isEditable(hive) && (
-					<PopupButtonGroup>
-						{!editable && (
-							<Button
-								loading={creatingInspection}
-								onClick={openInspectionModal}
-								color="green"
-							>
-								<InspectionIcon />
-								<T ctx="This is a button that adds new beehive inspection as a snapshot of current beehive state">
-									Complete Inspection
-								</T>
-							</Button>
-						)}
-						{!editable && hive && !isCollapsed(hive) && (
-							<Button
-								onClick={() =>
-									navigate(`/apiaries/${apiaryId}/hives/${hiveId}/edit`)
-								}
-							>
-								<T ctx="this is a button to allow editing by displaying a form">
-									Edit
-								</T>
-							</Button>
-						)}
-
-						{!editable && (
-							<PopupButton align="right">
-								<Button
-									title="Split colony"
-									onClick={() => setSplitModalOpen(true)}
-								>
-									<SplitIcon />{' '}
-									<T
-										ctx={
-											'An operation on a bee colony by separating it into two or more parts. This is done to prevent swarming, expand the apiary, or create nucleus colonies.'
-										}
-									>
-										Split Colony
-									</T>
-								</Button>
-
-								<Button
-									title="Join colonies"
-									onClick={() => setJoinModalOpen(true)}
-								>
-									<JoinIcon />{' '}
-									<T
-										ctx={
-											'Joining two bee colonies involves physically combining two separate colonies into one. This is done to strengthen a weak colony, manage queen genetics, or consolidate resources.'
-										}
-									>
-										Combine Colonies
-									</T>
-								</Button>
-
-								{hive && !isCollapsed(hive) && (
-									<Button onClick={() => setShowCollapseModal(true)}>
-										<SkullIcon size={16} />{' '}
-										<T
-											ctx={
-												'Marking bee colony as dead due to varroa mite infestation or other unknown causes'
-											}
-										>
-											Mark as Collapsed
-										</T>
-									</Button>
-								)}
-								<DeactivateButton hiveId={hive.id} />
-							</PopupButton>
-						)}
-					</PopupButtonGroup>
-				)}
-
-				{!isEditable(hive) && (isCollapsed(hive) || isMerged(hive)) && (
-					<DeactivateButton hiveId={hive.id} />
-				)}
-			</VisualFormSubmit>
-		</div>
+		<HiveActionButtons
+			hive={hive}
+			apiaryId={apiaryId}
+			hiveId={hiveId}
+			editable={editable}
+			creatingInspection={creatingInspection}
+			onCreateInspectionClick={openInspectionModal}
+			onEditClick={goToHiveEdit}
+			onSplitClick={openSplitModal}
+			onJoinClick={openJoinModal}
+			onCollapseClick={openCollapseModal}
+		/>
 	)
 
 	let buttonsDesktop = (
-		<div>
-			<VisualFormSubmit>
-				{isEditable(hive) && (
-					<PopupButtonGroup>
-						{!editable && (
-							<Button
-								loading={creatingInspection}
-								onClick={openInspectionModal}
-								color="green"
-							>
-								<InspectionIcon />
-								<T ctx="This is a button that adds new beehive inspection as a snapshot of current beehive state">
-									Complete Inspection
-								</T>
-							</Button>
-						)}
-						{!editable && hive && !isCollapsed(hive) && (
-							<Button
-								onClick={() =>
-									navigate(`/apiaries/${apiaryId}/hives/${hiveId}/edit`)
-								}
-							>
-								<T ctx="this is a button to allow editing by displaying a form">
-									Edit
-								</T>
-							</Button>
-						)}
-
-						{!editable && (
-							<PopupButton align="right">
-								<Button
-									title="Split colony"
-									onClick={() => setSplitModalOpen(true)}
-								>
-									<SplitIcon />{' '}
-									<T
-										ctx={
-											'An operation on a bee colony by separating it into two or more parts. This is done to prevent swarming, expand the apiary, or create nucleus colonies.'
-										}
-									>
-										Split Colony
-									</T>
-								</Button>
-
-								<Button
-									title="Join colonies"
-									onClick={() => setJoinModalOpen(true)}
-								>
-									<JoinIcon /> <T>Join Colony</T>
-								</Button>
-
-								{hive && !isCollapsed(hive) && (
-									<Button onClick={() => setShowCollapseModal(true)}>
-										<SkullIcon size={16} />{' '}
-										<T
-											ctx={
-												'Marking bee colony as dead due to varroa mite infestation or other unknown causes'
-											}
-										>
-											Mark as Collapsed
-										</T>
-									</Button>
-								)}
-								<DeactivateButton hiveId={hive.id} />
-							</PopupButton>
-						)}
-					</PopupButtonGroup>
-				)}
-
-				{!isEditable(hive) && (isCollapsed(hive) || isMerged(hive)) && (
-					<DeactivateButton hiveId={hive.id} />
-				)}
-			</VisualFormSubmit>
-		</div>
+		<HiveActionButtons
+			hive={hive}
+			apiaryId={apiaryId}
+			hiveId={hiveId}
+			editable={editable}
+			creatingInspection={creatingInspection}
+			variant="desktop"
+			onCreateInspectionClick={openInspectionModal}
+			onEditClick={goToHiveEdit}
+			onSplitClick={openSplitModal}
+			onJoinClick={openJoinModal}
+			onCollapseClick={openCollapseModal}
+		/>
 	)
+
+	function navigateToQueenLastSeen(family) {
+		if (!family.lastSeenFrameId || !family.lastSeenFrameSideId) {
+			return
+		}
+		const fallbackFrame = (allHiveFrames || []).find(
+			(frame) => Number(frame?.id) === Number(family.lastSeenFrameId)
+		)
+		const targetBoxId = family.lastSeenBoxId || fallbackFrame?.boxId
+		if (!targetBoxId) return
+		navigate(
+			`/apiaries/${apiaryId}/hives/${hiveId}/box/${targetBoxId}/frame/${family.lastSeenFrameId}/${family.lastSeenFrameSideId}`
+		)
+	}
+
+	async function onGenerateQR() {
+		try {
+			setShowQRModal(true)
+			setIsGeneratingQR(true)
+			setQrStickerDataUrl(null)
+
+			const url = window.location.href
+			const qrDataURL = await generateHiveQrStickerDataUrl(url)
+			setQrStickerDataUrl(qrDataURL)
+			console.debug(
+				`Generated QR sticker with logo for hive ${hiveId} with URL: ${url}`
+			)
+		} catch (err) {
+			console.error('Failed to generate QR code', err)
+		} finally {
+			setIsGeneratingQR(false)
+		}
+	}
+
+	function downloadQrSticker() {
+		if (!qrStickerDataUrl) return
+		downloadHiveQrSticker(qrStickerDataUrl, hiveId)
+	}
 
 	if (!editable) {
 		return (
 			<>
-				<div style="padding: 0 10px;">
-					<div className={styles.spotlight_wrap}>
-						<div className={styles.spotlight_icon}>
-							<div
-								ref={hiveCreatedIconRef}
-								className={styles.icon_wrap}
-								onClick={goToHiveView}
-								style={{ cursor: 'pointer' }}
-								title="Go to hive view"
-							>
-								<HiveIcon boxes={boxes} />
-							</div>
-							<BeeCounter count={hive.beeCount} />
-						</div>
+				<HiveReadOnlyView
+					hive={hive}
+					boxes={boxes}
+					families={families}
+					apiaryId={apiaryId}
+					hiveId={hiveId}
+					buttons={buttons}
+					buttonsDesktop={buttonsDesktop}
+					displayedBoxSystem={displayedBoxSystem}
+					displayedBoxSystemColor={displayedBoxSystemColor}
+					isHorizontalHive={isHorizontalHive}
+					isHiveMiniMapLocked={isHiveMiniMapLocked}
+					isMobileApiary={isMobileApiary}
+					hiveCreatedIconRef={hiveCreatedIconRef}
+					onGoToHiveView={goToHiveView}
+					onGenerateQR={onGenerateQR}
+					onNavigateToQueenLastSeen={navigateToQueenLastSeen}
+					onEmptyQueenSlotClick={goToHiveEdit}
+				/>
 
-						<div className={styles.name_race_wrap}>
-							<div className={styles.hiveTitleRow}>
-								<h1 className={styles.hiveTitle} onClick={goToHiveView}>
-									{hive.hiveNumber ? (
-										`Hive #${hive.hiveNumber}`
-									) : (
-										<T>Hive without number</T>
-									)}
-								</h1>
-								<button
-									type="button"
-									className={styles.hiveTitleQrButton}
-									title="Generate QR sticker for this hive"
-									aria-label="Generate QR sticker for this hive"
-									onClick={onGenerateQR}
-								>
-									<QrCodeIcon size={16} />
-								</button>
-							</div>
-							<div className={styles.wrap4}>
-								<div className={styles.titleQueenWrap}>
-									<div className={styles.metaRow}>
-										<div className={styles.metaLabel}>
-											<T>Hive system</T>
-										</div>
-										<div className={styles.metaValue}>
-											<span className={styles.boxSystemValue}>
-												<span
-													className={styles.boxSystemDot}
-													style={{ backgroundColor: displayedBoxSystemColor }}
-												></span>
-												<span>
-													{isHorizontalHive
-														? 'Independent (Horizontal)'
-														: displayedBoxSystem?.name || 'Unknown'}
-												</span>
-											</span>
-										</div>
-									</div>
-									<div className={styles.metaRow}>
-										<div className={styles.metaLabel}>
-											<T>Queen</T>
-										</div>
-										<div className={styles.metaValue}>
-											<div id={styles.queenSection}>
-												<QueenSlot
-													families={families}
-													editable={false}
-													onAddQueen={() => {}}
-													onRemoveQueen={() => {}}
-													onNavigateToLastSeen={(family) => {
-														if (
-															!family.lastSeenFrameId ||
-															!family.lastSeenFrameSideId
-														) {
-															return
-														}
-														const fallbackFrame = (allHiveFrames || []).find(
-															(frame) =>
-																Number(frame?.id) ===
-																Number(family.lastSeenFrameId)
-														)
-														const targetBoxId =
-															family.lastSeenBoxId || fallbackFrame?.boxId
-														if (!targetBoxId) return
-														navigate(
-															`/apiaries/${apiaryId}/hives/${hiveId}/box/${targetBoxId}/frame/${family.lastSeenFrameId}/${family.lastSeenFrameSideId}`
-														)
-													}}
-													onEmptySlotClick={() =>
-														navigate(
-															`/apiaries/${apiaryId}/hives/${hiveId}/edit`
-														)
-													}
-												/>
-											</div>
-										</div>
-									</div>
-
-									{hive && isCollapsed(hive) && (
-										<div className={styles.collapsedLabel}>
-											{hive.collapse_date && (
-												<>
-													<DateFormat datetime={hive.collapse_date} />{' '}
-												</>
-											)}
-											<SkullIcon
-												size={14}
-												color="#b22222"
-												style={{ marginRight: 4 }}
-											/>
-											<T>Collapsed</T>
-										</div>
-									)}
-									<HiveStatistics hiveId={hiveId} />
-									{hive.notes && (
-										<p className={styles.hiveNotes}>{hive.notes}</p>
-									)}
-								</div>
-								{!isHiveMiniMapLocked && !isMobileApiary && (
-									<div className={styles.desktopMiniMapWrap}>
-										<HivePlacementMiniMap
-											apiaryId={apiaryId}
-											selectedHiveId={hiveId}
-										/>
-									</div>
-								)}
-							</div>
-
-							{hive && isCollapsed(hive) && hive.collapse_cause && (
-								<>
-									{' '}
-									<T>Collapse cause</T>: {hive.collapse_cause}
-								</>
-							)}
-						</div>
-
-						<div className={styles.button_wrap1}>{buttonsDesktop}</div>
-					</div>
-
-					<div className={styles.button_wrap2}>{buttons}</div>
-				</div>
-
-				{showHiveCreatedAnimation && (
-					<div
-						className={styles.hiveCreatedBeeLayer}
-						aria-hidden="true"
-						onPointerDown={speedUpHiveCreatedAnimation}
-					>
-						{hiveCreatedBeeSwarm.map((bee) => (
-							<img
-								key={bee.key}
-								ref={(element) => {
-									hiveCreatedBeeRefs.current[bee.key] = element
-								}}
-								src={beeSideUrl}
-								className={styles.hiveCreatedBee}
-								style={bee.style}
-								alt=""
-							/>
-						))}
-					</div>
-				)}
+				<HiveCreatedAnimation
+					visible={showHiveCreatedAnimation}
+					beeRefs={hiveCreatedBeeRefs}
+					onSpeedUp={speedUpHiveCreatedAnimation}
+				/>
 
 				{inspectionModalVisible && (
-					<Modal title={<T>Complete Inspection</T>} onClose={() => setInspectionModalVisible(false)} className={styles.inspectionModal}>
-						<div className={styles.inspectionModalBody}>
-							<p>
-								<T>Completing this inspection will save the current hive state and frame photos as a read-only historical record for analytics.</T>
-							</p>
-							<p>
-								<T>This lets you track hive growth progress over time. After confirmation, current photos and frame statistics will be reset so you can upload photos for the next inspection.</T>
-							</p>
-							<label className={styles.inspectionDateField}>
-								<span><T>Inspection date</T></span>
-								<input
-									type="date"
-									value={inspectionDate}
-									onInput={(event) => setInspectionDate((event.target as HTMLInputElement).value)}
-								/>
-							</label>
-							<p className={styles.inspectionDateHint}>
-								<T>We prefill this with the oldest photo timestamp when available. Please adjust it if the inspection happened on another day.</T>
-							</p>
-							<div className={styles.inspectionModalActions}>
-								<Button onClick={() => setInspectionModalVisible(false)} disabled={creatingInspection}>
-									<T>Cancel</T>
-								</Button>
-								<Button color="green" loading={creatingInspection} disabled={!inspectionDate} onClick={() => onCreateInspection(inspectionDate)}>
-									<InspectionIcon /> <T>Complete Inspection</T>
-								</Button>
-							</div>
-						</div>
-					</Modal>
+					<HiveInspectionModal
+						inspectionDate={inspectionDate}
+						creatingInspection={creatingInspection}
+						onCancel={() => setInspectionModalVisible(false)}
+						onConfirm={onCreateInspection}
+						onInspectionDateChange={setInspectionDate}
+					/>
 				)}
 
-				{/* Collapse Modal */}
 				{showCollapseModal && (
 					<CollapseHiveModal
 						hiveId={hiveId}
@@ -911,32 +448,12 @@ export default function HiveEditDetails({
 				/>
 
 				{showQRModal && (
-					<Modal
-						title={<T>Hive QR sticker</T>}
+					<HiveQrStickerModal
+						isGeneratingQR={isGeneratingQR}
+						qrStickerDataUrl={qrStickerDataUrl}
 						onClose={() => setShowQRModal(false)}
-						className={styles.qrModal}
-					>
-						<div className={styles.qrModalBody}>
-							{isGeneratingQR && <Loader />}
-							{!isGeneratingQR && qrStickerDataUrl && (
-								<>
-									<img
-										src={qrStickerDataUrl}
-										alt="Hive QR sticker"
-										className={styles.qrPreview}
-									/>
-									<Button onClick={downloadQrSticker}>
-										<T>Download sticker</T>
-									</Button>
-								</>
-							)}
-							{!isGeneratingQR && !qrStickerDataUrl && (
-								<p className={styles.qrErrorText}>
-									<T>Failed to generate QR sticker.</T>
-								</p>
-							)}
-						</div>
-					</Modal>
+						onDownload={downloadQrSticker}
+					/>
 				)}
 			</>
 		)
@@ -945,72 +462,4 @@ export default function HiveEditDetails({
 	return (
 		<HiveTopEditForm apiaryId={apiaryId} hiveId={hiveId} buttons={buttons} />
 	)
-
-	async function onGenerateQR() {
-		try {
-			setShowQRModal(true)
-			setIsGeneratingQR(true)
-			setQrStickerDataUrl(null)
-
-			const url = window.location.href
-			const canvas = document.createElement('canvas')
-			const qrSize = 1000 // Increased size
-
-			// Draw QR code to canvas
-			await QRCode.toCanvas(canvas, url, {
-				width: qrSize,
-				errorCorrectionLevel: 'H', // High error correction is important for logos
-				margin: 1, // Add a small margin
-			})
-
-			const logo = await loadImage(logoUrl)
-			const ctx = canvas.getContext('2d')
-			if (!ctx) {
-				throw new Error('Could not get canvas context')
-			}
-
-			// Calculate logo size and position (e.g., 20% of QR size)
-			const logoSize = qrSize * 0.2
-			const logoX = (qrSize - logoSize) / 2
-			const logoY = (qrSize - logoSize) / 2
-
-			// Draw a white background behind the logo for better contrast/scannability
-			ctx.fillStyle = '#FFFFFF'
-			ctx.fillRect(logoX - 5, logoY - 5, logoSize + 10, logoSize + 10)
-
-			// Draw logo
-			ctx.drawImage(logo, logoX, logoY, logoSize, logoSize)
-
-			// Convert canvas to data URL for preview/download in modal
-			const qrDataURL = canvas.toDataURL('image/png')
-			setQrStickerDataUrl(qrDataURL)
-			console.debug(
-				`Generated QR sticker with logo for hive ${hiveId} with URL: ${url}`
-			)
-		} catch (err) {
-			console.error('Failed to generate QR code', err)
-		} finally {
-			setIsGeneratingQR(false)
-		}
-	}
-
-	function downloadQrSticker() {
-		if (!qrStickerDataUrl) return
-
-		const link = document.createElement('a')
-		link.href = qrStickerDataUrl
-		link.download = `hive-${hiveId}-qr-sticker.png`
-		document.body.appendChild(link)
-		link.click()
-		document.body.removeChild(link)
-	}
-
-	function loadImage(src: string): Promise<HTMLImageElement> {
-		return new Promise((resolve, reject) => {
-			const image = new Image()
-			image.onload = () => resolve(image)
-			image.onerror = reject
-			image.src = src
-		})
-	}
 }

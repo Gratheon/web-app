@@ -77,7 +77,7 @@ export default function HiveEditDetails({
 		hiveCreatedIconRef,
 		hiveCreatedBeeRefs,
 		speedUpHiveCreatedAnimation,
-	} = useHiveCreatedAnimation(celebrateHiveCreated)
+	} = useHiveCreatedAnimation(celebrateHiveCreated, families.length > 0)
 
 	// Model functions now handle invalid IDs
 	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId])

@@ -31,7 +31,10 @@ const hiveCreatedBeeSwarm = Array.from({ length: HIVE_CREATED_BEE_COUNT }).map(
 
 const clamp01 = (value: number) => Math.max(0, Math.min(1, value))
 
-export function useHiveCreatedAnimation(celebrateHiveCreated: boolean) {
+export function useHiveCreatedAnimation(
+	celebrateHiveCreated: boolean,
+	hasFamily: boolean
+) {
 	const [showHiveCreatedAnimation, setShowHiveCreatedAnimation] =
 		useState(false)
 	const hasPlayedHiveCreatedAnimation = useRef(false)
@@ -40,7 +43,11 @@ export function useHiveCreatedAnimation(celebrateHiveCreated: boolean) {
 	const hiveCreatedSpeedupRef = useRef(0)
 
 	useEffect(() => {
-		if (!celebrateHiveCreated || hasPlayedHiveCreatedAnimation.current) {
+		if (
+			!celebrateHiveCreated ||
+			!hasFamily ||
+			hasPlayedHiveCreatedAnimation.current
+		) {
 			return
 		}
 
@@ -124,7 +131,7 @@ export function useHiveCreatedAnimation(celebrateHiveCreated: boolean) {
 			cancelAnimationFrame(animationFrame)
 			window.clearTimeout(cleanupTimer)
 		}
-	}, [celebrateHiveCreated])
+	}, [celebrateHiveCreated, hasFamily])
 
 	function speedUpHiveCreatedAnimation() {
 		hiveCreatedSpeedupRef.current += HIVE_CREATED_CLICK_SPEEDUP_MS

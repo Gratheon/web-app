@@ -9,8 +9,7 @@ import WarehouseDropZone from '@/page/hiveEdit/hiveTopInfo/WarehouseDropZone'
 import { useMutation } from '@/api'
 import { updateHive, getHive, getHives } from '@/models/hive'
 import { Box, getBoxes, updateBox } from '@/models/boxes'
-import { getFamilyByHive, getAllFamiliesByHive, updateFamily, deleteFamily } from '@/models/family'
-import { Family } from '@/models/family'
+import { getAllFamiliesByHive, updateFamily, deleteFamily } from '@/models/family'
 import { InspectionSnapshot } from '@/models/inspections'
 import { getFramesByHive } from '@/models/frames'
 import { getHiveInspectionStats, deleteCellsByFrameSideIDs } from '@/models/frameSideCells'
@@ -246,60 +245,6 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 
 		await updateBox(box)
 	}
-
-	const onRaceChange = useMemo(
-		() =>
-			debounce(async function (v) {
-				const hive = await getHive(+hiveId)
-				let family = await getFamilyByHive(+hiveId) || { hiveId: +hiveId } as Family
-				family.race = v.target.value
-				let { data } = await mutateHive({
-					hive: {
-						id: hive.id,
-						notes: hive.notes,
-						family: {
-							id: family?.id,
-							race: family?.race,
-							added: family?.added,
-						},
-					},
-				})
-				family.id = +data.updateHive.family.id;
-
-				if (family) {
-					await updateFamily(family)
-				}
-			}, 1000),
-		[]
-	)
-
-	const onQueenYearChange = useMemo(
-		() =>
-			debounce(async function (v) {
-				const hive = await getHive(+hiveId)
-				let family = await getFamilyByHive(+hiveId) || { hiveId: +hiveId } as Family
-				family.added = v.target.value
-
-				let { data } = await mutateHive({
-					hive: {
-						id: hive.id,
-						notes: hive.notes,
-						family: {
-							id: family.id,
-							race: family.race,
-							added: family.added,
-						},
-					},
-				})
-
-				family.id = +data.updateHive.family.id;
-
-				if (family) {
-					await updateFamily(family)
-				}
-			}, 1000),
-		[]
-	)
 
 	const handleAddNewQueen = () => {
 		setAddQueenModalMode('create')

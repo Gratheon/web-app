@@ -6,6 +6,8 @@ import T from '@/shared/translate';
 import VisualForm from '@/shared/visualForm';
 import Button from '@/shared/button';
 
+const CAMERA_PERMISSION_DESCRIPTOR = { name: 'camera' } as PermissionDescriptor & { name: 'camera' }
+
 
 const VideoCapture = ({ boxId }) => {
   const videoRef = useRef(null);
@@ -26,8 +28,7 @@ const VideoCapture = ({ boxId }) => {
   useEffect(() => {
     const checkCameraPermission = async () => {
       try {
-        // @ts-ignore
-        const permissionStatus = await navigator.permissions.query({ name: 'camera' });
+        const permissionStatus = await navigator.permissions.query(CAMERA_PERMISSION_DESCRIPTOR);
         setHasCameraPermission(permissionStatus.state === 'granted');
       } catch (error) {
         console.error('Error checking camera permission:', error);

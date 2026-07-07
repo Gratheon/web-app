@@ -52,6 +52,14 @@ function getRequestHeaders(): Record<string, string> {
 	return headers;
 }
 
+type DegradedOperationResult = {
+	degradedService?: boolean
+	extensions?: {
+		degradedService?: boolean
+	}
+	originalError?: unknown
+}
+
 const graphqlWsClient = createClient({
 	url: subscriptionUri(),
 	keepAlive: 5_000,
@@ -143,10 +151,13 @@ function useQueryAdapted(query: string | TypedDocumentNode, options?: any) {
 	})
 
 	const hasData = result.data !== null && result.data !== undefined
-	//@ts-ignore
-	const degradedError = result?.originalError || null
-	//@ts-ignore
-	const isDegraded = !!(result?.degradedService || result?.extensions?.degradedService || degradedError)
+	const degradedResult = result as typeof result & DegradedOperationResult
+	const degradedError = degradedResult.originalError || null
+	const isDegraded = !!(
+		degradedResult.degradedService ||
+		degradedResult.extensions?.degradedService ||
+		degradedError
+	)
 
 	return {
 		data: result.data,
@@ -154,8 +165,7 @@ function useQueryAdapted(query: string | TypedDocumentNode, options?: any) {
 		error: result.error,
 		degradedError,
 		degradedService: isDegraded,
-		//@ts-ignore
-		errorNetwork: hasData ? null : result?.originalError,
+		errorNetwork: hasData ? null : degradedResult.originalError,
 		reexecuteQuery
 	}
 }

@@ -8,6 +8,8 @@ import { videoUploadUri } from '@/uri.ts'
 
 import styles from './styles.module.less'
 
+const CAMERA_PERMISSION_DESCRIPTOR = { name: 'camera' } as PermissionDescriptor & { name: 'camera' }
+
 const UPLOAD_GATE_VIDEO_MUTATION = gql`
 mutation uploadGateVideo($file: Upload!, $boxId: ID!) {
 	uploadGateVideo(file: $file, boxId: $boxId)
@@ -62,13 +64,12 @@ export default function DeviceVideoStream({
 			canUpload,
 		})
 
-		const checkCameraPermission = async () => {
-			try {
-				// @ts-ignore browser support varies
-				const permissionStatus = await navigator.permissions.query({ name: 'camera' })
-				setHasCameraPermission(permissionStatus.state === 'granted')
-				logDebug('camera permission status', permissionStatus.state)
-			} catch (error) {
+			const checkCameraPermission = async () => {
+				try {
+					const permissionStatus = await navigator.permissions.query(CAMERA_PERMISSION_DESCRIPTOR)
+					setHasCameraPermission(permissionStatus.state === 'granted')
+					logDebug('camera permission status', permissionStatus.state)
+				} catch (error) {
 				console.error('Error checking camera permission:', error)
 				logDebug('camera permission query failed', error)
 			}

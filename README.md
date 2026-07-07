@@ -68,7 +68,7 @@ The hive entrance view now includes a dedicated live session card backed by `ent
 
 ### Prerequisites
 
-*   Node.js: Version 20 (as specified in `.nvmrc`).
+*   Node.js: Version 24 (as specified in `.nvmrc`).
 *   nvm (Node Version Manager): Recommended for managing Node.js versions. [Install nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
 *   just: A command runner used for simplifying common tasks. [Install just](https://github.com/casey/just#installation).
 *   Docker & Docker Compose: Required *only* if running the full stack locally (including backend services).
@@ -92,7 +92,7 @@ nvm use
 
 Install dependencies:
 ```bash
-npm install
+pnpm install
 ```
 
 ### Running the Application

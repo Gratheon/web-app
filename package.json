@@ -5,6 +5,7 @@
 	"version": "1.0.0",
 	"description": "Gratheon web application for beehive management. Dual-licensed under AGPL-3.0 (open source) and Commercial License (enterprise). See LICENSE-AGPL and LICENSE-COMMERCIAL.",
 	"license": "AGPL",
+	"packageManager": "pnpm@10.23.0",
 	"scripts": {
 		"prepare": "husky",
 		"build-clean": "rm -rf public/*",
@@ -85,7 +86,7 @@
 		"vitest": "3.2.6"
 	},
 	"engines": {
-		"node": ">=22 <26"
+		"node": ">=24 <25"
 	},
 	"pnpm": {
 		"overrides": {

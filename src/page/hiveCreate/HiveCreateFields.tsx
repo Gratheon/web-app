@@ -1,30 +1,13 @@
-import Button from '@/shared/button'
 import T from '@/shared/translate'
-import RefreshIcon from '@/icons/RefreshIcon'
-import QueenColor from '@/page/hiveEdit/hiveTopInfo/queenColor'
-import { getQueenColorFromYear } from '@/page/hiveEdit/hiveTopInfo/queenColor/utils'
 
-import { BOX_SYSTEM_COLORS, queenColors } from './constants'
+import { BOX_SYSTEM_COLORS } from './constants'
 import styles from './styles.module.less'
-
-//@ts-ignore
-import GithubPicker from 'react-color/es/Github'
 
 type HiveCreateFieldsProps = {
 	hiveType: string
 	handleHiveTypeChange: (event: any) => void
 	hiveNumber?: number
 	setHiveNumber: (value: number | undefined) => void
-	name: string
-	setName: (value: string) => void
-	handleRefreshName: () => void
-	randomNameLoading: boolean
-	queenYear: string
-	setQueenYear: (value: string) => void
-	queenColor: string | null
-	setQueenColor: (value: string | null) => void
-	showColorPicker: boolean
-	setShowColorPicker: (value: boolean) => void
 	boxCount: number
 	frameCount: number
 	updateHiveDimensions: (newBoxCount: number, newFrameCount: number) => void
@@ -43,16 +26,6 @@ export default function HiveCreateFields({
 	handleHiveTypeChange,
 	hiveNumber,
 	setHiveNumber,
-	name,
-	setName,
-	handleRefreshName,
-	randomNameLoading,
-	queenYear,
-	setQueenYear,
-	queenColor,
-	setQueenColor,
-	showColorPicker,
-	setShowColorPicker,
 	boxCount,
 	frameCount,
 	updateHiveDimensions,
@@ -119,84 +92,6 @@ export default function HiveCreateFields({
 					min="1"
 					step="1"
 				/>
-			</div>
-
-			<div className={styles.formField}>
-				<label htmlFor="name" className={styles.formLabel}>
-					<T>Queen Name</T>
-				</label>
-				<div className={styles.flexRow}>
-					<input
-						name="name"
-						id="name"
-						className={styles.nameInput}
-						autoFocus
-						value={name}
-						onInput={(e: any) => setName(e.target.value)}
-					/>
-					<Button
-						type="button"
-						iconOnly={true}
-						onClick={handleRefreshName}
-						disabled={randomNameLoading}
-						style={{
-							height: '32px',
-							borderRadius: '5px',
-							padding: '0 8px',
-						}}
-						title="Get new name suggestion"
-					>
-						<RefreshIcon />
-					</Button>
-				</div>
-			</div>
-
-			<div className={styles.formField}>
-				<label className={styles.formLabel}>
-					<T>Queen Year</T>
-				</label>
-				<div className={styles.yearColorRow}>
-					<input
-						className={styles.smallInput}
-						type="text"
-						id="queenYear"
-						name="queenYear"
-						value={queenYear}
-						onInput={(e: any) => {
-							setQueenYear(e.target.value)
-							setQueenColor(null)
-						}}
-						placeholder="YYYY"
-						maxLength={4}
-					/>
-					<div className={styles.colorPickerWrapper}>
-						<div
-							className={styles.colorDisplay}
-							onClick={() => setShowColorPicker(!showColorPicker)}
-						>
-							<QueenColor year={queenYear} color={queenColor} />
-						</div>
-						{showColorPicker && (
-							<>
-								<div
-									className={styles.colorPickerOverlay}
-									onClick={() => setShowColorPicker(false)}
-								/>
-								<div className={styles.colorPickerPopup}>
-									<GithubPicker
-										width={212}
-										colors={queenColors}
-										onChangeComplete={(c: any) => {
-											setQueenColor(c.hex)
-											setShowColorPicker(false)
-										}}
-										color={queenColor || getQueenColorFromYear(queenYear)}
-									/>
-								</div>
-							</>
-						)}
-					</div>
-				</div>
 			</div>
 
 			<div className={styles.formField}>

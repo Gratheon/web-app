@@ -1,12 +1,5 @@
 import { gql } from '@/api'
 
-export const RANDOM_HIVE_NAME_QUERY = gql`
-	query RandomHiveName($language: String) {
-		# Add language variable
-		randomHiveName(language: $language)
-	}
-`
-
 export const HIVE_CREATION_LIMIT_QUERY = gql`
 	query HiveCreationLimitContext {
 		apiaries {
@@ -87,9 +80,6 @@ export const SET_WAREHOUSE_INVENTORY_COUNT_MUTATION = gql`
 
 export const ADD_HIVE_MUTATION = gql`
 	mutation addHive(
-		$queenName: String
-		$queenYear: String
-		$queenColor: String
 		$hiveNumber: Int
 		$hiveType: HiveType
 		$boxCount: Int!
@@ -101,9 +91,6 @@ export const ADD_HIVE_MUTATION = gql`
 	) {
 		addHive(
 			hive: {
-				queenName: $queenName
-				queenYear: $queenYear
-				queenColor: $queenColor
 				hiveNumber: $hiveNumber
 				hiveType: $hiveType
 				boxCount: $boxCount

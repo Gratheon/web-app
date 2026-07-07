@@ -5,7 +5,6 @@ import { useLiveQuery } from 'dexie-react-hooks'
 
 import { apiClient, useMutation, useQuery } from '@/api'
 import { getUser } from '@/models/user'
-import { SUPPORTED_LANGUAGES } from '@/config/languages'
 
 import VisualForm from '@/shared/visualForm'
 import HiveIcon from '@/shared/hive'
@@ -26,7 +25,6 @@ import {
 	BOX_SYSTEMS_QUERY,
 	HIVE_CREATE_DEDUCTION_CONTEXT_QUERY,
 	HIVE_CREATION_LIMIT_QUERY,
-	RANDOM_HIVE_NAME_QUERY,
 	SET_WAREHOUSE_INVENTORY_COUNT_MUTATION,
 	WAREHOUSE_INVENTORY_QUERY,
 } from './queries'
@@ -47,12 +45,7 @@ export default function HiveCreateForm() {
 
 	let navigate = useNavigate()
 	let [frameCount, setFrameCount] = useState(10)
-	let [name, setName] = useState('')
-	let [queenYear, setQueenYear] = useState(new Date().getFullYear().toString())
-	let [queenColor, setQueenColor] = useState<string | null>(null)
 	let [hiveNumber, setHiveNumber] = useState<number | undefined>(undefined)
-	const [lang, setLang] = useState('en')
-	const [showColorPicker, setShowColorPicker] = useState(false)
 	const [submitError, setSubmitError] = useState<any>(null)
 	const [hasHiveLimitBackendError, setHasHiveLimitBackendError] =
 		useState(false)
@@ -149,45 +142,6 @@ export default function HiveCreateForm() {
 		setFrameCount(newFrameCount)
 		setBoxes(createDefaultBoxes(hiveType, newBoxCount))
 	}
-
-	// Determine language code
-	useEffect(() => {
-		let currentLang = 'en'
-		if (user && user?.lang) {
-			currentLang = user.lang
-		} else if (user === null) {
-			const browserLang = navigator.language.substring(0, 2) as any
-			if (SUPPORTED_LANGUAGES.includes(browserLang)) {
-				currentLang = browserLang
-			}
-		}
-		setLang(currentLang)
-	}, [user])
-
-	// Fetch random hive name with language
-	const {
-		data: randomNameData,
-		loading: randomNameLoading,
-		reexecuteQuery: reexecuteRandomNameQuery,
-	} = useQuery(
-		// Get reexecuteQuery function
-		RANDOM_HIVE_NAME_QUERY,
-		{ variables: { language: lang } } // Pass language variable
-	)
-
-	// Set name when query returns (initial load or refetch)
-	useEffect(() => {
-		// Ensure loading is false before setting name
-		if (randomNameData?.randomHiveName && !randomNameLoading) {
-			setName(randomNameData.randomHiveName)
-		}
-		// Depend on randomNameData and randomNameLoading to re-run when data arrives
-	}, [randomNameData, randomNameLoading]) // Removed name dependency
-
-	const handleRefreshName = useCallback(() => {
-		// Re-execute the query, ensuring it hits the network
-		reexecuteRandomNameQuery({ requestPolicy: 'network-only' })
-	}, [reexecuteRandomNameQuery])
 
 	const currentBillingPlan = user?.billingPlan || 'free'
 	const hiveLimit = getHiveLimitForBillingTier(currentBillingPlan)
@@ -518,6 +472,7 @@ export default function HiveCreateForm() {
 			},
 		})
 	}
+
 	return (
 		<PagePaddedCentered>
 			<h1>
@@ -588,16 +543,6 @@ export default function HiveCreateForm() {
 					handleHiveTypeChange={handleHiveTypeChange}
 					hiveNumber={hiveNumber}
 					setHiveNumber={setHiveNumber}
-					name={name}
-					setName={setName}
-					handleRefreshName={handleRefreshName}
-					randomNameLoading={randomNameLoading}
-					queenYear={queenYear}
-					setQueenYear={setQueenYear}
-					queenColor={queenColor}
-					setQueenColor={setQueenColor}
-					showColorPicker={showColorPicker}
-					setShowColorPicker={setShowColorPicker}
 					boxCount={boxCount}
 					frameCount={frameCount}
 					updateHiveDimensions={updateHiveDimensions}

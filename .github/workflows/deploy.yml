@@ -12,7 +12,10 @@ jobs:
     steps:
       - name: pull
         working-directory: /www/web-app/
-        run: git reset --hard && git pull
+        run: |
+          git reset --hard
+          git clean -fdx -e .env -e .env.local
+          git pull
 
       - name: setup env and build
         working-directory: /www/web-app/

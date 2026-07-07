@@ -468,57 +468,56 @@ export default function HiveCreateForm() {
 		}
 
 		setIsSubmitting(true)
-			setIsSubmitting(true)
-			let result
-			try {
-				result = await addHive({
-					apiaryId: id,
-					hiveNumber: hiveNumber || undefined,
-					hiveType:
-						hiveType === 'horizontal'
-							? 'HORIZONTAL'
-							: hiveType === 'nucleus'
-							? 'NUCLEUS'
-							: 'VERTICAL',
-					boxCount,
-					frameCount,
-					initialBoxType:
-						hiveType === 'horizontal'
-							? boxTypes.LARGE_HORIZONTAL_SECTION
-							: boxTypes.DEEP,
-					boxSystemId:
-						hiveType === 'horizontal' ? undefined : boxSystemId || undefined,
-					colors: boxes.map((b: Box) => {
-						return b.color
-					}),
-				})
-			} finally {
-				setIsSubmitting(false)
-			}
+		let result
+		try {
+			result = await addHive({
+				apiaryId: id,
+				hiveNumber: hiveNumber || undefined,
+				hiveType:
+					hiveType === 'horizontal'
+						? 'HORIZONTAL'
+						: hiveType === 'nucleus'
+						? 'NUCLEUS'
+						: 'VERTICAL',
+				boxCount,
+				frameCount,
+				initialBoxType:
+					hiveType === 'horizontal'
+						? boxTypes.LARGE_HORIZONTAL_SECTION
+						: boxTypes.DEEP,
+				boxSystemId:
+					hiveType === 'horizontal' ? undefined : boxSystemId || undefined,
+				colors: boxes.map((b: Box) => {
+					return b.color
+				}),
+			})
+		} finally {
+			setIsSubmitting(false)
+		}
 
-			if (result?.error || !result?.data?.addHive?.id) {
-				const errorText = String(result?.error || '')
-				if (errorText.toLowerCase().includes('hive limit reached')) {
-					setHasHiveLimitBackendError(true)
-					setSubmitError('Hive limit reached for your billing plan.')
-					return
-				}
-				setSubmitError(result?.error || new Error('Failed to create hive'))
+		if (result?.error || !result?.data?.addHive?.id) {
+			const errorText = String(result?.error || '')
+			if (errorText.toLowerCase().includes('hive limit reached')) {
+				setHasHiveLimitBackendError(true)
+				setSubmitError('Hive limit reached for your billing plan.')
 				return
 			}
+			setSubmitError(result?.error || new Error('Failed to create hive'))
+			return
+		}
 
-			const createdHiveId = String(result.data.addHive.id)
+		const createdHiveId = String(result.data.addHive.id)
 
-			await applyWarehouseDeductionsForCreatedHive(createdHiveId)
+		await applyWarehouseDeductionsForCreatedHive(createdHiveId)
 
-			navigate(`/apiaries/${id}/hives/${createdHiveId}`, {
-				replace: true,
-				state: {
-					title: 'Hive added successfully',
-					message: 'Try adding frame photos',
-				},
-			})
-
+		navigate(`/apiaries/${id}/hives/${createdHiveId}`, {
+			replace: true,
+			state: {
+				title: 'Hive added successfully',
+				message: 'Try adding frame photos',
+			},
+		})
+	}
 	return (
 		<PagePaddedCentered>
 			<h1>

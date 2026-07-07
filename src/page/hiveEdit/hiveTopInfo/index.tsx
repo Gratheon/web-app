@@ -72,13 +72,6 @@ export default function HiveEditDetails({
 	const [showCollapseModal, setShowCollapseModal] = useState(false)
 	const [splitModalOpen, setSplitModalOpen] = useState(false)
 	const [joinModalOpen, setJoinModalOpen] = useState(false)
-	const {
-		showHiveCreatedAnimation,
-		hiveCreatedIconRef,
-		hiveCreatedBeeRefs,
-		speedUpHiveCreatedAnimation,
-	} = useHiveCreatedAnimation(celebrateHiveCreated, families.length > 0)
-
 	// Model functions now handle invalid IDs
 	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId])
 	const { data: boxSystemsData } = useQuery(BOX_SYSTEMS_FOR_HIVE_LABEL_QUERY)
@@ -96,6 +89,13 @@ export default function HiveEditDetails({
 	if (!families) {
 		families = []
 	}
+
+	const {
+		showHiveCreatedAnimation,
+		hiveCreatedIconRef,
+		hiveCreatedBeeRefs,
+		speedUpHiveCreatedAnimation,
+	} = useHiveCreatedAnimation(celebrateHiveCreated, families.length > 0)
 
 	const allHiveFrames = useLiveQuery(
 		async () => {

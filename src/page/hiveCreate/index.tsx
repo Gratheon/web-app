@@ -622,7 +622,6 @@ export default function HiveCreateForm() {
 				colors: boxes.map((b: Box) => {
 					return b.color
 				}),
-				createInitialQueen: false,
 			})
 
 			if (result?.error || !result?.data?.addHive?.id) {

@@ -88,7 +88,6 @@ export const ADD_HIVE_MUTATION = gql`
 		$colors: [String]
 		$initialBoxType: BoxType
 		$boxSystemId: ID
-		$createInitialQueen: Boolean
 	) {
 		addHive(
 			hive: {
@@ -100,7 +99,6 @@ export const ADD_HIVE_MUTATION = gql`
 				boxSystemId: $boxSystemId
 				apiaryId: $apiaryId
 				colors: $colors
-				createInitialQueen: $createInitialQueen
 			}
 		) {
 			id

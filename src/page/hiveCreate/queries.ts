@@ -88,6 +88,7 @@ export const ADD_HIVE_MUTATION = gql`
 		$colors: [String]
 		$initialBoxType: BoxType
 		$boxSystemId: ID
+		$createInitialQueen: Boolean
 	) {
 		addHive(
 			hive: {
@@ -99,11 +100,54 @@ export const ADD_HIVE_MUTATION = gql`
 				boxSystemId: $boxSystemId
 				apiaryId: $apiaryId
 				colors: $colors
+				createInitialQueen: $createInitialQueen
 			}
 		) {
 			id
 			hiveNumber
 			boxCount
+		}
+	}
+`
+
+export const ADD_QUEEN_TO_HIVE_MUTATION = gql`
+	mutation addQueenToHive($hiveId: ID!, $queen: FamilyInput!) {
+		addQueenToHive(hiveId: $hiveId, queen: $queen) {
+			id
+			name
+			race
+			added
+			color
+		}
+	}
+`
+
+export const ASSIGN_QUEEN_FROM_WAREHOUSE_MUTATION = gql`
+	mutation assignQueenFromWarehouse($hiveId: ID!, $familyId: ID!) {
+		assignQueenFromWarehouse(hiveId: $hiveId, familyId: $familyId) {
+			id
+			name
+			race
+			added
+			color
+		}
+	}
+`
+
+export const RANDOM_QUEEN_NAME_QUERY = gql`
+	query RandomHiveName($language: String) {
+		randomHiveName(language: $language)
+	}
+`
+
+export const WAREHOUSE_QUEENS_QUERY = gql`
+	query WarehouseQueensForHiveCreate {
+		warehouseQueens {
+			id
+			name
+			race
+			added
+			color
 		}
 	}
 `

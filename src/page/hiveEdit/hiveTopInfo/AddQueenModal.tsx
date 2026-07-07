@@ -1,4 +1,3 @@
-import { h } from 'preact'
 import { useState, useEffect, useCallback } from 'preact/hooks'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useMutation, useQuery, gql } from '@/api'
@@ -6,15 +5,14 @@ import T, { useTranslation as t } from '@/shared/translate'
 import Modal from '@/shared/modal'
 import Button from '@/shared/button'
 import MessageError from '@/shared/messageError'
-import QueenColor from '@/page/hiveEdit/hiveTopInfo/queenColor'
-import QueenColorPicker from '@/shared/queenColorPicker'
 import { updateFamily } from '@/models/family'
 import { getUser } from '@/models/user'
 import { SUPPORTED_LANGUAGES } from '@/config/languages'
-import RefreshIcon from '@/icons/RefreshIcon'
-import BeeRaceCombobox from './BeeRaceCombobox'
+import QueenFormFields, {
+	QueenFormMode,
+	WarehouseQueen,
+} from './QueenFormFields'
 import styles from './AddQueenModal.module.less'
-import inputStyles from '@/shared/input/styles.module.less'
 import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
 
 const RANDOM_QUEEN_NAME_QUERY = gql`
@@ -35,15 +33,7 @@ const WAREHOUSE_QUEENS_QUERY = gql`
 	}
 `
 
-type ModalMode = 'create' | 'warehouse'
-
-type WarehouseQueen = {
-	id: string
-	name?: string | null
-	race?: string | null
-	added?: string | null
-	color?: string | null
-}
+type ModalMode = QueenFormMode
 
 interface AddQueenModalProps {
 	hiveId: number
@@ -153,8 +143,6 @@ export default function AddQueenModal({
 		}
 	`)
 
-	const selectedWarehouseQueen = warehouseQueens.find((queen) => queen.id === selectedWarehouseQueenId)
-
 	const handleSubmit = async () => {
 		setError(null)
 
@@ -243,119 +231,26 @@ export default function AddQueenModal({
 			<div className={styles.modalContent}>
 				<MessageError error={error || mutationError || assignMutationError} />
 
-				{allowModeSwitch && hasWarehouseQueens && (
-					<div className={styles.modeSwitch}>
-						<Button
-							type="button"
-							onClick={() => setMode('create')}
-							className={`${styles.modeButton} ${mode === 'create' ? styles.activeMode : ''}`}
-						>
-							<T>Create New Queen</T>
-						</Button>
-						<Button
-							type="button"
-							onClick={() => setMode('warehouse')}
-							className={`${styles.modeButton} ${mode === 'warehouse' ? styles.activeMode : ''}`}
-						>
-							<T>Add From Warehouse</T>
-						</Button>
-					</div>
-				)}
-
-				{mode === 'warehouse' ? (
-					<div className={styles.warehouseSelectWrap}>
-						<label className={inputStyles.label}><T>Select Queen</T></label>
-						<select
-							className={inputStyles.input}
-							value={selectedWarehouseQueenId}
-							onChange={(e: h.JSX.TargetedEvent<HTMLSelectElement, Event>) =>
-								setSelectedWarehouseQueenId((e.target as HTMLSelectElement).value)
-							}
-							disabled={warehouseLoading}
-						>
-							{warehouseQueens.map((queen) => (
-								<option key={queen.id} value={queen.id}>
-									{queen.name || `#${queen.id}`} {queen.added ? `(${queen.added})` : ''}
-								</option>
-							))}
-						</select>
-
-						{selectedWarehouseQueen && (
-							<div className={styles.warehousePreview}>
-								<QueenColor
-									year={selectedWarehouseQueen.added || currentYear}
-									color={selectedWarehouseQueen.color || null}
-								/>
-								<div>
-									<div>{selectedWarehouseQueen.name || <T>Unnamed Queen</T>}</div>
-									<div className={styles.previewMeta}>{selectedWarehouseQueen.added || '-'}</div>
-									<div className={styles.previewMeta}>{selectedWarehouseQueen.race || <T>Race unknown</T>}</div>
-								</div>
-							</div>
-						)}
-					</div>
-				) : (
-					<>
-						<div className={styles.nameInputWrapper}>
-							<div style="flex: 1;">
-								<label className={inputStyles.label}><T>Queen Name</T></label>
-								<input
-									className={inputStyles.input}
-									type="text"
-									value={name}
-									onChange={(e: h.JSX.TargetedEvent<HTMLInputElement, Event>) => setName((e.target as HTMLInputElement).value)}
-									autoFocus
-									placeholder="Enter queen name"
-								/>
-							</div>
-							<Button
-								type="button"
-								onClick={handleRefreshName}
-								disabled={randomNameLoading}
-								style={{
-									marginTop: '24px',
-									height: '40px',
-									minWidth: '40px',
-									padding: '0 12px',
-								}}
-								title="Get new name suggestion"
-							>
-								<RefreshIcon />
-							</Button>
-						</div>
-							<label className={inputStyles.label}><T>Race</T></label>
-							<BeeRaceCombobox
-								className={styles.raceCombobox}
-								inputClassName={inputStyles.input}
-								value={race}
-								onChange={setRace}
-								placeholder="e.g. Carniolan, Italian, etc."
-							/>
-
-						<div className={styles.yearInputWrapper}>
-							<div>
-								<label className={inputStyles.label}><T>Year</T></label>
-								<input
-									className={inputStyles.input}
-									type="text"
-									value={year}
-									maxLength={4}
-									onChange={(e: h.JSX.TargetedEvent<HTMLInputElement, Event>) => {
-										setYear((e.target as HTMLInputElement).value)
-										setCustomColor(null)
-									}}
-								/>
-							</div>
-							<div className={styles.colorPickerWrapper}>
-								<QueenColorPicker
-									year={year}
-									color={customColor}
-									onColorChange={(value: string) => setCustomColor(value)}
-								/>
-							</div>
-						</div>
-					</>
-				)}
+				<QueenFormFields
+					mode={mode}
+					allowModeSwitch={allowModeSwitch}
+					warehouseQueens={warehouseQueens}
+					warehouseLoading={warehouseLoading}
+					selectedWarehouseQueenId={selectedWarehouseQueenId}
+					name={name}
+					race={race}
+					year={year}
+					customColor={customColor}
+					randomNameLoading={randomNameLoading}
+					autoFocusName
+					onModeChange={setMode}
+					onSelectedWarehouseQueenIdChange={setSelectedWarehouseQueenId}
+					onNameChange={setName}
+					onRaceChange={setRace}
+					onYearChange={setYear}
+					onCustomColorChange={setCustomColor}
+					onRefreshName={handleRefreshName}
+				/>
 
 				<div className={styles.buttonContainer}>
 					<Button onClick={handleSubmit} loading={createLoading || assignLoading} color="green">

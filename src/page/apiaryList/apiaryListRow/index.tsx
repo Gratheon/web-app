@@ -1,86 +1,17 @@
 import React from 'react'
 
-import Hive from '../../../shared/hive'
-import Button from '../../../shared/button'
 import HivesPlaceholder from '../../../shared/hivesPlaceholder'
-import T from '../../../shared/translate'
-
-import HiveIcon from '../../../icons/hive.tsx'
 
 import styles from './index.module.less'
-import BeeCounter from '../../../shared/beeCounter'
-import { NavLink } from 'react-router-dom'
-import Link from '../../../shared/link'
-import ListIcon from '../../../icons/listIcon.tsx'
-import TableIcon from '../../../icons/tableIcon.tsx'
-import StaticTreeIcon from '../../../icons/staticTreeIcon.tsx'
-import MobileTruckIcon from '../../../icons/mobileTruckIcon.tsx'
-import DateTimeAgo from '../../../shared/dateTimeAgo'
 import { sortHives } from '../hiveSort'
-import { getColonyStatusLabel, getHiveFamilies } from '../hivePresentation'
 import { apiaryTypes, normalizeApiaryType } from '@/models/apiary'
 import ApiaryListRowSkeleton from './skeleton'
+import ApiaryListRowHeader from './header'
+import HiveListView from './listView'
+import HiveTableView from './tableView'
+import { useApiaryRowKeyboard } from './useApiaryRowKeyboard'
 
-const BOX_SYSTEM_COLORS = ['#2f80ed', '#f2994a', '#27ae60', '#eb5757']
-
-const COLUMN_CONFIG = [
-	{
-		key: 'HIVE_NUMBER',
-		label: 'Hive #',
-		translationContext: 'table header - hive number',
-		sortable: true,
-	},
-	{
-		key: 'QUEEN',
-		label: 'Queen',
-		translationContext: 'table header - queen name',
-		sortable: true,
-	},
-	{
-		key: 'QUEEN_YEAR',
-		label: 'Queen year',
-		translationContext: 'table header - queen year',
-		sortable: true,
-	},
-	{
-		key: 'QUEEN_RACE',
-		label: 'Queen race',
-		translationContext: 'table header - queen race',
-		sortable: true,
-	},
-	{
-		key: 'BEE_COUNT',
-		label: 'Bee count',
-		translationContext: 'table header of beekeeping app, start with uppercase latter',
-		sortable: true,
-	},
-	{
-		key: 'STATUS',
-		label: 'Colony status',
-		translationContext: 'table header of beekeeping app, this is a bee colony information, start with uppercase latter',
-		sortable: true,
-	},
-	{
-		key: 'BOX_SYSTEM',
-		label: 'Hive system',
-		translationContext: 'table header - hive system',
-		sortable: false,
-	},
-	{
-		key: 'LAST_TREATMENT',
-		label: 'Last treatment',
-		translationContext: 'table header of beekeeping app, this column is about anti-varroa mite treatment, in amount of days, start with uppercase latter',
-		sortable: true,
-	},
-	{
-		key: 'LAST_INSPECTION',
-		label: 'Last inspection',
-		translationContext: 'table header of beekeeping app, this column is about time when hive was checked, in amount of days, start with uppercase latter',
-		sortable: true,
-	},
-]
-
-export default function apiaryListRow({
+export default function ApiaryListRow({
 	apiary,
 	boxSystems,
 	user,
@@ -114,7 +45,8 @@ export default function apiaryListRow({
 	const listItemRefs = React.useRef({})
 	const apiaryType = normalizeApiaryType(apiary?.type)
 	const isMobileApiary = apiaryType === apiaryTypes.MOBILE
-	const dateTimeLang = user?.lang || (typeof navigator !== 'undefined' ? navigator.language : 'en')
+	const dateTimeLang =
+		user?.lang || (typeof navigator !== 'undefined' ? navigator.language : 'en')
 
 	React.useEffect(() => {
 		if (!forcedListType) {
@@ -126,17 +58,20 @@ export default function apiaryListRow({
 
 	React.useEffect(() => {
 		if (isLoading) {
-			return () => { }
+			return () => {}
 		}
 
 		const handleClickOutside = (event) => {
-			if (columnsPopupRef.current && !columnsPopupRef.current.contains(event.target)) {
+			if (
+				columnsPopupRef.current &&
+				!columnsPopupRef.current.contains(event.target)
+			) {
 				setColumnsPopupOpen(false)
 			}
 		}
 
 		if (typeof window === 'undefined') {
-			return () => { }
+			return () => {}
 		}
 
 		document.addEventListener('mousedown', handleClickOutside)
@@ -144,90 +79,6 @@ export default function apiaryListRow({
 			document.removeEventListener('mousedown', handleClickOutside)
 		}
 	}, [isLoading])
-
-	const renderSortArrow = (column) => {
-		if (sortBy !== column) {
-			return ''
-		}
-
-		return sortOrder === 'ASC' ? '↑' : '↓'
-	}
-
-	const getStatusPillClassName = (status) => {
-		const normalizedStatus = String(status || '').toLowerCase()
-
-		if (normalizedStatus === 'active') {
-			return styles.statusPillGreen
-		}
-
-		if (normalizedStatus === 'collapsed' || normalizedStatus === 'dead') {
-			return styles.statusPillRed
-		}
-
-		return styles.statusPillYellow
-	}
-
-	const getQueenCellValue = (hive) => {
-		const families = getHiveFamilies(hive)
-		if (!families.length) {
-			return hive?.name || '-'
-		}
-
-		return families
-			.map((family) => family?.name || 'Unnamed')
-			.join(', ')
-	}
-
-	const getQueenYearCellValue = (hive) => {
-		const families = getHiveFamilies(hive)
-		if (!families.length) {
-			return '-'
-		}
-
-		return families
-			.map((family) => family?.added)
-			.filter(Boolean)
-			.join(', ') || '-'
-	}
-
-	const getQueenRaceCellValue = (hive) => {
-		const families = getHiveFamilies(hive)
-		if (!families.length) {
-			return '-'
-		}
-
-		return families
-			.map((family) => family?.race)
-			.filter(Boolean)
-			.join(', ') || '-'
-	}
-
-	const getBoxSystemCellData = (hive) => {
-		const isHorizontalHive = (hive?.boxes || []).some((box) => box?.type === 'LARGE_HORIZONTAL_SECTION')
-		if (isHorizontalHive) {
-			return {
-				label: 'Independent',
-				color: '#6b7280',
-			}
-		}
-
-		const hiveBoxSystemId = hive?.boxSystemId ?? hive?.box_system_id
-		const selectedSystem = (boxSystems || []).find((system) => String(system.id) === String(hiveBoxSystemId))
-		const defaultSystem = (boxSystems || []).find((system) => system.isDefault) || (boxSystems || [])[0]
-		const system = selectedSystem || defaultSystem
-		if (!system) {
-			return {
-				label: '-',
-				color: '#6b7280',
-			}
-		}
-
-		const systemIndex = Math.max((boxSystems || []).findIndex((entry) => String(entry.id) === String(system.id)), 0)
-		return {
-			label: system.name,
-			color: BOX_SYSTEM_COLORS[systemIndex % BOX_SYSTEM_COLORS.length],
-		}
-	}
 
 	const sortedHives = React.useMemo(() => {
 		if (!apiary?.hives) {
@@ -238,7 +89,10 @@ export default function apiaryListRow({
 	}, [apiary?.hives, sortBy, sortOrder])
 	const apiaryHives = Array.isArray(apiary?.hives) ? apiary.hives : []
 	const [isMobileLayout, setIsMobileLayout] = React.useState(() => {
-		if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+		if (
+			typeof window === 'undefined' ||
+			typeof window.matchMedia !== 'function'
+		) {
 			return false
 		}
 
@@ -247,8 +101,11 @@ export default function apiaryListRow({
 	const effectiveListType = isMobileLayout ? 'list' : listType
 
 	React.useEffect(() => {
-		if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
-			return () => { }
+		if (
+			typeof window === 'undefined' ||
+			typeof window.matchMedia !== 'function'
+		) {
+			return () => {}
 		}
 
 		// WHY: mobile layout should stay simple and ignore a saved table preference,
@@ -264,232 +121,36 @@ export default function apiaryListRow({
 		}
 	}, [])
 
-	const renderSortableHeader = (column, translationContext, label) => (
-		<th
-			key={column}
-			className={styles.sortableHeader}
-			onClick={() => onSortChange(column)}
-			onKeyDown={(event) => {
-				if (event.key === 'Enter' || event.key === ' ') {
-					event.preventDefault()
-					onSortChange(column)
-				}
-			}}
-			role="button"
-			tabIndex={0}
-			aria-sort={sortBy === column ? (sortOrder === 'ASC' ? 'ascending' : 'descending') : 'none'}
-		>
-			<T ctx={translationContext}>{label}</T> {renderSortArrow(column)}
-		</th>
-	)
-
-	const isTypingTarget = (target) => {
-		if (!target) return false
-		const tagName = String(target.tagName || '').toLowerCase()
-		return (
-			target.isContentEditable ||
-			tagName === 'input' ||
-			tagName === 'textarea' ||
-			tagName === 'select'
-		)
-	}
-
-	const getItemByHiveId = React.useCallback((hiveId) => {
-		return listItemRefs.current[hiveId] || null
+	const registerHiveItem = React.useCallback((hiveId, element) => {
+		if (element) {
+			listItemRefs.current[hiveId] = element
+		} else {
+			delete listItemRefs.current[hiveId]
+		}
 	}, [])
 
-	const focusHive = React.useCallback((hive) => {
-		if (!hive) return
-		onSelectHive(apiary.id, hive.id)
+	const handleListTypeChange = React.useCallback(
+		(nextListType) => {
+			setListType(nextListType)
+			localStorage.setItem('apiaryListType.' + apiary.id, nextListType)
+		},
+		[apiary.id]
+	)
 
-		const item = getItemByHiveId(hive.id)
-		if (!item) return
-
-		const link = item.querySelector('a')
-		if (link) {
-			link.focus()
-		}
-
-		item.scrollIntoView({ block: 'nearest', inline: 'nearest' })
-	}, [apiary.id, getItemByHiveId, onSelectHive])
-
-	const findNextListHive = React.useCallback((hives, currentIndex, direction) => {
-		if (currentIndex < 0 || currentIndex >= hives.length) {
-			return null
-		}
-
-		if (direction === 'left') {
-			return hives[Math.max(0, currentIndex - 1)]
-		}
-
-		if (direction === 'right') {
-			return hives[Math.min(hives.length - 1, currentIndex + 1)]
-		}
-
-		const positioned = hives
-			.map((hive, index) => {
-				const element = getItemByHiveId(hive.id)
-				if (!element) return null
-				const rect = element.getBoundingClientRect()
-				return {
-					hive,
-					index,
-					left: rect.left,
-					top: rect.top,
-					centerX: rect.left + rect.width / 2,
-				}
-			})
-			.filter(Boolean)
-
-		const current = positioned.find((entry) => entry.index === currentIndex)
-		if (!current) return hives[currentIndex]
-
-		const tolerance = 8
-		const rows = []
-		for (const entry of positioned) {
-			const lastRow = rows[rows.length - 1]
-			if (!lastRow || Math.abs(lastRow.top - entry.top) > tolerance) {
-				rows.push({ top: entry.top, items: [entry] })
-			} else {
-				lastRow.items.push(entry)
-			}
-		}
-
-		let rowIndex = -1
-		for (let i = 0; i < rows.length; i += 1) {
-			if (rows[i].items.some((item) => item.index === currentIndex)) {
-				rowIndex = i
-				break
-			}
-		}
-		if (rowIndex === -1) return hives[currentIndex]
-
-		const nextRowIndex = direction === 'up' ? rowIndex - 1 : rowIndex + 1
-		if (nextRowIndex < 0 || nextRowIndex >= rows.length) {
-			return hives[currentIndex]
-		}
-
-		const targetRowItems = rows[nextRowIndex].items
-		let best = targetRowItems[0]
-		for (const candidate of targetRowItems) {
-			if (Math.abs(candidate.centerX - current.centerX) < Math.abs(best.centerX - current.centerX)) {
-				best = candidate
-			}
-		}
-
-		return best?.hive || hives[currentIndex]
-	}, [getItemByHiveId])
-
-	const moveToAdjacentApiary = React.useCallback((direction) => {
-		onNavigateAcrossApiaries?.({
-			apiaryId: apiary.id,
-			direction,
-		})
-	}, [apiary.id, onNavigateAcrossApiaries])
-
-	const onRowKeyDown = React.useCallback((event) => {
-		if (columnsPopupOpen && columnsPopupRef.current?.contains(event.target)) {
-			return
-		}
-
-		if (isTypingTarget(event.target)) {
-			return
-		}
-
-		const key = event.key
-		const canNavigateTable = effectiveListType === 'table' && (key === 'ArrowUp' || key === 'ArrowDown')
-		const canNavigateList =
-			effectiveListType === 'list' &&
-			(key === 'ArrowUp' || key === 'ArrowDown' || key === 'ArrowLeft' || key === 'ArrowRight')
-
-		if (!canNavigateTable && !canNavigateList) {
-			return
-		}
-
-		if (!sortedHives?.length) {
-			return
-		}
-
-		event.preventDefault()
-
-		let currentIndex =
-			selectedHiveApiaryId === apiary.id
-				? sortedHives.findIndex((hive) => hive.id === selectedHiveId)
-				: -1
-		if (currentIndex === -1) {
-			if (key === 'ArrowUp' || key === 'ArrowLeft') {
-				focusHive(sortedHives[sortedHives.length - 1])
-			} else {
-				focusHive(sortedHives[0])
-			}
-			return
-		}
-
-		if (effectiveListType === 'table') {
-			if (key === 'ArrowUp' && currentIndex === 0) {
-				moveToAdjacentApiary('prev')
-				return
-			}
-			if (key === 'ArrowDown' && currentIndex === sortedHives.length - 1) {
-				moveToAdjacentApiary('next')
-				return
-			}
-
-			const nextIndex = key === 'ArrowUp'
-				? Math.max(0, currentIndex - 1)
-				: Math.min(sortedHives.length - 1, currentIndex + 1)
-			focusHive(sortedHives[nextIndex])
-			return
-		}
-
-		if (effectiveListType === 'list') {
-			const direction =
-				key === 'ArrowUp' ? 'up'
-					: key === 'ArrowDown' ? 'down'
-						: key === 'ArrowLeft' ? 'left'
-							: 'right'
-
-			const nextHive = findNextListHive(sortedHives, currentIndex, direction)
-			if (nextHive) {
-				if (nextHive.id === sortedHives[currentIndex]?.id) {
-					if (direction === 'up' || direction === 'left') {
-						moveToAdjacentApiary('prev')
-					} else {
-						moveToAdjacentApiary('next')
-					}
-					return
-				}
-
-				focusHive(nextHive)
-			}
-		}
-	}, [apiary.id, columnsPopupOpen, effectiveListType, findNextListHive, focusHive, moveToAdjacentApiary, selectedHiveApiaryId, selectedHiveId, sortedHives])
-
-	React.useEffect(() => {
-		if (isLoading) {
-			return () => { }
-		}
-
-		const handleGlobalKeyDown = (event) => {
-			const activeElement = document.activeElement
-			if (!rowRef.current || !activeElement) {
-				return
-			}
-
-			const isInsideApiaryBlock =
-				activeElement === rowRef.current || rowRef.current.contains(activeElement)
-			if (!isInsideApiaryBlock) {
-				return
-			}
-
-			onRowKeyDown(event)
-		}
-
-		document.addEventListener('keydown', handleGlobalKeyDown, true)
-		return () => {
-			document.removeEventListener('keydown', handleGlobalKeyDown, true)
-		}
-	}, [isLoading, onRowKeyDown])
+	useApiaryRowKeyboard({
+		apiaryId: apiary.id,
+		columnsPopupOpen,
+		columnsPopupRef,
+		effectiveListType,
+		isLoading,
+		listItemRefs,
+		onNavigateAcrossApiaries,
+		onSelectHive,
+		rowRef,
+		selectedHiveApiaryId,
+		selectedHiveId,
+		sortedHives,
+	})
 
 	if (isLoading) {
 		return (
@@ -497,7 +158,10 @@ export default function apiaryListRow({
 				listType={effectiveListType}
 				visibleColumns={visibleColumns}
 				showTypeIcon={hasMixedApiaryTypes}
-				hiveCount={Math.max(apiary?.hives?.length || 0, effectiveListType === 'table' ? 4 : 5)}
+				hiveCount={Math.max(
+					apiary?.hives?.length || 0,
+					effectiveListType === 'table' ? 4 : 5
+				)}
 				rowCount={Math.max(apiary?.hives?.length || 0, 4)}
 			/>
 		)
@@ -511,216 +175,49 @@ export default function apiaryListRow({
 			data-apiary-keyboard-row="1"
 			data-apiary-row-id={apiary.id}
 		>
-			<div className={styles.apiaryHead}>
-				<h2>
-					<span className={styles.apiaryTypeIcon} title={isMobileApiary ? 'Mobile apiary' : 'Static apiary'}>
-						{isMobileApiary ? <MobileTruckIcon /> : <StaticTreeIcon />}
-					</span>
-					<Link href={`/apiaries/${apiary.id}`}>{apiary.name ? apiary.name : '...'}</Link>
-				</h2>
-
-				<div className={styles.buttons}>
-					{!isMobileLayout && effectiveListType == 'table' && apiaryHives.length > 0 && <Button className={styles.viewModeToggle} onClick={() => {
-						setListType('list')
-						localStorage.setItem('apiaryListType.' + apiary.id, 'list')
-					}}>
-						<ListIcon />
-					</Button>}
-
-					{!isMobileLayout && effectiveListType == 'list' && apiaryHives.length > 0 && <Button className={styles.viewModeToggle} onClick={() => {
-						setListType('table')
-						localStorage.setItem('apiaryListType.' + apiary.id, 'table')
-					}}>
-						<TableIcon />
-					</Button>}
-
-						<Button
-							href={`/apiaries/${apiary.id}/hives/add`}
-							color={apiaryHives.length == 0 ? 'green' : 'white'}
-							className={styles.addHiveButton}
-						>
-							<HiveIcon />
-							<span className={styles.addHiveButtonLabel}><T ctx="button to add beehive">Add hive</T></span>
-						</Button>
-				</div>
-			</div>
+			<ApiaryListRowHeader
+				apiary={apiary}
+				apiaryHives={apiaryHives}
+				effectiveListType={effectiveListType}
+				isMobileApiary={isMobileApiary}
+				isMobileLayout={isMobileLayout}
+				onListTypeChange={handleListTypeChange}
+			/>
 
 			<div className={styles.hives}>
-					{apiaryHives.length == 0 && <HivesPlaceholder />}
-					{effectiveListType == 'list' && sortedHives &&
-						sortedHives.map((hive, i) => {
-							const isHorizontalHive = (hive?.boxes || []).some((box) => box?.type === 'LARGE_HORIZONTAL_SECTION')
-							return (
-							<div
-								key={i}
-								className={`${styles.hive} ${isHorizontalHive ? styles.horizontalHive : ''} ${hive.status === 'collapsed' ? styles.collapsedHive : ''} ${hive.status === 'merged' ? styles.mergedHive : ''} ${selectedHiveApiaryId === apiary.id && selectedHiveId === hive.id ? styles.selectedHive : ''}`}
-							data-hive-item="1"
-							data-apiary-id={apiary.id}
-							data-hive-id={hive.id}
-							ref={(element) => {
-								if (element) {
-									listItemRefs.current[hive.id] = element
-								} else {
-									delete listItemRefs.current[hive.id]
-								}
-							}}
-							onMouseEnter={() => onSelectHive(apiary.id, hive.id)}
-							onClick={() => onSelectHive(apiary.id, hive.id)}
-						>
-							<NavLink to={`/apiaries/${apiary.id}/hives/${hive.id}`}>
-								<Hive boxes={hive.boxes} size={60} hiveType={hive.hiveType} />
-								<div className={styles.title}>
-									{hive.hiveNumber && <span>#{hive.hiveNumber} </span>}
-									{getHiveFamilies(hive)[0]?.name || hive.name || 'Unnamed'}
-								</div>
-							</NavLink>
+				{apiaryHives.length == 0 && <HivesPlaceholder />}
+				{effectiveListType == 'list' && (
+					<HiveListView
+						apiaryId={apiary.id}
+						onSelectHive={onSelectHive}
+						registerHiveItem={registerHiveItem}
+						selectedHiveApiaryId={selectedHiveApiaryId}
+						selectedHiveId={selectedHiveId}
+						sortedHives={sortedHives}
+					/>
+				)}
 
-								<BeeCounter count={hive.beeCount} />
-							</div>
-							)
-						})}
-
-					{effectiveListType == 'table' && apiaryHives.length > 0 &&
-					<table className={styles.hivesTable}>
-						<thead>
-							<tr>
-								<th className={styles.columnPickerCell}>
-									<div className={styles.columnPicker} ref={columnsPopupRef}>
-										<button
-											type="button"
-											className={styles.columnPickerButton}
-											onClick={() => setColumnsPopupOpen((prev) => !prev)}
-											aria-label="Configure visible columns"
-											title="Configure visible columns"
-										>
-											<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-												<path d="M3 5h18l-7 8v5l-4 2v-7L3 5z" />
-											</svg>
-										</button>
-										{columnsPopupOpen && (
-											<div className={styles.columnPickerPopup}>
-												{COLUMN_CONFIG.map((column) => (
-													<label key={column.key} className={styles.columnCheckbox}>
-														<input
-															type="checkbox"
-															checked={visibleColumns.includes(column.key)}
-															onChange={() => onToggleColumn(column.key)}
-														/>
-														<span><T ctx={column.translationContext}>{column.label}</T></span>
-													</label>
-												))}
-											</div>
-										)}
-									</div>
-								</th>
-								{COLUMN_CONFIG.filter(column => visibleColumns.includes(column.key)).map((column) => (
-									column.sortable
-										? renderSortableHeader(column.key, column.translationContext, column.label)
-										: <th key={column.key}><T ctx={column.translationContext}>{column.label}</T></th>
-								))}
-							</tr>
-						</thead>
-						<tbody>
-							{sortedHives &&
-								sortedHives.map((hive, i) => (
-									<tr
-										key={i}
-										className={selectedHiveApiaryId === apiary.id && selectedHiveId === hive.id ? styles.selectedHiveRow : ''}
-										data-hive-item="1"
-										data-apiary-id={apiary.id}
-										data-hive-id={hive.id}
-										ref={(element) => {
-											if (element) {
-												listItemRefs.current[hive.id] = element
-											} else {
-												delete listItemRefs.current[hive.id]
-											}
-										}}
-										onMouseEnter={() => onSelectHive(apiary.id, hive.id)}
-										onClick={() => onSelectHive(apiary.id, hive.id)}
-									>
-										{(() => {
-											const displayStatus = getColonyStatusLabel(hive)
-											const families = getHiveFamilies(hive)
-											const primaryFamily = families[0]
-
-											return (
-												<>
-										<td>
-											<NavLink to={`/apiaries/${apiary.id}/hives/${hive.id}`}>
-												<Hive boxes={hive.boxes} size={20} hiveType={hive.hiveType} />
-											</NavLink>
-										</td>
-										{visibleColumns.includes('HIVE_NUMBER') && (
-											<td>
-												{hive.isNew && <span className={styles.newHive}><T ctx="new beehive">New</T></span>}
-												{hive.hiveNumber || '-'}
-											</td>
-										)}
-										{visibleColumns.includes('QUEEN') && (
-											<td>
-												<NavLink className={styles.title} to={`/apiaries/${apiary.id}/hives/${hive.id}`}>
-													{getQueenCellValue(hive)}
-												</NavLink>
-											</td>
-										)}
-										{visibleColumns.includes('QUEEN_YEAR') && (
-											<td>{getQueenYearCellValue(hive)}</td>
-										)}
-										{visibleColumns.includes('QUEEN_RACE') && (
-											<td>{getQueenRaceCellValue(hive)}</td>
-										)}
-										{visibleColumns.includes('BEE_COUNT') && (
-											<td>
-												<BeeCounter count={hive.beeCount} />
-											</td>
-										)}
-										{visibleColumns.includes('STATUS') && (
-											<td>
-												{displayStatus
-													? <span className={`${styles.statusPill} ${getStatusPillClassName(displayStatus)}`}>{displayStatus}</span>
-													: '-'}
-											</td>
-										)}
-										{visibleColumns.includes('BOX_SYSTEM') && (
-											<td>
-												{(() => {
-													const boxSystem = getBoxSystemCellData(hive)
-													return (
-														<span className={styles.boxSystemCell}>
-															<span
-																className={styles.boxSystemDot}
-																style={{ backgroundColor: boxSystem.color }}
-															></span>
-															<span>{boxSystem.label}</span>
-														</span>
-													)
-												})()}
-											</td>
-										)}
-											{visibleColumns.includes('LAST_TREATMENT') && (
-												<td>
-													{primaryFamily?.lastTreatment
-														? <DateTimeAgo dateString={primaryFamily.lastTreatment} lang={dateTimeLang} />
-														: '-'}
-												</td>
-											)}
-											{visibleColumns.includes('LAST_INSPECTION') && (
-												<td>
-													{hive?.lastInspection
-														? <DateTimeAgo dateString={hive?.lastInspection} lang={dateTimeLang} />
-														: '-'}
-												</td>
-											)}
-												</>
-											)
-										})()}
-									</tr>
-								))}
-						</tbody>
-					</table>
-				}
+				{effectiveListType == 'table' && apiaryHives.length > 0 && (
+					<HiveTableView
+						apiaryId={apiary.id}
+						boxSystems={boxSystems}
+						columnsPopupOpen={columnsPopupOpen}
+						columnsPopupRef={columnsPopupRef}
+						dateTimeLang={dateTimeLang}
+						onSelectHive={onSelectHive}
+						onSortChange={onSortChange}
+						onToggleColumn={onToggleColumn}
+						registerHiveItem={registerHiveItem}
+						selectedHiveApiaryId={selectedHiveApiaryId}
+						selectedHiveId={selectedHiveId}
+						setColumnsPopupOpen={setColumnsPopupOpen}
+						sortBy={sortBy}
+						sortedHives={sortedHives}
+						sortOrder={sortOrder}
+						visibleColumns={visibleColumns}
+					/>
+				)}
 			</div>
 		</div>
 	)
-	}
+}

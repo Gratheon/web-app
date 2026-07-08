@@ -119,6 +119,59 @@
 	justify-content: center;
 }
 
+.compactFields {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 12px;
+	width: 100%;
+}
+
+.compactFieldRow {
+	display: grid;
+	grid-template-columns: 70px minmax(0, 1fr);
+	align-items: center;
+	gap: 10px;
+	width: min(100%, 360px);
+	margin-bottom: 0;
+}
+
+.compactFieldRow label {
+	margin-bottom: 0;
+	text-align: right;
+}
+
+.compactNameRow {
+	grid-template-columns: 70px minmax(0, 1fr) 34px;
+}
+
+.compactNameRow input,
+.compactRaceRow input {
+	width: 100%;
+}
+
+.compactRaceRow .raceCombobox {
+	width: 100%;
+	margin-bottom: 0;
+}
+
+.compactYearRow {
+	grid-template-columns: 70px max-content max-content;
+	justify-content: start;
+}
+
+.compactYearRow input {
+	width: calc(4ch + 26px);
+	min-width: calc(4ch + 26px);
+	max-width: calc(4ch + 26px);
+	text-align: center;
+}
+
+.compactYearRow .colorPickerWrapper {
+	align-items: center;
+	transform: translateY(-1px);
+}
+
 .warehouseSelectWrap {
 	display: flex;
 	flex-direction: column;

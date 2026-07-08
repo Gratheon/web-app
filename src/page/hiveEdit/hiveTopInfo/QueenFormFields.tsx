@@ -31,6 +31,7 @@ type QueenFormFieldsProps = {
 	customColor: string | null
 	randomNameLoading?: boolean
 	autoFocusName?: boolean
+	compactLayout?: boolean
 	onModeChange: (mode: QueenFormMode) => void
 	onSelectedWarehouseQueenIdChange: (familyId: string) => void
 	onNameChange: (name: string) => void
@@ -52,6 +53,7 @@ export default function QueenFormFields({
 	customColor,
 	randomNameLoading = false,
 	autoFocusName = false,
+	compactLayout = false,
 	onModeChange,
 	onSelectedWarehouseQueenIdChange,
 	onNameChange,
@@ -131,6 +133,74 @@ export default function QueenFormFields({
 							</div>
 						</div>
 					)}
+				</div>
+			) : compactLayout ? (
+				<div className={styles.compactFields}>
+					<div
+						className={`${styles.nameInputWrapper} ${styles.compactFieldRow} ${styles.compactNameRow}`}
+					>
+						<label className={inputStyles.label}>
+							<T>Name</T>
+						</label>
+						<input
+							className={inputStyles.input}
+							type="text"
+							value={name}
+							onChange={(e: h.JSX.TargetedEvent<HTMLInputElement, Event>) =>
+								onNameChange((e.target as HTMLInputElement).value)
+							}
+							autoFocus={autoFocusName}
+							placeholder="Enter queen name"
+						/>
+						<Button
+							type="button"
+							onClick={onRefreshName}
+							disabled={!onRefreshName || randomNameLoading}
+							className={styles.refreshNameButton}
+							title="Get new name suggestion"
+						>
+							<RefreshIcon />
+						</Button>
+					</div>
+
+					<div className={`${styles.compactFieldRow} ${styles.compactRaceRow}`}>
+						<label className={inputStyles.label}>
+							<T>Race</T>
+						</label>
+						<BeeRaceCombobox
+							className={styles.raceCombobox}
+							inputClassName={inputStyles.input}
+							value={race}
+							onChange={onRaceChange}
+							placeholder="e.g. Carniolan, Italian, etc."
+						/>
+					</div>
+
+					<div
+						className={`${styles.yearInputWrapper} ${styles.compactFieldRow} ${styles.compactYearRow}`}
+					>
+						<label className={inputStyles.label}>
+							<T>Year</T>
+						</label>
+						<input
+							className={inputStyles.input}
+							type="text"
+							value={year}
+							maxLength={4}
+							size={4}
+							onChange={(e: h.JSX.TargetedEvent<HTMLInputElement, Event>) => {
+								onYearChange((e.target as HTMLInputElement).value)
+								onCustomColorChange(null)
+							}}
+						/>
+						<div className={styles.colorPickerWrapper}>
+							<QueenColorPicker
+								year={year}
+								color={customColor}
+								onColorChange={(value: string) => onCustomColorChange(value)}
+							/>
+						</div>
+					</div>
 				</div>
 			) : (
 				<>

@@ -44,7 +44,9 @@ export default function BeeRaceCombobox({
 			return popularBeeRaces
 		}
 
-		return popularBeeRaces.filter((race) => race.toLowerCase().includes(normalizedValue))
+		return popularBeeRaces.filter((race) =>
+			race.toLowerCase().includes(normalizedValue)
+		)
 	}, [normalizedValue])
 
 	return (
@@ -90,10 +92,27 @@ export default function BeeRaceCombobox({
 				onMouseDown={(e) => e.preventDefault()}
 				onClick={() => setIsOpen((open) => !open)}
 			>
-				⌄
+				<svg
+					className={styles.chevronIcon}
+					viewBox="0 0 12 8"
+					aria-hidden="true"
+				>
+					<path
+						d="M1 1.5L6 6.5L11 1.5"
+						fill="none"
+						stroke="currentColor"
+						strokeLinecap="round"
+						strokeLinejoin="round"
+						strokeWidth="1.75"
+					/>
+				</svg>
 			</button>
 			{isOpen && (
-				<div id="bee-race-combobox-options" role="listbox" className={styles.options}>
+				<div
+					id="bee-race-combobox-options"
+					role="listbox"
+					className={styles.options}
+				>
 					{filteredRaces.length > 0 ? (
 						filteredRaces.map((race) => (
 							<button

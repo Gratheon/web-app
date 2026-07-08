@@ -201,6 +201,11 @@
 	width: 100%;
 }
 
+.hiveCreateSubmit {
+	justify-content: center;
+	flex-direction: row;
+}
+
 .queenCreateSection {
 	display: grid !important;
 	grid-template-columns: 140px minmax(0, 460px);
@@ -214,7 +219,7 @@
 .queenCreateContent {
 	display: flex !important;
 	flex-direction: column;
-	align-items: flex-start;
+	align-items: center;
 	width: 100%;
 	max-width: 460px;
 	min-width: 0;
@@ -258,7 +263,7 @@
 
 .queenDraftActions {
 	display: flex !important;
-	justify-content: flex-end;
+	justify-content: center;
 	align-items: center;
 	margin-top: auto;
 	padding-top: 12px;
@@ -277,7 +282,7 @@
 }
 
 .addQueenButton {
-	align-self: flex-start;
+	align-self: center;
 	margin-top: 0;
 }
 
@@ -348,8 +353,14 @@
 		min-height: 0;
 	}
 
+	.queenDraftCard input[size='4'] {
+		width: calc(4ch + 26px);
+		min-width: calc(4ch + 26px);
+		max-width: calc(4ch + 26px);
+	}
+
 	.queenDraftActions {
-		justify-content: flex-start;
+		justify-content: center;
 	}
 
 	.boxSystemPicker {

@@ -726,6 +726,7 @@ export default function HiveCreateForm() {
 
 			<VisualForm
 				className={styles.hiveCreateForm}
+				submitClassName={styles.hiveCreateSubmit}
 				onSubmit={onSubmit.bind(this)}
 				submit={
 					<Button
@@ -773,6 +774,7 @@ export default function HiveCreateForm() {
 										</strong>
 										<QueenFormFields
 											mode={draft.mode}
+											compactLayout
 											warehouseQueens={warehouseQueens}
 											warehouseLoading={warehouseQueensLoading}
 											selectedWarehouseQueenId={draft.selectedWarehouseQueenId}

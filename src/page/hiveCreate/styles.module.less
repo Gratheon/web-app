@@ -268,3 +268,37 @@
   color: #6b7280;
   margin-bottom: 12px;
 }
+
+@media (max-width: 767px) {
+  .queenCreateSection {
+    display: block !important;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .queenCreateSection > div {
+    display: block !important;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .queenCreateHeader,
+  .queenDraftHeader {
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .queenDraftCard {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .queenDraftCard input,
+  .queenDraftCard select {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+}

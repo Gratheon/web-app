@@ -13,7 +13,10 @@ import ErrorMsg from '@/shared/messageError'
 import Button from '@/shared/button'
 import T from '@/shared/translate'
 import BillingUpgradeNotice from '@/shared/billingUpgradeNotice'
-import { getHiveLimitForBillingTier } from '@/shared/billingTier'
+import {
+	getHiveLimitForBillingTier,
+	isBillingTierAtLeast,
+} from '@/shared/billingTier'
 import MessageSuccess from '@/shared/messageSuccess'
 import { SUPPORTED_LANGUAGES } from '@/config/languages'
 
@@ -244,6 +247,7 @@ export default function HiveCreateForm() {
 	const displayedHiveCount = hasHiveLimitBackendError
 		? hiveLimit
 		: activeHiveCount
+	const canUseWarehouse = isBillingTierAtLeast(currentBillingPlan, 'hobbyist')
 	const requiredSectionModuleType =
 		hiveType === 'horizontal'
 			? 'LARGE_HORIZONTAL_SECTION'
@@ -258,7 +262,12 @@ export default function HiveCreateForm() {
 		Math.max(0, Math.floor(Number(frameCount) || 0))
 
 	const warehouseWarning = useMemo(() => {
-		if (!warehouseInventory?.length || requiredSectionCount <= 0) return null
+		if (
+			!canUseWarehouse ||
+			!warehouseInventory?.length ||
+			requiredSectionCount <= 0
+		)
+			return null
 
 		const preferredSectionSystemId =
 			requiredSectionModuleType === 'NUCS' && selectedSystemId
@@ -360,6 +369,7 @@ export default function HiveCreateForm() {
 
 		return parts.length ? parts.join(' • ') : null
 	}, [
+		canUseWarehouse,
 		warehouseInventory,
 		requiredSectionModuleType,
 		requiredFrameModuleType,

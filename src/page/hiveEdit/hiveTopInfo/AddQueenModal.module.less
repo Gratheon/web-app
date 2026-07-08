@@ -6,10 +6,13 @@
 	display: flex;
 	gap: 8px;
 	margin-bottom: 14px;
+	min-width: 0;
 }
 
 .modeButton {
 	flex: 1;
+	min-width: 0;
+	text-align: center;
 }
 
 .activeMode {
@@ -21,11 +24,18 @@
 	align-items: flex-end;
 	gap: 8px;
 	margin-bottom: 15px;
+	width: 100%;
+	min-width: 0;
+}
+
+.nameInputWrapper > div {
+	min-width: 0;
 }
 
 .raceCombobox {
 	display: flex;
 	width: 100%;
+	min-width: 0;
 	margin-bottom: 15px;
 }
 
@@ -34,6 +44,12 @@
 	display: flex;
 	align-items: flex-end;
 	gap: 8px;
+	width: 100%;
+	min-width: 0;
+}
+
+.yearInputWrapper > div:first-child {
+	min-width: 0;
 }
 
 .colorPickerWrapper {
@@ -82,6 +98,7 @@
 	display: flex;
 	flex-direction: column;
 	gap: 10px;
+	min-width: 0;
 }
 
 .warehousePreview {
@@ -96,4 +113,24 @@
 .previewMeta {
 	font-size: 12px;
 	color: #666;
+}
+
+@media (max-width: 767px) {
+	.modeSwitch {
+		flex-wrap: wrap;
+	}
+
+	.modeButton {
+		height: auto;
+		min-height: 40px;
+		white-space: normal;
+	}
+
+	.nameInputWrapper {
+		align-items: flex-end;
+	}
+
+	.yearInputWrapper > div:first-child {
+		flex: 1 1 120px;
+	}
 }

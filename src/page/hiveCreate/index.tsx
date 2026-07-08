@@ -59,7 +59,9 @@ type QueenDraft = {
 	selectedWarehouseQueenId: string
 }
 
-function createQueenDraft(year = new Date().getFullYear().toString()): QueenDraft {
+function createQueenDraft(
+	year = new Date().getFullYear().toString()
+): QueenDraft {
 	return {
 		clientId: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
 		mode: 'create',
@@ -90,14 +92,16 @@ export default function HiveCreateForm() {
 		createQueenDraft(currentYear),
 	])
 	const [lang, setLang] = useState('en')
-	const [refreshQueenDraftId, setRefreshQueenDraftId] = useState<string | null>(null)
-	const { data: randomNameData, loading: randomNameLoading, reexecuteQuery: reexecuteRandomNameQuery } = useQuery(
-		RANDOM_QUEEN_NAME_QUERY,
-		{ variables: { language: lang } }
+	const [refreshQueenDraftId, setRefreshQueenDraftId] = useState<string | null>(
+		null
 	)
-	const { data: warehouseQueensData, loading: warehouseQueensLoading } = useQuery(
-		WAREHOUSE_QUEENS_QUERY
-	)
+	const {
+		data: randomNameData,
+		loading: randomNameLoading,
+		reexecuteQuery: reexecuteRandomNameQuery,
+	} = useQuery(RANDOM_QUEEN_NAME_QUERY, { variables: { language: lang } })
+	const { data: warehouseQueensData, loading: warehouseQueensLoading } =
+		useQuery(WAREHOUSE_QUEENS_QUERY)
 	const warehouseQueens = warehouseQueensData?.warehouseQueens || []
 	const [addQueenToHive] = useMutation(ADD_QUEEN_TO_HIVE_MUTATION)
 	const [assignQueenFromWarehouse] = useMutation(
@@ -525,7 +529,9 @@ export default function HiveCreateForm() {
 	}
 
 	function removeQueenDraft(clientId: string) {
-		setQueenDrafts((drafts) => drafts.filter((draft) => draft.clientId !== clientId))
+		setQueenDrafts((drafts) =>
+			drafts.filter((draft) => draft.clientId !== clientId)
+		)
 	}
 
 	function validateQueenDrafts() {
@@ -555,7 +561,8 @@ export default function HiveCreateForm() {
 					familyId: draft.selectedWarehouseQueenId,
 				})
 				const family = result?.data?.assignQueenFromWarehouse
-				if (!family?.id) throw new Error('Failed to assign queen from warehouse')
+				if (!family?.id)
+					throw new Error('Failed to assign queen from warehouse')
 				await updateFamily({
 					id: +family.id,
 					hiveId: +hiveId,
@@ -717,6 +724,7 @@ export default function HiveCreateForm() {
 			</div>
 
 			<VisualForm
+				className={styles.hiveCreateForm}
 				onSubmit={onSubmit.bind(this)}
 				submit={
 					<Button
@@ -744,16 +752,17 @@ export default function HiveCreateForm() {
 					isBoxSystemOpen={isBoxSystemOpen}
 					setIsBoxSystemOpen={setIsBoxSystemOpen}
 					boxSystemPickerRef={boxSystemPickerRef}
-					/>
-					<div className={styles.queenCreateSection}>
-						<div className={styles.queenCreateHeader}>
-							<label className={styles.formLabel}>
-								<T>Queens</T>
-							</label>
-							<Button type="button" size="small" onClick={addQueenDraft}>
-								<T>Add Queen</T>
-							</Button>
-						</div>
+				/>
+				<div className={styles.queenCreateSection}>
+					<div className={styles.queenCreateHeader}>
+						<label className={styles.formLabel}>
+							<T>Queens</T>
+						</label>
+						<Button type="button" size="small" onClick={addQueenDraft}>
+							<T>Add Queen</T>
+						</Button>
+					</div>
+					<div className={styles.queenDraftList}>
 						{queenDrafts.length === 0 ? (
 							<div className={styles.noQueenNotice}>
 								<T>No queen will be added to this hive.</T>
@@ -762,8 +771,14 @@ export default function HiveCreateForm() {
 						{queenDrafts.map((draft, index) => (
 							<div className={styles.queenDraftCard} key={draft.clientId}>
 								<div className={styles.queenDraftHeader}>
-									<strong><T>Queen</T> {index + 1}</strong>
-									<Button type="button" size="small" onClick={() => removeQueenDraft(draft.clientId)}>
+									<strong>
+										<T>Queen</T> {index + 1}
+									</strong>
+									<Button
+										type="button"
+										size="small"
+										onClick={() => removeQueenDraft(draft.clientId)}
+									>
 										<T>Remove</T>
 									</Button>
 								</div>
@@ -776,13 +791,31 @@ export default function HiveCreateForm() {
 									race={draft.race}
 									year={draft.year}
 									customColor={draft.customColor}
-									randomNameLoading={randomNameLoading && refreshQueenDraftId === draft.clientId}
-									onModeChange={(mode) => updateQueenDraft(draft.clientId, { mode })}
-									onSelectedWarehouseQueenIdChange={(selectedWarehouseQueenId) => updateQueenDraft(draft.clientId, { selectedWarehouseQueenId })}
-									onNameChange={(name) => updateQueenDraft(draft.clientId, { name })}
-									onRaceChange={(race) => updateQueenDraft(draft.clientId, { race })}
-									onYearChange={(year) => updateQueenDraft(draft.clientId, { year })}
-									onCustomColorChange={(customColor) => updateQueenDraft(draft.clientId, { customColor })}
+									randomNameLoading={
+										randomNameLoading && refreshQueenDraftId === draft.clientId
+									}
+									onModeChange={(mode) =>
+										updateQueenDraft(draft.clientId, { mode })
+									}
+									onSelectedWarehouseQueenIdChange={(
+										selectedWarehouseQueenId
+									) =>
+										updateQueenDraft(draft.clientId, {
+											selectedWarehouseQueenId,
+										})
+									}
+									onNameChange={(name) =>
+										updateQueenDraft(draft.clientId, { name })
+									}
+									onRaceChange={(race) =>
+										updateQueenDraft(draft.clientId, { race })
+									}
+									onYearChange={(year) =>
+										updateQueenDraft(draft.clientId, { year })
+									}
+									onCustomColorChange={(customColor) =>
+										updateQueenDraft(draft.clientId, { customColor })
+									}
 									onRefreshName={() => {
 										setRefreshQueenDraftId(draft.clientId)
 										reexecuteRandomNameQuery({ requestPolicy: 'network-only' })
@@ -791,7 +824,8 @@ export default function HiveCreateForm() {
 							</div>
 						))}
 					</div>
-				</VisualForm>
+				</div>
+			</VisualForm>
 		</PagePaddedCentered>
 	)
 }

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router'
 import { useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 
+import TrashIcon from '@/icons/trashIcon'
 import { apiClient, useMutation, useQuery } from '@/api'
 import { getUser } from '@/models/user'
 import { updateFamily } from '@/models/family'
@@ -754,75 +755,87 @@ export default function HiveCreateForm() {
 					boxSystemPickerRef={boxSystemPickerRef}
 				/>
 				<div className={styles.queenCreateSection}>
-					<div className={styles.queenCreateHeader}>
-						<label className={styles.formLabel}>
-							<T>Queens</T>
-						</label>
-						<Button type="button" size="small" onClick={addQueenDraft}>
+					<label className={styles.formLabel}>
+						<T>Queens</T>
+					</label>
+					<div className={styles.queenCreateContent}>
+						<div className={styles.queenDraftList}>
+							{queenDrafts.length === 0 ? (
+								<div className={styles.noQueenNotice}>
+									<T>No queen will be added to this hive.</T>
+								</div>
+							) : null}
+							{queenDrafts.map((draft, index) => (
+								<div className={styles.queenDraftCard} key={draft.clientId}>
+									<div className={styles.queenDraftBody}>
+										<strong className={styles.queenDraftTitle}>
+											<T>Queen</T> {index + 1}
+										</strong>
+										<QueenFormFields
+											mode={draft.mode}
+											warehouseQueens={warehouseQueens}
+											warehouseLoading={warehouseQueensLoading}
+											selectedWarehouseQueenId={draft.selectedWarehouseQueenId}
+											name={draft.name}
+											race={draft.race}
+											year={draft.year}
+											customColor={draft.customColor}
+											randomNameLoading={
+												randomNameLoading &&
+												refreshQueenDraftId === draft.clientId
+											}
+											onModeChange={(mode) =>
+												updateQueenDraft(draft.clientId, { mode })
+											}
+											onSelectedWarehouseQueenIdChange={(
+												selectedWarehouseQueenId
+											) =>
+												updateQueenDraft(draft.clientId, {
+													selectedWarehouseQueenId,
+												})
+											}
+											onNameChange={(name) =>
+												updateQueenDraft(draft.clientId, { name })
+											}
+											onRaceChange={(race) =>
+												updateQueenDraft(draft.clientId, { race })
+											}
+											onYearChange={(year) =>
+												updateQueenDraft(draft.clientId, { year })
+											}
+											onCustomColorChange={(customColor) =>
+												updateQueenDraft(draft.clientId, { customColor })
+											}
+											onRefreshName={() => {
+												setRefreshQueenDraftId(draft.clientId)
+												reexecuteRandomNameQuery({
+													requestPolicy: 'network-only',
+												})
+											}}
+										/>
+									</div>
+									<div className={styles.queenDraftActions}>
+										<Button
+											type="button"
+											size="small"
+											className={styles.queenRemoveButton}
+											onClick={() => removeQueenDraft(draft.clientId)}
+										>
+											<TrashIcon size={16} />
+											<T>Cancel</T>
+										</Button>
+									</div>
+								</div>
+							))}
+						</div>
+						<Button
+							type="button"
+							size="small"
+							className={styles.addQueenButton}
+							onClick={addQueenDraft}
+						>
 							<T>Add Queen</T>
 						</Button>
-					</div>
-					<div className={styles.queenDraftList}>
-						{queenDrafts.length === 0 ? (
-							<div className={styles.noQueenNotice}>
-								<T>No queen will be added to this hive.</T>
-							</div>
-						) : null}
-						{queenDrafts.map((draft, index) => (
-							<div className={styles.queenDraftCard} key={draft.clientId}>
-								<div className={styles.queenDraftHeader}>
-									<strong>
-										<T>Queen</T> {index + 1}
-									</strong>
-									<Button
-										type="button"
-										size="small"
-										onClick={() => removeQueenDraft(draft.clientId)}
-									>
-										<T>Remove</T>
-									</Button>
-								</div>
-								<QueenFormFields
-									mode={draft.mode}
-									warehouseQueens={warehouseQueens}
-									warehouseLoading={warehouseQueensLoading}
-									selectedWarehouseQueenId={draft.selectedWarehouseQueenId}
-									name={draft.name}
-									race={draft.race}
-									year={draft.year}
-									customColor={draft.customColor}
-									randomNameLoading={
-										randomNameLoading && refreshQueenDraftId === draft.clientId
-									}
-									onModeChange={(mode) =>
-										updateQueenDraft(draft.clientId, { mode })
-									}
-									onSelectedWarehouseQueenIdChange={(
-										selectedWarehouseQueenId
-									) =>
-										updateQueenDraft(draft.clientId, {
-											selectedWarehouseQueenId,
-										})
-									}
-									onNameChange={(name) =>
-										updateQueenDraft(draft.clientId, { name })
-									}
-									onRaceChange={(race) =>
-										updateQueenDraft(draft.clientId, { race })
-									}
-									onYearChange={(year) =>
-										updateQueenDraft(draft.clientId, { year })
-									}
-									onCustomColorChange={(customColor) =>
-										updateQueenDraft(draft.clientId, { customColor })
-									}
-									onRefreshName={() => {
-										setRefreshQueenDraftId(draft.clientId)
-										reexecuteRandomNameQuery({ requestPolicy: 'network-only' })
-									}}
-								/>
-							</div>
-						))}
 					</div>
 				</div>
 			</VisualForm>

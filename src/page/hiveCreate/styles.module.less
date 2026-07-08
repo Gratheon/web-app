@@ -211,11 +211,12 @@
 	box-sizing: border-box;
 }
 
-.queenCreateHeader {
+.queenCreateContent {
 	display: flex !important;
 	flex-direction: column;
-	align-items: flex-end;
-	gap: 8px;
+	align-items: flex-start;
+	width: 100%;
+	max-width: 460px;
 	min-width: 0;
 	box-sizing: border-box;
 }
@@ -228,30 +229,56 @@
 	box-sizing: border-box;
 }
 
-.queenDraftHeader {
-	display: flex !important;
-	align-items: center;
-	justify-content: space-between;
-	gap: 12px;
-	margin-bottom: 10px;
-	min-width: 0;
-}
-
-.queenDraftHeader strong {
-	min-width: 0;
-}
-
 .queenDraftCard {
-	display: block !important;
+	display: flex !important;
+	flex-direction: column;
 	width: 100%;
 	max-width: 100%;
 	min-width: 0;
+	min-height: 340px;
 	border: 1px solid #d1d9e0;
 	border-radius: 8px;
 	padding: 12px;
 	margin-bottom: 12px;
 	background: #fff;
 	box-sizing: border-box;
+}
+
+.queenDraftBody {
+	display: block !important;
+	width: 100%;
+	min-width: 0;
+}
+
+.queenDraftTitle {
+	display: block;
+	min-width: 0;
+	margin-bottom: 10px;
+}
+
+.queenDraftActions {
+	display: flex !important;
+	justify-content: flex-end;
+	align-items: center;
+	margin-top: auto;
+	padding-top: 12px;
+}
+
+.queenRemoveButton,
+.addQueenButton {
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+}
+
+.queenRemoveButton svg {
+	margin-right: 0;
+}
+
+.addQueenButton {
+	align-self: flex-start;
+	margin-top: 0;
 }
 
 .queenDraftCard input,
@@ -308,24 +335,21 @@
 		gap: 8px;
 	}
 
-	.queenCreateHeader {
-		flex-direction: row;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: space-between;
-	}
-
-	.queenDraftHeader {
-		flex-wrap: wrap;
-		align-items: center;
-	}
-
+	.queenCreateContent,
 	.queenDraftList,
 	.queenDraftCard,
 	.queenDraftCard input,
 	.queenDraftCard select {
 		width: 100%;
 		max-width: 100%;
+	}
+
+	.queenDraftCard {
+		min-height: 0;
+	}
+
+	.queenDraftActions {
+		justify-content: flex-start;
 	}
 
 	.boxSystemPicker {

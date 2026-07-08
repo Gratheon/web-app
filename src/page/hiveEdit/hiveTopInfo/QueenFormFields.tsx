@@ -100,13 +100,16 @@ export default function QueenFormFields({
 						className={inputStyles.input}
 						value={selectedWarehouseQueenId}
 						onChange={(e: h.JSX.TargetedEvent<HTMLSelectElement, Event>) =>
-							onSelectedWarehouseQueenIdChange((e.target as HTMLSelectElement).value)
+							onSelectedWarehouseQueenIdChange(
+								(e.target as HTMLSelectElement).value
+							)
 						}
 						disabled={warehouseLoading}
 					>
 						{warehouseQueens.map((queen) => (
 							<option key={queen.id} value={queen.id}>
-								{queen.name || `#${queen.id}`} {queen.added ? `(${queen.added})` : ''}
+								{queen.name || `#${queen.id}`}{' '}
+								{queen.added ? `(${queen.added})` : ''}
 							</option>
 						))}
 					</select>
@@ -151,12 +154,7 @@ export default function QueenFormFields({
 							type="button"
 							onClick={onRefreshName}
 							disabled={!onRefreshName || randomNameLoading}
-							style={{
-								marginTop: '24px',
-								height: '40px',
-								minWidth: '40px',
-								padding: '0 12px',
-							}}
+							className={styles.refreshNameButton}
 							title="Get new name suggestion"
 						>
 							<RefreshIcon />
@@ -174,7 +172,7 @@ export default function QueenFormFields({
 					/>
 
 					<div className={styles.yearInputWrapper}>
-						<div>
+						<div className={styles.yearInputField}>
 							<label className={inputStyles.label}>
 								<T>Year</T>
 							</label>
@@ -183,6 +181,7 @@ export default function QueenFormFields({
 								type="text"
 								value={year}
 								maxLength={4}
+								size={4}
 								onChange={(e: h.JSX.TargetedEvent<HTMLInputElement, Event>) => {
 									onYearChange((e.target as HTMLInputElement).value)
 									onCustomColorChange(null)

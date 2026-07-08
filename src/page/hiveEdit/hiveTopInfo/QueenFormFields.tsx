@@ -39,6 +39,7 @@ type QueenFormFieldsProps = {
 	onYearChange: (year: string) => void
 	onCustomColorChange: (color: string | null) => void
 	onRefreshName?: () => void
+	compactYearActions?: any
 }
 
 export default function QueenFormFields({
@@ -61,6 +62,7 @@ export default function QueenFormFields({
 	onYearChange,
 	onCustomColorChange,
 	onRefreshName,
+	compactYearActions,
 }: QueenFormFieldsProps) {
 	const hasWarehouseQueens = warehouseQueens.length > 0
 	const selectedWarehouseQueen = warehouseQueens.find(
@@ -200,6 +202,11 @@ export default function QueenFormFields({
 								onColorChange={(value: string) => onCustomColorChange(value)}
 							/>
 						</div>
+						{compactYearActions ? (
+							<div className={styles.compactYearActions}>
+								{compactYearActions}
+							</div>
+						) : null}
 					</div>
 				</div>
 			) : (

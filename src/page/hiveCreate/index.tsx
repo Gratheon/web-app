@@ -18,7 +18,6 @@ import {
 	getHiveLimitForBillingTier,
 	isBillingTierAtLeast,
 } from '@/shared/billingTier'
-import MessageSuccess from '@/shared/messageSuccess'
 import { SUPPORTED_LANGUAGES } from '@/config/languages'
 
 import { Box, boxTypes } from '@/models/boxes'
@@ -266,13 +265,13 @@ export default function HiveCreateForm() {
 		Math.max(0, Math.floor(Number(boxCount) || 0)) *
 		Math.max(0, Math.floor(Number(frameCount) || 0))
 
-	const warehouseWarning = useMemo(() => {
+	const warehouseWarnings = useMemo(() => {
 		if (
 			!canUseWarehouse ||
 			!warehouseInventory?.length ||
 			requiredSectionCount <= 0
 		)
-			return null
+			return { section: null, frame: null }
 
 		const preferredSectionSystemId =
 			requiredSectionModuleType === 'NUCS' && selectedSystemId
@@ -352,27 +351,22 @@ export default function HiveCreateForm() {
 			directFrameItems.length === 0 &&
 			totalFrameCount >= requiredFrameCount
 
-		if (
-			!sectionShortageCertain &&
-			!sectionRisk &&
-			!frameShortageCertain &&
-			!frameRisk
-		)
-			return null
+		let section: string | null = null
+		let frame: string | null = null
 
-		const parts: string[] = []
 		if (sectionShortageCertain && sectionMissing > 0) {
-			parts.push(`certain shortage: sections missing ${sectionMissing}`)
+			section = `certain shortage: sections missing ${sectionMissing}`
 		} else if (sectionRisk) {
-			parts.push('risk: section stock for this box system is uncertain')
-		}
-		if (frameShortageCertain && frameMissing > 0) {
-			parts.push(`certain shortage: frames missing ${frameMissing}`)
-		} else if (frameRisk) {
-			parts.push('risk: frame stock for this box system is uncertain')
+			section = 'risk: section stock for this box system is uncertain'
 		}
 
-		return parts.length ? parts.join(' • ') : null
+		if (frameShortageCertain && frameMissing > 0) {
+			frame = `certain shortage: frames missing ${frameMissing}`
+		} else if (frameRisk) {
+			frame = 'risk: frame stock for this box system is uncertain'
+		}
+
+		return { section, frame }
 	}, [
 		canUseWarehouse,
 		warehouseInventory,
@@ -535,6 +529,20 @@ export default function HiveCreateForm() {
 		)
 	}
 
+	function renderRemoveQueenButton(clientId: string) {
+		return (
+			<Button
+				type="button"
+				size="small"
+				className={styles.queenRemoveButton}
+				onClick={() => removeQueenDraft(clientId)}
+			>
+				<TrashIcon size={16} />
+				<T>Cancel</T>
+			</Button>
+		)
+	}
+
 	function validateQueenDrafts() {
 		for (const draft of queenDrafts) {
 			if (draft.mode === 'warehouse') {
@@ -692,24 +700,6 @@ export default function HiveCreateForm() {
 				</div>
 			)}
 			{submitError && <ErrorMsg error={submitError} />}
-			{warehouseWarning ? (
-				<div style={{ marginBottom: 12 }}>
-					<MessageSuccess
-						isWarning
-						className={styles.warehouseWarning}
-						title={<T>Warehouse warning</T>}
-						message={
-							<>
-								{warehouseWarning}.{' '}
-								<T>
-									Hive creation will continue. Missing parts are assumed to come
-									from outside your warehouse.
-								</T>
-							</>
-						}
-					/>
-				</div>
-			) : null}
 			<div style={{ textAlign: 'center', marginBottom: 20 }}>
 				<HiveIcon
 					boxes={boxes}
@@ -754,6 +744,8 @@ export default function HiveCreateForm() {
 					isBoxSystemOpen={isBoxSystemOpen}
 					setIsBoxSystemOpen={setIsBoxSystemOpen}
 					boxSystemPickerRef={boxSystemPickerRef}
+					sectionWarehouseWarning={warehouseWarnings.section}
+					frameWarehouseWarning={warehouseWarnings.frame}
 				/>
 				<div className={styles.queenCreateSection}>
 					<label className={styles.formLabel}>
@@ -814,18 +806,15 @@ export default function HiveCreateForm() {
 													requestPolicy: 'network-only',
 												})
 											}}
+											compactYearActions={renderRemoveQueenButton(
+												draft.clientId
+											)}
 										/>
-									</div>
-									<div className={styles.queenDraftActions}>
-										<Button
-											type="button"
-											size="small"
-											className={styles.queenRemoveButton}
-											onClick={() => removeQueenDraft(draft.clientId)}
-										>
-											<TrashIcon size={16} />
-											<T>Cancel</T>
-										</Button>
+										{draft.mode === 'warehouse' ? (
+											<div className={styles.queenDraftActions}>
+												{renderRemoveQueenButton(draft.clientId)}
+											</div>
+										) : null}
 									</div>
 								</div>
 							))}

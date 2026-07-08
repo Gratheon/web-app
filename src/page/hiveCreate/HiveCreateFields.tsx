@@ -19,6 +19,8 @@ type HiveCreateFieldsProps = {
 	isBoxSystemOpen: boolean
 	setIsBoxSystemOpen: (value: boolean | ((open: boolean) => boolean)) => void
 	boxSystemPickerRef: any
+	sectionWarehouseWarning?: string | null
+	frameWarehouseWarning?: string | null
 }
 
 export default function HiveCreateFields({
@@ -37,6 +39,8 @@ export default function HiveCreateFields({
 	isBoxSystemOpen,
 	setIsBoxSystemOpen,
 	boxSystemPickerRef,
+	sectionWarehouseWarning,
+	frameWarehouseWarning,
 }: HiveCreateFieldsProps) {
 	return (
 		<>
@@ -98,44 +102,70 @@ export default function HiveCreateFields({
 				<label htmlFor="boxCount" className={styles.formLabel}>
 					<T>Section count</T>
 				</label>
-				<input
-					className={styles.smallInput}
-					type="number"
-					id="boxCount"
-					name="boxCount"
-					value={boxCount}
-					onInput={(e: any) => {
-						if (hiveType === 'nucleus') return
-						const newBoxCount = parseInt(e.target.value, 10)
-						if (newBoxCount < 1 || newBoxCount > 6) return
-						updateHiveDimensions(newBoxCount, frameCount)
-					}}
-					min="1"
-					max="6"
-					step="1"
-					disabled={hiveType === 'nucleus'}
-				/>
+				<div className={styles.fieldControl}>
+					<input
+						className={styles.smallInput}
+						type="number"
+						id="boxCount"
+						name="boxCount"
+						value={boxCount}
+						onInput={(e: any) => {
+							if (hiveType === 'nucleus') return
+							const newBoxCount = parseInt(e.target.value, 10)
+							if (newBoxCount < 1 || newBoxCount > 6) return
+							updateHiveDimensions(newBoxCount, frameCount)
+						}}
+						min="1"
+						max="6"
+						step="1"
+						disabled={hiveType === 'nucleus'}
+					/>
+					{sectionWarehouseWarning ? (
+						<div className={styles.fieldWarning}>
+							<strong>
+								<T>Warehouse warning</T>:
+							</strong>{' '}
+							{sectionWarehouseWarning}.{' '}
+							<T>
+								Missing parts are assumed to come from outside your warehouse.
+							</T>
+						</div>
+					) : null}
+				</div>
 			</div>
 
 			<div className={styles.formField}>
 				<label htmlFor="frameCount" className={styles.formLabel}>
 					<T>Frame count</T>
 				</label>
-				<input
-					className={styles.smallInput}
-					type="number"
-					id="frameCount"
-					name="frameCount"
-					value={frameCount}
-					onInput={(e: any) => {
-						if (hiveType === 'nucleus') return
-						setFrameCount(parseInt(e.target.value, 10))
-					}}
-					min="0"
-					max="25"
-					step="1"
-					disabled={hiveType === 'nucleus'}
-				/>
+				<div className={styles.fieldControl}>
+					<input
+						className={styles.smallInput}
+						type="number"
+						id="frameCount"
+						name="frameCount"
+						value={frameCount}
+						onInput={(e: any) => {
+							if (hiveType === 'nucleus') return
+							setFrameCount(parseInt(e.target.value, 10))
+						}}
+						min="0"
+						max="25"
+						step="1"
+						disabled={hiveType === 'nucleus'}
+					/>
+					{frameWarehouseWarning ? (
+						<div className={styles.fieldWarning}>
+							<strong>
+								<T>Warehouse warning</T>:
+							</strong>{' '}
+							{frameWarehouseWarning}.{' '}
+							<T>
+								Missing parts are assumed to come from outside your warehouse.
+							</T>
+						</div>
+					) : null}
+				</div>
 			</div>
 
 			{hiveType !== 'horizontal' ? (

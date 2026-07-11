@@ -9,222 +9,228 @@
 | 💚 | Quality — technical debt, compounds over time | Backlog rotation |
 | 💙 | Nice-to-have — polish and optimization | When nothing else pulls you |
 
+## Effort / Impact Matrix
+
+Use this matrix to decide **what to work on next** when multiple tasks compete:
+
+| Category | Low effort (1-2d) | Medium effort (3-7d) | High effort (8-15d+) |
+|----------|------------------|---------------------|----------------------|
+| **High impact** | Quick wins — do immediately | Core bets — plan next sprint | Strategic investments — phase roadmap |
+| **Low impact** | Low-priority polish | Backlog items | Nice-to-have / research |
+
+Each task below is tagged with its effort estimate and impact rating.
+Quick wins = low effort + high impact (start here).
+
 ---
 
 ## Platform Infrastructure (Monorepo)
 
-### ❤️ Add monorepo dev orchestration with `justfile` or `docker-compose.override.yml`
-**Why**: Each service has its own docker-compose.dev.yml but there is no single entrypoint to start the full local stack. Developers must manually start 16+ services in correct order, manage shared networks (gratheon), and handle env vars across services.
+### ❤️ Add root-level `.gitignore` — Quick Win
+**Effort**: 1 day · **Impact**: High
+- Prevents git history bloat from ~30MB candidate JSON files in root
+- Removes accidental secret leaks (.env, configs)
+- Clean up existing tracked files and add to .gitignore
 
-**What to do**: Create a root-level `justfile` with targets like:
-- `just dev-start` — starts all core services (swarm-api, graphql-router, web-app, user-cycle, alerts) in dependency order
-- `just dev-stop` / `just dev-clean` 
-- `just test` — runs tests across all services
+### ❤️ Create root docker-compose.yml for full stack orchestration — Quick Win
+**Effort**: 2 days · **Impact**: High
+- Single file to bring up entire platform locally (15+ services)
+- Define `gratheon-dev` network, map shared ports centrally
+- Support `--profile` flag: `core`, `ml`, `edge`, `infra` subsets
 
-**Effort**: 2-3 days  
-**Impact**: Onboards new developers from hours to minutes. Reduces "works on my machine" issues.
-
-### 💛 Implement cross-service integration testing
-**Why**: GraphQL federation spans 16+ microservices (swarm-api, user-cycle, alerts, weather, plantnet, telemetry-api, event-stream-filter). A schema change in one service can silently break others. Currently there are zero integration tests between services.
-
-**What to do**: 
-- Create `integration-tests/` directory with Docker Compose profiles
-- Write tests that verify GraphQL federation queries across services (e.g., query hives → join with weather → join with telemetry data)
+### 💛 Implement cross-service integration testing — Core Bet
+**Effort**: 5-7 days · **Impact**: High
+- GraphQL federation spans 16+ microservices; schema changes can silently break others
+- Create `integration-tests/` with Docker Compose profiles
+- Write tests for critical paths: hive → weather → telemetry joins (10-15 scenarios)
 - Use test containers or mock services where real DBs aren't available
-- Target: 10-15 integration test scenarios covering critical paths
 
-**Effort**: 5-7 days  
-**Impact**: Catches breaking changes before they reach staging. Essential for safe refactoring of federation schema.
+### 💛 Add root-level CI/CD workflow with matrix builds — Core Bet
+**Effort**: 3-4 days · **Impact**: High
+- Coordinated pipeline across all services: shared caching, dependency validation
+- Parallel matrix builds + schema compatibility checks on PRs
+- Deploy triggers only when relevant services changed
 
-### 💛 Add root-level CI/CD workflow with matrix builds
-**Why**: Each service has its own `.github/workflows/*` but no coordinated pipeline. No shared caching, no dependency validation across services, no single view of platform health.
+### 💛 Add Dockerfiles for clickstack, blog-engine-md, rate-limiter — Quick Win
+**Effort**: 1 day · **Impact**: Medium
+- These three services lack Dockerfiles → breaks container parity
+- Multi-stage alpine builds (Go), Node 24 slim (TS)
+- Adds docker-compose.dev.yml / prod.yml for each
 
-**What to do**: Create `.github/workflows/platform.yml` that:
-- Runs all service tests in parallel matrix
-- Shares build cache between runs (Docker layers, Go modules, pnpm store)
-- Validates GraphQL schema compatibility across services on PRs
-- Triggers deploy pipelines only when relevant services changed
+### 💛 Audit rate-limiter and add observability — Core Bet
+**Effort**: 3-4 days · **Impact**: High
+- Rate-limiter protects all API traffic but has no metrics, logging, or test coverage
+- Add health endpoint, structured logging of denied requests, edge-case tests
+- Document current rules (per-user, per-API-key, per-endpoint)
 
-**Effort**: 3-4 days  
-**Impact**: Faster CI, better DX, prevents cross-service regressions.
+### 💛 Implement data backup strategy for all databases — Core Bet
+**Effort**: 3-4 days · **Impact**: High
+- Platform: MySQL, ClickHouse, Redis, InfluxDB — zero automated backups visible
+- Cron/sidecar dumps + S3 with lifecycle policies (7d daily, 30d weekly)
+- Test restore procedures; document RPO/RTO per service
+
+### 💛 Implement structured data export (CSV/JSON) for apiary/hive data — Core Bet
+**Effort**: 5-7 days · **Impact**: High
+- Beekeepers need to back up / share hive data outside the app (GDPR portability)
+- Add GraphQL `exportApiary(apiaryId, format)` resolver in swarm-api
+- UI button in Hive View → "Export Data" dropdown
+
+### 💛 Document runbooks for each service (SRE-style) — Core Bet
+**Effort**: 5-7 days · **Impact**: Medium
+- 19+ services with no centralized operational docs
+- One file per service: start/stop, key URLs, failure patterns, log locations
+- Creates `/docs/runbooks/` directory
 
 ---
 
 ## web-app (Frontend) — 65K lines, only 7.7% test coverage
 
-### 💛 Enable Playwright E2E tests with local backend
-**Why**: `playwright.config.ts` exists but `webServer` is commented out. The project has all the pieces for E2E testing but they can't run without a running backend stack. This leaves critical user flows untested: hive creation, device viewing, apiary management.
-
-**What to do**:
-- Uncomment and configure `webServer` in playwright.config.ts to start local dev server
-- Write first E2E tests for: login flow, create hive, view hive dashboard, upload inspection photo
+### 💛 Enable Playwright E2E tests with local backend — Core Bet
+**Effort**: 3-4 days · **Impact**: High
+- `playwright.config.ts` exists but `webServer` is commented out; critical flows untested
+- First E2E tests: login, create hive, view dashboard, upload inspection photo
 - Add CI integration so E2E runs on PRs
 
-**Effort**: 3-4 days  
-**Impact**: First real safety net for frontend changes. Currently the only "test" is unit tests for utility functions.
+### 💛 Implement AI Advisor feature (currently a stub) — Strategic Investment
+**Effort**: 10-15 days · **Impact**: High
+- `web-app/src/page/aiAdvisor/index.tsx` is ~128 lines placeholder; ML models exist but disconnected
+- Wire: frame photo → image-splitter queue → varroa/queen detection results → UI overlays
+- Add treatment recommendations + one-click from inspection view
 
-### 💛 Implement AI Advisor feature (currently a stub)
-**Why**: `web-app/src/page/aiAdvisor/index.tsx` is ~128 lines — just a placeholder UI. This is positioned as a core differentiator: ML-powered bee health insights from frame photos. The backend models exist (models-queen-bee-detector, models-varroa-on-bee) but aren't connected.
+### 💛 Connect detection models to web-app UI — Strategic Investment
+**Effort**: 7-10 days · **Impact**: High
+- Three trained models (queen mAP=0.92, varroa, plantnet) are isolated from app
+- Unified inference gateway + GraphQL schema extensions (FrameAnalysis, VarroaCount)
+- Build UI: detection overlays, confidence cards, auto-trigger on photo upload
 
-**What to do**:
-1. Connect frontend to image-splitter upload API (already exists)
-2. Wire up model inference pipeline: frame photo → image-splitter job queue → varroa/queen detection results
-3. Display analysis results in the UI with visual overlays
-4. Add treatment recommendations based on detected issues (varroa count, queen status)
-5. Integrate with hive inspection workflow — one-click from inspection view
-
-**Effort**: 10-15 days  
-**Impact**: Key differentiator for commercial tier. Directly tied to revenue potential.
-
-### 💚 Add PWA offline support verification tests
-**Why**: README mentions Dexie (offline DB) and VitePWA plugin, but no tests verify the offline experience works correctly — data sync, stale-while-revalidate behavior, push notifications on reconnect.
-
-**What to do**:
-- Write tests that simulate offline → online transitions
-- Verify local Dexie writes persist and sync when reconnected
+### 💚 Add PWA offline support verification tests — Backlog Item
+**Effort**: 2-3 days · **Impact**: Medium
+- Dexie + VitePWA mentioned in README but no tests verify offline behavior
+- Simulate offline→online transitions; verify sync, push notifications on reconnect
 - Test PWA installability and service worker updates
 
-**Effort**: 2-3 days  
-**Impact**: Beekeepers work in fields with poor connectivity — this is a real usability requirement, not just a nice-to-have.
+### 💚 Performance: audit and reduce initial bundle size — Backlog Item
+**Effort**: 2-3 days · **Impact**: Medium
+- 440 files with Preact + Vite should be lean; no code splitting by route yet
+- Add route-based lazy loading (inspectionList, warehouse, grafana, aiAdvisor)
+- Lazy-load map components and Grafana iframe embeds
 
-### 💚 Performance: audit and reduce initial bundle size
-**Why**: 440 files with Preact + Vite should produce a lean bundle, but no analysis has been done. No code splitting by route visible in vite.config.ts beyond the default. Potential for large initial load on mobile networks (primary beekeeper connection).
-
-**What to do**:
-- Run `vite build --report` to analyze current bundle composition
-- Add route-based code splitting for heavy pages: inspectionList, warehouse, grafana, aiAdvisor
-- Lazy-load map components (likely large) and Grafana iframe embeds
-- Audit and remove unused dependencies
-
-**Effort**: 2-3 days  
-**Impact**: Direct UX improvement for beekeepers on slow mobile connections.
+### 💚 Add frontend bundle size budgeting — Backlog Item
+**Effort**: 1-2 days · **Impact**: Medium
+- No CI gate preventing bundle regressions for mobile beekeepers on slow connections
+- Vite bundle analyzer + budget: total JS < 150KB gzipped, per-route chunk < 50KB gzipped
+- Block CI if bundle exceeds threshold
 
 ---
 
 ## Backend Services — Critical Gaps
 
-### ❤️ Add tests for entrance-observer (edge AI inference)
-**Why**: This service runs on Jetson Orin/Nano with GPU-accelerated video processing for real-time hive entrance monitoring. Zero tests exist. A regression here means false bee activity counts or missed detections in production — directly impacts apiary owners' decisions.
+### ❤️ Add tests for entrance-observer (edge AI inference) — Core Bet
+**Effort**: 5-7 days · **Impact**: High
+- Runs on Jetson Orin/Nano with GPU video processing; zero tests exist
+- Unit test float detection pipeline + integration: video chunk → frame → model → results
+- Mock GPU for CI; run TFLite on Jetson locally; add per-frame benchmarks
 
-**What to do**:
-- Unit test the float detection pipeline (best_float32.tflite model loading and inference)
-- Integration test: video chunk → frame extraction → model inference → result aggregation
-- Mock GPU operations for CI; run actual TFLite on Jetson for local validation
-- Add performance benchmarks: ms per frame at target resolution
-
-**Effort**: 5-7 days  
-**Impact**: Core edge AI service with zero safety net. Production impact if broken.
-
-### 💛 Implement data backup strategy for all databases
-**Why**: Platform relies on MySQL (swarm-api, plantnet), ClickHouse (clickstack), Redis (rate-limiter), InfluxDB (telemetry). No automated backups visible anywhere. Data loss = lost apiary records, telemetry history, and user data.
-
-**What to do**:
-- Add backup cron jobs for each database type in respective docker-compose configs
-- Use pg_dump / mysqldump / ch-backup / redis-cli RDB snapshots
-- Store backups in S3 with lifecycle policies (30/90/365 day retention)
-- Document and test restore procedures
-
-**Effort**: 3-4 days  
-**Impact**: Prevents catastrophic data loss. Insurance policy for the entire platform.
-
-### 💚 Add rate limiting to all GraphQL endpoints
-**Why**: `rate-limiter` service exists (Redis token bucket) but no evidence it's wired into graphql-router or any other service. Without it, a single client can hammer APIs — especially dangerous for: user-cycle auth endpoints (brute force), image-splitter uploads (resource exhaustion).
-
-**What to do**:
-- Wire rate-limiter middleware into graphql-router
-- Define per-endpoint limits: auth endpoints (strict), uploads (moderate), read queries (generous)
-- Add monitoring: track how many users hit limits, alert on spikes
+### 💚 Add rate limiting to all GraphQL endpoints — Backlog Item
+**Effort**: 3-4 days · **Impact**: High (security hardening)
+- Rate-limiter exists but not wired into graphql-router or other services
+- Wire middleware + define per-endpoint limits; add monitoring for limit hits
 - Document rate limit headers in API responses
 
-**Effort**: 3-4 days  
-**Impact**: Security hardening + protection against accidental DoS.
-
-### 💚 Standardize logging with shared log-lib across all services
-**Why**: Three separate logging libraries (log-lib for TS, log-lib-go, log-lib-py) with potential format inconsistencies. No distributed tracing IDs connecting logs across service boundaries. Debugging issues across the federation requires manual correlation.
-
-**What to do**:
-- Audit current log formats in each service
-- Align on a single structured JSON schema with trace_id, span_id, service_name fields
-- Add OpenTelemetry context propagation for distributed traces
-- Create shared format validation tests
-
-**Effort**: 3-4 days  
-**Impact**: Cuts mean time to resolution for production issues by orders of magnitude.
+### 💚 Fix swarm-api `config.go` SafeWriteConfig() call — Quick Win
+**Effort**: 1 day · **Impact**: Medium
+- `viper.SafeWriteConfig()` silently overwrites production configs with dev defaults
+- Replace with explicit config validation + structured logging (log-lib-go)
+- Add startup health check for required env vars; document expected structure
 
 ---
 
-## ML / Detection Models (Plantnet, Varroa, Queen Detector)
+## ML / Detection Models
 
-### 💛 Connect detection models to web-app UI
-**Why**: Three detection models exist and are trained: queen bee detector (mAP50=0.92), varroa-on-bee detector, plantnet species classifier. But they're isolated — no pipeline from "user uploads frame photo" → "get analysis results back in the hive edit view."
-
-**What to do**:
-1. Create unified inference API gateway or extend image-splitter job queue
-2. Add model result types to GraphQL schema (FrameAnalysis, VarroaCount, PlantSpecies)
-3. Build UI components: detection overlays on frame photos, result cards with confidence scores
-4. Wire into inspection workflow: auto-trigger analysis when photo uploaded
-
-**Effort**: 7-10 days  
-**Impact**: Activates the entire ML stack that's been built but never exposed to users.
-
-### 💚 Add model monitoring and drift detection
-**Why**: Models are trained offline with no feedback loop. Varroa counts from field photos need validation against actual treatments applied by beekeepers. No way to know if models are degrading over time (seasonal changes, different bee breeds, lighting conditions).
-
-**What to do**:
-- Log all model predictions with metadata (date, location, weather, hive age)
-- Add user feedback mechanism: "Was this varroa count accurate?" 
-- Track prediction distributions over time — alert on significant shifts
-- Periodic retraining pipeline triggered by drift detection or quarterly schedule
-
-**Effort**: 5-7 days  
-**Impact**: Ensures ML predictions stay reliable as conditions change. Builds trust with users.
+### 💚 Add model monitoring and drift detection — Backlog Item
+**Effort**: 5-7 days · **Impact**: Medium
+- Models trained offline with no feedback loop or degradation tracking
+- Log predictions with metadata; add user feedback ("Was varroa count accurate?")
+- Track prediction distributions over time; trigger retraining on drift
 
 ---
 
 ## Documentation & Developer Experience
 
-### 💚 Create monorepo architecture documentation
-**Why**: 20+ components, GraphQL federation, shared networks, multiple DBs. No single document explains how they fit together. New contributors struggle to understand the system. README files exist but are outdated (web-app's mentions "440+ files" in docs written when it had fewer).
+### 💚 Create monorepo architecture documentation — Backlog Item
+**Effort**: 2-3 days · **Impact**: Medium
+- 20+ components, no single document explaining how they fit together
+- `ARCHITECTURE.md` with service map, Mermaid data flow diagrams, API contract overview
+- Per-service quickstart guides linking to full READMEs
 
-**What to do**:
-- Create `ARCHITECTURE.md` at root with service map, data flow diagrams, API contract overview
-- Document deployment topology: which services run where, shared infrastructure
-- Add per-service quickstart guides linking to full READMEs
-- Keep diagrams as Mermaid in markdown for version control
+### 💚 Add CONTRIBUTING.md with local dev setup guide — Quick Win
+**Effort**: 1 day · **Impact**: Medium
+- No visible developer onboarding document; each service has its own setup instructions
+- Document prerequisites (Go, Node 24 via nvm, Docker, Just); step-by-step clone → start core services
+- Code style conventions and commit message format
 
-**Effort**: 2-3 days  
-**Impact**: Dramatically reduces onboarding time. Single source of truth for system design decisions.
+### 💚 Standardize error reporting across the monorepo — Backlog Item
+**Effort**: 5-7 days · **Impact**: Medium
+- Three separate logging libraries (log-lib-go, log-lib-py, web-app Sentry); no shared taxonomy
+- Define canonical error types with HTTP status mappings; create shared TS/Go package
+- Add error rate metrics per service to ClickStack dashboards
 
-### 💚 Add CONTRIBUTING.md with local dev setup guide
-**Why**: No visible developer onboarding document. Each service has its own setup instructions but no unified guide. Setting up the full development environment likely takes hours of trial and error.
+### 💚 Standardize logging with shared log-lib across all services — Backlog Item
+**Effort**: 3-4 days · **Impact**: Medium
+- Format inconsistencies across services; no distributed tracing IDs between boundaries
+- Align on structured JSON schema (trace_id, span_id, service_name); add OTel context propagation
 
-**What to do**:
-- Document prerequisites (Go, Node 24 via nvm, Docker, Just)
-- Step-by-step: clone → init shared network → start core services → run web-app dev
-- Common issues and solutions section
-- Code style conventions (linting, formatting, commit message format)
+### 💚 Add API versioning strategy for GraphQL federation — Backlog Item
+**Effort**: 3-4 days · **Impact**: Medium
+- 15+ services expose schemas; breaking changes cascade across all consumers
+- Define deprecation lifecycle (`@deprecated(reason)`) + sunset window (2 release cycles)
+- Add schema registry validation in CI that blocks breaking changes
 
-**Effort**: 1-2 days  
-**Impact**: Reduces first-day friction for any contributor or new team member.
+### 💚 Improve blog-engine-md internationalization testing — Backlog Item
+**Effort**: 1-2 days · **Impact**: Low
+- i18n resolver has no tests; missing translations may silently fall back incorrectly
+- Test fallback chain (requested lang → en → empty); verify sitemap hreflang tags
+
+### 💙 Implement CI-based performance regression detection for entrance-observer — Nice-to-have
+**Effort**: 2-3 days · **Impact**: Low
+- No automated benchmarking in CI; regressions only caught when beekeepers report slow feeds
+- Benchmark suite loading float32 model + measuring inference time per frame on CPU
+- Run in CI; fail if regression > 15% vs main branch
 
 ---
 
-## Timeline & Dependencies
+## Effort / Impact Summary
 
-```mermaid
-graph TD
-    A[💚 Monorepo architecture docs] --> B[💛 Cross-service integration tests]
-    C[🔵 Local dev orchestration] --> B
-    B --> D[❤️ Data backups]
-    E[💛 AI Advisor feature] --> F[💛 Connect detection models to UI]
-    G[💚 Rate limiting wired in] --> H[❤️ Security hardening complete]
-```
+| Priority | Quick Wins (≤2d) | Core Bets (3-7d) | Strategic (8-15d+) | Backlog / Nice | Total Est. |
+|----------|------------------|------------------|--------------------|---------------|------------|
+| ❤️ Critical | 2 tasks, ~3 days | 1 task, ~6 days | — | — | **~9 days** |
+| 💛 High | 1 task, ~1 day | 7 tasks, ~30 days | 2 tasks, ~20 days | — | **~51 days** |
+| 💚 Quality | 1 task, ~1 day | 4 tasks, ~13 days | 2 tasks, ~11 days | 2 tasks, ~3 days | **~27 days** |
+| 💙 Nice | 1 task, ~2.5 days | — | — | — | **~2.5 days** |
 
-**Suggested order**:
-1. **Week 1-2**: Monorepo dev orchestration + architecture docs (foundation for everything else)
-2. **Week 3-4**: Integration tests + data backups (safety net)
-3. **Week 5-8**: AI Advisor feature + model integration (revenue-generating work)
-4. **Week 9+**: Performance, monitoring, remaining quality items
+---
+
+## Suggested Execution Order (by Effort/Impact matrix)
+
+### Week 1-2: Quick Wins & Foundation
+1. ❤️ Add root-level `.gitignore` (1d) — immediate DX gain
+2. ❤️ Create root docker-compose.yml for full stack orchestration (2d) — foundation for everything else
+3. 💚 Add CONTRIBUTING.md with local dev setup guide (1d) — onboarding for any contributor
+
+### Week 3-4: Safety Net
+4. 💛 Implement cross-service integration testing (5-7d) — protects all services from silent breakage
+5. 💛 Implement data backup strategy for all databases (3-4d) — prevents catastrophic loss
+6. 💚 Add rate limiting to all GraphQL endpoints (3-4d) — security hardening
+
+### Week 5-8: Revenue & Differentiation
+7. 💛 Enable Playwright E2E tests with local backend (3-4d) — frontend safety net
+8. 💛 Implement AI Advisor feature (10-15d) + Connect detection models to UI (7-10d) — revenue-generating work
+
+### Week 9+: Quality & Scale
+9. 💚 Performance: audit and reduce initial bundle size (2-3d)
+10. 💛 Add root-level CI/CD workflow with matrix builds (3-4d)
+11. 💚 Create monorepo architecture documentation (2-3d)
+12. 💛 Document runbooks for each service (5-7d)
+13. Remaining backlog items from table above
 
 ---
 

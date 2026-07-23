@@ -475,21 +475,6 @@ type Mutation {
   setDetectionConfidencePercents(confidencePercents: DetectionConfidencePercentsInput!): DetectionSettings!
 }
 
-type Plant {
-  gbifID: ID
-  URL: URL
-  scientificName: String
-  distance: Float
-  images: [PlantImage]
-}
-
-type PlantImage {
-  URL: URL
-  title: String
-  source: String
-  created: DateTime
-  creator: String
-}
 
 # The query type, represents all of the entry points into our object graph
 type Query {
@@ -510,7 +495,6 @@ type Query {
     inspectionId: ID!
   ): [FrameSideInspection]
   boxSystems: [BoxSystem]
-  plants(lat: String!, lng: String!): [Plant]
   hive(id: ID!): Hive
   apiary(id: ID!): Apiary
   hiveFrame(id: ID!): Frame

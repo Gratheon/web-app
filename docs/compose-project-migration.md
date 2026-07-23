@@ -6,7 +6,7 @@ Several production `restart.sh` scripts used `COMPOSE_PROJECT_NAME=gratheon`. Th
 
 - `entrance-observer` ran `docker compose down --remove-orphans` under the shared project and could delete other production containers.
 - `gate-video-stream` mixed legacy `gratheon` and new project names, leaving stale host-network containers on ports `8900` and `8950`.
-- A single service restart could remove `telemetry-api`, `gate-video-stream`, or `plantnet` from production.
+- A single service restart could remove `telemetry-api`, `gate-video-stream` from production.
 
 ## Target state
 
@@ -16,7 +16,6 @@ Each production service uses a stable, unique Compose project name equal to the 
 | --- | --- | --- |
 | telemetry-api | `telemetry-api` | 8600 |
 | gate-video-stream | `gate-video-stream` | 8900 / 8950 |
-| plantnet | `plantnet` | 8090 |
 | swarm-api | `swarm-api` | 8100 |
 | graphql-router | `graphql-router` | 4000 |
 | user-cycle | `user-cycle` | 8010 |
@@ -51,7 +50,7 @@ This never calls `docker compose down --remove-orphans` with the shared `gratheo
 ## Rollout order
 
 1. `telemetry-api` - completed
-2. `gate-video-stream` and `plantnet` - restore missing services first
+2. `gate-video-stream` - restore missing service first
 3. Remaining shared-project services (`swarm-api`, `graphql-router`, `user-cycle`, `weather`, `alerts`, `image-splitter`, `event-stream-filter`, model services, `entrance-observer`)
 4. Production verification after each deploy
 
@@ -71,4 +70,4 @@ For GraphQL subgraphs, also confirm registration at `http://127.0.0.1:3000/schem
 
 - Add `scripts/verify-production-deployment.sh` to services that only received isolated `restart.sh` so far.
 - Update local `justfile` targets if developers want isolated dev project names too.
-- Re-deploy `gate-video-stream` and `plantnet` on production immediately after merge.
+- Re-deploy `gate-video-stream` on production immediately after merge.

@@ -23,7 +23,6 @@ import LocationMarker from '@/icons/locationMarker'
 import BillingUpgradeNotice from '@/shared/billingUpgradeNotice'
 import { isBillingTierLessThan } from '@/shared/billingTier'
 
-import Plants from './plants'
 import HivePlacement from './hivePlacement'
 import { updateFile } from '@/models/files'
 import { getUser } from '@/models/user'
@@ -513,7 +512,6 @@ export default function ApiaryEditForm() {
 
 
         {mapTab == 0 && apiary && <Weather lat={lat} lng={lng} />}
-        {mapTab == 0 && apiary && <Plants lat={lat} lng={lng} />}
 			</div>
 			{ConfirmDialog}
 		</div>

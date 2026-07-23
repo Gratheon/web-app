@@ -98,7 +98,7 @@ Quick wins = low effort + high impact (start here).
 
 ### 💛 Connect detection models to web-app UI — Strategic Investment
 **Effort**: 7-10 days · **Impact**: High
-- Three trained models (queen mAP=0.92, varroa, plantnet) are isolated from app
+- Two trained models (queen mAP=0.92, varroa) are isolated from app
 - Unified inference gateway + GraphQL schema extensions (FrameAnalysis, VarroaCount)
 - Build UI: detection overlays, confidence cards, auto-trigger on photo upload
 
@@ -244,6 +244,5 @@ Quick wins = low effort + high impact (start here).
 | image-splitter (ML pipeline) | Production service | 469 tests |
 | event-stream-filter (WebSocket) | Active dev | 33 tests |
 | entrance-observer (edge AI) | Edge deployment | **0 tests** |
-| plantnet / models | Trained, not connected | **0 tests each** |
 | CI/CD | Per-service workflows | Missing cross-service validation |
 | E2E testing | Playwright configured but disabled | Cannot run without backend |

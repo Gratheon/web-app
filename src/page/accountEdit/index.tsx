@@ -315,13 +315,14 @@ export default function AccountEdit() {
 								))}
 							</select>
 						</div>
-						<div>
+						<div className={style.localeSection}>
 							<label htmlFor="locale">
 								<T>Locale</T>
 							</label>
-							<div>
+							<div className={style.localeFields}>
 								<select
 									name="locale"
+									id="locale"
 									value={user.locale || getBrowserLocale()}
 									onInput={onInput}
 								>
@@ -336,10 +337,10 @@ export default function AccountEdit() {
 								</div>
 							</div>
 						</div>
-							<div>
-								<label htmlFor="temperatureUnit">
-									<T>Temperature unit</T>
-								</label>
+						<div>
+							<label className={style.labelWide} htmlFor="temperatureUnit">
+								<T>Temperature unit</T>
+							</label>
 								<select
 									name="temperatureUnit"
 									id="temperatureUnit"
@@ -363,12 +364,8 @@ export default function AccountEdit() {
 					</h3>
 					<p className={style.detectionSettingsHelp}>
 						<T>
-							Set minimum confidence for objects detected from uploaded images.
-							These settings apply to frame image detections and bottom board
-							varroa detections. All values below are percentages. Higher
-							percentages are stricter and reduce false positives. Lower
-							percentages detect more objects but may include more false
-							positives.
+							Minimum confidence for image detections. Higher values are
+							stricter; lower values find more objects.
 						</T>
 					</p>
 					<div className={style.detectionSettingsGrid}>
@@ -416,30 +413,22 @@ export default function AccountEdit() {
 					</h3>
 					<p className={style.trustIntro}>
 						<T>
-							Gratheon is built for beekeepers who care about their hives and
-							their data. We treat your apiary records with respect, keep
-							performance fast on the devices you use in the field, and only
-							collect what we need to run the service.
+							We respect your hive data and optimize Gratheon for work in the
+							field.
 						</T>
 					</p>
 					<ul className={style.trustPoints}>
 						<li>
-							<T>
-								Privacy first: your hive data stays yours, and we do not sell
-								your personal information.
-							</T>
+							<T>Your data stays yours; we do not sell personal information.</T>
 						</li>
 						<li>
 							<T>
-								Responsible data use: we use your data to power features you
-								ask for, improve reliability, and keep your account secure.
+								We use your data only to run features and keep your account
+								secure.
 							</T>
 						</li>
 						<li>
-							<T>
-								Performance in the field: we optimize the app for quick loads,
-								offline-friendly workflows, and smooth inspections on mobile.
-							</T>
+							<T>Built for fast loads and smooth mobile inspections.</T>
 						</li>
 					</ul>
 					<div className={style.legalLinks}>

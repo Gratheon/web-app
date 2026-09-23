@@ -199,6 +199,9 @@ table {
 	.hives {
 		display: flex;
 		flex-flow: row wrap;
+		// WHY: list and table views sat flush under the header row after the view toggle change.
+		// WHAT: keep a consistent gap above hive icons and the table.
+		margin-top: 10px;
 	}
 }
 

@@ -3,7 +3,7 @@
 /*
  * WHY: shared Button styles target every <button>, including this switch.
  * WHAT: reset that chrome so the control can look like an iPhone toggle
- * with the same 3D inset/raised shadows as app buttons.
+ * with a subtle inset groove and a thumb that stays inside the track.
  */
 .toggle {
 	appearance: none;
@@ -49,64 +49,54 @@
 .track {
 	position: relative;
 	display: block;
+	overflow: hidden;
 	width: 58px;
 	height: 32px;
 	border-radius: 999px;
-	border: @btn-3d-border solid #9a9a9a;
-	background: linear-gradient(180deg, #d4d4d4 0%, #ececec 100%);
-	/* WHY: inset well + raised platform match the button 3D language. */
-	box-shadow:
-		inset 0 3px 6px rgba(0, 0, 0, 0.28),
-		inset 0 -1px 0 rgba(255, 255, 255, 0.55),
-		0 @btn-3d-depth-xs 0 0 #7a7a7a;
+	border: 1px solid #b0b0b0;
+	background: linear-gradient(180deg, #c4c4c4 0%, #dedede 100%);
+	box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.22);
 	transition:
 		background 0.2s ease,
-		border-color 0.2s ease,
-		box-shadow 0.2s @btn-3d-ease;
+		border-color 0.2s ease;
 }
 
+/* WHY: both sides are equal view modes, so keep the same neutral palette. */
 .checked .track {
-	border-color: @btn-green-edge;
-	background: linear-gradient(180deg, #267308 0%, @color-green 100%);
-	box-shadow:
-		inset 0 3px 6px rgba(0, 0, 0, 0.32),
-		inset 0 -1px 0 rgba(255, 255, 255, 0.14),
-		0 @btn-3d-depth-xs 0 0 @btn-green-shadow;
+	border-color: #a3a3a3;
+	background: linear-gradient(180deg, #b8b8b8 0%, #d2d2d2 100%);
 }
 
 .thumb {
 	position: absolute;
-	top: 2px;
-	left: 2px;
-	width: 24px;
-	height: 24px;
+	top: 3px;
+	left: 3px;
+	width: 26px;
+	height: 26px;
 	border-radius: 50%;
-	border: @btn-3d-border solid #d0d0d0;
-	background: linear-gradient(180deg, #ffffff 0%, #f1f1f1 100%);
+	background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 100%);
 	box-shadow:
-		0 @btn-3d-depth-xs 0 0 #b0b0b0,
-		0 4px 6px rgba(0, 0, 0, 0.16);
-	transition:
-		left 0.2s @btn-3d-ease,
-		transform 0.2s @btn-3d-ease,
-		box-shadow 0.2s @btn-3d-ease;
-	z-index: 2;
+		inset 0 -1px 0 rgba(0, 0, 0, 0.06),
+		0 1px 2px rgba(0, 0, 0, 0.18);
+	transition: left 0.2s @btn-3d-ease;
+	z-index: 1;
 }
 
 .checked .thumb {
-	left: 28px;
+	left: 29px;
 }
 
 .toggle:not(:disabled):active .thumb {
-	transform: translateY(2px);
-	box-shadow: 0 1px 0 0 #b0b0b0;
+	box-shadow:
+		inset 0 1px 2px rgba(0, 0, 0, 0.12),
+		0 0 1px rgba(0, 0, 0, 0.12);
 }
 
 .offIcon,
 .onIcon {
 	position: absolute;
 	top: 50%;
-	z-index: 1;
+	z-index: 0;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -114,7 +104,7 @@
 	height: 16px;
 	transform: translateY(-50%);
 	pointer-events: none;
-	opacity: 0.9;
+	opacity: 0.85;
 
 	svg {
 		width: 14px;
@@ -125,16 +115,9 @@
 }
 
 .offIcon {
-	left: 7px;
+	left: 8px;
 }
 
 .onIcon {
-	right: 7px;
-}
-
-.checked .offIcon,
-.checked .onIcon {
-	svg {
-		fill: #f3f3f3;
-	}
+	right: 8px;
 }

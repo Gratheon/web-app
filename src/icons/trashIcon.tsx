@@ -1,5 +1,3 @@
-import { h } from 'preact'
-
 export default function TrashIcon({ size = 24, color = 'currentColor', className = '' }) {
 	return (
 		<svg

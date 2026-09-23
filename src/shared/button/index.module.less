@@ -39,8 +39,23 @@
 	}
 
 	&.iconOnly {
+		/* WHY: small text buttons use padding + flex-end; icon-only controls need a
+		   fixed square hit target so the 2px 3D border does not clip the SVG. */
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0;
+		box-sizing: border-box;
+
 		svg {
-			margin-right: 0px;
+			margin-right: 0;
+			flex-shrink: 0;
+		}
+
+		&.small {
+			width: 28px;
+			min-width: 28px;
+			height: 28px;
 		}
 	}
 

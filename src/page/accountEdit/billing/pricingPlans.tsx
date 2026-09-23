@@ -78,7 +78,7 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 					</span>
 				</div>
 				<Button className="plan-buy-button" onClick={() => handlePlanSelect(plan, pricing.cycle)}>
-					<T>Buy</T>
+					<T>Subscribe</T>
 				</Button>
 			</>
 		)

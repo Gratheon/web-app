@@ -7,6 +7,7 @@ import Button from '@/shared/button'
 import ErrorMsg from '@/shared/messageError'
 import Loader from '@/shared/loader'
 import Modal from '@/shared/modal'
+import Toggle from '@/shared/toggle'
 import T from '@/shared/translate'
 import ListIcon from '@/icons/listIcon'
 import TableIcon from '@/icons/tableIcon'
@@ -677,24 +678,21 @@ export default function WarehouseQueensPage() {
 				<h2><T>Queens</T></h2>
 				<div className={styles.headerActions}>
 					{!isMobileLayout ? (
-						<div className={styles.viewModeActions}>
-							<Button
-								size="small"
-								style={viewMode === 'LIST' ? { opacity: 1 } : { opacity: 0.8 }}
-								onClick={() => setViewMode('LIST')}
-							>
-								<ListIcon size={14} />
-								<T>List</T>
-							</Button>
-							<Button
-								size="small"
-								style={viewMode === 'TABLE' ? { opacity: 1 } : { opacity: 0.8 }}
-								onClick={() => setViewMode('TABLE')}
-							>
-								<TableIcon size={14} />
-								<T>Table</T>
-							</Button>
-						</div>
+						<Toggle
+							className={styles.viewModeToggle}
+							checked={viewMode === 'TABLE'}
+							onChange={(isTable) =>
+								setViewMode(isTable ? 'TABLE' : 'LIST')
+							}
+							offIcon={<ListIcon size={14} />}
+							onIcon={<TableIcon size={14} />}
+							title={
+								viewMode === 'TABLE'
+									? 'Switch to list view'
+									: 'Switch to table view'
+							}
+							aria-label="Switch between list and table view"
+						/>
 					) : null}
 					<Button color="green" href="/warehouse/queens/detect">
 						<T>Queen finder</T>

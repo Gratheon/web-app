@@ -1,4 +1,5 @@
 import { render as renderPreact } from 'preact'
+import { act } from 'preact/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import styles from './queens.module.less'
@@ -271,8 +272,59 @@ describe('WarehouseQueensPage', () => {
 		document.body.appendChild(container)
 		renderPreact(<WarehouseQueensPage />, container)
 
+		expect(container.querySelector('[role="switch"]')).toBeNull()
 		expect(container.textContent).not.toContain('list-icon')
 		expect(container.textContent).not.toContain('table-icon')
+		expect(container.querySelector('table')).toBeNull()
+		expect(container.querySelector(`.${styles.card}`)).not.toBeNull()
+
+		renderPreact(null, container)
+		container.remove()
+	})
+
+	it('uses the shared toggle to switch between list and table views', () => {
+		mocks.useQuery.mockReturnValue({
+			data: {
+				warehouseQueens: [
+					{
+						id: '55',
+						name: 'Aphrodite',
+						added: '2026',
+						color: '#fefee3',
+						race: 'Carniolan',
+					},
+				],
+			},
+			loading: false,
+			error: null,
+			reexecuteQuery: vi.fn(),
+		})
+		mockQueenCache()
+
+		const container = document.createElement('div')
+		document.body.appendChild(container)
+		renderPreact(<WarehouseQueensPage />, container)
+
+		const getToggle = () => container.querySelector('[role="switch"]') as HTMLButtonElement | null
+		expect(getToggle()).not.toBeNull()
+		expect(getToggle()?.getAttribute('aria-label')).toBe('Switch between list and table view')
+		expect(getToggle()?.getAttribute('aria-checked')).toBe('false')
+		expect(container.querySelector('table')).toBeNull()
+		expect(container.querySelector(`.${styles.card}`)).not.toBeNull()
+
+		act(() => {
+			getToggle()?.click()
+		})
+
+		expect(getToggle()?.getAttribute('aria-checked')).toBe('true')
+		expect(container.querySelector('table')).not.toBeNull()
+		expect(container.querySelector(`.${styles.card}`)).toBeNull()
+
+		act(() => {
+			getToggle()?.click()
+		})
+
+		expect(getToggle()?.getAttribute('aria-checked')).toBe('false')
 		expect(container.querySelector('table')).toBeNull()
 		expect(container.querySelector(`.${styles.card}`)).not.toBeNull()
 

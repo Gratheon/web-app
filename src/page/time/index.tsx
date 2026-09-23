@@ -380,7 +380,7 @@ export default function TimeView() {
 							<T>Compare metrics across multiple hives over time to identify trends and anomalies.</T>
 						</p>
 						<p style={{ margin: 0 }}>
-							<T>Look for correlations between weight drops and swarming, temperature extremes and bee activity, or entrance patterns and colony health. Use the table view (📋) on each chart to export data for deeper analysis.</T>
+							<T>Look for correlations between weight drops and swarming, temperature extremes and bee activity, or entrance patterns and colony health. Use the table view switch on each chart to export data for deeper analysis.</T>
 						</p>
 					</InfoIcon>
 				</h2>

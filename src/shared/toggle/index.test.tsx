@@ -36,6 +36,15 @@ describe('Toggle', () => {
 		expect(onChange).toHaveBeenCalledWith(true)
 	})
 
+	it('applies compact sizing when requested', () => {
+		renderPreact(
+			<Toggle checked={false} size="compact" onChange={vi.fn()} />,
+			container,
+		)
+
+		expect(container.querySelector('button')?.className).toContain('compact')
+	})
+
 	it('does not change state when disabled', () => {
 		const onChange = vi.fn()
 		renderPreact(

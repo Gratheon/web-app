@@ -1,9 +1,13 @@
 import { useRef, useEffect, useState } from 'react'
 import { Chart } from 'lightweight-charts-react-components'
+import ChartIcon from '@/icons/chartIcon.tsx'
+import TableIcon from '@/icons/tableIcon.tsx'
 import ChartHeading from '@/shared/chartHeading'
 import Button from '@/shared/button'
+import Toggle from '@/shared/toggle'
 import T from '@/shared/translate'
 import AlertRulesPanel from './AlertRulesPanel'
+import styles from './ChartContainer.module.less'
 
 const isDisposedChartError = (error: unknown) => error instanceof Error && error.message === 'Object is disposed'
 
@@ -213,11 +217,7 @@ export default function ChartContainer({
 					gap: '8px'
 				}}>
 					<ChartHeading title={title} emoji={emoji} value={value} info={info} />
-					<div style={{
-						display: 'flex',
-						gap: '4px',
-						flexShrink: 0
-					}}>
+					<div className={styles.toolbar}>
 						{metricType && metricLabel && hives.length > 0 && (
 							<Button
 								size="small"
@@ -231,15 +231,25 @@ export default function ChartContainer({
 						)}
 						{showTable && tableData.length > 0 && (
 							<>
-								<Button
-									size="small"
-									onClick={() => {
-										setShowTableView(!showTableView)
-										setShowAlertView(false)
+								<Toggle
+									className={styles.viewModeToggle}
+									size="compact"
+									checked={showTableView}
+									onChange={(isTable) => {
+										setShowTableView(isTable)
+										if (isTable) {
+											setShowAlertView(false)
+										}
 									}}
-								>
-									{showTableView ? <>📊 <T>Chart</T></> : <>📋 <T>Table</T></>}
-								</Button>
+									offIcon={<ChartIcon size={14} />}
+									onIcon={<TableIcon size={14} />}
+									title={
+										showTableView
+											? 'Switch to chart view'
+											: 'Switch to table view'
+									}
+									aria-label="Switch between chart and table view"
+								/>
 								<Button
 									size="small"
 									onClick={exportToCSV}

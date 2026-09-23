@@ -9,6 +9,7 @@ type ToggleProps = {
 	'aria-label'?: string
 	offIcon?: any
 	onIcon?: any
+	size?: 'default' | 'compact'
 }
 
 export default function Toggle({
@@ -19,9 +20,15 @@ export default function Toggle({
 	title = '',
 	offIcon = null,
 	onIcon = null,
+	size = 'default',
 	...rest
 }: ToggleProps) {
-	const classNames = [styles.toggle, checked ? styles.checked : '', className]
+	const classNames = [
+		styles.toggle,
+		checked ? styles.checked : '',
+		size === 'compact' ? styles.compact : '',
+		className,
+	]
 		.filter(Boolean)
 		.join(' ')
 

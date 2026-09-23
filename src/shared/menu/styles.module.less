@@ -40,7 +40,7 @@
 .expandedLogoHeader {
 	img {
 		width: 138px;
-		margin: 10px auto;
+		margin: 6px auto;
 	}
 }
 
@@ -349,7 +349,7 @@ a.active .menuItemIcon {
 	#menu.desktopMenu .menuSection {
 		flex-direction: column;
 		flex-wrap: nowrap;
-		padding: 10px 0;
+		padding: 6px 0;
 		margin: 0;
 		width: 100%;
 		max-width: 100%;
@@ -360,7 +360,7 @@ a.active .menuItemIcon {
 	#menu.desktopMenu .menuSection li {
 		width: 100%;
 		flex-grow: 0;
-		padding: 4px 14px;
+		padding: 1px 10px;
 		text-align: left;
 		min-width: 0;
 		box-sizing: border-box;
@@ -369,7 +369,7 @@ a.active .menuItemIcon {
 	#menu.desktopMenu .menuSection li a {
 		display: block;
 		width: 100%;
-		padding: 8px 10px;
+		padding: 5px 10px;
 		border-radius: 6px;
 		min-width: 0;
 		max-width: 100%;
@@ -377,12 +377,22 @@ a.active .menuItemIcon {
 		overflow-wrap: anywhere;
 	}
 
+	#menu.desktopMenu .menuSection li .subMenu {
+		margin-top: 2px;
+	}
+
 	#menu.desktopMenu .menuSection li .subMenu li {
-		padding: 2px 0;
+		padding: 0;
 	}
 
 	#menu.desktopMenu .menuSection li .subMenu li a {
-		padding: 4px 10px;
+		padding: 2px 10px;
+	}
+
+	#menu.desktopMenu .legalMenuLink {
+		padding: 3px 10px;
+		font-size: 0.88rem;
+		color: #666;
 	}
 
 	.collapsedLogoTrigger {

@@ -580,6 +580,30 @@ const Menu = ({
 
 						<li>
 							<a
+								href="https://gratheon.com/terms"
+								className={styles.legalMenuLink}
+							>
+								<span className={styles.menuItemLabel}>
+									<span className={styles.menuItemText}>
+										<T ctx="link in page footer">Terms of Use</T>
+									</span>
+								</span>
+							</a>
+						</li>
+						<li>
+							<a
+								href="https://gratheon.com/privacy"
+								className={styles.legalMenuLink}
+							>
+								<span className={styles.menuItemLabel}>
+									<span className={styles.menuItemText}>
+										<T ctx="link in page footer">Privacy policy</T>
+									</span>
+								</span>
+							</a>
+						</li>
+						<li>
+							<a
 								href="#"
 								onClick={(event) => {
 									event.preventDefault()

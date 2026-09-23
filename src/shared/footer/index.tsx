@@ -1,7 +1,5 @@
 import { graphqlWsClient } from '@/api'
 import isDev from '@/isDev'
-import T from '@/shared/translate'
-
 import ConnectionStatus from './connectionStatus'
 import styles from './styles.module.less'
 
@@ -26,21 +24,11 @@ export default function Footer() {
 					<ConnectionStatus graphqlWsClient={graphqlWsClient} />
 				</li>
 			)}
-			{(isDev()) && (
+			{isDev() && (
 				<li>
 					<a href={apiUrl}>API</a>
 				</li>
 			)}
-			<li>
-				<a href="https://gratheon.com/terms">
-					<T ctx="link in page footer">Terms of Use</T>
-				</a>
-			</li>
-			<li>
-				<a href="https://gratheon.com/privacy">
-					<T ctx="link in page footer">Privacy policy</T>
-				</a>
-			</li>
 		</ul>
 	)
 }

@@ -179,7 +179,6 @@ export default function Billing({ user }) {
 			</section>
 
 			<section className={styles.section}>
-				<h2><T>Choose Your Plan</T></h2>
 				<PricingPlans
 					currentPlan={user.billingPlan || 'free'}
 				/>

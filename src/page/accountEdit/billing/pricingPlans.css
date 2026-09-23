@@ -1,13 +1,27 @@
 .pricing-plans {
-  padding: 1rem 0;
+  padding: 0;
   max-width: 1400px;
   margin: 0 auto;
 }
 
+.pricing-plans-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.pricing-plans-title {
+  margin: 0;
+}
+
 .billing-cycle-toggle {
   display: flex;
-  justify-content: center;
-  margin: 0 0 1.5rem;
+  justify-content: flex-end;
+  margin: 0;
+  flex-shrink: 0;
 }
 
 .billing-cycle-toggle-group {
@@ -21,6 +35,7 @@
   border-radius: 999px;
   background: #f2f2f2;
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
 }
 
 .billing-cycle-toggle-group::before {
@@ -54,6 +69,7 @@
   font-size: 15px;
   font-weight: 700;
   line-height: 38px;
+  cursor: pointer;
 }
 
 .billing-cycle-toggle-group button:hover,
@@ -80,15 +96,6 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.plan-indicator-slot {
-  height: 56px;
-  width: 100%;
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 @media (max-width: 1200px) {
@@ -126,22 +133,6 @@
   transform: scale(1.05) translateY(-5px);
 }
 
-.current-plan-arrow {
-  background: #4CAF50;
-  color: white;
-  padding: 0.5rem 1.2rem;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
-  border: 1px solid rgba(9, 66, 9, 0.3);
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .plan-header {
   padding: 1.5rem;
   text-align: center;
@@ -161,6 +152,54 @@
   font-size: 0.9rem;
   color: rgba(0, 0, 0, 0.8);
   font-weight: 500;
+}
+
+.plan-current-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  margin: 0.35rem 0 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  opacity: 0.95;
+}
+
+.plan-current-check {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.plan-header-current.plan-header-free {
+  background: #e8e8e8;
+  border-bottom-color: #ccc;
+}
+
+.plan-header-current.plan-header-hobbyist {
+  background: #ffd900;
+  border-bottom-color: #d4b800;
+}
+
+.plan-header-current.plan-header-starter {
+  background: #2f8b0b;
+  border-bottom-color: #256f09;
+}
+
+.plan-header-current.plan-header-starter .plan-name,
+.plan-header-current.plan-header-starter .plan-description,
+.plan-header-current.plan-header-starter .plan-current-label {
+  color: #fff;
+}
+
+.plan-header-current.plan-header-professional {
+  background: #0248ff;
+  border-bottom-color: #0239cc;
+}
+
+.plan-header-current.plan-header-professional .plan-name,
+.plan-header-current.plan-header-professional .plan-description,
+.plan-header-current.plan-header-professional .plan-current-label {
+  color: #fff;
 }
 
 .plan-body {

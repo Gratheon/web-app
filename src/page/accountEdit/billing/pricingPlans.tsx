@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { gql, useMutation } from '@/api'
 import Button from '@/shared/button'
 import T from '@/shared/translate'
@@ -96,48 +96,58 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 		)
 	}
 
+	const isCurrentPlan = (plan: string) => currentPlan === plan
+
+	const renderPlanHeader = (
+		planKey: string,
+		planName: ReactNode,
+		description: ReactNode
+	) => (
+		<div className={`plan-header plan-header-${planKey} ${isCurrentPlan(planKey) ? 'plan-header-current' : ''}`}>
+			<h3 className="plan-name">{planName}</h3>
+			{isCurrentPlan(planKey) && (
+				<div className="plan-current-label">
+					<span className="plan-current-check" aria-hidden="true">✓</span>
+					<T>Current plan</T>
+				</div>
+			)}
+			<div className="plan-description">{description}</div>
+		</div>
+	)
+
 	return (
 		<div className="pricing-plans">
 			{error && <MessageError error={error} />}
 			{sessionError && <MessageError error={sessionError} />}
 
-			<div className="billing-cycle-toggle" aria-label="Billing cycle">
-				<div className="billing-cycle-toggle-group" data-cycle={billingCycle}>
-					<button
-						type="button"
-						className={billingCycle === 'monthly' ? 'active' : ''}
-						onClick={() => setBillingCycle('monthly')}
-						aria-pressed={billingCycle === 'monthly'}
-					>
-						<span className="billing-cycle-label"><T>month</T></span>
-					</button>
-					<button
-						type="button"
-						className={billingCycle === 'yearly' ? 'active' : ''}
-						onClick={() => setBillingCycle('yearly')}
-						aria-pressed={billingCycle === 'yearly'}
-					>
-						<span className="billing-cycle-label"><T>year</T></span>
-					</button>
+			<div className="pricing-plans-header">
+				<h2 className="pricing-plans-title"><T>Choose Your Plan</T></h2>
+				<div className="billing-cycle-toggle" aria-label="Billing cycle">
+					<div className="billing-cycle-toggle-group" data-cycle={billingCycle}>
+						<button
+							type="button"
+							className={billingCycle === 'monthly' ? 'active' : ''}
+							onClick={() => setBillingCycle('monthly')}
+							aria-pressed={billingCycle === 'monthly'}
+						>
+							<span className="billing-cycle-label"><T>month</T></span>
+						</button>
+						<button
+							type="button"
+							className={billingCycle === 'yearly' ? 'active' : ''}
+							onClick={() => setBillingCycle('yearly')}
+							aria-pressed={billingCycle === 'yearly'}
+						>
+							<span className="billing-cycle-label"><T>year</T></span>
+						</button>
+					</div>
 				</div>
 			</div>
 
 			<div className="plans-grid">
 				<div className="plan-card-wrapper">
-					<div className="plan-indicator-slot">
-						{currentPlan === 'free' && (
-							<div className="current-plan-arrow">
-								<T>Current plan</T> ↓
-							</div>
-						)}
-					</div>
 					<div className={`plan-card ${currentPlan === 'free' ? 'current' : ''}`}>
-						<div className="plan-header plan-header-free">
-							<h3 className="plan-name"><T>Free</T></h3>
-							<div className="plan-description">
-								<T>Perfect for beginners</T>
-							</div>
-						</div>
+						{renderPlanHeader('free', <T>Free</T>, <T>Perfect for beginners</T>)}
 
 						<div className="plan-body">
 							<div className="plan-pricing-simple">
@@ -172,20 +182,8 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 				</div>
 
 				<div className="plan-card-wrapper">
-					<div className="plan-indicator-slot">
-						{currentPlan === 'hobbyist' && (
-							<div className="current-plan-arrow">
-								<T>Current plan</T> ↓
-							</div>
-						)}
-					</div>
 					<div className={`plan-card ${currentPlan === 'hobbyist' ? 'current' : ''}`}>
-						<div className="plan-header plan-header-hobbyist">
-							<h3 className="plan-name">{BILLING_TIERS.hobbyist.name}</h3>
-							<div className="plan-description">
-								<T>For taking the notes</T>
-							</div>
-						</div>
+						{renderPlanHeader('hobbyist', BILLING_TIERS.hobbyist.name, <T>For taking the notes</T>)}
 
 						<div className="plan-body">
 							{renderPrice('hobbyist')}
@@ -218,20 +216,8 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 				</div>
 
 				<div className="plan-card-wrapper">
-					<div className="plan-indicator-slot">
-						{currentPlan === 'starter' && (
-							<div className="current-plan-arrow">
-								<T>Current plan</T> ↓
-							</div>
-						)}
-					</div>
 					<div className={`plan-card ${currentPlan === 'starter' ? 'current' : ''}`}>
-						<div className="plan-header plan-header-starter">
-							<h3 className="plan-name">{BILLING_TIERS.starter.name}</h3>
-							<div className="plan-description">
-								<T>Small-scale beekeepers</T>
-							</div>
-						</div>
+						{renderPlanHeader('starter', BILLING_TIERS.starter.name, <T>Small-scale beekeepers</T>)}
 
 						<div className="plan-body">
 							{renderPrice('starter')}
@@ -265,20 +251,8 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 				</div>
 
 				<div className="plan-card-wrapper">
-					<div className="plan-indicator-slot">
-						{currentPlan === 'professional' && (
-							<div className="current-plan-arrow">
-								<T>Current plan</T> ↓
-							</div>
-						)}
-					</div>
 					<div className={`plan-card ${currentPlan === 'professional' ? 'current' : ''}`}>
-						<div className="plan-header plan-header-professional">
-							<h3 className="plan-name">{BILLING_TIERS.professional.name}</h3>
-							<div className="plan-description">
-								<T>Commercial beekeepers</T>
-							</div>
-						</div>
+						{renderPlanHeader('professional', BILLING_TIERS.professional.name, <T>Commercial beekeepers</T>)}
 
 						<div className="plan-body">
 							{renderPrice('professional')}

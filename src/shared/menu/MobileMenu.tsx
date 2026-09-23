@@ -287,18 +287,6 @@ const MobileMenu = ({
 					>
 						<T>API tokens</T>
 					</NavLink>
-					<a
-						href="https://gratheon.com/terms"
-						onClick={() => setMoreVisible(false)}
-					>
-						<T ctx="link in page footer">Terms of Use</T>
-					</a>
-					<a
-						href="https://gratheon.com/privacy"
-						onClick={() => setMoreVisible(false)}
-					>
-						<T ctx="link in page footer">Privacy policy</T>
-					</a>
 					<button
 						type="button"
 						onClick={() => {

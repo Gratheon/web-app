@@ -409,6 +409,61 @@ export default function AccountEdit() {
 				</div>
 			</Card>
 
+			<Card className={style.trustCard}>
+				<div className={style.trustBlock}>
+					<h3>
+						<T>Your trust matters</T>
+					</h3>
+					<p className={style.trustIntro}>
+						<T>
+							Gratheon is built for beekeepers who care about their hives and
+							their data. We treat your apiary records with respect, keep
+							performance fast on the devices you use in the field, and only
+							collect what we need to run the service.
+						</T>
+					</p>
+					<ul className={style.trustPoints}>
+						<li>
+							<T>
+								Privacy first: your hive data stays yours, and we do not sell
+								your personal information.
+							</T>
+						</li>
+						<li>
+							<T>
+								Responsible data use: we use your data to power features you
+								ask for, improve reliability, and keep your account secure.
+							</T>
+						</li>
+						<li>
+							<T>
+								Performance in the field: we optimize the app for quick loads,
+								offline-friendly workflows, and smooth inspections on mobile.
+							</T>
+						</li>
+					</ul>
+					<div className={style.legalLinks}>
+						<a
+							href="https://gratheon.com/terms"
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							<T ctx="link in account profile">Terms of Use</T>
+						</a>
+						<span className={style.legalLinksSeparator} aria-hidden="true">
+							·
+						</span>
+						<a
+							href="https://gratheon.com/privacy"
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							<T ctx="link in account profile">Privacy policy</T>
+						</a>
+					</div>
+				</div>
+			</Card>
+
 			<DangerZone />
 		</PagePaddedCentered>
 	)

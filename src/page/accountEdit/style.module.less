@@ -235,3 +235,64 @@
 .detectionSettingsOptions .confidenceChip:nth-child(6) {
 	background: linear-gradient(180deg, #7aa5ff 0%, #6e9cff 100%);
 }
+
+.trustCard {
+	@media (max-width: 768px) {
+		&.trustCard {
+			padding: 12px;
+		}
+	}
+}
+
+.trustBlock {
+	h3 {
+		margin: 0 0 6px;
+	}
+}
+
+.trustIntro {
+	margin: 6px 0 12px;
+	color: #4f5f78;
+	font-size: 13px;
+	line-height: 1.45;
+	max-width: 620px;
+}
+
+.trustPoints {
+	margin: 0 0 14px;
+	padding-left: 18px;
+	color: #2f2f2f;
+	font-size: 13px;
+	line-height: 1.45;
+	max-width: 620px;
+
+	li {
+		margin-bottom: 6px;
+	}
+
+	li:last-child {
+		margin-bottom: 0;
+	}
+}
+
+.legalLinks {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	font-size: 13px;
+
+	a {
+		color: #2f80ed;
+		text-decoration: none;
+		font-weight: 600;
+	}
+
+	a:hover {
+		text-decoration: underline;
+	}
+}
+
+.legalLinksSeparator {
+	color: #8a97ab;
+}

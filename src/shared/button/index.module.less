@@ -1,30 +1,31 @@
 @import '@/colors.module.less';
 
-button:not(:disabled) {
-	&:hover {
-		background: @color-btn-hover-black;
-	}
-
-	&.white:hover{
-		color: white;
-	}
-}
-
 button {
 	position: relative;
 	border-radius: 3px;
 	cursor: pointer;
 	background: @color-btn-bg-gray;
-	border: 0;
+	border: @btn-3d-border solid @btn-gray-edge;
 	color: @color-btn-white;
 	height: 40px;
-	// line-height: 20px;
 	margin: 0 1px;
 	text-align: left;
-
 	white-space: nowrap;
 	font-size: 16px;
+	font-weight: 600;
 	padding: 0 10px;
+	/* WHY: depth/shadow colors are overridden per variant below */
+	--btn-3d-depth: @btn-3d-depth-sm;
+	--btn-3d-edge: @btn-gray-edge;
+	--btn-3d-shadow: @btn-gray-shadow;
+	border-color: var(--btn-3d-edge);
+	box-shadow: 0 var(--btn-3d-depth) 0 0 var(--btn-3d-shadow);
+	transition:
+		transform 0.2s @btn-3d-ease,
+		box-shadow 0.2s @btn-3d-ease,
+		background 0.2s ease,
+		color 0.2s ease,
+		border-color 0.2s ease;
 
 	svg {
 		position: relative;
@@ -34,7 +35,7 @@ button {
 		margin-right: 3px;
 	}
 
-	&.iconOnly{
+	&.iconOnly {
 		svg {
 			margin-right: 0px;
 		}
@@ -48,6 +49,21 @@ button {
 	&:disabled {
 		cursor: not-allowed;
 		opacity: 0.55;
+		box-shadow: none;
+		transform: none;
+	}
+
+	&:not(:disabled):hover,
+	&:not(:disabled):focus-visible,
+	&:not(:disabled):active {
+		box-shadow: none;
+		transform: translateY(var(--btn-3d-depth));
+		outline: 0;
+	}
+
+	&:not(:disabled):hover {
+		background: @color-btn-hover-black;
+		--btn-3d-edge: @color-btn-hover-black;
 	}
 
 	&[type='submit'] {
@@ -55,26 +71,38 @@ button {
 	}
 
 	&.white {
+		--btn-3d-edge: @color-btn-white-border;
+		--btn-3d-shadow: @btn-white-shadow;
 		background: @color-btn-white-bg;
 		color: @color-btn-white-text;
-		border: 2px solid @color-btn-white-border;
+
+		&:not(:disabled):hover {
+			background: @color-btn-white-bg;
+			color: white;
+		}
 	}
 
 	&.red {
+		--btn-3d-edge: @color-ui-btn-red-hover;
+		--btn-3d-shadow: @btn-red-shadow;
 		background: @color-ui-btn-red;
 		color: #f1f1f1;
 
-		&:hover {
+		&:not(:disabled):hover {
 			background: @color-ui-btn-red-hover;
+			--btn-3d-edge: @color-ui-btn-red-hover;
 		}
 	}
 
 	&.green {
+		--btn-3d-edge: @btn-green-edge;
+		--btn-3d-shadow: @btn-green-shadow;
 		background: @color-green;
 		color: #f1f1f1;
 
-		&:hover {
+		&:not(:disabled):hover {
 			background: @color-btn-green-hover;
+			--btn-3d-edge: @color-btn-green-hover;
 		}
 
 		&:disabled {
@@ -89,6 +117,8 @@ button {
 	}
 
 	&.small {
+		--btn-3d-depth: @btn-3d-depth-xs;
+
 		svg {
 			top: 0;
 			margin-right: 3px;

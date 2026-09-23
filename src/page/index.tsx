@@ -8,7 +8,6 @@ import ProfessionalTierGate from '@/shared/professionalTierGate'
 import HobbyistTierGate from '@/shared/hobbyistTierGate'
 
 const Menu = React.lazy(() => import('../shared/menu'))
-const Footer = React.lazy(() => import('../shared/footer'))
 const MinimizedUploadProgress = React.lazy(
 	() => import('../shared/minimizedUploadProgress')
 )
@@ -62,7 +61,7 @@ const WarehouseBoxSystemEditPage = React.lazy(
 	() => import('./warehouse/boxSystemEdit')
 )
 
-function LoggedInPage({ children, hideFooter = false }) {
+function LoggedInPage({ children }) {
 	const navigate = useNavigate()
 
 	if (!isLoggedIn()) {
@@ -75,10 +74,10 @@ function LoggedInPage({ children, hideFooter = false }) {
 		return null
 	}
 
-	return <PageWithMenu hideFooter={hideFooter}>{children}</PageWithMenu>
+	return <PageWithMenu>{children}</PageWithMenu>
 }
 
-function PageWithMenu({ children, hideFooter = false }) {
+function PageWithMenu({ children }) {
 	const [isSidebarCollapsed, setSidebarCollapsed] = React.useState(false)
 
 	return (
@@ -99,7 +98,6 @@ function PageWithMenu({ children, hideFooter = false }) {
 			<AIAdvisorDrawer />
 			<div className={styles.mainColumn}>
 				<div className={styles.content}>{children}</div>
-				{!hideFooter && <Footer />}
 			</div>
 		</div>
 	)
@@ -253,7 +251,7 @@ export default function Page() {
 				<Route
 					path="/warehouse/queens/detect"
 					element={
-						<LoggedInPage hideFooter>
+						<LoggedInPage>
 							<WarehouseQueenDetectorPage />
 						</LoggedInPage>
 					}
@@ -450,7 +448,7 @@ export default function Page() {
 					}
 				/>
 
-				{/* Render InspectionShare directly without the standard Menu/Footer */}
+				{/* Render InspectionShare directly without the standard Menu */}
 				<Route
 					path="/apiaries/:apiaryId/hives/:hiveId/inspections/:inspectionId/share/:shareToken"
 					element={<InspectionShare />}

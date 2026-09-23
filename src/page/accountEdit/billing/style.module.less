@@ -1,3 +1,40 @@
 .section {
 	margin-bottom: 18px;
 }
+
+.timeline {
+	position: relative;
+	padding-left: 2rem;
+}
+
+.timelineConnector {
+	position: absolute;
+	left: 1.4rem;
+	top: 0;
+	bottom: 0;
+	width: 2px;
+	background: #d4d4d4;
+}
+
+.timelineItem {
+	position: relative;
+	margin-bottom: 1.5rem;
+	padding-left: 1rem;
+}
+
+// Unified muted marker so billing history no longer uses a rainbow of emoji colors.
+.eventIcon {
+	position: absolute;
+	left: -1.6rem;
+	top: 0.2rem;
+	width: 2rem;
+	height: 2rem;
+	border-radius: 50%;
+	background: #f3f3f3;
+	border: 1px solid #d8d8d8;
+	color: #555;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1;
+}

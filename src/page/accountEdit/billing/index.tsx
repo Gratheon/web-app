@@ -10,6 +10,7 @@ import PricingPlans from './pricingPlans'
 import CreditCard from '@/icons/creditCard'
 import styles from './style.module.less'
 import { formatDateTimeByLocale, resolveLocale } from '@/shared/dateLocale'
+import { BillingEventIcon } from './eventIcons'
 
 const BILLING_HISTORY_QUERY = gql`
 	query billingHistory {
@@ -66,32 +67,6 @@ export default function Billing({ user }) {
 		trialEndsAt &&
 		trialEndsAt > new Date()
 
-	const getEventIcon = (eventType: string) => {
-		switch (eventType) {
-			case 'registration': return '🧑‍🚀'
-			case 'subscription_created': return '✅'
-			case 'subscription_cancelled': return '❌'
-			case 'subscription_expired': return '⏰'
-			case 'tier_changed': return '🔄'
-			case 'payment_succeeded': return '💳'
-			case 'payment_failed': return '⚠️'
-			default: return '•'
-		}
-	}
-
-	const getEventColor = (eventType: string) => {
-		switch (eventType) {
-			case 'registration': return '#2196F3'
-			case 'subscription_created': return '#4CAF50'
-			case 'subscription_cancelled': return '#FF9800'
-			case 'subscription_expired': return '#F44336'
-			case 'tier_changed': return '#9C27B0'
-			case 'payment_succeeded': return '#4CAF50'
-			case 'payment_failed': return '#F44336'
-			default: return '#999'
-		}
-	}
-
 	const getLocalizedBillingDetail = (details?: string, eventType?: string) => {
 		const normalized = (details || '').trim().toLowerCase()
 
@@ -144,45 +119,18 @@ export default function Billing({ user }) {
 				</div>
 
 				<h4 style={{ marginTop: '2rem', marginBottom: '1rem' }}><T>Billing History</T></h4>
-				<div style={{ position: 'relative', paddingLeft: '2rem' }}>
+				<div className={styles.timeline}>
 					{shouldShowTimelineConnector && (
-						<div style={{
-							position: 'absolute',
-							left: '1.4rem',
-							top: 0,
-							bottom: 0,
-							width: '2px',
-							background: 'linear-gradient(to bottom, #2196F3, #e0e0e0)'
-						}} />
+						<div className={styles.timelineConnector} />
 					)}
 
 					{billingHistory.map((event) => (
 						<div
 							key={event.id}
-							style={{
-								position: 'relative',
-								marginBottom: '1.5rem',
-								paddingLeft: '1rem'
-							}}
+							className={styles.timelineItem}
 						>
-							<div
-								style={{
-									position: 'absolute',
-									left: '-1.6rem',
-									top: '0.2rem',
-									width: '2rem',
-									height: '2rem',
-									borderRadius: '50%',
-									background: getEventColor(event.eventType),
-									display: 'flex',
-									alignItems: 'center',
-									justifyContent: 'center',
-									fontSize: '1rem',
-									boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-									zIndex: 1
-								}}
-							>
-								{getEventIcon(event.eventType)}
+							<div className={styles.eventIcon}>
+								<BillingEventIcon eventType={event.eventType} />
 							</div>
 
 							<div style={{

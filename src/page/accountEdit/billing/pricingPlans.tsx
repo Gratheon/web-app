@@ -70,17 +70,29 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 		const pricing = getPlanPricing(plan)
 
 		return (
-			<>
+			<div className="plan-pricing">
 				<div className="price-line">
 					<span className="price-amount">€{pricing.amount}</span>
 					<span className="price-period">
 						{' / '}{pricing.period === 'year' ? <T>year</T> : <T>month</T>}
 					</span>
 				</div>
-				<Button className="plan-buy-button" onClick={() => handlePlanSelect(plan, pricing.cycle)}>
+			</div>
+		)
+	}
+
+	const renderSubscribeButton = (plan: PaidPlan) => {
+		const pricing = getPlanPricing(plan)
+
+		return (
+			<div className="plan-action">
+				<Button
+					className={`plan-buy-button plan-buy-button-${plan}`}
+					onClick={() => handlePlanSelect(plan, pricing.cycle)}
+				>
 					<T>Subscribe</T>
 				</Button>
-			</>
+			</div>
 		)
 	}
 
@@ -200,6 +212,7 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 									</ul>
 								</div>
 							</div>
+							{renderSubscribeButton('hobbyist')}
 						</div>
 					</div>
 				</div>
@@ -246,6 +259,7 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 									</ul>
 								</div>
 							</div>
+							{renderSubscribeButton('starter')}
 						</div>
 					</div>
 				</div>
@@ -290,6 +304,7 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 									</ul>
 								</div>
 							</div>
+							{renderSubscribeButton('professional')}
 						</div>
 					</div>
 				</div>

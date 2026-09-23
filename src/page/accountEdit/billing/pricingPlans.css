@@ -145,97 +145,21 @@
 .plan-header {
   padding: 1.5rem;
   text-align: center;
-  color: white;
-}
-
-.plan-header-free {
-  background-color: #ffffff;
+  background-color: #f2f2f2;
   color: #000000;
   border-bottom: 1px solid #e0e0e0;
-}
-
-.plan-header-starter {
-  background-color: #2f8b0b;
-  color: #ffffff;
-}
-
-.plan-header-hobbyist {
-  background-color: #FFD900;
-  color: #000000;
-}
-
-.plan-header-professional {
-  background-color: #0248ff;
-  color: #ffffff;
-}
-
-.plan-card.current .plan-header-starter {
-  border-color: #2f8b0b;
-}
-
-.plan-card:has(.plan-header-starter) {
-  border-color: #2f8b0b;
-}
-
-.plan-card.current:has(.plan-header-hobbyist) {
-  border-color: #FFD900;
-}
-
-.plan-card:has(.plan-header-hobbyist) {
-  border-color: #FFD900;
-}
-
-.plan-card.current:has(.plan-header-professional) {
-  border-color: #0248ff;
-}
-
-.plan-card:has(.plan-header-professional) {
-  border-color: #0248ff;
 }
 
 .plan-name {
   font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
-}
-
-.plan-header-free .plan-name {
   color: #000000;
-}
-
-.plan-header-starter .plan-name {
-  color: #ffffff;
-}
-
-.plan-header-hobbyist .plan-name {
-  color: #000000;
-}
-
-.plan-header-professional .plan-name {
-  color: #ffffff;
 }
 
 .plan-description {
   font-size: 0.9rem;
-  opacity: 0.9;
-}
-
-.plan-header-free .plan-description {
   color: rgba(0, 0, 0, 0.8);
-}
-
-.plan-header-starter .plan-description {
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 500;
-}
-
-.plan-header-hobbyist .plan-description {
-  color: rgba(0, 0, 0, 0.8);
-  font-weight: 500;
-}
-
-.plan-header-professional .plan-description {
-  color: rgba(255, 255, 255, 0.9);
   font-weight: 500;
 }
 
@@ -246,7 +170,8 @@
   flex-direction: column;
 }
 
-.plan-pricing-simple {
+.plan-pricing-simple,
+.plan-pricing {
   text-align: center;
   padding: 1.5rem 0;
 }
@@ -290,8 +215,60 @@
   white-space: nowrap;
 }
 
+.plan-action {
+  margin-top: auto;
+  padding-top: 1.5rem;
+}
+
 .plan-buy-button {
+  width: 100%;
   margin: 0;
+  text-align: center;
+}
+
+.plan-buy-button-hobbyist {
+  background: #ffd900 !important;
+  border-color: #d4b800 !important;
+  --btn-3d-edge: #d4b800;
+  --btn-3d-shadow: #b39b00;
+  color: #000 !important;
+}
+
+.plan-buy-button-hobbyist:not(:disabled):hover {
+  background: #e6c300 !important;
+  border-color: #c4ad00 !important;
+  --btn-3d-edge: #c4ad00;
+  color: #000 !important;
+}
+
+.plan-buy-button-starter {
+  background: #2f8b0b !important;
+  border-color: #256f09 !important;
+  --btn-3d-edge: #256f09;
+  --btn-3d-shadow: #1d5707;
+  color: #fff !important;
+}
+
+.plan-buy-button-starter:not(:disabled):hover {
+  background: #267209 !important;
+  border-color: #1d5707 !important;
+  --btn-3d-edge: #1d5707;
+  color: #fff !important;
+}
+
+.plan-buy-button-professional {
+  background: #0248ff !important;
+  border-color: #0239cc !important;
+  --btn-3d-edge: #0239cc;
+  --btn-3d-shadow: #012a99;
+  color: #fff !important;
+}
+
+.plan-buy-button-professional:not(:disabled):hover {
+  background: #023de6 !important;
+  border-color: #012a99 !important;
+  --btn-3d-edge: #012a99;
+  color: #fff !important;
 }
 
 .price-amount {

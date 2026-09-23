@@ -1,4 +1,5 @@
 import { render as renderPreact } from 'preact'
+import { act } from 'preact/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import ApiaryListRow from './index'
@@ -92,6 +93,7 @@ describe('ApiaryListRow', () => {
 	})
 
 	afterEach(() => {
+		window.localStorage.clear()
 		renderPreact(null, container)
 		container.remove()
 	})
@@ -145,5 +147,53 @@ describe('ApiaryListRow', () => {
 			expect.objectContaining({ dateString: '2024-04-11', lang: 'et-EE' }),
 			expect.anything(),
 		)
+	})
+
+	it('switches table view back to list view with the header toggle', () => {
+		window.localStorage.setItem('apiaryListType.1', 'table')
+
+		renderPreact(
+			<ApiaryListRow
+				apiary={{
+					id: 1,
+					name: 'North yard',
+					type: 'STATIC',
+					hives: [
+						{
+							id: 10,
+							hiveNumber: 7,
+							lastInspection: '2024-04-11',
+							families: [],
+							boxes: [],
+						},
+					],
+				}}
+				boxSystems={[]}
+				user={null}
+				sortBy="HIVE_NUMBER"
+				sortOrder="ASC"
+				onSortChange={vi.fn()}
+				visibleColumns={['LAST_INSPECTION']}
+				onToggleColumn={vi.fn()}
+				selectedHiveApiaryId={null}
+				selectedHiveId={null}
+				onSelectHive={vi.fn()}
+				onNavigateAcrossApiaries={vi.fn()}
+				hasMixedApiaryTypes={false}
+			/>,
+			container,
+		)
+
+		const toggle = container.querySelector('[role="switch"]') as HTMLButtonElement
+		expect(toggle).not.toBeNull()
+		expect(toggle.getAttribute('aria-checked')).toBe('true')
+		expect(container.querySelector('table')).not.toBeNull()
+
+		act(() => {
+			toggle.click()
+		})
+
+		expect(container.querySelector('table')).toBeNull()
+		expect(container.querySelector('[role="switch"]')?.getAttribute('aria-checked')).toBe('false')
 	})
 })

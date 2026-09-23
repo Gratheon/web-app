@@ -1,4 +1,5 @@
 import Button from '../../../shared/button'
+import Toggle from '../../../shared/toggle'
 import T from '../../../shared/translate'
 import HiveIcon from '../../../icons/hive.tsx'
 import Link from '../../../shared/link'
@@ -32,27 +33,23 @@ export default function ApiaryListRowHeader({
 			</h2>
 
 			<div className={styles.buttons}>
-				{!isMobileLayout &&
-					effectiveListType == 'table' &&
-					apiaryHives.length > 0 && (
-						<Button
-							className={styles.viewModeToggle}
-							onClick={() => onListTypeChange('list')}
-						>
-							<ListIcon />
-						</Button>
-					)}
-
-				{!isMobileLayout &&
-					effectiveListType == 'list' &&
-					apiaryHives.length > 0 && (
-						<Button
-							className={styles.viewModeToggle}
-							onClick={() => onListTypeChange('table')}
-						>
-							<TableIcon />
-						</Button>
-					)}
+				{!isMobileLayout && apiaryHives.length > 0 && (
+					<Toggle
+						className={styles.viewModeToggle}
+						checked={effectiveListType === 'table'}
+						onChange={(isTable) =>
+							onListTypeChange(isTable ? 'table' : 'list')
+						}
+						offIcon={<ListIcon size={14} />}
+						onIcon={<TableIcon size={14} />}
+						title={
+							effectiveListType === 'table'
+								? 'Switch to list view'
+								: 'Switch to table view'
+						}
+						aria-label="Switch between list and table view"
+					/>
+				)}
 
 				<Button
 					href={`/apiaries/${apiary.id}/hives/add`}

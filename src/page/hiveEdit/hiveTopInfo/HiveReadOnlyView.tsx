@@ -80,7 +80,10 @@ export default function HiveReadOnlyView({
 							className={styles.hiveTitleQrButton}
 							title="Generate QR sticker for this hive"
 							aria-label="Generate QR sticker for this hive"
-							onClick={onGenerateQR}
+							onClick={(event) => {
+								event.stopPropagation()
+								onGenerateQR()
+							}}
 						>
 							<QrCodeIcon size={16} />
 						</button>

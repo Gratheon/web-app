@@ -41,7 +41,7 @@ export default function Button({
 }: ButtonProps) {
 	let navigate = useNavigate()
 
-	let classNames = []
+	let classNames = [styles.button]
 	if (typeof color === 'string') {
 		classNames.push(styles[color])
 	}
@@ -85,7 +85,7 @@ export default function Button({
 			disabled={disabled || loading}
 			type={type}
 			title={title}
-			className={classNames.join(' ')}
+			className={classNames.filter(Boolean).join(' ')}
 			onClick={handleClick}
 			onKeyDown={handleKeyDown}
 			onMouseOver={onMouseOver}

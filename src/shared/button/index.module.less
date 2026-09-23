@@ -1,6 +1,9 @@
 @import '@/colors.module.less';
 
-button {
+/* WHY: CSS modules do not localize element selectors. A bare `button` rule
+   leaked 3D press transform onto every native button, including the 28px hive
+   QR control, so mousedown shifted the hit target and the click never fired. */
+.button {
 	position: relative;
 	border-radius: 3px;
 	cursor: pointer;

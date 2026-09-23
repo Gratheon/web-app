@@ -192,6 +192,8 @@
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
+	position: relative;
+	z-index: 2;
 	width: 28px;
 	height: 28px;
 	border: 1px solid #d0d7de;
@@ -200,19 +202,19 @@
 	color: #4a5568;
 	cursor: pointer;
 	padding: 0;
+	box-shadow: none;
+	transform: none;
 	transition: background-color 0.15s ease, border-color 0.15s ease,
 		color 0.15s ease;
 
-	&:hover {
+	&:hover,
+	&:focus-visible,
+	&:active {
 		background: #111827;
 		border-color: #111827;
 		color: #ffffff;
-	}
-
-	&:focus-visible {
-		background: #111827;
-		border-color: #111827;
-		color: #ffffff;
+		box-shadow: none;
+		transform: none;
 	}
 }
 

@@ -62,7 +62,7 @@ const WarehouseBoxSystemEditPage = React.lazy(
 	() => import('./warehouse/boxSystemEdit')
 )
 
-function LoggedInPage({ children }) {
+function LoggedInPage({ children, hideFooter = false }) {
 	const navigate = useNavigate()
 
 	if (!isLoggedIn()) {
@@ -75,10 +75,10 @@ function LoggedInPage({ children }) {
 		return null
 	}
 
-	return <PageWithMenu>{children}</PageWithMenu>
+	return <PageWithMenu hideFooter={hideFooter}>{children}</PageWithMenu>
 }
 
-function PageWithMenu({ children }) {
+function PageWithMenu({ children, hideFooter = false }) {
 	const [isSidebarCollapsed, setSidebarCollapsed] = React.useState(false)
 
 	return (
@@ -99,7 +99,7 @@ function PageWithMenu({ children }) {
 			<AIAdvisorDrawer />
 			<div className={styles.mainColumn}>
 				<div className={styles.content}>{children}</div>
-				<Footer />
+				{!hideFooter && <Footer />}
 			</div>
 		</div>
 	)
@@ -253,7 +253,7 @@ export default function Page() {
 				<Route
 					path="/warehouse/queens/detect"
 					element={
-						<LoggedInPage>
+						<LoggedInPage hideFooter>
 							<WarehouseQueenDetectorPage />
 						</LoggedInPage>
 					}

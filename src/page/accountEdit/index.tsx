@@ -9,6 +9,7 @@ import Button from '@/shared/button'
 import type { User } from '@/models/user'
 import { getUser, updateUser } from '@/models/user'
 import T from '@/shared/translate'
+import InfoIcon from '@/shared/infoIcon'
 
 import style from './style.module.less'
 import PagePaddedCentered from '@/shared/pagePaddedCentered'
@@ -270,7 +271,17 @@ export default function AccountEdit() {
 					>
 						<div>
 							<label className={style.labelWide} htmlFor="first_name">
-								<T ctx="this is a label for the person full name">Name</T>
+								<span className={style.labelWithInfo}>
+									<T ctx="this is a label for the person full name">Name</T>
+									<InfoIcon size={14}>
+										<p style={{ margin: 0 }}>
+											<T>
+												Used to personalize your account and identify you when
+												collaborating with others.
+											</T>
+										</p>
+									</InfoIcon>
+								</span>
 							</label>
 							<input
 								name="first_name"
@@ -292,8 +303,18 @@ export default function AccountEdit() {
 							/>
 						</div>
 						<div>
-							<label htmlFor="name">
-								<T>Email</T>
+							<label htmlFor="email">
+								<span className={style.labelWithInfo}>
+									<T>Email</T>
+									<InfoIcon size={14}>
+										<p style={{ margin: 0 }}>
+											<T>
+												Your unique sign-in identifier. We use it for
+												authentication and account-related notifications.
+											</T>
+										</p>
+									</InfoIcon>
+								</span>
 							</label>
 							<input
 								name="email"
@@ -304,8 +325,18 @@ export default function AccountEdit() {
 							/>
 						</div>
 						<div>
-							<label htmlFor="last_name">
-								<T>Language</T>
+							<label htmlFor="lang">
+								<span className={style.labelWithInfo}>
+									<T>Language</T>
+									<InfoIcon size={14}>
+										<p style={{ margin: 0 }}>
+											<T>
+												Sets the language for menus, buttons, and other text in
+												the web app.
+											</T>
+										</p>
+									</InfoIcon>
+								</span>
 							</label>
 							<select name="lang" value={user.lang || 'en'} onInput={onInput}>
 								{SUPPORTED_LANGUAGES.map((lang) => (
@@ -317,7 +348,18 @@ export default function AccountEdit() {
 						</div>
 						<div className={style.localeSection}>
 							<label htmlFor="locale">
-								<T>Locale</T>
+								<span className={style.labelWithInfo}>
+									<T>Locale</T>
+									<InfoIcon size={14}>
+										<p style={{ margin: 0 }}>
+											<T>
+												Controls regional formatting for dates, numbers, and
+												other culture-specific display preferences across the
+												app.
+											</T>
+										</p>
+									</InfoIcon>
+								</span>
 							</label>
 							<div className={style.localeFields}>
 								<select
@@ -339,7 +381,17 @@ export default function AccountEdit() {
 						</div>
 						<div>
 							<label className={style.labelWide} htmlFor="temperatureUnit">
-								<T>Temperature unit</T>
+								<span className={style.labelWithInfo}>
+									<T>Temperature unit</T>
+									<InfoIcon size={14}>
+										<p style={{ margin: 0 }}>
+											<T>
+												How hive sensor temperatures are shown in charts,
+												reports, and alerts.
+											</T>
+										</p>
+									</InfoIcon>
+								</span>
 							</label>
 								<select
 									name="temperatureUnit"

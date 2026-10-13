@@ -86,7 +86,7 @@
 		"vitest": "3.2.6"
 	},
 	"engines": {
-		"node": ">=25 <26"
+		"node": ">=26 <27"
 	},
 	"pnpm": {
 		"overrides": {

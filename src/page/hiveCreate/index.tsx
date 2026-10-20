@@ -762,7 +762,8 @@ export default function HiveCreateForm() {
 								<div className={styles.queenDraftCard} key={draft.clientId}>
 									<div className={styles.queenDraftBody}>
 										<strong className={styles.queenDraftTitle}>
-											<T>Queen</T> {index + 1}
+											<T>Queen</T>
+											{queenDrafts.length > 1 ? ` ${index + 1}` : ''}
 										</strong>
 										<QueenFormFields
 											mode={draft.mode}

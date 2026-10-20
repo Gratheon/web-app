@@ -85,6 +85,15 @@ describe('CalendarPage', () => {
 		expect(container.innerHTML).toContain('Historical hive activity')
 	})
 
+	it('places month navigation alongside the filters', () => {
+		renderPreact(<CalendarPage />, container)
+
+		const filters = container.querySelector(`.${styles.filters}`)
+		const controls = container.querySelector(`.${styles.controls}`)
+
+		expect(filters?.contains(controls)).toBe(true)
+	})
+
 	it('keeps chronology items and source links on the chronology tab', () => {
 		renderPreact(<CalendarPage />, container)
 

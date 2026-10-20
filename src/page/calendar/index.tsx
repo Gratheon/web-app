@@ -294,34 +294,33 @@ export default function CalendarPage() {
 							<T>Queens</T>
 						</label>
 					</div>
-				</div>
+					<div className={styles.controls}>
+						<Button
+							type="button"
+							onClick={() => {
+								const d = new Date(baseDate)
+								d.setMonth(d.getMonth() - 1)
+								setBaseDate(d)
+							}}
+						>
+							<T>Previous Month</T>
+						</Button>
 
-				<div className={styles.controls}>
-					<Button
-						type="button"
-						onClick={() => {
-							const d = new Date(baseDate)
-							d.setMonth(d.getMonth() - 1)
-							setBaseDate(d)
-						}}
-					>
-						<T>Previous Month</T>
-					</Button>
+						<Button type="button" onClick={() => setBaseDate(new Date())}>
+							<T>Today</T>
+						</Button>
 
-					<Button type="button" onClick={() => setBaseDate(new Date())}>
-						<T>Today</T>
-					</Button>
-
-					<Button
-						type="button"
-						onClick={() => {
-							const d = new Date(baseDate)
-							d.setMonth(d.getMonth() + 1)
-							setBaseDate(d)
-						}}
-					>
-						<T>Next Month</T>
-					</Button>
+						<Button
+							type="button"
+							onClick={() => {
+								const d = new Date(baseDate)
+								d.setMonth(d.getMonth() + 1)
+								setBaseDate(d)
+							}}
+						>
+							<T>Next Month</T>
+						</Button>
+					</div>
 				</div>
 			</header>
 			{loading && (

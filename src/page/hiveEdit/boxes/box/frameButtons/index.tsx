@@ -22,6 +22,7 @@ import Button from '@/shared/button'
 import { PopupButton, PopupButtonGroup } from '@/shared/popupButton'
 import { useWarehouseAutoAdjust } from '@/hooks/useWarehouseAutoAdjust'
 import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
+import { MAX_FRAMES_PER_BOX } from '../boxConstants'
 
 export default function FrameButtons({ box, onError, hiveId }) {
 	const tFrameAdded = t('Frame added')
@@ -46,7 +47,8 @@ export default function FrameButtons({ box, onError, hiveId }) {
 	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId], null)
 	const frameCount = useLiveQuery(() => countBoxFrames(+box.id), [box.id], 0)
 	const isNucleusHive = String(hive?.hiveType || '').toUpperCase() === 'NUCLEUS'
-	const canAddFrame = !isNucleusHive || (Number(frameCount) || 0) < 5
+	const boxFrameLimit = isNucleusHive ? 5 : MAX_FRAMES_PER_BOX[box.type]
+	const canAddFrame = !boxFrameLimit || (Number(frameCount) || 0) < boxFrameLimit
 
 	async function onFrameAdd(boxId, type) {
 		setAdding(true)

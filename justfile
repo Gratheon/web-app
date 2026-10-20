@@ -17,18 +17,6 @@ build:
 test:
 	. $HOME/.nvm/nvm.sh && pnpm test:unit
 
-test-ui:
-	. $HOME/.nvm/nvm.sh && npx playwright test --ui
-
-test-ui-headless:
-	. $HOME/.nvm/nvm.sh && npx playwright test
-
-test-ui-create:
-	. $HOME/.nvm/nvm.sh && npx playwright codegen
-
-test-ui-report:
-	. $HOME/.nvm/nvm.sh && npx playwright show-report
-
 update-db-version:
 	./scripts/check-and-update-db-version.sh
 

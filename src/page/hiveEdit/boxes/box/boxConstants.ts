@@ -1,4 +1,5 @@
 export const FRAME_DRAG_PAYLOAD_MIME = 'application/gratheon-frame-dnd'
+export const MAX_HIVE_BOX_WIDTH_FRAMES = 25
 
 export const BOX_SLOT_CAPACITY: Record<string, number> = {
 	DEEP: 10,

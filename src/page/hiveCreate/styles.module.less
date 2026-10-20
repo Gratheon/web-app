@@ -201,11 +201,19 @@
 	max-width: 420px;
 	font-size: 13px;
 	line-height: 1.35;
-	color: #6200cd;
+	color: #a98bd0; // pale purple so the hint does not shout
 }
 
 .fieldWarning strong {
 	font-weight: 700;
+}
+
+.fieldHint {
+	max-width: 360px;
+	margin-top: 4px;
+	color: #6b7280;
+	font-size: 12px;
+	line-height: 1.4;
 }
 
 .hiveCreateForm {
@@ -293,8 +301,97 @@
 }
 
 .addQueenButton {
-	align-self: flex-end;
+	align-self: stretch;
 	margin-top: 0;
+	padding: 8px 12px;
+	border: 1px dashed #c3ccd6;
+	border-radius: 8px;
+	background: transparent;
+	color: #8a95a3;
+	font-size: 13px;
+	cursor: pointer;
+}
+
+.addQueenButton:hover {
+	border-color: #9aa7b6;
+	color: #5b6675;
+}
+
+.typeChoiceGroup {
+	display: flex !important;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+.typeChoice {
+	display: inline-flex !important;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 6px;
+	min-width: 96px;
+	padding: 10px 12px;
+	border: 1px solid #d1d9e0;
+	border-radius: 8px;
+	background: #fff;
+	color: #1f2937;
+	cursor: pointer;
+}
+
+.typeChoice:hover {
+	border-color: #b8c6d4;
+	background: #f8fbff;
+}
+
+.typeChoiceActive,
+.typeChoiceActive:hover {
+	border-color: #2f80ed;
+	background: #ecf5ff;
+}
+
+.typeChoiceIcon {
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+	height: 50px;
+}
+
+.createLayout {
+	display: flex;
+	align-items: flex-start;
+	gap: 30px;
+}
+
+.createFormColumn {
+	flex: 1;
+	min-width: 0;
+}
+
+.previewPane {
+	position: sticky;
+	top: 20px;
+	flex: 0 0 200px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 12px;
+	padding: 16px;
+	border: 1px solid #e3e8ee;
+	border-radius: 8px;
+	background: #fafbfc;
+}
+
+.previewTitle {
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: #8a95a3;
+}
+
+.previewText {
+	font-size: 13px;
+	text-align: center;
+	color: #5b6675;
 }
 
 .queenDraftCard input,
@@ -330,9 +427,35 @@
 	.yearColorRow {
 		flex: 1;
 	}
+
+	.fieldControl {
+		flex: 1;
+		flex-direction: row;
+		align-items: center;
+		gap: 10px;
+	}
+
+	.fieldControl > .smallInput {
+		flex: 0 0 100px;
+	}
+
+	.fieldWarning {
+		flex: 0 1 420px;
+	}
 }
 
 @media (max-width: 767px) {
+	.createLayout {
+		flex-direction: column-reverse;
+	}
+
+	.previewPane {
+		position: static;
+		flex: none;
+		width: 100%;
+		box-sizing: border-box;
+	}
+
 	.hiveCreateForm,
 	.hiveCreateForm > div,
 	.hiveCreateForm > div > label,

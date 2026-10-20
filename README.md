@@ -167,12 +167,7 @@ Common tasks are managed via `npm` scripts (defined in `package.json`) and `just
 
 ### End-to-End (E2E) Tests
 
-*   Framework: Playwright (`test/ui/`) is used for browser automation testing.
-*   Running Tests:
-    *   Headless: `just test-ui-headless`
-    *   Interactive (headed): Run Playwright commands directly or use VS Code Playwright extension.
-*   Creating Tests: `just test-ui-create`
-*   CI Status: E2E tests are not currently integrated into a CI pipeline.
+*   Playwright UI tests live in the [Gratheon/monorepo](https://github.com/Gratheon/monorepo) repository (`e2e/`), since they exercise the whole stack (router, swarm-api, user-cycle, image-splitter), not just the web-app.
 
 ## Deployment
 

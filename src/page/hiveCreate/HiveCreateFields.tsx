@@ -1,7 +1,15 @@
 import T from '@/shared/translate'
+import HiveIcon from '@/shared/hive'
 
 import { BOX_SYSTEM_COLORS } from './constants'
+import { createDefaultBoxes } from './hiveCreateUtils'
 import styles from './styles.module.less'
+
+const HIVE_TYPE_OPTIONS = [
+	{ value: 'vertical', label: 'Vertical', iconType: 'VERTICAL' },
+	{ value: 'horizontal', label: 'Horizontal', iconType: 'HORIZONTAL' },
+	{ value: 'nucleus', label: 'Nucleus (Nuc)', iconType: 'NUCLEUS' },
+]
 
 type HiveCreateFieldsProps = {
 	hiveType: string
@@ -48,34 +56,32 @@ export default function HiveCreateFields({
 				<label className={styles.formLabel}>
 					<T>Hive Type</T>
 				</label>
-				<div className={styles.radioGroup}>
-					<label className={styles.radioLabel}>
-						<input
-							type="radio"
-							value="vertical"
-							checked={hiveType === 'vertical'}
-							onChange={handleHiveTypeChange}
-						/>
-						<T>Vertical</T>
-					</label>
-					<label className={styles.radioLabel}>
-						<input
-							type="radio"
-							value="horizontal"
-							checked={hiveType === 'horizontal'}
-							onChange={handleHiveTypeChange}
-						/>
-						<T>Horizontal</T>
-					</label>
-					<label className={styles.radioLabel}>
-						<input
-							type="radio"
-							value="nucleus"
-							checked={hiveType === 'nucleus'}
-							onChange={handleHiveTypeChange}
-						/>
-						<T>Nucleus (Nuc)</T>
-					</label>
+				<div className={styles.typeChoiceGroup} role="radiogroup">
+					{HIVE_TYPE_OPTIONS.map((option) => (
+						<button
+							key={option.value}
+							type="button"
+							role="radio"
+							aria-checked={hiveType === option.value}
+							className={`${styles.typeChoice} ${
+								hiveType === option.value ? styles.typeChoiceActive : ''
+							}`}
+							onClick={() =>
+								handleHiveTypeChange({ target: { value: option.value } })
+							}
+						>
+							<span className={styles.typeChoiceIcon}>
+								<HiveIcon
+									size={36}
+									boxes={createDefaultBoxes(option.value, 1)}
+									hiveType={option.iconType}
+								/>
+							</span>
+							<span>
+								<T>{option.label}</T>
+							</span>
+						</button>
+					))}
 				</div>
 			</div>
 
@@ -96,6 +102,12 @@ export default function HiveCreateFields({
 					min="1"
 					step="1"
 				/>
+				<small className={styles.fieldHint}>
+					<T>
+						Optional. Match the number on the hive if you use numbering; leave
+						blank to assign the next number automatically.
+					</T>
+				</small>
 			</div>
 
 			<div className={styles.formField}>

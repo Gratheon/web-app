@@ -679,6 +679,19 @@ export default function HiveCreateForm() {
 		}
 	}
 
+	const previewHiveType =
+		hiveType === 'nucleus'
+			? 'NUCLEUS'
+			: hiveType === 'horizontal'
+			? 'HORIZONTAL'
+			: 'VERTICAL'
+	const previewTypeLabel =
+		hiveType === 'nucleus'
+			? 'Nucleus (Nuc)'
+			: hiveType === 'horizontal'
+			? 'Horizontal'
+			: 'Vertical'
+
 	return (
 		<PagePaddedCentered>
 			<h1>
@@ -700,20 +713,8 @@ export default function HiveCreateForm() {
 				</div>
 			)}
 			{submitError && <ErrorMsg error={submitError} />}
-			<div style={{ textAlign: 'center', marginBottom: 20 }}>
-				<HiveIcon
-					boxes={boxes}
-					editable={true}
-					hiveType={
-						hiveType === 'nucleus'
-							? 'NUCLEUS'
-							: hiveType === 'horizontal'
-							? 'HORIZONTAL'
-							: 'VERTICAL'
-					}
-				/>
-			</div>
-
+			<div className={styles.createLayout}>
+				<div className={styles.createFormColumn}>
 			<VisualForm
 				className={styles.hiveCreateForm}
 				submitClassName={styles.hiveCreateSubmit}
@@ -762,7 +763,8 @@ export default function HiveCreateForm() {
 								<div className={styles.queenDraftCard} key={draft.clientId}>
 									<div className={styles.queenDraftBody}>
 										<strong className={styles.queenDraftTitle}>
-											<T>Queen</T> {index + 1}
+											<T>Queen</T>
+											{queenDrafts.length > 1 ? ` ${index + 1}` : ''}
 										</strong>
 										<QueenFormFields
 											mode={draft.mode}
@@ -806,30 +808,45 @@ export default function HiveCreateForm() {
 													requestPolicy: 'network-only',
 												})
 											}}
-											compactYearActions={renderRemoveQueenButton(
-												draft.clientId
-											)}
 										/>
-										{draft.mode === 'warehouse' ? (
-											<div className={styles.queenDraftActions}>
-												{renderRemoveQueenButton(draft.clientId)}
-											</div>
-										) : null}
+										<div className={styles.queenDraftActions}>
+											{renderRemoveQueenButton(draft.clientId)}
+										</div>
 									</div>
 								</div>
 							))}
 						</div>
-						<Button
+						{/* Multiple queens are rare, so the add control is a low-key dotted block */}
+						<button
 							type="button"
-							size="small"
 							className={styles.addQueenButton}
 							onClick={addQueenDraft}
 						>
-							<T>Add Queen</T>
-						</Button>
+							+ <T>Add Queen</T>
+						</button>
 					</div>
 				</div>
 			</VisualForm>
+				</div>
+				<aside className={styles.previewPane}>
+					<div className={styles.previewTitle}>
+						<T>Preview</T>
+					</div>
+					<HiveIcon
+						boxes={boxes}
+						editable={true}
+						hiveType={previewHiveType}
+					/>
+					<div className={styles.previewText}>
+						{hiveNumber ? `#${hiveNumber} - ` : ''}
+						<T>{previewTypeLabel}</T>
+						{', '}
+						{boxCount} <T>section(s)</T>
+						{', '}
+						{frameCount} <T>frames per section</T>
+					</div>
+				</aside>
+			</div>
 		</PagePaddedCentered>
 	)
 }

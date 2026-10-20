@@ -56,7 +56,6 @@
 		"wonka": "6.3.4"
 	},
 	"devDependencies": {
-		"@playwright/test": "1.58.2",
 		"@preact/preset-vite": "^2.10.3",
 		"@tauri-apps/cli": "2.4.1",
 		"@testing-library/jest-dom": "^6.9.1",

@@ -4,6 +4,8 @@ import { formatDateTimeByLocale } from '@/shared/dateLocale'
 import T, { useTranslation as t } from '@/shared/translate'
 import styles from './styles.module.less'
 import Button from '@/shared/button'
+import LeftChevron from '@/icons/leftChevron'
+import RightChevron from '@/icons/rightChevron'
 
 type CalendarItem = {
 	id: string
@@ -99,6 +101,15 @@ function dayKey(value: string) {
 	return new Date(value).toISOString().slice(0, 10)
 }
 
+function calendarStartDate(baseDate: Date) {
+	const date = new Date(baseDate)
+	date.setUTCHours(0, 0, 0, 0)
+	date.setUTCDate(date.getUTCDate() - 28)
+	// Keep the grid aligned to UTC day keys, starting each row on Saturday.
+	date.setUTCDate(date.getUTCDate() - ((date.getUTCDay() + 1) % 7))
+	return date
+}
+
 function sourceHref(item: CalendarItem) {
 	if (!item.source?.apiaryId || !item.source?.hiveId) return null
 	if (item.sourceType === 'INSPECTION' && item.source.sourceId) {
@@ -111,7 +122,13 @@ export default function CalendarPage() {
 	const [baseDate, setBaseDate] = React.useState(() => new Date())
 	const [apiaryId, setApiaryId] = React.useState<string | null>(null)
 	const [hiveId, setHiveId] = React.useState<string | null>(null)
-	const [sourceTypes, setSourceTypes] = React.useState<string[]>([])
+	const [sourceTypes, setSourceTypes] = React.useState<string[]>([
+		'INSPECTION',
+		'TREATMENT_REMINDER',
+		'QUEEN_MILESTONE',
+	])
+	const previousMonthLabel = t('Previous Month')
+	const nextMonthLabel = t('Next Month')
 	const [activeTab, setActiveTab] = React.useState<'calendar' | 'chronology'>(
 		'calendar'
 	)
@@ -120,10 +137,9 @@ export default function CalendarPage() {
 	const apiaries = hivesData?.apiaries || []
 
 	const input = React.useMemo(() => {
-		const fromDate = new Date(baseDate)
-		fromDate.setDate(fromDate.getDate() - 28)
+		const fromDate = calendarStartDate(baseDate)
 		const toDate = new Date(baseDate)
-		toDate.setDate(toDate.getDate() + 28)
+		toDate.setUTCDate(toDate.getUTCDate() + 28)
 
 		const inp: any = {
 			from: fromDate.toISOString(),
@@ -141,7 +157,9 @@ export default function CalendarPage() {
 		variables: { input },
 	})
 	const payload = data?.calendar
-	const items: CalendarItem[] = payload?.items || []
+	// The API treats an empty source-type list as "all", so preserve an empty UI selection here.
+	const items: CalendarItem[] =
+		sourceTypes.length > 0 ? payload?.items || [] : []
 
 	const grouped = React.useMemo(() => {
 		const map = new Map<string, CalendarItem[]>()
@@ -153,18 +171,34 @@ export default function CalendarPage() {
 	}, [items])
 
 	const days = React.useMemo(() => {
-		const fromDate = new Date(baseDate)
-		fromDate.setDate(fromDate.getDate() - 28)
+		const fromDate = calendarStartDate(baseDate)
 		return Array.from({ length: 56 }, (_, index) => {
 			const d = new Date(fromDate)
-			d.setDate(d.getDate() + index)
+			d.setUTCDate(d.getUTCDate() + index)
 			return dayKey(d.toISOString())
 		})
 	}, [baseDate])
 
 	const monthLabel = React.useCallback((day: string) => {
-		return formatDateTimeByLocale(new Date(day), { month: 'short' })
+		return formatDateTimeByLocale(new Date(day), {
+			month: 'short',
+			timeZone: 'UTC',
+		})
 	}, [])
+
+	const weekdays = Array.from({ length: 7 }, (_, index) => {
+		const date = new Date(Date.UTC(2024, 0, 6 + index, 12))
+		return {
+			short: formatDateTimeByLocale(date, {
+				weekday: 'short',
+				timeZone: 'UTC',
+			}),
+			full: formatDateTimeByLocale(date, {
+				weekday: 'long',
+				timeZone: 'UTC',
+			}),
+		}
+	})
 
 	const availableHives = React.useMemo(() => {
 		if (!apiaryId) return []
@@ -270,34 +304,37 @@ export default function CalendarPage() {
 							<T>Queens</T>
 						</label>
 					</div>
-				</div>
+					<div className={styles.controls}>
+						<Button
+							type="button"
+							title={previousMonthLabel}
+							aria-label={previousMonthLabel}
+							onClick={() => {
+								const d = new Date(baseDate)
+								d.setMonth(d.getMonth() - 1)
+								setBaseDate(d)
+							}}
+						>
+							<LeftChevron />
+						</Button>
 
-				<div className={styles.controls}>
-					<Button
-						type="button"
-						onClick={() => {
-							const d = new Date(baseDate)
-							d.setMonth(d.getMonth() - 1)
-							setBaseDate(d)
-						}}
-					>
-						<T>Previous Month</T>
-					</Button>
+						<Button type="button" onClick={() => setBaseDate(new Date())}>
+							<T>Today</T>
+						</Button>
 
-					<Button type="button" onClick={() => setBaseDate(new Date())}>
-						<T>Today</T>
-					</Button>
-
-					<Button
-						type="button"
-						onClick={() => {
-							const d = new Date(baseDate)
-							d.setMonth(d.getMonth() + 1)
-							setBaseDate(d)
-						}}
-					>
-						<T>Next Month</T>
-					</Button>
+						<Button
+							type="button"
+							title={nextMonthLabel}
+							aria-label={nextMonthLabel}
+							onClick={() => {
+								const d = new Date(baseDate)
+								d.setMonth(d.getMonth() + 1)
+								setBaseDate(d)
+							}}
+						>
+							<RightChevron />
+						</Button>
+					</div>
 				</div>
 			</header>
 			{loading && (
@@ -342,15 +379,28 @@ export default function CalendarPage() {
 					className={styles.tabPanel}
 				>
 					<section className={styles.grid} aria-label="Calendar month grid">
+							{weekdays.map((weekday) => (
+								<div className={styles.weekdayHeader} key={weekday.full}>
+									<abbr title={weekday.full}>{weekday.short}</abbr>
+								</div>
+							))}
 						{days.map((day) => {
-							const date = new Date(day)
+							const date = new Date(`${day}T00:00:00.000Z`)
 							const isToday = dayKey(new Date().toISOString()) === day
-							const dayOfMonth = date.getDate()
+							const isWeekend = date.getUTCDay() === 0 || date.getUTCDay() === 6
+							const weekdayLabel = formatDateTimeByLocale(date, {
+								weekday: 'short',
+								timeZone: 'UTC',
+							})
+							const dayOfMonth = date.getUTCDate()
 							return (
 								<div
 									key={day}
-									className={`${styles.day} ${isToday ? styles.today : ''}`}
+									className={`${styles.day} ${
+										isWeekend ? styles.weekend : ''
+									} ${isToday ? styles.today : ''}`}
 								>
+									<span className={styles.mobileWeekday}>{weekdayLabel}</span>
 									<strong>
 										{dayOfMonth}
 										{dayOfMonth === 1 && (

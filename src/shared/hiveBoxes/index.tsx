@@ -1,4 +1,9 @@
 import { boxTypes } from '@/models/boxes.ts'
+import { MAX_HIVE_BOX_WIDTH_FRAMES } from '@/page/hiveEdit/boxes/box/boxConstants'
+import {
+	LIST_SLOT_WIDTH_PX,
+	VISUAL_FRAME_TOTAL_WIDTH_PX,
+} from '@/page/hiveEdit/boxes/box/geometry'
 
 import styles from './styles.module.less'
 
@@ -36,6 +41,12 @@ export default function HiveBoxes({
 	onFrameImageClick = (imageUrl: string) => {}, // Default to no-op function
 }): any {
 	const boxesDivs = []
+	const frameSlotWidth =
+		displayMode === 'list' ? LIST_SLOT_WIDTH_PX : VISUAL_FRAME_TOTAL_WIDTH_PX
+	const hiveStackStyle = {
+		// Account for the section chrome and the reserved 38px action-button column.
+		maxWidth: `${MAX_HIVE_BOX_WIDTH_FRAMES * frameSlotWidth + 72}px`,
+	}
 	let currentBoxSelected
 
 	for (let box of boxes) {
@@ -50,7 +61,7 @@ export default function HiveBoxes({
 
 		boxesDivs.push(
 			<div
-				style="display: flex;"
+				style={{ display: 'flex', justifyContent: 'center' }}
 				onClick={(event) => {
 					onBoxClick({ event, boxId: box.id })
 				}}
@@ -154,7 +165,9 @@ export default function HiveBoxes({
 				</div>
 			)}
 
-			{boxesDivs}
+			<div className={styles.hiveStack} style={hiveStackStyle}>
+				{boxesDivs}
+			</div>
 		</>
 	)
 }

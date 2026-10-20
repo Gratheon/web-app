@@ -7,7 +7,6 @@ import { useTranslation as t } from '@/shared/translate'
 
 import styles from './index.module.less'
 import FRAMES_QUERY from './framesQuery.graphql.ts'
-import { BOX_SLOT_CAPACITY, getSlotCapacity } from './boxConstants'
 import type { BoxType } from './boxTypes'
 import {
 	getBeeBoundaryIndicators,
@@ -20,7 +19,6 @@ import {
 import { renderFrameSlots } from './FrameSlots'
 import {
 	LIST_SECTION_PADDING_X_PX,
-	LIST_SLOT_WIDTH_PX,
 	VISUAL_SECTION_PADDING_X_PX,
 } from './geometry'
 import { useBoxFrames } from './useBoxFrames'
@@ -122,22 +120,9 @@ export default function Box({
 		})
 	const framesWrapped = framesDiv
 
-	// Keep vertical sections compact, but allow horizontal sections to fit full slot capacity.
-	let maxWidthStyle: any = {}
 	const shouldScrollList =
 		displayMode === 'list' &&
 		(box.type === 'LARGE_HORIZONTAL_SECTION' || safeFrames.length > 10)
-	if (displayMode === 'list' && box.type === 'LARGE_HORIZONTAL_SECTION') {
-		const slotCapacity = getSlotCapacity(
-			box.type,
-			safeFrames,
-			BOX_SLOT_CAPACITY[box.type] || 25
-		)
-		maxWidthStyle = {
-			minWidth: slotCapacity * LIST_SLOT_WIDTH_PX + 28,
-			maxWidth: 'none',
-		}
-	}
 
 	if (displayMode == 'visual') {
 		function getVisualIndicatorLeftCss(boundarySlotIndex: number): string {
@@ -153,7 +138,6 @@ export default function Box({
 					className={`${styles['boxType_' + box.type]} ${styles.boxOuter} ${
 						selected && styles.selected
 					}`}
-					style={maxWidthStyle}
 				>
 					<div className={styles.boxInnerVisual} style={visualInnerStyle}>
 						{!frames && <Loader size={1} />}
@@ -210,7 +194,6 @@ export default function Box({
 				className={`${styles['boxType_' + box.type]} ${styles.boxOuter} ${
 					selected && styles.selected
 				}`}
-				style={maxWidthStyle}
 			>
 				<div
 					className={`${styles.boxInner} ${

@@ -99,6 +99,14 @@ function dayKey(value: string) {
 	return new Date(value).toISOString().slice(0, 10)
 }
 
+function calendarStartDate(baseDate: Date) {
+	const date = new Date(baseDate)
+	date.setDate(date.getDate() - 28)
+	// Start each row on Saturday so the weekend sits at the left of the grid.
+	date.setDate(date.getDate() - ((date.getDay() + 1) % 7))
+	return date
+}
+
 function sourceHref(item: CalendarItem) {
 	if (!item.source?.apiaryId || !item.source?.hiveId) return null
 	if (item.sourceType === 'INSPECTION' && item.source.sourceId) {
@@ -120,8 +128,7 @@ export default function CalendarPage() {
 	const apiaries = hivesData?.apiaries || []
 
 	const input = React.useMemo(() => {
-		const fromDate = new Date(baseDate)
-		fromDate.setDate(fromDate.getDate() - 28)
+		const fromDate = calendarStartDate(baseDate)
 		const toDate = new Date(baseDate)
 		toDate.setDate(toDate.getDate() + 28)
 
@@ -153,8 +160,7 @@ export default function CalendarPage() {
 	}, [items])
 
 	const days = React.useMemo(() => {
-		const fromDate = new Date(baseDate)
-		fromDate.setDate(fromDate.getDate() - 28)
+		const fromDate = calendarStartDate(baseDate)
 		return Array.from({ length: 56 }, (_, index) => {
 			const d = new Date(fromDate)
 			d.setDate(d.getDate() + index)
@@ -345,11 +351,14 @@ export default function CalendarPage() {
 						{days.map((day) => {
 							const date = new Date(day)
 							const isToday = dayKey(new Date().toISOString()) === day
+							const isWeekend = date.getUTCDay() === 0 || date.getUTCDay() === 6
 							const dayOfMonth = date.getDate()
 							return (
 								<div
 									key={day}
-									className={`${styles.day} ${isToday ? styles.today : ''}`}
+									className={`${styles.day} ${
+										isWeekend ? styles.weekend : ''
+									} ${isToday ? styles.today : ''}`}
 								>
 									<strong>
 										{dayOfMonth}

@@ -1,5 +1,6 @@
 import { render as renderPreact } from 'preact'
 import { act } from 'react-dom/test-utils'
+import styles from './styles.module.less'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import CalendarPage from './index'
 
@@ -116,6 +117,22 @@ describe('CalendarPage', () => {
 		expect(container.innerHTML).toContain('1<span')
 		expect(container.innerHTML).toContain('Jun')
 		expect(container.innerHTML).toContain('Jul')
+	})
+
+	it('starts the calendar week on Saturday and highlights both weekend days', () => {
+		renderPreact(<CalendarPage />, container)
+
+		const days = Array.from(
+			container.querySelectorAll<HTMLElement>(
+				'[aria-label="Calendar month grid"] > div'
+			)
+		)
+		expect(
+			days.slice(0, 3).map((day) => day.querySelector('strong')?.textContent)
+		).toEqual(['23', '24', '25'])
+		expect(days[0].classList.contains(styles.weekend)).toBe(true)
+		expect(days[1].classList.contains(styles.weekend)).toBe(true)
+		expect(days[2].classList.contains(styles.weekend)).toBe(false)
 	})
 
 	it('does not render an empty records notice for an empty calendar', () => {

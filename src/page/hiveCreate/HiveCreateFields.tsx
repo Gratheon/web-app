@@ -96,6 +96,12 @@ export default function HiveCreateFields({
 					min="1"
 					step="1"
 				/>
+				<small className={styles.fieldHint}>
+					<T>
+						Optional. Match the number on the hive if you use numbering; leave
+						blank to assign the next number automatically.
+					</T>
+				</small>
 			</div>
 
 			<div className={styles.formField}>

@@ -4,6 +4,8 @@ import { formatDateTimeByLocale } from '@/shared/dateLocale'
 import T, { useTranslation as t } from '@/shared/translate'
 import styles from './styles.module.less'
 import Button from '@/shared/button'
+import LeftChevron from '@/icons/leftChevron'
+import RightChevron from '@/icons/rightChevron'
 
 type CalendarItem = {
 	id: string
@@ -120,7 +122,13 @@ export default function CalendarPage() {
 	const [baseDate, setBaseDate] = React.useState(() => new Date())
 	const [apiaryId, setApiaryId] = React.useState<string | null>(null)
 	const [hiveId, setHiveId] = React.useState<string | null>(null)
-	const [sourceTypes, setSourceTypes] = React.useState<string[]>([])
+	const [sourceTypes, setSourceTypes] = React.useState<string[]>([
+		'INSPECTION',
+		'TREATMENT_REMINDER',
+		'QUEEN_MILESTONE',
+	])
+	const previousMonthLabel = t('Previous Month')
+	const nextMonthLabel = t('Next Month')
 	const [activeTab, setActiveTab] = React.useState<'calendar' | 'chronology'>(
 		'calendar'
 	)
@@ -149,7 +157,9 @@ export default function CalendarPage() {
 		variables: { input },
 	})
 	const payload = data?.calendar
-	const items: CalendarItem[] = payload?.items || []
+	// The API treats an empty source-type list as "all", so preserve an empty UI selection here.
+	const items: CalendarItem[] =
+		sourceTypes.length > 0 ? payload?.items || [] : []
 
 	const grouped = React.useMemo(() => {
 		const map = new Map<string, CalendarItem[]>()
@@ -297,13 +307,15 @@ export default function CalendarPage() {
 					<div className={styles.controls}>
 						<Button
 							type="button"
+							title={previousMonthLabel}
+							aria-label={previousMonthLabel}
 							onClick={() => {
 								const d = new Date(baseDate)
 								d.setMonth(d.getMonth() - 1)
 								setBaseDate(d)
 							}}
 						>
-							<T>Previous Month</T>
+							<LeftChevron />
 						</Button>
 
 						<Button type="button" onClick={() => setBaseDate(new Date())}>
@@ -312,13 +324,15 @@ export default function CalendarPage() {
 
 						<Button
 							type="button"
+							title={nextMonthLabel}
+							aria-label={nextMonthLabel}
 							onClick={() => {
 								const d = new Date(baseDate)
 								d.setMonth(d.getMonth() + 1)
 								setBaseDate(d)
 							}}
 						>
-							<T>Next Month</T>
+							<RightChevron />
 						</Button>
 					</div>
 				</div>

@@ -1,5 +1,6 @@
 import { render as renderPreact } from 'preact'
 import { act } from 'react-dom/test-utils'
+import { formatDateTimeByLocale } from '@/shared/dateLocale'
 import styles from './styles.module.less'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import CalendarPage from './index'
@@ -62,7 +63,7 @@ describe('CalendarPage', () => {
 
 	beforeEach(() => {
 		vi.useFakeTimers()
-		vi.setSystemTime(new Date('2026-06-21T12:00:00.000Z'))
+		vi.setSystemTime(new Date('2026-06-21T21:30:00.000Z'))
 		mockUseQuery.mockReturnValue({
 			data: { calendar: calendarResponse },
 			loading: false,
@@ -119,12 +120,34 @@ describe('CalendarPage', () => {
 		expect(container.innerHTML).toContain('Jul')
 	})
 
-	it('starts the calendar week on Saturday and highlights both weekend days', () => {
+	it('shows weekday columns in Saturday-first order and highlights weekend days', () => {
 		renderPreact(<CalendarPage />, container)
+
+		const weekdayHeaders = Array.from(
+			container.querySelectorAll<HTMLElement>(
+				`[aria-label="Calendar month grid"] .${styles.weekdayHeader}`
+			)
+		)
+		const weekdayDates = Array.from(
+			{ length: 7 },
+			(_, index) => new Date(Date.UTC(2024, 0, 6 + index, 12))
+		)
+		expect(weekdayHeaders.map((header) => header.textContent)).toEqual(
+			weekdayDates.map((date) =>
+				formatDateTimeByLocale(date, { weekday: 'short', timeZone: 'UTC' })
+			)
+		)
+		expect(
+			weekdayHeaders.map((header) => header.querySelector('abbr')?.title)
+		).toEqual(
+			weekdayDates.map((date) =>
+				formatDateTimeByLocale(date, { weekday: 'long', timeZone: 'UTC' })
+			)
+		)
 
 		const days = Array.from(
 			container.querySelectorAll<HTMLElement>(
-				'[aria-label="Calendar month grid"] > div'
+				`[aria-label="Calendar month grid"] > .${styles.day}`
 			)
 		)
 		expect(

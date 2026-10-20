@@ -101,9 +101,10 @@ function dayKey(value: string) {
 
 function calendarStartDate(baseDate: Date) {
 	const date = new Date(baseDate)
-	date.setDate(date.getDate() - 28)
-	// Start each row on Saturday so the weekend sits at the left of the grid.
-	date.setDate(date.getDate() - ((date.getDay() + 1) % 7))
+	date.setUTCHours(0, 0, 0, 0)
+	date.setUTCDate(date.getUTCDate() - 28)
+	// Keep the grid aligned to UTC day keys, starting each row on Saturday.
+	date.setUTCDate(date.getUTCDate() - ((date.getUTCDay() + 1) % 7))
 	return date
 }
 
@@ -130,7 +131,7 @@ export default function CalendarPage() {
 	const input = React.useMemo(() => {
 		const fromDate = calendarStartDate(baseDate)
 		const toDate = new Date(baseDate)
-		toDate.setDate(toDate.getDate() + 28)
+		toDate.setUTCDate(toDate.getUTCDate() + 28)
 
 		const inp: any = {
 			from: fromDate.toISOString(),
@@ -163,14 +164,31 @@ export default function CalendarPage() {
 		const fromDate = calendarStartDate(baseDate)
 		return Array.from({ length: 56 }, (_, index) => {
 			const d = new Date(fromDate)
-			d.setDate(d.getDate() + index)
+			d.setUTCDate(d.getUTCDate() + index)
 			return dayKey(d.toISOString())
 		})
 	}, [baseDate])
 
 	const monthLabel = React.useCallback((day: string) => {
-		return formatDateTimeByLocale(new Date(day), { month: 'short' })
+		return formatDateTimeByLocale(new Date(day), {
+			month: 'short',
+			timeZone: 'UTC',
+		})
 	}, [])
+
+	const weekdays = Array.from({ length: 7 }, (_, index) => {
+		const date = new Date(Date.UTC(2024, 0, 6 + index, 12))
+		return {
+			short: formatDateTimeByLocale(date, {
+				weekday: 'short',
+				timeZone: 'UTC',
+			}),
+			full: formatDateTimeByLocale(date, {
+				weekday: 'long',
+				timeZone: 'UTC',
+			}),
+		}
+	})
 
 	const availableHives = React.useMemo(() => {
 		if (!apiaryId) return []
@@ -348,11 +366,20 @@ export default function CalendarPage() {
 					className={styles.tabPanel}
 				>
 					<section className={styles.grid} aria-label="Calendar month grid">
+							{weekdays.map((weekday) => (
+								<div className={styles.weekdayHeader} key={weekday.full}>
+									<abbr title={weekday.full}>{weekday.short}</abbr>
+								</div>
+							))}
 						{days.map((day) => {
-							const date = new Date(day)
+							const date = new Date(`${day}T00:00:00.000Z`)
 							const isToday = dayKey(new Date().toISOString()) === day
 							const isWeekend = date.getUTCDay() === 0 || date.getUTCDay() === 6
-							const dayOfMonth = date.getDate()
+							const weekdayLabel = formatDateTimeByLocale(date, {
+								weekday: 'short',
+								timeZone: 'UTC',
+							})
+							const dayOfMonth = date.getUTCDate()
 							return (
 								<div
 									key={day}
@@ -360,6 +387,7 @@ export default function CalendarPage() {
 										isWeekend ? styles.weekend : ''
 									} ${isToday ? styles.today : ''}`}
 								>
+									<span className={styles.mobileWeekday}>{weekdayLabel}</span>
 									<strong>
 										{dayOfMonth}
 										{dayOfMonth === 1 && (

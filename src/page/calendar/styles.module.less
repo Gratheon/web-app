@@ -88,6 +88,19 @@
 	grid-template-columns: repeat(7, minmax(0, 1fr));
 	gap: 6px;
 }
+.weekdayHeader {
+	padding: 0 6px 4px;
+	color: #555;
+	font-size: 0.9em;
+	font-weight: 600;
+	text-align: center;
+}
+.weekdayHeader abbr {
+	text-decoration: none;
+}
+.mobileWeekday {
+	display: none;
+}
 .day {
 	min-height: 76px;
 	border: 1px solid #ddd;
@@ -155,5 +168,14 @@
 	}
 	.grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+	.weekdayHeader {
+		display: none;
+	}
+	.mobileWeekday {
+		display: block;
+		color: #555;
+		font-size: 0.8em;
+		font-weight: 600;
 	}
 }

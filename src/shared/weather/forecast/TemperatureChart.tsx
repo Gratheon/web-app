@@ -1,7 +1,12 @@
 import { AreaSeries, PriceLine } from 'lightweight-charts-react-components'
 import { useTranslation as t } from '@/shared/translate'
 import ChartContainer from '@/shared/charts/ChartContainer'
-import { convertFromCelsius, convertMetricSeriesFromCelsius, formatTemperatureFromCelsius, type TemperatureUnit } from '@/shared/temperatureUnit'
+import {
+	convertFromCelsius,
+	convertMetricSeriesFromCelsius,
+	formatTemperatureFromCelsius,
+	type TemperatureUnit,
+} from '@/shared/temperatureUnit'
 
 type TemperatureChartProps = {
 	data: any[]
@@ -11,9 +16,16 @@ type TemperatureChartProps = {
 	temperatureUnit?: TemperatureUnit
 }
 
-export default function TemperatureChart({ data, currentTemperature, chartRefs, syncCharts, temperatureUnit = 'celsius' }: TemperatureChartProps) {
+export default function TemperatureChart({
+	data,
+	currentTemperature,
+	chartRefs,
+	syncCharts,
+	temperatureUnit = 'celsius',
+}: TemperatureChartProps) {
 	const displayData = convertMetricSeriesFromCelsius(data, temperatureUnit)
-	const averageTemperature = displayData.reduce((acc, curr) => acc + curr.value, 0) / displayData.length
+	const averageTemperature =
+		displayData.reduce((acc, curr) => acc + curr.value, 0) / displayData.length
 
 	let temperatureTopColor = '#0000FF'
 	let temperatureBottomColor = 'rgba(0, 0, 255, 0.25)'
@@ -45,10 +57,15 @@ export default function TemperatureChart({ data, currentTemperature, chartRefs, 
 					lineWidth: 2,
 				}}
 			>
-				<PriceLine price={convertFromCelsius(13, temperatureUnit) ?? 13} options={{ color: 'blue', lineStyle: 2, lineWidth: 1 }} />
-				<PriceLine price={convertFromCelsius(28, temperatureUnit) ?? 28} options={{ color: 'red', lineStyle: 2, lineWidth: 1 }} />
+				<PriceLine
+					price={convertFromCelsius(13, temperatureUnit) ?? 13}
+					options={{ color: 'blue', lineStyle: 2, lineWidth: 1 }}
+				/>
+				<PriceLine
+					price={convertFromCelsius(28, temperatureUnit) ?? 28}
+					options={{ color: 'red', lineStyle: 2, lineWidth: 1 }}
+				/>
 			</AreaSeries>
 		</ChartContainer>
 	)
 }
-

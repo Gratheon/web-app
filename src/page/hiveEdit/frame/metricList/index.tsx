@@ -94,19 +94,16 @@ export default function MetricList({ frameSideId }) {
 					overflow: 'hidden',
 				}}
 			>
-
-
 				<ResourceEditRow
 					expanded={expanded}
 					onClick={() => expand(!expanded)}
 					color={colors.eggsColor}
-					textColor='#030'
+					textColor="#030"
 					percent={frameSideCells.eggsPercent}
 					onChange={(e) => onResize('eggsPercent', e.target.value)}
 				>
 					<T>Eggs</T>
 				</ResourceEditRow>
-
 
 				<ResourceEditRow
 					expanded={expanded}
@@ -128,7 +125,6 @@ export default function MetricList({ frameSideId }) {
 					<T>Capped Brood</T>
 				</ResourceEditRow>
 
-
 				<ResourceEditRow
 					expanded={expanded}
 					onClick={() => expand(!expanded)}
@@ -138,7 +134,6 @@ export default function MetricList({ frameSideId }) {
 				>
 					<T>Drone Brood</T>
 				</ResourceEditRow>
-
 
 				<ResourceEditRow
 					expanded={expanded}
@@ -160,7 +155,6 @@ export default function MetricList({ frameSideId }) {
 				>
 					<T>Nectar</T>
 				</ResourceEditRow>
-
 
 				<ResourceEditRow
 					expanded={expanded}

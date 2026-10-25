@@ -17,7 +17,10 @@ import ServiceDegradedWarning from '@/shared/serviceDegradedWarning'
 
 import HivePlacement from '@/page/apiaryEdit/hivePlacement'
 import { getUser } from '@/models/user'
-import { formatTemperatureFromCelsius, getPreferredTemperatureUnit } from '@/shared/temperatureUnit'
+import {
+	formatTemperatureFromCelsius,
+	getPreferredTemperatureUnit,
+} from '@/shared/temperatureUnit'
 import styles from './index.module.less'
 
 type WeatherSnapshot = {
@@ -37,7 +40,15 @@ type WeatherStatus = {
 	tone: WeatherTone
 	label: string
 	hint: string
-	icon: 'sunny' | 'rain' | 'storm' | 'cold' | 'mild' | 'hot' | 'wind-calm' | 'wind-strong'
+	icon:
+		| 'sunny'
+		| 'rain'
+		| 'storm'
+		| 'cold'
+		| 'mild'
+		| 'hot'
+		| 'wind-calm'
+		| 'wind-strong'
 }
 
 function formatValue(value: number | null, suffix: string) {
@@ -47,47 +58,117 @@ function formatValue(value: number | null, suffix: string) {
 
 function classifyTemperature(value: number | null): WeatherStatus {
 	if (value === null || Number.isNaN(value)) {
-		return { tone: 'neutral', label: 'No data', hint: 'Unable to evaluate bee comfort.', icon: 'mild' }
+		return {
+			tone: 'neutral',
+			label: 'No data',
+			hint: 'Unable to evaluate bee comfort.',
+			icon: 'mild',
+		}
 	}
 	if (value < 10) {
-		return { tone: 'cold', label: 'Too cold', hint: 'Flight activity is usually very low.', icon: 'cold' }
+		return {
+			tone: 'cold',
+			label: 'Too cold',
+			hint: 'Flight activity is usually very low.',
+			icon: 'cold',
+		}
 	}
 	if (value < 14) {
-		return { tone: 'warn', label: 'Cool', hint: 'Bees may fly less than usual.', icon: 'cold' }
+		return {
+			tone: 'warn',
+			label: 'Cool',
+			hint: 'Bees may fly less than usual.',
+			icon: 'cold',
+		}
 	}
 	if (value <= 32) {
-		return { tone: 'good', label: 'Bee-friendly', hint: 'Good range for regular foraging.', icon: 'mild' }
+		return {
+			tone: 'good',
+			label: 'Bee-friendly',
+			hint: 'Good range for regular foraging.',
+			icon: 'mild',
+		}
 	}
 	if (value <= 36) {
-		return { tone: 'warn', label: 'Hot', hint: 'Colonies may spend energy on cooling.', icon: 'hot' }
+		return {
+			tone: 'warn',
+			label: 'Hot',
+			hint: 'Colonies may spend energy on cooling.',
+			icon: 'hot',
+		}
 	}
-	return { tone: 'bad', label: 'Too hot', hint: 'Heat stress risk is elevated.', icon: 'hot' }
+	return {
+		tone: 'bad',
+		label: 'Too hot',
+		hint: 'Heat stress risk is elevated.',
+		icon: 'hot',
+	}
 }
 
 function classifyWind(value: number | null): WeatherStatus {
 	if (value === null || Number.isNaN(value)) {
-		return { tone: 'neutral', label: 'No data', hint: 'Unable to evaluate wind impact.', icon: 'wind-calm' }
+		return {
+			tone: 'neutral',
+			label: 'No data',
+			hint: 'Unable to evaluate wind impact.',
+			icon: 'wind-calm',
+		}
 	}
 	if (value <= 4) {
-		return { tone: 'good', label: 'Chill breeze', hint: 'Comfortable flying conditions.', icon: 'wind-calm' }
+		return {
+			tone: 'good',
+			label: 'Chill breeze',
+			hint: 'Comfortable flying conditions.',
+			icon: 'wind-calm',
+		}
 	}
 	if (value <= 8) {
-		return { tone: 'warn', label: 'Breezy', hint: 'Some flight reduction is possible.', icon: 'wind-calm' }
+		return {
+			tone: 'warn',
+			label: 'Breezy',
+			hint: 'Some flight reduction is possible.',
+			icon: 'wind-calm',
+		}
 	}
-	return { tone: 'bad', label: 'Strong wind', hint: 'Foraging can drop in gusty conditions.', icon: 'wind-strong' }
+	return {
+		tone: 'bad',
+		label: 'Strong wind',
+		hint: 'Foraging can drop in gusty conditions.',
+		icon: 'wind-strong',
+	}
 }
 
 function classifyRain(value: number | null): WeatherStatus {
 	if (value === null || Number.isNaN(value)) {
-		return { tone: 'neutral', label: 'No data', hint: 'Unable to evaluate rain impact.', icon: 'sunny' }
+		return {
+			tone: 'neutral',
+			label: 'No data',
+			hint: 'Unable to evaluate rain impact.',
+			icon: 'sunny',
+		}
 	}
 	if (value === 0) {
-		return { tone: 'good', label: 'Sunny or dry', hint: 'Best chance for active foraging.', icon: 'sunny' }
+		return {
+			tone: 'good',
+			label: 'Sunny or dry',
+			hint: 'Best chance for active foraging.',
+			icon: 'sunny',
+		}
 	}
 	if (value <= 1) {
-		return { tone: 'warn', label: 'Light rain', hint: 'Flight traffic may slow down.', icon: 'rain' }
+		return {
+			tone: 'warn',
+			label: 'Light rain',
+			hint: 'Flight traffic may slow down.',
+			icon: 'rain',
+		}
 	}
-	return { tone: 'bad', label: 'Rainy', hint: 'Bees often stay inside the hive.', icon: 'storm' }
+	return {
+		tone: 'bad',
+		label: 'Rainy',
+		hint: 'Bees often stay inside the hive.',
+		icon: 'storm',
+	}
 }
 
 function getWindVisualTone(weather: WeatherSnapshot): WindVisualTone {
@@ -146,7 +227,10 @@ function WeatherIcon({ kind }: { kind: WeatherStatus['icon'] }) {
 					</g>
 				) : (
 					<>
-						<path fill="currentColor" d="m11 18.1 1.9 0-1 1.9h1.6l-2.4 3.3.5-2h-1.5z" />
+						<path
+							fill="currentColor"
+							d="m11 18.1 1.9 0-1 1.9h1.6l-2.4 3.3.5-2h-1.5z"
+						/>
 						<g stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
 							<path d="m8.4 18.4-.7 2.2" />
 							<path d="m16.2 18.4-.7 2.2" />
@@ -164,7 +248,10 @@ function WeatherIcon({ kind }: { kind: WeatherStatus['icon'] }) {
 					fill="currentColor"
 					d="M14.8 13.6V6.2a2.8 2.8 0 1 0-5.6 0v7.4a4.8 4.8 0 1 0 5.6 0Zm-2.8 7a2.2 2.2 0 0 1-1.2-4V6.2a1.2 1.2 0 1 1 2.4 0v10.4a2.2 2.2 0 0 1-1.2 4Z"
 				/>
-				<path fill="currentColor" d="M12 15.4a1.4 1.4 0 1 0 0 2.8 1.4 1.4 0 0 0 0-2.8Z" />
+				<path
+					fill="currentColor"
+					d="M12 15.4a1.4 1.4 0 1 0 0 2.8 1.4 1.4 0 0 0 0-2.8Z"
+				/>
 			</svg>
 		)
 	}
@@ -185,7 +272,12 @@ function WeatherIcon({ kind }: { kind: WeatherStatus['icon'] }) {
 	if (kind === 'wind-strong' || kind === 'wind-calm') {
 		return (
 			<svg viewBox="0 0 24 24" aria-hidden="true">
-				<g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+				<g
+					fill="none"
+					stroke="currentColor"
+					strokeWidth="1.8"
+					strokeLinecap="round"
+				>
 					<path d="M3.5 8.2h10.7a2.3 2.3 0 1 0-2.3-2.3" />
 					<path d="M2.9 12.3h14.5a2.3 2.3 0 1 1-2.3 2.3" />
 					<path d="M4.5 16.4h8.4a2.2 2.2 0 1 1-2.2 2.2" />
@@ -223,14 +315,11 @@ export default function ApiaryView() {
 	const { id } = useParams()
 	const apiary = useLiveQuery(() => getApiary(+id), [id], null)
 	const user = useLiveQuery(() => getUser(), [], null)
-	const isHivePlacementLocked = isBillingTierLessThan(user?.billingPlan, 'hobbyist')
-	const {
-		loading,
-		error,
-		data,
-		degradedError,
-		degradedService,
-	} = useQuery(
+	const isHivePlacementLocked = isBillingTierLessThan(
+		user?.billingPlan,
+		'hobbyist'
+	)
+	const { loading, error, data, degradedError, degradedService } = useQuery(
 		gql`
 			query apiaryView($id: ID!) {
 				apiary(id: $id) {
@@ -250,7 +339,7 @@ export default function ApiaryView() {
 				}
 			}
 		`,
-		{ variables: { id } },
+		{ variables: { id } }
 	)
 
 	const apiaryFromQuery = data?.apiary
@@ -263,7 +352,8 @@ export default function ApiaryView() {
 	const lng = Number(apiaryFromQuery?.lng || apiary?.lng || 0)
 	const hives = apiaryFromQuery?.hives || []
 	const hivesCount = hives.length
-	const hasCoordinates = !!lat && !!lng && !Number.isNaN(lat) && !Number.isNaN(lng)
+	const hasCoordinates =
+		!!lat && !!lng && !Number.isNaN(lat) && !Number.isNaN(lng)
 
 	const { data: weatherQueryData } = useQuery(WEATHER_QUERY, {
 		variables: { lat: `${lat}`, lng: `${lng}` },
@@ -286,17 +376,18 @@ export default function ApiaryView() {
 			temperature: payload?.current_weather?.temperature ?? null,
 			windSpeed: payload?.current_weather?.windspeed ?? null,
 			windDirection:
-				payload?.current_weather?.winddirection
-				?? payload?.current?.wind_direction_10m
-				?? payload?.hourly?.winddirection_10m?.[0]
-				?? null,
-			rain: payload?.current?.precipitation ?? payload?.hourly?.rain?.[0] ?? null,
+				payload?.current_weather?.winddirection ??
+				payload?.current?.wind_direction_10m ??
+				payload?.hourly?.winddirection_10m?.[0] ??
+				null,
+			rain:
+				payload?.current?.precipitation ?? payload?.hourly?.rain?.[0] ?? null,
 			pressure:
-				payload?.current?.surface_pressure
-				?? payload?.current?.pressure_msl
-				?? payload?.hourly?.surface_pressure?.[0]
-				?? payload?.hourly?.pressure_msl?.[0]
-				?? null,
+				payload?.current?.surface_pressure ??
+				payload?.current?.pressure_msl ??
+				payload?.hourly?.surface_pressure?.[0] ??
+				payload?.hourly?.pressure_msl?.[0] ??
+				null,
 			elevation: payload?.elevation ?? null,
 		}
 	}, [hasCoordinates, weatherQueryData?.weather])
@@ -323,7 +414,9 @@ export default function ApiaryView() {
 	if (!apiary && !apiaryFromQuery) {
 		return (
 			<MessageNotFound msg={<T>Apiary not found</T>}>
-				<div><T>Apiary was not found.</T></div>
+				<div>
+					<T>Apiary was not found.</T>
+				</div>
 			</MessageNotFound>
 		)
 	}
@@ -334,19 +427,36 @@ export default function ApiaryView() {
 			<ErrorMsg error={error} />
 
 			<section className={styles.hero}>
-				{apiary?.photoUrl && <img className={styles.heroImage} src={apiary.photoUrl} alt={name} />}
+				{apiary?.photoUrl && (
+					<img className={styles.heroImage} src={apiary.photoUrl} alt={name} />
+				)}
 				<div className={styles.heroOverlay}>
 					<div className={styles.heroContent}>
 						<div className={styles.heroText}>
 							<h1>{name}</h1>
 							<div className={styles.heroMeta}>
-								<span>{hivesCount} <T>hives</T></span>
-								<span>{isMobileApiary ? <T>Mobile apiary</T> : <T>Static apiary</T>}</span>
-								{weather.elevation !== null && <span>{formatValue(weather.elevation, ' m')} <T>elevation</T></span>}
-								{weather.pressure !== null && <span>{formatValue(weather.pressure, ' hPa')} <T>pressure</T></span>}
+								<span>
+									{hivesCount} <T>hives</T>
+								</span>
+								<span>
+									{isMobileApiary ? <T>Mobile apiary</T> : <T>Static apiary</T>}
+								</span>
+								{weather.elevation !== null && (
+									<span>
+										{formatValue(weather.elevation, ' m')} <T>elevation</T>
+									</span>
+								)}
+								{weather.pressure !== null && (
+									<span>
+										{formatValue(weather.pressure, ' hPa')} <T>pressure</T>
+									</span>
+								)}
 							</div>
 						</div>
-						<Button color="green" href={`/apiaries/edit/${id}/${isMobileApiary ? 'position' : 'placement'}`}>
+						<Button
+							color="green"
+							href={`/apiaries/edit/${id}/${isMobileApiary ? 'position' : 'placement'}`}
+						>
 							<T>Edit</T>
 						</Button>
 					</div>
@@ -354,31 +464,67 @@ export default function ApiaryView() {
 			</section>
 
 			<section className={styles.cards}>
-				<div className={`${styles.statCard} ${styles[`${temperatureStatus.tone}Card`]}`}>
+				<div
+					className={`${styles.statCard} ${styles[`${temperatureStatus.tone}Card`]}`}
+				>
 					<div className={styles.statTop}>
-						<div className={styles.statLabel}><T>Temperature</T></div>
-						<div className={styles.statIcon}><WeatherIcon kind={temperatureStatus.icon} /></div>
+						<div className={styles.statLabel}>
+							<T>Temperature</T>
+						</div>
+						<div className={styles.statIcon}>
+							<WeatherIcon kind={temperatureStatus.icon} />
+						</div>
 					</div>
-					<div className={styles.statValue}>{formatTemperatureFromCelsius(weather.temperature, temperatureUnit)}</div>
-					<div className={`${styles.statTag} ${styles[`${temperatureStatus.tone}Tag`]}`}>{temperatureStatus.label}</div>
+					<div className={styles.statValue}>
+						{formatTemperatureFromCelsius(weather.temperature, temperatureUnit)}
+					</div>
+					<div
+						className={`${styles.statTag} ${styles[`${temperatureStatus.tone}Tag`]}`}
+					>
+						{temperatureStatus.label}
+					</div>
 					<div className={styles.statHint}>{temperatureStatus.hint}</div>
 				</div>
-				<div className={`${styles.statCard} ${styles[`${windStatus.tone}Card`]}`}>
+				<div
+					className={`${styles.statCard} ${styles[`${windStatus.tone}Card`]}`}
+				>
 					<div className={styles.statTop}>
-						<div className={styles.statLabel}><T>Wind</T></div>
-						<div className={styles.statIcon}><WeatherIcon kind={windStatus.icon} /></div>
+						<div className={styles.statLabel}>
+							<T>Wind</T>
+						</div>
+						<div className={styles.statIcon}>
+							<WeatherIcon kind={windStatus.icon} />
+						</div>
 					</div>
-					<div className={styles.statValue}>{formatValue(weather.windSpeed, ' m/s')}</div>
-					<div className={`${styles.statTag} ${styles[`${windStatus.tone}Tag`]}`}>{windStatus.label}</div>
+					<div className={styles.statValue}>
+						{formatValue(weather.windSpeed, ' m/s')}
+					</div>
+					<div
+						className={`${styles.statTag} ${styles[`${windStatus.tone}Tag`]}`}
+					>
+						{windStatus.label}
+					</div>
 					<div className={styles.statHint}>{windStatus.hint}</div>
 				</div>
-				<div className={`${styles.statCard} ${styles[`${rainStatus.tone}Card`]}`}>
+				<div
+					className={`${styles.statCard} ${styles[`${rainStatus.tone}Card`]}`}
+				>
 					<div className={styles.statTop}>
-						<div className={styles.statLabel}><T>Rain</T></div>
-						<div className={styles.statIcon}><WeatherIcon kind={rainStatus.icon} /></div>
+						<div className={styles.statLabel}>
+							<T>Rain</T>
+						</div>
+						<div className={styles.statIcon}>
+							<WeatherIcon kind={rainStatus.icon} />
+						</div>
 					</div>
-					<div className={styles.statValue}>{formatValue(weather.rain, ' mm')}</div>
-					<div className={`${styles.statTag} ${styles[`${rainStatus.tone}Tag`]}`}>{rainStatus.label}</div>
+					<div className={styles.statValue}>
+						{formatValue(weather.rain, ' mm')}
+					</div>
+					<div
+						className={`${styles.statTag} ${styles[`${rainStatus.tone}Tag`]}`}
+					>
+						{rainStatus.label}
+					</div>
 					<div className={styles.statHint}>{rainStatus.hint}</div>
 				</div>
 			</section>
@@ -386,8 +532,12 @@ export default function ApiaryView() {
 			<section className={styles.layout}>
 				{!isMobileApiary && (
 					<div className={styles.panel}>
-						<div className={styles.panelHead}><T>Hive placement</T></div>
-						<div className={`${styles.previewContainer} ${isHivePlacementLocked ? styles.previewLocked : ''}`}>
+						<div className={styles.panelHead}>
+							<T>Hive placement</T>
+						</div>
+						<div
+							className={`${styles.previewContainer} ${isHivePlacementLocked ? styles.previewLocked : ''}`}
+						>
 							<HivePlacement
 								apiaryId={id}
 								hives={hives}
@@ -396,12 +546,16 @@ export default function ApiaryView() {
 								windSpeed={weather.windSpeed}
 								windVisualTone={windVisualTone}
 							/>
-							{isHivePlacementLocked && <div className={styles.previewOverlay} />}
+							{isHivePlacementLocked && (
+								<div className={styles.previewOverlay} />
+							)}
 							{isHivePlacementLocked && (
 								<div className={styles.previewOverlayNotice}>
 									<BillingUpgradeNotice
 										compact
-										title={<T>Hive Placement requires Hobbyist plan or higher.</T>}
+										title={
+											<T>Hive Placement requires Hobbyist plan or higher.</T>
+										}
 									/>
 								</div>
 							)}
@@ -409,11 +563,20 @@ export default function ApiaryView() {
 					</div>
 				)}
 				<div className={styles.panel}>
-					<div className={styles.panelHead}><T>Map</T></div>
+					<div className={styles.panelHead}>
+						<T>Map</T>
+					</div>
 					{mapUrl ? (
-						<iframe className={styles.mapFrame} src={mapUrl} title="Apiary map" loading="lazy" />
+						<iframe
+							className={styles.mapFrame}
+							src={mapUrl}
+							title="Apiary map"
+							loading="lazy"
+						/>
 					) : (
-						<div style={{ padding: 12 }}><T>No coordinates set</T></div>
+						<div style={{ padding: 12 }}>
+							<T>No coordinates set</T>
+						</div>
 					)}
 				</div>
 			</section>

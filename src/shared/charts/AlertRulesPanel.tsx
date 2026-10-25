@@ -22,7 +22,7 @@ const ALERT_RULES_QUERY = gql`
 			updatedAt
 		}
 	}
-`;
+`
 
 const CREATE_ALERT_RULE_MUTATION = gql`
 	mutation createAlertRule($rule: AlertRuleInput!) {
@@ -36,7 +36,7 @@ const CREATE_ALERT_RULE_MUTATION = gql`
 			enabled
 		}
 	}
-`;
+`
 
 const UPDATE_ALERT_RULE_MUTATION = gql`
 	mutation updateAlertRule($id: ID!, $rule: AlertRuleInput!) {
@@ -50,13 +50,13 @@ const UPDATE_ALERT_RULE_MUTATION = gql`
 			enabled
 		}
 	}
-`;
+`
 
 const DELETE_ALERT_RULE_MUTATION = gql`
 	mutation deleteAlertRule($id: ID!) {
 		deleteAlertRule(id: $id)
 	}
-`;
+`
 
 interface AlertRulesPanelProps {
 	metricType: string
@@ -66,45 +66,65 @@ interface AlertRulesPanelProps {
 	selectedApiaryId?: string | null
 }
 
-export default function AlertRulesPanel({ metricType, metricLabel, hives, onAlertCountChange, selectedApiaryId }: AlertRulesPanelProps) {
+export default function AlertRulesPanel({
+	metricType,
+	metricLabel,
+	hives,
+	onAlertCountChange,
+	selectedApiaryId,
+}: AlertRulesPanelProps) {
 	const { confirm, ConfirmDialog } = useConfirm()
-	const { data, reexecuteQuery } = useQuery(ALERT_RULES_QUERY, { variables: { metricType } });
-	const [createAlertRule, { error: createError }] = useMutation(CREATE_ALERT_RULE_MUTATION);
-	const [updateAlertRule, { error: updateError }] = useMutation(UPDATE_ALERT_RULE_MUTATION);
-	const [deleteAlertRule, { error: deleteError }] = useMutation(DELETE_ALERT_RULE_MUTATION);
+	const { data, reexecuteQuery } = useQuery(ALERT_RULES_QUERY, {
+		variables: { metricType },
+	})
+	const [createAlertRule, { error: createError }] = useMutation(
+		CREATE_ALERT_RULE_MUTATION
+	)
+	const [updateAlertRule, { error: updateError }] = useMutation(
+		UPDATE_ALERT_RULE_MUTATION
+	)
+	const [deleteAlertRule, { error: deleteError }] = useMutation(
+		DELETE_ALERT_RULE_MUTATION
+	)
 
-	const [editingId, setEditingId] = useState<string | null>(null);
-	const [showSuccess, setShowSuccess] = useState(false);
+	const [editingId, setEditingId] = useState<string | null>(null)
+	const [showSuccess, setShowSuccess] = useState(false)
 	const [formData, setFormData] = useState({
 		hiveId: '',
 		conditionType: 'ABOVE',
 		thresholdValue: 0,
 		durationMinutes: 60,
-		enabled: true
-	});
+		enabled: true,
+	})
 
-	const alertRules = data?.alertRules || [];
-	const error = createError || updateError || deleteError;
+	const alertRules = data?.alertRules || []
+	const error = createError || updateError || deleteError
 
 	useEffect(() => {
 		if (onAlertCountChange) {
-			onAlertCountChange(alertRules.length);
+			onAlertCountChange(alertRules.length)
 		}
-	}, [alertRules.length, onAlertCountChange]);
+	}, [alertRules.length, onAlertCountChange])
 
-	const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-		const target = e.target as HTMLInputElement | HTMLSelectElement;
-		const { name, value } = target;
-		const isNumber = (target as HTMLInputElement).type === 'number';
-		const isCheckbox = (target as HTMLInputElement).type === 'checkbox';
-		setFormData(prev => ({
+	const handleChange = (
+		e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+	) => {
+		const target = e.target as HTMLInputElement | HTMLSelectElement
+		const { name, value } = target
+		const isNumber = (target as HTMLInputElement).type === 'number'
+		const isCheckbox = (target as HTMLInputElement).type === 'checkbox'
+		setFormData((prev) => ({
 			...prev,
-			[name]: isCheckbox ? (target as HTMLInputElement).checked : (isNumber ? parseFloat(value) : value)
-		}));
-	};
+			[name]: isCheckbox
+				? (target as HTMLInputElement).checked
+				: isNumber
+					? parseFloat(value)
+					: value,
+		}))
+	}
 
 	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
+		e.preventDefault()
 		try {
 			if (editingId) {
 				await updateAlertRule({
@@ -116,9 +136,9 @@ export default function AlertRulesPanel({ metricType, metricLabel, hives, onAler
 						conditionType: formData.conditionType,
 						thresholdValue: formData.thresholdValue,
 						durationMinutes: formData.durationMinutes,
-						enabled: formData.enabled
-					}
-				});
+						enabled: formData.enabled,
+					},
+				})
 			} else {
 				await createAlertRule({
 					rule: {
@@ -128,74 +148,81 @@ export default function AlertRulesPanel({ metricType, metricLabel, hives, onAler
 						conditionType: formData.conditionType,
 						thresholdValue: formData.thresholdValue,
 						durationMinutes: formData.durationMinutes,
-						enabled: formData.enabled
-					}
-				});
+						enabled: formData.enabled,
+					},
+				})
 			}
-			setShowSuccess(true);
-			setTimeout(() => setShowSuccess(false), 2000);
-			reexecuteQuery();
-			resetForm();
+			setShowSuccess(true)
+			setTimeout(() => setShowSuccess(false), 2000)
+			reexecuteQuery()
+			resetForm()
 		} catch (e) {
-			console.error('Failed to save alert rule:', e);
+			console.error('Failed to save alert rule:', e)
 		}
-	};
+	}
 
 	const handleEdit = (rule: any) => {
-		setEditingId(rule.id);
+		setEditingId(rule.id)
 		setFormData({
 			hiveId: rule.hiveId || '',
 			conditionType: rule.conditionType,
 			thresholdValue: rule.thresholdValue,
 			durationMinutes: rule.durationMinutes,
-			enabled: rule.enabled
-		});
-	};
+			enabled: rule.enabled,
+		})
+	}
 
 	const handleDelete = async (id: string) => {
-		const confirmed = await confirm(
-			t('Delete this alert rule?'),
-			{ confirmText: t('Delete'), isDangerous: true }
-		)
+		const confirmed = await confirm(t('Delete this alert rule?'), {
+			confirmText: t('Delete'),
+			isDangerous: true,
+		})
 
-		if (!confirmed) return;
-		await deleteAlertRule({ id });
-		reexecuteQuery();
-	};
+		if (!confirmed) return
+		await deleteAlertRule({ id })
+		reexecuteQuery()
+	}
 
 	const resetForm = () => {
-		setEditingId(null);
+		setEditingId(null)
 		setFormData({
 			hiveId: '',
 			conditionType: 'ABOVE',
 			thresholdValue: 0,
 			durationMinutes: 60,
-			enabled: true
-		});
-	};
+			enabled: true,
+		})
+	}
 
 	const getHiveName = (hiveId: string | null) => {
-		if (!hiveId) return t('All hives');
-		return hives.find(h => h.id === hiveId)?.name || hiveId;
-	};
+		if (!hiveId) return t('All hives')
+		return hives.find((h) => h.id === hiveId)?.name || hiveId
+	}
 
 	const getConditionLabel = (conditionType: string) => {
 		const labels = {
 			ABOVE: t('Above'),
 			BELOW: t('Below'),
 			CHANGE_UP: t('Increases by'),
-			CHANGE_DOWN: t('Decreases by')
-		};
-		return labels[conditionType] || conditionType;
-	};
+			CHANGE_DOWN: t('Decreases by'),
+		}
+		return labels[conditionType] || conditionType
+	}
 
 	return (
 		<div className={styles.panel}>
 			<div className={styles.header}>
-				<h3><T>Alert Rules for hive weight</T></h3>
+				<h3>
+					<T>Alert Rules for hive weight</T>
+				</h3>
 			</div>
 
-			{showSuccess && <MessageSuccess title={<T>Success!</T>} message={<T>Alert rule saved</T>} />}
+			{showSuccess && (
+				<MessageSuccess
+					title={<T>Success!</T>}
+					message={<T>Alert rule saved</T>}
+				/>
+			)}
 			<ErrorMsg error={error || null} />
 
 			<div className={styles.content}>
@@ -212,17 +239,30 @@ export default function AlertRulesPanel({ metricType, metricLabel, hives, onAler
 										<div className={styles.ruleSummary}>
 											<strong>{getHiveName(rule.hiveId)}</strong>
 											<span className={styles.separator}>•</span>
-											<span>{getConditionLabel(rule.conditionType)} {rule.thresholdValue}</span>
+											<span>
+												{getConditionLabel(rule.conditionType)}{' '}
+												{rule.thresholdValue}
+											</span>
 											<span className={styles.separator}>•</span>
-											<span>{rule.durationMinutes} <T>min</T></span>
-											{!rule.enabled && <span className={styles.disabled}>(<T>Disabled</T>)</span>}
+											<span>
+												{rule.durationMinutes} <T>min</T>
+											</span>
+											{!rule.enabled && (
+												<span className={styles.disabled}>
+													(<T>Disabled</T>)
+												</span>
+											)}
 										</div>
 									</div>
 									<div className={styles.ruleActions}>
 										<Button size="small" onClick={() => handleEdit(rule)}>
 											✏️
 										</Button>
-										<Button size="small" color="red" onClick={() => handleDelete(rule.id)}>
+										<Button
+											size="small"
+											color="red"
+											onClick={() => handleDelete(rule.id)}
+										>
 											<DeleteIcon size={16} />
 										</Button>
 									</div>
@@ -233,40 +273,60 @@ export default function AlertRulesPanel({ metricType, metricLabel, hives, onAler
 				</div>
 
 				<form onSubmit={handleSubmit} className={styles.form}>
-					<h4><T>{editingId ? 'Edit Alert Rule' : 'Create New Alert Rule'}</T></h4>
+					<h4>
+						<T>{editingId ? 'Edit Alert Rule' : 'Create New Alert Rule'}</T>
+					</h4>
 
 					<div className={styles.formGroup}>
-						<label><T>Hive</T>:</label>
+						<label>
+							<T>Hive</T>:
+						</label>
 						<select
 							name="hiveId"
 							value={formData.hiveId}
 							onChange={handleChange}
 							className={styles.select}
 						>
-							<option value=""><T>All hives</T></option>
-							{hives.map(hive => (
-								<option key={hive.id} value={hive.id}>{hive.name}</option>
+							<option value="">
+								<T>All hives</T>
+							</option>
+							{hives.map((hive) => (
+								<option key={hive.id} value={hive.id}>
+									{hive.name}
+								</option>
 							))}
 						</select>
 					</div>
 
 					<div className={styles.formGroup}>
-						<label><T>Condition</T>:</label>
+						<label>
+							<T>Condition</T>:
+						</label>
 						<select
 							name="conditionType"
 							value={formData.conditionType}
 							onChange={handleChange}
 							className={styles.select}
 						>
-							<option value="ABOVE"><T>Above threshold</T></option>
-							<option value="BELOW"><T>Below threshold</T></option>
-							<option value="CHANGE_UP"><T>Increases by</T></option>
-							<option value="CHANGE_DOWN"><T>Decreases by</T></option>
+							<option value="ABOVE">
+								<T>Above threshold</T>
+							</option>
+							<option value="BELOW">
+								<T>Below threshold</T>
+							</option>
+							<option value="CHANGE_UP">
+								<T>Increases by</T>
+							</option>
+							<option value="CHANGE_DOWN">
+								<T>Decreases by</T>
+							</option>
 						</select>
 					</div>
 
 					<div className={styles.formGroup}>
-						<label><T>Threshold Value</T>:</label>
+						<label>
+							<T>Threshold Value</T>:
+						</label>
 						<input
 							type="number"
 							name="thresholdValue"
@@ -279,7 +339,9 @@ export default function AlertRulesPanel({ metricType, metricLabel, hives, onAler
 					</div>
 
 					<div className={styles.formGroup}>
-						<label><T>Duration (minutes)</T>:</label>
+						<label>
+							<T>Duration (minutes)</T>:
+						</label>
 						<input
 							type="number"
 							name="durationMinutes"
@@ -295,7 +357,9 @@ export default function AlertRulesPanel({ metricType, metricLabel, hives, onAler
 					</div>
 
 					<div className={styles.formGroup}>
-						<label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+						<label
+							style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+						>
 							<input
 								type="checkbox"
 								name="enabled"
@@ -320,7 +384,5 @@ export default function AlertRulesPanel({ metricType, metricLabel, hives, onAler
 			</div>
 			{ConfirmDialog}
 		</div>
-	);
+	)
 }
-
-

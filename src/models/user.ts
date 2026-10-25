@@ -1,5 +1,5 @@
-import { db, waitForDatabaseReset } from './db';
-import { persistLocale } from '@/shared/dateLocale';
+import { db, waitForDatabaseReset } from './db'
+import { persistLocale } from '@/shared/dateLocale'
 
 export type User = {
 	id?: number
@@ -57,7 +57,10 @@ export async function getUser(): Promise<User> {
 			try {
 				await waitForDatabaseReset()
 			} catch (resetError) {
-				console.warn('[models/user] IndexedDB reset failed while reading user', resetError)
+				console.warn(
+					'[models/user] IndexedDB reset failed while reading user',
+					resetError
+				)
 			}
 			return null
 		}
@@ -70,7 +73,6 @@ export async function getUser(): Promise<User> {
 		throw e
 	}
 }
-
 
 export async function updateUser(data: User) {
 	try {

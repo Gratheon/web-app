@@ -15,7 +15,10 @@ interface PricingPlansProps {
 type BillingCycle = 'monthly' | 'yearly'
 type PaidPlan = 'hobbyist' | 'starter' | 'professional'
 
-export default function PricingPlans({ currentPlan = 'free', onPlanChange }: PricingPlansProps) {
+export default function PricingPlans({
+	currentPlan = 'free',
+	onPlanChange,
+}: PricingPlansProps) {
 	const [sessionError, setSessionError] = useState<Error | null>(null)
 	const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly')
 
@@ -35,7 +38,7 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 
 		const result = await createCheckoutSession({
 			plan,
-			cycle: cycle || 'one-time'
+			cycle: cycle || 'one-time',
 		})
 
 		metrics.trackBillingClicked()
@@ -44,7 +47,11 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 		if (sessionUrl) {
 			window.location.href = sessionUrl
 		} else if (!error) {
-			setSessionError(new Error('Checkout session could not be created. Please try again later.'))
+			setSessionError(
+				new Error(
+					'Checkout session could not be created. Please try again later.'
+				)
+			)
 		}
 	}
 
@@ -55,14 +62,14 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 			return {
 				cycle: 'yearly' as const,
 				amount: tier.yearly.pricePerYear,
-				period: 'year' as const
+				period: 'year' as const,
 			}
 		}
 
 		return {
 			cycle: 'monthly' as const,
 			amount: tier.monthly.price,
-			period: 'month' as const
+			period: 'month' as const,
 		}
 	}
 
@@ -74,7 +81,8 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 				<div className="price-line">
 					<span className="price-amount">€{pricing.amount}</span>
 					<span className="price-period">
-						{' / '}{pricing.period === 'year' ? <T>year</T> : <T>month</T>}
+						{' / '}
+						{pricing.period === 'year' ? <T>year</T> : <T>month</T>}
 					</span>
 				</div>
 			</div>
@@ -103,11 +111,15 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 		planName: ReactNode,
 		description: ReactNode
 	) => (
-		<div className={`plan-header plan-header-${planKey} ${isCurrentPlan(planKey) ? 'plan-header-current' : ''}`}>
+		<div
+			className={`plan-header plan-header-${planKey} ${isCurrentPlan(planKey) ? 'plan-header-current' : ''}`}
+		>
 			<h3 className="plan-name">{planName}</h3>
 			{isCurrentPlan(planKey) && (
 				<div className="plan-current-label">
-					<span className="plan-current-check" aria-hidden="true">✓</span>
+					<span className="plan-current-check" aria-hidden="true">
+						✓
+					</span>
 					<T>Current plan</T>
 				</div>
 			)}
@@ -121,7 +133,9 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 			{sessionError && <MessageError error={sessionError} />}
 
 			<div className="pricing-plans-header">
-				<h2 className="pricing-plans-title"><T>Choose Your Plan</T></h2>
+				<h2 className="pricing-plans-title">
+					<T>Choose Your Plan</T>
+				</h2>
 				<div className="billing-cycle-toggle" aria-label="Billing cycle">
 					<div className="billing-cycle-toggle-group" data-cycle={billingCycle}>
 						<button
@@ -130,7 +144,9 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 							onClick={() => setBillingCycle('monthly')}
 							aria-pressed={billingCycle === 'monthly'}
 						>
-							<span className="billing-cycle-label"><T>month</T></span>
+							<span className="billing-cycle-label">
+								<T>month</T>
+							</span>
 						</button>
 						<button
 							type="button"
@@ -138,7 +154,9 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 							onClick={() => setBillingCycle('yearly')}
 							aria-pressed={billingCycle === 'yearly'}
 						>
-							<span className="billing-cycle-label"><T>year</T></span>
+							<span className="billing-cycle-label">
+								<T>year</T>
+							</span>
 						</button>
 					</div>
 				</div>
@@ -146,8 +164,14 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 
 			<div className="plans-grid">
 				<div className="plan-card-wrapper">
-					<div className={`plan-card ${currentPlan === 'free' ? 'current' : ''}`}>
-						{renderPlanHeader('free', <T>Free</T>, <T>Perfect for beginners</T>)}
+					<div
+						className={`plan-card ${currentPlan === 'free' ? 'current' : ''}`}
+					>
+						{renderPlanHeader(
+							'free',
+							<T>Free</T>,
+							<T>Perfect for beginners</T>
+						)}
 
 						<div className="plan-body">
 							<div className="plan-pricing-simple">
@@ -155,25 +179,53 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 							</div>
 							<div className="plan-details">
 								<div className="plan-details-section">
-									<h4><T>Features</T></h4>
+									<h4>
+										<T>Features</T>
+									</h4>
 									<ul className="plan-details-list">
-										<li><T>Apiary & hive management</T></li>
-										<li><T>Frame photo upload</T></li>
-										<li><T>Keyboard support</T></li>
-										<li><T>Public hive sharing</T></li>
-										<li><T>QR code generation</T></li>
-										<li><T>Treatment diary</T></li>
-										<li><T>Feeding history</T></li>
-										<li><T>Hive ownership transfer (in development)</T></li>
+										<li>
+											<T>Apiary & hive management</T>
+										</li>
+										<li>
+											<T>Frame photo upload</T>
+										</li>
+										<li>
+											<T>Keyboard support</T>
+										</li>
+										<li>
+											<T>Public hive sharing</T>
+										</li>
+										<li>
+											<T>QR code generation</T>
+										</li>
+										<li>
+											<T>Treatment diary</T>
+										</li>
+										<li>
+											<T>Feeding history</T>
+										</li>
+										<li>
+											<T>Hive ownership transfer (in development)</T>
+										</li>
 									</ul>
 								</div>
 								<div className="plan-details-section">
-									<h4><T>Limits</T></h4>
+									<h4>
+										<T>Limits</T>
+									</h4>
 									<ul className="plan-details-list">
-										<li><T>Up to 3 hives</T></li>
-										<li><T>10 frames per hive max</T></li>
-										<li><T>No AI image processing</T></li>
-										<li><T>6 months image retention</T></li>
+										<li>
+											<T>Up to 3 hives</T>
+										</li>
+										<li>
+											<T>10 frames per hive max</T>
+										</li>
+										<li>
+											<T>No AI image processing</T>
+										</li>
+										<li>
+											<T>6 months image retention</T>
+										</li>
 									</ul>
 								</div>
 							</div>
@@ -182,31 +234,63 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 				</div>
 
 				<div className="plan-card-wrapper">
-					<div className={`plan-card ${currentPlan === 'hobbyist' ? 'current' : ''}`}>
-						{renderPlanHeader('hobbyist', BILLING_TIERS.hobbyist.name, <T>For taking the notes</T>)}
+					<div
+						className={`plan-card ${currentPlan === 'hobbyist' ? 'current' : ''}`}
+					>
+						{renderPlanHeader(
+							'hobbyist',
+							BILLING_TIERS.hobbyist.name,
+							<T>For taking the notes</T>
+						)}
 
 						<div className="plan-body">
 							{renderPrice('hobbyist')}
 							<div className="plan-details">
 								<div className="plan-details-section">
-									<h4><T>Features</T></h4>
+									<h4>
+										<T>Features</T>
+									</h4>
 									<ul className="plan-details-list">
-										<li><T>Basic data management in database</T></li>
-										<li><T>Frame photo upload and storage</T></li>
-										<li><T>Hive placement planner</T></li>
-										<li><T>Inspection notes and treatment diary</T></li>
-										<li><T>Colony split management</T></li>
-										<li><T>Colony joining tool</T></li>
-										<li><T>Warehouse inventory management</T></li>
+										<li>
+											<T>Basic data management in database</T>
+										</li>
+										<li>
+											<T>Frame photo upload and storage</T>
+										</li>
+										<li>
+											<T>Hive placement planner</T>
+										</li>
+										<li>
+											<T>Inspection notes and treatment diary</T>
+										</li>
+										<li>
+											<T>Colony split management</T>
+										</li>
+										<li>
+											<T>Colony joining tool</T>
+										</li>
+										<li>
+											<T>Warehouse inventory management</T>
+										</li>
 									</ul>
 								</div>
 								<div className="plan-details-section">
-									<h4><T>Limits</T></h4>
+									<h4>
+										<T>Limits</T>
+									</h4>
 									<ul className="plan-details-list">
-										<li><T>Up to 15 hives</T></li>
-										<li><T>1 user account</T></li>
-										<li><T>No AI image processing features</T></li>
-										<li><T>1 year image retention</T></li>
+										<li>
+											<T>Up to 15 hives</T>
+										</li>
+										<li>
+											<T>1 user account</T>
+										</li>
+										<li>
+											<T>No AI image processing features</T>
+										</li>
+										<li>
+											<T>1 year image retention</T>
+										</li>
 									</ul>
 								</div>
 							</div>
@@ -216,32 +300,69 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 				</div>
 
 				<div className="plan-card-wrapper">
-					<div className={`plan-card ${currentPlan === 'starter' ? 'current' : ''}`}>
-						{renderPlanHeader('starter', BILLING_TIERS.starter.name, <T>Small-scale beekeepers</T>)}
+					<div
+						className={`plan-card ${currentPlan === 'starter' ? 'current' : ''}`}
+					>
+						{renderPlanHeader(
+							'starter',
+							BILLING_TIERS.starter.name,
+							<T>Small-scale beekeepers</T>
+						)}
 
 						<div className="plan-body">
 							{renderPrice('starter')}
 							<div className="plan-details">
 								<div className="plan-details-section">
-									<h4><T>Features</T></h4>
+									<h4>
+										<T>Features</T>
+									</h4>
 									<ul className="plan-details-list">
-										<li><T>Cell analysis</T></li>
-										<li><T>Hive bottom board varroa counting</T></li>
-										<li><T>Inspection management</T></li>
-										<li><T>Frame annotation tool</T></li>
-										<li><T>AI beekeeping assistant</T></li>
-										<li><T>AI image analysis credits included monthly</T></li>
+										<li>
+											<T>Cell analysis</T>
+										</li>
+										<li>
+											<T>Hive bottom board varroa counting</T>
+										</li>
+										<li>
+											<T>Inspection management</T>
+										</li>
+										<li>
+											<T>Frame annotation tool</T>
+										</li>
+										<li>
+											<T>AI beekeeping assistant</T>
+										</li>
+										<li>
+											<T>AI image analysis credits included monthly</T>
+										</li>
 									</ul>
 								</div>
 								<div className="plan-details-section">
-									<h4><T>Limits</T></h4>
+									<h4>
+										<T>Limits</T>
+									</h4>
 									<ul className="plan-details-list">
-										<li><T>1 user account</T></li>
-										<li><T>Up to 50 hives</T></li>
-										<li><T>30 frames per hive</T></li>
-										<li><T>2 year image retention</T></li>
-										<li><T>AI analysis volume capped per month</T></li>
-										<li><T>Mixed real usage: expect ~100-130 AI prompts/month (hive, API, frame views)</T></li>
+										<li>
+											<T>1 user account</T>
+										</li>
+										<li>
+											<T>Up to 50 hives</T>
+										</li>
+										<li>
+											<T>30 frames per hive</T>
+										</li>
+										<li>
+											<T>2 year image retention</T>
+										</li>
+										<li>
+											<T>AI analysis volume capped per month</T>
+										</li>
+										<li>
+											<T>
+												Mixed real usage: expect ~100-130 AI prompts/month
+												(hive, API, frame views)
+											</T>
+										</li>
 									</ul>
 								</div>
 							</div>
@@ -251,30 +372,60 @@ export default function PricingPlans({ currentPlan = 'free', onPlanChange }: Pri
 				</div>
 
 				<div className="plan-card-wrapper">
-					<div className={`plan-card ${currentPlan === 'professional' ? 'current' : ''}`}>
-						{renderPlanHeader('professional', BILLING_TIERS.professional.name, <T>Commercial beekeepers</T>)}
+					<div
+						className={`plan-card ${currentPlan === 'professional' ? 'current' : ''}`}
+					>
+						{renderPlanHeader(
+							'professional',
+							BILLING_TIERS.professional.name,
+							<T>Commercial beekeepers</T>
+						)}
 
 						<div className="plan-body">
 							{renderPrice('professional')}
 							<div className="plan-details">
 								<div className="plan-details-section">
-									<h4><T>Features</T></h4>
+									<h4>
+										<T>Features</T>
+									</h4>
 									<ul className="plan-details-list">
-										<li><T>Hive telemetry storage</T></li>
-										<li><T>Timeseries data analytics</T></li>
-										<li><T>Colony comparison analytics (in development)</T></li>
-										<li><T>AI-driven anomaly detection (in development)</T></li>
-										<li><T>Device management (in development)</T></li>
-										<li><T>Unlimited inspections per hive</T></li>
+										<li>
+											<T>Hive telemetry storage</T>
+										</li>
+										<li>
+											<T>Timeseries data analytics</T>
+										</li>
+										<li>
+											<T>Colony comparison analytics (in development)</T>
+										</li>
+										<li>
+											<T>AI-driven anomaly detection (in development)</T>
+										</li>
+										<li>
+											<T>Device management (in development)</T>
+										</li>
+										<li>
+											<T>Unlimited inspections per hive</T>
+										</li>
 									</ul>
 								</div>
 								<div className="plan-details-section">
-									<h4><T>Limits</T></h4>
+									<h4>
+										<T>Limits</T>
+									</h4>
 									<ul className="plan-details-list">
-										<li><T>Min 10 min telemetry resolution</T></li>
-										<li><T>Up to 5 user accounts</T></li>
-										<li><T>Up to 200 hives</T></li>
-										<li><T>5 year image retention</T></li>
+										<li>
+											<T>Min 10 min telemetry resolution</T>
+										</li>
+										<li>
+											<T>Up to 5 user accounts</T>
+										</li>
+										<li>
+											<T>Up to 200 hives</T>
+										</li>
+										<li>
+											<T>5 year image retention</T>
+										</li>
 									</ul>
 								</div>
 							</div>

@@ -13,31 +13,41 @@ type SolarRadiationChartProps = {
 	suspendTimeRangeSync?: boolean
 }
 
-export default function SolarRadiationChart({ solarData, chartRefs, syncCharts, onVisibleTimeRangeChange, suspendTimeRangeSync }: SolarRadiationChartProps) {
+export default function SolarRadiationChart({
+	solarData,
+	chartRefs,
+	syncCharts,
+	onVisibleTimeRangeChange,
+	suspendTimeRangeSync,
+}: SolarRadiationChartProps) {
 	const diffuseData = solarData.diffuse_radiation
-		.filter(d => d.value !== null)
-		.map(d => ({
-			time: new Date(d.time).getTime() / 1000 as any,
-			value: d.value
+		.filter((d) => d.value !== null)
+		.map((d) => ({
+			time: (new Date(d.time).getTime() / 1000) as any,
+			value: d.value,
 		}))
 
 	const directData = solarData.direct_radiation
-		.filter(d => d.value !== null)
-		.map(d => ({
-			time: new Date(d.time).getTime() / 1000 as any,
-			value: d.value
+		.filter((d) => d.value !== null)
+		.map((d) => ({
+			time: (new Date(d.time).getTime() / 1000) as any,
+			value: d.value,
 		}))
 
-	const avgDirect = directData.length > 0
-		? directData.reduce((acc, curr) => acc + curr.value, 0) / directData.length
-		: 0
+	const avgDirect =
+		directData.length > 0
+			? directData.reduce((acc, curr) => acc + curr.value, 0) /
+				directData.length
+			: 0
 
 	return (
 		<ChartContainer
 			emoji="☀️"
 			title={t('Solar Radiation')}
 			value={`${avgDirect.toFixed(0)} W/m² ${t('avg direct')}`}
-			info={t('Solar radiation affects hive temperature and bee activity. High radiation can lead to overheating.')}
+			info={t(
+				'Solar radiation affects hive temperature and bee activity. High radiation can lead to overheating.'
+			)}
 			chartRefs={chartRefs}
 			syncCharts={syncCharts}
 			onVisibleTimeRangeChange={onVisibleTimeRangeChange}
@@ -49,7 +59,7 @@ export default function SolarRadiationChart({ solarData, chartRefs, syncCharts, 
 				options={{
 					color: '#FFA726',
 					lineWidth: 2,
-					title: t('Direct Radiation')
+					title: t('Direct Radiation'),
 				}}
 			/>
 			<LineSeries
@@ -57,7 +67,7 @@ export default function SolarRadiationChart({ solarData, chartRefs, syncCharts, 
 				options={{
 					color: '#FFD54F',
 					lineWidth: 2,
-					title: t('Diffuse Radiation')
+					title: t('Diffuse Radiation'),
 				}}
 			/>
 		</ChartContainer>

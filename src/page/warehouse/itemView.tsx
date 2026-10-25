@@ -9,36 +9,36 @@ import { stripWarehouseSuffix } from './labels'
 import styles from './style.module.less'
 
 const WAREHOUSE_ITEM_VIEW_QUERY = gql`
-query warehouseItemView($itemKey: String!) {
-	warehouseInventory {
-		key
-		kind
-		groupKey
-		title
-		description
-		moduleType
-		frameSpec {
-			id
-			code
-			frameType
-			displayName
-			systemId
+	query warehouseItemView($itemKey: String!) {
+		warehouseInventory {
+			key
+			kind
+			groupKey
+			title
+			description
+			moduleType
+			frameSpec {
+				id
+				code
+				frameType
+				displayName
+				systemId
+			}
+		}
+		warehouseInventoryStats(itemKey: $itemKey) {
+			key
+			availableCount
+			inUseCount
+			totalCount
+			topHives {
+				hiveId
+				hiveNumber
+				apiaryId
+				apiaryName
+				count
+			}
 		}
 	}
-	warehouseInventoryStats(itemKey: $itemKey) {
-		key
-		availableCount
-		inUseCount
-		totalCount
-		topHives {
-			hiveId
-			hiveNumber
-			apiaryId
-			apiaryName
-			count
-		}
-	}
-}
 `
 
 export default function WarehouseItemViewPage() {
@@ -53,22 +53,32 @@ export default function WarehouseItemViewPage() {
 	if (!itemKey) {
 		return (
 			<div className={styles.page}>
-				<h2><T>Warehouse item not found</T></h2>
-				<Link to="/warehouse" className={styles.backLink}><T>Back to warehouse</T></Link>
+				<h2>
+					<T>Warehouse item not found</T>
+				</h2>
+				<Link to="/warehouse" className={styles.backLink}>
+					<T>Back to warehouse</T>
+				</Link>
 			</div>
 		)
 	}
 
 	if (loading) return <Loader />
 
-	const item = (data?.warehouseInventory || []).find((row: any) => row.key === itemKey)
+	const item = (data?.warehouseInventory || []).find(
+		(row: any) => row.key === itemKey
+	)
 	const stats = data?.warehouseInventoryStats
 
 	if (!item) {
 		return (
 			<div className={styles.page}>
-				<h2><T>Warehouse item not found</T></h2>
-				<Link to="/warehouse" className={styles.backLink}><T>Back to warehouse</T></Link>
+				<h2>
+					<T>Warehouse item not found</T>
+				</h2>
+				<Link to="/warehouse" className={styles.backLink}>
+					<T>Back to warehouse</T>
+				</Link>
 			</div>
 		)
 	}
@@ -77,7 +87,9 @@ export default function WarehouseItemViewPage() {
 
 	return (
 		<div className={styles.page}>
-			<Link to="/warehouse" className={styles.backLink}><T>Back to warehouse</T></Link>
+			<Link to="/warehouse" className={styles.backLink}>
+				<T>Back to warehouse</T>
+			</Link>
 			<h2 className={styles.itemDetailTitle}>
 				<span className={styles.itemTitleRow}>
 					{icon && (
@@ -94,30 +106,46 @@ export default function WarehouseItemViewPage() {
 			<div className={styles.detailCard}>
 				<div className={styles.detailStats}>
 					<div>
-						<span className={styles.detailLabel}><T>In use in apiary</T>:</span>{' '}
+						<span className={styles.detailLabel}>
+							<T>In use in apiary</T>:
+						</span>{' '}
 						<span className={styles.detailValue}>{stats?.inUseCount ?? 0}</span>
 					</div>
 					<div>
-						<span className={styles.detailLabel}><T>Available in warehouse</T>:</span>{' '}
-						<span className={styles.detailValue}>{stats?.availableCount ?? 0}</span>
+						<span className={styles.detailLabel}>
+							<T>Available in warehouse</T>:
+						</span>{' '}
+						<span className={styles.detailValue}>
+							{stats?.availableCount ?? 0}
+						</span>
 					</div>
 					<div>
-						<span className={styles.detailLabel}><T>Total known items</T>:</span>{' '}
+						<span className={styles.detailLabel}>
+							<T>Total known items</T>:
+						</span>{' '}
 						<span className={styles.detailValue}>{stats?.totalCount ?? 0}</span>
 					</div>
 				</div>
 			</div>
 
 			<div className={styles.detailCard}>
-				<div className={styles.topHivesTitle}><T>Top 10 hives using this item</T></div>
+				<div className={styles.topHivesTitle}>
+					<T>Top 10 hives using this item</T>
+				</div>
 				{!stats?.topHives?.length && (
-					<div className={styles.topHivesEmpty}><T>No hives currently use this item.</T></div>
+					<div className={styles.topHivesEmpty}>
+						<T>No hives currently use this item.</T>
+					</div>
 				)}
 				{!!stats?.topHives?.length && (
 					<ol className={styles.topHivesList}>
 						{stats.topHives.map((hive: any) => {
-							const hiveLabel = hive?.hiveNumber ? `#${hive.hiveNumber}` : `ID ${hive.hiveId}`
-							const apiaryLabel = hive?.apiaryName ? ` (${hive.apiaryName})` : ''
+							const hiveLabel = hive?.hiveNumber
+								? `#${hive.hiveNumber}`
+								: `ID ${hive.hiveId}`
+							const apiaryLabel = hive?.apiaryName
+								? ` (${hive.apiaryName})`
+								: ''
 							const canOpenHive = hive?.apiaryId && hive?.hiveId
 							const hivePath = `/apiaries/${hive?.apiaryId}/hives/${hive?.hiveId}`
 
@@ -125,10 +153,14 @@ export default function WarehouseItemViewPage() {
 								<li key={`${item.key}-hive-${hive.hiveId}`}>
 									{canOpenHive ? (
 										<a href={hivePath} className={styles.topHiveLink}>
-											<T>Hive</T> {hiveLabel}{apiaryLabel}
+											<T>Hive</T> {hiveLabel}
+											{apiaryLabel}
 										</a>
 									) : (
-										<span><T>Hive</T> {hiveLabel}{apiaryLabel}</span>
+										<span>
+											<T>Hive</T> {hiveLabel}
+											{apiaryLabel}
+										</span>
 									)}
 									<span className={styles.topHiveCount}>
 										{hive.count} <T>used</T>

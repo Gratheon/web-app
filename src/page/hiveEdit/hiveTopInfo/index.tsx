@@ -304,7 +304,7 @@ export default function HiveEditDetails({
 					),
 					0
 				) % BOX_SYSTEM_COLORS.length
-		  ]
+			]
 		: '#6b7280'
 
 	const goToHiveEdit = () =>

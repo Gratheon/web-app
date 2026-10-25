@@ -1,4 +1,4 @@
-import {gql, useQuery} from '@/api'
+import { gql, useQuery } from '@/api'
 import Loading from '@/shared/loader'
 import ErrorMsg from '@/shared/messageError'
 import { useMemo } from 'react'
@@ -28,41 +28,149 @@ const HISTORICAL_WEATHER_QUERY = gql`
 		$includePollen: Boolean!
 		$includePollution: Boolean!
 	) {
-			historicalWeatherCompact(lat: $lat, lng: $lng, startDate: $startDate, endDate: $endDate, stepHours: $stepHours) {
-				temperature @include(if: $includeTemperature) {
-					temperature_2m { startTime endTime stepHours pointsCount values }
+		historicalWeatherCompact(
+			lat: $lat
+			lng: $lng
+			startDate: $startDate
+			endDate: $endDate
+			stepHours: $stepHours
+		) {
+			temperature @include(if: $includeTemperature) {
+				temperature_2m {
+					startTime
+					endTime
+					stepHours
+					pointsCount
+					values
 				}
-				solarRadiation @include(if: $includeSolarRadiation) {
-					diffuse_radiation { startTime endTime stepHours pointsCount values }
-					direct_radiation { startTime endTime stepHours pointsCount values }
+			}
+			solarRadiation @include(if: $includeSolarRadiation) {
+				diffuse_radiation {
+					startTime
+					endTime
+					stepHours
+					pointsCount
+					values
 				}
-				wind @include(if: $includeWind) {
-					wind_speed_10m { startTime endTime stepHours pointsCount values }
-					wind_gusts_10m { startTime endTime stepHours pointsCount values }
+				direct_radiation {
+					startTime
+					endTime
+					stepHours
+					pointsCount
+					values
 				}
-				cloudCover @include(if: $includeCloudCover) {
-					cloud_cover_low { startTime endTime stepHours pointsCount values }
-					cloud_cover_mid { startTime endTime stepHours pointsCount values }
-					cloud_cover_high { startTime endTime stepHours pointsCount values }
+			}
+			wind @include(if: $includeWind) {
+				wind_speed_10m {
+					startTime
+					endTime
+					stepHours
+					pointsCount
+					values
 				}
-				rain @include(if: $includeRain) {
-					rain { startTime endTime stepHours pointsCount values }
+				wind_gusts_10m {
+					startTime
+					endTime
+					stepHours
+					pointsCount
+					values
 				}
-				pollen @include(if: $includePollen) {
-					ragweed_pollen { startTime endTime stepHours pointsCount values }
-					alder_pollen { startTime endTime stepHours pointsCount values }
-					birch_pollen { startTime endTime stepHours pointsCount values }
-					grass_pollen { startTime endTime stepHours pointsCount values }
-					mugwort_pollen { startTime endTime stepHours pointsCount values }
-					olive_pollen { startTime endTime stepHours pointsCount values }
+			}
+			cloudCover @include(if: $includeCloudCover) {
+				cloud_cover_low {
+					startTime
+					endTime
+					stepHours
+					pointsCount
+					values
 				}
-				pollution @include(if: $includePollution) {
-					pm2_5 { startTime endTime stepHours pointsCount values }
-					pm10 { startTime endTime stepHours pointsCount values }
+				cloud_cover_mid {
+					startTime
+					endTime
+					stepHours
+					pointsCount
+					values
+				}
+				cloud_cover_high {
+					startTime
+					endTime
+					stepHours
+					pointsCount
+					values
+				}
+			}
+			rain @include(if: $includeRain) {
+				rain {
+					startTime
+					endTime
+					stepHours
+					pointsCount
+					values
+				}
+			}
+			pollen @include(if: $includePollen) {
+				ragweed_pollen {
+					startTime
+					endTime
+					stepHours
+					pointsCount
+					values
+				}
+				alder_pollen {
+					startTime
+					endTime
+					stepHours
+					pointsCount
+					values
+				}
+				birch_pollen {
+					startTime
+					endTime
+					stepHours
+					pointsCount
+					values
+				}
+				grass_pollen {
+					startTime
+					endTime
+					stepHours
+					pointsCount
+					values
+				}
+				mugwort_pollen {
+					startTime
+					endTime
+					stepHours
+					pointsCount
+					values
+				}
+				olive_pollen {
+					startTime
+					endTime
+					stepHours
+					pointsCount
+					values
+				}
+			}
+			pollution @include(if: $includePollution) {
+				pm2_5 {
+					startTime
+					endTime
+					stepHours
+					pointsCount
+					values
+				}
+				pm10 {
+					startTime
+					endTime
+					stepHours
+					pointsCount
+					values
 				}
 			}
 		}
-	`
+	}
+`
 
 type HistoricalWeatherProps = {
 	lat: string
@@ -98,26 +206,38 @@ const expandCompactSeries = (series?: CompactSeries | null) => {
 		// Keep timestamps explicitly in UTC so downstream chart parsing does not
 		// reinterpret them in local time and collapse DST transition hours.
 		time: new Date(base + index * stepMs).toISOString(),
-		value
+		value,
 	}))
 }
 
 const transformCompactToChartData = (compactData: any) => ({
 	temperature: {
-		temperature_2m: expandCompactSeries(compactData.temperature?.temperature_2m),
+		temperature_2m: expandCompactSeries(
+			compactData.temperature?.temperature_2m
+		),
 	},
 	solarRadiation: {
-		diffuse_radiation: expandCompactSeries(compactData.solarRadiation?.diffuse_radiation),
-		direct_radiation: expandCompactSeries(compactData.solarRadiation?.direct_radiation),
+		diffuse_radiation: expandCompactSeries(
+			compactData.solarRadiation?.diffuse_radiation
+		),
+		direct_radiation: expandCompactSeries(
+			compactData.solarRadiation?.direct_radiation
+		),
 	},
 	wind: {
 		wind_speed_10m: expandCompactSeries(compactData.wind?.wind_speed_10m),
 		wind_gusts_10m: expandCompactSeries(compactData.wind?.wind_gusts_10m),
 	},
 	cloudCover: {
-		cloud_cover_low: expandCompactSeries(compactData.cloudCover?.cloud_cover_low),
-		cloud_cover_mid: expandCompactSeries(compactData.cloudCover?.cloud_cover_mid),
-		cloud_cover_high: expandCompactSeries(compactData.cloudCover?.cloud_cover_high),
+		cloud_cover_low: expandCompactSeries(
+			compactData.cloudCover?.cloud_cover_low
+		),
+		cloud_cover_mid: expandCompactSeries(
+			compactData.cloudCover?.cloud_cover_mid
+		),
+		cloud_cover_high: expandCompactSeries(
+			compactData.cloudCover?.cloud_cover_high
+		),
 	},
 	rain: {
 		rain: expandCompactSeries(compactData.rain?.rain),
@@ -136,7 +256,14 @@ const transformCompactToChartData = (compactData: any) => ({
 	},
 })
 
-export default function HistoricalWeather({lat, lng, days, chartRefs, syncCharts, enabledCharts}: HistoricalWeatherProps) {
+export default function HistoricalWeather({
+	lat,
+	lng,
+	days,
+	chartRefs,
+	syncCharts,
+	enabledCharts,
+}: HistoricalWeatherProps) {
 	const { startDate, endDate } = useMemo(() => {
 		const end = new Date()
 		const start = new Date(end.getTime() - days * 24 * 60 * 60 * 1000)
@@ -149,7 +276,7 @@ export default function HistoricalWeather({lat, lng, days, chartRefs, syncCharts
 	const user = useLiveQuery(() => getUser(), [], null)
 	const temperatureUnit = getPreferredTemperatureUnit(user)
 
-	const {loading, error, data} = useQuery(HISTORICAL_WEATHER_QUERY, {
+	const { loading, error, data } = useQuery(HISTORICAL_WEATHER_QUERY, {
 		variables: {
 			lat,
 			lng,
@@ -170,15 +297,15 @@ export default function HistoricalWeather({lat, lng, days, chartRefs, syncCharts
 		: null
 
 	if (loading) {
-		return <Loading/>
+		return <Loading />
 	}
 
 	if (!weatherData) {
-		return <ErrorMsg error={'could not load historical weather data'}/>
+		return <ErrorMsg error={'could not load historical weather data'} />
 	}
 
 	if (error) {
-		return <ErrorMsg error={error}/>
+		return <ErrorMsg error={error} />
 	}
 
 	return (

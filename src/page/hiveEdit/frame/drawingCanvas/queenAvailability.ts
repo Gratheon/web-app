@@ -34,7 +34,11 @@ export function buildOccupiedFamilyIds({
 
 		const lastSeenFrameSideId = Number(family?.lastSeenFrameSideId)
 		if (Number.isFinite(lastSeenFrameSideId) && lastSeenFrameSideId > 0) {
-			if (!Number.isFinite(currentFrameSideId) || currentFrameSideId <= 0 || lastSeenFrameSideId !== currentFrameSideId) {
+			if (
+				!Number.isFinite(currentFrameSideId) ||
+				currentFrameSideId <= 0 ||
+				lastSeenFrameSideId !== currentFrameSideId
+			) {
 				occupied.add(familyId)
 			}
 			continue
@@ -43,7 +47,11 @@ export function buildOccupiedFamilyIds({
 		// Fallback for stale/incomplete data where only frame-level location is known.
 		const lastSeenFrameId = Number(family?.lastSeenFrameId)
 		if (Number.isFinite(lastSeenFrameId) && lastSeenFrameId > 0) {
-			if (!Number.isFinite(currentFrameId) || currentFrameId <= 0 || lastSeenFrameId !== currentFrameId) {
+			if (
+				!Number.isFinite(currentFrameId) ||
+				currentFrameId <= 0 ||
+				lastSeenFrameId !== currentFrameId
+			) {
 				occupied.add(familyId)
 			}
 		}

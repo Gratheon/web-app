@@ -25,13 +25,13 @@ import InspectionView from './inspectionView'
 import styles from './styles.module.less'
 import InspectionShareButton from './inspectionShareButton'
 
-export default function InspectionList({breadcrumbs}) {
+export default function InspectionList({ breadcrumbs }) {
 	let { apiaryId, hiveId, boxId, inspectionId } = useParams()
 	let [error, onError] = useState(null)
 
 	// Model functions now handle invalid IDs
-	const apiary = useLiveQuery(() => getApiary(+apiaryId), [apiaryId], null);
-	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId], null);
+	const apiary = useLiveQuery(() => getApiary(+apiaryId), [apiaryId], null)
+	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId], null)
 
 	if (apiary === null || hive === null) {
 		return <Loader />
@@ -41,10 +41,15 @@ export default function InspectionList({breadcrumbs}) {
 
 	let user = useLiveQuery(() => getUser(), [], null)
 	// Model function listInspections now handles invalid IDs
-	const inspections = useLiveQuery(() => listInspections(+hiveId), [hiveId], null);
+	const inspections = useLiveQuery(
+		() => listInspections(+hiveId),
+		[hiveId],
+		null
+	)
 	// if local cache is empty - query
 	if (inspections == null || inspections.length === 0) {
-		;({ // Corrected: Removed stray parenthesis and duplicate block
+		;({
+			// Corrected: Removed stray parenthesis and duplicate block
 			loading,
 			error: errorGet,
 			errorNetwork,
@@ -55,12 +60,10 @@ export default function InspectionList({breadcrumbs}) {
 		return <Loader />
 	}
 
-	let okMsg
-
 	// inline error from deeper components
 	let errorMsg = <ErrorMsg error={error || errorGet || errorNetwork} />
 
-	const isCollapsed = hive?.status === 'collapsed';
+	const isCollapsed = hive?.status === 'collapsed'
 
 	if (inspectionId) {
 		let selectedInspection = inspections.find(
@@ -92,7 +95,15 @@ export default function InspectionList({breadcrumbs}) {
 						Inspection can be created from hive view
 					</T>
 					{isCollapsed && (
-						<div style={{ color: '#b22222', marginTop: 10, display: 'flex', alignItems: 'center', fontWeight: 600 }}>
+						<div
+							style={{
+								color: '#b22222',
+								marginTop: 10,
+								display: 'flex',
+								alignItems: 'center',
+								fontWeight: 600,
+							}}
+						>
 							<SkullIcon size={18} color="#b22222" style={{ marginRight: 4 }} />
 							<T>This hive is collapsed. No new inspections can be created.</T>
 						</div>
@@ -106,7 +117,6 @@ export default function InspectionList({breadcrumbs}) {
 		<>
 			<ErrorGeneral />
 
-			{okMsg}
 			{errorMsg}
 
 			{inspections.length > 0 && (
@@ -126,16 +136,17 @@ export default function InspectionList({breadcrumbs}) {
 					</div>
 
 					<div>
+						{inspectionId && (
+							<div className={styles.shareButtonContainer}>
+								<InspectionShareButton
+									apiaryId={apiaryId}
+									hiveId={hiveId}
+									inspectionId={inspectionId}
+								/>
+							</div>
+						)}
 
-				{inspectionId && <div className={styles.shareButtonContainer}>
-					<InspectionShareButton
-						apiaryId={apiaryId}
-						hiveId={hiveId}
-						inspectionId={inspectionId}
-					/>
-				</div>}
-				
-				{inspectionId && (
+						{inspectionId && (
 							<InspectionView
 								apiaryId={apiaryId}
 								hiveId={hive.id}

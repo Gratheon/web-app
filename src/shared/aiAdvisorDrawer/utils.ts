@@ -94,7 +94,9 @@ function sampleEvenly(values: any[], maxPoints: number) {
 }
 
 export function buildCompactMetricSeries(metricResult: any, maxPoints = 48) {
-	const metrics = Array.isArray(metricResult?.metrics) ? metricResult.metrics : []
+	const metrics = Array.isArray(metricResult?.metrics)
+		? metricResult.metrics
+		: []
 	const sample = sampleEvenly(metrics, maxPoints)
 	const numericValues = metrics
 		.map((entry) => Number(entry?.v ?? entry?.netFlow ?? entry?.beesIn ?? 0))

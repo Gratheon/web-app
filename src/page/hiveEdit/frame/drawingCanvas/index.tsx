@@ -1,30 +1,39 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import T from '@/shared/translate';
-import { selectImageUrlForRequiredSize } from '@/shared/imageResizes';
-import { layerToggleButtonStyle, MED_ZOOM } from './constants';
-import { type CanvasCameraState } from './canvasGeometry';
-import { drawCanvasLayers, loadImage } from './drawCanvasLayers';
-import CanvasControlTabs from './components/CanvasControlTabs';
-import DetectionToolbar from './components/DetectionToolbar';
-import FrameCellsToolbar from './components/FrameCellsToolbar';
-import FreeDrawToolbar from './components/FreeDrawToolbar';
-import QueenControlsPanel from './components/QueenControlsPanel';
-import ReadOnlyLayerPanel from './components/ReadOnlyLayerPanel';
-import type { CanvasControlTab, DrawingCanvasProps, ResizeLike } from './types';
-import { useCanvasInteractions } from './useCanvasInteractions';
-import { useCellBrush } from './useCellBrush';
-import { useQueenAnnotations } from './useQueenAnnotations';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import T from '@/shared/translate'
+import { selectImageUrlForRequiredSize } from '@/shared/imageResizes'
+import { layerToggleButtonStyle, MED_ZOOM } from './constants'
+import { type CanvasCameraState } from './canvasGeometry'
+import { drawCanvasLayers, loadImage } from './drawCanvasLayers'
+import CanvasControlTabs from './components/CanvasControlTabs'
+import DetectionToolbar from './components/DetectionToolbar'
+import FrameCellsToolbar from './components/FrameCellsToolbar'
+import FreeDrawToolbar from './components/FreeDrawToolbar'
+import QueenControlsPanel from './components/QueenControlsPanel'
+import ReadOnlyLayerPanel from './components/ReadOnlyLayerPanel'
+import type { CanvasControlTab, DrawingCanvasProps, ResizeLike } from './types'
+import { useCanvasInteractions } from './useCanvasInteractions'
+import { useCellBrush } from './useCellBrush'
+import { useQueenAnnotations } from './useQueenAnnotations'
 
-export type { DrawingCanvasProps } from './types';
+export type { DrawingCanvasProps } from './types'
 
-const INITIAL_CANVAS_REQUIRED_DIMENSION_PX = 1024;
+const INITIAL_CANVAS_REQUIRED_DIMENSION_PX = 1024
 
-function getCanvasRequiredDimension(canvas: HTMLCanvasElement | null, zoom = 1) {
+function getCanvasRequiredDimension(
+	canvas: HTMLCanvasElement | null,
+	zoom = 1
+) {
 	if (!canvas) {
-		return INITIAL_CANVAS_REQUIRED_DIMENSION_PX * zoom;
+		return INITIAL_CANVAS_REQUIRED_DIMENSION_PX * zoom
 	}
 
-	return Math.max(canvas.width, canvas.height, INITIAL_CANVAS_REQUIRED_DIMENSION_PX) * zoom;
+	return (
+		Math.max(
+			canvas.width,
+			canvas.height,
+			INITIAL_CANVAS_REQUIRED_DIMENSION_PX
+		) * zoom
+	)
 }
 
 function resolveCanvasImageUrl(
@@ -35,14 +44,16 @@ function resolveCanvasImageUrl(
 ) {
 	// WHY: frame originals can be several MB; low zoom does not need native-resolution pixels.
 	// WHAT: use the smallest resize that covers visible canvas pixels and defer original until deep zoom.
-	return selectImageUrlForRequiredSize({
-		originalUrl: imageUrl,
-		resizes,
-		requiredDimensionPx: getCanvasRequiredDimension(canvas, zoom),
-		allowOriginal: zoom > MED_ZOOM,
-		allowOriginalWhenNoResizes: true,
-		minimumResizeDimensionPx: 128,
-	}) || imageUrl;
+	return (
+		selectImageUrlForRequiredSize({
+			originalUrl: imageUrl,
+			resizes,
+			requiredDimensionPx: getCanvasRequiredDimension(canvas, zoom),
+			allowOriginal: zoom > MED_ZOOM,
+			allowOriginalWhenNoResizes: true,
+			minimumResizeDimensionPx: 128,
+		}) || imageUrl
+	)
 }
 
 export default function DrawingCanvas({
@@ -68,27 +79,34 @@ export default function DrawingCanvas({
 	saveRequestId = 0,
 	onCellEditsStateChange = () => {},
 }: DrawingCanvasProps) {
-	const canvasRef = useRef<HTMLCanvasElement>(null);
-	const cameraRef = useRef<CanvasCameraState>({ zoom: 1, offset: { x: 0, y: 0 } });
-	const [loadedImage, setLoadedImage] = useState<HTMLImageElement | null>(null);
-	const [showBees, setBeeVisibility] = useState(true);
-	const [showDrones, setDroneVisibility] = useState(true);
-	const [showQueenCups, setQueenCupsVisibility] = useState(true);
-	const [showVarroa, setShowVarroaVisibility] = useState(true);
-	const [showQueenAnnotations, setShowQueenAnnotations] = useState(true);
-	const [isAiQueenVisible, setIsAiQueenVisible] = useState(true);
-	const [showFrameCells, setShowFrameCells] = useState(false);
-	const [activeControlTab, setActiveControlTab] = useState<CanvasControlTab>('frame-cells');
-	const [activeTool, setActiveTool] = useState<'cell-brush' | 'stroke'>('cell-brush');
+	const canvasRef = useRef<HTMLCanvasElement>(null)
+	const cameraRef = useRef<CanvasCameraState>({
+		zoom: 1,
+		offset: { x: 0, y: 0 },
+	})
+	const [loadedImage, setLoadedImage] = useState<HTMLImageElement | null>(null)
+	const [showBees, setBeeVisibility] = useState(true)
+	const [showDrones, setDroneVisibility] = useState(true)
+	const [showQueenCups, setQueenCupsVisibility] = useState(true)
+	const [showVarroa, setShowVarroaVisibility] = useState(true)
+	const [showQueenAnnotations, setShowQueenAnnotations] = useState(true)
+	const [isAiQueenVisible, setIsAiQueenVisible] = useState(true)
+	const [showFrameCells, setShowFrameCells] = useState(false)
+	const [activeControlTab, setActiveControlTab] =
+		useState<CanvasControlTab>('frame-cells')
+	const [activeTool, setActiveTool] = useState<'cell-brush' | 'stroke'>(
+		'cell-brush'
+	)
 	const initialCanvasUrl = useMemo(
 		() => resolveCanvasImageUrl(imageUrl, resizes, null, 1),
 		[imageUrl, resizes]
-	);
-	const [canvasUrl, setCanvasUrl] = useState(initialCanvasUrl);
+	)
+	const [canvasUrl, setCanvasUrl] = useState(initialCanvasUrl)
 	const resolveCanvasUrlForZoom = useCallback(
-		(zoom: number) => resolveCanvasImageUrl(imageUrl, resizes, canvasRef.current, zoom),
+		(zoom: number) =>
+			resolveCanvasImageUrl(imageUrl, resizes, canvasRef.current, zoom),
 		[imageUrl, resizes]
-	);
+	)
 
 	const {
 		selectedCellType,
@@ -112,7 +130,7 @@ export default function DrawingCanvas({
 		onDetectedCellsUpdate,
 		saveRequestId,
 		onCellEditsStateChange,
-	});
+	})
 
 	const {
 		editableQueenAnnotations,
@@ -166,49 +184,52 @@ export default function DrawingCanvas({
 		onQueenAnnotationsUpdate,
 		onRemoveDetectedQueenCandidate,
 		onCreateQueen,
-	});
+	})
 
 	const allDetectedBees = useMemo(() => {
-		const combined = [...(detectedBees || [])];
+		const combined = [...(detectedBees || [])]
 		if (detectedDrones && detectedDrones.length > 0) {
-			combined.push(...detectedDrones);
+			combined.push(...detectedDrones)
 		}
-		return combined;
-	}, [detectedBees, detectedDrones]);
+		return combined
+	}, [detectedBees, detectedDrones])
 
 	const readOnlyQueenMarkers = useMemo(
 		() => editableQueenAnnotations || [],
 		[editableQueenAnnotations]
-	);
-	const queenAnnotationsOnCanvas = (allowDrawing ? editableQueenAnnotations : readOnlyQueenMarkers)
-		.filter((annotation) => (
-			isAiQueenVisible || !(annotation?.source === 'ai' && annotation?.status !== 'approved')
-		));
-	const showAiQueensOnCanvas = false;
-	const canCellBrush = allowDrawing && activeControlTab === 'frame-cells';
-	const canStrokeDraw = allowDrawing && activeControlTab === 'free-draw';
-	const showQueenCupsOnCanvas = allowDrawing ? showQueenCups : false;
-	const showVarroaOnCanvas = showVarroa;
-	const showDetectedCellsOnCanvas = allowDrawing ? true : showFrameCells;
-	const cellsOpacityFactor = cellsOpacityPercent / 100;
+	)
+	const queenAnnotationsOnCanvas = (
+		allowDrawing ? editableQueenAnnotations : readOnlyQueenMarkers
+	).filter(
+		(annotation) =>
+			isAiQueenVisible ||
+			!(annotation?.source === 'ai' && annotation?.status !== 'approved')
+	)
+	const showAiQueensOnCanvas = false
+	const canCellBrush = allowDrawing && activeControlTab === 'frame-cells'
+	const canStrokeDraw = allowDrawing && activeControlTab === 'free-draw'
+	const showQueenCupsOnCanvas = allowDrawing ? showQueenCups : false
+	const showVarroaOnCanvas = showVarroa
+	const showDetectedCellsOnCanvas = allowDrawing ? true : showFrameCells
+	const cellsOpacityFactor = cellsOpacityPercent / 100
 
 	const undoDraw = useCallback(() => {
-		if (!allowDrawing) return;
-		const newHistory = [...strokeHistory];
-		newHistory.pop();
-		onStrokeHistoryUpdate(newHistory);
-	}, [allowDrawing, onStrokeHistoryUpdate, strokeHistory]);
+		if (!allowDrawing) return
+		const newHistory = [...strokeHistory]
+		newHistory.pop()
+		onStrokeHistoryUpdate(newHistory)
+	}, [allowDrawing, onStrokeHistoryUpdate, strokeHistory])
 
 	const clearHistory = useCallback(() => {
-		if (!allowDrawing) return;
-		onStrokeHistoryUpdate([]);
-	}, [allowDrawing, onStrokeHistoryUpdate]);
+		if (!allowDrawing) return
+		onStrokeHistoryUpdate([])
+	}, [allowDrawing, onStrokeHistoryUpdate])
 
 	const redrawCurrentCanvas = useCallback(() => {
-		const canvas = canvasRef.current;
-		if (!canvas) return;
-		const ctx = canvas.getContext('2d');
-		if (!ctx) return;
+		const canvas = canvasRef.current
+		if (!canvas) return
+		const ctx = canvas.getContext('2d')
+		if (!ctx) return
 
 		ctx.setTransform(
 			cameraRef.current.zoom,
@@ -216,8 +237,8 @@ export default function DrawingCanvas({
 			0,
 			cameraRef.current.zoom,
 			cameraRef.current.offset.x,
-			cameraRef.current.offset.y,
-		);
+			cameraRef.current.offset.y
+		)
 		drawCanvasLayers({
 			canvas,
 			ctx,
@@ -243,7 +264,7 @@ export default function DrawingCanvas({
 			selectedCellType,
 			brushRadiusRatio,
 			cellsOpacityFactor,
-		});
+		})
 	}, [
 		activeTool,
 		allDetectedBees,
@@ -266,7 +287,7 @@ export default function DrawingCanvas({
 		showQueenCupsOnCanvas,
 		showVarroaOnCanvas,
 		strokeHistory,
-	]);
+	])
 
 	const { scheduleRedraw, resetStrokeDraft } = useCanvasInteractions({
 		cameraRef,
@@ -312,48 +333,48 @@ export default function DrawingCanvas({
 		setIsQueenMarkerMoving,
 		commitTransientAnnotationChange,
 		resetMarkerInteractionState,
-	});
+	})
 
 	useEffect(() => {
-		scheduleRedraw();
-	}, [detectedCells, scheduleRedraw]);
+		scheduleRedraw()
+	}, [detectedCells, scheduleRedraw])
 
-	const previousImageUrlRef = useRef(imageUrl);
+	const previousImageUrlRef = useRef(imageUrl)
 
 	useEffect(() => {
 		if (previousImageUrlRef.current === imageUrl) {
-			return;
+			return
 		}
 
-		previousImageUrlRef.current = imageUrl;
+		previousImageUrlRef.current = imageUrl
 		// WHY: switching to another frame side must drop the previous bitmap immediately.
 		// WHAT: reset only when the original source image changes, not when resize metadata refreshes.
-		setLoadedImage(null);
-		setCanvasUrl(initialCanvasUrl);
-	}, [imageUrl, initialCanvasUrl]);
+		setLoadedImage(null)
+		setCanvasUrl(initialCanvasUrl)
+	}, [imageUrl, initialCanvasUrl])
 
 	useEffect(() => {
-		const nextCanvasUrl = resolveCanvasUrlForZoom(cameraRef.current.zoom || 1);
+		const nextCanvasUrl = resolveCanvasUrlForZoom(cameraRef.current.zoom || 1)
 		if (nextCanvasUrl && nextCanvasUrl !== canvasUrl) {
-			setCanvasUrl(nextCanvasUrl);
+			setCanvasUrl(nextCanvasUrl)
 		}
-	}, [canvasUrl, resolveCanvasUrlForZoom]);
+	}, [canvasUrl, resolveCanvasUrlForZoom])
 
 	useEffect(() => {
-		let isActive = true;
+		let isActive = true
 		loadImage(canvasUrl)
 			.then((loadedImg) => {
-				if (!isActive) return;
-				setLoadedImage(loadedImg);
+				if (!isActive) return
+				setLoadedImage(loadedImg)
 			})
-			.catch(console.error);
+			.catch(console.error)
 		return () => {
-			isActive = false;
-		};
-	}, [canvasUrl]);
+			isActive = false
+		}
+	}, [canvasUrl])
 
 	useEffect(() => {
-		redrawCurrentCanvas();
+		redrawCurrentCanvas()
 	}, [
 		showBees,
 		showDrones,
@@ -362,10 +383,10 @@ export default function DrawingCanvas({
 		showVarroa,
 		showQueenAnnotations,
 		redrawCurrentCanvas,
-	]);
+	])
 
 	useEffect(() => {
-		redrawCurrentCanvas();
+		redrawCurrentCanvas()
 	}, [
 		detectedBees,
 		detectedCells,
@@ -373,26 +394,31 @@ export default function DrawingCanvas({
 		detectedVarroa,
 		editableQueenAnnotations,
 		redrawCurrentCanvas,
-	]);
+	])
 
 	useEffect(() => {
-		if (!allowDrawing) return;
+		if (!allowDrawing) return
 		if (activeControlTab === 'frame-cells') {
-			setActiveTool('cell-brush');
+			setActiveTool('cell-brush')
 		} else if (activeControlTab === 'free-draw') {
-			setActiveTool('stroke');
+			setActiveTool('stroke')
 		}
 		if (activeControlTab !== 'frame-cells') {
-			clearBrushInteractionState();
-			scheduleRedraw();
+			clearBrushInteractionState()
+			scheduleRedraw()
 		}
-	}, [activeControlTab, allowDrawing, clearBrushInteractionState, scheduleRedraw]);
+	}, [
+		activeControlTab,
+		allowDrawing,
+		clearBrushInteractionState,
+		scheduleRedraw,
+	])
 
 	useEffect(() => {
 		return () => {
-			resetStrokeDraft();
-		};
-	}, [resetStrokeDraft]);
+			resetStrokeDraft()
+		}
+	}, [resetStrokeDraft])
 
 	const isAnyDetectionLoading =
 		!(
@@ -405,7 +431,7 @@ export default function DrawingCanvas({
 		) ||
 		!frameSideFile?.isCellsDetectionComplete ||
 		!frameSideFile?.isQueenCupsDetectionComplete ||
-		!frameSideFile?.isQueenDetectionComplete;
+		!frameSideFile?.isQueenDetectionComplete
 
 	useEffect(() => {
 		console.debug('[DrawingCanvas] detection flags', {
@@ -419,17 +445,24 @@ export default function DrawingCanvas({
 			detectedDroneCount: frameSideFile?.detectedDroneCount,
 			detectedQueenCount: frameSideFile?.detectedQueenCount,
 			isAnyDetectionLoading,
-		});
-	}, [frameSideFile, isAnyDetectionLoading]);
+		})
+	}, [frameSideFile, isAnyDetectionLoading])
 
 	if (!imageUrl) {
-		return <div><T>Loading image...</T></div>;
+		return (
+			<div>
+				<T>Loading image...</T>
+			</div>
+		)
 	}
 
 	return (
 		<div style={{ position: 'relative', overflow: 'hidden' }}>
 			{!hideControls && allowDrawing && (
-				<CanvasControlTabs activeControlTab={activeControlTab} onSelect={setActiveControlTab} />
+				<CanvasControlTabs
+					activeControlTab={activeControlTab}
+					onSelect={setActiveControlTab}
+				/>
 			)}
 
 			{!hideControls && !allowDrawing && (
@@ -453,22 +486,25 @@ export default function DrawingCanvas({
 				/>
 			)}
 
-			{!hideControls && allowDrawing && (activeControlTab === 'bees' || activeControlTab === 'varroa-mites') && (
-				<DetectionToolbar
-					activeControlTab={activeControlTab}
-					frameSideFile={frameSideFile}
-					detectedBees={detectedBees}
-					detectedDrones={detectedDrones}
-					detectedVarroa={detectedVarroa}
-					showBees={showBees}
-					setBeeVisibility={setBeeVisibility}
-					showDrones={showDrones}
-					setDroneVisibility={setDroneVisibility}
-					showVarroa={showVarroa}
-					setShowVarroaVisibility={setShowVarroaVisibility}
-					layerToggleButtonStyle={layerToggleButtonStyle}
-				/>
-			)}
+			{!hideControls &&
+				allowDrawing &&
+				(activeControlTab === 'bees' ||
+					activeControlTab === 'varroa-mites') && (
+					<DetectionToolbar
+						activeControlTab={activeControlTab}
+						frameSideFile={frameSideFile}
+						detectedBees={detectedBees}
+						detectedDrones={detectedDrones}
+						detectedVarroa={detectedVarroa}
+						showBees={showBees}
+						setBeeVisibility={setBeeVisibility}
+						showDrones={showDrones}
+						setDroneVisibility={setDroneVisibility}
+						showVarroa={showVarroa}
+						setShowVarroaVisibility={setShowVarroaVisibility}
+						layerToggleButtonStyle={layerToggleButtonStyle}
+					/>
+				)}
 
 			{!hideControls && allowDrawing && activeControlTab === 'frame-cells' && (
 				<FrameCellsToolbar
@@ -485,51 +521,57 @@ export default function DrawingCanvas({
 				<FreeDrawToolbar onUndo={undoDraw} onClear={clearHistory} />
 			)}
 
-			{allowDrawing && onQueenAnnotationsUpdate && activeControlTab === 'queens' && (
-				<QueenControlsPanel
-					frameSideFile={frameSideFile}
-					detectedQueenCups={detectedQueenCups}
-					showQueenAnnotations={showQueenAnnotations}
-					setShowQueenAnnotations={setShowQueenAnnotations}
-					isAiQueenVisible={isAiQueenVisible}
-					setIsAiQueenVisible={setIsAiQueenVisible}
-					showQueenCups={showQueenCups}
-					setQueenCupsVisibility={setQueenCupsVisibility}
-					isAddingQueenMarker={isAddingQueenMarker}
-					pendingMarkerFamilyId={pendingMarkerFamilyId}
-					onStartMarkExistingQueen={onStartMarkExistingQueen}
-					onOpenMarkNewQueenModal={onOpenMarkNewQueenModal}
-					editableQueenAnnotations={editableQueenAnnotations}
-					families={families}
-					familyById={familyById}
-					occupiedFamilyIds={occupiedFamilyIds}
-					handleAssignFamily={handleAssignFamily}
-					removeQueenAnnotation={removeQueenAnnotation}
-					approveAiCandidate={approveAiCandidate}
-					rejectAiCandidate={rejectAiCandidate}
-					isCreateQueenModalOpen={isCreateQueenModalOpen}
-					setIsCreateQueenModalOpen={setIsCreateQueenModalOpen}
-					newQueenName={newQueenName}
-					setNewQueenName={setNewQueenName}
-					newQueenRace={newQueenRace}
-					setNewQueenRace={setNewQueenRace}
-					newQueenYear={newQueenYear}
-					setNewQueenYear={setNewQueenYear}
-					newQueenColor={newQueenColor}
-					setNewQueenColor={setNewQueenColor}
-					newQueenParentId={newQueenParentId}
-					setNewQueenParentId={setNewQueenParentId}
-					randomNameLoading={randomNameLoading}
-					onRefreshQueenName={onRefreshQueenName}
-					onConfirmCreateQueen={onConfirmCreateQueen}
-					isCreatingQueen={isCreatingQueen}
-					layerToggleButtonStyle={layerToggleButtonStyle}
-				/>
-			)}
+			{allowDrawing &&
+				onQueenAnnotationsUpdate &&
+				activeControlTab === 'queens' && (
+					<QueenControlsPanel
+						frameSideFile={frameSideFile}
+						detectedQueenCups={detectedQueenCups}
+						showQueenAnnotations={showQueenAnnotations}
+						setShowQueenAnnotations={setShowQueenAnnotations}
+						isAiQueenVisible={isAiQueenVisible}
+						setIsAiQueenVisible={setIsAiQueenVisible}
+						showQueenCups={showQueenCups}
+						setQueenCupsVisibility={setQueenCupsVisibility}
+						isAddingQueenMarker={isAddingQueenMarker}
+						pendingMarkerFamilyId={pendingMarkerFamilyId}
+						onStartMarkExistingQueen={onStartMarkExistingQueen}
+						onOpenMarkNewQueenModal={onOpenMarkNewQueenModal}
+						editableQueenAnnotations={editableQueenAnnotations}
+						families={families}
+						familyById={familyById}
+						occupiedFamilyIds={occupiedFamilyIds}
+						handleAssignFamily={handleAssignFamily}
+						removeQueenAnnotation={removeQueenAnnotation}
+						approveAiCandidate={approveAiCandidate}
+						rejectAiCandidate={rejectAiCandidate}
+						isCreateQueenModalOpen={isCreateQueenModalOpen}
+						setIsCreateQueenModalOpen={setIsCreateQueenModalOpen}
+						newQueenName={newQueenName}
+						setNewQueenName={setNewQueenName}
+						newQueenRace={newQueenRace}
+						setNewQueenRace={setNewQueenRace}
+						newQueenYear={newQueenYear}
+						setNewQueenYear={setNewQueenYear}
+						newQueenColor={newQueenColor}
+						setNewQueenColor={setNewQueenColor}
+						newQueenParentId={newQueenParentId}
+						setNewQueenParentId={setNewQueenParentId}
+						randomNameLoading={randomNameLoading}
+						onRefreshQueenName={onRefreshQueenName}
+						onConfirmCreateQueen={onConfirmCreateQueen}
+						isCreatingQueen={isCreatingQueen}
+						layerToggleButtonStyle={layerToggleButtonStyle}
+					/>
+				)}
 
-			<canvas ref={canvasRef} id="container" style={{ width: '100%', display: 'block', touchAction: 'none' }}>
+			<canvas
+				ref={canvasRef}
+				id="container"
+				style={{ width: '100%', display: 'block', touchAction: 'none' }}
+			>
 				<T>Canvas not supported.</T>
 			</canvas>
 		</div>
-	);
+	)
 }

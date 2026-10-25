@@ -5,18 +5,18 @@ export const mobileStyles = {
 		WebkitUserSelect: 'none' as const,
 		WebkitTouchCallout: 'none' as const,
 		...(isMobile && {
-			paddingBottom: '20px'
-		})
+			paddingBottom: '20px',
+		}),
 	}),
 
 	header: (isMobile: boolean) => ({
 		marginBottom: '20px',
-		padding: isMobile ? '0 10px' : '0 20px'
+		padding: isMobile ? '0 10px' : '0 20px',
 	}),
 
 	description: (isMobile: boolean) => ({
 		fontSize: isMobile ? '13px' : '14px',
-		color: '#666'
+		color: '#666',
 	}),
 
 	selectionIndicator: (isMobile: boolean) => ({
@@ -32,7 +32,6 @@ export const mobileStyles = {
 		fontWeight: 'bold',
 		zIndex: 1000,
 		pointerEvents: 'none' as const,
-		boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
-	})
+		boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+	}),
 }
-

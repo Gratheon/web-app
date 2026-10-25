@@ -1,11 +1,13 @@
-import { useState } from 'react';
-import Button from '../../../shared/button';
-import T from '../../../shared/translate';
-import isDev from '../../../isDev.ts';
+import { useState } from 'react'
+import Button from '../../../shared/button'
+import T from '../../../shared/translate'
+import isDev from '../../../isDev.ts'
 
 async function analyzeCrops({ lat, lng }) {
 	// Define the URL of your backend API
-	const apiUrl = isDev() ? 'http://0.0.0.0:9500' : 'https://satellite.gratheon.com';
+	const apiUrl = isDev()
+		? 'http://0.0.0.0:9500'
+		: 'https://satellite.gratheon.com'
 
 	// Make a POST request using the fetch API
 	return await fetch(apiUrl, {
@@ -16,11 +18,9 @@ async function analyzeCrops({ lat, lng }) {
 		},
 		body: JSON.stringify({ lat, lng }),
 	})
-};
+}
 
-export default function PollinationTab({
-	lat, lng
-}) {
+export default function PollinationTab({ lat, lng }) {
 	const [analyzing, setAnalyzing] = useState(false)
 	const [loaded, setLoaded] = useState(false)
 	const [apr, setApr] = useState('')
@@ -29,20 +29,20 @@ export default function PollinationTab({
 	const [class_names_en, setClsNames] = useState([])
 	const [icons, setIcons] = useState([])
 
-
-	return <div style="padding:20px;text-align:center;min-height: 300px;">
-		{/* {!loaded && false && <p>
+	return (
+		<div style="padding:20px;text-align:center;min-height: 300px;">
+			{/* {!loaded && false && <p>
 			We can classify satellite imagery to classify fields and forest areas by type.
 			By knowing environment, you can predict nectar flow, honey composition and optimize for pollen diversity for bee health.
 			Position your hives for max efficiency of pollination.
 		</p>} */}
 
-		{/* {loaded && false && <div style="color:red; padding:5px; border:1px solid red;border-radius:3px;margin: 5px 0;">
+			{/* {loaded && false && <div style="color:red; padding:5px; border:1px solid red;border-radius:3px;margin: 5px 0;">
 			Warning! Industrial plant detected<br />
 			Warning! Pollen diversity is too low for healthy bee colony
 		</div>} */}
 
-		{/* {loaded && <div>
+			{/* {loaded && <div>
 
 			<div style="max-height:250px;overflow: auto;">
 				<table className={style.table}>
@@ -97,49 +97,59 @@ export default function PollinationTab({
 		</div>
 		} */}
 
-		{apr &&
-			<div style="display: flex;">
-				<table>
-					<tr>
-						<th>April</th>
-						{/* <th>Pollination map</th> */}
-						<th>May</th>
-						<th>June</th>
-					</tr>
-					<tr>
-						<td><img src={apr} alt="Base64 Image" /></td>
-						{/* <td>
+			{apr && (
+				<div style="display: flex;">
+					<table>
+						<tr>
+							<th>April</th>
+							{/* <th>Pollination map</th> */}
+							<th>May</th>
+							<th>June</th>
+						</tr>
+						<tr>
+							<td>
+								<img src={apr} alt="Base64 Image" />
+							</td>
+							{/* <td>
 							<div style="background:url('https://gratheon.com/example.png') center;width:512px;height:512px;"></div>
 						</td> */}
-						<td><img src={may} alt="Base64 Image" /></td>
-						<td><img src={jun} alt="Base64 Image" /></td>
-					</tr>
-				</table>
+							<td>
+								<img src={may} alt="Base64 Image" />
+							</td>
+							<td>
+								<img src={jun} alt="Base64 Image" />
+							</td>
+						</tr>
+					</table>
+				</div>
+			)}
 
-			</div>}
+			<Button
+				onClick={async () => {
+					setAnalyzing(true)
+					setLoaded(false)
+					const response = await analyzeCrops({ lat, lng })
 
-		<Button
-			onClick={async () => {
-				setAnalyzing(true);
-				setLoaded(false);
-				const response = await analyzeCrops({ lat, lng });
+					if (!response.ok) {
+						throw new Error('Network response was not ok')
+					}
+					let parsedJSON = await response.json()
 
-				if (!response.ok) {
-					throw new Error('Network response was not ok');
-				}
-				let parsedJSON = await response.json();
+					setApr('data:image/png;base64,' + parsedJSON?.apr)
+					setMay('data:image/png;base64,' + parsedJSON?.may)
+					setJun('data:image/png;base64,' + parsedJSON?.jun)
 
-				setApr('data:image/png;base64,' + parsedJSON?.apr)
-				setMay('data:image/png;base64,' + parsedJSON?.may)
-				setJun('data:image/png;base64,' + parsedJSON?.jun)
+					setClsNames(parsedJSON?.class_names_en)
+					setIcons(parsedJSON?.icons)
 
-				setClsNames(parsedJSON?.class_names_en)
-				setIcons(parsedJSON?.icons)
-
-				setAnalyzing(false)
-				setLoaded(true);
-			}}
-			loading={analyzing}
-			color="green"><T>Load historical field map</T></Button>
-	</div>
+					setAnalyzing(false)
+					setLoaded(true)
+				}}
+				loading={analyzing}
+				color="green"
+			>
+				<T>Load historical field map</T>
+			</Button>
+		</div>
+	)
 }

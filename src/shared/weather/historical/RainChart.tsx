@@ -12,12 +12,18 @@ type RainChartProps = {
 	suspendTimeRangeSync?: boolean
 }
 
-export default function RainChart({ rainData, chartRefs, syncCharts, onVisibleTimeRangeChange, suspendTimeRangeSync }: RainChartProps) {
+export default function RainChart({
+	rainData,
+	chartRefs,
+	syncCharts,
+	onVisibleTimeRangeChange,
+	suspendTimeRangeSync,
+}: RainChartProps) {
 	const formattedData = rainData.rain
-		.filter(d => d.value !== null)
-		.map(d => ({
-			time: new Date(d.time).getTime() / 1000 as any,
-			value: d.value
+		.filter((d) => d.value !== null)
+		.map((d) => ({
+			time: (new Date(d.time).getTime() / 1000) as any,
+			value: d.value,
 		}))
 
 	const totalRain = formattedData.reduce((acc, curr) => acc + curr.value, 0)
@@ -27,7 +33,9 @@ export default function RainChart({ rainData, chartRefs, syncCharts, onVisibleTi
 			emoji="🌧️"
 			title={t('Rainfall')}
 			value={`${totalRain.toFixed(1)} mm ${t('total')}`}
-			info={t('Rain prevents bees from foraging. Extended rainy periods can impact colony nutrition.')}
+			info={t(
+				'Rain prevents bees from foraging. Extended rainy periods can impact colony nutrition.'
+			)}
 			chartRefs={chartRefs}
 			syncCharts={syncCharts}
 			onVisibleTimeRangeChange={onVisibleTimeRangeChange}

@@ -147,7 +147,8 @@ Common tasks are managed via `npm` scripts (defined in `package.json`) and `just
 *   `npm run build-clean`: Removes contents of the `public/` directory.
 *   `npm run build-move`: Moves contents from `dist/` to `public/` (likely part of a build pipeline).
 *   `npm run preview`: Serves the production build locally for previewing.
-*   `npm run prettier`: Formats code using Prettier.
+*   `npm run lint`: Lints code with oxlint (`npm run lint:fix` applies safe fixes).
+*   `npm run format`: Formats code with oxfmt (`npm run format:check` only checks); it covers `src/`.
 *   `just test-ui-headless`: Runs Playwright E2E tests in headless mode.
 *   `just test-ui-create`: Interactively generates boilerplate for a new Playwright test.
 *   `npm run test` / `npm run test:unit`: Runs unit tests using Vitest.
@@ -423,7 +424,7 @@ This project is **dual-licensed**:
 If you'd like to contribute, please see our [Contributing Guide](CONTRIBUTING.md) and sign our Contributor License Agreement (CLA).
 
 *   Please refer to the `CODEOWNERS` file for ownership details.
-*   Code style is enforced by Prettier (`npm run prettier`).
+*   Code style is enforced in CI by oxlint (`npm run lint`) and oxfmt (`npm run format:check`).
 *   Follow standard GitHub flow: Fork the repository, create a feature branch, make changes, and submit a Pull Request.
 
 

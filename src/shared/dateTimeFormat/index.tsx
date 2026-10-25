@@ -11,7 +11,11 @@ type DateTimeFormatProps = {
 }
 
 export function formatTime(datetime, lang = 'en') {
-	return formatDateTimeByLocale(new Date(datetime), { dateStyle: 'medium', timeStyle: 'short' }, lang)
+	return formatDateTimeByLocale(
+		new Date(datetime),
+		{ dateStyle: 'medium', timeStyle: 'short' },
+		lang
+	)
 }
 
 export default function DateTimeFormat({
@@ -22,7 +26,10 @@ export default function DateTimeFormat({
 }: DateTimeFormatProps) {
 	const user = useLiveQuery(() => getUser(), [], null)
 	if (!datetime) return null
-	const resolvedLocale = resolveLocale(locale || user?.locale, lang || user?.lang)
+	const resolvedLocale = resolveLocale(
+		locale || user?.locale,
+		lang || user?.lang
+	)
 
 	return (
 		<span className="date timeago" title={datetime} style={style}>

@@ -22,16 +22,18 @@ function FramePreview({
 	onClick,
 	showCheckbox = false,
 }: FramePreviewProps) {
-	console.log(`[FramePreview] Rendering frame ${frameId}, position ${position}, isSelected: ${isSelected}`)
+	console.log(
+		`[FramePreview] Rendering frame ${frameId}, position ${position}, isSelected: ${isSelected}`
+	)
 
 	const leftSideFile = useLiveQuery(
-		async () => leftId ? await getFrameSidePreviewImage(leftId) : null,
+		async () => (leftId ? await getFrameSidePreviewImage(leftId) : null),
 		[leftId],
 		null
 	)
 
 	const rightSideFile = useLiveQuery(
-		async () => rightId ? await getFrameSidePreviewImage(rightId) : null,
+		async () => (rightId ? await getFrameSidePreviewImage(rightId) : null),
 		[rightId],
 		null
 	)
@@ -39,12 +41,20 @@ function FramePreview({
 	const getResizedUrl = (file) => {
 		if (!file) return null
 
-		if (file.resizes && Array.isArray(file.resizes) && file.resizes.length > 0) {
-			const validResizes = file.resizes.filter(r => r && r.url && r.max_dimension_px)
+		if (
+			file.resizes &&
+			Array.isArray(file.resizes) &&
+			file.resizes.length > 0
+		) {
+			const validResizes = file.resizes.filter(
+				(r) => r && r.url && r.max_dimension_px
+			)
 
 			if (validResizes.length > 0) {
 				const smallestResize = validResizes.reduce((smallest, current) => {
-					return current.max_dimension_px < smallest.max_dimension_px ? current : smallest
+					return current.max_dimension_px < smallest.max_dimension_px
+						? current
+						: smallest
 				})
 				return smallestResize.url
 			}
@@ -56,11 +66,14 @@ function FramePreview({
 	const leftImageUrl = getResizedUrl(leftSideFile)
 	const rightImageUrl = getResizedUrl(rightSideFile)
 
-	const handleClick = useCallback((e) => {
-		e.preventDefault()
-		e.stopPropagation()
-		if (onClick) onClick()
-	}, [onClick])
+	const handleClick = useCallback(
+		(e) => {
+			e.preventDefault()
+			e.stopPropagation()
+			if (onClick) onClick()
+		},
+		[onClick]
+	)
 
 	return (
 		<div
@@ -79,14 +92,22 @@ function FramePreview({
 			<div className={styles.frameSides}>
 				<div className={styles.frameSide}>
 					{leftImageUrl ? (
-						<img src={leftImageUrl} alt={`Frame ${position + 1} left`} loading="lazy" />
+						<img
+							src={leftImageUrl}
+							alt={`Frame ${position + 1} left`}
+							loading="lazy"
+						/>
 					) : (
 						<div className={styles.noImage}>L</div>
 					)}
 				</div>
 				<div className={styles.frameSide}>
 					{rightImageUrl ? (
-						<img src={rightImageUrl} alt={`Frame ${position + 1} right`} loading="lazy" />
+						<img
+							src={rightImageUrl}
+							alt={`Frame ${position + 1} right`}
+							loading="lazy"
+						/>
 					) : (
 						<div className={styles.noImage}>R</div>
 					)}
@@ -97,7 +118,7 @@ function FramePreview({
 }
 
 export default memo(FramePreview, (prevProps, nextProps) => {
-	const shouldSkipRender = (
+	const shouldSkipRender =
 		prevProps.frameId === nextProps.frameId &&
 		prevProps.position === nextProps.position &&
 		prevProps.leftId === nextProps.leftId &&
@@ -105,20 +126,21 @@ export default memo(FramePreview, (prevProps, nextProps) => {
 		prevProps.isSelected === nextProps.isSelected &&
 		prevProps.showCheckbox === nextProps.showCheckbox &&
 		prevProps.onClick === nextProps.onClick
-	)
 
 	if (!shouldSkipRender) {
-		console.log(`[FramePreview memo] Re-rendering frame ${nextProps.frameId}:`, {
-			frameIdChanged: prevProps.frameId !== nextProps.frameId,
-			positionChanged: prevProps.position !== nextProps.position,
-			leftIdChanged: prevProps.leftId !== nextProps.leftId,
-			rightIdChanged: prevProps.rightId !== nextProps.rightId,
-			isSelectedChanged: prevProps.isSelected !== nextProps.isSelected,
-			showCheckboxChanged: prevProps.showCheckbox !== nextProps.showCheckbox,
-			onClickChanged: prevProps.onClick !== nextProps.onClick,
-		})
+		console.log(
+			`[FramePreview memo] Re-rendering frame ${nextProps.frameId}:`,
+			{
+				frameIdChanged: prevProps.frameId !== nextProps.frameId,
+				positionChanged: prevProps.position !== nextProps.position,
+				leftIdChanged: prevProps.leftId !== nextProps.leftId,
+				rightIdChanged: prevProps.rightId !== nextProps.rightId,
+				isSelectedChanged: prevProps.isSelected !== nextProps.isSelected,
+				showCheckboxChanged: prevProps.showCheckbox !== nextProps.showCheckbox,
+				onClickChanged: prevProps.onClick !== nextProps.onClick,
+			}
+		)
 	}
 
 	return shouldSkipRender
 })
-

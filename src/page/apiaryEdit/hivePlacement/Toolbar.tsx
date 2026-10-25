@@ -24,25 +24,27 @@ export default function Toolbar({
 	onAddObstacle,
 	onRotateHive,
 	onDeleteObstacle,
-	onToggleHiveList
+	onToggleHiveList,
 }: ToolbarProps) {
 	return (
 		<>
-			<div style={{
-				display: 'flex',
-				gap: isMobile ? '8px' : '20px',
-				marginTop: '20px',
-				marginBottom: '20px',
-				flexWrap: 'wrap',
-				padding: '0 20px'
-			}}>
+			<div
+				style={{
+					display: 'flex',
+					gap: isMobile ? '8px' : '20px',
+					marginTop: '20px',
+					marginBottom: '20px',
+					flexWrap: 'wrap',
+					padding: '0 20px',
+				}}
+			>
 				{isMobile && (
 					<Button
 						onClick={onToggleHiveList}
 						color={showHiveList ? 'blue' : undefined}
 						style={{
 							fontSize: isMobile ? '14px' : undefined,
-							padding: isMobile ? '10px 12px' : undefined
+							padding: isMobile ? '10px 12px' : undefined,
 						}}
 					>
 						<T>{showHiveList ? 'Hide Hives' : 'Show Hives'}</T>
@@ -54,7 +56,7 @@ export default function Toolbar({
 					disabled={isTierLocked}
 					style={{
 						fontSize: isMobile ? '14px' : undefined,
-						padding: isMobile ? '10px 12px' : undefined
+						padding: isMobile ? '10px 12px' : undefined,
 					}}
 				>
 					{isMobile ? '🌳' : <T>Add Tree</T>}
@@ -65,7 +67,7 @@ export default function Toolbar({
 					disabled={isTierLocked}
 					style={{
 						fontSize: isMobile ? '14px' : undefined,
-						padding: isMobile ? '10px 12px' : undefined
+						padding: isMobile ? '10px 12px' : undefined,
 					}}
 				>
 					{isMobile ? '🏠' : <T>Add Building</T>}
@@ -77,7 +79,7 @@ export default function Toolbar({
 							disabled={isTierLocked}
 							style={{
 								fontSize: isMobile ? '14px' : undefined,
-								padding: isMobile ? '10px 12px' : undefined
+								padding: isMobile ? '10px 12px' : undefined,
 							}}
 						>
 							{isMobile ? '↶' : <T>Rotate Left</T>}
@@ -87,7 +89,7 @@ export default function Toolbar({
 							disabled={isTierLocked}
 							style={{
 								fontSize: isMobile ? '14px' : undefined,
-								padding: isMobile ? '10px 12px' : undefined
+								padding: isMobile ? '10px 12px' : undefined,
 							}}
 						>
 							{isMobile ? '↷' : <T>Rotate Right</T>}
@@ -101,7 +103,7 @@ export default function Toolbar({
 						disabled={isTierLocked}
 						style={{
 							fontSize: isMobile ? '14px' : undefined,
-							padding: isMobile ? '10px 12px' : undefined
+							padding: isMobile ? '10px 12px' : undefined,
 						}}
 					>
 						{isMobile ? '🗑️' : <T>Delete Obstacle</T>}

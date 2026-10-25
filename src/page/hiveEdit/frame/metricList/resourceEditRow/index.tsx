@@ -8,26 +8,28 @@ export default function ResourceEditRow({
 	percent,
 	onChange,
 	onClick,
-	textColor='white',
+	textColor = 'white',
 	expanded = false,
-}) { 
-	return <div className={expanded ? styles.sliderExpanded : styles.slider}>
-		<div
-			className={styles.picker}
-			style={{ backgroundColor: color, color: textColor }}
-			onClick={onClick}
-		>
-			{Math.round(percent)} %{expanded && children}
+}) {
+	return (
+		<div className={expanded ? styles.sliderExpanded : styles.slider}>
+			<div
+				className={styles.picker}
+				style={{ backgroundColor: color, color: textColor }}
+				onClick={onClick}
+			>
+				{Math.round(percent)} %{expanded && children}
+			</div>
+			{expanded && (
+				<Slider
+					min={0}
+					max={100}
+					width={200}
+					backgroundColor={color}
+					onChange={onChange}
+					value={percent}
+				/>
+			)}
 		</div>
-		{expanded && (
-			<Slider
-				min={0}
-				max={100}
-				width={200}
-				backgroundColor={color}
-				onChange={onChange}
-				value={percent}
-			/>
-		)}
-	</div>
+	)
 }

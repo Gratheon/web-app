@@ -29,20 +29,25 @@ import { getUser } from '@/models/user'
 import DragAndDrop from '../hiveEdit/frame/uploadFile/dragDrop'
 import styles from './style.module.less'
 import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
-import { apiaryTypes, normalizeApiaryType, type ApiaryType } from '@/models/apiary'
-
+import {
+	apiaryTypes,
+	normalizeApiaryType,
+	type ApiaryType,
+} from '@/models/apiary'
 
 // coordinate conversion for PRIA
-proj4.defs("EPSG:4326", "+proj=longlat +datum=WGS84 +no_defs");
-proj4.defs("EPSG:3301", "+proj=lcc +lat_1=59.33333333333334 +lat_2=58 +lat_0=57.51755393055556 +lon_0=24 +x_0=500000 +y_0=6375000 +ellps=GRS80 +units=m +no_defs");
+proj4.defs('EPSG:4326', '+proj=longlat +datum=WGS84 +no_defs')
+proj4.defs(
+	'EPSG:3301',
+	'+proj=lcc +lat_1=59.33333333333334 +lat_2=58 +lat_0=57.51755393055556 +lon_0=24 +x_0=500000 +y_0=6375000 +ellps=GRS80 +units=m +no_defs'
+)
 
 function wgs84ToLest97(lat, lon) {
 	// Transform the WGS 84 coordinates to L-EST97
-	return proj4("EPSG:4326", "EPSG:3301", [lon, lat]);
+	return proj4('EPSG:4326', 'EPSG:3301', [lon, lat])
 }
 
-
-export function isEstonia(lat, lng){
+export function isEstonia(lat, lng) {
 	lng = parseFloat(lng)
 	lat = parseFloat(lat)
 
@@ -53,10 +58,10 @@ export function isEstonia(lat, lng){
 }
 
 const TAB_MAPPING = {
-	'placement': 2,
-	'position': 0,
-	'satellite': 1,
-	'moisture': 3,
+	placement: 2,
+	position: 0,
+	satellite: 1,
+	moisture: 3,
 }
 
 const REVERSE_TAB_MAPPING = {
@@ -81,7 +86,8 @@ export default function ApiaryEditForm() {
 	let [deletingPhoto, setDeletingPhoto] = useState(false)
 	let [photoUploadError, setPhotoUploadError] = useState<Error | null>(null)
 
-	const initialTab = tab && TAB_MAPPING[tab] !== undefined ? TAB_MAPPING[tab] : 2
+	const initialTab =
+		tab && TAB_MAPPING[tab] !== undefined ? TAB_MAPPING[tab] : 2
 	let [mapTab, setMapTab] = useState(initialTab)
 
 	const changeTab = (tabIndex: number) => {
@@ -94,15 +100,20 @@ export default function ApiaryEditForm() {
 	const onHiveSelect = (selectedHiveId: string | null) => {
 		const tabSlug = REVERSE_TAB_MAPPING[mapTab] || 'placement'
 		if (selectedHiveId) {
-			navigate(`/apiaries/edit/${id}/${tabSlug}/${selectedHiveId}`, { replace: true })
+			navigate(`/apiaries/edit/${id}/${tabSlug}/${selectedHiveId}`, {
+				replace: true,
+			})
 		} else {
 			navigate(`/apiaries/edit/${id}/${tabSlug}`, { replace: true })
 		}
 	}
 
-	let apiary = useLiveQuery(() => getApiary(+id), [id]);
+	let apiary = useLiveQuery(() => getApiary(+id), [id])
 	const user = useLiveQuery(() => getUser(), [], null)
-	const isHivePlacementLocked = isBillingTierLessThan(user?.billingPlan, 'hobbyist')
+	const isHivePlacementLocked = isBillingTierLessThan(
+		user?.billingPlan,
+		'hobbyist'
+	)
 
 	let {
 		loading: loadingGet,
@@ -110,35 +121,41 @@ export default function ApiaryEditForm() {
 		data: apiaryGet,
 	} = useQuery(
 		gql`
-		query apiary($id: ID!) {
-			apiary(id: $id) {
-				id
-				name
-				type
-				lat
-				lng
-				hives {
+			query apiary($id: ID!) {
+				apiary(id: $id) {
 					id
-					hiveNumber
-					boxCount
-					family {
-						name
+					name
+					type
+					lat
+					lng
+					hives {
+						id
+						hiveNumber
+						boxCount
+						family {
+							name
+						}
 					}
 				}
 			}
-		}
-	`,
+		`,
 		{ variables: { id } }
 	)
 
 	if (!apiary) {
 		if (loadingGet) {
 			return <Loader />
-		}
-		else {
-			return <MessageNotFound msg={<T>Apiary not found</T>}>
-				<div><T ctx="this is a not-found error message">Apiary was either deleted, never existed or we have a navigation or backend error. You can create new apiary from apiary list view</T></div>
-			</MessageNotFound>
+		} else {
+			return (
+				<MessageNotFound msg={<T>Apiary not found</T>}>
+					<div>
+						<T ctx="this is a not-found error message">
+							Apiary was either deleted, never existed or we have a navigation
+							or backend error. You can create new apiary from apiary list view
+						</T>
+					</div>
+				</MessageNotFound>
+			)
 		}
 	}
 
@@ -188,7 +205,6 @@ export default function ApiaryEditForm() {
 		}
 	}, [isMobileApiary, mapTab])
 
-
 	const [saving, setSaving] = useState(false)
 
 	async function onDeleteApiary() {
@@ -198,12 +214,12 @@ export default function ApiaryEditForm() {
 		)
 
 		if (confirmed) {
-			setSaving(true);
+			setSaving(true)
 			await deactivateApiary({
 				id,
 			})
 
-			setSaving(false);
+			setSaving(false)
 			navigate(`/apiaries`, { replace: true })
 		}
 	}
@@ -242,7 +258,9 @@ export default function ApiaryEditForm() {
 			})
 
 			if (didMove && apiaryGet?.apiary?.hives?.length) {
-				const movedHives = apiaryGet.apiary.hives as Array<{ id: string | number }>
+				const movedHives = apiaryGet.apiary.hives as Array<{
+					id: string | number
+				}>
 				await Promise.all(
 					movedHives.map((hive) =>
 						addHiveLog({
@@ -266,7 +284,9 @@ export default function ApiaryEditForm() {
 		setPhotoUploadError(null)
 
 		if (!file.type.startsWith('image/')) {
-			setPhotoUploadError(new Error('Unsupported file type. Please upload an image.'))
+			setPhotoUploadError(
+				new Error('Unsupported file type. Please upload an image.')
+			)
 			return
 		}
 
@@ -298,7 +318,11 @@ export default function ApiaryEditForm() {
 				photoFileId: +uploadData.id,
 			})
 		} catch (uploadError) {
-			setPhotoUploadError(uploadError instanceof Error ? uploadError : new Error('Failed to upload image'))
+			setPhotoUploadError(
+				uploadError instanceof Error
+					? uploadError
+					: new Error('Failed to upload image')
+			)
 		} finally {
 			setUploadingPhoto(false)
 		}
@@ -333,7 +357,11 @@ export default function ApiaryEditForm() {
 				photoFileId: undefined,
 			})
 		} catch (deleteError) {
-			setPhotoUploadError(deleteError instanceof Error ? deleteError : new Error('Failed to delete image'))
+			setPhotoUploadError(
+				deleteError instanceof Error
+					? deleteError
+					: new Error('Failed to delete image')
+			)
 		} finally {
 			setDeletingPhoto(false)
 		}
@@ -357,16 +385,30 @@ export default function ApiaryEditForm() {
 		setName(e.target.value)
 	}
 
-	let estonia_plane_map=null;
+	let estonia_plane_map = null
 
 	// conditionally show Estonia
 	if (isEstonia(lat, lng)) {
 		let [y, x] = wgs84ToLest97(lat, lng)
-		estonia_plane_map = <Button href={`https://kls.pria.ee/kaart/#map=12/${x}/${y}`}>Estonia PRIA map</Button>
+		estonia_plane_map = (
+			<Button href={`https://kls.pria.ee/kaart/#map=12/${x}/${y}`}>
+				Estonia PRIA map
+			</Button>
+		)
 	}
 
-	let satellite_map = <iframe style="width:100%;height:400px; border:0;" src={`https://apps.sentinel-hub.com/eo-browser/?zoom=15&lat=${lat}&lng=${lng}&themeId=DEFAULT-THEME&visualizationUrl=https%3A%2F%2Fservices.sentinel-hub.com%2Fogc%2Fwms%2Fbd86bcc0-f318-402b-a145-015f85b9427e&datasetId=S2L2A&fromTime=2023-09-14T00%3A00%3A00.000Z&toTime=2023-09-14T23%3A59%3A59.999Z&layerId=2_TONEMAPPED_NATURAL_COLOR&demSource3D=%22MAPZEN%22`}></iframe>
-	let moisture_map = <iframe style="width:100%;height:400px; border:0;" src={`https://dataspace.copernicus.eu/browser/?zoom=15&lat=${lat}&lng=${lng}&themeId=DEFAULT-THEME&visualizationUrl=https%3A%2F%2Fsh.dataspace.copernicus.eu%2Fogc%2Fwms%2Fa91f72b5-f393-4320-bc0f-990129bd9e63&datasetId=S2_L2A_CDAS&fromTime=2023-10-01T00%3A00%3A00.000Z&toTime=2023-10-01T23%3A59%3A59.999Z&layerId=5-MOISTURE-INDEX1&demSource3D=%22MAPZEN%22&cloudCoverage=30`}></iframe>
+	let satellite_map = (
+		<iframe
+			style="width:100%;height:400px; border:0;"
+			src={`https://apps.sentinel-hub.com/eo-browser/?zoom=15&lat=${lat}&lng=${lng}&themeId=DEFAULT-THEME&visualizationUrl=https%3A%2F%2Fservices.sentinel-hub.com%2Fogc%2Fwms%2Fbd86bcc0-f318-402b-a145-015f85b9427e&datasetId=S2L2A&fromTime=2023-09-14T00%3A00%3A00.000Z&toTime=2023-09-14T23%3A59%3A59.999Z&layerId=2_TONEMAPPED_NATURAL_COLOR&demSource3D=%22MAPZEN%22`}
+		></iframe>
+	)
+	let moisture_map = (
+		<iframe
+			style="width:100%;height:400px; border:0;"
+			src={`https://dataspace.copernicus.eu/browser/?zoom=15&lat=${lat}&lng=${lng}&themeId=DEFAULT-THEME&visualizationUrl=https%3A%2F%2Fsh.dataspace.copernicus.eu%2Fogc%2Fwms%2Fa91f72b5-f393-4320-bc0f-990129bd9e63&datasetId=S2_L2A_CDAS&fromTime=2023-10-01T00%3A00%3A00.000Z&toTime=2023-10-01T23%3A59%3A59.999Z&layerId=5-MOISTURE-INDEX1&demSource3D=%22MAPZEN%22&cloudCoverage=30`}
+		></iframe>
+	)
 
 	return (
 		<div>
@@ -376,12 +418,14 @@ export default function ApiaryEditForm() {
 			<div style="padding:20px;">
 				<VisualForm onSubmit={onSubmit.bind(this)}>
 					<div>
-						<label htmlFor="name" style="width:120px;"><T ns="apiary">Name</T></label>
+						<label htmlFor="name" style="width:120px;">
+							<T ns="apiary">Name</T>
+						</label>
 						<div>
 							<input
 								name="name"
 								id="name"
-								style={{width: '100%'}}
+								style={{ width: '100%' }}
 								autoFocus
 								onInput={onNameChange}
 								value={name}
@@ -389,7 +433,9 @@ export default function ApiaryEditForm() {
 						</div>
 					</div>
 					<div>
-						<label htmlFor="type" style="width:120px;"><T>Type</T></label>
+						<label htmlFor="type" style="width:120px;">
+							<T>Type</T>
+						</label>
 						<div>
 							<select
 								name="type"
@@ -398,44 +444,76 @@ export default function ApiaryEditForm() {
 								value={type}
 								onChange={(e: any) => setType(e.target.value as ApiaryType)}
 							>
-								<option value={apiaryTypes.STATIC}><T>Static apiary</T></option>
-								<option value={apiaryTypes.MOBILE}><T>Mobile apiary</T></option>
+								<option value={apiaryTypes.STATIC}>
+									<T>Static apiary</T>
+								</option>
+								<option value={apiaryTypes.MOBILE}>
+									<T>Mobile apiary</T>
+								</option>
 							</select>
 						</div>
 					</div>
 
-
 					<div>
 						<div></div>
-					<div style={"display:flex; flex-direction: row-reverse;"}>
-						<Button color="red" loading={saving}
-								onClick={async () => await onDeleteApiary()}><DeleteIcon/><span><T>Delete</T></span></Button>
-						<Button type="submit" loading={saving} color="green"><T>Save</T></Button>
-					</div>
+						<div style={'display:flex; flex-direction: row-reverse;'}>
+							<Button
+								color="red"
+								loading={saving}
+								onClick={async () => await onDeleteApiary()}
+							>
+								<DeleteIcon />
+								<span>
+									<T>Delete</T>
+								</span>
+							</Button>
+							<Button type="submit" loading={saving} color="green">
+								<T>Save</T>
+							</Button>
+						</div>
 					</div>
 				</VisualForm>
 
-					<div style={{ marginTop: 16, border: '1px solid #e5e5e5', borderRadius: 12, padding: 12 }}>
-						<div style={{ fontWeight: 600, marginBottom: 8 }}><T>Apiary photo</T></div>
-						{photoUrl && (
-							<div style={{ position: 'relative', marginBottom: 8 }}>
-								<img
-									src={photoUrl}
-									alt={name || 'Apiary photo'}
-									style={{ width: '100%', maxHeight: 260, objectFit: 'cover', borderRadius: 10 }}
-								/>
-								<Button
-									color="red"
-									onClick={onDeletePhoto}
-									loading={deletingPhoto}
-									style={{ position: 'absolute', top: 8, right: 8, zIndex: 1 }}
-								>
-									<DeleteIcon /><span><T>Delete photo</T></span>
-								</Button>
-							</div>
-						)}
-						<DragAndDrop handleDrop={onPhotoDrop}>
-							<div className={`${styles.dropArea} ${photoUrl ? styles.dropAreaCompact : ''}`}>
+				<div
+					style={{
+						marginTop: 16,
+						border: '1px solid #e5e5e5',
+						borderRadius: 12,
+						padding: 12,
+					}}
+				>
+					<div style={{ fontWeight: 600, marginBottom: 8 }}>
+						<T>Apiary photo</T>
+					</div>
+					{photoUrl && (
+						<div style={{ position: 'relative', marginBottom: 8 }}>
+							<img
+								src={photoUrl}
+								alt={name || 'Apiary photo'}
+								style={{
+									width: '100%',
+									maxHeight: 260,
+									objectFit: 'cover',
+									borderRadius: 10,
+								}}
+							/>
+							<Button
+								color="red"
+								onClick={onDeletePhoto}
+								loading={deletingPhoto}
+								style={{ position: 'absolute', top: 8, right: 8, zIndex: 1 }}
+							>
+								<DeleteIcon />
+								<span>
+									<T>Delete photo</T>
+								</span>
+							</Button>
+						</div>
+					)}
+					<DragAndDrop handleDrop={onPhotoDrop}>
+						<div
+							className={`${styles.dropArea} ${photoUrl ? styles.dropAreaCompact : ''}`}
+						>
 							<input
 								type="file"
 								className={styles.inputfile}
@@ -444,35 +522,65 @@ export default function ApiaryEditForm() {
 								onChange={onPhotoUpload}
 								disabled={uploadingPhoto || deletingPhoto}
 							/>
-							<label htmlFor="apiary-photo-file" className={styles.fileUploadLabel}>
+							<label
+								htmlFor="apiary-photo-file"
+								className={styles.fileUploadLabel}
+							>
 								<UploadIcon />
-								{photoUrl ? <T>Replace apiary photo</T> : <T>Upload apiary photo</T>}
+								{photoUrl ? (
+									<T>Replace apiary photo</T>
+								) : (
+									<T>Upload apiary photo</T>
+								)}
 							</label>
 							<div className={styles.uploadHint}>
 								<T>Drag and drop an image here or click to select</T>
 							</div>
 						</div>
 					</DragAndDrop>
-					{uploadingPhoto && <div style={{ marginTop: 8 }}><T>Uploading photo...</T></div>}
-					{deletingPhoto && <div style={{ marginTop: 8 }}><T>Deleting photo...</T></div>}
+					{uploadingPhoto && (
+						<div style={{ marginTop: 8 }}>
+							<T>Uploading photo...</T>
+						</div>
+					)}
+					{deletingPhoto && (
+						<div style={{ marginTop: 8 }}>
+							<T>Deleting photo...</T>
+						</div>
+					)}
 					{photoUploadError && <ErrorMsg error={photoUploadError} />}
 				</div>
 			</div>
 			<TabBar>
-				{!isMobileApiary && <Tab isSelected={mapTab == 2} onClick={() => changeTab(2)}><T>Hive Placement</T></Tab>}
-        <Tab isSelected={mapTab == 0} onClick={() => changeTab(0)}><T>Geo Position</T></Tab>
-				<Tab isSelected={mapTab == 1} onClick={() => changeTab(1)}><T>Satellite</T></Tab>
-				<Tab isSelected={mapTab == 3} onClick={() => changeTab(3)}><T>Moisture</T></Tab>
+				{!isMobileApiary && (
+					<Tab isSelected={mapTab == 2} onClick={() => changeTab(2)}>
+						<T>Hive Placement</T>
+					</Tab>
+				)}
+				<Tab isSelected={mapTab == 0} onClick={() => changeTab(0)}>
+					<T>Geo Position</T>
+				</Tab>
+				<Tab isSelected={mapTab == 1} onClick={() => changeTab(1)}>
+					<T>Satellite</T>
+				</Tab>
+				<Tab isSelected={mapTab == 3} onClick={() => changeTab(3)}>
+					<T>Moisture</T>
+				</Tab>
 			</TabBar>
 			<div>
 				{mapTab == 0 && (
 					<>
-						<div style={"padding: 20px; display:flex; gap: 10px;"}>
+						<div style={'padding: 20px; display:flex; gap: 10px;'}>
 							<Button
 								onClick={() => {
 									setAutoLocate(!autoLocate)
 								}}
-							><LocationMarker/><span><T>Locate me</T></span></Button>
+							>
+								<LocationMarker />
+								<span>
+									<T>Locate me</T>
+								</span>
+							</Button>
 							{estonia_plane_map}
 						</div>
 						<Map
@@ -489,7 +597,9 @@ export default function ApiaryEditForm() {
 
 				{mapTab == 1 && satellite_map}
 				{mapTab == 2 && !isMobileApiary && apiaryGet?.apiary?.hives && (
-					<div className={`${styles.previewContainer} ${isHivePlacementLocked ? styles.previewLocked : ''}`}>
+					<div
+						className={`${styles.previewContainer} ${isHivePlacementLocked ? styles.previewLocked : ''}`}
+					>
 						<HivePlacement
 							apiaryId={id}
 							hives={apiaryGet.apiary.hives}
@@ -502,7 +612,9 @@ export default function ApiaryEditForm() {
 							<div className={styles.previewOverlayNotice}>
 								<BillingUpgradeNotice
 									compact
-									title={<T>Hive Placement requires Hobbyist plan or higher.</T>}
+									title={
+										<T>Hive Placement requires Hobbyist plan or higher.</T>
+									}
 								/>
 							</div>
 						)}
@@ -510,8 +622,7 @@ export default function ApiaryEditForm() {
 				)}
 				{mapTab == 3 && moisture_map}
 
-
-        {mapTab == 0 && apiary && <Weather lat={lat} lng={lng} />}
+				{mapTab == 0 && apiary && <Weather lat={lat} lng={lng} />}
 			</div>
 			{ConfirmDialog}
 		</div>

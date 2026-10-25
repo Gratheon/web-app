@@ -1,15 +1,15 @@
-import Button from '@/shared/button';
-import T from '@/shared/translate';
-import EraserIcon from '@/icons/eraserIcon.tsx';
-import FreeDrawIcon from '@/icons/freeDrawIcon.tsx';
-import UndoStrokeIcon from '@/icons/undoStrokeIcon.tsx';
-import KeyboardHints from '@/shared/keyboardHints';
-import styles from '../styles.module.less';
+import Button from '@/shared/button'
+import T from '@/shared/translate'
+import EraserIcon from '@/icons/eraserIcon.tsx'
+import FreeDrawIcon from '@/icons/freeDrawIcon.tsx'
+import UndoStrokeIcon from '@/icons/undoStrokeIcon.tsx'
+import KeyboardHints from '@/shared/keyboardHints'
+import styles from '../styles.module.less'
 
 type Props = {
-	onUndo: () => void;
-	onClear: () => void;
-};
+	onUndo: () => void
+	onClear: () => void
+}
 
 export default function FreeDrawToolbar({ onUndo, onClear }: Props) {
 	return (
@@ -31,5 +31,5 @@ export default function FreeDrawToolbar({ onUndo, onClear }: Props) {
 				</Button>
 			</div>
 		</div>
-	);
+	)
 }

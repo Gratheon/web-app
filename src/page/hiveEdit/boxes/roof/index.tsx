@@ -6,7 +6,9 @@ export default function Roof({ selected = false, roofStyle = 'FLAT' }) {
 	const isAngular = normalizedRoofStyle === 'ANGULAR'
 
 	return (
-		<div className={`${style.roof} ${selected && style.selected} ${isAngular ? style.angular : style.flat} roof`}>
+		<div
+			className={`${style.roof} ${selected && style.selected} ${isAngular ? style.angular : style.flat} roof`}
+		>
 			<div className={style.lip}></div>
 		</div>
 	)

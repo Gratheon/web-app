@@ -13,7 +13,11 @@ describe('boxSystemProfiles helpers', () => {
 		const lookup = buildFrameSettingLookup([
 			{ systemId: '10', boxType: 'DEEP', frameSourceSystemId: '1' },
 			{ systemId: '10', boxType: 'SUPER', frameSourceSystemId: '1' },
-			{ systemId: '10', boxType: 'LARGE_HORIZONTAL_SECTION', frameSourceSystemId: '1' },
+			{
+				systemId: '10',
+				boxType: 'LARGE_HORIZONTAL_SECTION',
+				frameSourceSystemId: '1',
+			},
 		])
 
 		expect(getCurrentFrameProfileSource('10', lookup)).toBe('1')
@@ -24,7 +28,11 @@ describe('boxSystemProfiles helpers', () => {
 		const lookup = buildFrameSettingLookup([
 			{ systemId: '10', boxType: 'DEEP', frameSourceSystemId: '1' },
 			{ systemId: '10', boxType: 'SUPER', frameSourceSystemId: '2' },
-			{ systemId: '10', boxType: 'LARGE_HORIZONTAL_SECTION', frameSourceSystemId: '1' },
+			{
+				systemId: '10',
+				boxType: 'LARGE_HORIZONTAL_SECTION',
+				frameSourceSystemId: '1',
+			},
 		])
 
 		expect(getCurrentFrameProfileSource('10', lookup)).toBe('__MIXED__')
@@ -34,7 +42,11 @@ describe('boxSystemProfiles helpers', () => {
 		const lookup = buildFrameSettingLookup([
 			{ systemId: '10', boxType: 'DEEP', frameSourceSystemId: '10' },
 			{ systemId: '10', boxType: 'SUPER', frameSourceSystemId: '10' },
-			{ systemId: '10', boxType: 'LARGE_HORIZONTAL_SECTION', frameSourceSystemId: '10' },
+			{
+				systemId: '10',
+				boxType: 'LARGE_HORIZONTAL_SECTION',
+				frameSourceSystemId: '10',
+			},
 		])
 
 		expect(hasExplicitOwnFrameMapping('10', lookup)).toBe(true)
@@ -47,8 +59,16 @@ describe('boxSystemProfiles helpers', () => {
 		await applyFrameSourceToAllBoxTypes(setFrameSource, '10', '42')
 
 		expect(setFrameSource).toHaveBeenCalledTimes(FRAME_BOX_TYPE_ORDER.length)
-		expect(setFrameSource.mock.calls.map(([input]) => input.boxType)).toEqual(FRAME_BOX_TYPE_ORDER)
-		expect(setFrameSource.mock.calls.every(([input]) => input.systemId === '10')).toBe(true)
-		expect(setFrameSource.mock.calls.every(([input]) => input.frameSourceSystemId === '42')).toBe(true)
+		expect(setFrameSource.mock.calls.map(([input]) => input.boxType)).toEqual(
+			FRAME_BOX_TYPE_ORDER
+		)
+		expect(
+			setFrameSource.mock.calls.every(([input]) => input.systemId === '10')
+		).toBe(true)
+		expect(
+			setFrameSource.mock.calls.every(
+				([input]) => input.frameSourceSystemId === '42'
+			)
+		).toBe(true)
 	})
 })

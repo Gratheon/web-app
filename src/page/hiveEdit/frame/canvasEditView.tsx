@@ -24,15 +24,27 @@ export default function CanvasEditView() {
 			<BreadCrumbs
 				items={[
 					{
-						name: <><T>Apiary</T> #{apiaryId}</>,
+						name: (
+							<>
+								<T>Apiary</T> #{apiaryId}
+							</>
+						),
 						uri: `/apiaries/${apiaryId}`,
 					},
 					{
-						name: <><T>Hive</T> #{hiveId}</>,
+						name: (
+							<>
+								<T>Hive</T> #{hiveId}
+							</>
+						),
 						uri: `/apiaries/${apiaryId}/hives/${hiveId}`,
 					},
 					{
-						name: <><T>Frame</T> #{frameId}</>,
+						name: (
+							<>
+								<T>Frame</T> #{frameId}
+							</>
+						),
 						uri: `/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}/frame/${frameId}/${frameSideId}`,
 					},
 					{
@@ -42,7 +54,9 @@ export default function CanvasEditView() {
 				]}
 			/>
 			<div className={styles.topBar}>
-				<h2 style={{ margin: 0 }}><T>Edit canvas</T></h2>
+				<h2 style={{ margin: 0 }}>
+					<T>Edit canvas</T>
+				</h2>
 				<div style={{ display: 'flex', gap: 8 }}>
 					<Button
 						color="green"
@@ -54,7 +68,9 @@ export default function CanvasEditView() {
 					</Button>
 					<Button
 						onClick={() =>
-							navigate(`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}/frame/${frameId}/${frameSideId}`)
+							navigate(
+								`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}/frame/${frameId}/${frameSideId}`
+							)
 						}
 					>
 						<T>Back to hive view</T>

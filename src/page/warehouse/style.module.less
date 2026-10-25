@@ -382,7 +382,10 @@
 .matrixHeader,
 .matrixRow {
 	display: grid;
-	grid-template-columns: minmax(340px, 1.8fr) repeat(var(--system-column-count, 1), minmax(170px, 1fr));
+	grid-template-columns: minmax(340px, 1.8fr) repeat(
+			var(--system-column-count, 1),
+			minmax(170px, 1fr)
+		);
 	border-bottom: 1px solid #ececf2;
 }
 
@@ -495,7 +498,7 @@
 	height: 3px;
 	background: #22a447;
 	position: absolute;
-	animation: fallIn 0.38s cubic-bezier(.2, .9, .3, 1.2) both;
+	animation: fallIn 0.38s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
 }
 
 @keyframes fallIn {
@@ -591,7 +594,9 @@
 	background: #fff;
 	color: #2f3640;
 	cursor: pointer;
-	transition: border-color 0.15s ease, background-color 0.15s ease;
+	transition:
+		border-color 0.15s ease,
+		background-color 0.15s ease;
 }
 
 .radioOption:hover {
@@ -1031,7 +1036,10 @@
 
 	.matrixHeader,
 	.matrixRow {
-		grid-template-columns: minmax(220px, 1.5fr) repeat(var(--system-column-count, 1), minmax(130px, 1fr));
+		grid-template-columns: minmax(220px, 1.5fr) repeat(
+				var(--system-column-count, 1),
+				minmax(130px, 1fr)
+			);
 	}
 
 	.frameConfigHeaderRow,

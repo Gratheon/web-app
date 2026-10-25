@@ -17,16 +17,18 @@ export async function upsertFrameSide(frameside: FrameSide): Promise<void> {
 	await upsertEntityWithNumericID(TABLE_NAME, frameside)
 }
 
-export async function getFrameSide(frameSideId: number): Promise<FrameSide | undefined> {
+export async function getFrameSide(
+	frameSideId: number
+): Promise<FrameSide | undefined> {
 	// Validate frameSideId before querying
 	if (!frameSideId || !Number.isFinite(frameSideId) || frameSideId <= 0) {
-		console.warn(`Attempted to get frameSide with invalid ID: ${frameSideId}`);
-		return undefined; // Return undefined for invalid IDs
+		console.warn(`Attempted to get frameSide with invalid ID: ${frameSideId}`)
+		return undefined // Return undefined for invalid IDs
 	}
 
 	try {
 		// Ensure ID passed to Dexie is a number
-		return await db[TABLE_NAME].get(+frameSideId);
+		return await db[TABLE_NAME].get(+frameSideId)
 	} catch (e) {
 		console.error(e)
 		throw e
@@ -50,7 +52,8 @@ export function collectFrameSideIDsFromFrames(frames: Frame[]): number[] {
 export async function getFrameSidesMap(
 	frameSideIds: number[]
 ): Promise<Map<number, FrameSide>> {
-	const frameSides = await db[TABLE_NAME].where('id')
+	const frameSides = await db[TABLE_NAME]
+		.where('id')
 		.anyOf(frameSideIds)
 		.toArray()
 

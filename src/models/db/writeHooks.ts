@@ -1,13 +1,16 @@
 import frameSideFileModel, { FrameSideFile } from '../frameSideFile.ts'
 import { FrameSideCells } from '../frameSideCells.ts'
 
-import { upsertEntity, upsertEntityWithNumericID } from './index.ts' // Keep upsertEntity for other hooks if needed
+import { upsertEntityWithNumericID } from './index.ts' // Keep upsertEntity for other hooks if needed
 
 import { FrameSide } from '../frameSide.ts'
 import { upsertFrameSide } from '../frameSide.ts'
 import { Frame, upsertFrame } from '../frames.ts'
 import { FileResize, upsertFileResize } from '../fileResize.ts'
-import { upsertFrameSideInspection, FrameSideInspection } from '../frameSideInspection.ts' // Import new model function and type
+import {
+	upsertFrameSideInspection,
+	FrameSideInspection,
+} from '../frameSideInspection.ts' // Import new model function and type
 import { addHiveLog, hiveLogActions } from '../hiveLog.ts'
 
 export const writeHooks = {
@@ -39,7 +42,8 @@ export const writeHooks = {
 		}
 
 		const incomingPosition = Number(frame?.position ?? value?.position)
-		const hasIncomingPosition = Number.isFinite(incomingPosition) && incomingPosition > 0
+		const hasIncomingPosition =
+			Number.isFinite(incomingPosition) && incomingPosition > 0
 		// Ignore incomplete frame payloads from lightweight queries.
 		// Full frame sync paths include position + side ids.
 		if (!hasIncomingPosition) {
@@ -61,11 +65,11 @@ export const writeHooks = {
 	FrameSide: async (_, frameside: FrameSide) => {
 		// Ensure ID is numeric if present
 		if (frameside.id != null) {
-			frameside.id = +frameside.id;
+			frameside.id = +frameside.id
 		}
 		// frameId is associated via the parent Frame object, not needed here.
 
-		await upsertFrameSide(frameside);
+		await upsertFrameSide(frameside)
 	},
 
 	FileResize: async ({ id }, entity: FileResize) => {
@@ -120,7 +124,11 @@ export const writeHooks = {
 		}
 	},
 	User: async (_, entity) => {
-		if (typeof window !== 'undefined' && (import.meta.env.DEV || window.localStorage.getItem('debug:offline-indexdb') === '1')) {
+		if (
+			typeof window !== 'undefined' &&
+			(import.meta.env.DEV ||
+				window.localStorage.getItem('debug:offline-indexdb') === '1')
+		) {
 			console.debug('[writeHooks] Upserting User from GraphQL response', {
 				id: entity?.id,
 				email: entity?.email,

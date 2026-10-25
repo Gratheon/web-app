@@ -10,7 +10,7 @@ export default function BoxFrameEmptyComb({
 	frame,
 	frameURL,
 }: {
-	editable: Boolean
+	editable: boolean
 	frame: Frame
 	frameURL: string
 }) {

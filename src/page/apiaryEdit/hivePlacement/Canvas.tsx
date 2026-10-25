@@ -1,5 +1,11 @@
 import React, { useRef, useEffect, useState } from 'react'
-import { Obstacle, HivePlacement, Hive, HIVE_SIZE, CANVAS_HEIGHT } from './types'
+import {
+	Obstacle,
+	HivePlacement,
+	Hive,
+	HIVE_SIZE,
+	CANVAS_HEIGHT,
+} from './types'
 import { calculateShadow } from './ShadowRenderer'
 
 interface CanvasLabels {
@@ -92,7 +98,7 @@ export default function Canvas({
 	onMouseMove,
 	onMouseUp,
 	onSunAngleChange,
-	onAutoRotateToggle
+	onAutoRotateToggle,
 }: CanvasProps) {
 	type WindParticle = {
 		lane: number
@@ -104,14 +110,33 @@ export default function Canvas({
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 	const handleSize = isMobile ? 12 : 8
 	const [isDraggingSun, setIsDraggingSun] = useState(false)
-	const [isReadOnlyHoverInteractive, setIsReadOnlyHoverInteractive] = useState(false)
+	const [isReadOnlyHoverInteractive, setIsReadOnlyHoverInteractive] =
+		useState(false)
 	const animationRef = useRef<number | null>(null)
 	const windParticlesRef = useRef<WindParticle[]>([])
 	const shouldShowWind = windDirection !== null && !Number.isNaN(windDirection)
 
 	useEffect(() => {
 		drawCanvas()
-	}, [placements, obstacles, sunAngle, selectedHive, selectedObstacle, hives.length, canvasWidth, canvasHeight, panOffset, labels, focusPoint, zoomScale, showCompass, showShadows, windDirection, windSpeed, windVisualTone])
+	}, [
+		placements,
+		obstacles,
+		sunAngle,
+		selectedHive,
+		selectedObstacle,
+		hives.length,
+		canvasWidth,
+		canvasHeight,
+		panOffset,
+		labels,
+		focusPoint,
+		zoomScale,
+		showCompass,
+		showShadows,
+		windDirection,
+		windSpeed,
+		windVisualTone,
+	])
 
 	useEffect(() => {
 		if (!animateWind || !shouldShowWind) {
@@ -135,7 +160,27 @@ export default function Canvas({
 				animationRef.current = null
 			}
 		}
-	}, [animateWind, shouldShowWind, placements, obstacles, sunAngle, selectedHive, selectedObstacle, hives.length, canvasWidth, canvasHeight, panOffset, labels, focusPoint, zoomScale, showCompass, showShadows, windDirection, windSpeed, windVisualTone])
+	}, [
+		animateWind,
+		shouldShowWind,
+		placements,
+		obstacles,
+		sunAngle,
+		selectedHive,
+		selectedObstacle,
+		hives.length,
+		canvasWidth,
+		canvasHeight,
+		panOffset,
+		labels,
+		focusPoint,
+		zoomScale,
+		showCompass,
+		showShadows,
+		windDirection,
+		windSpeed,
+		windVisualTone,
+	])
 
 	useEffect(() => {
 		if (!shouldShowWind) {
@@ -150,9 +195,10 @@ export default function Canvas({
 				lane: (Math.random() - 0.5) * 2,
 				progress: Math.random(),
 				length: 8 + Math.random() * 18,
-				radius: windVisualTone === 'snow'
-					? (1.1 + Math.random() * 1.6)
-					: (0.8 + Math.random() * 1.2),
+				radius:
+					windVisualTone === 'snow'
+						? 1.1 + Math.random() * 1.6
+						: 0.8 + Math.random() * 1.2,
 			})
 		}
 		windParticlesRef.current = particles
@@ -197,23 +243,23 @@ export default function Canvas({
 
 	const getWindColor = () => {
 		switch (windVisualTone) {
-		case 'good':
-			return 'rgba(67, 160, 71, 0.85)'
-		case 'hot':
-			return 'rgba(251, 192, 45, 0.9)'
-		case 'rain':
-			return 'rgba(33, 150, 243, 0.85)'
-		case 'snow':
-			return 'rgba(245, 250, 255, 0.95)'
-		default:
-			return 'rgba(120, 120, 120, 0.72)'
+			case 'good':
+				return 'rgba(67, 160, 71, 0.85)'
+			case 'hot':
+				return 'rgba(251, 192, 45, 0.9)'
+			case 'rain':
+				return 'rgba(33, 150, 243, 0.85)'
+			case 'snow':
+				return 'rgba(245, 250, 255, 0.95)'
+			default:
+				return 'rgba(120, 120, 120, 0.72)'
 		}
 	}
 
 	const windVector = () => {
 		const fromDirection = windDirection ?? 0
 		const toDirection = (fromDirection + 180) % 360
-		const rad = toDirection * Math.PI / 180
+		const rad = (toDirection * Math.PI) / 180
 		return {
 			x: Math.sin(rad),
 			y: -Math.cos(rad),
@@ -224,14 +270,17 @@ export default function Canvas({
 	const drawWindFlow = (ctx: CanvasRenderingContext2D, timeMs: number) => {
 		const v = windVector()
 		const p = { x: -v.y, y: v.x }
-		const diag = Math.sqrt((canvasWidth * canvasWidth) + (canvasHeight * canvasHeight))
+		const diag = Math.sqrt(
+			canvasWidth * canvasWidth + canvasHeight * canvasHeight
+		)
 		const streamLength = diag * 1.35
 		const centerX = canvasWidth / 2
 		const centerY = canvasHeight / 2
 		const particles = windParticlesRef.current
 		const speedMetersPerSecond = Math.max(0, windSpeed ?? 0)
 		const speedPixelsPerSecond = speedMetersPerSecond * 24
-		const phaseSpeed = streamLength > 0 ? speedPixelsPerSecond / streamLength : 0
+		const phaseSpeed =
+			streamLength > 0 ? speedPixelsPerSecond / streamLength : 0
 		const color = getWindColor()
 
 		ctx.save()
@@ -244,13 +293,14 @@ export default function Canvas({
 			const lane = particle.lane * diag * 0.58
 			const progress = (particle.progress + (timeMs / 1000) * phaseSpeed) % 1
 			const along = progress * streamLength - streamLength / 2
-			const x = centerX + (v.x * along) + (p.x * lane)
-			const y = centerY + (v.y * along) + (p.y * lane)
+			const x = centerX + v.x * along + p.x * lane
+			const y = centerY + v.y * along + p.y * lane
 			const tail = particle.length
-			const tailX = x - (v.x * tail)
-			const tailY = y - (v.y * tail)
+			const tailX = x - v.x * tail
+			const tailY = y - v.y * tail
 
-			if (x < -30 || x > canvasWidth + 30 || y < -30 || y > canvasHeight + 30) continue
+			if (x < -30 || x > canvasWidth + 30 || y < -30 || y > canvasHeight + 30)
+				continue
 
 			ctx.beginPath()
 			ctx.moveTo(tailX, tailY)
@@ -314,11 +364,13 @@ export default function Canvas({
 	}
 
 	const drawObstacles = (ctx: CanvasRenderingContext2D) => {
-		obstacles.forEach(obs => {
+		obstacles.forEach((obs) => {
 			const isSelected = obs.id === selectedObstacle
 
 			if (obs.type === 'CIRCLE' && obs.radius) {
-				ctx.fillStyle = isSelected ? 'rgba(76, 175, 80, 0.5)' : 'rgba(76, 175, 80, 0.3)'
+				ctx.fillStyle = isSelected
+					? 'rgba(76, 175, 80, 0.5)'
+					: 'rgba(76, 175, 80, 0.3)'
 				ctx.strokeStyle = isSelected ? '#43a047' : '#66bb6a'
 				ctx.lineWidth = isSelected ? 3 : 2
 				ctx.beginPath()
@@ -350,9 +402,11 @@ export default function Canvas({
 			} else if (obs.type === 'RECTANGLE' && obs.width && obs.height) {
 				ctx.save()
 				ctx.translate(obs.x, obs.y)
-				ctx.rotate((obs.rotation || 0) * Math.PI / 180)
+				ctx.rotate(((obs.rotation || 0) * Math.PI) / 180)
 
-				ctx.fillStyle = isSelected ? 'rgba(158, 158, 158, 0.5)' : 'rgba(158, 158, 158, 0.3)'
+				ctx.fillStyle = isSelected
+					? 'rgba(158, 158, 158, 0.5)'
+					: 'rgba(158, 158, 158, 0.3)'
 				ctx.strokeStyle = isSelected ? '#757575' : '#9e9e9e'
 				ctx.lineWidth = isSelected ? 3 : 2
 				ctx.fillRect(-obs.width / 2, -obs.height / 2, obs.width, obs.height)
@@ -362,24 +416,38 @@ export default function Canvas({
 
 				if (isSelected) {
 					const rotRad = (obs.rotation || 0) * (Math.PI / 180)
-					const resizeHandleX = obs.x + (obs.width / 2 * Math.cos(rotRad) - obs.height / 2 * Math.sin(rotRad))
-					const resizeHandleY = obs.y + (obs.width / 2 * Math.sin(rotRad) + obs.height / 2 * Math.cos(rotRad))
+					const resizeHandleX =
+						obs.x +
+						((obs.width / 2) * Math.cos(rotRad) -
+							(obs.height / 2) * Math.sin(rotRad))
+					const resizeHandleY =
+						obs.y +
+						((obs.width / 2) * Math.sin(rotRad) +
+							(obs.height / 2) * Math.cos(rotRad))
 
 					ctx.fillStyle = '#2196F3'
 					ctx.beginPath()
 					ctx.arc(resizeHandleX, resizeHandleY, handleSize, 0, Math.PI * 2)
 					ctx.fill()
 
-					const rotHandleDistance = Math.sqrt((obs.width / 2) ** 2 + (obs.height / 2) ** 2) + 20
+					const rotHandleDistance =
+						Math.sqrt((obs.width / 2) ** 2 + (obs.height / 2) ** 2) + 20
 					ctx.fillStyle = '#FF9800'
 					ctx.beginPath()
 					ctx.arc(obs.x + rotHandleDistance, obs.y, handleSize, 0, Math.PI * 2)
 					ctx.fill()
 
-					const heightHandleDistance = Math.sqrt((obs.width / 2) ** 2 + (obs.height / 2) ** 2) + 40
+					const heightHandleDistance =
+						Math.sqrt((obs.width / 2) ** 2 + (obs.height / 2) ** 2) + 40
 					ctx.fillStyle = '#4CAF50'
 					ctx.beginPath()
-					ctx.arc(obs.x, obs.y + heightHandleDistance, handleSize, 0, Math.PI * 2)
+					ctx.arc(
+						obs.x,
+						obs.y + heightHandleDistance,
+						handleSize,
+						0,
+						Math.PI * 2
+					)
 					ctx.fill()
 
 					ctx.strokeStyle = '#4CAF50'
@@ -393,30 +461,36 @@ export default function Canvas({
 				}
 			}
 
-		if (obs.label) {
-			ctx.font = '12px Arial'
-			ctx.fillStyle = '#333'
-			ctx.textAlign = 'center'
-			const translatedLabel = obs.type === 'RECTANGLE' ? labels.building :
-			                       obs.type === 'CIRCLE' ? labels.tree :
-			                       obs.label
-			ctx.fillText(translatedLabel, obs.x, obs.y)
-		}
+			if (obs.label) {
+				ctx.font = '12px Arial'
+				ctx.fillStyle = '#333'
+				ctx.textAlign = 'center'
+				const translatedLabel =
+					obs.type === 'RECTANGLE'
+						? labels.building
+						: obs.type === 'CIRCLE'
+							? labels.tree
+							: obs.label
+				ctx.fillText(translatedLabel, obs.x, obs.y)
+			}
 		})
 	}
 
 	const drawHives = (ctx: CanvasRenderingContext2D) => {
 		placements.forEach((placement) => {
-			const hive = hives.find(h => h.id === placement.hiveId)
+			const hive = hives.find((h) => h.id === placement.hiveId)
 			if (!hive) {
-				console.log('[Canvas] Skipping render for placement with non-existent hive:', placement.hiveId)
+				console.log(
+					'[Canvas] Skipping render for placement with non-existent hive:',
+					placement.hiveId
+				)
 				return
 			}
 			const isSelected = placement.hiveId === selectedHive
 
 			ctx.save()
 			ctx.translate(placement.x, placement.y)
-			ctx.rotate((placement.rotation || 0) * Math.PI / 180)
+			ctx.rotate(((placement.rotation || 0) * Math.PI) / 180)
 
 			if (isSelected && isMobile) {
 				ctx.shadowColor = 'rgba(255, 160, 0, 0.6)'
@@ -458,8 +532,10 @@ export default function Canvas({
 			if (isSelected && showSelectionHandles) {
 				const rotHandleDistance = HIVE_SIZE / 2 + 20
 				const rotHandleAngle = (placement.rotation || 0) * (Math.PI / 180)
-				const rotHandleX = placement.x + rotHandleDistance * Math.sin(rotHandleAngle)
-				const rotHandleY = placement.y - rotHandleDistance * Math.cos(rotHandleAngle)
+				const rotHandleX =
+					placement.x + rotHandleDistance * Math.sin(rotHandleAngle)
+				const rotHandleY =
+					placement.y - rotHandleDistance * Math.cos(rotHandleAngle)
 
 				ctx.fillStyle = '#2196F3'
 				ctx.beginPath()
@@ -629,8 +705,12 @@ export default function Canvas({
 
 		const rect = canvas.getBoundingClientRect()
 		const touch = e.touches[0]
-		const x = isPanning ? touch.clientX - rect.left : touch.clientX - rect.left - panOffset.x
-		const y = isPanning ? touch.clientY - rect.top : touch.clientY - rect.top - panOffset.y
+		const x = isPanning
+			? touch.clientX - rect.left
+			: touch.clientX - rect.left - panOffset.x
+		const y = isPanning
+			? touch.clientY - rect.top
+			: touch.clientY - rect.top - panOffset.y
 
 		onMouseMove(x, y)
 	}
@@ -666,30 +746,39 @@ export default function Canvas({
 			width={canvasWidth}
 			height={canvasHeight}
 			onClick={handleCanvasClick}
-				onMouseDown={handleCanvasMouseDown}
-				onMouseMove={handleCanvasMouseMove}
-				onMouseUp={handleMouseUp}
-				onMouseLeave={handleMouseLeave}
+			onMouseDown={handleCanvasMouseDown}
+			onMouseMove={handleCanvasMouseMove}
+			onMouseUp={handleMouseUp}
+			onMouseLeave={handleMouseLeave}
 			onContextMenu={(e) => e.preventDefault()}
 			onTouchStart={handleTouchStart}
 			onTouchMove={handleTouchMove}
 			onTouchEnd={handleTouchEnd}
 			onTouchCancel={handleTouchEnd}
 			style={{
-					borderTop: '2px solid #ccc',
-					borderBottom: '2px solid #ccc',
-					cursor: isDraggingSun ? 'grabbing' :
-						readOnly ? ((allowReadOnlyClick && isReadOnlyHoverInteractive) ? 'pointer' : 'default') :
-						isPanning ? 'move' :
-					addingObstacle ? 'crosshair' :
-					(isDragging || isDraggingRotation || isDraggingObstacle) ? 'grabbing' :
-					(isResizingObstacle || isDraggingObstacleRotation) ? 'nwse-resize' :
-					isDraggingHeight ? 'ns-resize' :
-					'pointer',
+				borderTop: '2px solid #ccc',
+				borderBottom: '2px solid #ccc',
+				cursor: isDraggingSun
+					? 'grabbing'
+					: readOnly
+						? allowReadOnlyClick && isReadOnlyHoverInteractive
+							? 'pointer'
+							: 'default'
+						: isPanning
+							? 'move'
+							: addingObstacle
+								? 'crosshair'
+								: isDragging || isDraggingRotation || isDraggingObstacle
+									? 'grabbing'
+									: isResizingObstacle || isDraggingObstacleRotation
+										? 'nwse-resize'
+										: isDraggingHeight
+											? 'ns-resize'
+											: 'pointer',
 				display: 'block',
 				width: '100%',
 				height: 'auto',
-				touchAction: readOnly ? 'auto' : 'none'
+				touchAction: readOnly ? 'auto' : 'none',
 			}}
 		/>
 	)

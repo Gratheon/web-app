@@ -4,7 +4,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
 	currentUser: null as { lang?: string } | null,
-	cachedTranslations: new Map<string, { translationId: number; value: string | null } | null>(),
+	cachedTranslations: new Map<
+		string,
+		{ translationId: number; value: string | null } | null
+	>(),
 	fetchTranslationWithRemoteMock: vi.fn(),
 	fetchRemoteTranslationMock: vi.fn(),
 	isDev: false,
@@ -28,7 +31,10 @@ vi.mock('@/models/translationService', () => ({
 	fetchTranslationWithRemote: mocks.fetchTranslationWithRemoteMock,
 	fetchPluralWithRemote: vi.fn(),
 	fetchRemoteTranslation: mocks.fetchRemoteTranslationMock,
-	getUserLanguage: (user: { lang?: string } | null, supportedLangs: readonly string[]) => {
+	getUserLanguage: (
+		user: { lang?: string } | null,
+		supportedLangs: readonly string[]
+	) => {
 		if (user?.lang) {
 			const normalizedLang = user.lang.toLowerCase().substring(0, 2)
 			if (supportedLangs.includes(normalizedLang)) {
@@ -51,19 +57,28 @@ vi.mock('@/api', () => ({
 
 vi.mock('@/config/languages', () => ({
 	SUPPORTED_LANGUAGES: ['en', 'ru', 'et'],
-	normalizeSupportedLanguage: (lang?: string | null, supportedLangs: readonly string[] = ['en', 'ru', 'et']) => {
+	normalizeSupportedLanguage: (
+		lang?: string | null,
+		supportedLangs: readonly string[] = ['en', 'ru', 'et']
+	) => {
 		if (!lang) return null
 		const normalizedLang = lang.trim().toLowerCase().substring(0, 2)
 		return supportedLangs.includes(normalizedLang) ? normalizedLang : null
 	},
-	getQueryParamLanguage: (supportedLangs: readonly string[] = ['en', 'ru', 'et'], search?: string) => {
+	getQueryParamLanguage: (
+		supportedLangs: readonly string[] = ['en', 'ru', 'et'],
+		search?: string
+	) => {
 		const rawSearch = search ?? window.location.search
 		const lang = new URLSearchParams(rawSearch).get('lang')
 		if (!lang) return null
 		const normalizedLang = lang.trim().toLowerCase().substring(0, 2)
 		return supportedLangs.includes(normalizedLang) ? normalizedLang : null
 	},
-	getPreferredLanguage: (supportedLangs: readonly string[] = ['en', 'ru', 'et'], search?: string) => {
+	getPreferredLanguage: (
+		supportedLangs: readonly string[] = ['en', 'ru', 'et'],
+		search?: string
+	) => {
 		const rawSearch = search ?? window.location.search
 		const lang = new URLSearchParams(rawSearch).get('lang')
 		if (!lang) return 'en'
@@ -122,9 +137,10 @@ describe('useTranslation', () => {
 
 		vi.mocked(getUser).mockImplementation(async () => mocks.currentUser)
 		vi.mocked(getTranslation).mockResolvedValue({ id: 1, key: 'Delete' })
-		vi.mocked(getTranslationValue).mockImplementation(async (_translationId, lang) => (
-			mocks.cachedTranslations.get(String(lang))?.value || null
-		))
+		vi.mocked(getTranslationValue).mockImplementation(
+			async (_translationId, lang) =>
+				mocks.cachedTranslations.get(String(lang))?.value || null
+		)
 		vi.mocked(getPluralForms).mockResolvedValue(null)
 		vi.mocked(upsertTranslation).mockResolvedValue(1)
 		vi.mocked(upsertTranslationValue).mockResolvedValue(undefined)
@@ -181,7 +197,12 @@ describe('useTranslation', () => {
 		expect(container.textContent).toBe('Log In')
 
 		await flushPostLoadQueries()
-		expect(mocks.fetchRemoteTranslationMock).toHaveBeenCalledWith('Log In', 'et', undefined, undefined)
+		expect(mocks.fetchRemoteTranslationMock).toHaveBeenCalledWith(
+			'Log In',
+			'et',
+			undefined,
+			undefined
+		)
 		expect(container.textContent).toBe('Logi sisse')
 	})
 
@@ -199,10 +220,12 @@ describe('useTranslation', () => {
 		expect(translationSpan).not.toBeNull()
 
 		await act(async () => {
-			translationSpan?.dispatchEvent(new MouseEvent('click', {
-				bubbles: true,
-				ctrlKey: true,
-			}))
+			translationSpan?.dispatchEvent(
+				new MouseEvent('click', {
+					bubbles: true,
+					ctrlKey: true,
+				})
+			)
 		})
 
 		const input = container.querySelector('input') as HTMLInputElement | null
@@ -214,10 +237,12 @@ describe('useTranslation', () => {
 		})
 
 		await act(async () => {
-			input!.dispatchEvent(new KeyboardEvent('keydown', {
-				bubbles: true,
-				key: 'Enter',
-			}))
+			input!.dispatchEvent(
+				new KeyboardEvent('keydown', {
+					bubbles: true,
+					key: 'Enter',
+				})
+			)
 
 			await vi.dynamicImportSettled()
 			for (let i = 0; i < 4; i += 1) {

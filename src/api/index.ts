@@ -9,10 +9,10 @@ import {
 	dedupExchange,
 	TypedDocumentNode,
 } from 'urql'
-import { devtoolsExchange } from '@urql/devtools';
+import { devtoolsExchange } from '@urql/devtools'
 import { multipartFetchExchange } from '@urql/exchange-multipart-fetch'
 
-import {getShareToken, getToken} from '@/user'
+import { getShareToken, getToken } from '@/user'
 import { gatewayUri, imageUploadUrl, subscriptionUri } from '@/uri'
 import { writeHooks } from '@/models/db/writeHooks'
 
@@ -22,7 +22,6 @@ import resolvers from './resolvers'
 
 let uri = gatewayUri()
 
-
 let lastNetworkError = null
 const apolloClientHeaders: Record<string, string> = {
 	'apollographql-client-name': 'web-app',
@@ -31,25 +30,25 @@ const apolloClientHeaders: Record<string, string> = {
 }
 
 function getRequestHeaders(): Record<string, string> {
-	const shareToken = getShareToken();
-	const regularToken = getToken();
-	let headers: Record<string, string> = { ...apolloClientHeaders };
+	const shareToken = getShareToken()
+	const regularToken = getToken()
+	let headers: Record<string, string> = { ...apolloClientHeaders }
 
 	if (shareToken) {
 		headers = {
 			...headers,
 			'X-Share-Token': shareToken,
-		};
+		}
 	}
 
 	if (regularToken) {
 		headers = {
 			...headers,
-			'token': regularToken,
-		};
+			token: regularToken,
+		}
 	}
 
-	return headers;
+	return headers
 }
 
 type DegradedOperationResult = {
@@ -68,23 +67,24 @@ const graphqlWsClient = createClient({
 
 	// Dynamically set connection params based on available token
 	connectionParams: () => {
-		const regularToken = getToken();
+		const regularToken = getToken()
 		if (regularToken) {
-			console.debug("Using regular token for WebSocket connection");
-			return { token: regularToken };
+			console.debug('Using regular token for WebSocket connection')
+			return { token: regularToken }
 		}
-		const shareToken = getShareToken();
+		const shareToken = getShareToken()
 		if (shareToken) {
 			// event-stream-filter currently authenticates only with `connectionParams.token`
 			// and does not accept share tokens for websocket subscriptions.
-			console.debug("Share token found, but no regular token available for WebSocket connection");
-			return {};
+			console.debug(
+				'Share token found, but no regular token available for WebSocket connection'
+			)
+			return {}
 		}
-		console.debug("No token available for WebSocket connection");
-		return {}; // No token
+		console.debug('No token available for WebSocket connection')
+		return {} // No token
 	},
 })
-
 
 const apiClient = createUrqlClient({
 	url: uri,
@@ -112,13 +112,13 @@ const apiClient = createUrqlClient({
 		multipartFetchExchange,
 	],
 	fetchOptions: () => {
-		const headers = getRequestHeaders();
+		const headers = getRequestHeaders()
 		if (!headers['X-Share-Token'] && !headers['token']) {
-			console.debug("No token available for HTTP request headers");
+			console.debug('No token available for HTTP request headers')
 		}
 
-		return { headers };
-	}
+		return { headers }
+	},
 })
 
 function useMutationAdapted(
@@ -131,7 +131,10 @@ function useMutationAdapted(
 	return [op, result]
 }
 
-function useUploadMutation(query: string | TypedDocumentNode, url = imageUploadUrl()) {
+function useUploadMutation(
+	query: string | TypedDocumentNode,
+	url = imageUploadUrl()
+) {
 	const [result, op] = useMutation(query)
 	function opWrap(payload) {
 		return op(payload, {
@@ -166,7 +169,7 @@ function useQueryAdapted(query: string | TypedDocumentNode, options?: any) {
 		degradedError,
 		degradedService: isDegraded,
 		errorNetwork: hasData ? null : degradedResult.originalError,
-		reexecuteQuery
+		reexecuteQuery,
 	}
 }
 

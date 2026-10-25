@@ -14,7 +14,8 @@ type Account = {
 	email: string
 }
 
-const GENERIC_SUCCESS_MESSAGE = 'If this email is registered, we will send a password reset link.'
+const GENERIC_SUCCESS_MESSAGE =
+	'If this email is registered, we will send a password reset link.'
 
 export default function AccountForgotPassword() {
 	const [account, setAccount] = useState<Account>({ email: '' })
@@ -50,18 +51,34 @@ export default function AccountForgotPassword() {
 					<img src={logoURL} id={style.logo} draggable={false} />
 
 					<div className={style.loginModalInternal}>
-						{successMessage && <div className={style.successMessage}><T>{successMessage}</T></div>}
+						{successMessage && (
+							<div className={style.successMessage}>
+								<T>{successMessage}</T>
+							</div>
+						)}
 						{error && <ErrorMsg error={error} />}
 
 						<VisualForm
 							onSubmit={onSubmit}
-							submit={<Button loading={loading} type="submit" color="green" onClick={onSubmit}>
-								<T>Send reset link</T>
-							</Button>}
+							submit={
+								<Button
+									loading={loading}
+									type="submit"
+									color="green"
+									onClick={onSubmit}
+								>
+									<T>Send reset link</T>
+								</Button>
+							}
 						>
-							<h1 className={style.formTitle}><T>Reset password</T></h1>
+							<h1 className={style.formTitle}>
+								<T>Reset password</T>
+							</h1>
 							<p className={style.formHint}>
-								<T>Enter your account email and we will send a link to reset your password.</T>
+								<T>
+									Enter your account email and we will send a link to reset your
+									password.
+								</T>
 							</p>
 							<input
 								style="width:100%;"
@@ -79,7 +96,9 @@ export default function AccountForgotPassword() {
 					<div className={style.balancer}></div>
 				</div>
 				<div className={style.linkToRegister}>
-					<Link to={authPath}><T>Back to login</T></Link>
+					<Link to={authPath}>
+						<T>Back to login</T>
+					</Link>
 				</div>
 			</div>
 		</div>

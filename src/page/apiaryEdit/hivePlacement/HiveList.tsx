@@ -8,21 +8,34 @@ interface HiveListProps {
 	onSelectHive: (hiveId: string | null) => void
 }
 
-export default function HiveList({ hives, placements, selectedHive, onSelectHive }: HiveListProps) {
+export default function HiveList({
+	hives,
+	placements,
+	selectedHive,
+	onSelectHive,
+}: HiveListProps) {
 	return (
-		<div style={{
-			padding: '10px 20px',
-			marginBottom: '10px',
-			backgroundColor: '#f5f5f5',
-			borderRadius: '8px',
-			maxHeight: '200px',
-			overflowY: 'auto'
-		}}>
+		<div
+			style={{
+				padding: '10px 20px',
+				marginBottom: '10px',
+				backgroundColor: '#f5f5f5',
+				borderRadius: '8px',
+				maxHeight: '200px',
+				overflowY: 'auto',
+			}}
+		>
 			<div style={{ marginBottom: '10px', fontWeight: 'bold' }}>
 				<T>Select Hive</T>:
 			</div>
-			<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '8px' }}>
-				{hives.map(hive => {
+			<div
+				style={{
+					display: 'grid',
+					gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))',
+					gap: '8px',
+				}}
+			>
+				{hives.map((hive) => {
 					const isSelected = selectedHive === hive.id
 					const placement = placements.get(hive.id)
 
@@ -45,7 +58,7 @@ export default function HiveList({ hives, placements, selectedHive, onSelectHive
 								flexDirection: 'column',
 								justifyContent: 'center',
 								alignItems: 'center',
-								gap: '4px'
+								gap: '4px',
 							}}
 						>
 							<div>#{hive.hiveNumber || hive.id.slice(0, 4)}</div>
@@ -61,4 +74,3 @@ export default function HiveList({ hives, placements, selectedHive, onSelectHive
 		</div>
 	)
 }
-

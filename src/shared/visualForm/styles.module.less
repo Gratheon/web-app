@@ -1,6 +1,5 @@
 @import '../../colors.module.less';
 
-
 form {
 	width: 100%;
 }
@@ -13,26 +12,27 @@ form {
 	border-collapse: separate;
 	margin: 0;
 
-	&>div {
+	& > div {
 		display: table-row;
 		grid-template-columns: auto 1fr;
 		padding: 0;
 		box-sizing: border-box;
 
-		&>label {
+		& > label {
 			display: table-cell;
 			vertical-align: top;
 			padding: 7px;
 			box-sizing: border-box;
 		}
 
-		input, select{
+		input,
+		select {
 			padding: 6px 10px;
 		}
-		
-		&>input,
-		&>textarea,
-		&>div {
+
+		& > input,
+		& > textarea,
+		& > div {
 			display: table-cell;
 			margin: 3px 0 3px 0;
 			box-sizing: border-box;
@@ -40,11 +40,10 @@ form {
 	}
 }
 
-
 .buttonsWrap {
 	text-align: right;
 	display: flex;
-	flex-direction: row-reverse;	
+	flex-direction: row-reverse;
 }
 
 :global {

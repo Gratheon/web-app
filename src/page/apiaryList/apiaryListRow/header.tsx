@@ -37,9 +37,7 @@ export default function ApiaryListRowHeader({
 					<Toggle
 						className={styles.viewModeToggle}
 						checked={effectiveListType === 'table'}
-						onChange={(isTable) =>
-							onListTypeChange(isTable ? 'table' : 'list')
-						}
+						onChange={(isTable) => onListTypeChange(isTable ? 'table' : 'list')}
 						offIcon={<ListIcon size={14} />}
 						onIcon={<TableIcon size={14} />}
 						title={

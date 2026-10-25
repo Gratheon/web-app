@@ -4,10 +4,18 @@ import { useEffect, useState, useRef, useMemo, useCallback } from 'preact/hooks'
 import type { TranslationData } from '@/models/translationService'
 import { getPluralForm } from './pluralRules'
 import isDev from '@/isDev'
-import { getPreferredLanguage, getQueryParamLanguage, normalizeSupportedLanguage, SUPPORTED_LANGUAGES } from '@/config/languages'
+import {
+	getPreferredLanguage,
+	getQueryParamLanguage,
+	normalizeSupportedLanguage,
+	SUPPORTED_LANGUAGES,
+} from '@/config/languages'
 
 function isTranslationDebugEnabled(): boolean {
-	return typeof window !== 'undefined' && Boolean((window as any).__DEBUG_TRANSLATIONS__)
+	return (
+		typeof window !== 'undefined' &&
+		Boolean((window as any).__DEBUG_TRANSLATIONS__)
+	)
 }
 
 function debugTranslation(...args: any[]) {
@@ -28,15 +36,22 @@ function shouldDeferTranslationWork(): boolean {
 		return true
 	}
 
-	const hasCookieToken = typeof document !== 'undefined' && /(?:^|;\s*)token=/.test(document.cookie)
+	const hasCookieToken =
+		typeof document !== 'undefined' && /(?:^|;\s*)token=/.test(document.cookie)
 	const hasStoredToken = Boolean(
-		window.localStorage.getItem('authToken') || window.localStorage.getItem('shareToken')
+		window.localStorage.getItem('authToken') ||
+		window.localStorage.getItem('shareToken')
 	)
 
 	return hasCookieToken || hasStoredToken
 }
 
-function getCacheKey(key: string, lang: string, ctx?: string, ns?: string): string {
+function getCacheKey(
+	key: string,
+	lang: string,
+	ctx?: string,
+	ns?: string
+): string {
 	return `${lang}|${ns || ''}|${ctx || ''}|${key}`
 }
 
@@ -97,9 +112,12 @@ function scheduleAfterInitialRender(callback: () => void) {
 		if (cancelled) return
 
 		if ('requestIdleCallback' in window) {
-			idleId = window.requestIdleCallback(() => {
-				if (!cancelled) callback()
-			}, { timeout: translationIdleTimeoutMs })
+			idleId = window.requestIdleCallback(
+				() => {
+					if (!cancelled) callback()
+				},
+				{ timeout: translationIdleTimeoutMs }
+			)
 			return
 		}
 
@@ -150,7 +168,9 @@ function scheduleAfterInitialRender(callback: () => void) {
 }
 
 function useStableUserLanguage() {
-	const [lang, setLang] = useState(() => getUserLanguage(null, SUPPORTED_LANGUAGES))
+	const [lang, setLang] = useState(() =>
+		getUserLanguage(null, SUPPORTED_LANGUAGES)
+	)
 
 	useEffect(() => {
 		let cancelled = false
@@ -201,7 +221,8 @@ function TRemote({
 
 		const fetchTranslation = async () => {
 			try {
-				const { fetchRemoteTranslation } = await import('@/models/translationService')
+				const { fetchRemoteTranslation } =
+					await import('@/models/translationService')
 				const trans = await fetchRemoteTranslation(children, lang, ctx, ns)
 				if (!cancelled) {
 					setTranslation(trans)
@@ -304,18 +325,15 @@ export default function T({ children, ctx, ns }: TProps) {
 
 	useEffect(() => {
 		if (!hasAttemptedFetch && translationData && !translation) {
-			debugTranslation('rendering remote fallback', { key: children, context: ctx, namespace: ns, lang })
+			debugTranslation('rendering remote fallback', {
+				key: children,
+				context: ctx,
+				namespace: ns,
+				lang,
+			})
 			setShouldShowRemote(true)
 		}
-	}, [
-		translation,
-		translationData,
-		hasAttemptedFetch,
-		children,
-		ctx,
-		ns,
-		lang,
-	])
+	}, [translation, translationData, hasAttemptedFetch, children, ctx, ns, lang])
 
 	useEffect(() => {
 		if (isEditing && inputRef.current) {
@@ -354,13 +372,15 @@ export default function T({ children, ctx, ns }: TProps) {
 		setIsSaving(true)
 
 		try {
-			const [{ apiClient }, { getTranslation, upsertTranslation, upsertTranslationValue }] = await Promise.all([
-				import('@/api'),
-				import('@/models/translations'),
-			])
+			const [
+				{ apiClient },
+				{ getTranslation, upsertTranslation, upsertTranslationValue },
+			] = await Promise.all([import('@/api'), import('@/models/translations')])
 			const trans = await getTranslation(children, ns, ctx)
 
-			await apiClient.mutation(`
+			await apiClient
+				.mutation(
+					`
 				mutation updateTranslationValue($key: String!, $lang: String!, $value: String!, $namespace: String) {
 					updateTranslationValue(key: $key, lang: $lang, value: $value, namespace: $namespace) {
 						id
@@ -369,18 +389,23 @@ export default function T({ children, ctx, ns }: TProps) {
 						values
 					}
 				}
-			`, {
-				key: children,
-				lang: lang,
-				value: editValue,
-				namespace: ns || null,
-			}).toPromise()
+			`,
+					{
+						key: children,
+						lang: lang,
+						value: editValue,
+						namespace: ns || null,
+					}
+				)
+				.toPromise()
 
-			const translationId = trans?.id ?? (await upsertTranslation({
-				key: children,
-				namespace: ns,
-				context: ctx,
-			}))
+			const translationId =
+				trans?.id ??
+				(await upsertTranslation({
+					key: children,
+					namespace: ns,
+					context: ctx,
+				}))
 
 			await upsertTranslationValue({
 				translationId,
@@ -411,7 +436,7 @@ export default function T({ children, ctx, ns }: TProps) {
 						cursor: 'pointer',
 						textDecoration: 'underline dotted',
 						textDecorationColor: 'rgba(76, 175, 80, 0.3)',
-				  }
+					}
 				: {},
 		[devMode]
 	)
@@ -542,7 +567,13 @@ export function useTranslation(key: string, ctx?: string, ns?: string) {
 	useEffect(() => {
 		if (cachedTranslation?.value) {
 			runtimeTranslationCache.set(cacheKey, cachedTranslation.value)
-			debugTranslation('cache hit', { key, context: ctx, namespace: ns, lang, value: cachedTranslation.value })
+			debugTranslation('cache hit', {
+				key,
+				context: ctx,
+				namespace: ns,
+				lang,
+				value: cachedTranslation.value,
+			})
 			setTranslatedText(cachedTranslation.value)
 			return
 		}
@@ -552,7 +583,12 @@ export function useTranslation(key: string, ctx?: string, ns?: string) {
 			(cachedTranslation === null || cachedTranslation?.value === null) &&
 			!hasAttemptedFetch
 		) {
-			debugTranslation('cache miss, fetching remote', { key, context: ctx, namespace: ns, lang })
+			debugTranslation('cache miss, fetching remote', {
+				key,
+				context: ctx,
+				namespace: ns,
+				lang,
+			})
 			setHasAttemptedFetch(true)
 
 			let cancelled = false
@@ -561,13 +597,19 @@ export function useTranslation(key: string, ctx?: string, ns?: string) {
 				.then(({ fetchTranslationWithRemote }) =>
 					fetchTranslationWithRemote(key, lang, ctx, ns)
 				)
-					.then((text) => {
-						if (!cancelled) {
-							runtimeTranslationCache.set(cacheKey, text)
-							debugTranslation('remote resolved', { key, context: ctx, namespace: ns, lang, text })
-							setTranslatedText(text)
-						}
-					})
+				.then((text) => {
+					if (!cancelled) {
+						runtimeTranslationCache.set(cacheKey, text)
+						debugTranslation('remote resolved', {
+							key,
+							context: ctx,
+							namespace: ns,
+							lang,
+							text,
+						})
+						setTranslatedText(text)
+					}
+				})
 				.catch((error) => {
 					if (!cancelled) {
 						console.error('Translation fetch error:', error)
@@ -578,7 +620,16 @@ export function useTranslation(key: string, ctx?: string, ns?: string) {
 				cancelled = true
 			}
 		}
-	}, [cacheResolved, cachedTranslation, key, lang, ctx, ns, hasAttemptedFetch, cacheKey])
+	}, [
+		cacheResolved,
+		cachedTranslation,
+		key,
+		lang,
+		ctx,
+		ns,
+		hasAttemptedFetch,
+		cacheKey,
+	])
 
 	return translatedText
 }
@@ -669,7 +720,15 @@ export function usePlural(count: number, key: string, ns?: string) {
 				cancelled = true
 			}
 		}
-	}, [pluralCacheResolved, cachedPlural, key, lang, pluralForm, ns, hasAttemptedFetch])
+	}, [
+		pluralCacheResolved,
+		cachedPlural,
+		key,
+		lang,
+		pluralForm,
+		ns,
+		hasAttemptedFetch,
+	])
 
 	return translatedText
 }

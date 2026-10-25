@@ -136,10 +136,10 @@ export default function HiveCreateForm() {
 					setting.boxType === 'DEEP'
 						? 'DEEP'
 						: setting.boxType === 'SUPER'
-						? 'SUPER'
-						: setting.boxType === 'LARGE_HORIZONTAL_SECTION'
-						? 'LARGE_HORIZONTAL_SECTION'
-						: ''
+							? 'SUPER'
+							: setting.boxType === 'LARGE_HORIZONTAL_SECTION'
+								? 'LARGE_HORIZONTAL_SECTION'
+								: ''
 				if (!moduleType) return acc
 				acc[`${setting.systemId}:${moduleType}`] = String(
 					setting.frameSourceSystemId || setting.systemId
@@ -256,8 +256,8 @@ export default function HiveCreateForm() {
 		hiveType === 'horizontal'
 			? 'LARGE_HORIZONTAL_SECTION'
 			: hiveType === 'nucleus'
-			? 'NUCS'
-			: 'DEEP'
+				? 'NUCS'
+				: 'DEEP'
 	const requiredFrameModuleType =
 		hiveType === 'horizontal' ? 'LARGE_HORIZONTAL_SECTION' : 'DEEP'
 	const requiredSectionCount = Math.max(0, Math.floor(Number(boxCount) || 0))
@@ -308,7 +308,7 @@ export default function HiveCreateForm() {
 			? resolveEffectiveFrameSourceSystemId(
 					selectedSystemId,
 					requiredFrameModuleType
-			  )
+				)
 			: ''
 		const directFrameItems = frameItems.filter(
 			(item: any) =>
@@ -635,8 +635,8 @@ export default function HiveCreateForm() {
 					hiveType === 'horizontal'
 						? 'HORIZONTAL'
 						: hiveType === 'nucleus'
-						? 'NUCLEUS'
-						: 'VERTICAL',
+							? 'NUCLEUS'
+							: 'VERTICAL',
 				boxCount,
 				frameCount,
 				initialBoxType:
@@ -683,14 +683,14 @@ export default function HiveCreateForm() {
 		hiveType === 'nucleus'
 			? 'NUCLEUS'
 			: hiveType === 'horizontal'
-			? 'HORIZONTAL'
-			: 'VERTICAL'
+				? 'HORIZONTAL'
+				: 'VERTICAL'
 	const previewTypeLabel =
 		hiveType === 'nucleus'
 			? 'Nucleus (Nuc)'
 			: hiveType === 'horizontal'
-			? 'Horizontal'
-			: 'Vertical'
+				? 'Horizontal'
+				: 'Vertical'
 
 	return (
 		<PagePaddedCentered>
@@ -715,128 +715,126 @@ export default function HiveCreateForm() {
 			{submitError && <ErrorMsg error={submitError} />}
 			<div className={styles.createLayout}>
 				<div className={styles.createFormColumn}>
-			<VisualForm
-				className={styles.hiveCreateForm}
-				submitClassName={styles.hiveCreateSubmit}
-				onSubmit={onSubmit.bind(this)}
-				submit={
-					<Button
-						type="submit"
-						color="green"
-						disabled={isHiveLimitReached || isSubmitting}
+					<VisualForm
+						className={styles.hiveCreateForm}
+						submitClassName={styles.hiveCreateSubmit}
+						onSubmit={onSubmit.bind(this)}
+						submit={
+							<Button
+								type="submit"
+								color="green"
+								disabled={isHiveLimitReached || isSubmitting}
+							>
+								<T>Install</T>
+							</Button>
+						}
 					>
-						<T>Install</T>
-					</Button>
-				}
-			>
-				<HiveCreateFields
-					hiveType={hiveType}
-					handleHiveTypeChange={handleHiveTypeChange}
-					hiveNumber={hiveNumber}
-					setHiveNumber={setHiveNumber}
-					boxCount={boxCount}
-					frameCount={frameCount}
-					updateHiveDimensions={updateHiveDimensions}
-					setFrameCount={setFrameCount}
-					boxSystems={boxSystems}
-					selectedBoxSystem={selectedBoxSystem}
-					boxSystemId={boxSystemId}
-					setBoxSystemId={setBoxSystemId}
-					isBoxSystemOpen={isBoxSystemOpen}
-					setIsBoxSystemOpen={setIsBoxSystemOpen}
-					boxSystemPickerRef={boxSystemPickerRef}
-					sectionWarehouseWarning={warehouseWarnings.section}
-					frameWarehouseWarning={warehouseWarnings.frame}
-				/>
-				<div className={styles.queenCreateSection}>
-					<label className={styles.formLabel}>
-						<T>Queens</T>
-					</label>
-					<div className={styles.queenCreateContent}>
-						<div className={styles.queenDraftList}>
-							{queenDrafts.length === 0 ? (
-								<div className={styles.noQueenNotice}>
-									<T>No queen will be added to this hive.</T>
-								</div>
-							) : null}
-							{queenDrafts.map((draft, index) => (
-								<div className={styles.queenDraftCard} key={draft.clientId}>
-									<div className={styles.queenDraftBody}>
-										<strong className={styles.queenDraftTitle}>
-											<T>Queen</T>
-											{queenDrafts.length > 1 ? ` ${index + 1}` : ''}
-										</strong>
-										<QueenFormFields
-											mode={draft.mode}
-											compactLayout
-											warehouseQueens={warehouseQueens}
-											warehouseLoading={warehouseQueensLoading}
-											selectedWarehouseQueenId={draft.selectedWarehouseQueenId}
-											name={draft.name}
-											race={draft.race}
-											year={draft.year}
-											customColor={draft.customColor}
-											randomNameLoading={
-												randomNameLoading &&
-												refreshQueenDraftId === draft.clientId
-											}
-											onModeChange={(mode) =>
-												updateQueenDraft(draft.clientId, { mode })
-											}
-											onSelectedWarehouseQueenIdChange={(
-												selectedWarehouseQueenId
-											) =>
-												updateQueenDraft(draft.clientId, {
-													selectedWarehouseQueenId,
-												})
-											}
-											onNameChange={(name) =>
-												updateQueenDraft(draft.clientId, { name })
-											}
-											onRaceChange={(race) =>
-												updateQueenDraft(draft.clientId, { race })
-											}
-											onYearChange={(year) =>
-												updateQueenDraft(draft.clientId, { year })
-											}
-											onCustomColorChange={(customColor) =>
-												updateQueenDraft(draft.clientId, { customColor })
-											}
-											onRefreshName={() => {
-												setRefreshQueenDraftId(draft.clientId)
-												reexecuteRandomNameQuery({
-													requestPolicy: 'network-only',
-												})
-											}}
-										/>
-										<div className={styles.queenDraftActions}>
-											{renderRemoveQueenButton(draft.clientId)}
+						<HiveCreateFields
+							hiveType={hiveType}
+							handleHiveTypeChange={handleHiveTypeChange}
+							hiveNumber={hiveNumber}
+							setHiveNumber={setHiveNumber}
+							boxCount={boxCount}
+							frameCount={frameCount}
+							updateHiveDimensions={updateHiveDimensions}
+							setFrameCount={setFrameCount}
+							boxSystems={boxSystems}
+							selectedBoxSystem={selectedBoxSystem}
+							boxSystemId={boxSystemId}
+							setBoxSystemId={setBoxSystemId}
+							isBoxSystemOpen={isBoxSystemOpen}
+							setIsBoxSystemOpen={setIsBoxSystemOpen}
+							boxSystemPickerRef={boxSystemPickerRef}
+							sectionWarehouseWarning={warehouseWarnings.section}
+							frameWarehouseWarning={warehouseWarnings.frame}
+						/>
+						<div className={styles.queenCreateSection}>
+							<label className={styles.formLabel}>
+								<T>Queens</T>
+							</label>
+							<div className={styles.queenCreateContent}>
+								<div className={styles.queenDraftList}>
+									{queenDrafts.length === 0 ? (
+										<div className={styles.noQueenNotice}>
+											<T>No queen will be added to this hive.</T>
 										</div>
-									</div>
+									) : null}
+									{queenDrafts.map((draft, index) => (
+										<div className={styles.queenDraftCard} key={draft.clientId}>
+											<div className={styles.queenDraftBody}>
+												<strong className={styles.queenDraftTitle}>
+													<T>Queen</T>
+													{queenDrafts.length > 1 ? ` ${index + 1}` : ''}
+												</strong>
+												<QueenFormFields
+													mode={draft.mode}
+													compactLayout
+													warehouseQueens={warehouseQueens}
+													warehouseLoading={warehouseQueensLoading}
+													selectedWarehouseQueenId={
+														draft.selectedWarehouseQueenId
+													}
+													name={draft.name}
+													race={draft.race}
+													year={draft.year}
+													customColor={draft.customColor}
+													randomNameLoading={
+														randomNameLoading &&
+														refreshQueenDraftId === draft.clientId
+													}
+													onModeChange={(mode) =>
+														updateQueenDraft(draft.clientId, { mode })
+													}
+													onSelectedWarehouseQueenIdChange={(
+														selectedWarehouseQueenId
+													) =>
+														updateQueenDraft(draft.clientId, {
+															selectedWarehouseQueenId,
+														})
+													}
+													onNameChange={(name) =>
+														updateQueenDraft(draft.clientId, { name })
+													}
+													onRaceChange={(race) =>
+														updateQueenDraft(draft.clientId, { race })
+													}
+													onYearChange={(year) =>
+														updateQueenDraft(draft.clientId, { year })
+													}
+													onCustomColorChange={(customColor) =>
+														updateQueenDraft(draft.clientId, { customColor })
+													}
+													onRefreshName={() => {
+														setRefreshQueenDraftId(draft.clientId)
+														reexecuteRandomNameQuery({
+															requestPolicy: 'network-only',
+														})
+													}}
+												/>
+												<div className={styles.queenDraftActions}>
+													{renderRemoveQueenButton(draft.clientId)}
+												</div>
+											</div>
+										</div>
+									))}
 								</div>
-							))}
+								{/* Multiple queens are rare, so the add control is a low-key dotted block */}
+								<button
+									type="button"
+									className={styles.addQueenButton}
+									onClick={addQueenDraft}
+								>
+									+ <T>Add Queen</T>
+								</button>
+							</div>
 						</div>
-						{/* Multiple queens are rare, so the add control is a low-key dotted block */}
-						<button
-							type="button"
-							className={styles.addQueenButton}
-							onClick={addQueenDraft}
-						>
-							+ <T>Add Queen</T>
-						</button>
-					</div>
-				</div>
-			</VisualForm>
+					</VisualForm>
 				</div>
 				<aside className={styles.previewPane}>
 					<div className={styles.previewTitle}>
 						<T>Preview</T>
 					</div>
-					<HiveIcon
-						boxes={boxes}
-						editable={true}
-						hiveType={previewHiveType}
-					/>
+					<HiveIcon boxes={boxes} editable={true} hiveType={previewHiveType} />
 					<div className={styles.previewText}>
 						{hiveNumber ? `#${hiveNumber} - ` : ''}
 						<T>{previewTypeLabel}</T>

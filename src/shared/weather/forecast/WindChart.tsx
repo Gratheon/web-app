@@ -9,7 +9,12 @@ type WindChartProps = {
 	syncCharts?: (sourceChart: any) => void
 }
 
-export default function WindChart({ data, currentWindSpeed, chartRefs, syncCharts }: WindChartProps) {
+export default function WindChart({
+	data,
+	currentWindSpeed,
+	chartRefs,
+	syncCharts,
+}: WindChartProps) {
 	return (
 		<ChartContainer
 			emoji="💨"
@@ -29,9 +34,11 @@ export default function WindChart({ data, currentWindSpeed, chartRefs, syncChart
 					lineWidth: 2,
 				}}
 			>
-				<PriceLine price={50} options={{ color: 'red', lineStyle: 2, lineWidth: 1 }} />
+				<PriceLine
+					price={50}
+					options={{ color: 'red', lineStyle: 2, lineWidth: 1 }}
+				/>
 			</AreaSeries>
 		</ChartContainer>
 	)
 }
-

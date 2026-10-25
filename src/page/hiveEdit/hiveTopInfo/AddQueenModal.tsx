@@ -48,7 +48,7 @@ export default function AddQueenModal({
 	mode: initialMode = 'create',
 	allowModeSwitch = true,
 	onClose,
-	onSuccess
+	onSuccess,
 }: AddQueenModalProps) {
 	const tNewQueenIntroduced = t('New queen introduced')
 	const currentYear = new Date().getFullYear().toString()
@@ -76,12 +76,15 @@ export default function AddQueenModal({
 		setLang(currentLang)
 	}, [user])
 
-	const { data: randomNameData, loading: randomNameLoading, reexecuteQuery: reexecuteRandomNameQuery } = useQuery(
-		RANDOM_QUEEN_NAME_QUERY,
-		{ variables: { language: lang } }
-	)
+	const {
+		data: randomNameData,
+		loading: randomNameLoading,
+		reexecuteQuery: reexecuteRandomNameQuery,
+	} = useQuery(RANDOM_QUEEN_NAME_QUERY, { variables: { language: lang } })
 
-	const { data: warehouseData, loading: warehouseLoading } = useQuery(WAREHOUSE_QUEENS_QUERY)
+	const { data: warehouseData, loading: warehouseLoading } = useQuery(
+		WAREHOUSE_QUEENS_QUERY
+	)
 	const warehouseQueens: WarehouseQueen[] = warehouseData?.warehouseQueens || []
 	const hasWarehouseQueens = warehouseQueens.length > 0
 
@@ -98,7 +101,12 @@ export default function AddQueenModal({
 	}, [allowModeSwitch, initialMode])
 
 	useEffect(() => {
-		if (allowModeSwitch && !warehouseLoading && !hasWarehouseQueens && mode === 'warehouse') {
+		if (
+			allowModeSwitch &&
+			!warehouseLoading &&
+			!hasWarehouseQueens &&
+			mode === 'warehouse'
+		) {
 			setMode('create')
 		}
 		if (hasWarehouseQueens && !selectedWarehouseQueenId) {
@@ -110,14 +118,15 @@ export default function AddQueenModal({
 		mode,
 		selectedWarehouseQueenId,
 		warehouseLoading,
-		warehouseQueens
+		warehouseQueens,
 	])
 
 	const handleRefreshName = useCallback(() => {
 		reexecuteRandomNameQuery({ requestPolicy: 'network-only' })
 	}, [reexecuteRandomNameQuery])
 
-	const [addQueenMutation, { error: mutationError, loading: createLoading }] = useMutation(`
+	const [addQueenMutation, { error: mutationError, loading: createLoading }] =
+		useMutation(`
 		mutation addQueenToHive($hiveId: ID!, $queen: FamilyInput!) {
 			addQueenToHive(hiveId: $hiveId, queen: $queen) {
 				id
@@ -130,7 +139,10 @@ export default function AddQueenModal({
 		}
 	`)
 
-	const [assignQueenFromWarehouseMutation, { error: assignMutationError, loading: assignLoading }] = useMutation(`
+	const [
+		assignQueenFromWarehouseMutation,
+		{ error: assignMutationError, loading: assignLoading },
+	] = useMutation(`
 		mutation assignQueenFromWarehouse($hiveId: ID!, $familyId: ID!) {
 			assignQueenFromWarehouse(hiveId: $hiveId, familyId: $familyId) {
 				id
@@ -174,7 +186,7 @@ export default function AddQueenModal({
 						title: 'Queen assigned from warehouse',
 						details: `${family.name || `#${family.id}`} was assigned to this hive.`,
 					})
-					await new Promise(resolve => setTimeout(resolve, 100))
+					await new Promise((resolve) => setTimeout(resolve, 100))
 					onSuccess()
 					return
 				}
@@ -214,7 +226,7 @@ export default function AddQueenModal({
 					title: tNewQueenIntroduced,
 					details: `${family.name || `#${family.id}`} (${family.added || 'year unknown'}).`,
 				})
-				await new Promise(resolve => setTimeout(resolve, 100))
+				await new Promise((resolve) => setTimeout(resolve, 100))
 				onSuccess()
 				return
 			}
@@ -253,8 +265,16 @@ export default function AddQueenModal({
 				/>
 
 				<div className={styles.buttonContainer}>
-					<Button onClick={handleSubmit} loading={createLoading || assignLoading} color="green">
-						{mode === 'warehouse' ? <T>Add From Warehouse</T> : <T>Add Queen</T>}
+					<Button
+						onClick={handleSubmit}
+						loading={createLoading || assignLoading}
+						color="green"
+					>
+						{mode === 'warehouse' ? (
+							<T>Add From Warehouse</T>
+						) : (
+							<T>Add Queen</T>
+						)}
 					</Button>
 				</div>
 			</div>

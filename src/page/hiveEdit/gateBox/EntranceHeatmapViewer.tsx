@@ -7,20 +7,20 @@ import Button from '@/shared/button'
 import styles from './styles.module.less'
 
 const ENTRANCE_HEATMAPS_QUERY = gql`
-query entranceHeatmaps($boxIds: [ID]!, $date: String, $limit: Int) {
-	entranceHeatmaps(boxIds: $boxIds, date: $date, limit: $limit) {
-		id
-		boxId
-		date
-		imageURL
-		width
-		height
-		trajectoryCount
-		pointCount
-		lastSampleAt
-		updatedAt
+	query entranceHeatmaps($boxIds: [ID]!, $date: String, $limit: Int) {
+		entranceHeatmaps(boxIds: $boxIds, date: $date, limit: $limit) {
+			id
+			boxId
+			date
+			imageURL
+			width
+			height
+			trajectoryCount
+			pointCount
+			lastSampleAt
+			updatedAt
+		}
 	}
-}
 `
 
 type EntranceHeatmap = {
@@ -72,7 +72,9 @@ function HeatmapContent({ boxId }: { boxId: string | number }) {
 			limit: selectedDate ? 1 : 1,
 		},
 	})
-	const heatmap = (data?.entranceHeatmaps || [])[0] as EntranceHeatmap | undefined
+	const heatmap = (data?.entranceHeatmaps || [])[0] as
+		| EntranceHeatmap
+		| undefined
 
 	React.useEffect(() => {
 		// WHY: when user opens the tab, no date filter asks the API for the latest
@@ -89,52 +91,82 @@ function HeatmapContent({ boxId }: { boxId: string | number }) {
 		<div className={styles.heatmapPanel}>
 			<div className={styles.heatmapHeader}>
 				<div>
-					<strong><T>Landing board heatmap</T></strong>
+					<strong>
+						<T>Landing board heatmap</T>
+					</strong>
 					<p>
-						<T>Daily bee trajectory density generated from Entrance Observer tracking data.</T>
+						<T>
+							Daily bee trajectory density generated from Entrance Observer
+							tracking data.
+						</T>
 					</p>
 				</div>
 				<div className={styles.heatmapDateControls}>
-					<Button type="button" color="transparent" onClick={() => {
-						setHasManualDate(true)
-						setSelectedDate(shiftDate(shownDate, -1))
-					}}>
+					<Button
+						type="button"
+						color="transparent"
+						onClick={() => {
+							setHasManualDate(true)
+							setSelectedDate(shiftDate(shownDate, -1))
+						}}
+					>
 						<T>Previous day</T>
 					</Button>
-					<span className={styles.heatmapDate}>{formatDateLabel(shownDate)}</span>
+					<span className={styles.heatmapDate}>
+						{formatDateLabel(shownDate)}
+					</span>
 					{!isToday ? (
-						<Button type="button" color="transparent" onClick={() => {
-							setHasManualDate(true)
-							setSelectedDate(shiftDate(shownDate, 1))
-						}}>
+						<Button
+							type="button"
+							color="transparent"
+							onClick={() => {
+								setHasManualDate(true)
+								setSelectedDate(shiftDate(shownDate, 1))
+							}}
+						>
 							<T>Next day</T>
 						</Button>
 					) : null}
-					<Button type="button" color="transparent" onClick={() => {
-						setHasManualDate(false)
-						setSelectedDate(null)
-					}}>
+					<Button
+						type="button"
+						color="transparent"
+						onClick={() => {
+							setHasManualDate(false)
+							setSelectedDate(null)
+						}}
+					>
 						<T>Latest</T>
 					</Button>
 				</div>
 			</div>
 
-			{loading ? <p className={styles.heatmapState}><T>Loading heatmap...</T></p> : null}
+			{loading ? (
+				<p className={styles.heatmapState}>
+					<T>Loading heatmap...</T>
+				</p>
+			) : null}
 			{error ? <p className={styles.connectionError}>{error.message}</p> : null}
 			{!loading && !error && !heatmap ? (
 				<p className={styles.heatmapState}>
 					{hasManualDate ? (
 						<T>No heatmap was generated for this day yet.</T>
 					) : (
-						<T>No heatmaps are available yet. They appear after Entrance Observer uploads tracked bee trajectories.</T>
+						<T>
+							No heatmaps are available yet. They appear after Entrance Observer
+							uploads tracked bee trajectories.
+						</T>
 					)}
 				</p>
 			) : null}
 			{heatmap?.imageURL ? (
 				<figure className={styles.heatmapFigure}>
-					<img src={heatmap.imageURL} alt={`Entrance Observer heatmap for ${heatmap.date}`} />
+					<img
+						src={heatmap.imageURL}
+						alt={`Entrance Observer heatmap for ${heatmap.date}`}
+					/>
 					<figcaption>
-						{heatmap.pointCount || 0} <T>trajectory points</T> · {heatmap.trajectoryCount || 0} <T>tracks</T>
+						{heatmap.pointCount || 0} <T>trajectory points</T> ·{' '}
+						{heatmap.trajectoryCount || 0} <T>tracks</T>
 					</figcaption>
 				</figure>
 			) : null}

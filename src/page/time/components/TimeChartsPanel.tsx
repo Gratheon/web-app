@@ -46,41 +46,55 @@ export default function TimeChartsPanel({
 	const { chartRefs, syncCharts } = useChartSync()
 
 	const chartDataAvailability = useMemo(() => {
-		const hasPopulationData = Object.values(inspectionsByHive).some((entries: any[]) =>
-			entries.some(entry => entry.population && entry.population > 0)
+		const hasPopulationData = Object.values(inspectionsByHive).some(
+			(entries: any[]) =>
+				entries.some((entry) => entry.population && entry.population > 0)
 		)
 
-		const hasWeightData = Object.values(weightDataByHive).some((hiveData: any) =>
-			!hiveData?.data?.code && Array.isArray(hiveData?.data?.metrics) && hiveData.data.metrics.length > 0
+		const hasWeightData = Object.values(weightDataByHive).some(
+			(hiveData: any) =>
+				!hiveData?.data?.code &&
+				Array.isArray(hiveData?.data?.metrics) &&
+				hiveData.data.metrics.length > 0
 		)
 
-		const hasTemperatureData = Object.values(temperatureDataByHive).some((hiveData: any) =>
-			!hiveData?.data?.code && Array.isArray(hiveData?.data?.metrics) && hiveData.data.metrics.length > 0
+		const hasTemperatureData = Object.values(temperatureDataByHive).some(
+			(hiveData: any) =>
+				!hiveData?.data?.code &&
+				Array.isArray(hiveData?.data?.metrics) &&
+				hiveData.data.metrics.length > 0
 		)
 
-		const hasEntranceData = Object.values(entranceDataByHive).some((hiveData: any) =>
-			Array.isArray(hiveData?.data?.metrics) &&
-			hiveData.data.metrics.some((m: any) => (m.beesIn ?? 0) > 0)
+		const hasEntranceData = Object.values(entranceDataByHive).some(
+			(hiveData: any) =>
+				Array.isArray(hiveData?.data?.metrics) &&
+				hiveData.data.metrics.some((m: any) => (m.beesIn ?? 0) > 0)
 		)
 
-		const hasEntranceSpeedData = Object.values(entranceDataByHive).some((hiveData: any) =>
-			Array.isArray(hiveData?.data?.metrics) &&
-			hiveData.data.metrics.some((m: any) => (m.avgSpeed ?? 0) > 0 || (m.p95Speed ?? 0) > 0)
+		const hasEntranceSpeedData = Object.values(entranceDataByHive).some(
+			(hiveData: any) =>
+				Array.isArray(hiveData?.data?.metrics) &&
+				hiveData.data.metrics.some(
+					(m: any) => (m.avgSpeed ?? 0) > 0 || (m.p95Speed ?? 0) > 0
+				)
 		)
 
-		const hasEntranceDetectedData = Object.values(entranceDataByHive).some((hiveData: any) =>
-			Array.isArray(hiveData?.data?.metrics) &&
-			hiveData.data.metrics.some((m: any) => (m.detectedBees ?? 0) > 0)
+		const hasEntranceDetectedData = Object.values(entranceDataByHive).some(
+			(hiveData: any) =>
+				Array.isArray(hiveData?.data?.metrics) &&
+				hiveData.data.metrics.some((m: any) => (m.detectedBees ?? 0) > 0)
 		)
 
-		const hasEntranceStationaryData = Object.values(entranceDataByHive).some((hiveData: any) =>
-			Array.isArray(hiveData?.data?.metrics) &&
-			hiveData.data.metrics.some((m: any) => (m.stationaryBees ?? 0) > 0)
+		const hasEntranceStationaryData = Object.values(entranceDataByHive).some(
+			(hiveData: any) =>
+				Array.isArray(hiveData?.data?.metrics) &&
+				hiveData.data.metrics.some((m: any) => (m.stationaryBees ?? 0) > 0)
 		)
 
-		const hasEntranceInteractionsData = Object.values(entranceDataByHive).some((hiveData: any) =>
-			Array.isArray(hiveData?.data?.metrics) &&
-			hiveData.data.metrics.some((m: any) => (m.beeInteractions ?? 0) > 0)
+		const hasEntranceInteractionsData = Object.values(entranceDataByHive).some(
+			(hiveData: any) =>
+				Array.isArray(hiveData?.data?.metrics) &&
+				hiveData.data.metrics.some((m: any) => (m.beeInteractions ?? 0) > 0)
 		)
 
 		return {
@@ -93,7 +107,12 @@ export default function TimeChartsPanel({
 			entranceStationary: hasEntranceStationaryData,
 			entranceInteractions: hasEntranceInteractionsData,
 		}
-	}, [inspectionsByHive, weightDataByHive, temperatureDataByHive, entranceDataByHive])
+	}, [
+		inspectionsByHive,
+		weightDataByHive,
+		temperatureDataByHive,
+		entranceDataByHive,
+	])
 
 	const missingSelectedCharts = useMemo(() => {
 		const chartDefinitions = [
@@ -108,8 +127,10 @@ export default function TimeChartsPanel({
 		]
 
 		return chartDefinitions
-			.filter(chart => enabledCharts[chart.key] && !chartDataAvailability[chart.key])
-			.map(chart => chart.label)
+			.filter(
+				(chart) => enabledCharts[chart.key] && !chartDataAvailability[chart.key]
+			)
+			.map((chart) => chart.label)
 	}, [enabledCharts, chartDataAvailability])
 
 	return (
@@ -118,21 +139,45 @@ export default function TimeChartsPanel({
 				<div className={styles.groupedNoDataPlaceholder}>
 					<img src={imageURL} alt="Thinker placeholder" draggable={false} />
 					<p className={styles.groupedNoDataTitle}>
-						<strong><T>No data available for selected charts.</T></strong>
+						<strong>
+							<T>No data available for selected charts.</T>
+						</strong>
 						<InfoIcon>
 							<p style={{ margin: '0 0 8px 0' }}>
-								<strong><T>How to get data here:</T></strong>
+								<strong>
+									<T>How to get data here:</T>
+								</strong>
 							</p>
 							<ol style={{ margin: '0 0 12px 16px', paddingLeft: 0 }}>
-								<li><T>For population charts: add inspections and fill in bee count</T></li>
-								<li><T>For telemetry charts: connect sensors/cameras and send metrics via API</T></li>
-								<li><T>Documentation:</T> <a href="https://gratheon.com/docs/API/REST" target="_blank" rel="noopener noreferrer">gratheon.com/docs/API/REST</a></li>
+								<li>
+									<T>
+										For population charts: add inspections and fill in bee count
+									</T>
+								</li>
+								<li>
+									<T>
+										For telemetry charts: connect sensors/cameras and send
+										metrics via API
+									</T>
+								</li>
+								<li>
+									<T>Documentation:</T>{' '}
+									<a
+										href="https://gratheon.com/docs/API/REST"
+										target="_blank"
+										rel="noopener noreferrer"
+									>
+										gratheon.com/docs/API/REST
+									</a>
+								</li>
 							</ol>
 						</InfoIcon>
 					</p>
-					<p className={styles.groupedNoDataSubtitle}><T>Currently missing data for:</T></p>
+					<p className={styles.groupedNoDataSubtitle}>
+						<T>Currently missing data for:</T>
+					</p>
 					<ul className={styles.groupedNoDataList}>
-						{missingSelectedCharts.map(chartName => (
+						{missingSelectedCharts.map((chartName) => (
 							<li key={chartName}>{chartName}</li>
 						))}
 					</ul>
@@ -194,35 +239,38 @@ export default function TimeChartsPanel({
 				</div>
 			)}
 
-			{enabledCharts.entranceDetected && chartDataAvailability.entranceDetected && (
-				<div data-chart-type="entranceDetected">
-					<MultiHiveEntranceDetectedChart
-						entranceDataByHive={entranceDataByHive}
-						chartRefs={chartRefs}
-						syncCharts={syncCharts}
-					/>
-				</div>
-			)}
+			{enabledCharts.entranceDetected &&
+				chartDataAvailability.entranceDetected && (
+					<div data-chart-type="entranceDetected">
+						<MultiHiveEntranceDetectedChart
+							entranceDataByHive={entranceDataByHive}
+							chartRefs={chartRefs}
+							syncCharts={syncCharts}
+						/>
+					</div>
+				)}
 
-			{enabledCharts.entranceStationary && chartDataAvailability.entranceStationary && (
-				<div data-chart-type="entranceStationary">
-					<MultiHiveEntranceStationaryChart
-						entranceDataByHive={entranceDataByHive}
-						chartRefs={chartRefs}
-						syncCharts={syncCharts}
-					/>
-				</div>
-			)}
+			{enabledCharts.entranceStationary &&
+				chartDataAvailability.entranceStationary && (
+					<div data-chart-type="entranceStationary">
+						<MultiHiveEntranceStationaryChart
+							entranceDataByHive={entranceDataByHive}
+							chartRefs={chartRefs}
+							syncCharts={syncCharts}
+						/>
+					</div>
+				)}
 
-			{enabledCharts.entranceInteractions && chartDataAvailability.entranceInteractions && (
-				<div data-chart-type="entranceInteractions">
-					<MultiHiveEntranceInteractionsChart
-						entranceDataByHive={entranceDataByHive}
-						chartRefs={chartRefs}
-						syncCharts={syncCharts}
-					/>
-				</div>
-			)}
+			{enabledCharts.entranceInteractions &&
+				chartDataAvailability.entranceInteractions && (
+					<div data-chart-type="entranceInteractions">
+						<MultiHiveEntranceInteractionsChart
+							entranceDataByHive={entranceDataByHive}
+							chartRefs={chartRefs}
+							syncCharts={syncCharts}
+						/>
+					</div>
+				)}
 
 			{enabledCharts.weather && (
 				<WeatherSection

@@ -12,24 +12,31 @@ type PollutionChartProps = {
 	suspendTimeRangeSync?: boolean
 }
 
-export default function PollutionChart({ pollutionData, chartRefs, syncCharts, onVisibleTimeRangeChange, suspendTimeRangeSync }: PollutionChartProps) {
+export default function PollutionChart({
+	pollutionData,
+	chartRefs,
+	syncCharts,
+	onVisibleTimeRangeChange,
+	suspendTimeRangeSync,
+}: PollutionChartProps) {
 	const pm25Data = pollutionData.pm2_5
-		.filter(d => d.value !== null)
-		.map(d => ({
-			time: new Date(d.time).getTime() / 1000 as any,
-			value: d.value
+		.filter((d) => d.value !== null)
+		.map((d) => ({
+			time: (new Date(d.time).getTime() / 1000) as any,
+			value: d.value,
 		}))
 
 	const pm10Data = pollutionData.pm10
-		.filter(d => d.value !== null)
-		.map(d => ({
-			time: new Date(d.time).getTime() / 1000 as any,
-			value: d.value
+		.filter((d) => d.value !== null)
+		.map((d) => ({
+			time: (new Date(d.time).getTime() / 1000) as any,
+			value: d.value,
 		}))
 
-	const avgPM25 = pm25Data.length > 0
-		? pm25Data.reduce((acc, curr) => acc + curr.value, 0) / pm25Data.length
-		: 0
+	const avgPM25 =
+		pm25Data.length > 0
+			? pm25Data.reduce((acc, curr) => acc + curr.value, 0) / pm25Data.length
+			: 0
 
 	const hasData = pm25Data.length > 0 || pm10Data.length > 0
 
@@ -55,7 +62,7 @@ export default function PollutionChart({ pollutionData, chartRefs, syncCharts, o
 					options={{
 						color: '#F44336',
 						lineWidth: 2,
-						title: 'PM2.5'
+						title: 'PM2.5',
 					}}
 				/>
 			)}
@@ -65,7 +72,7 @@ export default function PollutionChart({ pollutionData, chartRefs, syncCharts, o
 					options={{
 						color: '#FF9800',
 						lineWidth: 2,
-						title: 'PM10'
+						title: 'PM10',
 					}}
 				/>
 			)}

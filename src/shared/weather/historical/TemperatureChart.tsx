@@ -1,7 +1,12 @@
 import { LineSeries, PriceLine } from 'lightweight-charts-react-components'
 import ChartContainer from '@/shared/charts/ChartContainer'
 import { useTranslation as t } from '@/shared/translate'
-import { convertFromCelsius, convertMetricSeriesFromCelsius, formatTemperatureFromCelsius, temperatureUnitSymbol, type TemperatureUnit } from '@/shared/temperatureUnit'
+import {
+	convertMetricSeriesFromCelsius,
+	formatTemperatureFromCelsius,
+	temperatureUnitSymbol,
+	type TemperatureUnit,
+} from '@/shared/temperatureUnit'
 
 type TemperatureChartProps = {
 	temperatureData: {
@@ -14,32 +19,43 @@ type TemperatureChartProps = {
 	temperatureUnit?: TemperatureUnit
 }
 
-export default function TemperatureChart({ temperatureData, chartRefs, syncCharts, onVisibleTimeRangeChange, suspendTimeRangeSync, temperatureUnit = 'celsius' }: TemperatureChartProps) {
-	const tempData = convertMetricSeriesFromCelsius(temperatureData.temperature_2m
-		.filter(d => d.value !== null)
-		.map(d => ({
-			time: new Date(d.time).getTime() / 1000 as any,
-			value: d.value
-		})), temperatureUnit)
+export default function TemperatureChart({
+	temperatureData,
+	chartRefs,
+	syncCharts,
+	onVisibleTimeRangeChange,
+	suspendTimeRangeSync,
+	temperatureUnit = 'celsius',
+}: TemperatureChartProps) {
+	const tempData = convertMetricSeriesFromCelsius(
+		temperatureData.temperature_2m
+			.filter((d) => d.value !== null)
+			.map((d) => ({
+				time: (new Date(d.time).getTime() / 1000) as any,
+				value: d.value,
+			})),
+		temperatureUnit
+	)
 
-	const avgTemp = tempData.length > 0
-		? tempData.reduce((acc, curr) => acc + curr.value, 0) / tempData.length
-		: 0
+	const avgTemp =
+		tempData.length > 0
+			? tempData.reduce((acc, curr) => acc + curr.value, 0) / tempData.length
+			: 0
 
-	const minTemp = tempData.length > 0
-		? Math.min(...tempData.map(d => d.value))
-		: 0
+	const minTemp =
+		tempData.length > 0 ? Math.min(...tempData.map((d) => d.value)) : 0
 
-	const maxTemp = tempData.length > 0
-		? Math.max(...tempData.map(d => d.value))
-		: 0
+	const maxTemp =
+		tempData.length > 0 ? Math.max(...tempData.map((d) => d.value)) : 0
 
 	return (
 		<ChartContainer
 			emoji="🌡️"
 			title={t('Temperature')}
 			value={`${avgTemp.toFixed(1)}${temperatureUnitSymbol(temperatureUnit)} ${t('avg')}`}
-			info={t('Temperature greatly affects bee activity. Bees fly between 10-35°C, with optimal foraging at 18-25°C. Below 10°C or above 38°C bees stay in the hive.')}
+			info={t(
+				'Temperature greatly affects bee activity. Bees fly between 10-35°C, with optimal foraging at 18-25°C. Below 10°C or above 38°C bees stay in the hive.'
+			)}
 			chartRefs={chartRefs}
 			syncCharts={syncCharts}
 			onVisibleTimeRangeChange={onVisibleTimeRangeChange}
@@ -51,7 +67,7 @@ export default function TemperatureChart({ temperatureData, chartRefs, syncChart
 				options={{
 					color: '#FF6B35',
 					lineWidth: 2,
-					title: `${t('Temperature (2m)')} (${temperatureUnitSymbol(temperatureUnit)})`
+					title: `${t('Temperature (2m)')} (${temperatureUnitSymbol(temperatureUnit)})`,
 				}}
 			>
 				<PriceLine
@@ -61,7 +77,7 @@ export default function TemperatureChart({ temperatureData, chartRefs, syncChart
 						lineWidth: 1,
 						lineStyle: 2,
 						axisLabelVisible: true,
-						title: `${t('Min flight temp')} (${formatTemperatureFromCelsius(10, temperatureUnit)})`
+						title: `${t('Min flight temp')} (${formatTemperatureFromCelsius(10, temperatureUnit)})`,
 					}}
 				/>
 				<PriceLine
@@ -71,7 +87,7 @@ export default function TemperatureChart({ temperatureData, chartRefs, syncChart
 						lineWidth: 1,
 						lineStyle: 2,
 						axisLabelVisible: true,
-						title: `${t('Optimal min')} (${formatTemperatureFromCelsius(18, temperatureUnit)})`
+						title: `${t('Optimal min')} (${formatTemperatureFromCelsius(18, temperatureUnit)})`,
 					}}
 				/>
 				<PriceLine
@@ -81,7 +97,7 @@ export default function TemperatureChart({ temperatureData, chartRefs, syncChart
 						lineWidth: 1,
 						lineStyle: 2,
 						axisLabelVisible: true,
-						title: `${t('Optimal max')} (${formatTemperatureFromCelsius(25, temperatureUnit)})`
+						title: `${t('Optimal max')} (${formatTemperatureFromCelsius(25, temperatureUnit)})`,
 					}}
 				/>
 				<PriceLine
@@ -91,7 +107,7 @@ export default function TemperatureChart({ temperatureData, chartRefs, syncChart
 						lineWidth: 1,
 						lineStyle: 2,
 						axisLabelVisible: true,
-						title: `${t('Max flight temp')} (${formatTemperatureFromCelsius(35, temperatureUnit)})`
+						title: `${t('Max flight temp')} (${formatTemperatureFromCelsius(35, temperatureUnit)})`,
 					}}
 				/>
 			</LineSeries>

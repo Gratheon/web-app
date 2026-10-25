@@ -30,7 +30,11 @@ export default function MaskedToken({
 	return (
 		<div className={`${styles.container} ${containerClassName}`.trim()}>
 			<div className={`${styles.token} ${tokenClassName}`.trim()}>{value}</div>
-			<Button size={buttonSize} className={buttonClassName} onClick={() => setIsHidden(!isHidden)}>
+			<Button
+				size={buttonSize}
+				className={buttonClassName}
+				onClick={() => setIsHidden(!isHidden)}
+			>
 				<T>Toggle</T>
 			</Button>
 		</div>

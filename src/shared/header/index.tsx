@@ -13,7 +13,13 @@ type HeaderProps = {
 	logoSrc?: string
 }
 
-export default function Header({ onLogoClick, loggedInHref = '/apiaries', loggedOutHref = '/account/authenticate', className = '', logoSrc = defaultLogoURL }: HeaderProps) {
+export default function Header({
+	onLogoClick,
+	loggedInHref = '/apiaries',
+	loggedOutHref = '/account/authenticate',
+	className = '',
+	logoSrc = defaultLogoURL,
+}: HeaderProps) {
 	if (isLoggedIn()) {
 		return (
 			<nav className={`${styles.header} ${className}`.trim()}>

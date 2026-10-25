@@ -56,8 +56,14 @@ export function getViewContext(
 				{ keys: 'Shift + P', action: labels.shortcutsActionSetCellTypePollen },
 				{ keys: 'Shift + G', action: labels.shortcutsActionSetCellTypeEggs },
 				{ keys: 'Shift + B', action: labels.shortcutsActionSetCellTypeBrood },
-				{ keys: 'Shift + K', action: labels.shortcutsActionSetCellTypeCappedBrood },
-				{ keys: 'Shift + D', action: labels.shortcutsActionSetCellTypeDroneBrood },
+				{
+					keys: 'Shift + K',
+					action: labels.shortcutsActionSetCellTypeCappedBrood,
+				},
+				{
+					keys: 'Shift + D',
+					action: labels.shortcutsActionSetCellTypeDroneBrood,
+				},
 				{ keys: 'Shift + U', action: labels.shortcutsActionSetCellTypeEmpty },
 				{ keys: '+ / =', action: labels.shortcutsActionIncreaseBrushSize },
 				{ keys: '-', action: labels.shortcutsActionDecreaseBrushSize },

@@ -19,7 +19,7 @@ describe('Toggle', () => {
 	it('exposes switch semantics for the current state', () => {
 		renderPreact(
 			<Toggle checked={false} onChange={vi.fn()} aria-label="View mode" />,
-			container,
+			container
 		)
 
 		const toggle = container.querySelector('[role="switch"]')
@@ -39,7 +39,7 @@ describe('Toggle', () => {
 	it('applies compact sizing when requested', () => {
 		renderPreact(
 			<Toggle checked={false} size="compact" onChange={vi.fn()} />,
-			container,
+			container
 		)
 
 		expect(container.querySelector('button')?.className).toContain('compact')
@@ -49,7 +49,7 @@ describe('Toggle', () => {
 		const onChange = vi.fn()
 		renderPreact(
 			<Toggle checked={true} disabled onChange={onChange} />,
-			container,
+			container
 		)
 
 		container.querySelector('button')?.click()

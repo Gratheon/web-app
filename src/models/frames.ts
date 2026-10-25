@@ -1,10 +1,6 @@
 import { db, upsertEntityWithNumericID } from './db'
 import { getBoxes } from './boxes.ts'
-import {
-	FrameSide,
-	getFrameSidesMap,
-	collectFrameSideIDsFromFrames,
-} from './frameSide.ts'
+import { FrameSide, collectFrameSideIDsFromFrames } from './frameSide.ts'
 
 export type FrameType =
 	| 'VOID'
@@ -78,7 +74,9 @@ export async function countBoxFrames(boxId): Promise<number> {
 	}
 }
 
-export async function getFirstEmptyFramePosition(boxId: number): Promise<number> {
+export async function getFirstEmptyFramePosition(
+	boxId: number
+): Promise<number> {
 	try {
 		const frames = (await getFrames({ boxId: +boxId })) || []
 		const occupied = new Set<number>()

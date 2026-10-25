@@ -62,7 +62,9 @@ describe('HiveIcon', () => {
 			container
 		)
 
-		const gate = container.querySelector(`.${styles.gate}`) as HTMLDivElement | null
+		const gate = container.querySelector(
+			`.${styles.gate}`
+		) as HTMLDivElement | null
 		expect(gate).not.toBeNull()
 		expect(gate?.style.width).toBe('6%')
 		renderPreact(null, container)

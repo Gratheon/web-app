@@ -39,7 +39,10 @@ describe('EventApiStatus', () => {
 
 	it('renders the Event API status heading and unknown state by default', () => {
 		act(() => {
-			renderPreact(<EventApiStatus graphqlWsClient={createMockGraphqlWsClient()} />, container)
+			renderPreact(
+				<EventApiStatus graphqlWsClient={createMockGraphqlWsClient()} />,
+				container
+			)
 		})
 
 		expect(container.textContent).toContain('Event API status')
@@ -50,7 +53,10 @@ describe('EventApiStatus', () => {
 	it('updates the indicator when the websocket client reports connection changes', () => {
 		const graphqlWsClient = createMockGraphqlWsClient()
 		act(() => {
-			renderPreact(<EventApiStatus graphqlWsClient={graphqlWsClient} />, container)
+			renderPreact(
+				<EventApiStatus graphqlWsClient={graphqlWsClient} />,
+				container
+			)
 		})
 
 		act(() => {
@@ -75,7 +81,10 @@ describe('EventApiStatus', () => {
 	it('unsubscribes from websocket events on unmount', () => {
 		const graphqlWsClient = createMockGraphqlWsClient()
 		act(() => {
-			renderPreact(<EventApiStatus graphqlWsClient={graphqlWsClient} />, container)
+			renderPreact(
+				<EventApiStatus graphqlWsClient={graphqlWsClient} />,
+				container
+			)
 		})
 
 		expect(graphqlWsClient.listenerCount('connected')).toBe(1)

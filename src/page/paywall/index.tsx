@@ -18,7 +18,7 @@ const USER_QUERY = gql`
 `
 
 export default function Paywall({ isLoggedIn = false }) {
-	if(!isLoggedIn){
+	if (!isLoggedIn) {
 		return null
 	}
 
@@ -40,7 +40,7 @@ export default function Paywall({ isLoggedIn = false }) {
 	}
 
 	if (accountData?.user.id) {
-		metrics.setUser(accountData?.user);
+		metrics.setUser(accountData?.user)
 	}
 
 	return null

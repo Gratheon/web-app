@@ -20,9 +20,7 @@ describe('buildOccupiedFamilyIds', () => {
 	it('keeps queen available when last seen on current side', () => {
 		const occupied = buildOccupiedFamilyIds({
 			queenAnnotations: [],
-			families: [
-				{ id: 21, lastSeenFrameSideId: 501 },
-			],
+			families: [{ id: 21, lastSeenFrameSideId: 501 }],
 			currentFrameId: 201,
 			currentFrameSideId: 501,
 		})

@@ -75,6 +75,6 @@ describe('apiary list cache', () => {
 			],
 			boxSystems: [{ id: 1, name: 'Dadant', isDefault: true }],
 		})
-			expect(getCachedApiaryListSnapshot()).toEqual(data)
+		expect(getCachedApiaryListSnapshot()).toEqual(data)
 	})
 })

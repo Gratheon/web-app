@@ -1,8 +1,6 @@
 import { h } from 'preact'
-import { useState } from 'preact/hooks'
 import T from '@/shared/translate'
 import QueenColor from '@/page/hiveEdit/hiveTopInfo/queenColor'
-import { getQueenColorFromYear } from '@/page/hiveEdit/hiveTopInfo/queenColor/utils'
 import styles from './QueenInfoForm.module.less'
 
 interface QueenInfoFormProps {
@@ -28,7 +26,7 @@ export default function QueenInfoForm({
 	onYearChange,
 	onColorChange,
 	editable = true,
-	showLabels = true
+	showLabels = true,
 }: QueenInfoFormProps) {
 	return (
 		<div className={styles.queenInfoForm}>
@@ -91,4 +89,3 @@ export default function QueenInfoForm({
 		</div>
 	)
 }
-

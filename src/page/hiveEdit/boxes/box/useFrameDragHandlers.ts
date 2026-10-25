@@ -239,7 +239,7 @@ export function useFrameDragHandlers({
 				: assignPositionsFromSlots(targetSlots).map((frame) => ({
 						...frame,
 						boxId: +targetBoxId,
-				  }))
+					}))
 
 		await persistFrames(
 			sourceBoxId === targetBoxId
@@ -373,7 +373,7 @@ export function useFrameDragHandlers({
 					onDrop: (event: React.DragEvent<HTMLDivElement>) => {
 						void onNativeDropAtEnd(event)
 					},
-			  }
+				}
 			: {}
 
 	return {

@@ -15,14 +15,18 @@ import {
 import styles from './styles.module.less'
 
 const UPDATE_BOX_ROOF_STYLE_MUTATION = gql`
-mutation updateBoxRoofStyle($id: ID!, $roofStyle: RoofStyle!) {
-	updateBoxRoofStyle(id: $id, roofStyle: $roofStyle)
-}
+	mutation updateBoxRoofStyle($id: ID!, $roofStyle: RoofStyle!) {
+		updateBoxRoofStyle(id: $id, roofStyle: $roofStyle)
+	}
 `
 
 type RoofStyleOption = 'FLAT' | 'ANGULAR'
 
-const OPTIONS: Array<{ value: RoofStyleOption; title: string; subtitle: string }> = [
+const OPTIONS: Array<{
+	value: RoofStyleOption
+	title: string
+	subtitle: string
+}> = [
 	{
 		value: roofStyles.FLAT,
 		title: 'Flat roof',
@@ -36,9 +40,17 @@ const OPTIONS: Array<{ value: RoofStyleOption; title: string; subtitle: string }
 ]
 
 export default function RoofBox({ boxId, hiveId }) {
-	const box = useLiveQuery(() => (boxId ? getBox(+boxId) : Promise.resolve(undefined)), [boxId], undefined)
-	const [updateBoxRoofStyleMutation, { error }] = useMutation(UPDATE_BOX_ROOF_STYLE_MUTATION)
-	const [selectedStyle, setSelectedStyle] = useState<RoofStyleOption>(roofStyles.FLAT)
+	const box = useLiveQuery(
+		() => (boxId ? getBox(+boxId) : Promise.resolve(undefined)),
+		[boxId],
+		undefined
+	)
+	const [updateBoxRoofStyleMutation, { error }] = useMutation(
+		UPDATE_BOX_ROOF_STYLE_MUTATION
+	)
+	const [selectedStyle, setSelectedStyle] = useState<RoofStyleOption>(
+		roofStyles.FLAT
+	)
 	const [isSaving, setIsSaving] = useState(false)
 
 	useEffect(() => {
@@ -107,7 +119,9 @@ export default function RoofBox({ boxId, hiveId }) {
 								disabled={isSaving}
 							/>
 							<span className={styles.preview}>
-								<span className={`${styles.previewRoof} ${option.value === roofStyles.ANGULAR ? styles.previewAngular : styles.previewFlat}`}></span>
+								<span
+									className={`${styles.previewRoof} ${option.value === roofStyles.ANGULAR ? styles.previewAngular : styles.previewFlat}`}
+								></span>
 							</span>
 							<span className={styles.textWrap}>
 								<strong>{option.title}</strong>

@@ -2,7 +2,7 @@ import { gql } from '../../../api'
 
 export default gql`
 	query hive($id: ID!, $apiaryId: ID!) {
-		apiary(id: $apiaryId){
+		apiary(id: $apiaryId) {
 			id
 			name
 			type
@@ -53,21 +53,21 @@ export default gql`
 				}
 			}
 
-		family {
-			id
-			name
-			race
-			added
-			color
-		}
+			family {
+				id
+				name
+				race
+				added
+				color
+			}
 
-		families {
-			id
-			name
-			race
-			added
-			color
-		}
+			families {
+				id
+				name
+				race
+				added
+				color
+			}
 		}
 	}
 `

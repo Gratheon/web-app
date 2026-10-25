@@ -84,7 +84,9 @@ export default function HiveIcon({
 	const forceUpdate = React.useCallback(() => updateState({}), [])
 
 	const isSectionBox = (boxType: string) =>
-		boxType === 'DEEP' || boxType === 'SUPER' || boxType === 'LARGE_HORIZONTAL_SECTION'
+		boxType === 'DEEP' ||
+		boxType === 'SUPER' ||
+		boxType === 'LARGE_HORIZONTAL_SECTION'
 
 	const hasLargeHorizontalSection = boxes.some(
 		(box: any) => box?.type === 'LARGE_HORIZONTAL_SECTION'
@@ -193,15 +195,20 @@ export default function HiveIcon({
 						style={{
 							...boxStyle,
 						}}
-						className={`${styles.box} ${box.type === 'LARGE_HORIZONTAL_SECTION'
-							? styles.largeHorizontalSection
-							: (isNucleusHive && box.type === 'DEEP')
-								? styles.nucleusSection
-							: ''
-							}`}
+						className={`${styles.box} ${
+							box.type === 'LARGE_HORIZONTAL_SECTION'
+								? styles.largeHorizontalSection
+								: isNucleusHive && box.type === 'DEEP'
+									? styles.nucleusSection
+									: ''
+						}`}
 					>
-						{isNucleusHive && box.type === 'DEEP' && <div className={styles.nucleusCap}></div>}
-						{isNucleusHive && box.type === 'DEEP' && <div className={styles.nucleusEntrance}></div>}
+						{isNucleusHive && box.type === 'DEEP' && (
+							<div className={styles.nucleusCap}></div>
+						)}
+						{isNucleusHive && box.type === 'DEEP' && (
+							<div className={styles.nucleusEntrance}></div>
+						)}
 						{showDetailedNotches &&
 							(box.type === 'DEEP' || box.type === 'SUPER') && (
 								<div className={styles.gripNotch}></div>
@@ -216,16 +223,16 @@ export default function HiveIcon({
 						{box.type === 'VENTILATION' && (
 							<div className={styles.ventilation}></div>
 						)}
-							{box.type === 'LARGE_HORIZONTAL_SECTION' && (
-								<div className={styles.horizontalFrames}>
-									<span className={styles.horizontalFrameLine}></span>
-									<span className={styles.horizontalFrameLine}></span>
-									<span className={styles.horizontalFrameLine}></span>
-									<span className={styles.horizontalFrameLine}></span>
-									<span className={styles.horizontalEntrance}></span>
-								</div>
-							)}
-						</div>
+						{box.type === 'LARGE_HORIZONTAL_SECTION' && (
+							<div className={styles.horizontalFrames}>
+								<span className={styles.horizontalFrameLine}></span>
+								<span className={styles.horizontalFrameLine}></span>
+								<span className={styles.horizontalFrameLine}></span>
+								<span className={styles.horizontalFrameLine}></span>
+								<span className={styles.horizontalEntrance}></span>
+							</div>
+						)}
+					</div>
 
 					{editable && colorPickerVisibleAt === i && isPaintableSection && (
 						<div className={styles.colorPickerPopup}>

@@ -15,57 +15,57 @@ import VisualForm from '@/shared/visualForm'
 import styles from './styles.module.less'
 
 const DEVICE_EDIT_QUERY = gql`
-{
-	devices {
-		id
-		name
-		type
-		apiToken
-		hiveId
-		boxId
-	}
-	apiaries {
-		id
-		name
-		hives {
+	{
+		devices {
 			id
-			hiveNumber
-			family {
-				name
-			}
-			boxes {
+			name
+			type
+			apiToken
+			hiveId
+			boxId
+		}
+		apiaries {
+			id
+			name
+			hives {
 				id
-				position
-				roofStyle
-				type
+				hiveNumber
+				family {
+					name
+				}
+				boxes {
+					id
+					position
+					roofStyle
+					type
+				}
 			}
 		}
 	}
-}
 `
 
 const UPDATE_DEVICE_MUTATION = gql`
-mutation updateDevice($id: ID!, $device: DeviceUpdateInput!) {
-	updateDevice(id: $id, device: $device) {
-		id
+	mutation updateDevice($id: ID!, $device: DeviceUpdateInput!) {
+		updateDevice(id: $id, device: $device) {
+			id
+		}
 	}
-}
 `
 
 const GENERATE_TOKEN_MUTATION = gql`
-mutation generateApiToken {
-	generateApiToken {
-		token
+	mutation generateApiToken {
+		generateApiToken {
+			token
+		}
 	}
-}
 `
 
 const REVOKE_API_TOKEN_MUTATION = gql`
-mutation revokeApiToken($token: String!) {
-	revokeApiToken(token: $token) {
-		error
+	mutation revokeApiToken($token: String!) {
+		revokeApiToken(token: $token) {
+			error
+		}
 	}
-}
 `
 
 type DeviceType = 'IOT_SENSOR' | 'VIDEO_CAMERA'
@@ -83,12 +83,20 @@ export default function DeviceEditPage() {
 	})
 	const [saving, setSaving] = useState(false)
 	const [regeneratingToken, setRegeneratingToken] = useState(false)
-	const [initializedDeviceId, setInitializedDeviceId] = useState<string | null>(null)
+	const [initializedDeviceId, setInitializedDeviceId] = useState<string | null>(
+		null
+	)
 
 	const { loading, error, data } = useQuery(DEVICE_EDIT_QUERY)
-	const [updateDevice, { error: updateError }] = useMutation(UPDATE_DEVICE_MUTATION)
-	const [generateToken, { error: generateError }] = useMutation(GENERATE_TOKEN_MUTATION)
-	const [revokeApiToken, { error: revokeError }] = useMutation(REVOKE_API_TOKEN_MUTATION)
+	const [updateDevice, { error: updateError }] = useMutation(
+		UPDATE_DEVICE_MUTATION
+	)
+	const [generateToken, { error: generateError }] = useMutation(
+		GENERATE_TOKEN_MUTATION
+	)
+	const [revokeApiToken, { error: revokeError }] = useMutation(
+		REVOKE_API_TOKEN_MUTATION
+	)
 
 	const device = useMemo(() => {
 		const devices = data?.devices || []
@@ -112,10 +120,15 @@ export default function DeviceEditPage() {
 		const options: Array<{ id: string; label: string }> = []
 		const apiaries = data?.apiaries || []
 		apiaries.forEach((apiary: any) => {
-			(apiary.hives || []).forEach((hive: any) => {
-				const hiveLabel = hive?.hiveNumber ? `Hive #${hive.hiveNumber}` : `Hive ${hive.id}`
+			;(apiary.hives || []).forEach((hive: any) => {
+				const hiveLabel = hive?.hiveNumber
+					? `Hive #${hive.hiveNumber}`
+					: `Hive ${hive.id}`
 				const familyName = hive?.family?.name ? ` (${hive.family.name})` : ''
-				options.push({ id: hive.id, label: `${apiary.name || 'Apiary'} - ${hiveLabel}${familyName}` })
+				options.push({
+					id: hive.id,
+					label: `${apiary.name || 'Apiary'} - ${hiveLabel}${familyName}`,
+				})
 			})
 		})
 		return options
@@ -125,8 +138,10 @@ export default function DeviceEditPage() {
 		const result = new Map<string, Array<{ id: string; label: string }>>()
 		const apiaries = data?.apiaries || []
 		apiaries.forEach((apiary: any) => {
-			(apiary.hives || []).forEach((hive: any) => {
-				const hiveLabel = hive?.hiveNumber ? `Hive #${hive.hiveNumber}` : `Hive ${hive.id}`
+			;(apiary.hives || []).forEach((hive: any) => {
+				const hiveLabel = hive?.hiveNumber
+					? `Hive #${hive.hiveNumber}`
+					: `Hive ${hive.id}`
 				result.set(
 					hive.id,
 					(hive.boxes || []).map((box: any) => ({
@@ -162,7 +177,12 @@ export default function DeviceEditPage() {
 
 	async function handleRegenerateToken() {
 		if (!device) return
-		if (!window.confirm('Regenerate token? This will revoke the old token immediately.')) return
+		if (
+			!window.confirm(
+				'Regenerate token? This will revoke the old token immediately.'
+			)
+		)
+			return
 
 		setRegeneratingToken(true)
 		try {
@@ -186,18 +206,31 @@ export default function DeviceEditPage() {
 	}
 
 	if (loading) return <Loader />
-	if (!device) return <PagePaddedCentered><p><T>Device not found</T></p></PagePaddedCentered>
+	if (!device)
+		return (
+			<PagePaddedCentered>
+				<p>
+					<T>Device not found</T>
+				</p>
+			</PagePaddedCentered>
+		)
 
 	return (
 		<PagePaddedCentered className={styles.page}>
 			<div className={styles.header}>
 				<div>
-					<h1><T>Manage device</T></h1>
+					<h1>
+						<T>Manage device</T>
+					</h1>
 					<p className={styles.subtitle}>{device.name}</p>
 				</div>
 				<div className={styles.headerActions}>
-					<Button href={`/devices/${device.id}`}><T>View</T></Button>
-					<Button href="/devices"><T>Back to devices</T></Button>
+					<Button href={`/devices/${device.id}`}>
+						<T>View</T>
+					</Button>
+					<Button href="/devices">
+						<T>Back to devices</T>
+					</Button>
 				</div>
 			</div>
 
@@ -209,27 +242,45 @@ export default function DeviceEditPage() {
 					className={styles.form}
 					submit={
 						<div className={styles.actions}>
-							<Button type="button" onClick={() => navigate('/devices', { replace: true })}><T>Cancel</T></Button>
-							<Button type="submit" color="green" loading={saving}><T>Save changes</T></Button>
+							<Button
+								type="button"
+								onClick={() => navigate('/devices', { replace: true })}
+							>
+								<T>Cancel</T>
+							</Button>
+							<Button type="submit" color="green" loading={saving}>
+								<T>Save changes</T>
+							</Button>
 						</div>
 					}
 				>
 					<div className={styles.formRow}>
-						<label className={styles.label}><T>Device name</T></label>
+						<label className={styles.label}>
+							<T>Device name</T>
+						</label>
 						<input
 							className={styles.input}
 							value={form.name}
 							autoFocus
-							onInput={(e: any) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+							onInput={(e: any) =>
+								setForm((prev) => ({ ...prev, name: e.target.value }))
+							}
 						/>
 					</div>
 
 					<div className={styles.formRow}>
-						<label className={styles.label}><T>Type</T></label>
+						<label className={styles.label}>
+							<T>Type</T>
+						</label>
 						<select
 							className={styles.input}
 							value={form.type}
-							onInput={(e: any) => setForm((prev) => ({ ...prev, type: e.target.value as DeviceType }))}
+							onInput={(e: any) =>
+								setForm((prev) => ({
+									...prev,
+									type: e.target.value as DeviceType,
+								}))
+							}
 						>
 							<option value="IOT_SENSOR">IoT sensor</option>
 							<option value="VIDEO_CAMERA">Video camera</option>
@@ -237,36 +288,54 @@ export default function DeviceEditPage() {
 					</div>
 
 					<div className={styles.formRow}>
-						<label className={styles.label}><T>Linked hive</T></label>
+						<label className={styles.label}>
+							<T>Linked hive</T>
+						</label>
 						<select
 							className={styles.input}
 							value={form.hiveId}
-							onInput={(e: any) => setForm((prev) => ({ ...prev, hiveId: e.target.value, boxId: '' }))}
+							onInput={(e: any) =>
+								setForm((prev) => ({
+									...prev,
+									hiveId: e.target.value,
+									boxId: '',
+								}))
+							}
 						>
 							<option value="">No hive linked</option>
 							{hiveOptions.map((hive) => (
-								<option key={hive.id} value={hive.id}>{hive.label}</option>
+								<option key={hive.id} value={hive.id}>
+									{hive.label}
+								</option>
 							))}
 						</select>
 					</div>
 
 					<div className={styles.formRow}>
-						<label className={styles.label}><T>Linked section</T></label>
+						<label className={styles.label}>
+							<T>Linked section</T>
+						</label>
 						<select
 							className={styles.input}
 							value={form.boxId}
 							disabled={!form.hiveId}
-							onInput={(e: any) => setForm((prev) => ({ ...prev, boxId: e.target.value }))}
+							onInput={(e: any) =>
+								setForm((prev) => ({ ...prev, boxId: e.target.value }))
+							}
 						>
 							<option value="">No specific section</option>
 							{(boxOptionsByHive.get(form.hiveId) || []).map((box) => (
-								<option key={box.id} value={box.id}>{box.label}</option>
+								<option key={box.id} value={box.id}>
+									{box.label}
+								</option>
 							))}
 						</select>
 					</div>
 
 					<div className={styles.formRow}>
-						<label className={styles.label}><T>API token</T></label>
+						<label className={styles.label}>
+							<T>API token</T>
+						</label>
 						<div className={styles.tokenColumn}>
 							{form.apiToken ? (
 								<div className={styles.tokenValue}>
@@ -274,10 +343,16 @@ export default function DeviceEditPage() {
 									<CopyButton data={form.apiToken} />
 								</div>
 							) : (
-								<div className={styles.emptyToken}><T>No token assigned</T></div>
+								<div className={styles.emptyToken}>
+									<T>No token assigned</T>
+								</div>
 							)}
 							<div>
-								<Button type="button" loading={regeneratingToken} onClick={handleRegenerateToken}>
+								<Button
+									type="button"
+									loading={regeneratingToken}
+									onClick={handleRegenerateToken}
+								>
 									<T>Regenerate token</T>
 								</Button>
 							</div>

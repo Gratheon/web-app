@@ -23,8 +23,20 @@ export const GET_HIVE_PLACEMENTS = gql`
 `
 
 export const UPDATE_HIVE_PLACEMENT = gql`
-	mutation updateHivePlacement($apiaryId: ID!, $hiveId: ID!, $x: Float!, $y: Float!, $rotation: Float!) {
-		updateHivePlacement(apiaryId: $apiaryId, hiveId: $hiveId, x: $x, y: $y, rotation: $rotation) {
+	mutation updateHivePlacement(
+		$apiaryId: ID!
+		$hiveId: ID!
+		$x: Float!
+		$y: Float!
+		$rotation: Float!
+	) {
+		updateHivePlacement(
+			apiaryId: $apiaryId
+			hiveId: $hiveId
+			x: $x
+			y: $y
+			rotation: $rotation
+		) {
 			hiveId
 		}
 	}
@@ -51,4 +63,3 @@ export const DELETE_OBSTACLE = gql`
 		deleteApiaryObstacle(id: $id)
 	}
 `
-

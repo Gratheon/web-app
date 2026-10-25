@@ -52,9 +52,15 @@ export default function SplitHiveModal({
 	apiaryId,
 	frames,
 }: SplitHiveModalProps) {
-	const tColonySplitChildAdded = t('This colony was split and child colony was added to a new hive')
-	const [selectedFrameIds, setSelectedFrameIds] = useState<Set<number>>(new Set())
-	const [queenAction, setQueenAction] = useState<'new_queen' | 'take_old_queen' | 'no_queen'>('new_queen')
+	const tColonySplitChildAdded = t(
+		'This colony was split and child colony was added to a new hive'
+	)
+	const [selectedFrameIds, setSelectedFrameIds] = useState<Set<number>>(
+		new Set()
+	)
+	const [queenAction, setQueenAction] = useState<
+		'new_queen' | 'take_old_queen' | 'no_queen'
+	>('new_queen')
 	const [newHiveName, setNewHiveName] = useState('')
 	const [error, setError] = useState<Error | null>(null)
 	const [lang, setLang] = useState('en')
@@ -77,10 +83,11 @@ export default function SplitHiveModal({
 		setLang(currentLang)
 	}, [user])
 
-	const { data: randomNameData, loading: randomNameLoading, reexecuteQuery: reexecuteRandomNameQuery } = useQuery(
-		RANDOM_HIVE_NAME_QUERY,
-		{ variables: { language: lang } }
-	)
+	const {
+		data: randomNameData,
+		loading: randomNameLoading,
+		reexecuteQuery: reexecuteRandomNameQuery,
+	} = useQuery(RANDOM_HIVE_NAME_QUERY, { variables: { language: lang } })
 
 	useEffect(() => {
 		if (randomNameData?.randomHiveName && !randomNameLoading) {
@@ -93,7 +100,11 @@ export default function SplitHiveModal({
 	}, [reexecuteRandomNameQuery])
 
 	const handleQueenActionChange = useCallback((value: string) => {
-		if (value === 'new_queen' || value === 'take_old_queen' || value === 'no_queen') {
+		if (
+			value === 'new_queen' ||
+			value === 'take_old_queen' ||
+			value === 'no_queen'
+		) {
 			setQueenAction(value as 'new_queen' | 'take_old_queen' | 'no_queen')
 		}
 	}, [])
@@ -110,16 +121,24 @@ export default function SplitHiveModal({
 		}
 	`)
 
-	const lastToggleRef = useRef<{ frameId: number; timestamp: number } | null>(null)
+	const lastToggleRef = useRef<{ frameId: number; timestamp: number } | null>(
+		null
+	)
 
 	const toggleFrameSelection = useCallback((frameId: number) => {
-		console.log(`[SplitHiveModal] toggleFrameSelection called for frame ${frameId}`)
+		console.log(
+			`[SplitHiveModal] toggleFrameSelection called for frame ${frameId}`
+		)
 
 		const now = Date.now()
-		if (lastToggleRef.current &&
-		    lastToggleRef.current.frameId === frameId &&
-		    now - lastToggleRef.current.timestamp < 100) {
-			console.log(`[SplitHiveModal] Ignoring rapid repeated click on frame ${frameId} (within 100ms)`)
+		if (
+			lastToggleRef.current &&
+			lastToggleRef.current.frameId === frameId &&
+			now - lastToggleRef.current.timestamp < 100
+		) {
+			console.log(
+				`[SplitHiveModal] Ignoring rapid repeated click on frame ${frameId} (within 100ms)`
+			)
 			return
 		}
 
@@ -127,7 +146,7 @@ export default function SplitHiveModal({
 		const startTime = performance.now()
 
 		flushSync(() => {
-			setSelectedFrameIds(prev => {
+			setSelectedFrameIds((prev) => {
 				const newSelection = new Set(prev)
 				if (newSelection.has(frameId)) {
 					newSelection.delete(frameId)
@@ -141,7 +160,9 @@ export default function SplitHiveModal({
 				setError(null)
 
 				const endTime = performance.now()
-				console.log(`[SplitHiveModal] toggleFrameSelection completed in ${endTime - startTime}ms`)
+				console.log(
+					`[SplitHiveModal] toggleFrameSelection completed in ${endTime - startTime}ms`
+				)
 				return newSelection
 			})
 		})
@@ -149,7 +170,7 @@ export default function SplitHiveModal({
 
 	const onClickHandlers = useMemo(() => {
 		const handlers = new Map<number, () => void>()
-		frames.forEach(frame => {
+		frames.forEach((frame) => {
 			handlers.set(frame.id, () => toggleFrameSelection(frame.id))
 		})
 		return handlers
@@ -231,127 +252,147 @@ export default function SplitHiveModal({
 	if (!isOpen) return null
 
 	return (
-		<Modal onClose={handleClose} title={<T>Split Colony</T>} className={styles.wideModal}>
+		<Modal
+			onClose={handleClose}
+			title={<T>Split Colony</T>}
+			className={styles.wideModal}
+		>
 			<div className={styles.content}>
-				<div className={`${styles.previewContainer} ${isSplitLocked ? styles.previewLocked : ''}`}>
-				<p>
-					<T>Select up to 10 frames to move to a new hive</T>
-				</p>
+				<div
+					className={`${styles.previewContainer} ${isSplitLocked ? styles.previewLocked : ''}`}
+				>
+					<p>
+						<T>Select up to 10 frames to move to a new hive</T>
+					</p>
 
-				{error && <ErrorMsg error={error} />}
+					{error && <ErrorMsg error={error} />}
 
-				<div className={styles.formGroup}>
-					<label>
-						<T>Queen Management</T>
-					</label>
-					<div className={styles.radioGroup}>
-						<label className={styles.radioLabel}>
-							<input
-								type="radio"
-								name="queenAction"
-								value="new_queen"
-								checked={queenAction === 'new_queen'}
-								onChange={(e) => handleQueenActionChange((e.target as HTMLInputElement).value)}
-							/>
-							<T>Install new queen</T>
-						</label>
-						<label className={styles.radioLabel}>
-							<input
-								type="radio"
-								name="queenAction"
-								value="take_old_queen"
-								checked={queenAction === 'take_old_queen'}
-								onChange={(e) => handleQueenActionChange((e.target as HTMLInputElement).value)}
-							/>
-							<T>Take old queen (source hive becomes queenless)</T>
-						</label>
-						<label className={styles.radioLabel}>
-							<input
-								type="radio"
-								name="queenAction"
-								value="no_queen"
-								checked={queenAction === 'no_queen'}
-								onChange={(e) => handleQueenActionChange((e.target as HTMLInputElement).value)}
-							/>
-							<T>No queen (queenless split)</T>
-						</label>
-					</div>
-				</div>
-
-				{queenAction === 'new_queen' && (
 					<div className={styles.formGroup}>
-						<label htmlFor="newHiveName">
-							<T>Queen Name</T>
+						<label>
+							<T>Queen Management</T>
 						</label>
-						<div className={styles.nameInputWrapper}>
-							<input
-								id="newHiveName"
-								type="text"
-								value={newHiveName}
-								onInput={(e) => setNewHiveName((e.target as HTMLInputElement).value)}
-								placeholder={t('Enter name for queen')}
-								className={styles.input}
-							/>
-							<Button
-								onClick={handleRefreshName}
-								loading={randomNameLoading}
-								title="Generate new name"
-								className={styles.refreshButton}
-							>
-								<RefreshIcon width={16} height={16} />
-							</Button>
+						<div className={styles.radioGroup}>
+							<label className={styles.radioLabel}>
+								<input
+									type="radio"
+									name="queenAction"
+									value="new_queen"
+									checked={queenAction === 'new_queen'}
+									onChange={(e) =>
+										handleQueenActionChange(
+											(e.target as HTMLInputElement).value
+										)
+									}
+								/>
+								<T>Install new queen</T>
+							</label>
+							<label className={styles.radioLabel}>
+								<input
+									type="radio"
+									name="queenAction"
+									value="take_old_queen"
+									checked={queenAction === 'take_old_queen'}
+									onChange={(e) =>
+										handleQueenActionChange(
+											(e.target as HTMLInputElement).value
+										)
+									}
+								/>
+								<T>Take old queen (source hive becomes queenless)</T>
+							</label>
+							<label className={styles.radioLabel}>
+								<input
+									type="radio"
+									name="queenAction"
+									value="no_queen"
+									checked={queenAction === 'no_queen'}
+									onChange={(e) =>
+										handleQueenActionChange(
+											(e.target as HTMLInputElement).value
+										)
+									}
+								/>
+								<T>No queen (queenless split)</T>
+							</label>
 						</div>
 					</div>
-				)}
 
-				<div className={styles.frameSelection}>
-					<h3>
-						<T>Select Frames</T> ({selectedFrameIds.size}/10)
-					</h3>
-					<div className={styles.boxesContainer}>
-						{boxes
-							.sort((a, b) => (b.position || 0) - (a.position || 0))
-							.map((box) => {
-								const boxFrames = frames
-									.filter((f) => f.boxId === box.id)
-									.sort((a, b) => a.position - b.position)
+					{queenAction === 'new_queen' && (
+						<div className={styles.formGroup}>
+							<label htmlFor="newHiveName">
+								<T>Queen Name</T>
+							</label>
+							<div className={styles.nameInputWrapper}>
+								<input
+									id="newHiveName"
+									type="text"
+									value={newHiveName}
+									onInput={(e) =>
+										setNewHiveName((e.target as HTMLInputElement).value)
+									}
+									placeholder={t('Enter name for queen')}
+									className={styles.input}
+								/>
+								<Button
+									onClick={handleRefreshName}
+									loading={randomNameLoading}
+									title="Generate new name"
+									className={styles.refreshButton}
+								>
+									<RefreshIcon width={16} height={16} />
+								</Button>
+							</div>
+						</div>
+					)}
 
-								if (boxFrames.length === 0) return null
+					<div className={styles.frameSelection}>
+						<h3>
+							<T>Select Frames</T> ({selectedFrameIds.size}/10)
+						</h3>
+						<div className={styles.boxesContainer}>
+							{boxes
+								.sort((a, b) => (b.position || 0) - (a.position || 0))
+								.map((box) => {
+									const boxFrames = frames
+										.filter((f) => f.boxId === box.id)
+										.sort((a, b) => a.position - b.position)
 
-								return (
-									<div key={box.id} className={styles.boxGroup}>
-										<div className={styles.boxHeader}>
-											<T>Box</T> {box.position + 1} ({box.type})
+									if (boxFrames.length === 0) return null
+
+									return (
+										<div key={box.id} className={styles.boxGroup}>
+											<div className={styles.boxHeader}>
+												<T>Box</T> {box.position + 1} ({box.type})
+											</div>
+											<div className={styles.frameList}>
+												{boxFrames.map((frame) => (
+													<FramePreview
+														key={frame.id}
+														frameId={frame.id}
+														position={frame.position}
+														leftId={frame.leftId}
+														rightId={frame.rightId}
+														isSelected={selectedFrameIds.has(frame.id)}
+														onClick={onClickHandlers.get(frame.id)}
+														showCheckbox={true}
+													/>
+												))}
+											</div>
 										</div>
-										<div className={styles.frameList}>
-											{boxFrames.map((frame) => (
-												<FramePreview
-													key={frame.id}
-													frameId={frame.id}
-													position={frame.position}
-													leftId={frame.leftId}
-													rightId={frame.rightId}
-													isSelected={selectedFrameIds.has(frame.id)}
-													onClick={onClickHandlers.get(frame.id)}
-													showCheckbox={true}
-												/>
-											))}
-										</div>
-									</div>
-								)
-							})}
+									)
+								})}
+						</div>
 					</div>
-				</div>
 
-				{isSplitLocked && <div className={styles.previewOverlay} />}
-				{isSplitLocked && (
-					<div className={styles.previewOverlayNotice}>
-						<BillingUpgradeNotice
-							compact
-							title={<T>Split Colony requires Hobbyist plan or higher.</T>}
-						/>
-					</div>
-				)}
+					{isSplitLocked && <div className={styles.previewOverlay} />}
+					{isSplitLocked && (
+						<div className={styles.previewOverlayNotice}>
+							<BillingUpgradeNotice
+								compact
+								title={<T>Split Colony requires Hobbyist plan or higher.</T>}
+							/>
+						</div>
+					)}
 				</div>
 
 				<div className={styles.actions}>
@@ -363,7 +404,10 @@ export default function SplitHiveModal({
 							color="primary"
 							onClick={handleSplit}
 							loading={loading}
-							disabled={selectedFrameIds.size === 0 || (queenAction === 'new_queen' && !newHiveName.trim())}
+							disabled={
+								selectedFrameIds.size === 0 ||
+								(queenAction === 'new_queen' && !newHiveName.trim())
+							}
 						>
 							<T>Split Colony</T>
 						</Button>

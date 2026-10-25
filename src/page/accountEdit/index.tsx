@@ -219,7 +219,9 @@ export default function AccountEdit() {
 		setUser({
 			...userStored,
 			locale,
-			temperatureUnit: userStored?.temperatureUnit || getDefaultTemperatureUnitForLocale(locale),
+			temperatureUnit:
+				userStored?.temperatureUnit ||
+				getDefaultTemperatureUnitForLocale(locale),
 		})
 	}
 
@@ -393,19 +395,19 @@ export default function AccountEdit() {
 									</InfoIcon>
 								</span>
 							</label>
-								<select
-									name="temperatureUnit"
-									id="temperatureUnit"
-									value={getPreferredTemperatureUnit(user)}
-									onInput={onInput}
-								>
-									{TEMPERATURE_UNITS.map((unit: TemperatureUnit) => (
-										<option key={unit} value={unit}>
-											{unit === 'fahrenheit' ? 'Fahrenheit (°F)' : 'Celsius (°C)'}
-										</option>
-									))}
-								</select>
-							</div>
+							<select
+								name="temperatureUnit"
+								id="temperatureUnit"
+								value={getPreferredTemperatureUnit(user)}
+								onInput={onInput}
+							>
+								{TEMPERATURE_UNITS.map((unit: TemperatureUnit) => (
+									<option key={unit} value={unit}>
+										{unit === 'fahrenheit' ? 'Fahrenheit (°F)' : 'Celsius (°C)'}
+									</option>
+								))}
+							</select>
+						</div>
 					</VisualForm>
 				</div>
 			</Card>

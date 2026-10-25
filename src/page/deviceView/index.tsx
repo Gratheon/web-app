@@ -15,28 +15,28 @@ import PagePaddedCentered from '@/shared/pagePaddedCentered'
 import styles from './styles.module.less'
 
 const DEVICE_QUERY = gql`
-{
-	devices {
-		id
-		name
-		type
-		apiToken
-		hiveId
-		boxId
-	}
-	apiaries {
-		id
-		hives {
+	{
+		devices {
 			id
-			hiveNumber
-			boxes {
+			name
+			type
+			apiToken
+			hiveId
+			boxId
+		}
+		apiaries {
+			id
+			hives {
 				id
-				position
-				roofStyle
+				hiveNumber
+				boxes {
+					id
+					position
+					roofStyle
+				}
 			}
 		}
 	}
-}
 `
 
 type DeviceType = 'IOT_SENSOR' | 'VIDEO_CAMERA'
@@ -44,7 +44,8 @@ type DeviceType = 'IOT_SENSOR' | 'VIDEO_CAMERA'
 const IOT_DOCS_URL = 'https://gratheon.com/docs/beehive-sensors/'
 const IOT_REPO_URL = 'https://github.com/Gratheon/beehive-sensors/'
 const VIDEO_DOCS_URL = 'https://gratheon.com/docs/entrance-observer/'
-const VIDEO_PRODUCT_URL = 'https://gratheon.com/about/products/entrance_observer/'
+const VIDEO_PRODUCT_URL =
+	'https://gratheon.com/about/products/entrance_observer/'
 const VIDEO_REPO_URL = 'https://github.com/Gratheon/entrance-observer/'
 
 function getTypeLinks(type: DeviceType) {
@@ -76,7 +77,9 @@ export default function DeviceViewPage() {
 		for (const apiary of apiaries) {
 			for (const hive of apiary.hives || []) {
 				if (`${hive.id}` === `${device.hiveId}`) {
-					const box = (hive.boxes || []).find((b: any) => `${b.id}` === `${device.boxId}`)
+					const box = (hive.boxes || []).find(
+						(b: any) => `${b.id}` === `${device.boxId}`
+					)
 					return {
 						apiaryId: apiary.id,
 						hiveId: hive.id,
@@ -91,58 +94,84 @@ export default function DeviceViewPage() {
 
 	if (loading) return <Loader />
 	if (error) return <ErrorMsg error={error} />
-	if (!device) return <PagePaddedCentered><p><T>Device not found</T></p></PagePaddedCentered>
+	if (!device)
+		return (
+			<PagePaddedCentered>
+				<p>
+					<T>Device not found</T>
+				</p>
+			</PagePaddedCentered>
+		)
 
 	return (
 		<PagePaddedCentered>
 			<div className={styles.header}>
 				<div>
 					<h1>{device.name}</h1>
-					<div className={styles.meta}>{device.type === 'VIDEO_CAMERA' ? 'Video camera' : 'IoT sensor'}</div>
+					<div className={styles.meta}>
+						{device.type === 'VIDEO_CAMERA' ? 'Video camera' : 'IoT sensor'}
+					</div>
 				</div>
 				<div className={styles.headerActions}>
 					<Button href={`/devices/${device.id}/edit`}>
 						<T>Manage</T>
 					</Button>
 					{device.boxId && hiveContext ? (
-						<Button color="green" href={`/apiaries/${hiveContext.apiaryId}/hives/${hiveContext.hiveId}/box/${device.boxId}`}>
-							<T>Open linked section</T>{hiveContext.box ? ` (#${hiveContext.box.position + 1})` : ''}
+						<Button
+							color="green"
+							href={`/apiaries/${hiveContext.apiaryId}/hives/${hiveContext.hiveId}/box/${device.boxId}`}
+						>
+							<T>Open linked section</T>
+							{hiveContext.box ? ` (#${hiveContext.box.position + 1})` : ''}
 						</Button>
 					) : null}
 				</div>
 			</div>
 
 			<section className={styles.section}>
-				<h3><T>API token</T></h3>
+				<h3>
+					<T>API token</T>
+				</h3>
 				{device.apiToken ? (
 					<div className={styles.tokenRow}>
 						<MaskedToken token={device.apiToken} />
 						<CopyButton data={device.apiToken} />
 					</div>
 				) : (
-					<p><T>Token was not generated.</T></p>
+					<p>
+						<T>Token was not generated.</T>
+					</p>
 				)}
 			</section>
 
 			<section className={styles.section}>
-				<h3><T>Setup docs</T></h3>
+				<h3>
+					<T>Setup docs</T>
+				</h3>
 				<div className={styles.links}>
 					{getTypeLinks(device.type).map((link) => (
-						<a key={link.href} href={link.href} target="_blank" rel="noreferrer">{link.label}</a>
+						<a
+							key={link.href}
+							href={link.href}
+							target="_blank"
+							rel="noreferrer"
+						>
+							{link.label}
+						</a>
 					))}
 				</div>
 			</section>
 
-				{device.type === 'VIDEO_CAMERA' && (
-					<section className={styles.section}>
-						<DeviceVideoStream boxId={device.boxId || null} />
-						<DeviceStreamPlayback
-							boxId={device.boxId || null}
-							className={styles.streamPlayback}
-							title={<T>Past stream playback</T>}
-						/>
-					</section>
-				)}
+			{device.type === 'VIDEO_CAMERA' && (
+				<section className={styles.section}>
+					<DeviceVideoStream boxId={device.boxId || null} />
+					<DeviceStreamPlayback
+						boxId={device.boxId || null}
+						className={styles.streamPlayback}
+						title={<T>Past stream playback</T>}
+					/>
+				</section>
+			)}
 		</PagePaddedCentered>
 	)
 }

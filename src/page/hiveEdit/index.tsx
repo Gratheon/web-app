@@ -11,7 +11,7 @@ import HiveEditDetails from '@/page/hiveEdit/hiveTopInfo'
 import ErrorMsg from '@/shared/messageError'
 import ErrorGeneral from '@/shared/messageErrorGlobal'
 import { boxTypes, getBox, getBoxes } from '@/models/boxes.ts'
-import { getHive, isCollapsed, isEditable } from '@/models/hive.ts'
+import { getHive, isEditable } from '@/models/hive.ts'
 import { getApiary } from '@/models/apiary.ts'
 import Loader from '@/shared/loader'
 import { getFrames } from '@/models/frames.ts'
@@ -36,7 +36,6 @@ import { getFamilyByHive } from '@/models/family.ts'
 import { Tab } from '@/shared/tab'
 import { TabBar } from '@/shared/tab'
 import InspectionList from '../inspectionList'
-import CollapseHiveModal from './CollapseHiveModal' // Import the modal component
 import { consumeHiveCreatedCelebrationPending } from '@/shared/welcomeFlow'
 
 export default function HiveEditForm() {
@@ -84,23 +83,23 @@ export default function HiveEditForm() {
 			if (isTypingTarget(event.target)) return
 			if (isModalTarget(event.target)) return
 
-				const key = event.key
-				const isNavigationModifier = event.ctrlKey || event.metaKey
+			const key = event.key
+			const isNavigationModifier = event.ctrlKey || event.metaKey
 
-				if (isNavigationModifier && key.toLowerCase() === 'a') {
-					if (!apiaryId) return
-					event.preventDefault()
-					navigate(`/apiaries/${apiaryId}`, { replace: true })
-					return
-				}
+			if (isNavigationModifier && key.toLowerCase() === 'a') {
+				if (!apiaryId) return
+				event.preventDefault()
+				navigate(`/apiaries/${apiaryId}`, { replace: true })
+				return
+			}
 
-				if (isNavigationModifier && key.toLowerCase() === 'h') {
-					event.preventDefault()
-					navigate('/apiaries', { replace: true })
-					return
-				}
+			if (isNavigationModifier && key.toLowerCase() === 'h') {
+				event.preventDefault()
+				navigate('/apiaries', { replace: true })
+				return
+			}
 
-				if (event.ctrlKey || event.metaKey) return
+			if (event.ctrlKey || event.metaKey) return
 			if (mapTab !== 'structure') return
 
 			if (key === 'Backspace') {
@@ -137,8 +136,8 @@ export default function HiveEditForm() {
 							currentIndex < 0
 								? 0
 								: currentIndex >= sortedBoxes.length - 1
-								? sortedBoxes.length - 1
-								: currentIndex + 1
+									? sortedBoxes.length - 1
+									: currentIndex + 1
 					} else {
 						nextIndex = currentIndex <= 0 ? 0 : currentIndex - 1
 					}
@@ -172,8 +171,8 @@ export default function HiveEditForm() {
 							currentIndex < 0
 								? 0
 								: currentIndex >= sortedFrames.length - 1
-								? sortedFrames.length - 1
-								: currentIndex + 1
+									? sortedFrames.length - 1
+									: currentIndex + 1
 					}
 
 					if (nextIndex === currentIndex || nextIndex < 0) return

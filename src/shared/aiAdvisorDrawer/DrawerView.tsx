@@ -106,10 +106,10 @@ export default function AIAdvisorDrawerView({
 						message.role === 'assistant'
 							? styles.assistant
 							: message.role === 'user'
-							? styles.user
-							: message.role === 'error'
-							? styles.error
-							: styles.system
+								? styles.user
+								: message.role === 'error'
+									? styles.error
+									: styles.system
 					return (
 						<div key={message.id} className={`${styles.message} ${roleClass}`}>
 							{message.shortcuts ? (

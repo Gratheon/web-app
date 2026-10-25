@@ -1,15 +1,15 @@
-import CopyIcon from "../../icons/copy.tsx";
-import Button from "../button";
-import T from "../translate";
-import CopySuccess from "../../icons/copySuccess.tsx";
-import { useState } from "react";
+import CopyIcon from '../../icons/copy.tsx'
+import Button from '../button'
+import T from '../translate'
+import CopySuccess from '../../icons/copySuccess.tsx'
+import { useState } from 'react'
 
 export default function CopyButton({ size = '', data = '' }) {
-	let [copied, setCopied] = useState(false);
+	let [copied, setCopied] = useState(false)
 	const copyToken = (token: string) => {
-		navigator.clipboard.writeText(token);
+		navigator.clipboard.writeText(token)
 		setCopied(true)
-	};
+	}
 
 	return (
 		<Button size={size} onClick={() => copyToken(data)}>

@@ -14,7 +14,10 @@ import TableIcon from '@/icons/tableIcon'
 import queenImageURL from '@/assets/queen.webp'
 import queenPlaceholderUrls from '@/assets/queens/placeholders'
 import { getQueenColorFromYear } from '@/page/hiveEdit/hiveTopInfo/queenColor/utils'
-import { getCachedQueenListData, getCachedQueenListSnapshot } from './queens.cache'
+import {
+	getCachedQueenListData,
+	getCachedQueenListSnapshot,
+} from './queens.cache'
 import styles from './queens.module.less'
 
 type HiveLink = {
@@ -57,7 +60,7 @@ const QUEEN_PLACEHOLDER_IMAGE_SIZE = 225
 function hashString(value: string): number {
 	let hash = 0
 	for (let i = 0; i < value.length; i++) {
-		hash = ((hash << 5) - hash) + value.charCodeAt(i)
+		hash = (hash << 5) - hash + value.charCodeAt(i)
 		hash |= 0
 	}
 	return Math.abs(hash)
@@ -70,24 +73,28 @@ function getRandomQueenPlaceholder(seed: string): string {
 }
 
 const QUEENS_QUERY = gql`
-{
-	warehouseQueens {
-		id
-		name
-		race
-		added
-		color
+	{
+		warehouseQueens {
+			id
+			name
+			race
+			added
+			color
+		}
 	}
-}
 `
 
 const DELETE_WAREHOUSE_QUEEN_MUTATION = gql`
-mutation deleteWarehouseQueen($familyId: ID!) {
-	deleteWarehouseQueen(familyId: $familyId)
-}
+	mutation deleteWarehouseQueen($familyId: ID!) {
+		deleteWarehouseQueen(familyId: $familyId)
+	}
 `
 
-function sortQueens(items: QueenItem[], sortBy: SortColumn, sortOrder: SortOrder): QueenItem[] {
+function sortQueens(
+	items: QueenItem[],
+	sortBy: SortColumn,
+	sortOrder: SortOrder
+): QueenItem[] {
 	const entries = [...items]
 	entries.sort((a, b) => {
 		const aName = (a.name || '').trim()
@@ -96,36 +103,50 @@ function sortQueens(items: QueenItem[], sortBy: SortColumn, sortOrder: SortOrder
 		const bRace = (b.race || '').trim()
 		const aYear = Number.parseInt(a.added || '', 10)
 		const bYear = Number.parseInt(b.added || '', 10)
-		const aColor = (a.color || getQueenColorFromYear(a.added || '') || '').toLowerCase()
-		const bColor = (b.color || getQueenColorFromYear(b.added || '') || '').toLowerCase()
+		const aColor = (
+			a.color ||
+			getQueenColorFromYear(a.added || '') ||
+			''
+		).toLowerCase()
+		const bColor = (
+			b.color ||
+			getQueenColorFromYear(b.added || '') ||
+			''
+		).toLowerCase()
 
 		let compareValue = 0
 		switch (sortBy) {
-		case 'NAME':
-			compareValue = aName.localeCompare(bName, undefined, { sensitivity: 'base' })
-			break
-		case 'RACE':
-			compareValue = aRace.localeCompare(bRace, undefined, { sensitivity: 'base' })
-			break
-		case 'YEAR': {
-			const aHasYear = Number.isFinite(aYear)
-			const bHasYear = Number.isFinite(bYear)
-			if (!aHasYear && !bHasYear) {
-				compareValue = 0
-			} else if (!aHasYear) {
-				compareValue = 1
-			} else if (!bHasYear) {
-				compareValue = -1
-			} else {
-				compareValue = aYear - bYear
+			case 'NAME':
+				compareValue = aName.localeCompare(bName, undefined, {
+					sensitivity: 'base',
+				})
+				break
+			case 'RACE':
+				compareValue = aRace.localeCompare(bRace, undefined, {
+					sensitivity: 'base',
+				})
+				break
+			case 'YEAR': {
+				const aHasYear = Number.isFinite(aYear)
+				const bHasYear = Number.isFinite(bYear)
+				if (!aHasYear && !bHasYear) {
+					compareValue = 0
+				} else if (!aHasYear) {
+					compareValue = 1
+				} else if (!bHasYear) {
+					compareValue = -1
+				} else {
+					compareValue = aYear - bYear
+				}
+				break
 			}
-			break
-		}
-		case 'COLOR':
-			compareValue = aColor.localeCompare(bColor, undefined, { sensitivity: 'base' })
-			break
-		default:
-			compareValue = 0
+			case 'COLOR':
+				compareValue = aColor.localeCompare(bColor, undefined, {
+					sensitivity: 'base',
+				})
+				break
+			default:
+				compareValue = 0
 		}
 
 		if (compareValue === 0) {
@@ -145,7 +166,10 @@ export default function WarehouseQueensPage() {
 	const [sortOrder, setSortOrder] = useState<SortOrder>('DESC')
 	const [viewMode, setViewMode] = useState<ViewMode>('LIST')
 	const [isMobileLayout, setIsMobileLayout] = useState(() => {
-		if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+		if (
+			typeof window === 'undefined' ||
+			typeof window.matchMedia !== 'function'
+		) {
 			return false
 		}
 
@@ -153,18 +177,26 @@ export default function WarehouseQueensPage() {
 	})
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 	const [queenToDelete, setQueenToDelete] = useState<QueenItem | null>(null)
-	const [queenForAncestry, setQueenForAncestry] = useState<QueenItem | null>(null)
+	const [queenForAncestry, setQueenForAncestry] = useState<QueenItem | null>(
+		null
+	)
 	const [deleteError, setDeleteError] = useState<Error | null>(null)
-	const [optimisticallyHiddenQueenIds, setOptimisticallyHiddenQueenIds] = useState<string[]>([])
+	const [optimisticallyHiddenQueenIds, setOptimisticallyHiddenQueenIds] =
+		useState<string[]>([])
 	const [swipedQueenId, setSwipedQueenId] = useState<string | null>(null)
-	const swipeStartRef = useRef<{ queenId: string, x: number, y: number } | null>(null)
+	const swipeStartRef = useRef<{
+		queenId: string
+		x: number
+		y: number
+	} | null>(null)
 
 	const cachedQueenListData = useLiveQuery(
 		() => getCachedQueenListData(),
 		[],
 		getCachedQueenListSnapshot()
 	)
-	const hasResolvedLocalCache = cachedQueenListData !== null && cachedQueenListData !== undefined
+	const hasResolvedLocalCache =
+		cachedQueenListData !== null && cachedQueenListData !== undefined
 	const assignedFamilies = cachedQueenListData?.assignedFamilies || []
 	const unassignedFamilies = cachedQueenListData?.unassignedFamilies || []
 	const allFamilies = cachedQueenListData?.allFamilies || []
@@ -195,13 +227,16 @@ export default function WarehouseQueensPage() {
 			const hiveId = String(family.hiveId)
 			const hive = hiveById.get(hiveId)
 			const apiaryId = String(hive?.apiaryId || hive?.apiary_id || '')
-			const lastDetected = (
-				family.lastSeenFrameId && family.lastSeenFrameSideId && family.lastSeenBoxId
-			) ? {
-				frameId: String(family.lastSeenFrameId),
-				frameSideId: String(family.lastSeenFrameSideId),
-				boxId: String(family.lastSeenBoxId),
-			} : null
+			const lastDetected =
+				family.lastSeenFrameId &&
+				family.lastSeenFrameSideId &&
+				family.lastSeenBoxId
+					? {
+							frameId: String(family.lastSeenFrameId),
+							frameSideId: String(family.lastSeenFrameSideId),
+							boxId: String(family.lastSeenBoxId),
+						}
+					: null
 			items.push({
 				id: String(family.id),
 				name: family.name,
@@ -209,7 +244,9 @@ export default function WarehouseQueensPage() {
 				added: family.added,
 				color: family.color,
 				parentId: family.parentId != null ? String(family.parentId) : null,
-				previewImageUrl: family.previewImageUrl || localPreviewByFamilyId.get(String(family.id)),
+				previewImageUrl:
+					family.previewImageUrl ||
+					localPreviewByFamilyId.get(String(family.id)),
 				section: 'IN_HIVES',
 				hive: {
 					apiaryId,
@@ -248,17 +285,30 @@ export default function WarehouseQueensPage() {
 				added: family.added,
 				color: family.color,
 				parentId: family.parentId != null ? String(family.parentId) : null,
-				previewImageUrl: family.previewImageUrl || localPreviewByFamilyId.get(id),
+				previewImageUrl:
+					family.previewImageUrl || localPreviewByFamilyId.get(id),
 				section: 'WAREHOUSE',
 			})
 		}
 		const items = Array.from(byId.values())
 		return sortQueens(items, sortBy, sortOrder)
-	}, [data?.warehouseQueens, localPreviewByFamilyId, sortBy, sortOrder, unassignedFamilies])
+	}, [
+		data?.warehouseQueens,
+		localPreviewByFamilyId,
+		sortBy,
+		sortOrder,
+		unassignedFamilies,
+	])
 
-	const optimisticallyHiddenQueenIdSet = useMemo(() => new Set(optimisticallyHiddenQueenIds), [optimisticallyHiddenQueenIds])
+	const optimisticallyHiddenQueenIdSet = useMemo(
+		() => new Set(optimisticallyHiddenQueenIds),
+		[optimisticallyHiddenQueenIds]
+	)
 	const visibleWarehouseQueens = useMemo(
-		() => warehouseQueens.filter((queen) => !optimisticallyHiddenQueenIdSet.has(queen.id)),
+		() =>
+			warehouseQueens.filter(
+				(queen) => !optimisticallyHiddenQueenIdSet.has(queen.id)
+			),
 		[optimisticallyHiddenQueenIdSet, warehouseQueens]
 	)
 
@@ -321,7 +371,9 @@ export default function WarehouseQueensPage() {
 
 	const errorMessage = String(error?.message || '')
 	const likelyBackendMismatch =
-		errorMessage.includes('lastHive') || errorMessage.includes('family_moves') || errorMessage.includes('previewImageUrl')
+		errorMessage.includes('lastHive') ||
+		errorMessage.includes('family_moves') ||
+		errorMessage.includes('previewImageUrl')
 
 	function onSort(nextSortBy: SortColumn) {
 		if (sortBy === nextSortBy) {
@@ -344,9 +396,13 @@ export default function WarehouseQueensPage() {
 
 		// WHY: hide the row immediately on mobile delete so the action feels instant.
 		setDeleteError(null)
-		setSwipedQueenId((prev) => prev === queen.id ? null : prev)
-		setOptimisticallyHiddenQueenIds((prev) => prev.includes(queen.id) ? prev : [...prev, queen.id])
-		setDeletingQueenIds((prev) => prev.includes(queen.id) ? prev : [...prev, queen.id])
+		setSwipedQueenId((prev) => (prev === queen.id ? null : prev))
+		setOptimisticallyHiddenQueenIds((prev) =>
+			prev.includes(queen.id) ? prev : [...prev, queen.id]
+		)
+		setDeletingQueenIds((prev) =>
+			prev.includes(queen.id) ? prev : [...prev, queen.id]
+		)
 
 		try {
 			const result = await deleteWarehouseQueen({
@@ -354,16 +410,20 @@ export default function WarehouseQueensPage() {
 			})
 
 			if (!result?.data?.deleteWarehouseQueen) {
-				throw (result?.error || new Error('Failed to delete queen'))
+				throw result?.error || new Error('Failed to delete queen')
 			}
 
 			reexecuteQuery({ requestPolicy: 'network-only' })
 		} catch (nextDeleteError) {
-			setOptimisticallyHiddenQueenIds((prev) => prev.filter((id) => id !== queen.id))
+			setOptimisticallyHiddenQueenIds((prev) =>
+				prev.filter((id) => id !== queen.id)
+			)
 			const errorMessage =
 				nextDeleteError instanceof Error
 					? nextDeleteError.message
-					: String((nextDeleteError as any)?.message || 'Failed to delete queen')
+					: String(
+							(nextDeleteError as any)?.message || 'Failed to delete queen'
+						)
 			setDeleteError(new Error(errorMessage))
 		} finally {
 			setDeletingQueenIds((prev) => prev.filter((id) => id !== queen.id))
@@ -371,7 +431,8 @@ export default function WarehouseQueensPage() {
 	}
 
 	async function onDeleteQueenConfirm() {
-		if (!queenToDelete?.id || deletingQueenIds.includes(queenToDelete.id)) return
+		if (!queenToDelete?.id || deletingQueenIds.includes(queenToDelete.id))
+			return
 
 		setIsDeleteModalOpen(false)
 		setQueenToDelete(null)
@@ -417,8 +478,11 @@ export default function WarehouseQueensPage() {
 	}
 
 	useEffect(() => {
-		if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
-			return () => { }
+		if (
+			typeof window === 'undefined' ||
+			typeof window.matchMedia !== 'function'
+		) {
+			return () => {}
 		}
 
 		// WHY: mobile must ignore any desktop table preference and always use compact list rows.
@@ -440,11 +504,18 @@ export default function WarehouseQueensPage() {
 
 	useEffect(() => {
 		const visibleQueenIds = new Set(warehouseQueens.map((queen) => queen.id))
-		setOptimisticallyHiddenQueenIds((prev) => prev.filter((id) => visibleQueenIds.has(id)))
+		setOptimisticallyHiddenQueenIds((prev) =>
+			prev.filter((id) => visibleQueenIds.has(id))
+		)
 	}, [warehouseQueens])
 
 	useEffect(() => {
-		if (!isDeleteModalOpen || !queenToDelete || deletingQueenIds.includes(queenToDelete.id)) return
+		if (
+			!isDeleteModalOpen ||
+			!queenToDelete ||
+			deletingQueenIds.includes(queenToDelete.id)
+		)
+			return
 
 		const onKeyDown = (event: KeyboardEvent) => {
 			if (event.key !== 'Enter') return
@@ -458,8 +529,10 @@ export default function WarehouseQueensPage() {
 		}
 	}, [isDeleteModalOpen, queenToDelete, deletingQueenIds, onDeleteQueenConfirm])
 
-	const hasAnyQueens = inHiveQueens.length > 0 || visibleWarehouseQueens.length > 0
-	const shouldShowInitialLoader = loading && !hasResolvedLocalCache && !hasAnyQueens
+	const hasAnyQueens =
+		inHiveQueens.length > 0 || visibleWarehouseQueens.length > 0
+	const shouldShowInitialLoader =
+		loading && !hasResolvedLocalCache && !hasAnyQueens
 
 	if (shouldShowInitialLoader) {
 		return <Loader />
@@ -475,24 +548,34 @@ export default function WarehouseQueensPage() {
 	const renderHiveLink = (queen: QueenItem) => {
 		if (queen.section === 'IN_HIVES' && queen.hive) {
 			if (!queen.hive.apiaryId) {
-				return queen.hive.hiveNumber ? `#${queen.hive.hiveNumber}` : `ID ${queen.hive.hiveId}`
+				return queen.hive.hiveNumber
+					? `#${queen.hive.hiveNumber}`
+					: `ID ${queen.hive.hiveId}`
 			}
 			return (
-				<Link className={styles.hiveLink} to={`/apiaries/${queen.hive.apiaryId}/hives/${queen.hive.hiveId}`}>
-					{queen.hive.hiveNumber ? `#${queen.hive.hiveNumber}` : `ID ${queen.hive.hiveId}`}
+				<Link
+					className={styles.hiveLink}
+					to={`/apiaries/${queen.hive.apiaryId}/hives/${queen.hive.hiveId}`}
+				>
+					{queen.hive.hiveNumber
+						? `#${queen.hive.hiveNumber}`
+						: `ID ${queen.hive.hiveId}`}
 				</Link>
 			)
 		}
 
 		if (queen.lastHive?.id) {
-			return queen.lastHive.hiveNumber ? `#${queen.lastHive.hiveNumber}` : `ID ${queen.lastHive.id}`
+			return queen.lastHive.hiveNumber
+				? `#${queen.lastHive.hiveNumber}`
+				: `ID ${queen.lastHive.id}`
 		}
 
 		return '-'
 	}
 
 	const renderFrameLink = (queen: QueenItem) => {
-		if (!queen.hive || !queen.hive.apiaryId || !queen.lastDetected) return <T>Not marked yet</T>
+		if (!queen.hive || !queen.hive.apiaryId || !queen.lastDetected)
+			return <T>Not marked yet</T>
 		return (
 			<Link
 				className={styles.frameLink}
@@ -521,33 +604,68 @@ export default function WarehouseQueensPage() {
 		)
 	}
 
-	const renderTableSection = (title: string, items: QueenItem[], allowDelete: boolean) => (
+	const renderTableSection = (
+		title: string,
+		items: QueenItem[],
+		allowDelete: boolean
+	) => (
 		<div className={styles.section}>
-			<h3 className={styles.sectionTitle}><T>{title}</T> ({items.length})</h3>
+			<h3 className={styles.sectionTitle}>
+				<T>{title}</T> ({items.length})
+			</h3>
 			{items.length === 0 ? (
-				<div className={styles.emptySection}><T>No queens in this section.</T></div>
+				<div className={styles.emptySection}>
+					<T>No queens in this section.</T>
+				</div>
 			) : (
 				<div className={styles.tableWrap}>
 					<table className={styles.table}>
 						<thead>
 							<tr>
-								<th className={`${styles.sortable} ${styles.colorColumn}`} onClick={() => onSort('COLOR')}><T>Color</T>{sortArrow('COLOR')}</th>
-								<th className={styles.sortable} onClick={() => onSort('NAME')}><T>Queen</T>{sortArrow('NAME')}</th>
-								<th className={styles.sortable} onClick={() => onSort('YEAR')}><T>Year</T>{sortArrow('YEAR')}</th>
-								<th className={styles.sortable} onClick={() => onSort('RACE')}><T>Race</T>{sortArrow('RACE')}</th>
-								<th><T>Hive</T></th>
-								<th><T>Last detected frame</T></th>
-								{allowDelete ? <th className={styles.actionsColumn}><T>Actions</T></th> : null}
+								<th
+									className={`${styles.sortable} ${styles.colorColumn}`}
+									onClick={() => onSort('COLOR')}
+								>
+									<T>Color</T>
+									{sortArrow('COLOR')}
+								</th>
+								<th className={styles.sortable} onClick={() => onSort('NAME')}>
+									<T>Queen</T>
+									{sortArrow('NAME')}
+								</th>
+								<th className={styles.sortable} onClick={() => onSort('YEAR')}>
+									<T>Year</T>
+									{sortArrow('YEAR')}
+								</th>
+								<th className={styles.sortable} onClick={() => onSort('RACE')}>
+									<T>Race</T>
+									{sortArrow('RACE')}
+								</th>
+								<th>
+									<T>Hive</T>
+								</th>
+								<th>
+									<T>Last detected frame</T>
+								</th>
+								{allowDelete ? (
+									<th className={styles.actionsColumn}>
+										<T>Actions</T>
+									</th>
+								) : null}
 							</tr>
 						</thead>
 						<tbody>
 							{items.map((queen) => {
-								const color = queen.color || getQueenColorFromYear(queen.added || '')
+								const color =
+									queen.color || getQueenColorFromYear(queen.added || '')
 								return (
 									<tr key={`${queen.section}-${queen.id}`}>
 										<td className={styles.colorColumn}>
 											<div className={styles.colorCell}>
-												<span className={styles.colorDot} style={{ backgroundColor: color }}></span>
+												<span
+													className={styles.colorDot}
+													style={{ backgroundColor: color }}
+												></span>
 											</div>
 										</td>
 										<td>{renderQueenName(queen)}</td>
@@ -577,54 +695,102 @@ export default function WarehouseQueensPage() {
 		</div>
 	)
 
-	const renderListSection = (title: string, items: QueenItem[], allowDelete: boolean) => (
+	const renderListSection = (
+		title: string,
+		items: QueenItem[],
+		allowDelete: boolean
+	) => (
 		<div className={styles.section}>
-			<h3 className={styles.sectionTitle}><T>{title}</T> ({items.length})</h3>
+			<h3 className={styles.sectionTitle}>
+				<T>{title}</T> ({items.length})
+			</h3>
 			{items.length === 0 ? (
-				<div className={styles.emptySection}><T>No queens in this section.</T></div>
+				<div className={styles.emptySection}>
+					<T>No queens in this section.</T>
+				</div>
 			) : (
 				<div className={styles.cardsGrid}>
 					{items.map((queen) => {
-						const color = queen.color || getQueenColorFromYear(queen.added || '')
+						const color =
+							queen.color || getQueenColorFromYear(queen.added || '')
 						const hasRealPreview = Boolean(queen.previewImageUrl)
 						const imageSrc = hasRealPreview
 							? String(queen.previewImageUrl)
-							: getRandomQueenPlaceholder(`${queen.id}-${queen.name || ''}-${queen.added || ''}`)
+							: getRandomQueenPlaceholder(
+									`${queen.id}-${queen.name || ''}-${queen.added || ''}`
+								)
 						const isSwipeDeleteEnabled = allowDelete && isMobileLayout
 						const isSwipeOpen = swipedQueenId === queen.id
 						const cardClassName = [
 							styles.card,
 							isSwipeDeleteEnabled ? styles.swipeCard : '',
-						].filter(Boolean).join(' ')
+						]
+							.filter(Boolean)
+							.join(' ')
 						const card = (
 							<div
 								key={`${queen.section}-${queen.id}-card`}
 								className={cardClassName}
-								onTouchStart={isSwipeDeleteEnabled ? (event) => onQueenSwipeStart(queen, event) : undefined}
-								onTouchEnd={isSwipeDeleteEnabled ? (event) => onQueenSwipeEnd(queen, event) : undefined}
-								onTouchCancel={isSwipeDeleteEnabled ? () => { swipeStartRef.current = null } : undefined}
-								onClick={isSwipeDeleteEnabled && isSwipeOpen ? () => setSwipedQueenId(null) : undefined}
+								onTouchStart={
+									isSwipeDeleteEnabled
+										? (event) => onQueenSwipeStart(queen, event)
+										: undefined
+								}
+								onTouchEnd={
+									isSwipeDeleteEnabled
+										? (event) => onQueenSwipeEnd(queen, event)
+										: undefined
+								}
+								onTouchCancel={
+									isSwipeDeleteEnabled
+										? () => {
+												swipeStartRef.current = null
+											}
+										: undefined
+								}
+								onClick={
+									isSwipeDeleteEnabled && isSwipeOpen
+										? () => setSwipedQueenId(null)
+										: undefined
+								}
 							>
-								<div className={`${styles.cardImageWrap} ${hasRealPreview ? styles.cardImageWrapPreview : ''}`}>
+								<div
+									className={`${styles.cardImageWrap} ${hasRealPreview ? styles.cardImageWrapPreview : ''}`}
+								>
 									<img
 										src={imageSrc}
 										alt={queen.name || 'Queen'}
 										className={`${styles.cardImage} ${hasRealPreview ? styles.cardImagePreview : styles.cardImagePlaceholder}`}
 										style={hasRealPreview ? { borderColor: color } : undefined}
-										width={hasRealPreview ? undefined : QUEEN_PLACEHOLDER_IMAGE_SIZE}
-										height={hasRealPreview ? undefined : QUEEN_PLACEHOLDER_IMAGE_SIZE}
+										width={
+											hasRealPreview ? undefined : QUEEN_PLACEHOLDER_IMAGE_SIZE
+										}
+										height={
+											hasRealPreview ? undefined : QUEEN_PLACEHOLDER_IMAGE_SIZE
+										}
 										draggable={false}
 									/>
 								</div>
 								<div className={styles.cardContent}>
 									<div className={styles.cardTitleRow}>
-										<span className={styles.colorDot} style={{ backgroundColor: color }}></span>
+										<span
+											className={styles.colorDot}
+											style={{ backgroundColor: color }}
+										></span>
 										<strong>{renderQueenName(queen)}</strong>
 									</div>
-									<div className={styles.cardMeta}><T>Year</T>: {queen.added || '-'}</div>
-									<div className={styles.cardMeta}><T>Race</T>: {queen.race || <T>Race unknown</T>}</div>
-									<div className={styles.cardMeta}><T>Hive</T>: {renderHiveLink(queen)}</div>
-									<div className={styles.cardMeta}><T>Last detected frame</T>: {renderFrameLink(queen)}</div>
+									<div className={styles.cardMeta}>
+										<T>Year</T>: {queen.added || '-'}
+									</div>
+									<div className={styles.cardMeta}>
+										<T>Race</T>: {queen.race || <T>Race unknown</T>}
+									</div>
+									<div className={styles.cardMeta}>
+										<T>Hive</T>: {renderHiveLink(queen)}
+									</div>
+									<div className={styles.cardMeta}>
+										<T>Last detected frame</T>: {renderFrameLink(queen)}
+									</div>
 								</div>
 								{allowDelete && !isMobileLayout ? (
 									<div className={styles.cardActions}>
@@ -645,25 +811,25 @@ export default function WarehouseQueensPage() {
 							return card
 						}
 
-							return (
-								<div
-									className={`${styles.swipeRow} ${isSwipeOpen ? styles.swipeRowOpen : ''}`}
-									key={`${queen.section}-${queen.id}`}
+						return (
+							<div
+								className={`${styles.swipeRow} ${isSwipeOpen ? styles.swipeRowOpen : ''}`}
+								key={`${queen.section}-${queen.id}`}
+							>
+								<button
+									type="button"
+									className={styles.mobileSwipeDelete}
+									disabled={!isSwipeOpen}
+									tabIndex={isSwipeOpen ? 0 : -1}
+									aria-hidden={!isSwipeOpen}
+									onClick={() => deleteQueenWithoutConfirmation(queen)}
+									aria-label={`Delete ${queen.name || 'queen'}`}
 								>
-									<button
-										type="button"
-										className={styles.mobileSwipeDelete}
-										disabled={!isSwipeOpen}
-										tabIndex={isSwipeOpen ? 0 : -1}
-										aria-hidden={!isSwipeOpen}
-										onClick={() => deleteQueenWithoutConfirmation(queen)}
-										aria-label={`Delete ${queen.name || 'queen'}`}
-									>
-										<T>Delete</T>
-									</button>
-									{card}
-								</div>
-							)
+									<T>Delete</T>
+								</button>
+								{card}
+							</div>
+						)
 					})}
 				</div>
 			)}
@@ -675,15 +841,15 @@ export default function WarehouseQueensPage() {
 	return (
 		<div className={styles.page}>
 			<div className={styles.headerRow}>
-				<h2><T>Queens</T></h2>
+				<h2>
+					<T>Queens</T>
+				</h2>
 				<div className={styles.headerActions}>
 					{!isMobileLayout ? (
 						<Toggle
 							className={styles.viewModeToggle}
 							checked={viewMode === 'TABLE'}
-							onChange={(isTable) =>
-								setViewMode(isTable ? 'TABLE' : 'LIST')
-							}
+							onChange={(isTable) => setViewMode(isTable ? 'TABLE' : 'LIST')}
 							offIcon={<ListIcon size={14} />}
 							onIcon={<TableIcon size={14} />}
 							title={
@@ -700,57 +866,85 @@ export default function WarehouseQueensPage() {
 					<Button color="green" href="/warehouse/queens/create">
 						<T>Add Queen</T>
 					</Button>
-					</div>
 				</div>
+			</div>
 			<p className={styles.description}>
-				<T>Browse queens in active hives and in warehouse storage. Open last detected frame to jump directly into hive frame view.</T>
+				<T>
+					Browse queens in active hives and in warehouse storage. Open last
+					detected frame to jump directly into hive frame view.
+				</T>
 			</p>
 			<p className={styles.previewHint}>
-				<T>Tip: mark the queen on a frame in canvas view, and that marked area will be shown here as the queen preview image.</T>
+				<T>
+					Tip: mark the queen on a frame in canvas view, and that marked area
+					will be shown here as the queen preview image.
+				</T>
 			</p>
-				<ErrorMsg error={error || deleteError} />
+			<ErrorMsg error={error || deleteError} />
 
-				{!hasAnyQueens && !error && !deleteError ? (
-					<div className={styles.empty}>
-						<img src={queenImageURL} alt="Queen placeholder" className={styles.emptyImage} draggable={false} />
-						<T>No queens available yet.</T>
-					</div>
-				) : null}
+			{!hasAnyQueens && !error && !deleteError ? (
+				<div className={styles.empty}>
+					<img
+						src={queenImageURL}
+						alt="Queen placeholder"
+						className={styles.emptyImage}
+						draggable={false}
+					/>
+					<T>No queens available yet.</T>
+				</div>
+			) : null}
 
-				{!hasAnyQueens && !!error ? (
-					<div className={styles.empty}>
-						<T>Unable to load queens.</T>
-						{likelyBackendMismatch ? (
-							<div className={styles.hint}>Backend schema/migrations may be outdated.</div>
-						) : null}
-					</div>
-				) : null}
+			{!hasAnyQueens && !!error ? (
+				<div className={styles.empty}>
+					<T>Unable to load queens.</T>
+					{likelyBackendMismatch ? (
+						<div className={styles.hint}>
+							Backend schema/migrations may be outdated.
+						</div>
+					) : null}
+				</div>
+			) : null}
 
-				{hasAnyQueens ? (
-					<>
-						{effectiveViewMode === 'TABLE' ? (
-							<>
-								{renderTableSection('Queens in hives', inHiveQueens, false)}
-								{renderTableSection('Warehouse queens', visibleWarehouseQueens, true)}
-							</>
-						) : (
-							<>
-								{renderListSection('Queens in hives', inHiveQueens, false)}
-								{renderListSection('Warehouse queens', visibleWarehouseQueens, true)}
-							</>
-						)}
-					</>
-				) : null}
+			{hasAnyQueens ? (
+				<>
+					{effectiveViewMode === 'TABLE' ? (
+						<>
+							{renderTableSection('Queens in hives', inHiveQueens, false)}
+							{renderTableSection(
+								'Warehouse queens',
+								visibleWarehouseQueens,
+								true
+							)}
+						</>
+					) : (
+						<>
+							{renderListSection('Queens in hives', inHiveQueens, false)}
+							{renderListSection(
+								'Warehouse queens',
+								visibleWarehouseQueens,
+								true
+							)}
+						</>
+					)}
+				</>
+			) : null}
 
 			{isDeleteModalOpen && queenToDelete ? (
-				<Modal title={<T>Delete Queen</T>} onClose={() => setIsDeleteModalOpen(false)}>
+				<Modal
+					title={<T>Delete Queen</T>}
+					onClose={() => setIsDeleteModalOpen(false)}
+				>
 					<div className={styles.modalContent}>
 						<div style={{ marginBottom: '12px' }}>
 							<T>Delete this queen from warehouse?</T>
 						</div>
 						<div className={styles.modalActionsWithHints}>
 							<div className={styles.actionWithHint}>
-								<Button size="small" color="gray" onClick={() => setIsDeleteModalOpen(false)}>
+								<Button
+									size="small"
+									color="gray"
+									onClick={() => setIsDeleteModalOpen(false)}
+								>
 									<T>Cancel</T>
 								</Button>
 								<div className={styles.keyHint}>Esc</div>
@@ -772,16 +966,30 @@ export default function WarehouseQueensPage() {
 			) : null}
 
 			{queenForAncestry?.parentId ? (
-				<Modal title={<T>Queen ancestry</T>} onClose={() => setQueenForAncestry(null)}>
+				<Modal
+					title={<T>Queen ancestry</T>}
+					onClose={() => setQueenForAncestry(null)}
+				>
 					<div className={styles.ancestryWrap}>
 						{ancestryChain.map((queen, index) => (
-							<div key={`${queen.id}-${index}`} className={styles.ancestryNodeWrap}>
+							<div
+								key={`${queen.id}-${index}`}
+								className={styles.ancestryNodeWrap}
+							>
 								<div className={styles.ancestryNode}>
-									<div className={styles.ancestryNodeTitle}>{queen.name || <T>Unnamed Queen</T>}</div>
-									<div className={styles.ancestryNodeMeta}><T>Race</T>: {queen.race || <T>Race unknown</T>}</div>
-									<div className={styles.ancestryNodeMeta}><T>Year</T>: {queen.added || '-'}</div>
+									<div className={styles.ancestryNodeTitle}>
+										{queen.name || <T>Unnamed Queen</T>}
+									</div>
+									<div className={styles.ancestryNodeMeta}>
+										<T>Race</T>: {queen.race || <T>Race unknown</T>}
+									</div>
+									<div className={styles.ancestryNodeMeta}>
+										<T>Year</T>: {queen.added || '-'}
+									</div>
 								</div>
-								{index < ancestryChain.length - 1 ? <div className={styles.ancestryArrow}>↑</div> : null}
+								{index < ancestryChain.length - 1 ? (
+									<div className={styles.ancestryArrow}>↑</div>
+								) : null}
 							</div>
 						))}
 					</div>

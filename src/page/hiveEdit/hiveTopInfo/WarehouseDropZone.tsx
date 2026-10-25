@@ -8,7 +8,10 @@ interface WarehouseDropZoneProps {
 	onDrop: (familyId: number) => void
 }
 
-export default function WarehouseDropZone({ visible, onDrop }: WarehouseDropZoneProps) {
+export default function WarehouseDropZone({
+	visible,
+	onDrop,
+}: WarehouseDropZoneProps) {
 	const [isOver, setIsOver] = useState(false)
 
 	const handleDragOver = (e: h.JSX.TargetedDragEvent<HTMLDivElement>) => {
@@ -51,4 +54,3 @@ export default function WarehouseDropZone({ visible, onDrop }: WarehouseDropZone
 		</div>
 	)
 }
-

@@ -31,9 +31,15 @@ export default function KeyboardHints({
 			setVisible(customEvent.detail.visible)
 		}
 
-		window.addEventListener(SHORTCUT_HINTS_EVENT, onVisibilityEvent as EventListener)
+		window.addEventListener(
+			SHORTCUT_HINTS_EVENT,
+			onVisibilityEvent as EventListener
+		)
 		return () => {
-			window.removeEventListener(SHORTCUT_HINTS_EVENT, onVisibilityEvent as EventListener)
+			window.removeEventListener(
+				SHORTCUT_HINTS_EVENT,
+				onVisibilityEvent as EventListener
+			)
 		}
 	}, [])
 

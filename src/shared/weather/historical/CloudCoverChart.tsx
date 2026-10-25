@@ -14,38 +14,53 @@ type CloudCoverChartProps = {
 	suspendTimeRangeSync?: boolean
 }
 
-export default function CloudCoverChart({ cloudData, chartRefs, syncCharts, onVisibleTimeRangeChange, suspendTimeRangeSync }: CloudCoverChartProps) {
+export default function CloudCoverChart({
+	cloudData,
+	chartRefs,
+	syncCharts,
+	onVisibleTimeRangeChange,
+	suspendTimeRangeSync,
+}: CloudCoverChartProps) {
 	const lowData = cloudData.cloud_cover_low
-		.filter(d => d.value !== null)
-		.map(d => ({
-			time: new Date(d.time).getTime() / 1000 as any,
-			value: d.value
+		.filter((d) => d.value !== null)
+		.map((d) => ({
+			time: (new Date(d.time).getTime() / 1000) as any,
+			value: d.value,
 		}))
 
 	const midData = cloudData.cloud_cover_mid
-		.filter(d => d.value !== null)
-		.map(d => ({
-			time: new Date(d.time).getTime() / 1000 as any,
-			value: d.value
+		.filter((d) => d.value !== null)
+		.map((d) => ({
+			time: (new Date(d.time).getTime() / 1000) as any,
+			value: d.value,
 		}))
 
 	const highData = cloudData.cloud_cover_high
-		.filter(d => d.value !== null)
-		.map(d => ({
-			time: new Date(d.time).getTime() / 1000 as any,
-			value: d.value
+		.filter((d) => d.value !== null)
+		.map((d) => ({
+			time: (new Date(d.time).getTime() / 1000) as any,
+			value: d.value,
 		}))
 
-	const avgTotal = lowData.length > 0
-		? lowData.map((d, i) => (d.value + (midData[i]?.value || 0) + (highData[i]?.value || 0)) / 3).reduce((a, b) => a + b, 0) / lowData.length
-		: 0
+	const avgTotal =
+		lowData.length > 0
+			? lowData
+					.map(
+						(d, i) =>
+							(d.value + (midData[i]?.value || 0) + (highData[i]?.value || 0)) /
+							3
+					)
+					.reduce((a, b) => a + b, 0) / lowData.length
+			: 0
 
 	return (
 		<ChartContainer
 			emoji="☁️"
 			title={t('Cloud Cover')}
 			value={`${avgTotal.toFixed(0)}% ${t('avg')}`}
-			info={t('Cloud cover affects temperature and light levels, influencing bee foraging behavior.')}
+			info={t(
+				'Cloud cover affects temperature and light levels, influencing bee foraging behavior.'
+			)}
 			chartRefs={chartRefs}
 			syncCharts={syncCharts}
 			onVisibleTimeRangeChange={onVisibleTimeRangeChange}
@@ -57,7 +72,7 @@ export default function CloudCoverChart({ cloudData, chartRefs, syncCharts, onVi
 				options={{
 					color: '#90CAF9',
 					lineWidth: 2,
-					title: t('Low Cloud Cover')
+					title: t('Low Cloud Cover'),
 				}}
 			/>
 			<LineSeries
@@ -65,7 +80,7 @@ export default function CloudCoverChart({ cloudData, chartRefs, syncCharts, onVi
 				options={{
 					color: '#64B5F6',
 					lineWidth: 2,
-					title: t('Mid Cloud Cover')
+					title: t('Mid Cloud Cover'),
 				}}
 			/>
 			<LineSeries
@@ -73,7 +88,7 @@ export default function CloudCoverChart({ cloudData, chartRefs, syncCharts, onVi
 				options={{
 					color: '#2196F3',
 					lineWidth: 2,
-					title: t('High Cloud Cover')
+					title: t('High Cloud Cover'),
 				}}
 			/>
 		</ChartContainer>

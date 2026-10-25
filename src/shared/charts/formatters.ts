@@ -21,9 +21,15 @@ export function formatMetricData(metrics: Array<{ t: string; v: number }>) {
 }
 
 export function formatEntranceMovementData(
-	metrics: Array<{ time: string; beesIn?: number; beesOut?: number; netFlow?: number }>
+	metrics: Array<{
+		time: string
+		beesIn?: number
+		beesOut?: number
+		netFlow?: number
+	}>
 ) {
-	if (!metrics || metrics.length === 0) return { beesInData: [], beesOutData: [] }
+	if (!metrics || metrics.length === 0)
+		return { beesInData: [], beesOutData: [] }
 
 	const aggregatedData = new Map()
 
@@ -47,7 +53,7 @@ export function formatEntranceMovementData(
 			time: timestamp,
 			value: Math.round(data.beesIn * 100) / 100,
 		}))
-		.filter(item => item.value > 0)
+		.filter((item) => item.value > 0)
 		.sort((a, b) => a.time - b.time)
 
 	const beesOutData = Array.from(aggregatedData.entries())
@@ -55,15 +61,21 @@ export function formatEntranceMovementData(
 			time: timestamp,
 			value: Math.round(data.beesOut * 100) / 100,
 		}))
-		.filter(item => item.value > 0)
+		.filter((item) => item.value > 0)
 		.sort((a, b) => a.time - b.time)
 
 	return { beesInData, beesOutData }
 }
 
-export function formatTableData(data: Array<{ time: number; value: number }>, label: string = 'Value') {
-	return data.map(item => ({
-		Time: formatDateTimeByLocale(new Date(item.time * 1000), { dateStyle: 'medium', timeStyle: 'short' }),
-		[label]: item.value
+export function formatTableData(
+	data: Array<{ time: number; value: number }>,
+	label: string = 'Value'
+) {
+	return data.map((item) => ({
+		Time: formatDateTimeByLocale(new Date(item.time * 1000), {
+			dateStyle: 'medium',
+			timeStyle: 'short',
+		}),
+		[label]: item.value,
 	}))
 }

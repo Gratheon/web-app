@@ -7,16 +7,16 @@ import StreamPlayer from '@/page/hiveEdit/gateBox/streamPlayer'
 import styles from './styles.module.less'
 
 const DEVICE_STREAMS_QUERY = gql`
-query deviceStreams($boxIds: [ID]!) {
-	videoStreams(boxIds: $boxIds) {
-		id
-		maxSegment
-		playlistURL
-		startTime
-		endTime
-		active
+	query deviceStreams($boxIds: [ID]!) {
+		videoStreams(boxIds: $boxIds) {
+			id
+			maxSegment
+			playlistURL
+			startTime
+			endTime
+			active
+		}
 	}
-}
 `
 
 type DeviceStreamPlaybackProps = {
@@ -31,7 +31,8 @@ function DeviceStreamPlaybackContent({
 	className = '',
 	emptyMessage,
 	title,
-}: Required<Pick<DeviceStreamPlaybackProps, 'boxId'>> & Omit<DeviceStreamPlaybackProps, 'boxId'>) {
+}: Required<Pick<DeviceStreamPlaybackProps, 'boxId'>> &
+	Omit<DeviceStreamPlaybackProps, 'boxId'>) {
 	const boxIds = React.useMemo(() => [+boxId], [boxId])
 	const { loading, error, data } = useQuery(DEVICE_STREAMS_QUERY, {
 		variables: { boxIds },
@@ -41,7 +42,11 @@ function DeviceStreamPlaybackContent({
 	return (
 		<div className={`${styles.playback} ${className}`.trim()}>
 			{title ? <h3>{title}</h3> : null}
-			{loading ? <p className={styles.state}><T>Loading video stream...</T></p> : null}
+			{loading ? (
+				<p className={styles.state}>
+					<T>Loading video stream...</T>
+				</p>
+			) : null}
 			{error ? <p className={styles.error}>{error.message}</p> : null}
 			{!loading && !error && videoStreams.length === 0 ? (
 				<p className={styles.state}>

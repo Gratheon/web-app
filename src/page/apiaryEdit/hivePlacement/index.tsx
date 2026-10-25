@@ -10,8 +10,20 @@ import Canvas from './Canvas'
 import Toolbar from './Toolbar'
 import Tips from './Tips'
 import HiveList from './HiveList'
-import { HivePlacement as HivePlacementType, Obstacle, Hive, HIVE_SIZE, CANVAS_HEIGHT } from './types'
-import { GET_HIVE_PLACEMENTS, UPDATE_HIVE_PLACEMENT, ADD_OBSTACLE, UPDATE_OBSTACLE, DELETE_OBSTACLE } from './graphql'
+import {
+	HivePlacement as HivePlacementType,
+	Obstacle,
+	Hive,
+	HIVE_SIZE,
+	CANVAS_HEIGHT,
+} from './types'
+import {
+	GET_HIVE_PLACEMENTS,
+	UPDATE_HIVE_PLACEMENT,
+	ADD_OBSTACLE,
+	UPDATE_OBSTACLE,
+	DELETE_OBSTACLE,
+} from './graphql'
 import { mobileStyles } from './styles'
 
 interface Props {
@@ -27,10 +39,11 @@ interface Props {
 }
 
 const isMobile = () => {
-	return typeof window !== 'undefined' && (
-		'ontouchstart' in window ||
-		navigator.maxTouchPoints > 0 ||
-		window.innerWidth <= 768
+	return (
+		typeof window !== 'undefined' &&
+		('ontouchstart' in window ||
+			navigator.maxTouchPoints > 0 ||
+			window.innerWidth <= 768)
 	)
 }
 
@@ -47,15 +60,20 @@ export default function HivePlacement({
 }: Props) {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [canvasWidth, setCanvasWidth] = useState(800)
-	const [placements, setPlacements] = useState<Map<string, HivePlacementType>>(new Map())
+	const [placements, setPlacements] = useState<Map<string, HivePlacementType>>(
+		new Map()
+	)
 	const [initializedPlacements, setInitializedPlacements] = useState(false)
 	const [obstacles, setObstacles] = useState<Obstacle[]>([])
-	const [selectedHive, setSelectedHive] = useState<string | null>(selectedHiveId || null)
+	const [selectedHive, setSelectedHive] = useState<string | null>(
+		selectedHiveId || null
+	)
 	const [selectedObstacle, setSelectedObstacle] = useState<string | null>(null)
 	const [isDragging, setIsDragging] = useState(false)
 	const [isDraggingRotation, setIsDraggingRotation] = useState(false)
 	const [isDraggingObstacle, setIsDraggingObstacle] = useState(false)
-	const [isDraggingObstacleRotation, setIsDraggingObstacleRotation] = useState(false)
+	const [isDraggingObstacleRotation, setIsDraggingObstacleRotation] =
+		useState(false)
 	const [isResizingObstacle, setIsResizingObstacle] = useState(false)
 	const [isDraggingHeight, setIsDraggingHeight] = useState(false)
 	const [isPanning, setIsPanning] = useState(false)
@@ -63,7 +81,9 @@ export default function HivePlacement({
 	const [lastPanPoint, setLastPanPoint] = useState({ x: 0, y: 0 })
 	const [sunAngle, setSunAngle] = useState(90)
 	const [autoRotate, setAutoRotate] = useState(true)
-	const [addingObstacle, setAddingObstacle] = useState<'CIRCLE' | 'RECTANGLE' | null>(null)
+	const [addingObstacle, setAddingObstacle] = useState<
+		'CIRCLE' | 'RECTANGLE' | null
+	>(null)
 	const [showHiveList, setShowHiveList] = useState(false)
 	const [isMobileDevice, setIsMobileDevice] = useState(false)
 
@@ -76,19 +96,24 @@ export default function HivePlacement({
 	const labelTree = t('Tree', 'obstacle type: tree plant')
 
 	// Memoize labels object to prevent unnecessary re-renders and race conditions
-	const labels = useMemo(() => ({
-		compassN,
-		compassS,
-		compassE,
-		compassW,
-		building: labelBuilding,
-		tree: labelTree
-	}), [compassN, compassS, compassE, compassW, labelBuilding, labelTree])
+	const labels = useMemo(
+		() => ({
+			compassN,
+			compassS,
+			compassE,
+			compassW,
+			building: labelBuilding,
+			tree: labelTree,
+		}),
+		[compassN, compassS, compassE, compassW, labelBuilding, labelTree]
+	)
 
 	const handleRadius = isMobileDevice ? 16 : 8
 	const isInteractionLocked = !readOnly && interactionLocked
 
-	const { data, loading, error } = useQuery(GET_HIVE_PLACEMENTS, { variables: { apiaryId } })
+	const { data, loading, error } = useQuery(GET_HIVE_PLACEMENTS, {
+		variables: { apiaryId },
+	})
 
 	const [updatePlacement] = useMutation(UPDATE_HIVE_PLACEMENT)
 	const [addObstacleMutation] = useMutation(ADD_OBSTACLE)
@@ -96,7 +121,8 @@ export default function HivePlacement({
 	const [deleteObstacleMutation] = useMutation(DELETE_OBSTACLE)
 
 	const selectedHiveBoxes = useLiveQuery(
-		() => selectedHive ? getBoxes({ hiveId: +selectedHive }) : Promise.resolve([]),
+		() =>
+			selectedHive ? getBoxes({ hiveId: +selectedHive }) : Promise.resolve([]),
 		[selectedHive]
 	)
 
@@ -141,17 +167,26 @@ export default function HivePlacement({
 		if (initializedPlacements && placements.size > 0) return
 
 		const map = new Map()
-		const hiveIds = new Set(hives.map(h => h.id))
+		const hiveIds = new Set(hives.map((h) => h.id))
 
-		console.log('[HivePlacement] Active hives:', hives.map(h => h.id))
-		console.log('[HivePlacement] All placements from DB:', data?.hivePlacements?.map(p => p.hiveId))
+		console.log(
+			'[HivePlacement] Active hives:',
+			hives.map((h) => h.id)
+		)
+		console.log(
+			'[HivePlacement] All placements from DB:',
+			data?.hivePlacements?.map((p) => p.hiveId)
+		)
 
 		if (data?.hivePlacements) {
 			data.hivePlacements.forEach((p: HivePlacementType) => {
 				if (hiveIds.has(p.hiveId)) {
 					map.set(p.hiveId, p)
 				} else {
-					console.log('[HivePlacement] Skipping placement for non-existent hive:', p.hiveId)
+					console.log(
+						'[HivePlacement] Skipping placement for non-existent hive:',
+						p.hiveId
+					)
 				}
 			})
 		}
@@ -162,7 +197,7 @@ export default function HivePlacement({
 					hiveId: hive.id,
 					x: 150 + (index % 5) * 120,
 					y: 150 + Math.floor(index / 5) * 100,
-					rotation: 180
+					rotation: 180,
 				})
 			}
 		})
@@ -177,7 +212,7 @@ export default function HivePlacement({
 		if (data?.apiaryObstacles) {
 			const obstaclesWithHeight = data.apiaryObstacles.map((obs: Obstacle) => ({
 				...obs,
-				objectHeight: obs.objectHeight ?? (obs.type === 'CIRCLE' ? 150 : 100)
+				objectHeight: obs.objectHeight ?? (obs.type === 'CIRCLE' ? 150 : 100),
 			}))
 			setObstacles(obstaclesWithHeight)
 		}
@@ -216,13 +251,22 @@ export default function HivePlacement({
 				height: addingObstacle === 'RECTANGLE' ? 60 : undefined,
 				radius: addingObstacle === 'CIRCLE' ? 40 : undefined,
 				rotation: 0,
-				label: addingObstacle === 'CIRCLE' ? labelTree : labelBuilding
+				label: addingObstacle === 'CIRCLE' ? labelTree : labelBuilding,
 			}
-			addObstacleMutation({ apiaryId, obstacle: obstacleForMutation }).then((result) => {
-				if (result?.data?.addApiaryObstacle?.id) {
-					setObstacles([...obstacles, { ...obstacleForMutation, objectHeight, id: result.data.addApiaryObstacle.id }])
+			addObstacleMutation({ apiaryId, obstacle: obstacleForMutation }).then(
+				(result) => {
+					if (result?.data?.addApiaryObstacle?.id) {
+						setObstacles([
+							...obstacles,
+							{
+								...obstacleForMutation,
+								objectHeight,
+								id: result.data.addApiaryObstacle.id,
+							},
+						])
+					}
 				}
-			})
+			)
 			setAddingObstacle(null)
 			return
 		}
@@ -238,7 +282,9 @@ export default function HivePlacement({
 				const dy = y - obs.y
 				const localX = dx * Math.cos(-rotRad) - dy * Math.sin(-rotRad)
 				const localY = dx * Math.sin(-rotRad) + dy * Math.cos(-rotRad)
-				isInside = Math.abs(localX) <= obs.width / 2 && Math.abs(localY) <= obs.height / 2
+				isInside =
+					Math.abs(localX) <= obs.width / 2 &&
+					Math.abs(localY) <= obs.height / 2
 			}
 			if (isInside) {
 				setSelectedObstacle(obs.id)
@@ -277,17 +323,21 @@ export default function HivePlacement({
 		}
 
 		if (selectedObstacle) {
-			const obs = obstacles.find(o => o.id === selectedObstacle)
+			const obs = obstacles.find((o) => o.id === selectedObstacle)
 			if (obs) {
 				if (obs.type === 'CIRCLE' && obs.radius) {
 					const heightHandleY = obs.y + obs.radius + 30
-					const heightHandleDist = Math.sqrt((x - obs.x) ** 2 + (y - heightHandleY) ** 2)
+					const heightHandleDist = Math.sqrt(
+						(x - obs.x) ** 2 + (y - heightHandleY) ** 2
+					)
 					if (heightHandleDist <= handleRadius) {
 						setIsDraggingHeight(true)
 						return
 					}
 
-					const resizeHandleDist = Math.sqrt((x - (obs.x + obs.radius)) ** 2 + (y - obs.y) ** 2)
+					const resizeHandleDist = Math.sqrt(
+						(x - (obs.x + obs.radius)) ** 2 + (y - obs.y) ** 2
+					)
 					if (resizeHandleDist <= handleRadius) {
 						setIsResizingObstacle(true)
 						return
@@ -298,24 +348,38 @@ export default function HivePlacement({
 						return
 					}
 				} else if (obs.type === 'RECTANGLE' && obs.width && obs.height) {
-					const heightHandleDistance = Math.sqrt((obs.width / 2) ** 2 + (obs.height / 2) ** 2) + 40
-					const heightHandleDist = Math.sqrt((x - obs.x) ** 2 + (y - (obs.y + heightHandleDistance)) ** 2)
+					const heightHandleDistance =
+						Math.sqrt((obs.width / 2) ** 2 + (obs.height / 2) ** 2) + 40
+					const heightHandleDist = Math.sqrt(
+						(x - obs.x) ** 2 + (y - (obs.y + heightHandleDistance)) ** 2
+					)
 					if (heightHandleDist <= handleRadius) {
 						setIsDraggingHeight(true)
 						return
 					}
 
-					const rotHandleDistance = Math.sqrt((obs.width / 2) ** 2 + (obs.height / 2) ** 2) + 20
-					const rotHandleDist = Math.sqrt((x - (obs.x + rotHandleDistance)) ** 2 + (y - obs.y) ** 2)
+					const rotHandleDistance =
+						Math.sqrt((obs.width / 2) ** 2 + (obs.height / 2) ** 2) + 20
+					const rotHandleDist = Math.sqrt(
+						(x - (obs.x + rotHandleDistance)) ** 2 + (y - obs.y) ** 2
+					)
 					if (rotHandleDist <= handleRadius) {
 						setIsDraggingObstacleRotation(true)
 						return
 					}
 
 					const rotRad = (obs.rotation || 0) * (Math.PI / 180)
-					const resizeHandleX = obs.x + (obs.width / 2 * Math.cos(rotRad) - obs.height / 2 * Math.sin(rotRad))
-					const resizeHandleY = obs.y + (obs.width / 2 * Math.sin(rotRad) + obs.height / 2 * Math.cos(rotRad))
-					const resizeHandleDist = Math.sqrt((x - resizeHandleX) ** 2 + (y - resizeHandleY) ** 2)
+					const resizeHandleX =
+						obs.x +
+						((obs.width / 2) * Math.cos(rotRad) -
+							(obs.height / 2) * Math.sin(rotRad))
+					const resizeHandleY =
+						obs.y +
+						((obs.width / 2) * Math.sin(rotRad) +
+							(obs.height / 2) * Math.cos(rotRad))
+					const resizeHandleDist = Math.sqrt(
+						(x - resizeHandleX) ** 2 + (y - resizeHandleY) ** 2
+					)
 					if (resizeHandleDist <= handleRadius) {
 						setIsResizingObstacle(true)
 						return
@@ -325,7 +389,10 @@ export default function HivePlacement({
 					const dy = y - obs.y
 					const localX = dx * Math.cos(-rotRad) - dy * Math.sin(-rotRad)
 					const localY = dx * Math.sin(-rotRad) + dy * Math.cos(-rotRad)
-					if (Math.abs(localX) <= obs.width / 2 && Math.abs(localY) <= obs.height / 2) {
+					if (
+						Math.abs(localX) <= obs.width / 2 &&
+						Math.abs(localY) <= obs.height / 2
+					) {
 						setIsDraggingObstacle(true)
 						return
 					}
@@ -338,9 +405,13 @@ export default function HivePlacement({
 			if (placement) {
 				const rotHandleDistance = HIVE_SIZE / 2 + 20
 				const rotHandleAngle = (placement.rotation || 0) * (Math.PI / 180)
-				const rotHandleX = placement.x + rotHandleDistance * Math.sin(rotHandleAngle)
-				const rotHandleY = placement.y - rotHandleDistance * Math.cos(rotHandleAngle)
-				const rotHandleDist = Math.sqrt((x - rotHandleX) ** 2 + (y - rotHandleY) ** 2)
+				const rotHandleX =
+					placement.x + rotHandleDistance * Math.sin(rotHandleAngle)
+				const rotHandleY =
+					placement.y - rotHandleDistance * Math.cos(rotHandleAngle)
+				const rotHandleDist = Math.sqrt(
+					(x - rotHandleX) ** 2 + (y - rotHandleY) ** 2
+				)
 
 				if (rotHandleDist <= 8) {
 					setIsDraggingRotation(true)
@@ -366,7 +437,9 @@ export default function HivePlacement({
 				const dy = y - obs.y
 				const localX = dx * Math.cos(-rotRad) - dy * Math.sin(-rotRad)
 				const localY = dx * Math.sin(-rotRad) + dy * Math.cos(-rotRad)
-				isInside = Math.abs(localX) <= obs.width / 2 && Math.abs(localY) <= obs.height / 2
+				isInside =
+					Math.abs(localX) <= obs.width / 2 &&
+					Math.abs(localY) <= obs.height / 2
 			}
 			if (isInside) {
 				setSelectedObstacle(obs.id)
@@ -403,29 +476,33 @@ export default function HivePlacement({
 		}
 
 		if (selectedObstacle) {
-			const obs = obstacles.find(o => o.id === selectedObstacle)
+			const obs = obstacles.find((o) => o.id === selectedObstacle)
 			if (obs) {
 				if (isDraggingHeight) {
-					const baseY = obs.type === 'CIRCLE' && obs.radius ?
-						obs.y + obs.radius :
-						obs.y + Math.sqrt((obs.width! / 2) ** 2 + (obs.height! / 2) ** 2)
+					const baseY =
+						obs.type === 'CIRCLE' && obs.radius
+							? obs.y + obs.radius
+							: obs.y +
+								Math.sqrt((obs.width! / 2) ** 2 + (obs.height! / 2) ** 2)
 					const heightDelta = y - baseY
 					const newHeight = Math.max(20, Math.min(300, heightDelta * 2))
-					const newObstacles = obstacles.map(o =>
+					const newObstacles = obstacles.map((o) =>
 						o.id === selectedObstacle ? { ...o, objectHeight: newHeight } : o
 					)
 					setObstacles(newObstacles)
 					return
 				} else if (isDraggingObstacle) {
-					const newObstacles = obstacles.map(o =>
+					const newObstacles = obstacles.map((o) =>
 						o.id === selectedObstacle ? { ...o, x, y } : o
 					)
 					setObstacles(newObstacles)
 				} else if (isResizingObstacle) {
 					if (obs.type === 'CIRCLE') {
 						const newRadius = Math.sqrt((x - obs.x) ** 2 + (y - obs.y) ** 2)
-						const newObstacles = obstacles.map(o =>
-							o.id === selectedObstacle ? { ...o, radius: Math.max(20, newRadius) } : o
+						const newObstacles = obstacles.map((o) =>
+							o.id === selectedObstacle
+								? { ...o, radius: Math.max(20, newRadius) }
+								: o
 						)
 						setObstacles(newObstacles)
 					} else if (obs.type === 'RECTANGLE' && obs.width && obs.height) {
@@ -434,12 +511,14 @@ export default function HivePlacement({
 						const dy = y - obs.y
 						const localX = dx * Math.cos(-rotRad) - dy * Math.sin(-rotRad)
 						const localY = dx * Math.sin(-rotRad) + dy * Math.cos(-rotRad)
-						const newObstacles = obstacles.map(o =>
-							o.id === selectedObstacle ? {
-								...o,
-								width: Math.max(30, Math.abs(localX) * 2),
-								height: Math.max(30, Math.abs(localY) * 2)
-							} : o
+						const newObstacles = obstacles.map((o) =>
+							o.id === selectedObstacle
+								? {
+										...o,
+										width: Math.max(30, Math.abs(localX) * 2),
+										height: Math.max(30, Math.abs(localY) * 2),
+									}
+								: o
 						)
 						setObstacles(newObstacles)
 					}
@@ -447,7 +526,7 @@ export default function HivePlacement({
 					const dx = x - obs.x
 					const dy = y - obs.y
 					const angle = Math.atan2(dy, dx) * (180 / Math.PI)
-					const newObstacles = obstacles.map(o =>
+					const newObstacles = obstacles.map((o) =>
 						o.id === selectedObstacle ? { ...o, rotation: angle } : o
 					)
 					setObstacles(newObstacles)
@@ -465,7 +544,7 @@ export default function HivePlacement({
 			const newPlacement = {
 				...placement,
 				x: Math.max(HIVE_SIZE, Math.min(canvasWidth - HIVE_SIZE, x)),
-				y: Math.max(HIVE_SIZE, Math.min(CANVAS_HEIGHT - HIVE_SIZE, y))
+				y: Math.max(HIVE_SIZE, Math.min(CANVAS_HEIGHT - HIVE_SIZE, y)),
 			}
 			setPlacements(new Map(placements.set(selectedHive, newPlacement)))
 		} else if (isDraggingRotation) {
@@ -482,8 +561,14 @@ export default function HivePlacement({
 		if (isInteractionLocked) return
 		if (readOnly) return
 
-		if ((isDraggingObstacle || isResizingObstacle || isDraggingObstacleRotation || isDraggingHeight) && selectedObstacle) {
-			const obs = obstacles.find(o => o.id === selectedObstacle)
+		if (
+			(isDraggingObstacle ||
+				isResizingObstacle ||
+				isDraggingObstacleRotation ||
+				isDraggingHeight) &&
+			selectedObstacle
+		) {
+			const obs = obstacles.find((o) => o.id === selectedObstacle)
 			if (obs) {
 				updateObstacleMutation({
 					id: selectedObstacle,
@@ -495,8 +580,8 @@ export default function HivePlacement({
 						height: obs.height,
 						radius: obs.radius,
 						rotation: obs.rotation,
-						label: obs.label
-					}
+						label: obs.label,
+					},
 				})
 			}
 		}
@@ -509,7 +594,7 @@ export default function HivePlacement({
 					hiveId: selectedHive,
 					x: placement.x,
 					y: placement.y,
-					rotation: placement.rotation
+					rotation: placement.rotation,
 				})
 			}
 		}
@@ -535,7 +620,7 @@ export default function HivePlacement({
 				hiveId: selectedHive,
 				x: placement.x,
 				y: placement.y,
-				rotation: newRotation
+				rotation: newRotation,
 			})
 		}
 	}
@@ -577,11 +662,11 @@ export default function HivePlacement({
 
 	const getSelectionName = () => {
 		if (selectedHive) {
-			const hive = hives.find(h => h.id === selectedHive)
+			const hive = hives.find((h) => h.id === selectedHive)
 			return `Hive #${hive?.hiveNumber || selectedHive.slice(0, 4)}`
 		}
 		if (selectedObstacle) {
-			const obs = obstacles.find(o => o.id === selectedObstacle)
+			const obs = obstacles.find((o) => o.id === selectedObstacle)
 			return obs?.label || 'Obstacle'
 		}
 		return null
@@ -593,9 +678,14 @@ export default function HivePlacement({
 		<div ref={containerRef} style={mobileStyles.container(isMobileDevice)}>
 			<div style={mobileStyles.header(isMobileDevice)}>
 				<p style={mobileStyles.description(isMobileDevice)}>
-					{readOnly
-						? <T>Hive placement overview</T>
-						: <T>Position your hives optimally considering sun movement, shadows, and flight patterns</T>}
+					{readOnly ? (
+						<T>Hive placement overview</T>
+					) : (
+						<T>
+							Position your hives optimally considering sun movement, shadows,
+							and flight patterns
+						</T>
+					)}
 				</p>
 			</div>
 
@@ -608,11 +698,12 @@ export default function HivePlacement({
 				/>
 			)}
 
-
 			<div style={{ position: 'relative' }}>
 				{selectedHive && !isMobileDevice && (
 					<div
-						onClick={() => window.location.href = `/apiaries/${apiaryId}/hives/${selectedHive}`}
+						onClick={() =>
+							(window.location.href = `/apiaries/${apiaryId}/hives/${selectedHive}`)
+						}
 						style={{
 							position: 'absolute',
 							top: '180px',
@@ -627,7 +718,7 @@ export default function HivePlacement({
 							gap: '8px',
 							boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
 							cursor: 'pointer',
-							transition: 'transform 0.2s, box-shadow 0.2s'
+							transition: 'transform 0.2s, box-shadow 0.2s',
 						}}
 						onMouseEnter={(e) => {
 							e.currentTarget.style.transform = 'scale(1.05)'
@@ -639,17 +730,19 @@ export default function HivePlacement({
 						}}
 					>
 						<HiveIcon boxes={selectedHiveBoxes || []} size={60} />
-						<div style={{
-							fontSize: '12px',
-							fontWeight: 'bold',
-							textAlign: 'center'
-						}}>
+						<div
+							style={{
+								fontSize: '12px',
+								fontWeight: 'bold',
+								textAlign: 'center',
+							}}
+						>
 							{(() => {
-								const hive = hives.find(h => h.id === selectedHive)
+								const hive = hives.find((h) => h.id === selectedHive)
 								return `#${hive?.hiveNumber || selectedHive.slice(0, 4)}`
 							})()}
 							{(() => {
-								const hive = hives.find(h => h.id === selectedHive)
+								const hive = hives.find((h) => h.id === selectedHive)
 								return hive?.boxCount ? ` (${hive.boxCount})` : ''
 							})()}
 						</div>
@@ -694,7 +787,9 @@ export default function HivePlacement({
 
 			{isMobileDevice && selectedHive && (
 				<div
-					onClick={() => window.location.href = `/apiaries/${apiaryId}/hives/${selectedHive}`}
+					onClick={() =>
+						(window.location.href = `/apiaries/${apiaryId}/hives/${selectedHive}`)
+					}
 					style={{
 						padding: '12px 20px',
 						backgroundColor: '#FFF9C4',
@@ -704,20 +799,22 @@ export default function HivePlacement({
 						display: 'flex',
 						alignItems: 'center',
 						gap: '12px',
-						cursor: 'pointer'
+						cursor: 'pointer',
 					}}
 				>
 					<HiveIcon boxes={selectedHiveBoxes || []} size={40} />
-					<div style={{
-						fontSize: '14px',
-						fontWeight: 'bold'
-					}}>
+					<div
+						style={{
+							fontSize: '14px',
+							fontWeight: 'bold',
+						}}
+					>
 						{(() => {
-							const hive = hives.find(h => h.id === selectedHive)
+							const hive = hives.find((h) => h.id === selectedHive)
 							return `Hive #${hive?.hiveNumber || selectedHive.slice(0, 4)}`
 						})()}
 						{(() => {
-							const hive = hives.find(h => h.id === selectedHive)
+							const hive = hives.find((h) => h.id === selectedHive)
 							return hive?.boxCount ? ` (${hive.boxCount} boxes)` : ''
 						})()}
 					</div>

@@ -48,7 +48,8 @@ export default function FrameButtons({ box, onError, hiveId }) {
 	const frameCount = useLiveQuery(() => countBoxFrames(+box.id), [box.id], 0)
 	const isNucleusHive = String(hive?.hiveType || '').toUpperCase() === 'NUCLEUS'
 	const boxFrameLimit = isNucleusHive ? 5 : MAX_FRAMES_PER_BOX[box.type]
-	const canAddFrame = !boxFrameLimit || (Number(frameCount) || 0) < boxFrameLimit
+	const canAddFrame =
+		!boxFrameLimit || (Number(frameCount) || 0) < boxFrameLimit
 
 	async function onFrameAdd(boxId, type) {
 		setAdding(true)
@@ -84,42 +85,64 @@ export default function FrameButtons({ box, onError, hiveId }) {
 	}
 
 	return (
-			<PopupButtonGroup>
+		<PopupButtonGroup>
+			<Button
+				loading={addingFrame}
+				onClick={() => {
+					onFrameAdd(box.id, frameTypes.EMPTY_COMB)
+				}}
+			>
+				<FramesIcon />
+				<T ctx="this is a button that adds new frame into a beehive which has wax added by bees on it">
+					Add comb
+				</T>
+			</Button>
+			<PopupButton align="right">
 				<Button
 					loading={addingFrame}
 					onClick={() => {
-						onFrameAdd(box.id, frameTypes.EMPTY_COMB)
+						onFrameAdd(box.id, frameTypes.FOUNDATION)
 					}}
 				>
-					<FramesIcon />
-					<T ctx="this is a button that adds new frame into a beehive which has wax added by bees on it">Add comb</T>
+					<FoundationIcon />
+					<T ctx="this is a button that adds new frame into a beehive which has a layer of wax added for bees to build cells upon">
+						Add foundation
+					</T>
 				</Button>
-				<PopupButton align='right'>
-					<Button
-						loading={addingFrame}
-						onClick={() => {
-							onFrameAdd(box.id, frameTypes.FOUNDATION)
-						}}
-					><FoundationIcon /><T ctx="this is a button that adds new frame into a beehive which has a layer of wax added for bees to build cells upon">Add foundation</T></Button>
-					<Button
-						loading={addingFrame}
-						onClick={() => {
-							onFrameAdd(box.id, frameTypes.VOID)
-						}}	
-					><EmptyFrameIcon /><T ctx="this is a button that adds new frame into a beehive, but it has no cells or wax inside, only wooden frame">Add empty frame</T></Button>
-					<Button
-						loading={addingFrame}
-						onClick={() => {
-							onFrameAdd(box.id, frameTypes.PARTITION)
-						}}
-					><PartitionIcon /><T ctx="this is a button that adds a solid wooden frame used to separate parts of a beehive">Add partition frame</T></Button>
-					<Button
-						loading={addingFrame}
-						onClick={() => {
-							onFrameAdd(box.id, frameTypes.FEEDER)
-						}}
-					><FeederIcon /><T ctx="this is a button that adds a frame feeder used to hold sugar syrup inside a beehive">Add feeder frame</T></Button>
-				</PopupButton>
-			</PopupButtonGroup>
+				<Button
+					loading={addingFrame}
+					onClick={() => {
+						onFrameAdd(box.id, frameTypes.VOID)
+					}}
+				>
+					<EmptyFrameIcon />
+					<T ctx="this is a button that adds new frame into a beehive, but it has no cells or wax inside, only wooden frame">
+						Add empty frame
+					</T>
+				</Button>
+				<Button
+					loading={addingFrame}
+					onClick={() => {
+						onFrameAdd(box.id, frameTypes.PARTITION)
+					}}
+				>
+					<PartitionIcon />
+					<T ctx="this is a button that adds a solid wooden frame used to separate parts of a beehive">
+						Add partition frame
+					</T>
+				</Button>
+				<Button
+					loading={addingFrame}
+					onClick={() => {
+						onFrameAdd(box.id, frameTypes.FEEDER)
+					}}
+				>
+					<FeederIcon />
+					<T ctx="this is a button that adds a frame feeder used to hold sugar syrup inside a beehive">
+						Add feeder frame
+					</T>
+				</Button>
+			</PopupButton>
+		</PopupButtonGroup>
 	)
 }

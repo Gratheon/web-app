@@ -39,15 +39,13 @@ export default function Box({
 	const tFrameRearranged = t('Frame rearranged')
 	const [dragHoverIndex, setDragHoverIndex] = useState<number | null>(null)
 	const frames = useBoxFrames(box.id, hiveId)
-	const [updateFramesRemote, { error }] = useMutation(
-		gql`
-			mutation updateFrames($frames: [FrameInput]!) {
-				updateFrames(frames: $frames) {
-					id
-				}
+	const [updateFramesRemote, { error }] = useMutation(gql`
+		mutation updateFrames($frames: [FrameInput]!) {
+			updateFrames(frames: $frames) {
+				id
 			}
-		`
-	)
+		}
+	`)
 	let { loading } = useQuery(FRAMES_QUERY, {
 		variables: {
 			id: +hiveId,

@@ -13,7 +13,9 @@ export default function () {
 			}}
 		>
 			<img height="64" src={imageURL} draggable={false} />
-			<p><T>No hives here yet</T></p>
+			<p>
+				<T>No hives here yet</T>
+			</p>
 		</div>
 	)
 }

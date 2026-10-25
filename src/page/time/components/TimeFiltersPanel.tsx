@@ -39,10 +39,7 @@ export default function TimeFiltersPanel({
 	return (
 		<aside className={styles.filtersGrid}>
 			<div className={styles.filterCard}>
-				<TimeRangeSelector
-					value={timeRangeDays}
-					onChange={onTimeRangeChange}
-				/>
+				<TimeRangeSelector value={timeRangeDays} onChange={onTimeRangeChange} />
 			</div>
 
 			<div className={styles.filterBlock}>

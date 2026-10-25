@@ -24,8 +24,16 @@ interface JoinColonyModalProps {
 }
 
 const JOIN_HIVES_MUTATION = gql`
-	mutation joinHives($sourceHiveId: ID!, $targetHiveId: ID!, $mergeType: String!) {
-		joinHives(sourceHiveId: $sourceHiveId, targetHiveId: $targetHiveId, mergeType: $mergeType) {
+	mutation joinHives(
+		$sourceHiveId: ID!
+		$targetHiveId: ID!
+		$mergeType: String!
+	) {
+		joinHives(
+			sourceHiveId: $sourceHiveId
+			targetHiveId: $targetHiveId
+			mergeType: $mergeType
+		) {
 			id
 		}
 	}
@@ -56,14 +64,24 @@ export default function JoinColonyModal({
 	hiveId,
 	apiaryId,
 }: JoinColonyModalProps) {
-	const [selectedTargetHiveId, setSelectedTargetHiveId] = useState<string | null>(null)
+	const [selectedTargetHiveId, setSelectedTargetHiveId] = useState<
+		string | null
+	>(null)
 	const [mergeType, setMergeType] = useState<string>('both_queens')
 	const [error, setError] = useState<Error | null>(null)
 	const [billingPlan, setBillingPlan] = useState<string | null>(null)
 
 	const currentHive = useLiveQuery(() => getHive(+hiveId), [hiveId], null)
-	const currentBoxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId], [])
-	const currentFamily = useLiveQuery(() => getFamilyByHive(+hiveId), [hiveId], null)
+	const currentBoxes = useLiveQuery(
+		() => getBoxes({ hiveId: +hiveId }),
+		[hiveId],
+		[]
+	)
+	const currentFamily = useLiveQuery(
+		() => getFamilyByHive(+hiveId),
+		[hiveId],
+		null
+	)
 
 	const { data: apiaryData } = useQuery(HIVES_BY_APIARY_QUERY, {
 		variables: { id: apiaryId },
@@ -73,9 +91,13 @@ export default function JoinColonyModal({
 	const isJoinLocked = isBillingTierLessThan(billingPlan, 'hobbyist')
 
 	const otherHives =
-		apiaryData?.apiary?.hives?.filter((h: any) => h.id !== hiveId && h.boxCount > 0) || []
+		apiaryData?.apiary?.hives?.filter(
+			(h: any) => h.id !== hiveId && h.boxCount > 0
+		) || []
 
-	const selectedTargetHive = otherHives.find((h: any) => h.id === selectedTargetHiveId)
+	const selectedTargetHive = otherHives.find(
+		(h: any) => h.id === selectedTargetHiveId
+	)
 
 	const handleJoin = async () => {
 		if (!selectedTargetHiveId) {
@@ -103,7 +125,9 @@ export default function JoinColonyModal({
 					action: hiveLogActions.LINEAGE,
 					title: 'Hive merged into another hive',
 					details: `Merge type: ${mergeType}.`,
-					relatedHives: [{ id: targetHiveId, hiveNumber: selectedTargetHive?.hiveNumber }],
+					relatedHives: [
+						{ id: targetHiveId, hiveNumber: selectedTargetHive?.hiveNumber },
+					],
 					dedupeKey: `join:source:${sourceHiveId}:target:${targetHiveId}:${mergeType}`,
 				})
 				await addHiveLog({
@@ -111,7 +135,9 @@ export default function JoinColonyModal({
 					action: hiveLogActions.LINEAGE,
 					title: 'Hive received merged colony',
 					details: `Merge type: ${mergeType}.`,
-					relatedHives: [{ id: sourceHiveId, hiveNumber: currentHive?.hiveNumber }],
+					relatedHives: [
+						{ id: sourceHiveId, hiveNumber: currentHive?.hiveNumber },
+					],
 					dedupeKey: `join:target:${targetHiveId}:source:${sourceHiveId}:${mergeType}`,
 				})
 				window.location.href = `/apiaries/${apiaryId}/hives/${data.joinHives.id}`
@@ -172,118 +198,133 @@ export default function JoinColonyModal({
 	if (!isOpen) return null
 
 	return (
-		<Modal onClose={handleClose} title={<T>Join Colonies</T>} className={styles.modal}>
+		<Modal
+			onClose={handleClose}
+			title={<T>Join Colonies</T>}
+			className={styles.modal}
+		>
 			<div className={styles.content}>
-				<div className={`${styles.previewContainer} ${isJoinLocked ? styles.previewLocked : ''}`}>
-				<p>
-					<T>Select a target hive to merge this colony into</T>
-				</p>
+				<div
+					className={`${styles.previewContainer} ${isJoinLocked ? styles.previewLocked : ''}`}
+				>
+					<p>
+						<T>Select a target hive to merge this colony into</T>
+					</p>
 
-				{error && <ErrorMsg error={error} />}
+					{error && <ErrorMsg error={error} />}
 
-				<div className={styles.hivesContainer}>
-					<div className={styles.hivePanel}>
-						<h3>
-							<T>Source Hive</T>
-						</h3>
-						{currentHive && (
-							<div className={styles.hiveCard}>
-								<HiveIcon boxes={currentBoxes} />
-								<div className={styles.hiveInfo}>
-									<h4>{currentHive.name}</h4>
-									<BeeCounter count={currentHive.beeCount} />
-									{currentFamily && (
-										<div className={styles.familyInfo}>
-											<div>
-												<T>Race</T>: {currentFamily.race}
+					<div className={styles.hivesContainer}>
+						<div className={styles.hivePanel}>
+							<h3>
+								<T>Source Hive</T>
+							</h3>
+							{currentHive && (
+								<div className={styles.hiveCard}>
+									<HiveIcon boxes={currentBoxes} />
+									<div className={styles.hiveInfo}>
+										<h4>{currentHive.name}</h4>
+										<BeeCounter count={currentHive.beeCount} />
+										{currentFamily && (
+											<div className={styles.familyInfo}>
+												<div>
+													<T>Race</T>: {currentFamily.race}
+												</div>
+												<div>
+													<T>Year</T>: {currentFamily.added}
+												</div>
 											</div>
-											<div>
-												<T>Year</T>: {currentFamily.added}
-											</div>
-										</div>
-									)}
-								</div>
-							</div>
-						)}
-					</div>
-
-					<div className={styles.mergeTypeContainer}>
-						<button className={styles.mergeTypeButton} onClick={cycleMergeType}>
-							{getMergeTypeIcon()}
-						</button>
-						<div className={styles.mergeTypeDescription}>{getMergeTypeDescription()}</div>
-					</div>
-
-					<div className={styles.hivePanel}>
-						<h3>
-							<T>Target Hive</T>
-						</h3>
-						{selectedTargetHive ? (
-							<div className={styles.hiveCard}>
-								<div className={styles.hiveInfo}>
-									<h4>{selectedTargetHive.hiveNumber ? `#${selectedTargetHive.hiveNumber}` : `Hive ${selectedTargetHive.id}`}</h4>
-									{selectedTargetHive.family && (
-										<div className={styles.familyInfo}>
-											<div>
-												<T>Race</T>: {selectedTargetHive.family.race}
-											</div>
-											<div>
-												<T>Year</T>: {selectedTargetHive.family.added}
-											</div>
-										</div>
-									)}
-								</div>
-							</div>
-						) : (
-							<div className={styles.selectPrompt}>
-								<T>Select a hive below</T>
-							</div>
-						)}
-					</div>
-				</div>
-
-				<div className={styles.hiveList}>
-					<h3>
-						<T>Available Hives</T>
-					</h3>
-					{otherHives.length === 0 ? (
-						<p>
-							<T>No other hives available in this apiary</T>
-						</p>
-					) : (
-						<div className={styles.hiveOptions}>
-							{otherHives.map((hive: any) => (
-								<div
-									key={hive.id}
-									className={`${styles.hiveOption} ${
-										selectedTargetHiveId === hive.id ? styles.selected : ''
-									}`}
-									onClick={() => setSelectedTargetHiveId(hive.id)}
-								>
-									<div className={styles.hiveName}>
-										{hive.hiveNumber && `#${hive.hiveNumber} `}
-										{hive.family?.name || <T>Unnamed Queen</T>}
+										)}
 									</div>
-									{hive.family && (
-										<div className={styles.hiveDetails}>
-											{hive.family.race} ({hive.family.added})
-										</div>
-									)}
 								</div>
-							))}
+							)}
+						</div>
+
+						<div className={styles.mergeTypeContainer}>
+							<button
+								className={styles.mergeTypeButton}
+								onClick={cycleMergeType}
+							>
+								{getMergeTypeIcon()}
+							</button>
+							<div className={styles.mergeTypeDescription}>
+								{getMergeTypeDescription()}
+							</div>
+						</div>
+
+						<div className={styles.hivePanel}>
+							<h3>
+								<T>Target Hive</T>
+							</h3>
+							{selectedTargetHive ? (
+								<div className={styles.hiveCard}>
+									<div className={styles.hiveInfo}>
+										<h4>
+											{selectedTargetHive.hiveNumber
+												? `#${selectedTargetHive.hiveNumber}`
+												: `Hive ${selectedTargetHive.id}`}
+										</h4>
+										{selectedTargetHive.family && (
+											<div className={styles.familyInfo}>
+												<div>
+													<T>Race</T>: {selectedTargetHive.family.race}
+												</div>
+												<div>
+													<T>Year</T>: {selectedTargetHive.family.added}
+												</div>
+											</div>
+										)}
+									</div>
+								</div>
+							) : (
+								<div className={styles.selectPrompt}>
+									<T>Select a hive below</T>
+								</div>
+							)}
+						</div>
+					</div>
+
+					<div className={styles.hiveList}>
+						<h3>
+							<T>Available Hives</T>
+						</h3>
+						{otherHives.length === 0 ? (
+							<p>
+								<T>No other hives available in this apiary</T>
+							</p>
+						) : (
+							<div className={styles.hiveOptions}>
+								{otherHives.map((hive: any) => (
+									<div
+										key={hive.id}
+										className={`${styles.hiveOption} ${
+											selectedTargetHiveId === hive.id ? styles.selected : ''
+										}`}
+										onClick={() => setSelectedTargetHiveId(hive.id)}
+									>
+										<div className={styles.hiveName}>
+											{hive.hiveNumber && `#${hive.hiveNumber} `}
+											{hive.family?.name || <T>Unnamed Queen</T>}
+										</div>
+										{hive.family && (
+											<div className={styles.hiveDetails}>
+												{hive.family.race} ({hive.family.added})
+											</div>
+										)}
+									</div>
+								))}
+							</div>
+						)}
+					</div>
+
+					{isJoinLocked && <div className={styles.previewOverlay} />}
+					{isJoinLocked && (
+						<div className={styles.previewOverlayNotice}>
+							<BillingUpgradeNotice
+								compact
+								title={<T>Join Colonies requires Hobbyist plan or higher.</T>}
+							/>
 						</div>
 					)}
-				</div>
-
-				{isJoinLocked && <div className={styles.previewOverlay} />}
-				{isJoinLocked && (
-					<div className={styles.previewOverlayNotice}>
-						<BillingUpgradeNotice
-							compact
-							title={<T>Join Colonies requires Hobbyist plan or higher.</T>}
-						/>
-					</div>
-				)}
 				</div>
 
 				<div className={styles.buttonContainer}>
@@ -291,7 +332,11 @@ export default function JoinColonyModal({
 						{isJoinLocked ? <T>Close</T> : <T>Cancel</T>}
 					</Button>
 					{!isJoinLocked && (
-						<Button onClick={handleJoin} loading={loading} disabled={!selectedTargetHiveId}>
+						<Button
+							onClick={handleJoin}
+							loading={loading}
+							disabled={!selectedTargetHiveId}
+						>
 							<T>Join Colonies</T>
 						</Button>
 					)}

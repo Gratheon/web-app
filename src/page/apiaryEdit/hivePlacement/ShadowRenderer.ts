@@ -27,8 +27,8 @@ export const calculateShadow = (
 		}
 	})
 
-	placements.forEach(placement => {
-		const hive = hives.find(h => h.id === placement.hiveId)
+	placements.forEach((placement) => {
+		const hive = hives.find((h) => h.id === placement.hiveId)
 		if (!hive) {
 			return
 		}
@@ -54,11 +54,11 @@ const drawCircleShadow = (
 
 	const tangent1 = {
 		x: obs.x + Math.cos(perpAngle1) * obs.radius,
-		y: obs.y + Math.sin(perpAngle1) * obs.radius
+		y: obs.y + Math.sin(perpAngle1) * obs.radius,
 	}
 	const tangent2 = {
 		x: obs.x + Math.cos(perpAngle2) * obs.radius,
-		y: obs.y + Math.sin(perpAngle2) * obs.radius
+		y: obs.y + Math.sin(perpAngle2) * obs.radius,
 	}
 
 	const startAngle = perpAngle1
@@ -72,7 +72,7 @@ const drawCircleShadow = (
 		const angle = startAngle + (endAngle - startAngle + Math.PI * 2) * t
 		silhouettePoints.push({
 			x: obs.x + Math.cos(angle) * obs.radius,
-			y: obs.y + Math.sin(angle) * obs.radius
+			y: obs.y + Math.sin(angle) * obs.radius,
 		})
 	}
 	silhouettePoints.push(tangent2)
@@ -113,15 +113,22 @@ const drawRectangleShadow = (
 		{ x: -obs.width / 2, y: -obs.height / 2 },
 		{ x: obs.width / 2, y: -obs.height / 2 },
 		{ x: obs.width / 2, y: obs.height / 2 },
-		{ x: -obs.width / 2, y: obs.height / 2 }
+		{ x: -obs.width / 2, y: obs.height / 2 },
 	]
 
-	const rotatedCorners: Point[] = corners.map(c => ({
+	const rotatedCorners: Point[] = corners.map((c) => ({
 		x: obs.x + c.x * Math.cos(rotRad) - c.y * Math.sin(rotRad),
-		y: obs.y + c.x * Math.sin(rotRad) + c.y * Math.cos(rotRad)
+		y: obs.y + c.x * Math.sin(rotRad) + c.y * Math.cos(rotRad),
 	}))
 
-	drawConvexShadow(ctx, rotatedCorners, sunDirX, sunDirY, shadowLength, 'rgba(0, 0, 0, 0.25)')
+	drawConvexShadow(
+		ctx,
+		rotatedCorners,
+		sunDirX,
+		sunDirY,
+		shadowLength,
+		'rgba(0, 0, 0, 0.25)'
+	)
 }
 
 const drawHiveShadow = (
@@ -136,15 +143,22 @@ const drawHiveShadow = (
 		{ x: -HIVE_SIZE / 2, y: -HIVE_SIZE / 2 },
 		{ x: HIVE_SIZE / 2, y: -HIVE_SIZE / 2 },
 		{ x: HIVE_SIZE / 2, y: HIVE_SIZE / 2 },
-		{ x: -HIVE_SIZE / 2, y: HIVE_SIZE / 2 }
+		{ x: -HIVE_SIZE / 2, y: HIVE_SIZE / 2 },
 	]
 
-	const rotatedCorners: Point[] = corners.map(c => ({
+	const rotatedCorners: Point[] = corners.map((c) => ({
 		x: placement.x + c.x * Math.cos(rotRad) - c.y * Math.sin(rotRad),
-		y: placement.y + c.x * Math.sin(rotRad) + c.y * Math.cos(rotRad)
+		y: placement.y + c.x * Math.sin(rotRad) + c.y * Math.cos(rotRad),
 	}))
 
-	drawConvexShadow(ctx, rotatedCorners, sunDirX, sunDirY, shadowLength, 'rgba(0, 0, 0, 0.2)')
+	drawConvexShadow(
+		ctx,
+		rotatedCorners,
+		sunDirX,
+		sunDirY,
+		shadowLength,
+		'rgba(0, 0, 0, 0.2)'
+	)
 }
 
 const drawConvexShadow = (
@@ -157,9 +171,9 @@ const drawConvexShadow = (
 ) => {
 	if (basePoints.length < 3) return
 
-	const projectedPoints: Point[] = basePoints.map(p => ({
+	const projectedPoints: Point[] = basePoints.map((p) => ({
 		x: p.x - sunDirX * shadowLength,
-		y: p.y - sunDirY * shadowLength
+		y: p.y - sunDirY * shadowLength,
 	}))
 
 	const hull = convexHull([...basePoints, ...projectedPoints])
@@ -188,7 +202,10 @@ const convexHull = (points: Point[]): Point[] => {
 
 	const lower: Point[] = []
 	for (const p of sorted) {
-		while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) {
+		while (
+			lower.length >= 2 &&
+			cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0
+		) {
 			lower.pop()
 		}
 		lower.push(p)
@@ -197,7 +214,10 @@ const convexHull = (points: Point[]): Point[] => {
 	const upper: Point[] = []
 	for (let i = sorted.length - 1; i >= 0; i--) {
 		const p = sorted[i]
-		while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) {
+		while (
+			upper.length >= 2 &&
+			cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0
+		) {
 			upper.pop()
 		}
 		upper.push(p)

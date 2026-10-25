@@ -34,7 +34,6 @@ import {
 import {
 	getCurrentHiveContext,
 	getLockedNavigationProps,
-	getStoredHiveContext,
 	menuLinkClassName,
 	navClassName,
 	sectionMenuLinkClassName,
@@ -183,8 +182,8 @@ const Menu = ({
 							'2': isFreeTier
 								? '/warehouse/queens/detect'
 								: isQueensLocked
-								? null
-								: '/warehouse/queens',
+									? null
+									: '/warehouse/queens',
 							'3': isInsightsLocked ? null : '/insights',
 							'4': isWarehouseLocked ? null : '/warehouse',
 							'5': isDevicesLocked ? null : '/devices',
@@ -193,7 +192,7 @@ const Menu = ({
 							'8': isAIAdvisorLocked ? null : aiAdvisorPath,
 							'9': '/account/billing',
 							'0': '/account/tokens',
-					  }[key]
+						}[key]
 					: null
 
 			if (

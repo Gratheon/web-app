@@ -9,4 +9,3 @@ export default function Bottom({ selected = false }) {
 		</div>
 	)
 }
-

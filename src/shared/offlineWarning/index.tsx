@@ -15,7 +15,10 @@ export default function OfflineWarning() {
 			<span className={styles.icon} aria-hidden="true">
 				<WifiOffIcon size={18} />
 			</span>
-			<T>You are offline. Some features may be unavailable until your connection is restored.</T>
+			<T>
+				You are offline. Some features may be unavailable until your connection
+				is restored.
+			</T>
 		</div>
 	)
 }

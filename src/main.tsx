@@ -8,14 +8,14 @@ if (typeof window !== 'undefined') {
 	;(async () => {
 		await initializeEnvironment()
 
-		const appElement = <App />;
+		const appElement = <App />
 
 		hydrate(appElement, document.getElementById('app'))
 	})()
 }
 
 export async function prerender(data: any) {
-	const appElement = <App />;
+	const appElement = <App />
 
 	// @ts-ignore
 	const { html, links: discoveredLinks } = ssr(appElement)

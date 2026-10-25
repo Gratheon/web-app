@@ -24,9 +24,9 @@ export type InspectionSnapshot = {
 const TABLE_NAME = 'inspection'
 
 export async function getInspection(id: number): Promise<Inspection> {
-	if(!id) {
-		console.error('attempt to get hive with invalid id', {id})
-		return null;
+	if (!id) {
+		console.error('attempt to get hive with invalid id', { id })
+		return null
 	}
 
 	try {
@@ -39,8 +39,8 @@ export async function getInspection(id: number): Promise<Inspection> {
 export async function listInspections(hiveId: number): Promise<Inspection[]> {
 	// Validate hiveId before querying
 	if (!hiveId || !Number.isFinite(hiveId) || hiveId <= 0) {
-		console.warn(`Attempted to list inspections with invalid hiveId: ${hiveId}`);
-		return []; // Return empty array for invalid hiveId
+		console.warn(`Attempted to list inspections with invalid hiveId: ${hiveId}`)
+		return [] // Return empty array for invalid hiveId
 	}
 
 	try {

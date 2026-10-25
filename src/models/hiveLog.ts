@@ -108,7 +108,8 @@ async function pruneHiveLogCache(
 	hiveId: number,
 	keepRows = 150
 ): Promise<number> {
-	const rows = (await db[HIVE_LOG_TABLE].where({ hiveId })
+	const rows = (await db[HIVE_LOG_TABLE]
+		.where({ hiveId })
 		.reverse()
 		.sortBy('createdAt')) as HiveLogEntry[]
 	const idsToDelete = rows
@@ -177,7 +178,8 @@ export async function listHiveLogs(
 	}
 
 	try {
-		return await db[HIVE_LOG_TABLE].where({ hiveId: +hiveId })
+		return await db[HIVE_LOG_TABLE]
+			.where({ hiveId: +hiveId })
 			.reverse()
 			.sortBy('createdAt')
 			.then((rows: HiveLogEntry[]) => rows.slice(0, limit))

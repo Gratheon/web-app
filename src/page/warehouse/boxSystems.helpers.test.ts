@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildActiveHiveCountBySystemId, pickDefaultReplacementSystem } from './boxSystems.helpers'
+import {
+	buildActiveHiveCountBySystemId,
+	pickDefaultReplacementSystem,
+} from './boxSystems.helpers'
 
 describe('boxSystems page helpers', () => {
 	it('counts hives by box system id across apiaries', () => {
@@ -24,6 +27,8 @@ describe('boxSystems page helpers', () => {
 
 		expect(pickDefaultReplacementSystem(systems, '3')?.id).toBe('2')
 		expect(pickDefaultReplacementSystem(systems, '2')?.id).toBe('1')
-		expect(pickDefaultReplacementSystem([{ id: '7', isDefault: true }], '7')).toBeNull()
+		expect(
+			pickDefaultReplacementSystem([{ id: '7', isDefault: true }], '7')
+		).toBeNull()
 	})
 })

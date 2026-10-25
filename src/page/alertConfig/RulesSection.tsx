@@ -69,15 +69,15 @@ export function RulesSection({
 						const apiary = rule.apiaryId
 							? apiaries.find((a) => a.id === rule.apiaryId)
 							: hiveInfo
-							? apiaries.find((a) => a.id === hiveInfo.apiaryId)
-							: null
+								? apiaries.find((a) => a.id === hiveInfo.apiaryId)
+								: null
 
 						const timeViewUrl = chartType
 							? rule.hiveId
 								? `/insights?hiveId=${rule.hiveId}&chartType=${chartType}&scrollTo=${chartType}`
 								: rule.apiaryId
-								? `/time?apiaryId=${rule.apiaryId}&chartType=${chartType}`
-								: `/time?chartType=${chartType}`
+									? `/time?apiaryId=${rule.apiaryId}&chartType=${chartType}`
+									: `/time?chartType=${chartType}`
 							: null
 
 						const hiveViewUrl = hiveInfo

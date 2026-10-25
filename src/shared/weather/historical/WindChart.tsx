@@ -13,31 +13,41 @@ type WindChartProps = {
 	suspendTimeRangeSync?: boolean
 }
 
-export default function WindChart({ windData, chartRefs, syncCharts, onVisibleTimeRangeChange, suspendTimeRangeSync }: WindChartProps) {
+export default function WindChart({
+	windData,
+	chartRefs,
+	syncCharts,
+	onVisibleTimeRangeChange,
+	suspendTimeRangeSync,
+}: WindChartProps) {
 	const windSpeedData = windData.wind_speed_10m
-		.filter(d => d.value !== null)
-		.map(d => ({
-			time: new Date(d.time).getTime() / 1000 as any,
-			value: d.value
+		.filter((d) => d.value !== null)
+		.map((d) => ({
+			time: (new Date(d.time).getTime() / 1000) as any,
+			value: d.value,
 		}))
 
 	const windGustsData = windData.wind_gusts_10m
-		.filter(d => d.value !== null)
-		.map(d => ({
-			time: new Date(d.time).getTime() / 1000 as any,
-			value: d.value
+		.filter((d) => d.value !== null)
+		.map((d) => ({
+			time: (new Date(d.time).getTime() / 1000) as any,
+			value: d.value,
 		}))
 
-	const avgWindSpeed = windSpeedData.length > 0
-		? windSpeedData.reduce((acc, curr) => acc + curr.value, 0) / windSpeedData.length
-		: 0
+	const avgWindSpeed =
+		windSpeedData.length > 0
+			? windSpeedData.reduce((acc, curr) => acc + curr.value, 0) /
+				windSpeedData.length
+			: 0
 
 	return (
 		<ChartContainer
 			emoji="💨"
 			title={t('Wind Speed')}
 			value={`${avgWindSpeed.toFixed(1)} m/s ${t('avg')}`}
-			info={t('Wind affects bee foraging activity. Strong winds (>10 m/s) can prevent bees from flying.')}
+			info={t(
+				'Wind affects bee foraging activity. Strong winds (>10 m/s) can prevent bees from flying.'
+			)}
 			chartRefs={chartRefs}
 			syncCharts={syncCharts}
 			onVisibleTimeRangeChange={onVisibleTimeRangeChange}
@@ -49,7 +59,7 @@ export default function WindChart({ windData, chartRefs, syncCharts, onVisibleTi
 				options={{
 					color: '#2962FF',
 					lineWidth: 2,
-					title: t('Wind Speed (10m)')
+					title: t('Wind Speed (10m)'),
 				}}
 			/>
 			<LineSeries
@@ -58,7 +68,7 @@ export default function WindChart({ windData, chartRefs, syncCharts, onVisibleTi
 					color: '#FF6D00',
 					lineWidth: 1,
 					lineStyle: 2,
-					title: t('Wind Gusts (10m)')
+					title: t('Wind Gusts (10m)'),
 				}}
 			/>
 		</ChartContainer>

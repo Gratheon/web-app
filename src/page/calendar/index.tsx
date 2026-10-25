@@ -379,11 +379,11 @@ export default function CalendarPage() {
 					className={styles.tabPanel}
 				>
 					<section className={styles.grid} aria-label="Calendar month grid">
-							{weekdays.map((weekday) => (
-								<div className={styles.weekdayHeader} key={weekday.full}>
-									<abbr title={weekday.full}>{weekday.short}</abbr>
-								</div>
-							))}
+						{weekdays.map((weekday) => (
+							<div className={styles.weekdayHeader} key={weekday.full}>
+								<abbr title={weekday.full}>{weekday.short}</abbr>
+							</div>
+						))}
 						{days.map((day) => {
 							const date = new Date(`${day}T00:00:00.000Z`)
 							const isToday = dayKey(new Date().toISOString()) === day

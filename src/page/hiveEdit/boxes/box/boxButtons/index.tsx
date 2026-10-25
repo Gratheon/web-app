@@ -6,7 +6,6 @@ import UpIcon from '@/icons/upIcon.tsx'
 import { useMutation } from '@/api'
 
 import {
-	removeBox,
 	swapBoxPositions,
 	getBoxAtPositionAbove,
 	getBoxAtPositionBelow,
@@ -21,15 +20,15 @@ export default function BoxButtons({ box, onError }) {
 	const tSectionMovedUp = t('Section moved up')
 	let buttonDirections = useLiveQuery(async () => {
 		return [
-			await getBoxAtPositionBelow(box.hiveId, box.position) !== null,
-			await getBoxAtPositionAbove(box.hiveId, box.position) !== null
+			(await getBoxAtPositionBelow(box.hiveId, box.position)) !== null,
+			(await getBoxAtPositionAbove(box.hiveId, box.position)) !== null,
 		]
-	}, [box]);
+	}, [box])
 
 	if (!buttonDirections) {
-		return null;
+		return null
 	}
-	let [showDownButton, showUpButton] = buttonDirections;
+	let [showDownButton, showUpButton] = buttonDirections
 
 	let [removeBoxMutation] = useMutation(`mutation deactivateBox($id: ID!) {
 		deactivateBox(id: $id)
@@ -40,9 +39,9 @@ export default function BoxButtons({ box, onError }) {
 		`mutation swapBoxPositions($id: ID!, $id2: ID!) {swapBoxPositions(id: $id, id2: $id2)}`
 	)
 
-	const [movingBox, setMovingBox] = useState(false);
+	const [movingBox, setMovingBox] = useState(false)
 	async function onMoveDown(boxId: number) {
-		setMovingBox(true);
+		setMovingBox(true)
 		const box1 = await getBox(boxId)
 		const box2 = await getBoxAtPositionBelow(box1.hiveId, box1.position)
 
@@ -52,7 +51,7 @@ export default function BoxButtons({ box, onError }) {
 		})
 
 		if (error) {
-			setMovingBox(false);
+			setMovingBox(false)
 			return onError(error)
 		}
 
@@ -63,11 +62,11 @@ export default function BoxButtons({ box, onError }) {
 			title: tSectionMovedDown,
 			details: `Section #${box1.id} swapped with section #${box2.id}.`,
 		})
-		setMovingBox(false);
+		setMovingBox(false)
 	}
 
 	async function onMoveUp(boxId: number) {
-		setMovingBox(true);
+		setMovingBox(true)
 		const box1 = await getBox(boxId)
 		const box2 = await getBoxAtPositionAbove(box1.hiveId, box1.position)
 
@@ -77,7 +76,7 @@ export default function BoxButtons({ box, onError }) {
 		})
 
 		if (error) {
-			setMovingBox(false);
+			setMovingBox(false)
 			return onError(error)
 		}
 
@@ -88,7 +87,7 @@ export default function BoxButtons({ box, onError }) {
 			title: tSectionMovedUp,
 			details: `Section #${box1.id} swapped with section #${box2.id}.`,
 		})
-		setMovingBox(false);
+		setMovingBox(false)
 	}
 
 	return (
@@ -100,7 +99,9 @@ export default function BoxButtons({ box, onError }) {
 						onMoveUp(+box.id)
 					}}
 					icon={<UpIcon />}
-				><T>Move up</T></ButtonWithHover>
+				>
+					<T>Move up</T>
+				</ButtonWithHover>
 			)}
 
 			{showDownButton && (
@@ -110,7 +111,9 @@ export default function BoxButtons({ box, onError }) {
 						onMoveDown(+box.id)
 					}}
 					icon={<DownIcon />}
-				><T>Move down</T></ButtonWithHover>
+				>
+					<T>Move down</T>
+				</ButtonWithHover>
 			)}
 		</div>
 	)

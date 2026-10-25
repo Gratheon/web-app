@@ -91,7 +91,10 @@ export function LightBulbIcon({ size = MOBILE_NAV_ICON_SIZE, filled = false }) {
 	)
 }
 
-export function QueenFinderIcon({ size = MOBILE_NAV_ICON_SIZE, filled = false }) {
+export function QueenFinderIcon({
+	size = MOBILE_NAV_ICON_SIZE,
+	filled = false,
+}) {
 	const bodyFill = filled ? 'currentColor' : 'none'
 	const detailColor = filled ? 'white' : 'currentColor'
 

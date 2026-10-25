@@ -18,7 +18,8 @@ export default function HiveIcon({
 			className="h-6 w-6"
 			fill="none"
 			stroke="currentColor"
-			viewBox="0 0 500 500">
+			viewBox="0 0 500 500"
+		>
 			<rect
 				x="72.151"
 				y="110.171"

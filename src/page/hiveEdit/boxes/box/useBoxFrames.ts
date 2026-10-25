@@ -65,9 +65,8 @@ export function useBoxFrames(boxId: number, hiveId: number) {
 			if (!framesWithoutSides) return null
 			const framesWithoutCells = await enrichFramesWithSides(framesWithoutSides)
 			if (!framesWithoutCells) return null
-			const framesWithoutFiles = await enrichFramesWithSideCells(
-				framesWithoutCells
-			)
+			const framesWithoutFiles =
+				await enrichFramesWithSideCells(framesWithoutCells)
 			if (!framesWithoutFiles) return null
 			return await enrichFramesWithSideFiles(framesWithoutFiles)
 		},

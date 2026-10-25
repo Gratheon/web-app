@@ -2,7 +2,6 @@ import { db, upsertEntityWithNumericID } from './db'
 import { getBoxes } from './boxes.ts'
 import {
 	FrameSide,
-	getFrameSidesMap,
 	collectFrameSideIDsFromFrames,
 } from './frameSide.ts'
 

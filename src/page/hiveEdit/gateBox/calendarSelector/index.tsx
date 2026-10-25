@@ -7,7 +7,7 @@ export default function CalendarSelector() {
 			<div> &larr; </div>
 
 			{["14", "15", "16", "17", "18"].map((v) => {
-				return <div style="border:1px solid gray; border-radius:3px;padding:5px;">{v}</div>;
+				return <div key={v} style="border:1px solid gray; border-radius:3px;padding:5px;">{v}</div>;
 			})}
 
 			<div> &rarr; </div>

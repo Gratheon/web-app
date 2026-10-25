@@ -566,7 +566,7 @@ export default function QueenDetectorPage() {
 				// keep the queen-to-image relation in the local Family preview used by the Queens database UI.
 				const existingFamily = await getFamilyById(Number(familyId))
 				await updateFamily({
-					...(existingFamily || {}),
+					...existingFamily,
 					...familyData,
 					id: Number(familyId),
 					previewImageUrl,

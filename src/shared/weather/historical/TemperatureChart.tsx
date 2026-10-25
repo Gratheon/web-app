@@ -1,7 +1,7 @@
 import { LineSeries, PriceLine } from 'lightweight-charts-react-components'
 import ChartContainer from '@/shared/charts/ChartContainer'
 import { useTranslation as t } from '@/shared/translate'
-import { convertFromCelsius, convertMetricSeriesFromCelsius, formatTemperatureFromCelsius, temperatureUnitSymbol, type TemperatureUnit } from '@/shared/temperatureUnit'
+import { convertMetricSeriesFromCelsius, formatTemperatureFromCelsius, temperatureUnitSymbol, type TemperatureUnit } from '@/shared/temperatureUnit'
 
 type TemperatureChartProps = {
 	temperatureData: {

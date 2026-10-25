@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
 	getTranslation,
 	getTranslationValue,
@@ -7,7 +7,6 @@ import {
 	upsertTranslationValue,
 	upsertPluralForm,
 	Translation,
-	TranslationValue,
 	PluralForm
 } from './translations';
 import { db } from './db';

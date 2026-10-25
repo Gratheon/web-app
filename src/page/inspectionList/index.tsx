@@ -55,8 +55,6 @@ export default function InspectionList({breadcrumbs}) {
 		return <Loader />
 	}
 
-	let okMsg
-
 	// inline error from deeper components
 	let errorMsg = <ErrorMsg error={error || errorGet || errorNetwork} />
 
@@ -106,7 +104,6 @@ export default function InspectionList({breadcrumbs}) {
 		<>
 			<ErrorGeneral />
 
-			{okMsg}
 			{errorMsg}
 
 			{inspections.length > 0 && (

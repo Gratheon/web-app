@@ -4,10 +4,9 @@ import {
   getFrameSide,
   collectFrameSideIDsFromFrames,
   getFrameSidesMap,
-  enrichFramesWithSides,
   FrameSide,
 } from './frameSide';
-import { db, upsertEntityWithNumericID as actualUpsert } from './db'; // Import original db and upsert for mocking
+import { db } from './db'; // Import original db and upsert for mocking
 import { Frame, FrameType, frameTypes } from './frames'; // Import Frame type and FrameType
 
 // --- Mock Dependencies ---

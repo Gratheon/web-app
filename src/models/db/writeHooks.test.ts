@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import { writeHooks } from './writeHooks';
-import { FRAME_SIDE_INSPECTION_TABLE } from '../frameSideInspection'; // Import table name
 
 // --- Mock Dependencies ---
 
@@ -29,7 +28,7 @@ vi.mock('../fileResize.ts', async (importOriginal) => {
 });
 vi.mock('../frameSideFile.ts', async (importOriginal) => {
   const original = await importOriginal() as any;
-  return { ...original, default: { ...(original.default || {}), upsertEntity: vi.fn() } };
+  return { ...original, default: { ...original.default, upsertEntity: vi.fn() } };
 });
 // Mock the model function used by the FrameSideInspection hook
 vi.mock('../frameSideInspection', () => ({

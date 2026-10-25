@@ -6,7 +6,6 @@ import UpIcon from '@/icons/upIcon.tsx'
 import { useMutation } from '@/api'
 
 import {
-	removeBox,
 	swapBoxPositions,
 	getBoxAtPositionAbove,
 	getBoxAtPositionBelow,

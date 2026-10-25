@@ -1,7 +1,7 @@
 import frameSideFileModel, { FrameSideFile } from '../frameSideFile.ts'
 import { FrameSideCells } from '../frameSideCells.ts'
 
-import { upsertEntity, upsertEntityWithNumericID } from './index.ts' // Keep upsertEntity for other hooks if needed
+import { upsertEntityWithNumericID } from './index.ts' // Keep upsertEntity for other hooks if needed
 
 import { FrameSide } from '../frameSide.ts'
 import { upsertFrameSide } from '../frameSide.ts'

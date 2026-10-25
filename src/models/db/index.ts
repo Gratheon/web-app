@@ -1,7 +1,6 @@
 //@ts-nocheck
 import Dexie from 'dexie'
 
-import isDev from '@/isDev'
 
 import { addCustomIndexes } from './addCustomIndexes.ts'
 

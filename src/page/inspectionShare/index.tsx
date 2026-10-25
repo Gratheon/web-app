@@ -12,7 +12,6 @@ import HiveIcon from '@/shared/hive';
 import QueenColor from '@/page/hiveEdit/hiveTopInfo/queenColor';
 import BeeCounter from '@/shared/beeCounter';
 import DateTimeFormat from '@/shared/dateTimeFormat';
-import T from '@/shared/translate';
 import styles from '@/page/hiveEdit/hiveTopInfo/styles.module.less';
 
 const ValidateInspectionShareQuery = gql`

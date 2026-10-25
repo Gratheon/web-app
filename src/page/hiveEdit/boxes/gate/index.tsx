@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import T from '@/shared/translate';
 import style from './style.module.less';
 import beeURL from "@/assets/bee-side.png"

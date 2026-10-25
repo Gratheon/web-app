@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, Mock, Mocked } from 'vitest' // Added Mocked
-import Dexie, { Table } from 'dexie'; // Added Dexie and Table
+import { describe, it, expect, vi, beforeEach, Mocked } from 'vitest' // Added Mocked
+import { Table } from 'dexie'; // Added Dexie and Table
 import { db } from './db' // Mocked below
 import {
 	upsertFrameSideInspection,

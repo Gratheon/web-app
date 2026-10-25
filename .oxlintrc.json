@@ -1,0 +1,49 @@
+{
+	"$schema": "./node_modules/oxlint/configuration_schema.json",
+	"plugins": [
+		"react",
+		"typescript",
+		"unicorn",
+		"oxc",
+		"import",
+		"vitest"
+	],
+	"env": {
+		"browser": true,
+		"node": true,
+		"es2022": true
+	},
+	"categories": {
+		"correctness": "error"
+	},
+	"ignorePatterns": [
+		"build",
+		"public",
+		"dev-dist",
+		"coverage",
+		"src-tauri"
+	],
+	"rules": {
+		"no-unused-vars": [
+			"warn",
+			{
+				"args": "none",
+				"varsIgnorePattern": "^_",
+				"caughtErrors": "none",
+				"ignoreRestSiblings": true
+			}
+		],
+		"react-hooks/rules-of-hooks": "warn",
+		"react-hooks/exhaustive-deps": "warn",
+		"react/react-in-jsx-scope": "off",
+		"vitest/require-mock-type-parameters": "off",
+		"react/display-name": "off",
+		"react/set-state-in-effect": "off",
+		"react/purity": "off",
+		"react/immutability": "off",
+		"react/static-components": "off",
+		"react/preserve-manual-memoization": "off",
+		"react/refs": "off",
+		"react/void-use-memo": "off"
+	}
+}

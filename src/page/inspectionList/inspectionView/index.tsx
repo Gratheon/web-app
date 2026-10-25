@@ -3,7 +3,6 @@ import { useQuery } from '../../../api'
 import INSPECTION_QUERY from './singleInspectionQuery.graphql.ts'
 import Loading from '../../../shared/loader'
 import ErrorMsg from '../../../shared/messageError'
-import DateTimeFormat from '../../../shared/dateTimeFormat/index.tsx'; // Import DateFormat
 import HiveBoxes from '../../../shared/hiveBoxes'
 import { Inspection, InspectionSnapshot } from '../../../models/inspections.ts'
 import { Hive } from '../../../models/hive.ts'

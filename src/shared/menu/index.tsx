@@ -34,7 +34,6 @@ import {
 import {
 	getCurrentHiveContext,
 	getLockedNavigationProps,
-	getStoredHiveContext,
 	menuLinkClassName,
 	navClassName,
 	sectionMenuLinkClassName,

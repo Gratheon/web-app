@@ -100,7 +100,7 @@ export function offlineIndexDbExchange({
             bubble.error = null
             bubble.degradedService = true
             bubble.extensions = {
-                ...(bubble.extensions || {}),
+                ...bubble.extensions,
                 degradedService: true,
             }
 

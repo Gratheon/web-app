@@ -287,7 +287,7 @@ export default function FrameSideDrawing({
 		if (!previewImageUrl) return
 
 		await updateFamily({
-			...(family || {}),
+			...family,
 			id: Number(familyId),
 			hiveId: Number(hiveId),
 			previewImageUrl,

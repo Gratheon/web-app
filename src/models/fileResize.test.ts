@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, Mock, afterEach } from 'vitest';
 import { upsertFileResize, getFileResizes, FileResize } from './fileResize';
-import { db, upsertEntityWithNumericID as actualUpsert } from './db'; // Import original db and upsert for mocking
+import { db } from './db'; // Import original db and upsert for mocking
 
 // Mock the entire db module, defining mocks inside the factory
 vi.mock('./db', async (importOriginal) => {

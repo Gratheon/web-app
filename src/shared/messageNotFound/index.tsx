@@ -1,5 +1,4 @@
 import ForestIcon from "../../icons/forest.tsx";
-import T from "../translate";
 
 export default function MessageNotFound({
 	msg,

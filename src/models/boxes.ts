@@ -213,12 +213,8 @@ export async function swapBoxPositions(box1: Box, box2: Box) {
 	box1.position = box2.position
 	box2.position = tmp
 
-	try {
-		await putBoxInLocalCache(box1)
-		await putBoxInLocalCache(box2)
-	} catch (e) {
-		throw e
-	}
+	await putBoxInLocalCache(box1)
+	await putBoxInLocalCache(box2)
 
 	return true
 }

@@ -11,7 +11,7 @@ import HiveEditDetails from '@/page/hiveEdit/hiveTopInfo'
 import ErrorMsg from '@/shared/messageError'
 import ErrorGeneral from '@/shared/messageErrorGlobal'
 import { boxTypes, getBox, getBoxes } from '@/models/boxes.ts'
-import { getHive, isCollapsed, isEditable } from '@/models/hive.ts'
+import { getHive, isEditable } from '@/models/hive.ts'
 import { getApiary } from '@/models/apiary.ts'
 import Loader from '@/shared/loader'
 import { getFrames } from '@/models/frames.ts'
@@ -36,7 +36,6 @@ import { getFamilyByHive } from '@/models/family.ts'
 import { Tab } from '@/shared/tab'
 import { TabBar } from '@/shared/tab'
 import InspectionList from '../inspectionList'
-import CollapseHiveModal from './CollapseHiveModal' // Import the modal component
 import { consumeHiveCreatedCelebrationPending } from '@/shared/welcomeFlow'
 
 export default function HiveEditForm() {

@@ -1,5 +1,5 @@
 import { h } from 'preact';
-import { useState, useEffect, useRef } from 'preact/hooks';
+import { useEffect, useRef } from 'preact/hooks';
 import styles from './styles.module.less'; // Assuming a styles file exists
 
 interface ModalProps {

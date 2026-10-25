@@ -1,5 +1,4 @@
-import { describe, it, expect, vi, beforeEach, Mock, afterEach } from 'vitest';
-import { FRAME_SIDE_CELL_TABLE } from './frameSideCells'; // Import constant needed for mock
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Use vi.hoisted to define mocks before vi.mock runs
 const mocks = vi.hoisted(() => {
@@ -44,19 +43,14 @@ vi.mock('./db', async (importOriginal) => {
 });
 
 // Now import the db and other modules after the mock is set up
-import { db } from './db';
 
 import {
   newFrameSideCells,
-  getFrameSideCells,
   updateFrameStat,
   updateFrameSideCells,
-  getHiveInspectionStats,
   deleteCellsByFrameSideIDs,
   enrichFramesWithSideCells,
   FrameSideCells,
-  // FRAME_SIDE_CELL_TABLE, // Already imported
-  HiveInspectionCellStats,
 } from './frameSideCells';
 
 

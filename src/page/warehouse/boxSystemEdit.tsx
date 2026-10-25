@@ -12,7 +12,6 @@ import {
 	applyFrameSourceToAllBoxTypes,
 	buildFrameSettingLookup,
 	type BoxSystemFrameSetting,
-	FRAME_BOX_TYPE_ORDER,
 	getCurrentFrameProfileSource,
 	hasExplicitOwnFrameMapping,
 } from './boxSystemProfiles'

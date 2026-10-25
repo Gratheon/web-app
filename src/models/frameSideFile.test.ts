@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, Mock, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { FRAME_SIDE_FILE_TABLE } from './frameSideFile'; // Import constant needed for mock
 
 // Use vi.hoisted to define mocks before vi.mock runs
@@ -55,7 +55,6 @@ vi.mock('./db', async (importOriginal) => {
 });
 
 // Now import the modules after the mock is set up
-import { db } from './db'; // Import db normally
 
 import frameSideFileModel, { // Import default export
   getFrameSideFile,

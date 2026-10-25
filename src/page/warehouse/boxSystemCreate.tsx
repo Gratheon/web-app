@@ -10,7 +10,6 @@ import T, { useTranslation } from '@/shared/translate'
 import VisualForm from '@/shared/visualForm'
 import {
 	applyFrameSourceToAllBoxTypes,
-	FRAME_BOX_TYPE_ORDER,
 } from './boxSystemProfiles'
 import styles from './style.module.less'
 

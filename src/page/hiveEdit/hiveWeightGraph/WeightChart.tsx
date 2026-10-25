@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 import T, { useTranslation as t } from '@/shared/translate'
 import ErrorMsg from '@/shared/messageError'
 import ChartContainer from '@/shared/charts/ChartContainer'
-import { formatMetricData, formatTableData } from '@/shared/charts/formatters'
+import { formatMetricData } from '@/shared/charts/formatters'
 import InfoIcon from '@/shared/infoIcon'
 import { formatDateTimeByLocale } from '@/shared/dateLocale'
 

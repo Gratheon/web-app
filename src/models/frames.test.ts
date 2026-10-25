@@ -17,8 +17,7 @@ import {
   FrameType,
   frameTypes, // Ensure frameTypes is imported
 } from './frames';
-import { db, upsertEntityWithNumericID as actualUpsert } from './db'; // Import original db and upsert for mocking
-import { getBoxes as actualGetBoxes } from './boxes'; // Import original for mocking
+import { db } from './db'; // Import original db and upsert for mocking
 
 // --- Mock Dependencies ---
 

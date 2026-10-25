@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, Mock, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { DB_VERSION } from './index'; // Import constant needed for mocks
 
 // Hoist all mock definitions

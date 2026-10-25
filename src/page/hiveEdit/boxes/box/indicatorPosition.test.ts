@@ -5,7 +5,6 @@ import {
 	getVisualIndicatorLeftPx,
 } from './indicatorPosition'
 import {
-	INDICATOR_WIDTH_PX,
 	LIST_FOUNDATION_WIDTH_PX,
 	LIST_FRAME_BODY_WIDTH_PX,
 	LIST_FRAME_GAP_PX,

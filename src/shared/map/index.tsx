@@ -56,7 +56,7 @@ function LocationMarker({
 			dragend() {
 				const marker: any = markerRef.current
 
-				if (typeof marker !== null) {
+				if (marker !== null) {
 					setPosition(marker.getLatLng())
 					onMarkerSet(marker.getLatLng(), map.getZoom())
 				}

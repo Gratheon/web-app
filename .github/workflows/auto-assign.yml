@@ -11,9 +11,14 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-    - name: 'Auto-assign issue'
-      uses: pozil/auto-assign-issue@v1
+    - name: 'Auto-assign issue or pull request'
+      uses: actions/github-script@v7
       with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          assignees: tot-ra
-          numOfAssignee: 1
+        script: |
+          const number = context.payload.issue?.number ?? context.payload.pull_request?.number
+          await github.rest.issues.addAssignees({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: number,
+            assignees: ['tot-ra'],
+          })

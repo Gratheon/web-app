@@ -2,7 +2,10 @@ import React from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { gql, useMutation, useQuery } from '../../../api'
 import { getFrameSide } from '../../../models/frameSide.ts'
-import { getFrameSideFile, updateFrameSideFile } from '../../../models/frameSideFile.ts'
+import {
+	getFrameSideFile,
+	updateFrameSideFile,
+} from '../../../models/frameSideFile.ts'
 import { getFile } from '../../../models/files.ts'
 import { getFileResizes } from '../../../models/fileResize.ts'
 
@@ -23,7 +26,10 @@ type FrameSideProps = {
 	frameSideId: string | number
 	allowDrawing?: boolean
 	saveRequestId?: number
-	onCellEditsStateChange?: (state: { hasUnsaved: boolean; isSaving: boolean }) => void
+	onCellEditsStateChange?: (state: {
+		hasUnsaved: boolean
+		isSaving: boolean
+	}) => void
 }
 
 export default function FrameSide({
@@ -40,35 +46,55 @@ export default function FrameSide({
 	}
 
 	// Model function getFrameSide now handles invalid IDs
-	const frameSide = useLiveQuery(() => getFrameSide(+frameSideId), [frameSideId], null)
-
-	const frameSideFile = useLiveQuery(function () {
-		if (!frameSide) return null
-
-		return getFrameSideFile({
-			frameSideId: frameSide.id,
-		})
-	}, [frameSide?.id], null)
-
-	const file = useLiveQuery(function () {
-		if (!frameSideFile?.fileId) return null
-
-		return getFile(frameSideFile.fileId)
-	}, [frameSideFile?.fileId], null)
-
-	const fileResizes = useLiveQuery(function () {
-		if (!frameSideFile?.fileId) return []
-
-		return getFileResizes({ file_id: +frameSideFile.fileId })
-	}, [frameSideFile?.fileId], [])
-
-	const { data: frameSideQueryData, loading: loadingGet, reexecuteQuery } = useQuery(
-		FRAME_SIDE_QUERY,
-		{ variables: { frameSideId } }
+	const frameSide = useLiveQuery(
+		() => getFrameSide(+frameSideId),
+		[frameSideId],
+		null
 	)
 
-	const queryFileResizes = frameSideQueryData?.hiveFrameSideFile?.file?.resizes || []
-	const effectiveResizes = (fileResizes && fileResizes.length > 0 ? fileResizes : queryFileResizes) || []
+	const frameSideFile = useLiveQuery(
+		function () {
+			if (!frameSide) return null
+
+			return getFrameSideFile({
+				frameSideId: frameSide.id,
+			})
+		},
+		[frameSide?.id],
+		null
+	)
+
+	const file = useLiveQuery(
+		function () {
+			if (!frameSideFile?.fileId) return null
+
+			return getFile(frameSideFile.fileId)
+		},
+		[frameSideFile?.fileId],
+		null
+	)
+
+	const fileResizes = useLiveQuery(
+		function () {
+			if (!frameSideFile?.fileId) return []
+
+			return getFileResizes({ file_id: +frameSideFile.fileId })
+		},
+		[frameSideFile?.fileId],
+		[]
+	)
+
+	const {
+		data: frameSideQueryData,
+		loading: loadingGet,
+		reexecuteQuery,
+	} = useQuery(FRAME_SIDE_QUERY, { variables: { frameSideId } })
+
+	const queryFileResizes =
+		frameSideQueryData?.hiveFrameSideFile?.file?.resizes || []
+	const effectiveResizes =
+		(fileResizes && fileResizes.length > 0 ? fileResizes : queryFileResizes) ||
+		[]
 
 	React.useEffect(() => {
 		if (!frameSideFile?.fileId) {
@@ -90,13 +116,14 @@ export default function FrameSide({
 			console.debug('[FrameSide] polling frame state from backend', {
 				frameSideId,
 				fileId: frameSideFile.fileId,
-					flags: {
-						isBeeDetectionComplete: frameSideFile.isBeeDetectionComplete,
-						isCellsDetectionComplete: frameSideFile.isCellsDetectionComplete,
-						isQueenCupsDetectionComplete: frameSideFile.isQueenCupsDetectionComplete,
-						isQueenDetectionComplete: frameSideFile.isQueenDetectionComplete,
-						isVarroaDetectionComplete: frameSideFile.isVarroaDetectionComplete,
-					},
+				flags: {
+					isBeeDetectionComplete: frameSideFile.isBeeDetectionComplete,
+					isCellsDetectionComplete: frameSideFile.isCellsDetectionComplete,
+					isQueenCupsDetectionComplete:
+						frameSideFile.isQueenCupsDetectionComplete,
+					isQueenDetectionComplete: frameSideFile.isQueenDetectionComplete,
+					isVarroaDetectionComplete: frameSideFile.isVarroaDetectionComplete,
+				},
 			})
 			reexecuteQuery({ requestPolicy: 'network-only' })
 		}, 5000)
@@ -119,29 +146,38 @@ export default function FrameSide({
 
 	if (!frameSide) {
 		return (
-			<MessageNotFound msg={
-				<T ctx="A frame is a small beehive wooden rectangular plank with beewax comb on it">Frame not found</T>
-			}>
+			<MessageNotFound
+				msg={
+					<T ctx="A frame is a small beehive wooden rectangular plank with beewax comb on it">
+						Frame not found
+					</T>
+				}
+			>
 				<div>
 					<T ctx="A frame is a small beehive wooden rectangular plank with beewax comb on it">
-						Either frame was deleted, URL is invalid or there is some error on our side
+						Either frame was deleted, URL is invalid or there is some error on
+						our side
 					</T>
 				</div>
 			</MessageNotFound>
 		)
 	}
 
-	const [, { error: errorFrameSide }] = useMutation(
-		gql`mutation updateFrameSide($cells: FrameSideCellsInput!) {
+	const [, { error: errorFrameSide }] = useMutation(gql`
+		mutation updateFrameSide($cells: FrameSideCellsInput!) {
 			updateFrameSide(cells: $cells)
-		}`
-	)
+		}
+	`)
 
-	const [linkFrameSideToFileMutation, { error: errorFile }] = useMutation(
-		gql`mutation addFileToFrameSide($frameSideID: ID!, $fileID: ID!, $hiveID: ID!) {
-			addFileToFrameSide(frameSideId: $frameSideID, fileId: $fileID, hiveId: $hiveID)
-		}`
-	)
+	const [linkFrameSideToFileMutation, { error: errorFile }] = useMutation(gql`
+		mutation addFileToFrameSide($frameSideID: ID!, $fileID: ID!, $hiveID: ID!) {
+			addFileToFrameSide(
+				frameSideId: $frameSideID
+				fileId: $fileID
+				hiveId: $hiveID
+			)
+		}
+	`)
 
 	async function onUpload(data) {
 		if (!data) {

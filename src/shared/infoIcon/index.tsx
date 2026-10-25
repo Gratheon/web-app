@@ -46,9 +46,14 @@ export default function InfoIcon({ children, size = 16 }: InfoIconProps) {
 			const viewportWidth = window.innerWidth
 			const spaceBelow = viewportHeight - iconRect.bottom
 			const tooltipEstimatedHeight = 300
-			const shouldPositionAbove = spaceBelow < tooltipEstimatedHeight && iconRect.top > tooltipEstimatedHeight
+			const shouldPositionAbove =
+				spaceBelow < tooltipEstimatedHeight &&
+				iconRect.top > tooltipEstimatedHeight
 			const mobileLayout = viewportWidth <= 768
-			const iconCenterX = Math.max(12, Math.min(viewportWidth - 12, iconRect.left + iconRect.width / 2))
+			const iconCenterX = Math.max(
+				12,
+				Math.min(viewportWidth - 12, iconRect.left + iconRect.width / 2)
+			)
 
 			setPositionAbove(shouldPositionAbove)
 			setIsMobileLayout(mobileLayout)
@@ -76,7 +81,13 @@ export default function InfoIcon({ children, size = 16 }: InfoIconProps) {
 	}, [showTooltip])
 
 	return (
-		<span style={{ position: 'relative', display: 'inline-block', marginLeft: '8px' }}>
+		<span
+			style={{
+				position: 'relative',
+				display: 'inline-block',
+				marginLeft: '8px',
+			}}
+		>
 			<span
 				ref={iconRef}
 				onClick={(e) => {
@@ -96,7 +107,7 @@ export default function InfoIcon({ children, size = 16 }: InfoIconProps) {
 					fontWeight: 'bold',
 					cursor: 'pointer',
 					userSelect: 'none',
-					verticalAlign: 'middle'
+					verticalAlign: 'middle',
 				}}
 				title="Click for more information"
 			>
@@ -108,29 +119,37 @@ export default function InfoIcon({ children, size = 16 }: InfoIconProps) {
 					ref={tooltipRef}
 					style={{
 						position: isMobileLayout ? 'fixed' : 'absolute',
-						...(positionAbove ? (isMobileLayout ? {
-							bottom: `${mobileBottom ?? 0}px`
-						} : {
-							bottom: '100%',
-							marginBottom: '8px'
-						}) : (isMobileLayout ? {
-							top: `${mobileTop ?? 0}px`
-						} : {
-							top: '100%',
-							marginTop: '8px'
-						})),
-						...(isMobileLayout ? {
-							left: 0,
-							right: 0,
-							maxWidth: '100vw',
-							minWidth: '100vw',
-							width: '100vw',
-							transform: 'none',
-							boxSizing: 'border-box'
-						} : {
-							left: '50%',
-							transform: 'translateX(-50%)'
-						}),
+						...(positionAbove
+							? isMobileLayout
+								? {
+										bottom: `${mobileBottom ?? 0}px`,
+									}
+								: {
+										bottom: '100%',
+										marginBottom: '8px',
+									}
+							: isMobileLayout
+								? {
+										top: `${mobileTop ?? 0}px`,
+									}
+								: {
+										top: '100%',
+										marginTop: '8px',
+									}),
+						...(isMobileLayout
+							? {
+									left: 0,
+									right: 0,
+									maxWidth: '100vw',
+									minWidth: '100vw',
+									width: '100vw',
+									transform: 'none',
+									boxSizing: 'border-box',
+								}
+							: {
+									left: '50%',
+									transform: 'translateX(-50%)',
+								}),
 						padding: '12px 16px',
 						background: '#fff',
 						border: '1px solid #ddd',
@@ -141,7 +160,7 @@ export default function InfoIcon({ children, size = 16 }: InfoIconProps) {
 						maxWidth: isMobileLayout ? undefined : '400px',
 						fontSize: '14px',
 						lineHeight: '1.6',
-						color: '#333'
+						color: '#333',
 					}}
 					onClick={(e) => e.stopPropagation()}
 				>
@@ -157,7 +176,7 @@ export default function InfoIcon({ children, size = 16 }: InfoIconProps) {
 									height: 0,
 									borderLeft: '6px solid transparent',
 									borderRight: '6px solid transparent',
-									borderTop: '6px solid #ddd'
+									borderTop: '6px solid #ddd',
 								}}
 							/>
 							<div
@@ -170,7 +189,7 @@ export default function InfoIcon({ children, size = 16 }: InfoIconProps) {
 									height: 0,
 									borderLeft: '6px solid transparent',
 									borderRight: '6px solid transparent',
-									borderTop: '6px solid #fff'
+									borderTop: '6px solid #fff',
 								}}
 							/>
 						</>
@@ -186,7 +205,7 @@ export default function InfoIcon({ children, size = 16 }: InfoIconProps) {
 									height: 0,
 									borderLeft: '6px solid transparent',
 									borderRight: '6px solid transparent',
-									borderBottom: '6px solid #ddd'
+									borderBottom: '6px solid #ddd',
 								}}
 							/>
 							<div
@@ -199,7 +218,7 @@ export default function InfoIcon({ children, size = 16 }: InfoIconProps) {
 									height: 0,
 									borderLeft: '6px solid transparent',
 									borderRight: '6px solid transparent',
-									borderBottom: '6px solid #fff'
+									borderBottom: '6px solid #fff',
 								}}
 							/>
 						</>

@@ -209,13 +209,13 @@ export default function AIAdvisorDrawer() {
 		aiUsageRemaining > 60
 			? '#2f8b0b'
 			: aiUsageRemaining > 30
-			? '#d49d0f'
-			: '#b22222'
+				? '#d49d0f'
+				: '#b22222'
 	const aiUsageSubtitle = usageLoading
 		? `${labels.aiUsageRemainingLabel}: ...`
 		: aiUsage
-		? `${labels.aiUsageRemainingLabel}: ${aiUsageRemaining}%`
-		: `${labels.aiUsageRemainingLabel}: ${labels.aiUsageUnavailableLabel}`
+			? `${labels.aiUsageRemainingLabel}: ${aiUsageRemaining}%`
+			: `${labels.aiUsageRemainingLabel}: ${labels.aiUsageUnavailableLabel}`
 
 	useEffect(() => {
 		if (!shouldRender) {

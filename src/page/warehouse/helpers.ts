@@ -48,12 +48,15 @@ export function mapCounts(items: WarehouseInventoryItem[] = []) {
 	const counts: WarehouseCounts = {}
 	for (const item of items) {
 		const value = Number(item.count)
-		counts[item.key] = Number.isFinite(value) && value > 0 ? Math.floor(value) : 0
+		counts[item.key] =
+			Number.isFinite(value) && value > 0 ? Math.floor(value) : 0
 	}
 	return counts
 }
 
-export function getSystemIdFromBoxInventoryKey(itemKey?: string): string | undefined {
+export function getSystemIdFromBoxInventoryKey(
+	itemKey?: string
+): string | undefined {
 	if (!itemKey) return undefined
 	const match = String(itemKey).match(/^BOX:[^:]+:SYSTEM:(\d+)$/)
 	return match?.[1]
@@ -73,7 +76,9 @@ export function getSystemThemeStyle(systemId?: string, fallbackIndex = 0) {
 	}
 }
 
-export function buildSystemColorSquares(items: Array<{ count: number; color: string }>) {
+export function buildSystemColorSquares(
+	items: Array<{ count: number; color: string }>
+) {
 	const squares: string[] = []
 	for (const item of items) {
 		if (squares.length >= MAX_VISUAL_SQUARES) break
@@ -85,17 +90,27 @@ export function buildSystemColorSquares(items: Array<{ count: number; color: str
 	return squares
 }
 
-export function buildFrameSourceByTargetAndModuleType(boxSystemFrameSettings: BoxSystemFrameSetting[] = []) {
-	return (boxSystemFrameSettings || []).reduce<Record<string, string>>((acc, setting) => {
-		const moduleType =
-			setting.boxType === 'DEEP' ? 'DEEP'
-			: setting.boxType === 'SUPER' ? 'SUPER'
-			: setting.boxType === 'LARGE_HORIZONTAL_SECTION' ? 'LARGE_HORIZONTAL_SECTION'
-			: ''
-		if (!moduleType) return acc
-		acc[`${setting.systemId}:${moduleType}`] = String(setting.frameSourceSystemId || setting.systemId)
-		return acc
-	}, {})
+export function buildFrameSourceByTargetAndModuleType(
+	boxSystemFrameSettings: BoxSystemFrameSetting[] = []
+) {
+	return (boxSystemFrameSettings || []).reduce<Record<string, string>>(
+		(acc, setting) => {
+			const moduleType =
+				setting.boxType === 'DEEP'
+					? 'DEEP'
+					: setting.boxType === 'SUPER'
+						? 'SUPER'
+						: setting.boxType === 'LARGE_HORIZONTAL_SECTION'
+							? 'LARGE_HORIZONTAL_SECTION'
+							: ''
+			if (!moduleType) return acc
+			acc[`${setting.systemId}:${moduleType}`] = String(
+				setting.frameSourceSystemId || setting.systemId
+			)
+			return acc
+		},
+		{}
+	)
 }
 
 export function resolveEffectiveFrameSourceSystemId(
@@ -114,7 +129,10 @@ export function resolveEffectiveFrameSourceSystemId(
 	return String(targetSystemId || '')
 }
 
-export function buildWarehouseGroups(items: WarehouseInventoryItem[], boxSystems: BoxSystem[]): WarehouseGroup[] {
+export function buildWarehouseGroups(
+	items: WarehouseInventoryItem[],
+	boxSystems: BoxSystem[]
+): WarehouseGroup[] {
 	const grouped = items.reduce<Record<string, any[]>>((acc, item) => {
 		const key = item.groupKey || 'OTHER'
 		if (!acc[key]) acc[key] = []
@@ -122,18 +140,25 @@ export function buildWarehouseGroups(items: WarehouseInventoryItem[], boxSystems
 		return acc
 	}, {})
 
-	const sectionItems = (grouped.HIVE_SECTIONS || []).filter((item) => item.kind === 'BOX_MODULE')
-	const partItems = (grouped.HIVE_PARTS || []).filter((item) => item.kind === 'BOX_MODULE')
+	const sectionItems = (grouped.HIVE_SECTIONS || []).filter(
+		(item) => item.kind === 'BOX_MODULE'
+	)
+	const partItems = (grouped.HIVE_PARTS || []).filter(
+		(item) => item.kind === 'BOX_MODULE'
+	)
 	const frameItems = items.filter((item) => item.kind === 'FRAME_SPEC')
 
-	const sectionGroupsByType = new Map<string, {
-		id: string
-		label: string
-		description: string
-		sectionItemBySystemId: Record<string, WarehouseInventoryItem>
-		standaloneSectionItem?: WarehouseInventoryItem
-		iconItem?: WarehouseInventoryItem
-	}>()
+	const sectionGroupsByType = new Map<
+		string,
+		{
+			id: string
+			label: string
+			description: string
+			sectionItemBySystemId: Record<string, WarehouseInventoryItem>
+			standaloneSectionItem?: WarehouseInventoryItem
+			iconItem?: WarehouseInventoryItem
+		}
+	>()
 	for (const section of sectionItems) {
 		const moduleType = String(section.moduleType || '')
 		if (!moduleType) continue
@@ -161,9 +186,11 @@ export function buildWarehouseGroups(items: WarehouseInventoryItem[], boxSystems
 		let parentModuleType: string | null = null
 		if (code.endsWith('_DEEP')) parentModuleType = 'DEEP'
 		if (code.endsWith('_SUPER')) parentModuleType = 'SUPER'
-		if (code.endsWith('_HORIZONTAL')) parentModuleType = 'LARGE_HORIZONTAL_SECTION'
+		if (code.endsWith('_HORIZONTAL'))
+			parentModuleType = 'LARGE_HORIZONTAL_SECTION'
 		if (!parentModuleType) continue
-		if (!childrenBySectionKey[parentModuleType]) childrenBySectionKey[parentModuleType] = []
+		if (!childrenBySectionKey[parentModuleType])
+			childrenBySectionKey[parentModuleType] = []
 		childrenBySectionKey[parentModuleType].push(frame)
 	}
 
@@ -184,7 +211,12 @@ export function buildWarehouseGroups(items: WarehouseInventoryItem[], boxSystems
 		const framesForSection = childrenBySectionKey[moduleType] || []
 		const rowById = new Map<string, SectionMatrixRow>()
 		for (const frame of framesForSection) {
-			const rawLabel = String(frame.frameSpec?.displayName || frame.title || frame.frameSpec?.frameType || '').trim()
+			const rawLabel = String(
+				frame.frameSpec?.displayName ||
+					frame.title ||
+					frame.frameSpec?.frameType ||
+					''
+			).trim()
 			const label = stripWarehouseSuffix(rawLabel) || 'Unknown frame type'
 			const rowId = `${moduleType}::${label.toLowerCase()}`
 			if (!rowById.has(rowId)) {
@@ -195,13 +227,18 @@ export function buildWarehouseGroups(items: WarehouseInventoryItem[], boxSystems
 				})
 			}
 			const sourceSystemId = String(frame.frameSpec?.systemId || '')
-			if (sourceSystemId && boxSystems.some((system) => system.id === sourceSystemId)) {
+			if (
+				sourceSystemId &&
+				boxSystems.some((system) => system.id === sourceSystemId)
+			) {
 				rowById.get(rowId)!.itemsBySystemId[sourceSystemId] = frame
 			}
 		}
 		const matrix = matrixByModuleType.get(moduleType)
 		if (matrix) {
-			matrix.rows = Array.from(rowById.values()).sort((a, b) => a.label.localeCompare(b.label))
+			matrix.rows = Array.from(rowById.values()).sort((a, b) =>
+				a.label.localeCompare(b.label)
+			)
 		}
 	}
 
@@ -240,17 +277,24 @@ export function buildWarehouseGroups(items: WarehouseInventoryItem[], boxSystems
 		}
 		partRowsByType.get(moduleType)!.itemsBySystemId[systemId] = part
 	}
-	const partMatrixRows = Array.from(partRowsByType.values()).sort((a, b) => a.label.localeCompare(b.label))
+	const partMatrixRows = Array.from(partRowsByType.values()).sort((a, b) =>
+		a.label.localeCompare(b.label)
+	)
 	grouped.HIVE_PARTS = [...partMatrixRows, ...partSingles] as any
 
 	delete grouped.FRAMES
 
-	const ordered = [...GROUP_ORDER, ...Object.keys(grouped).filter((key) => !GROUP_ORDER.includes(key))]
+	const ordered = [
+		...GROUP_ORDER,
+		...Object.keys(grouped).filter((key) => !GROUP_ORDER.includes(key)),
+	]
 	return ordered
 		.filter((groupKey) => (grouped[groupKey] || []).length > 0)
 		.map((groupKey) => ({
 			id: groupKey,
 			title: GROUP_LABELS[groupKey] || groupKey,
-			items: grouped[groupKey] as Array<WarehouseInventoryItem | SectionMatrix | PartMatrixRow>,
+			items: grouped[groupKey] as Array<
+				WarehouseInventoryItem | SectionMatrix | PartMatrixRow
+			>,
 		}))
 }

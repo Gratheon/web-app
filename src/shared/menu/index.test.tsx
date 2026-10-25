@@ -7,7 +7,11 @@ import Menu from './index'
 vi.mock('react-router-dom', () => ({
 	NavLink: ({ children, className, end, to, ...props }) => (
 		<a
-			className={typeof className === 'function' ? className({ isActive: to === '/apiaries' }) : className}
+			className={
+				typeof className === 'function'
+					? className({ isActive: to === '/apiaries' })
+					: className
+			}
 			href={to}
 			{...props}
 		>

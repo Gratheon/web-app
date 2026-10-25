@@ -1,5 +1,5 @@
 import { db } from './db'
-export { db };
+export { db }
 
 export type Hive = {
 	id: number
@@ -52,47 +52,47 @@ const HIVE_STATUS = {
 }
 
 export function isCollapsed(hive: Hive): boolean {
-	return hive.status === HIVE_STATUS.COLLAPSED || !!hive.collapse_date;
+	return hive.status === HIVE_STATUS.COLLAPSED || !!hive.collapse_date
 }
 
 export function isMerged(hive: Hive): boolean {
-	return hive.status === HIVE_STATUS.MERGED || !!hive.mergedIntoHive;
+	return hive.status === HIVE_STATUS.MERGED || !!hive.mergedIntoHive
 }
 
 export function isEditable(hive: Hive): boolean {
-	return !isCollapsed(hive) && !isMerged(hive);
+	return !isCollapsed(hive) && !isMerged(hive)
 }
 
 const TABLE_NAME = 'hive'
 
 export async function getHives(): Promise<Hive[]> {
-    try {
-        return await db[TABLE_NAME].toArray();
-    } catch (e) {
-        console.error(e);
-        return [];
-    }
+	try {
+		return await db[TABLE_NAME].toArray()
+	} catch (e) {
+		console.error(e)
+		return []
+	}
 }
 
 export async function bulkUpsertHives(hives: Hive[]): Promise<void> {
-    if (!hives || !Array.isArray(hives) || hives.length === 0) return;
-    try {
-        await db[TABLE_NAME].bulkPut(hives);
-    } catch (e) {
-        console.error('Failed to bulk upsert hives:', e);
-    }
+	if (!hives || !Array.isArray(hives) || hives.length === 0) return
+	try {
+		await db[TABLE_NAME].bulkPut(hives)
+	} catch (e) {
+		console.error('Failed to bulk upsert hives:', e)
+	}
 }
 
 export async function getHive(id: number): Promise<Hive | undefined> {
 	// Validate ID before querying
 	if (!id || !Number.isFinite(id) || id <= 0) {
-		console.warn(`Attempted to get hive with invalid ID: ${id}`);
-		return undefined; // Return undefined for invalid IDs
+		console.warn(`Attempted to get hive with invalid ID: ${id}`)
+		return undefined // Return undefined for invalid IDs
 	}
 
 	try {
 		// Ensure ID passed to Dexie is a number
-		return await db[TABLE_NAME].get(+id);
+		return await db[TABLE_NAME].get(+id)
 	} catch (e) {
 		console.error(e)
 		throw e
@@ -120,14 +120,18 @@ export async function getHivesByIds(ids: number[]): Promise<Hive[]> {
 	}
 }
 
-export async function setHiveCollapsed(hive: Hive, collapse_date: string, collapse_cause: string) {
-	hive.status = HIVE_STATUS.COLLAPSED;
-	hive.collapse_date = collapse_date;
-	hive.collapse_cause = collapse_cause;
+export async function setHiveCollapsed(
+	hive: Hive,
+	collapse_date: string,
+	collapse_cause: string
+) {
+	hive.status = HIVE_STATUS.COLLAPSED
+	hive.collapse_date = collapse_date
+	hive.collapse_cause = collapse_cause
 
-	await updateHive(hive);
+	await updateHive(hive)
 
-	return hive;
+	return hive
 }
 
 export async function updateHive(data: Hive) {

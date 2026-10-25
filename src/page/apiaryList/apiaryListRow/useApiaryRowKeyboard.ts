@@ -200,10 +200,10 @@ export function useApiaryRowKeyboard({
 					key === 'ArrowUp'
 						? 'up'
 						: key === 'ArrowDown'
-						? 'down'
-						: key === 'ArrowLeft'
-						? 'left'
-						: 'right'
+							? 'down'
+							: key === 'ArrowLeft'
+								? 'left'
+								: 'right'
 
 				const nextHive = findNextListHive(sortedHives, currentIndex, direction)
 				if (nextHive) {

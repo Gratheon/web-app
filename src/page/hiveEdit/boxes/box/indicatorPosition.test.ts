@@ -20,7 +20,9 @@ describe('hive box indicator position', () => {
 		expect(LIST_FRAME_BODY_WIDTH_PX).toBe(
 			LIST_FRAME_SIDE_WIDTH_PX * 2 + LIST_FOUNDATION_WIDTH_PX
 		)
-		expect(LIST_SLOT_WIDTH_PX).toBe(LIST_FRAME_BODY_WIDTH_PX + LIST_FRAME_GAP_PX)
+		expect(LIST_SLOT_WIDTH_PX).toBe(
+			LIST_FRAME_BODY_WIDTH_PX + LIST_FRAME_GAP_PX
+		)
 	})
 
 	it('models visual frame width from side width and side gap constants', () => {

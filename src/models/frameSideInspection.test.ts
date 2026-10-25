@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, Mocked } from 'vitest' // Added Mocked
-import { Table } from 'dexie'; // Added Dexie and Table
+import { Table } from 'dexie' // Added Dexie and Table
 import { db } from './db' // Mocked below
 import {
 	upsertFrameSideInspection,
@@ -19,17 +19,17 @@ vi.mock('./db', () => ({
 
 describe('FrameSideInspection Model', () => {
 	// Use a more specific type for the mock table
-	let mockTable: Mocked<Table<FrameSideInspectionRecord, string>>; // Removed vi. prefix
+	let mockTable: Mocked<Table<FrameSideInspectionRecord, string>> // Removed vi. prefix
 
 	beforeEach(() => {
 		// Reset mocks before each test
-        // Create a mock object matching the Table interface methods we use
+		// Create a mock object matching the Table interface methods we use
 		mockTable = {
 			put: vi.fn(),
 			where: vi.fn().mockReturnThis(), // where returns the table object for chaining
 			toArray: vi.fn(),
 			get: vi.fn(),
-		} as unknown as Mocked<Table<FrameSideInspectionRecord, string>>; // Cast needed as we don't mock all Table methods, removed vi. prefix
+		} as unknown as Mocked<Table<FrameSideInspectionRecord, string>> // Cast needed as we don't mock all Table methods, removed vi. prefix
 
 		// Ensure db.table returns our specifically typed mock
 		vi.mocked(db.table).mockReturnValue(mockTable)
@@ -51,7 +51,7 @@ describe('FrameSideInspection Model', () => {
 				frameSideId: 202,
 				fileId: 303,
 				cellsId: 404,
-			};
+			}
 			const expectedId = expectedRecord.id
 
 			mockTable.put.mockResolvedValue(expectedId) // Mock put to return the ID
@@ -86,7 +86,9 @@ describe('FrameSideInspection Model', () => {
 		})
 
 		it('should return empty string and log error for missing inspectionId', async () => {
-			const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			const consoleErrorSpy = vi
+				.spyOn(console, 'error')
+				.mockImplementation(() => {})
 			const inspectionInput = { frameSideId: 202 } as FrameSideInspection
 			const result = await upsertFrameSideInspection(inspectionInput)
 			expect(result).toBe('')
@@ -99,8 +101,13 @@ describe('FrameSideInspection Model', () => {
 		})
 
 		it('should return empty string and log error for non-numeric inspectionId', async () => {
-			const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-			const inspectionInput = { inspectionId: 'abc', frameSideId: 202 } as FrameSideInspection
+			const consoleErrorSpy = vi
+				.spyOn(console, 'error')
+				.mockImplementation(() => {})
+			const inspectionInput = {
+				inspectionId: 'abc',
+				frameSideId: 202,
+			} as FrameSideInspection
 			const result = await upsertFrameSideInspection(inspectionInput)
 			expect(result).toBe('')
 			expect(mockTable.put).not.toHaveBeenCalled()
@@ -130,7 +137,9 @@ describe('FrameSideInspection Model', () => {
 		})
 
 		it('should return empty array for invalid inspectionId', async () => {
-			const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+			const consoleWarnSpy = vi
+				.spyOn(console, 'warn')
+				.mockImplementation(() => {})
 			const result = await listFrameSideInspectionsByInspectionId(NaN)
 			expect(result).toEqual([])
 			expect(mockTable.where).not.toHaveBeenCalled()
@@ -169,7 +178,9 @@ describe('FrameSideInspection Model', () => {
 		})
 
 		it('should return undefined for invalid id', async () => {
-			const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+			const consoleWarnSpy = vi
+				.spyOn(console, 'warn')
+				.mockImplementation(() => {})
 			const result = await getFrameSideInspectionById('')
 			expect(result).toBeUndefined()
 			expect(mockTable.get).not.toHaveBeenCalled()

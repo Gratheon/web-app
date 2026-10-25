@@ -18,6 +18,6 @@ export function addCustomIndexes(dbSchema) {
 
 	// Remove old locale table (set to null to delete in version 103)
 	if (dbSchema.locale) {
-		dbSchema.locale = null;
+		dbSchema.locale = null
 	}
 }

@@ -63,7 +63,10 @@ function loadDateLocale(lang: string): Promise<Locale | undefined> {
 			return module.default
 		})
 		.catch((error) => {
-			console.warn(`[DateTimeAgo] Failed to load date-fns locale "${lang}"`, error)
+			console.warn(
+				`[DateTimeAgo] Failed to load date-fns locale "${lang}"`,
+				error
+			)
 			dateLocaleCache.set(lang, undefined)
 			return undefined
 		})
@@ -74,7 +77,9 @@ function loadDateLocale(lang: string): Promise<Locale | undefined> {
 
 export default function DateTimeAgo({ dateString, lang = 'en' }) {
 	const normalizedLang = useMemo(() => normalizeDateLocale(lang), [lang])
-	const [dateLocale, setDateLocale] = useState(() => getCachedDateLocale(normalizedLang))
+	const [dateLocale, setDateLocale] = useState(() =>
+		getCachedDateLocale(normalizedLang)
+	)
 
 	useEffect(() => {
 		let cancelled = false
@@ -93,7 +98,9 @@ export default function DateTimeAgo({ dateString, lang = 'en' }) {
 
 	const dateLangOptions = dateLocale ? { locale: dateLocale } : undefined
 
-	if(!dateString) return null
+	if (!dateString) return null
 
-	return <>{formatDistance(new Date(dateString), new Date(), dateLangOptions)}</>
+	return (
+		<>{formatDistance(new Date(dateString), new Date(), dateLangOptions)}</>
+	)
 }

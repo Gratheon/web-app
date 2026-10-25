@@ -9,19 +9,19 @@ type LinkProps = {
 	className?: string | null
 }
 
-export default function Link({
-	href,
-	children,
-}: LinkProps) {
+export default function Link({ href, children }: LinkProps) {
 	let navigate = useNavigate()
 	return (
-		<a style="cursor:pointer; text-decoration: underline;" onClick = {() => {
-			if (href.startsWith('http')) {
-				window.location.href = href
-			} else {
-				navigate(href, { replace: true })
-			}
-		}}>
+		<a
+			style="cursor:pointer; text-decoration: underline;"
+			onClick={() => {
+				if (href.startsWith('http')) {
+					window.location.href = href
+				} else {
+					navigate(href, { replace: true })
+				}
+			}}
+		>
 			{children}
 		</a>
 	)

@@ -127,8 +127,7 @@ export default function FrameSideImage({
 					}`}
 					style={
 						{
-							'--frame-side-fill-color':
-								dominantColor ?? placeholderColor,
+							'--frame-side-fill-color': dominantColor ?? placeholderColor,
 						} as any
 					}
 				></div>

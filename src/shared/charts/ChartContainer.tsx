@@ -9,7 +9,8 @@ import T from '@/shared/translate'
 import AlertRulesPanel from './AlertRulesPanel'
 import styles from './ChartContainer.module.less'
 
-const isDisposedChartError = (error: unknown) => error instanceof Error && error.message === 'Object is disposed'
+const isDisposedChartError = (error: unknown) =>
+	error instanceof Error && error.message === 'Object is disposed'
 
 interface ChartContainerProps {
 	title: string
@@ -56,7 +57,7 @@ export default function ChartContainer({
 	minValue = 0,
 	maxValue = 100,
 	showAlertThresholds = true,
-	selectedApiaryId
+	selectedApiaryId,
 }: ChartContainerProps) {
 	const chartApiRef = useRef(null)
 	const chartWrapperRef = useRef<HTMLDivElement>(null)
@@ -87,7 +88,10 @@ export default function ChartContainer({
 						syncCharts(currentChart)
 						onVisibleTimeRangeChange?.(range)
 					} else {
-						console.debug('[weather-zoom] sync suspended for chart', { title, range })
+						console.debug('[weather-zoom] sync suspended for chart', {
+							title,
+							range,
+						})
 					}
 				} catch (e) {
 					if (!isDisposedChartError(e)) {
@@ -96,16 +100,22 @@ export default function ChartContainer({
 				}
 			}
 
-			currentChart.timeScale().subscribeVisibleTimeRangeChange(handleVisibleTimeRangeChange)
+			currentChart
+				.timeScale()
+				.subscribeVisibleTimeRangeChange(handleVisibleTimeRangeChange)
 
 			return () => {
 				isChartDisposedRef.current = true
 				if (chartRefs && chartRefs.current) {
-					chartRefs.current = chartRefs.current.filter(c => c !== currentChart)
+					chartRefs.current = chartRefs.current.filter(
+						(c) => c !== currentChart
+					)
 				}
 				if (currentChart) {
 					try {
-						currentChart.timeScale().unsubscribeVisibleTimeRangeChange(handleVisibleTimeRangeChange)
+						currentChart
+							.timeScale()
+							.unsubscribeVisibleTimeRangeChange(handleVisibleTimeRangeChange)
 					} catch (e) {
 						if (!isDisposedChartError(e)) {
 							console.error('Failed to unsubscribe:', e)
@@ -114,7 +124,14 @@ export default function ChartContainer({
 				}
 			}
 		}
-	}, [chartApiRef.current, chartRefs, syncCharts, onVisibleTimeRangeChange, suspendTimeRangeSync, title])
+	}, [
+		chartApiRef.current,
+		chartRefs,
+		syncCharts,
+		onVisibleTimeRangeChange,
+		suspendTimeRangeSync,
+		title,
+	])
 
 	const handleChartInit = (chart: any) => {
 		isChartDisposedRef.current = false
@@ -174,7 +191,7 @@ export default function ChartContainer({
 			fixLeftEdge: true,
 			fixRightEdge: true,
 		},
-		...chartOptions
+		...chartOptions,
 	}
 
 	const exportToCSV = () => {
@@ -183,7 +200,7 @@ export default function ChartContainer({
 		const headers = Object.keys(tableData[0])
 		const csvContent = [
 			headers.join(','),
-			...tableData.map(row => headers.map(h => row[h]).join(','))
+			...tableData.map((row) => headers.map((h) => row[h]).join(',')),
 		].join('\n')
 
 		const blob = new Blob([csvContent], { type: 'text/csv' })
@@ -196,26 +213,32 @@ export default function ChartContainer({
 	}
 
 	return (
-		<div style={{
-			paddingBottom: '8px',
-			width: '100%',
-			maxWidth: '100%',
-			boxSizing: 'border-box',
-			overflow: 'hidden'
-		}}>
-			<div style={{
-				display: 'flex',
-				flexDirection: 'column',
-				gap: '4px',
-				marginBottom: '4px'
-			}}>
-				<div style={{
+		<div
+			style={{
+				paddingBottom: '8px',
+				width: '100%',
+				maxWidth: '100%',
+				boxSizing: 'border-box',
+				overflow: 'hidden',
+			}}
+		>
+			<div
+				style={{
 					display: 'flex',
-					justifyContent: 'space-between',
-					alignItems: 'flex-start',
-					flexWrap: 'wrap',
-					gap: '8px'
-				}}>
+					flexDirection: 'column',
+					gap: '4px',
+					marginBottom: '4px',
+				}}
+			>
+				<div
+					style={{
+						display: 'flex',
+						justifyContent: 'space-between',
+						alignItems: 'flex-start',
+						flexWrap: 'wrap',
+						gap: '8px',
+					}}
+				>
 					<ChartHeading title={title} emoji={emoji} value={value} info={info} />
 					<div className={styles.toolbar}>
 						{metricType && metricLabel && hives.length > 0 && (
@@ -226,7 +249,8 @@ export default function ChartContainer({
 								}}
 								color={showAlertView ? 'orange' : 'gray'}
 							>
-								🔔 <T>Alerts</T>{alertCount > 0 ? ` (${alertCount})` : ''}
+								🔔 <T>Alerts</T>
+								{alertCount > 0 ? ` (${alertCount})` : ''}
 							</Button>
 						)}
 						{showTable && tableData.length > 0 && (
@@ -250,10 +274,7 @@ export default function ChartContainer({
 									}
 									aria-label="Switch between chart and table view"
 								/>
-								<Button
-									size="small"
-									onClick={exportToCSV}
-								>
+								<Button size="small" onClick={exportToCSV}>
 									📥 <T>CSV</T>
 								</Button>
 							</>
@@ -263,34 +284,43 @@ export default function ChartContainer({
 			</div>
 
 			{showTableView && tableData.length > 0 ? (
-				<div style={{
-					maxHeight: '400px',
-					overflow: 'auto',
-					border: '1px solid #eee',
-					marginTop: '8px',
-					width: '100%',
-					maxWidth: '100%',
-					boxSizing: 'border-box'
-				}}>
-					<table style={{
+				<div
+					style={{
+						maxHeight: '400px',
+						overflow: 'auto',
+						border: '1px solid #eee',
+						marginTop: '8px',
 						width: '100%',
-						borderCollapse: 'collapse',
-						fontSize: '13px'
-					}}>
-						<thead style={{
-							position: 'sticky',
-							top: 0,
-							background: '#f5f5f5',
-							zIndex: 1
-						}}>
+						maxWidth: '100%',
+						boxSizing: 'border-box',
+					}}
+				>
+					<table
+						style={{
+							width: '100%',
+							borderCollapse: 'collapse',
+							fontSize: '13px',
+						}}
+					>
+						<thead
+							style={{
+								position: 'sticky',
+								top: 0,
+								background: '#f5f5f5',
+								zIndex: 1,
+							}}
+						>
 							<tr>
-								{Object.keys(tableData[0]).map(header => (
-									<th key={header} style={{
-										border: '1px solid #ddd',
-										padding: '8px',
-										textAlign: 'left',
-										fontSize: '12px'
-									}}>
+								{Object.keys(tableData[0]).map((header) => (
+									<th
+										key={header}
+										style={{
+											border: '1px solid #ddd',
+											padding: '8px',
+											textAlign: 'left',
+											fontSize: '12px',
+										}}
+									>
 										{header}
 									</th>
 								))}
@@ -300,11 +330,14 @@ export default function ChartContainer({
 							{tableData.map((row, idx) => (
 								<tr key={idx}>
 									{Object.values(row).map((cell, cellIdx) => (
-										<td key={cellIdx} style={{
-											border: '1px solid #ddd',
-											padding: '8px',
-											fontSize: '12px'
-										}}>
+										<td
+											key={cellIdx}
+											style={{
+												border: '1px solid #ddd',
+												padding: '8px',
+												fontSize: '12px',
+											}}
+										>
 											{cell}
 										</td>
 									))}
@@ -315,12 +348,15 @@ export default function ChartContainer({
 				</div>
 			) : (
 				<>
-					<div style={{
-						width: '100%',
-						maxWidth: '100%',
-						overflow: 'hidden',
-						boxSizing: 'border-box'
-					}} ref={chartWrapperRef}>
+					<div
+						style={{
+							width: '100%',
+							maxWidth: '100%',
+							overflow: 'hidden',
+							boxSizing: 'border-box',
+						}}
+						ref={chartWrapperRef}
+					>
 						<Chart
 							onInit={handleChartInit}
 							options={defaultChartOptions}
@@ -329,8 +365,8 @@ export default function ChartContainer({
 									width: '100%',
 									height: `${chartHeight}px`,
 									maxWidth: '100%',
-									boxSizing: 'border-box'
-								}
+									boxSizing: 'border-box',
+								},
 							}}
 						>
 							{children}

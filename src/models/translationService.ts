@@ -1,26 +1,30 @@
 import {
 	getTranslation,
 	getTranslationValue,
-	getPluralForms
-} from './translations';
-import { newTranslationBatcher } from '@/shared/translate/newBatch';
-import { getPreferredLanguage, normalizeSupportedLanguage, SUPPORTED_LANGUAGES } from '@/config/languages';
+	getPluralForms,
+} from './translations'
+import { newTranslationBatcher } from '@/shared/translate/newBatch'
+import {
+	getPreferredLanguage,
+	normalizeSupportedLanguage,
+	SUPPORTED_LANGUAGES,
+} from '@/config/languages'
 
 export interface TranslationResult {
-	value: string | null;
-	fromCache: boolean;
+	value: string | null
+	fromCache: boolean
 }
 
 export interface PluralTranslationResult {
-	value: string;
-	fromCache: boolean;
+	value: string
+	fromCache: boolean
 }
 
 export interface TranslationData {
-	id: number;
-	key: string;
-	values: Record<string, string>;
-	plurals?: Record<string, Record<string, string>>;
+	id: number
+	key: string
+	values: Record<string, string>
+	plurals?: Record<string, Record<string, string>>
 }
 
 export async function fetchTranslationForLanguage(
@@ -29,19 +33,19 @@ export async function fetchTranslationForLanguage(
 	namespace?: string,
 	context?: string
 ): Promise<TranslationResult> {
-	const translation = await getTranslation(key, namespace, context);
+	const translation = await getTranslation(key, namespace, context)
 
 	if (!translation) {
-		return { value: null, fromCache: false };
+		return { value: null, fromCache: false }
 	}
 
-	const value = await getTranslationValue(translation.id, lang);
+	const value = await getTranslationValue(translation.id, lang)
 
 	if (value) {
-		return { value, fromCache: true };
+		return { value, fromCache: true }
 	}
 
-	return { value: null, fromCache: false };
+	return { value: null, fromCache: false }
 }
 
 export async function fetchTranslationWithRemote(
@@ -50,18 +54,29 @@ export async function fetchTranslationWithRemote(
 	context?: string,
 	namespace?: string
 ): Promise<string> {
-	const cached = await fetchTranslationForLanguage(key, lang, namespace, context);
+	const cached = await fetchTranslationForLanguage(
+		key,
+		lang,
+		namespace,
+		context
+	)
 
 	if (cached.value) {
-		return cached.value;
+		return cached.value
 	}
 
 	try {
-		const trans = await newTranslationBatcher.request(key, false, context, namespace, lang);
-		return trans?.values?.[lang] || key;
+		const trans = await newTranslationBatcher.request(
+			key,
+			false,
+			context,
+			namespace,
+			lang
+		)
+		return trans?.values?.[lang] || key
 	} catch (error) {
-		console.error('[fetchTranslationWithRemote] Error:', error);
-		return key;
+		console.error('[fetchTranslationWithRemote] Error:', error)
+		return key
 	}
 }
 
@@ -71,19 +86,19 @@ export async function fetchPluralForLanguage(
 	pluralForm: string,
 	namespace?: string
 ): Promise<PluralTranslationResult> {
-	const translation = await getTranslation(key, namespace);
+	const translation = await getTranslation(key, namespace)
 
 	if (!translation) {
-		return { value: key, fromCache: false };
+		return { value: key, fromCache: false }
 	}
 
-	const pluralData = await getPluralForms(translation.id, lang);
+	const pluralData = await getPluralForms(translation.id, lang)
 
 	if (pluralData && pluralData[pluralForm]) {
-		return { value: pluralData[pluralForm], fromCache: true };
+		return { value: pluralData[pluralForm], fromCache: true }
 	}
 
-	return { value: key, fromCache: false };
+	return { value: key, fromCache: false }
 }
 
 export async function fetchPluralWithRemote(
@@ -92,19 +107,25 @@ export async function fetchPluralWithRemote(
 	pluralForm: string,
 	namespace?: string
 ): Promise<string> {
-	const cached = await fetchPluralForLanguage(key, lang, pluralForm, namespace);
+	const cached = await fetchPluralForLanguage(key, lang, pluralForm, namespace)
 
 	if (cached.fromCache) {
-		return cached.value;
+		return cached.value
 	}
 
 	try {
-		const trans = await newTranslationBatcher.request(key, true, undefined, namespace, lang);
-		const pluralValue = trans?.plurals?.[lang]?.[pluralForm];
-		return pluralValue || key;
+		const trans = await newTranslationBatcher.request(
+			key,
+			true,
+			undefined,
+			namespace,
+			lang
+		)
+		const pluralValue = trans?.plurals?.[lang]?.[pluralForm]
+		return pluralValue || key
 	} catch (error) {
-		console.error('[fetchPluralWithRemote] Error:', error);
-		return key;
+		console.error('[fetchPluralWithRemote] Error:', error)
+		return key
 	}
 }
 
@@ -113,12 +134,12 @@ export function getUserLanguage(
 	supportedLangs: readonly string[] = SUPPORTED_LANGUAGES,
 	search?: string
 ): string {
-	const userLang = normalizeSupportedLanguage(user?.lang, supportedLangs);
+	const userLang = normalizeSupportedLanguage(user?.lang, supportedLangs)
 	if (userLang) {
-		return userLang;
+		return userLang
 	}
 
-	return getPreferredLanguage(supportedLangs, search);
+	return getPreferredLanguage(supportedLangs, search)
 }
 
 export async function fetchRemoteTranslation(
@@ -128,11 +149,17 @@ export async function fetchRemoteTranslation(
 	namespace?: string
 ): Promise<TranslationData | null> {
 	try {
-		const trans = await newTranslationBatcher.request(key, false, context, namespace, lang);
-		return trans || null;
+		const trans = await newTranslationBatcher.request(
+			key,
+			false,
+			context,
+			namespace,
+			lang
+		)
+		return trans || null
 	} catch (error) {
-		console.error('[fetchRemoteTranslation] Error:', error);
-		return null;
+		console.error('[fetchRemoteTranslation] Error:', error)
+		return null
 	}
 }
 
@@ -141,10 +168,10 @@ export async function fetchRemotePlural(
 	context?: string
 ): Promise<TranslationData | null> {
 	try {
-		const trans = await newTranslationBatcher.request(key, true, context);
-		return trans || null;
+		const trans = await newTranslationBatcher.request(key, true, context)
+		return trans || null
 	} catch (error) {
-		console.error('[fetchRemotePlural] Error:', error);
-		return null;
+		console.error('[fetchRemotePlural] Error:', error)
+		return null
 	}
 }

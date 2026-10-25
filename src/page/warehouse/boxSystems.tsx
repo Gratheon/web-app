@@ -21,27 +21,27 @@ type BoxSystem = {
 }
 
 const BOX_SYSTEMS_QUERY = gql`
-{
-	boxSystems {
-		id
-		name
-		isDefault
-	}
-	apiaries {
-		id
-		hives {
+	{
+		boxSystems {
 			id
-			boxSystemId
-			hiveNumber
+			name
+			isDefault
+		}
+		apiaries {
+			id
+			hives {
+				id
+				boxSystemId
+				hiveNumber
+			}
 		}
 	}
-}
 `
 
 const DEACTIVATE_BOX_SYSTEM_MUTATION = gql`
-mutation deactivateBoxSystem($id: ID!, $replacementSystemId: ID) {
-	deactivateBoxSystem(id: $id, replacementSystemId: $replacementSystemId)
-}
+	mutation deactivateBoxSystem($id: ID!, $replacementSystemId: ID) {
+		deactivateBoxSystem(id: $id, replacementSystemId: $replacementSystemId)
+	}
 `
 
 const SYSTEM_COLOR_PALETTE = [
@@ -50,7 +50,6 @@ const SYSTEM_COLOR_PALETTE = [
 	{ accent: '#27ae60', soft: '#e9f8ef', border: '#9ad8b3' },
 	{ accent: '#eb5757', soft: '#ffecec', border: '#f1a7a7' },
 ]
-
 
 function getSystemPaletteByIndex(index = 0) {
 	return SYSTEM_COLOR_PALETTE[index % SYSTEM_COLOR_PALETTE.length]
@@ -69,23 +68,41 @@ function getSystemThemeStyle(fallbackIndex = 0) {
 export default function WarehouseBoxSystemsPage() {
 	const navigate = useNavigate()
 	const [archiveSystemId, setArchiveSystemId] = useState<string | null>(null)
-	const [archiveReplacementSystemId, setArchiveReplacementSystemId] = useState<string>('')
-	const [archiveValidationError, setArchiveValidationError] = useState<string | null>(null)
+	const [archiveReplacementSystemId, setArchiveReplacementSystemId] =
+		useState<string>('')
+	const [archiveValidationError, setArchiveValidationError] = useState<
+		string | null
+	>(null)
 	const [selectedSystemId, setSelectedSystemId] = useState<string | null>(null)
 	const { data, loading, error, reexecuteQuery } = useQuery(BOX_SYSTEMS_QUERY)
-	const [deactivateBoxSystem, { error: deactivateSystemError }] = useMutation(DEACTIVATE_BOX_SYSTEM_MUTATION)
+	const [deactivateBoxSystem, { error: deactivateSystemError }] = useMutation(
+		DEACTIVATE_BOX_SYSTEM_MUTATION
+	)
 
-	const boxSystems: BoxSystem[] = useMemo(() => data?.boxSystems || [], [data?.boxSystems])
-	const hasOnlyDefaultSystem = boxSystems.length === 1 && !!boxSystems[0]?.isDefault
-	const activeHiveCountBySystemId = useMemo(() => buildActiveHiveCountBySystemId(data?.apiaries || []), [data?.apiaries])
+	const boxSystems: BoxSystem[] = useMemo(
+		() => data?.boxSystems || [],
+		[data?.boxSystems]
+	)
+	const hasOnlyDefaultSystem =
+		boxSystems.length === 1 && !!boxSystems[0]?.isDefault
+	const activeHiveCountBySystemId = useMemo(
+		() => buildActiveHiveCountBySystemId(data?.apiaries || []),
+		[data?.apiaries]
+	)
 	const archivingSystem = useMemo(
-		() => boxSystems.find((system: BoxSystem) => system.id === archiveSystemId) || null,
+		() =>
+			boxSystems.find((system: BoxSystem) => system.id === archiveSystemId) ||
+			null,
 		[boxSystems, archiveSystemId]
 	)
 	const replacementCandidates = useMemo(() => {
-		return boxSystems.filter((system: BoxSystem) => system.id !== archiveSystemId)
+		return boxSystems.filter(
+			(system: BoxSystem) => system.id !== archiveSystemId
+		)
 	}, [boxSystems, archiveSystemId])
-	const hivesUsingArchivingSystem = archiveSystemId ? (activeHiveCountBySystemId[archiveSystemId] || 0) : 0
+	const hivesUsingArchivingSystem = archiveSystemId
+		? activeHiveCountBySystemId[archiveSystemId] || 0
+		: 0
 
 	useEffect(() => {
 		if (boxSystems.length === 0) {
@@ -93,7 +110,10 @@ export default function WarehouseBoxSystemsPage() {
 			return
 		}
 
-		if (!selectedSystemId || !boxSystems.some((system: BoxSystem) => system.id === selectedSystemId)) {
+		if (
+			!selectedSystemId ||
+			!boxSystems.some((system: BoxSystem) => system.id === selectedSystemId)
+		) {
 			setSelectedSystemId(boxSystems[0].id)
 		}
 	}, [boxSystems, selectedSystemId])
@@ -101,7 +121,10 @@ export default function WarehouseBoxSystemsPage() {
 	async function onDeactivateSystem(id: string) {
 		const activeHivesUsingSystem = activeHiveCountBySystemId[id] || 0
 		if (activeHivesUsingSystem === 0) {
-			const directResult = await deactivateBoxSystem({ id, replacementSystemId: undefined })
+			const directResult = await deactivateBoxSystem({
+				id,
+				replacementSystemId: undefined,
+			})
 			if (directResult?.error) return
 			await reexecuteQuery({ requestPolicy: 'network-only' })
 			return
@@ -126,7 +149,10 @@ export default function WarehouseBoxSystemsPage() {
 			return
 		}
 		const replacementSystemId = archiveReplacementSystemId || undefined
-		const result = await deactivateBoxSystem({ id: archiveSystemId, replacementSystemId })
+		const result = await deactivateBoxSystem({
+			id: archiveSystemId,
+			replacementSystemId,
+		})
 		if (result?.error) return
 		closeArchiveModal()
 		await reexecuteQuery({ requestPolicy: 'network-only' })
@@ -171,7 +197,9 @@ export default function WarehouseBoxSystemsPage() {
 				event.preventDefault()
 				event.stopPropagation()
 
-				const currentIndex = boxSystems.findIndex((system: BoxSystem) => system.id === selectedSystemId)
+				const currentIndex = boxSystems.findIndex(
+					(system: BoxSystem) => system.id === selectedSystemId
+				)
 				if (currentIndex === -1) {
 					setSelectedSystemId(
 						event.key === 'ArrowUp'
@@ -181,9 +209,10 @@ export default function WarehouseBoxSystemsPage() {
 					return
 				}
 
-				const nextIndex = event.key === 'ArrowUp'
-					? Math.max(0, currentIndex - 1)
-					: Math.min(boxSystems.length - 1, currentIndex + 1)
+				const nextIndex =
+					event.key === 'ArrowUp'
+						? Math.max(0, currentIndex - 1)
+						: Math.min(boxSystems.length - 1, currentIndex + 1)
 				setSelectedSystemId(boxSystems[nextIndex].id)
 				return
 			}
@@ -192,13 +221,17 @@ export default function WarehouseBoxSystemsPage() {
 				if (!selectedSystemId) return
 				event.preventDefault()
 				event.stopPropagation()
-				navigate(`/warehouse/box-systems/${selectedSystemId}`, { replace: true })
+				navigate(`/warehouse/box-systems/${selectedSystemId}`, {
+					replace: true,
+				})
 				return
 			}
 
 			if (event.key === 'Delete' || event.key === 'Del') {
 				if (!selectedSystemId) return
-				const selectedSystem = boxSystems.find((system: BoxSystem) => system.id === selectedSystemId)
+				const selectedSystem = boxSystems.find(
+					(system: BoxSystem) => system.id === selectedSystemId
+				)
 				if (!selectedSystem || selectedSystem.isDefault) return
 				event.preventDefault()
 				event.stopPropagation()
@@ -210,14 +243,22 @@ export default function WarehouseBoxSystemsPage() {
 		return () => {
 			document.removeEventListener('keydown', onKeyDown, true)
 		}
-	}, [archiveSystemId, boxSystems, selectedSystemId, archiveReplacementSystemId, activeHiveCountBySystemId])
+	}, [
+		archiveSystemId,
+		boxSystems,
+		selectedSystemId,
+		archiveReplacementSystemId,
+		activeHiveCountBySystemId,
+	])
 
 	if (loading && !data?.boxSystems) return <Loader />
 
 	return (
 		<div className={styles.page}>
 			<div className={styles.topBar}>
-				<h2><T>Hive systems</T></h2>
+				<h2>
+					<T>Hive systems</T>
+				</h2>
 				<div className={styles.topBarAction}>
 					<Button color="green" href="/warehouse/box-systems/create">
 						<T>Create hive system</T>
@@ -225,7 +266,9 @@ export default function WarehouseBoxSystemsPage() {
 				</div>
 			</div>
 			<p className={styles.description}>
-				<T>Manage available hive systems used in warehouse and hive workflows.</T>
+				<T>
+					Manage available hive systems used in warehouse and hive workflows.
+				</T>
 			</p>
 			<ErrorMsg error={error || deactivateSystemError} />
 
@@ -240,39 +283,59 @@ export default function WarehouseBoxSystemsPage() {
 							onClick={() => setSelectedSystemId(system.id)}
 						>
 							<div className={styles.systemRowMain}>
-								<span className={styles.systemColorDot} aria-hidden="true"></span>
-									<div className={styles.itemTitleRow}>
-										<Link
-											className={`${styles.itemTitle} ${styles.itemTitleLink}`}
-											to={`/warehouse/box-systems/${system.id}`}
-											onClick={(event) => {
-												event.stopPropagation()
-											}}
-										>
-											{system.name}
-										</Link>
-										{system.isDefault ? <span className={styles.defaultBadge}><T>Default</T></span> : null}
-										<span className={styles.usageBadge}>
-											{activeHiveCountBySystemId[system.id] || 0} <T>hives in use</T>
+								<span
+									className={styles.systemColorDot}
+									aria-hidden="true"
+								></span>
+								<div className={styles.itemTitleRow}>
+									<Link
+										className={`${styles.itemTitle} ${styles.itemTitleLink}`}
+										to={`/warehouse/box-systems/${system.id}`}
+										onClick={(event) => {
+											event.stopPropagation()
+										}}
+									>
+										{system.name}
+									</Link>
+									{system.isDefault ? (
+										<span className={styles.defaultBadge}>
+											<T>Default</T>
 										</span>
-									</div>
-								</div>
-								<div className={styles.systemRowActions}>
-									<div className={styles.controls}>
-										{system.isDefault ? null : (
-											<Button className={styles.systemActionButton} size="small" color="red" onClick={() => onDeactivateSystem(system.id)}>
-												<T>Delete</T>
-											</Button>
-										)}
-									</div>
+									) : null}
+									<span className={styles.usageBadge}>
+										{activeHiveCountBySystemId[system.id] || 0}{' '}
+										<T>hives in use</T>
+									</span>
 								</div>
 							</div>
-						))}
+							<div className={styles.systemRowActions}>
+								<div className={styles.controls}>
+									{system.isDefault ? null : (
+										<Button
+											className={styles.systemActionButton}
+											size="small"
+											color="red"
+											onClick={() => onDeactivateSystem(system.id)}
+										>
+											<T>Delete</T>
+										</Button>
+									)}
+								</div>
+							</div>
+						</div>
+					))}
 				</div>
 
 				{hasOnlyDefaultSystem ? (
 					<>
-						<img src={hiveSystemsImageURL} alt="Single hive system placeholder" className={styles.singleSystemPlaceholderImage} width={768} height={512} draggable={false} />
+						<img
+							src={hiveSystemsImageURL}
+							alt="Single hive system placeholder"
+							className={styles.singleSystemPlaceholderImage}
+							width={768}
+							height={512}
+							draggable={false}
+						/>
 						<p className={styles.singleSystemPlaceholderText}>
 							<T>It's lucky that you have only one system for now.</T>
 						</p>
@@ -287,9 +350,13 @@ export default function WarehouseBoxSystemsPage() {
 							<strong>{archivingSystem.name}</strong>
 						</p>
 						<p className={styles.archiveModalCopy}>
-							<T>Active hives currently using this system</T>: <strong>{hivesUsingArchivingSystem}</strong>
+							<T>Active hives currently using this system</T>:{' '}
+							<strong>{hivesUsingArchivingSystem}</strong>
 						</p>
-						<label className={styles.archiveLabel} htmlFor="archive-replacement-system">
+						<label
+							className={styles.archiveLabel}
+							htmlFor="archive-replacement-system"
+						>
 							<T>Replacement hive system for affected active hives</T>
 						</label>
 						<select
@@ -301,21 +368,28 @@ export default function WarehouseBoxSystemsPage() {
 								setArchiveReplacementSystemId(event.target.value)
 							}}
 						>
-							<option value=""><T>Select replacement system</T></option>
+							<option value="">
+								<T>Select replacement system</T>
+							</option>
 							{replacementCandidates.map((system: BoxSystem) => (
 								<option key={system.id} value={system.id}>
-									{system.name}{system.isDefault ? ' (Default)' : ''}
+									{system.name}
+									{system.isDefault ? ' (Default)' : ''}
 								</option>
 							))}
 						</select>
-						{archiveValidationError ? <p className={styles.archiveError}>{archiveValidationError}</p> : null}
+						{archiveValidationError ? (
+							<p className={styles.archiveError}>{archiveValidationError}</p>
+						) : null}
 						<div className={styles.archiveActions}>
 							<Button color="white" onClick={closeArchiveModal}>
 								<T>Cancel</T>
 							</Button>
 							<Button
 								color="red"
-								disabled={hivesUsingArchivingSystem > 0 && !archiveReplacementSystemId}
+								disabled={
+									hivesUsingArchivingSystem > 0 && !archiveReplacementSystemId
+								}
 								onClick={onConfirmDeactivateSystem}
 							>
 								<T>Delete and reassign</T>

@@ -44,13 +44,19 @@ function waitForServiceWorkerControl(timeoutMs = 5000): Promise<void> {
 		const finish = () => {
 			if (settled) return
 			settled = true
-			navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange)
+			navigator.serviceWorker.removeEventListener(
+				'controllerchange',
+				onControllerChange
+			)
 			resolve()
 		}
 
 		const onControllerChange = () => finish()
 
-		navigator.serviceWorker.addEventListener('controllerchange', onControllerChange)
+		navigator.serviceWorker.addEventListener(
+			'controllerchange',
+			onControllerChange
+		)
 		setTimeout(finish, timeoutMs)
 	})
 }

@@ -39,14 +39,20 @@ export function getHiveFamilies(hive: HiveLike): FamilyLike[] {
 			return 1
 		}
 
-		const nameCompare = String(a?.name || '').localeCompare(String(b?.name || ''), undefined, {
-			sensitivity: 'base',
-		})
+		const nameCompare = String(a?.name || '').localeCompare(
+			String(b?.name || ''),
+			undefined,
+			{
+				sensitivity: 'base',
+			}
+		)
 		if (nameCompare !== 0) {
 			return nameCompare
 		}
 
-		return String(a?.id || '').localeCompare(String(b?.id || ''), undefined, { sensitivity: 'base' })
+		return String(a?.id || '').localeCompare(String(b?.id || ''), undefined, {
+			sensitivity: 'base',
+		})
 	})
 }
 

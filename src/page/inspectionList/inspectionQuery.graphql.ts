@@ -1,7 +1,7 @@
 import { gql } from '../../api'
 
 export default gql`
-	query inspections( $hiveId: ID!) {
+	query inspections($hiveId: ID!) {
 		hive(id: $hiveId) {
 			__typename
 			id

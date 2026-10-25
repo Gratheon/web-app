@@ -13,7 +13,7 @@ const useOutsideClickHandler = (ref: any, callback: any, enabled: boolean) => {
 			}
 		}
 		if (typeof window === 'undefined') {
-			return () => { }
+			return () => {}
 		}
 		document.addEventListener('mousedown', handleClickOutside)
 		return () => {
@@ -105,13 +105,9 @@ export function PopupButton({
 				}}
 			>
 				<Dots3Icon />
-
 			</Button>
 			{extraButtonsVisible && (
-				<div
-					className={popupClassNames}
-					role="menu"
-				>
+				<div className={popupClassNames} role="menu">
 					{children}
 				</div>
 			)}

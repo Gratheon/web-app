@@ -19,7 +19,7 @@ const CREATE_ALERT_RULE_MUTATION = gql`
 			enabled
 		}
 	}
-`;
+`
 
 interface CreateAlertModalProps {
 	isOpen: boolean
@@ -36,31 +36,33 @@ export default function CreateAlertModal({
 	hiveId,
 	metricType,
 	metricLabel,
-	onSuccess
+	onSuccess,
 }: CreateAlertModalProps) {
-	const [createAlertRule, { error }] = useMutation(CREATE_ALERT_RULE_MUTATION);
-	const [saving, setSaving] = useState(false);
-	const [showSuccess, setShowSuccess] = useState(false);
+	const [createAlertRule, { error }] = useMutation(CREATE_ALERT_RULE_MUTATION)
+	const [saving, setSaving] = useState(false)
+	const [showSuccess, setShowSuccess] = useState(false)
 	const [config, setConfig] = useState({
 		conditionType: 'ABOVE',
 		thresholdValue: 0,
 		durationMinutes: 60,
-		enabled: true
-	});
+		enabled: true,
+	})
 
-	const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-		const target = e.target as HTMLInputElement | HTMLSelectElement;
-		const { name, value } = target;
-		const isNumber = (target as HTMLInputElement).type === 'number';
-		setConfig(prev => ({
+	const handleChange = (
+		e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+	) => {
+		const target = e.target as HTMLInputElement | HTMLSelectElement
+		const { name, value } = target
+		const isNumber = (target as HTMLInputElement).type === 'number'
+		setConfig((prev) => ({
 			...prev,
-			[name]: isNumber ? parseFloat(value) : value
-		}));
-	};
+			[name]: isNumber ? parseFloat(value) : value,
+		}))
+	}
 
 	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		setSaving(true);
+		e.preventDefault()
+		setSaving(true)
 		try {
 			await createAlertRule({
 				rule: {
@@ -69,21 +71,21 @@ export default function CreateAlertModal({
 					conditionType: config.conditionType,
 					thresholdValue: config.thresholdValue,
 					durationMinutes: config.durationMinutes,
-					enabled: config.enabled
-				}
-			});
-			setShowSuccess(true);
+					enabled: config.enabled,
+				},
+			})
+			setShowSuccess(true)
 			setTimeout(() => {
-				setShowSuccess(false);
-				onSuccess?.();
-				onClose();
-			}, 1500);
+				setShowSuccess(false)
+				onSuccess?.()
+				onClose()
+			}, 1500)
 		} finally {
-			setSaving(false);
+			setSaving(false)
 		}
-	};
+	}
 
-	if (!isOpen) return null;
+	if (!isOpen) return null
 
 	return (
 		<Modal title={<T>Create Alert Rule</T>} onClose={onClose}>
@@ -92,12 +94,19 @@ export default function CreateAlertModal({
 					<T>{`Get notified when ${metricLabel} meets certain conditions`}</T>
 				</p>
 
-				{showSuccess && <MessageSuccess title={<T>Created!</T>} message={<T>Alert rule created successfully</T>} />}
+				{showSuccess && (
+					<MessageSuccess
+						title={<T>Created!</T>}
+						message={<T>Alert rule created successfully</T>}
+					/>
+				)}
 				<ErrorMsg error={error || null} />
 
 				<form onSubmit={handleSubmit} className={styles.alertForm}>
 					<div className={styles.formGroup}>
-						<label><T>Condition</T>:</label>
+						<label>
+							<T>Condition</T>:
+						</label>
 						<select
 							name="conditionType"
 							value={config.conditionType}
@@ -112,7 +121,9 @@ export default function CreateAlertModal({
 					</div>
 
 					<div className={styles.formGroup}>
-						<label><T>Threshold Value</T>:</label>
+						<label>
+							<T>Threshold Value</T>:
+						</label>
 						<input
 							type="number"
 							name="thresholdValue"
@@ -125,7 +136,9 @@ export default function CreateAlertModal({
 					</div>
 
 					<div className={styles.formGroup}>
-						<label><T>Duration (minutes)</T>:</label>
+						<label>
+							<T>Duration (minutes)</T>:
+						</label>
 						<input
 							type="number"
 							name="durationMinutes"
@@ -151,6 +164,5 @@ export default function CreateAlertModal({
 				</form>
 			</div>
 		</Modal>
-	);
+	)
 }
-

@@ -57,7 +57,11 @@ interface QueenColorPickerProps {
 	onColorChange: (value: string) => void
 }
 
-export default function QueenColorPicker({ year = '', color = null, onColorChange }: QueenColorPickerProps) {
+export default function QueenColorPicker({
+	year = '',
+	color = null,
+	onColorChange,
+}: QueenColorPickerProps) {
 	const [isOpen, setIsOpen] = useState(false)
 
 	return (

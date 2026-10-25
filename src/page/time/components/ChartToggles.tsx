@@ -32,13 +32,13 @@ export default function ChartToggles({
 	showIdealCurve,
 	onToggleChart,
 	onToggleIdealCurve,
-	group
+	group,
 }: ChartTogglesProps) {
 	const Toggle = ({
 		name,
 		label,
 		checked,
-		isSubOption = false
+		isSubOption = false,
 	}: {
 		name: string
 		label: ReactNode
@@ -60,21 +60,33 @@ export default function ChartToggles({
 	if (group === 'population') {
 		return (
 			<div className={styles.panel}>
-				<h3 className={styles.title}>🐝 <T>Population</T></h3>
+				<h3 className={styles.title}>
+					🐝 <T>Population</T>
+				</h3>
 				<div className={styles.chartList}>
 					<Toggle
 						name="population"
-						label={<><T>Population</T></>}
+						label={
+							<>
+								<T>Population</T>
+							</>
+						}
 						checked={enabledCharts.population}
 					/>
 					{enabledCharts.population && (
-						<label className={`${styles.chartToggle} ${styles.subOption} ${showIdealCurve ? styles.enabled : ''}`}>
+						<label
+							className={`${styles.chartToggle} ${styles.subOption} ${showIdealCurve ? styles.enabled : ''}`}
+						>
 							<input
 								type="checkbox"
 								checked={showIdealCurve}
-								onChange={e => onToggleIdealCurve((e.target as HTMLInputElement).checked)}
+								onChange={(e) =>
+									onToggleIdealCurve((e.target as HTMLInputElement).checked)
+								}
 							/>
-							<span><T>Ideal Curve</T></span>
+							<span>
+								<T>Ideal Curve</T>
+							</span>
 						</label>
 					)}
 				</div>
@@ -85,16 +97,26 @@ export default function ChartToggles({
 	if (group === 'scales') {
 		return (
 			<div className={styles.panel}>
-				<h3 className={styles.title}>📊 <T>Scales & Sensors</T></h3>
+				<h3 className={styles.title}>
+					📊 <T>Scales & Sensors</T>
+				</h3>
 				<div className={styles.chartList}>
 					<Toggle
 						name="weight"
-						label={<><T>Weight</T></>}
+						label={
+							<>
+								<T>Weight</T>
+							</>
+						}
 						checked={enabledCharts.weight}
 					/>
 					<Toggle
 						name="temperature"
-						label={<><T>Temperature</T></>}
+						label={
+							<>
+								<T>Temperature</T>
+							</>
+						}
 						checked={enabledCharts.temperature}
 					/>
 				</div>
@@ -105,31 +127,53 @@ export default function ChartToggles({
 	if (group === 'entrance') {
 		return (
 			<div className={styles.panel}>
-				<h3 className={styles.title}>🚪 <T>Entrance Observer</T></h3>
+				<h3 className={styles.title}>
+					🚪 <T>Entrance Observer</T>
+				</h3>
 				<div className={styles.chartList}>
 					<Toggle
 						name="entrance"
-						label={<><T>Entrance Activity</T></>}
+						label={
+							<>
+								<T>Entrance Activity</T>
+							</>
+						}
 						checked={enabledCharts.entrance}
 					/>
 					<Toggle
 						name="entranceSpeed"
-						label={<><T>Bee Speed</T></>}
+						label={
+							<>
+								<T>Bee Speed</T>
+							</>
+						}
 						checked={enabledCharts.entranceSpeed}
 					/>
 					<Toggle
 						name="entranceDetected"
-						label={<><T>Detected Bees</T></>}
+						label={
+							<>
+								<T>Detected Bees</T>
+							</>
+						}
 						checked={enabledCharts.entranceDetected}
 					/>
 					<Toggle
 						name="entranceStationary"
-						label={<><T>Stationary Bees</T></>}
+						label={
+							<>
+								<T>Stationary Bees</T>
+							</>
+						}
 						checked={enabledCharts.entranceStationary}
 					/>
 					<Toggle
 						name="entranceInteractions"
-						label={<><T>Bee Interactions</T></>}
+						label={
+							<>
+								<T>Bee Interactions</T>
+							</>
+						}
 						checked={enabledCharts.entranceInteractions}
 					/>
 				</div>
@@ -138,61 +182,95 @@ export default function ChartToggles({
 	}
 
 	return (
-			<div className={styles.panel}>
-				<h3 className={styles.title}>🌤️ <T>Weather</T></h3>
-				<div className={styles.chartList}>
-					<Toggle
-						name="weather"
-						label={<><T>Weather</T></>}
-						checked={enabledCharts.weather}
-					/>
-					{enabledCharts.weather && (
+		<div className={styles.panel}>
+			<h3 className={styles.title}>
+				🌤️ <T>Weather</T>
+			</h3>
+			<div className={styles.chartList}>
+				<Toggle
+					name="weather"
+					label={
 						<>
-							<Toggle
-								name="weatherTemperature"
-								label={<><T>Temperature</T></>}
-								checked={enabledCharts.weatherTemperature}
-								isSubOption
-							/>
-							<Toggle
-								name="wind"
-								label={<><T>Wind</T></>}
-								checked={enabledCharts.wind}
-								isSubOption
-							/>
-							<Toggle
-								name="rain"
-								label={<><T>Rain</T></>}
-								checked={enabledCharts.rain}
-								isSubOption
-							/>
-							<Toggle
-								name="solarRadiation"
-								label={<><T>Solar Radiation</T></>}
-								checked={enabledCharts.solarRadiation}
-								isSubOption
-							/>
-							<Toggle
-								name="cloudCover"
-								label={<><T>Cloud Cover</T></>}
-								checked={enabledCharts.cloudCover}
-								isSubOption
-							/>
-							<Toggle
-								name="pollen"
-								label={<><T>Pollen</T></>}
-								checked={enabledCharts.pollen}
-								isSubOption
-							/>
-							<Toggle
-								name="pollution"
-								label={<><T>Air Quality</T></>}
-								checked={enabledCharts.pollution}
-								isSubOption
-							/>
+							<T>Weather</T>
 						</>
-					)}
-				</div>
+					}
+					checked={enabledCharts.weather}
+				/>
+				{enabledCharts.weather && (
+					<>
+						<Toggle
+							name="weatherTemperature"
+							label={
+								<>
+									<T>Temperature</T>
+								</>
+							}
+							checked={enabledCharts.weatherTemperature}
+							isSubOption
+						/>
+						<Toggle
+							name="wind"
+							label={
+								<>
+									<T>Wind</T>
+								</>
+							}
+							checked={enabledCharts.wind}
+							isSubOption
+						/>
+						<Toggle
+							name="rain"
+							label={
+								<>
+									<T>Rain</T>
+								</>
+							}
+							checked={enabledCharts.rain}
+							isSubOption
+						/>
+						<Toggle
+							name="solarRadiation"
+							label={
+								<>
+									<T>Solar Radiation</T>
+								</>
+							}
+							checked={enabledCharts.solarRadiation}
+							isSubOption
+						/>
+						<Toggle
+							name="cloudCover"
+							label={
+								<>
+									<T>Cloud Cover</T>
+								</>
+							}
+							checked={enabledCharts.cloudCover}
+							isSubOption
+						/>
+						<Toggle
+							name="pollen"
+							label={
+								<>
+									<T>Pollen</T>
+								</>
+							}
+							checked={enabledCharts.pollen}
+							isSubOption
+						/>
+						<Toggle
+							name="pollution"
+							label={
+								<>
+									<T>Air Quality</T>
+								</>
+							}
+							checked={enabledCharts.pollution}
+							isSubOption
+						/>
+					</>
+				)}
 			</div>
+		</div>
 	)
 }

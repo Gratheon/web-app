@@ -84,22 +84,24 @@ export default function HiveBoxes({
 						/>
 					)}
 
-					{box.type == boxTypes.GATE && <Gate hiveId={hiveId} box={box} boxId={+boxId} />}
+					{box.type == boxTypes.GATE && (
+						<Gate hiveId={hiveId} box={box} boxId={+boxId} />
+					)}
 					{box.type === boxTypes.VENTILATION && (
 						<Ventilation selected={+boxId === box.id} />
 					)}
 					{box.type === boxTypes.QUEEN_EXCLUDER && (
 						<QueenExcluder selected={+boxId === box.id} />
 					)}
-				{box.type === boxTypes.HORIZONTAL_FEEDER && (
-					<FeederHorizontal selected={+boxId === box.id} />
-				)}
-				{box.type === boxTypes.BOTTOM && (
-					<Bottom selected={+boxId === box.id} />
-				)}
-				{box.type === boxTypes.ROOF && (
-					<Roof selected={+boxId === box.id} roofStyle={box.roofStyle} />
-				)}
+					{box.type === boxTypes.HORIZONTAL_FEEDER && (
+						<FeederHorizontal selected={+boxId === box.id} />
+					)}
+					{box.type === boxTypes.BOTTOM && (
+						<Bottom selected={+boxId === box.id} />
+					)}
+					{box.type === boxTypes.ROOF && (
+						<Roof selected={+boxId === box.id} roofStyle={box.roofStyle} />
+					)}
 				</div>
 
 				<div
@@ -146,9 +148,14 @@ export default function HiveBoxes({
 					{currentBoxSelected &&
 						(currentBoxSelected?.type == boxTypes.DEEP ||
 							currentBoxSelected?.type == boxTypes.SUPER ||
-							currentBoxSelected?.type === boxTypes.LARGE_HORIZONTAL_SECTION) && (
+							currentBoxSelected?.type ===
+								boxTypes.LARGE_HORIZONTAL_SECTION) && (
 							<div style="display:flex; align-items:right;">
-								<FrameButtons box={currentBoxSelected} hiveId={hiveId} onError={onError} />
+								<FrameButtons
+									box={currentBoxSelected}
+									hiveId={hiveId}
+									onError={onError}
+								/>
 
 								{displayMode == 'list' && (
 									<Button onClick={() => setDisplayMode('visual')}>

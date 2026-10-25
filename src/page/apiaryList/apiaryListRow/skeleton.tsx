@@ -4,7 +4,12 @@ import styles from './index.module.less'
 import skeleton from './skeleton.module.less'
 
 function SkeletonLine({ className = '' }) {
-	return <span className={`${skeleton.block} ${className}`.trim()} aria-hidden="true" />
+	return (
+		<span
+			className={`${skeleton.block} ${className}`.trim()}
+			aria-hidden="true"
+		/>
+	)
 }
 
 function ListHiveSkeleton() {
@@ -46,12 +51,24 @@ export default function ApiaryListRowSkeleton({
 	hiveCount?: number
 	rowCount?: number
 }) {
-	const columns = visibleColumns.length > 0
-		? visibleColumns
-		: ['HIVE_NUMBER', 'QUEEN', 'BEE_COUNT', 'STATUS', 'BOX_SYSTEM', 'LAST_TREATMENT', 'LAST_INSPECTION']
+	const columns =
+		visibleColumns.length > 0
+			? visibleColumns
+			: [
+					'HIVE_NUMBER',
+					'QUEEN',
+					'BEE_COUNT',
+					'STATUS',
+					'BOX_SYSTEM',
+					'LAST_TREATMENT',
+					'LAST_INSPECTION',
+				]
 
 	return (
-		<div className={`${styles.apiary} ${skeleton.container}`} aria-hidden="true">
+		<div
+			className={`${styles.apiary} ${skeleton.container}`}
+			aria-hidden="true"
+		>
 			<div className={styles.apiaryHead}>
 				<h2 className={skeleton.heading}>
 					{showTypeIcon && <span className={skeleton.typeIcon} />}
@@ -110,7 +127,11 @@ export default function ApiaryListRowSkeleton({
 										return (
 											<TableCellSkeleton
 												key={`${column}-${columnIndex}`}
-												className={column === 'QUEEN' ? skeleton.tableCellWide : skeleton.tableCell}
+												className={
+													column === 'QUEEN'
+														? skeleton.tableCellWide
+														: skeleton.tableCell
+												}
 											/>
 										)
 									})}
@@ -119,13 +140,13 @@ export default function ApiaryListRowSkeleton({
 						</tbody>
 					</table>
 				) : (
-						<>
-							{Array.from({ length: hiveCount }).map((_, hiveIndex) => (
-								<ListHiveSkeleton key={hiveIndex} />
-							))}
-						</>
-					)}
-				</div>
+					<>
+						{Array.from({ length: hiveCount }).map((_, hiveIndex) => (
+							<ListHiveSkeleton key={hiveIndex} />
+						))}
+					</>
+				)}
+			</div>
 		</div>
 	)
 }

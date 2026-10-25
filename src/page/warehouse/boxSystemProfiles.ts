@@ -1,4 +1,7 @@
-export type FrameConfigurableBoxType = 'DEEP' | 'SUPER' | 'LARGE_HORIZONTAL_SECTION'
+export type FrameConfigurableBoxType =
+	| 'DEEP'
+	| 'SUPER'
+	| 'LARGE_HORIZONTAL_SECTION'
 
 export type BoxSystemFrameSetting = {
 	systemId: string
@@ -8,27 +11,41 @@ export type BoxSystemFrameSetting = {
 
 export type FrameSettingLookup = Record<string, BoxSystemFrameSetting>
 
-export const FRAME_BOX_TYPE_ORDER: FrameConfigurableBoxType[] = ['DEEP', 'SUPER', 'LARGE_HORIZONTAL_SECTION']
+export const FRAME_BOX_TYPE_ORDER: FrameConfigurableBoxType[] = [
+	'DEEP',
+	'SUPER',
+	'LARGE_HORIZONTAL_SECTION',
+]
 
-export function frameSettingLookupKey(systemId: string, boxType: FrameConfigurableBoxType): string {
+export function frameSettingLookupKey(
+	systemId: string,
+	boxType: FrameConfigurableBoxType
+): string {
 	return `${systemId}:${boxType}`
 }
 
 export function buildFrameSettingLookup(
-	frameSettings: BoxSystemFrameSetting[] = [],
+	frameSettings: BoxSystemFrameSetting[] = []
 ): FrameSettingLookup {
-	return frameSettings.reduce((acc: FrameSettingLookup, setting: BoxSystemFrameSetting) => {
-		acc[frameSettingLookupKey(setting.systemId, setting.boxType)] = setting
-		return acc
-	}, {})
+	return frameSettings.reduce(
+		(acc: FrameSettingLookup, setting: BoxSystemFrameSetting) => {
+			acc[frameSettingLookupKey(setting.systemId, setting.boxType)] = setting
+			return acc
+		},
+		{}
+	)
 }
 
 export function getCurrentFrameProfileSource(
 	targetSystemId: string,
-	frameSettingBySystemAndType: FrameSettingLookup,
+	frameSettingBySystemAndType: FrameSettingLookup
 ): string {
-	const sources = FRAME_BOX_TYPE_ORDER
-		.map((boxType) => frameSettingBySystemAndType[frameSettingLookupKey(targetSystemId, boxType)])
+	const sources = FRAME_BOX_TYPE_ORDER.map(
+		(boxType) =>
+			frameSettingBySystemAndType[
+				frameSettingLookupKey(targetSystemId, boxType)
+			]
+	)
 		.filter(Boolean)
 		.map((setting) => String(setting!.frameSourceSystemId || targetSystemId))
 
@@ -40,10 +57,13 @@ export function getCurrentFrameProfileSource(
 
 export function hasExplicitOwnFrameMapping(
 	targetSystemId: string,
-	frameSettingBySystemAndType: FrameSettingLookup,
+	frameSettingBySystemAndType: FrameSettingLookup
 ): boolean {
 	return FRAME_BOX_TYPE_ORDER.every((boxType) => {
-		const setting = frameSettingBySystemAndType[frameSettingLookupKey(targetSystemId, boxType)]
+		const setting =
+			frameSettingBySystemAndType[
+				frameSettingLookupKey(targetSystemId, boxType)
+			]
 		return String(setting?.frameSourceSystemId || '') === targetSystemId
 	})
 }
@@ -55,7 +75,7 @@ export async function applyFrameSourceToAllBoxTypes(
 		frameSourceSystemId: string
 	}) => Promise<unknown>,
 	systemId: string,
-	frameSourceSystemId: string,
+	frameSourceSystemId: string
 ): Promise<void> {
 	for (const boxType of FRAME_BOX_TYPE_ORDER) {
 		await setFrameSource({

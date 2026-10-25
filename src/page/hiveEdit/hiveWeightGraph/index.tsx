@@ -13,7 +13,12 @@ import { getUser } from '@/models/user'
 import { getPreferredTemperatureUnit } from '@/shared/temperatureUnit'
 
 const WEIGHT_QUERY = gql`
-	query hiveWeight($hiveId: ID!, $timeRangeMin: Int, $timeFrom: DateTime!, $timeTo: DateTime!) {
+	query hiveWeight(
+		$hiveId: ID!
+		$timeRangeMin: Int
+		$timeFrom: DateTime!
+		$timeTo: DateTime!
+	) {
 		weightKg(hiveId: $hiveId, timeRangeMin: $timeRangeMin) {
 			... on MetricFloatList {
 				metrics {
@@ -88,7 +93,14 @@ export default function HiveWeightGraph({ hiveId }) {
 	}
 
 	if (errorGet || errorNetwork || !data) {
-		return <ErrorMsg error={{ message: 'Failed to load metrics data', code: 'NETWORK_ERROR' }} />
+		return (
+			<ErrorMsg
+				error={{
+					message: 'Failed to load metrics data',
+					code: 'NETWORK_ERROR',
+				}}
+			/>
+		)
 	}
 
 	return (

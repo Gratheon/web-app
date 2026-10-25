@@ -1,5 +1,11 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { useUploadMutation, useMutation, useQuery, useSubscription, gql } from '@/api'
+import {
+	useUploadMutation,
+	useMutation,
+	useQuery,
+	useSubscription,
+	gql,
+} from '@/api'
 import ErrorMessage from '@/shared/messageError'
 import Loader from '@/shared/loader'
 import T from '@/shared/translate'
@@ -14,38 +20,55 @@ import { isBillingTierLessThan } from '@/shared/billingTier'
 
 export default function BottomBox({ boxId, hiveId }) {
 	const user = useLiveQuery(() => getUser(), [], null)
-	const isVarroaMonitoringLocked = isBillingTierLessThan(user?.billingPlan, 'starter')
+	const isVarroaMonitoringLocked = isBillingTierLessThan(
+		user?.billingPlan,
+		'starter'
+	)
 
-	const { data: filesData, loading: filesLoading, reexecuteQuery: refetchFiles } = useQuery(gql`
-		query boxFiles($boxId: ID!) {
-			boxFiles(boxId: $boxId) {
-				file {
-					id
-					url
-					resizes {
+	const {
+		data: filesData,
+		loading: filesLoading,
+		reexecuteQuery: refetchFiles,
+	} = useQuery(
+		gql`
+			query boxFiles($boxId: ID!) {
+				boxFiles(boxId: $boxId) {
+					file {
 						id
 						url
-						max_dimension_px
+						resizes {
+							id
+							url
+							max_dimension_px
+						}
 					}
+					addedTime
 				}
-				addedTime
 			}
-		}
-	`, { variables: { boxId } })
+		`,
+		{ variables: { boxId } }
+	)
 
-	const { data: detectionsData, loading: detectionsLoading, reexecuteQuery: refetchDetections } = useQuery(gql`
-		query varroaBottomDetections($boxId: ID!) {
-			varroaBottomDetections(boxId: $boxId) {
-				id
-				fileId
-				varroaCount
-				detections
-				processedAt
+	const {
+		data: detectionsData,
+		loading: detectionsLoading,
+		reexecuteQuery: refetchDetections,
+	} = useQuery(
+		gql`
+			query varroaBottomDetections($boxId: ID!) {
+				varroaBottomDetections(boxId: $boxId) {
+					id
+					fileId
+					varroaCount
+					detections
+					processedAt
+				}
 			}
-		}
-	`, { variables: { boxId } })
+		`,
+		{ variables: { boxId } }
+	)
 	//@ts-ignore
-	const [uploadFile, {data}] = useUploadMutation(gql`
+	const [uploadFile, { data }] = useUploadMutation(gql`
 		mutation uploadFrameSide($file: Upload!) {
 			uploadFrameSide(file: $file) {
 				__typename
@@ -63,8 +86,18 @@ export default function BottomBox({ boxId, hiveId }) {
 
 	//@ts-ignore
 	const [addFileToBoxMutation] = useMutation(gql`
-		mutation addFileToBox($boxId: ID!, $fileId: ID!, $hiveId: ID!, $boxType: String) {
-			addFileToBox(boxId: $boxId, fileId: $fileId, hiveId: $hiveId, boxType: $boxType)
+		mutation addFileToBox(
+			$boxId: ID!
+			$fileId: ID!
+			$hiveId: ID!
+			$boxType: String
+		) {
+			addFileToBox(
+				boxId: $boxId
+				fileId: $fileId
+				hiveId: $hiveId
+				boxType: $boxType
+			)
 		}
 	`)
 
@@ -159,13 +192,12 @@ export default function BottomBox({ boxId, hiveId }) {
 				boxId: boxId,
 				fileId: uploadData.id,
 				hiveId: hiveId,
-				boxType: "BOTTOM"
+				boxType: 'BOTTOM',
 			})
 
 			setIsUploading(false)
 			setIsDetecting(true)
 			refetchFiles({ requestPolicy: 'network-only' })
-
 		} catch (err) {
 			setError(err instanceof Error ? err : new Error('Upload failed'))
 			setIsUploading(false)
@@ -192,13 +224,16 @@ export default function BottomBox({ boxId, hiveId }) {
 
 	return (
 		<div className={styles.bottomBoxWrap}>
-			<div className={`${styles.previewContainer} ${isVarroaMonitoringLocked ? styles.previewLocked : ''}`}>
+			<div
+				className={`${styles.previewContainer} ${isVarroaMonitoringLocked ? styles.previewLocked : ''}`}
+			>
 				<h3>
 					<T>Bottom board - Varroa monitoring</T>
 				</h3>
 				<p>
 					<T ctx="description of hive bottom board feature">
-						Upload an image of the bottom board to count varroa mites. The white slideable panel should be visible in the photo.
+						Upload an image of the bottom board to count varroa mites. The white
+						slideable panel should be visible in the photo.
 					</T>
 				</p>
 
@@ -207,20 +242,26 @@ export default function BottomBox({ boxId, hiveId }) {
 				{isUploading && (
 					<div className={styles.uploadingState}>
 						<Loader size={0} stroke="#1976D2" />
-						<span><T>Uploading image...</T></span>
+						<span>
+							<T>Uploading image...</T>
+						</span>
 					</div>
 				)}
 
 				{isDetecting && (
 					<div className={styles.detectingState}>
 						<Loader size={0} stroke="#F57C00" />
-						<span><T>Detecting varroa mites...</T></span>
+						<span>
+							<T>Detecting varroa mites...</T>
+						</span>
 					</div>
 				)}
 
 				{hasDetections && (
 					<div className={styles.detectionCount}>
-						<strong><T>Detected varroa mites</T>: {varroaCount}</strong>
+						<strong>
+							<T>Detected varroa mites</T>: {varroaCount}
+						</strong>
 					</div>
 				)}
 
@@ -235,7 +276,7 @@ export default function BottomBox({ boxId, hiveId }) {
 									strokeHistory={[]}
 									onStrokeHistoryUpdate={() => {}}
 									frameSideFile={{
-										isVarroaDetectionComplete: hasDetections
+										isVarroaDetectionComplete: hasDetections,
 									}}
 									hideControls={true}
 								/>
@@ -248,21 +289,27 @@ export default function BottomBox({ boxId, hiveId }) {
 					<div className={styles.uploadArea}>
 						<div
 							className={styles.dropZone}
-							onDragEnter={e => e.preventDefault()}
-							onDragLeave={e => e.preventDefault()}
-							onDragOver={e => e.preventDefault()}
+							onDragEnter={(e) => e.preventDefault()}
+							onDragLeave={(e) => e.preventDefault()}
+							onDragOver={(e) => e.preventDefault()}
 							onDrop={onDrop}
-							onClick={() => !isVarroaMonitoringLocked && fileInputRef.current?.click()}
+							onClick={() =>
+								!isVarroaMonitoringLocked && fileInputRef.current?.click()
+							}
 						>
 							<div className={styles.dropZoneContent}>
 								<div className={styles.uploadButtonWrap}>
 									<Button
 										color="green"
 										disabled={isVarroaMonitoringLocked}
-										onClick={() => !isVarroaMonitoringLocked && fileInputRef.current?.click()}
+										onClick={() =>
+											!isVarroaMonitoringLocked && fileInputRef.current?.click()
+										}
 									>
 										<UploadIcon />
-										<span><T>Upload bottom board image</T></span>
+										<span>
+											<T>Upload bottom board image</T>
+										</span>
 									</Button>
 								</div>
 								<p className={styles.dropZoneHint}>

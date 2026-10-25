@@ -1,23 +1,27 @@
-import Button from '@/shared/button';
-import T from '@/shared/translate';
-import KeyboardHints from '@/shared/keyboardHints';
-import Slider from '@/shared/slider';
-import CellBrushIcon from '@/icons/cellBrushIcon.tsx';
-import EraserIcon from '@/icons/eraserIcon.tsx';
-import BrushSizeIcon from '@/icons/brushSizeIcon.tsx';
-import { CELL_TYPE_HINTS, CELL_TYPE_OPTIONS } from '../constants';
-import { getCellStyle, getContrastingTextColor } from '../drawCells';
-import styles from '../styles.module.less';
-import type { BrushCellType, BrushSizePreset, NonEraseBrushCellType } from '../types';
+import Button from '@/shared/button'
+import T from '@/shared/translate'
+import KeyboardHints from '@/shared/keyboardHints'
+import Slider from '@/shared/slider'
+import CellBrushIcon from '@/icons/cellBrushIcon.tsx'
+import EraserIcon from '@/icons/eraserIcon.tsx'
+import BrushSizeIcon from '@/icons/brushSizeIcon.tsx'
+import { CELL_TYPE_HINTS, CELL_TYPE_OPTIONS } from '../constants'
+import { getCellStyle, getContrastingTextColor } from '../drawCells'
+import styles from '../styles.module.less'
+import type {
+	BrushCellType,
+	BrushSizePreset,
+	NonEraseBrushCellType,
+} from '../types'
 
 type Props = {
-	brushSizePreset: BrushSizePreset;
-	onSetBrushSizePreset: (preset: BrushSizePreset) => void;
-	selectedCellType: BrushCellType;
-	onSetSelectedCellType: (type: BrushCellType) => void;
-	cellsOpacityPercent: number;
-	onSetCellsOpacityPercent: (value: number) => void;
-};
+	brushSizePreset: BrushSizePreset
+	onSetBrushSizePreset: (preset: BrushSizePreset) => void
+	selectedCellType: BrushCellType
+	onSetSelectedCellType: (type: BrushCellType) => void
+	cellsOpacityPercent: number
+	onSetCellsOpacityPercent: (value: number) => void
+}
 
 export default function FrameCellsToolbar({
 	brushSizePreset,
@@ -45,7 +49,10 @@ export default function FrameCellsToolbar({
 							onClick={() => onSetBrushSizePreset('small')}
 							style={{
 								opacity: brushSizePreset === 'small' ? 1 : 0.82,
-								border: brushSizePreset === 'small' ? '2px solid white' : '2px solid transparent',
+								border:
+									brushSizePreset === 'small'
+										? '2px solid white'
+										: '2px solid transparent',
 							}}
 						>
 							<BrushSizeIcon size={14} dotRadius={2} />
@@ -57,7 +64,10 @@ export default function FrameCellsToolbar({
 							onClick={() => onSetBrushSizePreset('medium')}
 							style={{
 								opacity: brushSizePreset === 'medium' ? 1 : 0.82,
-								border: brushSizePreset === 'medium' ? '2px solid white' : '2px solid transparent',
+								border:
+									brushSizePreset === 'medium'
+										? '2px solid white'
+										: '2px solid transparent',
 							}}
 						>
 							<BrushSizeIcon size={14} dotRadius={3} />
@@ -68,7 +78,10 @@ export default function FrameCellsToolbar({
 							onClick={() => onSetBrushSizePreset('large')}
 							style={{
 								opacity: brushSizePreset === 'large' ? 1 : 0.82,
-								border: brushSizePreset === 'large' ? '2px solid white' : '2px solid transparent',
+								border:
+									brushSizePreset === 'large'
+										? '2px solid white'
+										: '2px solid transparent',
 							}}
 						>
 							<BrushSizeIcon size={14} dotRadius={4.5} />
@@ -83,7 +96,10 @@ export default function FrameCellsToolbar({
 							opacity: selectedCellType === 'erase' ? 1 : 0.82,
 							background: 'rgb(90, 90, 90)',
 							color: '#fff',
-							border: selectedCellType === 'erase' ? '2px solid white' : '2px solid transparent',
+							border:
+								selectedCellType === 'erase'
+									? '2px solid white'
+									: '2px solid transparent',
 						}}
 					>
 						<EraserIcon size={14} color="#fff" />
@@ -94,30 +110,40 @@ export default function FrameCellsToolbar({
 			</div>
 			<div className={`${styles.toolbarRow} ${styles.toolbarRowSecond}`}>
 				<div className={`${styles.toolbarGroup} ${styles.toolbarCellTypes}`}>
-					{CELL_TYPE_OPTIONS.filter((option) => option.value !== 'erase').map((option) => {
-						const isSelected = selectedCellType === option.value;
-						const buttonBg = getCellStyle(option.value as number).fill;
-						const buttonText = getContrastingTextColor(buttonBg);
-						return (
-							<Button
-								key={String(option.value)}
-								size="small"
-								className={styles.cellTypeButton}
-								onClick={() => onSetSelectedCellType(option.value)}
-								style={{
-									opacity: isSelected ? 1 : 0.82,
-									background: buttonBg,
-									color: buttonText,
-									border: isSelected ? '2px solid white' : '2px solid transparent',
-								}}
-							>
-								{option.label}
-								<KeyboardHints keys={CELL_TYPE_HINTS[option.value as NonEraseBrushCellType]} />
-							</Button>
-						);
-					})}
+					{CELL_TYPE_OPTIONS.filter((option) => option.value !== 'erase').map(
+						(option) => {
+							const isSelected = selectedCellType === option.value
+							const buttonBg = getCellStyle(option.value as number).fill
+							const buttonText = getContrastingTextColor(buttonBg)
+							return (
+								<Button
+									key={String(option.value)}
+									size="small"
+									className={styles.cellTypeButton}
+									onClick={() => onSetSelectedCellType(option.value)}
+									style={{
+										opacity: isSelected ? 1 : 0.82,
+										background: buttonBg,
+										color: buttonText,
+										border: isSelected
+											? '2px solid white'
+											: '2px solid transparent',
+									}}
+								>
+									{option.label}
+									<KeyboardHints
+										keys={
+											CELL_TYPE_HINTS[option.value as NonEraseBrushCellType]
+										}
+									/>
+								</Button>
+							)
+						}
+					)}
 				</div>
-				<div className={`${styles.toolbarGroup} ${styles.toolbarRight} ${styles.toolbarSliderGroup}`}>
+				<div
+					className={`${styles.toolbarGroup} ${styles.toolbarRight} ${styles.toolbarSliderGroup}`}
+				>
 					<span className={styles.toolbarSliderLabel}>
 						<T>Cells opacity</T>
 					</span>
@@ -128,13 +154,17 @@ export default function FrameCellsToolbar({
 						min={0}
 						max={100}
 						onChange={(event: Event) => {
-							const nextValue = Number((event.target as HTMLInputElement | null)?.value);
-							onSetCellsOpacityPercent(nextValue);
+							const nextValue = Number(
+								(event.target as HTMLInputElement | null)?.value
+							)
+							onSetCellsOpacityPercent(nextValue)
 						}}
 					/>
-					<span className={styles.toolbarSliderValue}>{cellsOpacityPercent}%</span>
+					<span className={styles.toolbarSliderValue}>
+						{cellsOpacityPercent}%
+					</span>
 				</div>
 			</div>
 		</div>
-	);
+	)
 }

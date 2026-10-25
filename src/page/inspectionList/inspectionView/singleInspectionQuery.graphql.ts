@@ -9,7 +9,7 @@ export default gql`
 			data
 			added
 		}
-		
+
 		hive(id: $hiveId) {
 			__typename
 			id
@@ -34,9 +34,9 @@ export default gql`
 
 			file {
 				__typename
-				id				
+				id
 				url
-				
+
 				resizes {
 					__typename
 					id

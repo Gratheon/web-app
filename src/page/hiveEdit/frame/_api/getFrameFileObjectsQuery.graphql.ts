@@ -18,18 +18,18 @@ export default gql`
 			pollenPercent
 			honeyPercent
 		}
-		
+
 		hiveFrameSideFile(frameSideId: $frameSideId) {
 			frameSideId
 			strokeHistory
-			
+
 			detectedBees
 			detectedDrones
 			isDroneDetectionComplete
 			detectedVarroa
 			varroaCount
 			isVarroaDetectionComplete
-			
+
 			detectedQueenCount
 			detectedWorkerBeeCount
 			detectedDroneCount
@@ -42,15 +42,15 @@ export default gql`
 			isQueenCupsDetectionComplete
 			isQueenDetectionComplete
 
-				file{
+			file {
+				id
+				url
+				resizes {
 					id
+					max_dimension_px
 					url
-					resizes {
-						id
-						max_dimension_px
-						url
-					}
 				}
+			}
 		}
 	}
 `

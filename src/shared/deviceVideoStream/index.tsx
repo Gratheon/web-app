@@ -8,12 +8,14 @@ import { videoUploadUri } from '@/uri.ts'
 
 import styles from './styles.module.less'
 
-const CAMERA_PERMISSION_DESCRIPTOR = { name: 'camera' } as PermissionDescriptor & { name: 'camera' }
+const CAMERA_PERMISSION_DESCRIPTOR = {
+	name: 'camera',
+} as PermissionDescriptor & { name: 'camera' }
 
 const UPLOAD_GATE_VIDEO_MUTATION = gql`
-mutation uploadGateVideo($file: Upload!, $boxId: ID!) {
-	uploadGateVideo(file: $file, boxId: $boxId)
-}
+	mutation uploadGateVideo($file: Upload!, $boxId: ID!) {
+		uploadGateVideo(file: $file, boxId: $boxId)
+	}
 `
 
 function logDebug(message: string, payload?: any) {
@@ -38,9 +40,14 @@ export default function DeviceVideoStream({
 	const [cameraDevices, setCameraDevices] = useState<MediaDeviceInfo[]>([])
 	const [selectedCameraDeviceId, setSelectedCameraDeviceId] = useState('')
 	const [isCaptureStarted, setIsCaptureStarted] = useState(false)
-	const [uploadState, setUploadState] = useState<'idle' | 'waiting' | 'ok' | 'fail'>('idle')
+	const [uploadState, setUploadState] = useState<
+		'idle' | 'waiting' | 'ok' | 'fail'
+	>('idle')
 
-	const uploadMutation: any = useUploadMutation(UPLOAD_GATE_VIDEO_MUTATION, videoUploadUri())
+	const uploadMutation: any = useUploadMutation(
+		UPLOAD_GATE_VIDEO_MUTATION,
+		videoUploadUri()
+	)
 	const uploadFile: any = uploadMutation[0]
 	const uploadResponse: any = uploadMutation[1]?.data
 	const uploadFileRef = useRef<any>(null)
@@ -64,12 +71,14 @@ export default function DeviceVideoStream({
 			canUpload,
 		})
 
-			const checkCameraPermission = async () => {
-				try {
-					const permissionStatus = await navigator.permissions.query(CAMERA_PERMISSION_DESCRIPTOR)
-					setHasCameraPermission(permissionStatus.state === 'granted')
-					logDebug('camera permission status', permissionStatus.state)
-				} catch (error) {
+		const checkCameraPermission = async () => {
+			try {
+				const permissionStatus = await navigator.permissions.query(
+					CAMERA_PERMISSION_DESCRIPTOR
+				)
+				setHasCameraPermission(permissionStatus.state === 'granted')
+				logDebug('camera permission status', permissionStatus.state)
+			} catch (error) {
 				console.error('Error checking camera permission:', error)
 				logDebug('camera permission query failed', error)
 			}
@@ -79,10 +88,13 @@ export default function DeviceVideoStream({
 			try {
 				const devices = await navigator.mediaDevices.enumerateDevices()
 				const cameras = devices.filter((device) => device.kind === 'videoinput')
-				logDebug('enumerated cameras', cameras.map((camera) => ({
-					deviceId: camera.deviceId,
-					label: camera.label,
-				})))
+				logDebug(
+					'enumerated cameras',
+					cameras.map((camera) => ({
+						deviceId: camera.deviceId,
+						label: camera.label,
+					}))
+				)
 				setCameraDevices(cameras)
 				if (!selectedCameraDeviceId && cameras.length > 0) {
 					setSelectedCameraDeviceId(cameras[0].deviceId)
@@ -115,7 +127,10 @@ export default function DeviceVideoStream({
 				clearTimeout(timeoutRef.current)
 				timeoutRef.current = null
 			}
-			if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+			if (
+				mediaRecorderRef.current &&
+				mediaRecorderRef.current.state !== 'inactive'
+			) {
 				mediaRecorderRef.current.stop()
 			}
 		}
@@ -136,7 +151,9 @@ export default function DeviceVideoStream({
 				})
 				const stream = await navigator.mediaDevices.getUserMedia({
 					video: {
-						deviceId: selectedCameraDeviceId ? { exact: selectedCameraDeviceId } : undefined,
+						deviceId: selectedCameraDeviceId
+							? { exact: selectedCameraDeviceId }
+							: undefined,
 					},
 				})
 				logDebug('camera stream acquired', {
@@ -230,7 +247,13 @@ export default function DeviceVideoStream({
 			logDebug('capture effect cleanup')
 			stopVideoCapture()
 		}
-	}, [boxId, canUpload, hasCameraPermission, isCaptureStarted, selectedCameraDeviceId])
+	}, [
+		boxId,
+		canUpload,
+		hasCameraPermission,
+		isCaptureStarted,
+		selectedCameraDeviceId,
+	])
 
 	useEffect(() => {
 		if (!isCaptureStarted && videoRef.current?.srcObject) {
@@ -282,11 +305,15 @@ export default function DeviceVideoStream({
 
 	return (
 		<section className={styles.panel}>
-			<h3>👁️‍🗨️ <T>Entrance Observer</T></h3>
+			<h3>
+				👁️‍🗨️ <T>Entrance Observer</T>
+			</h3>
 			<p className={styles.description}>
 				<T>
-					Entrance Observer allows you to monitor your hive entrance by counting bees entering and exiting.
-					It can also stream video to the app for playback. You can even use your phone camera to stream video to the app.
+					Entrance Observer allows you to monitor your hive entrance by counting
+					bees entering and exiting. It can also stream video to the app for
+					playback. You can even use your phone camera to stream video to the
+					app.
 				</T>
 			</p>
 
@@ -300,8 +327,14 @@ export default function DeviceVideoStream({
 				<div className={styles.content}>
 					<VisualForm className={styles.form}>
 						<div className={styles.controlsRow}>
-							<label htmlFor="camera-select"><T>Camera</T></label>
-							<select id="camera-select" value={selectedCameraDeviceId} onInput={handleCameraChange}>
+							<label htmlFor="camera-select">
+								<T>Camera</T>
+							</label>
+							<select
+								id="camera-select"
+								value={selectedCameraDeviceId}
+								onInput={handleCameraChange}
+							>
 								{cameraDevices.map((camera) => (
 									<option key={camera.deviceId} value={camera.deviceId}>
 										{camera.label || `Camera ${camera.deviceId}`}
@@ -336,18 +369,42 @@ export default function DeviceVideoStream({
 
 					{!canUpload && (
 						<div className={styles.warning}>
-							<strong><T>Upload disabled</T>:</strong>{' '}
-							<T>This device is not linked to a hive entrance section (box). Stream works as local preview only.</T>
+							<strong>
+								<T>Upload disabled</T>:
+							</strong>{' '}
+							<T>
+								This device is not linked to a hive entrance section (box).
+								Stream works as local preview only.
+							</T>
 						</div>
 					)}
 
 					{isCaptureStarted && (
 						<div className={styles.status}>
-							<div>🟢 <T>Video recording in progress</T></div>
-							{!canUpload && <div>🟠 <T>Upload disabled because device is not linked to a box</T></div>}
-							{uploadState === 'waiting' && <div>🟡 <T>Waiting for next fragment upload (about 10 seconds)</T></div>}
-							{uploadState === 'ok' && <div>🟢 <T>Fragment upload succeeded</T></div>}
-							{uploadState === 'fail' && <div>🔴 <T>Fragment upload failed</T></div>}
+							<div>
+								🟢 <T>Video recording in progress</T>
+							</div>
+							{!canUpload && (
+								<div>
+									🟠{' '}
+									<T>Upload disabled because device is not linked to a box</T>
+								</div>
+							)}
+							{uploadState === 'waiting' && (
+								<div>
+									🟡 <T>Waiting for next fragment upload (about 10 seconds)</T>
+								</div>
+							)}
+							{uploadState === 'ok' && (
+								<div>
+									🟢 <T>Fragment upload succeeded</T>
+								</div>
+							)}
+							{uploadState === 'fail' && (
+								<div>
+									🔴 <T>Fragment upload failed</T>
+								</div>
+							)}
 						</div>
 					)}
 

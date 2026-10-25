@@ -28,18 +28,19 @@ h5 {
 	margin: 0;
 }
 
-input{
+input {
 	border-radius: 5px;
 	border: 1px solid gray;
 	box-sizing: border-box;
 	height: 32px;
 }
 
-input:focus, textarea:focus{
+input:focus,
+textarea:focus {
 	outline: 2px solid rgb(30, 95, 234);
 }
 
-textarea{
+textarea {
 	border-radius: 5px;
 	border: 1px solid gray;
 }

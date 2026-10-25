@@ -25,7 +25,9 @@ export default {
 		}
 
 		const allHives = await db.hive.limit(500).toArray()
-		const hasApiaryRelations = allHives.some((hive) => hive?.apiaryId != null || hive?.apiary_id != null)
+		const hasApiaryRelations = allHives.some(
+			(hive) => hive?.apiaryId != null || hive?.apiary_id != null
+		)
 		const apiaryHives = allHives.filter((hive) => {
 			if (!hasApiaryRelations) {
 				return true
@@ -34,11 +36,16 @@ export default {
 			return String(hiveApiaryId) === String(apiary.id)
 		})
 
-		const hiveIds = apiaryHives.map((hive) => Number(hive?.id)).filter((hiveId) => Number.isFinite(hiveId))
-		const families = hiveIds.length > 0
-			? await db.family.where('hiveId').anyOf(hiveIds).toArray()
-			: []
-		const familyByHiveId = new Map(families.map((family) => [String(family?.hiveId), family]))
+		const hiveIds = apiaryHives
+			.map((hive) => Number(hive?.id))
+			.filter((hiveId) => Number.isFinite(hiveId))
+		const families =
+			hiveIds.length > 0
+				? await db.family.where('hiveId').anyOf(hiveIds).toArray()
+				: []
+		const familyByHiveId = new Map(
+			families.map((family) => [String(family?.hiveId), family])
+		)
 
 		const hives = apiaryHives.map((hive) => ({
 			...hive,
@@ -55,7 +62,9 @@ export default {
 		const allHives = await db.hive.limit(500).toArray()
 		const allBoxes = await db.box.limit(2000).toArray()
 		const allFamilies = await db.family.limit(2000).toArray()
-		const hasApiaryRelations = allHives.some((hive) => hive?.apiaryId != null || hive?.apiary_id != null)
+		const hasApiaryRelations = allHives.some(
+			(hive) => hive?.apiaryId != null || hive?.apiary_id != null
+		)
 
 		const familiesByHiveId = new Map()
 		for (const family of allFamilies) {
@@ -82,7 +91,9 @@ export default {
 				// WHY: keep offline resolver order identical to backend list order
 				// to avoid hive icon section reordering when network data arrives.
 				const boxes = allBoxes
-					.filter((box) => String(box?.hiveId ?? box?.hive_id) === String(hive.id))
+					.filter(
+						(box) => String(box?.hiveId ?? box?.hive_id) === String(hive.id)
+					)
 					.sort((a, b) => Number(b?.position || 0) - Number(a?.position || 0))
 				const families = familiesByHiveId.get(String(hive.id)) || []
 				return { ...hive, boxes, family: families[0] || null, families }
@@ -121,7 +132,7 @@ export default {
 			hive.boxes = await db.box.where({ hiveId: id }).toArray()
 
 			for await (const box of hive.boxes) {
-				box.frames = await getFrames({boxId: +box.id});
+				box.frames = await getFrames({ boxId: +box.id })
 			}
 		} catch (e) {
 			console.error(e)
@@ -159,7 +170,8 @@ export default {
 					fileData = await getFile(record.fileId)
 					if (fileData) {
 						// Ensure resizes is an array, even if null/undefined from DB
-						fileData.resizes = (await getFileResizes({ file_id: record.fileId })) || []
+						fileData.resizes =
+							(await getFileResizes({ file_id: record.fileId })) || []
 					}
 				}
 

@@ -83,23 +83,23 @@ export default function HiveEditForm() {
 			if (isTypingTarget(event.target)) return
 			if (isModalTarget(event.target)) return
 
-				const key = event.key
-				const isNavigationModifier = event.ctrlKey || event.metaKey
+			const key = event.key
+			const isNavigationModifier = event.ctrlKey || event.metaKey
 
-				if (isNavigationModifier && key.toLowerCase() === 'a') {
-					if (!apiaryId) return
-					event.preventDefault()
-					navigate(`/apiaries/${apiaryId}`, { replace: true })
-					return
-				}
+			if (isNavigationModifier && key.toLowerCase() === 'a') {
+				if (!apiaryId) return
+				event.preventDefault()
+				navigate(`/apiaries/${apiaryId}`, { replace: true })
+				return
+			}
 
-				if (isNavigationModifier && key.toLowerCase() === 'h') {
-					event.preventDefault()
-					navigate('/apiaries', { replace: true })
-					return
-				}
+			if (isNavigationModifier && key.toLowerCase() === 'h') {
+				event.preventDefault()
+				navigate('/apiaries', { replace: true })
+				return
+			}
 
-				if (event.ctrlKey || event.metaKey) return
+			if (event.ctrlKey || event.metaKey) return
 			if (mapTab !== 'structure') return
 
 			if (key === 'Backspace') {
@@ -136,8 +136,8 @@ export default function HiveEditForm() {
 							currentIndex < 0
 								? 0
 								: currentIndex >= sortedBoxes.length - 1
-								? sortedBoxes.length - 1
-								: currentIndex + 1
+									? sortedBoxes.length - 1
+									: currentIndex + 1
 					} else {
 						nextIndex = currentIndex <= 0 ? 0 : currentIndex - 1
 					}
@@ -171,8 +171,8 @@ export default function HiveEditForm() {
 							currentIndex < 0
 								? 0
 								: currentIndex >= sortedFrames.length - 1
-								? sortedFrames.length - 1
-								: currentIndex + 1
+									? sortedFrames.length - 1
+									: currentIndex + 1
 					}
 
 					if (nextIndex === currentIndex || nextIndex < 0) return

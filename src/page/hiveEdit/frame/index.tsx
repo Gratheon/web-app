@@ -39,11 +39,12 @@ export default function Frame({
 	}
 
 	let [frameRemoving, setFrameRemoving] = useState<boolean>(false)
-	const [removeFrameDialogVisible, setRemoveFrameDialogVisible] = useState(false)
+	const [removeFrameDialogVisible, setRemoveFrameDialogVisible] =
+		useState(false)
 	const { increaseWarehouseForFrameByFrameId } = useWarehouseAutoAdjust()
 	const [isIpadMode, setIsIpadMode] = useState(false)
 	// Model functions now handle invalid IDs
-	let frame = useLiveQuery(() => getFrame(+frameId), [frameId]);
+	let frame = useLiveQuery(() => getFrame(+frameId), [frameId])
 
 	useEffect(() => {
 		const detectIpadMode = () => {
@@ -59,7 +60,6 @@ export default function Frame({
 	}, [])
 
 	// Removed subscription for queen confirmation updates
-
 
 	if (frameRemoving) {
 		return <Loading />
@@ -167,9 +167,7 @@ export default function Frame({
 				</T>
 			)}
 			{frame.type === 'VOID' && (
-				<T ctx="This is a beehive frame without any wax">
-					Frame without wax
-				</T>
+				<T ctx="This is a beehive frame without any wax">Frame without wax</T>
 			)}
 		</>
 	)
@@ -183,56 +181,56 @@ export default function Frame({
 					<h3 className={styles.frameTypeTitle}>{frameTypeTitle}</h3>
 					<div className={styles.frameHeaderControls}>
 						<div className={styles.frameHeaderLeft}>
-						{frame && (
-							<BoxFrame
-								box={box}
-								frame={frame}
-								apiaryId={apiaryId}
-								hiveId={hiveId}
-								frameId={frameId}
-								frameSideId={frameSideId}
-								editable={true}
-								displayMode="visual"
-							/>
-						)}
+							{frame && (
+								<BoxFrame
+									box={box}
+									frame={frame}
+									apiaryId={apiaryId}
+									hiveId={hiveId}
+									frameId={frameId}
+									frameSideId={frameSideId}
+									editable={true}
+									displayMode="visual"
+								/>
+							)}
 						</div>
 
 						<div className={styles.frameHeaderMiddle}>
 							<MetricList frameSideId={frameSideId} />
 						</div>
 						<div className={styles.frameHeaderRight}>
-						{frameSideId && (
+							{frameSideId && (
+								<Button
+									iconOnly={isIpadMode}
+									title="Edit canvas"
+									onClick={() =>
+										navigate(
+											`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}/frame/${frameId}/${frameSideId}/canvas-edit`
+										)
+									}
+								>
+									<FreeDrawIcon size={14} />
+									{!isIpadMode && (
+										<span>
+											<T>Edit canvas</T>
+										</span>
+									)}
+								</Button>
+							)}
+
 							<Button
+								color="red"
+								title="Remove frame"
 								iconOnly={isIpadMode}
-								title="Edit canvas"
-								onClick={() =>
-									navigate(
-										`/apiaries/${apiaryId}/hives/${hiveId}/box/${boxId}/frame/${frameId}/${frameSideId}/canvas-edit`
-									)
-								}
+								onClick={() => setRemoveFrameDialogVisible(true)}
 							>
-								<FreeDrawIcon size={14} />
+								<DeleteIcon />
 								{!isIpadMode && (
 									<span>
-										<T>Edit canvas</T>
+										<T>Remove frame</T>
 									</span>
 								)}
 							</Button>
-						)}
-
-					<Button
-						color="red"
-						title="Remove frame"
-						iconOnly={isIpadMode}
-						onClick={() => setRemoveFrameDialogVisible(true)}
-					>
-						<DeleteIcon />
-						{!isIpadMode && (
-							<span>
-								<T>Remove frame</T>
-							</span>
-						)}
-					</Button>
 						</div>
 					</div>
 				</div>
@@ -257,18 +255,27 @@ export default function Frame({
 					</div>
 					<div className={styles.removeFrameActions}>
 						<div className={styles.actionWithHint}>
-							<Button color="gray" onClick={() => setRemoveFrameDialogVisible(false)}>
+							<Button
+								color="gray"
+								onClick={() => setRemoveFrameDialogVisible(false)}
+							>
 								<T>Cancel</T>
 							</Button>
 							<div className={styles.keyHint}>Esc</div>
 						</div>
 						<div className={styles.actionWithHint}>
-							<Button color="red" onClick={async () => await onFrameRemoveChoice('trash')}>
+							<Button
+								color="red"
+								onClick={async () => await onFrameRemoveChoice('trash')}
+							>
 								<T>To trash</T>
 							</Button>
 						</div>
 						<div className={styles.actionWithHint}>
-							<Button color="green" onClick={async () => await onFrameRemoveChoice('warehouse')}>
+							<Button
+								color="green"
+								onClick={async () => await onFrameRemoveChoice('warehouse')}
+							>
 								<T>To warehouse</T>
 							</Button>
 							<div className={styles.keyHint}>Enter</div>

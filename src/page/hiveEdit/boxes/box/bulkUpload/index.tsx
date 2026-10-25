@@ -11,7 +11,12 @@ import UploadIcon from '@/icons/uploadIcon.tsx'
 import styles from './index.module.less'
 import metrics from '@/metrics.tsx'
 
-const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+const SUPPORTED_IMAGE_TYPES = [
+	'image/jpeg',
+	'image/png',
+	'image/gif',
+	'image/webp',
+]
 const SUPPORTED_IMAGE_TYPES_STRING = SUPPORTED_IMAGE_TYPES.join(', ')
 const MAX_FILE_SIZE_MB = 30
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
@@ -38,7 +43,11 @@ type BulkUploadProps = {
 	onComplete?: () => void
 }
 
-export default function BulkUpload({ hiveId, frames, onComplete }: BulkUploadProps) {
+export default function BulkUpload({
+	hiveId,
+	frames,
+	onComplete,
+}: BulkUploadProps) {
 	const { confirm, ConfirmDialog } = useConfirm()
 	const [isOpen, setIsOpen] = useState(false)
 	const [images, setImages] = useState<ImagePreview[]>([])
@@ -65,24 +74,38 @@ export default function BulkUpload({ hiveId, frames, onComplete }: BulkUploadPro
 	`)
 
 	const [linkFrameSideToFileMutation] = useMutation(gql`
-		mutation addFileToFrameSide($frameSideId: ID!, $fileId: ID!, $hiveId: ID!) { 
-			addFileToFrameSide(frameSideId: $frameSideId, fileId: $fileId, hiveId: $hiveId)
+		mutation addFileToFrameSide($frameSideId: ID!, $fileId: ID!, $hiveId: ID!) {
+			addFileToFrameSide(
+				frameSideId: $frameSideId
+				fileId: $fileId
+				hiveId: $hiveId
+			)
 		}
 	`)
 
-	const availableFrameSides = frames.flatMap(frame => {
-		const sides = []
-		if (!frame.leftSide?.frameSideFile) {
-			sides.push({ frameSideId: frame.leftId, position: frame.position, side: 'left' })
-		}
-		if (!frame.rightSide?.frameSideFile) {
-			sides.push({ frameSideId: frame.rightId, position: frame.position, side: 'right' })
-		}
-		return sides
-	}).sort((a, b) => {
-		if (a.position !== b.position) return a.position - b.position
-		return a.side === 'left' ? -1 : 1
-	})
+	const availableFrameSides = frames
+		.flatMap((frame) => {
+			const sides = []
+			if (!frame.leftSide?.frameSideFile) {
+				sides.push({
+					frameSideId: frame.leftId,
+					position: frame.position,
+					side: 'left',
+				})
+			}
+			if (!frame.rightSide?.frameSideFile) {
+				sides.push({
+					frameSideId: frame.rightId,
+					position: frame.position,
+					side: 'right',
+				})
+			}
+			return sides
+		})
+		.sort((a, b) => {
+			if (a.position !== b.position) return a.position - b.position
+			return a.side === 'left' ? -1 : 1
+		})
 
 	const maxImages = availableFrameSides.length
 
@@ -105,7 +128,7 @@ export default function BulkUpload({ hiveId, frames, onComplete }: BulkUploadPro
 
 			validFiles.push({
 				file,
-				previewUrl: URL.createObjectURL(file)
+				previewUrl: URL.createObjectURL(file),
 			})
 		}
 
@@ -115,7 +138,7 @@ export default function BulkUpload({ hiveId, frames, onComplete }: BulkUploadPro
 			setError(null)
 		}
 
-		setImages(prev => [...prev, ...validFiles].slice(0, maxImages))
+		setImages((prev) => [...prev, ...validFiles].slice(0, maxImages))
 	}
 
 	const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
@@ -143,7 +166,7 @@ export default function BulkUpload({ hiveId, frames, onComplete }: BulkUploadPro
 	}
 
 	const removeImage = (index: number) => {
-		setImages(prev => {
+		setImages((prev) => {
 			const newImages = [...prev]
 			URL.revokeObjectURL(newImages[index].previewUrl)
 			newImages.splice(index, 1)
@@ -152,7 +175,7 @@ export default function BulkUpload({ hiveId, frames, onComplete }: BulkUploadPro
 	}
 
 	const moveImage = (fromIndex: number, toIndex: number) => {
-		setImages(prev => {
+		setImages((prev) => {
 			const newImages = [...prev]
 			const [moved] = newImages.splice(fromIndex, 1)
 			newImages.splice(toIndex, 0, moved)
@@ -193,12 +216,12 @@ export default function BulkUpload({ hiveId, frames, onComplete }: BulkUploadPro
 				updatedImages[i] = { ...image, uploadProgress: 50 }
 				setImages([...updatedImages])
 
-					await updateFile({
-						id: +uploadData.id,
-						url: uploadData.url,
-						resizes: uploadData.resizes || [],
-						...getPhotoTimestamps(image.file),
-					})
+				await updateFile({
+					id: +uploadData.id,
+					url: uploadData.url,
+					resizes: uploadData.resizes || [],
+					...getPhotoTimestamps(image.file),
+				})
 
 				updatedImages[i] = { ...image, uploadProgress: 70 }
 				setImages([...updatedImages])
@@ -206,7 +229,7 @@ export default function BulkUpload({ hiveId, frames, onComplete }: BulkUploadPro
 				const linkResult = await linkFrameSideToFileMutation({
 					frameSideId: String(frameSide.frameSideId),
 					fileId: String(uploadData.id),
-					hiveId: String(hiveId)
+					hiveId: String(hiveId),
 				})
 
 				if (linkResult?.error) {
@@ -217,31 +240,39 @@ export default function BulkUpload({ hiveId, frames, onComplete }: BulkUploadPro
 				updatedImages[i] = { ...image, uploadProgress: 90 }
 				setImages([...updatedImages])
 
-			await updateFrameSideFile({
-				id: +frameSide.frameSideId,
-				fileId: +uploadData.id,
-				frameSideId: +frameSide.frameSideId,
-				strokeHistory: [],
-				detectedBees: [],
-				detectedDrones: [],
-				detectedCells: [],
-				detectedQueenCups: [],
-				detectedVarroa: [],
-				counts: [],
-				detectedQueenCount: 0,
-				detectedWorkerBeeCount: 0,
-				detectedDroneCount: 0,
-				varroaCount: 0,
-				// New upload starts async detection jobs, including varroa, so keep UI polling until it completes.
-				isVarroaDetectionComplete: false
-			})
+				await updateFrameSideFile({
+					id: +frameSide.frameSideId,
+					fileId: +uploadData.id,
+					frameSideId: +frameSide.frameSideId,
+					strokeHistory: [],
+					detectedBees: [],
+					detectedDrones: [],
+					detectedCells: [],
+					detectedQueenCups: [],
+					detectedVarroa: [],
+					counts: [],
+					detectedQueenCount: 0,
+					detectedWorkerBeeCount: 0,
+					detectedDroneCount: 0,
+					varroaCount: 0,
+					// New upload starts async detection jobs, including varroa, so keep UI polling until it completes.
+					isVarroaDetectionComplete: false,
+				})
 
-				updatedImages[i] = { ...image, uploadProgress: 100, uploaded: true, frameSideId: frameSide.frameSideId }
+				updatedImages[i] = {
+					...image,
+					uploadProgress: 100,
+					uploaded: true,
+					frameSideId: frameSide.frameSideId,
+				}
 				setImages([...updatedImages])
 
 				metrics.trackFramePhotoUploaded()
 			} catch (err) {
-				updatedImages[i] = { ...image, error: err instanceof Error ? err.message : 'Upload failed' }
+				updatedImages[i] = {
+					...image,
+					error: err instanceof Error ? err.message : 'Upload failed',
+				}
 			}
 		}
 
@@ -259,14 +290,18 @@ export default function BulkUpload({ hiveId, frames, onComplete }: BulkUploadPro
 		if (isUploading && !uploadComplete) {
 			const confirmed = await confirm(
 				'Upload is in progress. Are you sure you want to close?',
-				{ confirmText: 'Close', cancelText: 'Continue Upload', isDangerous: true }
+				{
+					confirmText: 'Close',
+					cancelText: 'Continue Upload',
+					isDangerous: true,
+				}
 			)
 
 			if (!confirmed) {
 				return
 			}
 		}
-		images.forEach(img => URL.revokeObjectURL(img.previewUrl))
+		images.forEach((img) => URL.revokeObjectURL(img.previewUrl))
 		setImages([])
 		setError(null)
 		setIsUploading(false)
@@ -284,7 +319,9 @@ export default function BulkUpload({ hiveId, frames, onComplete }: BulkUploadPro
 		<>
 			<Button onClick={() => setIsOpen(true)}>
 				<UploadIcon />
-				<span><T>Bulk upload frame photos</T></span>
+				<span>
+					<T>Bulk upload frame photos</T>
+				</span>
 			</Button>
 
 			{isOpen && (
@@ -305,18 +342,22 @@ export default function BulkUpload({ hiveId, frames, onComplete }: BulkUploadPro
 									<>
 										<br />
 										<span className={styles.warning}>
-											⚠️ <T>Too many images selected. Only first</T> {maxImages} <T>will be uploaded</T>.
+											⚠️ <T>Too many images selected. Only first</T> {maxImages}{' '}
+											<T>will be uploaded</T>.
 										</span>
 									</>
 								)}
-								{images.length > 0 && images.length < maxImages && !isUploading && (
-									<>
-										<br />
-										<span className={styles.warning}>
-											⚠️ <T>You have fewer images than available frame sides</T>.
-										</span>
-									</>
-								)}
+								{images.length > 0 &&
+									images.length < maxImages &&
+									!isUploading && (
+										<>
+											<br />
+											<span className={styles.warning}>
+												⚠️{' '}
+												<T>You have fewer images than available frame sides</T>.
+											</span>
+										</>
+									)}
 							</p>
 						</div>
 
@@ -333,14 +374,19 @@ export default function BulkUpload({ hiveId, frames, onComplete }: BulkUploadPro
 									type="file"
 									multiple
 									accept={SUPPORTED_IMAGE_TYPES_STRING}
-									onChange={(e) => handleFileSelect((e.target as HTMLInputElement).files)}
+									onChange={(e) =>
+										handleFileSelect((e.target as HTMLInputElement).files)
+									}
 									className={styles.fileInput}
 								/>
 								<div className={styles.dropZoneContent}>
 									<UploadIcon />
-									<p><T>Drag and drop images here or click to select</T></p>
+									<p>
+										<T>Drag and drop images here or click to select</T>
+									</p>
 									<p className={styles.dropZoneHint}>
-										<T>Supported: JPEG, PNG, GIF, WebP</T> • <T>Max</T> {MAX_FILE_SIZE_MB}MB <T>per file</T>
+										<T>Supported: JPEG, PNG, GIF, WebP</T> • <T>Max</T>{' '}
+										{MAX_FILE_SIZE_MB}MB <T>per file</T>
 									</p>
 								</div>
 							</div>
@@ -356,10 +402,14 @@ export default function BulkUpload({ hiveId, frames, onComplete }: BulkUploadPro
 											{!isUploading && (
 												<div className={styles.previewActions}>
 													{index > 0 && (
-														<button onClick={() => moveImage(index, index - 1)}>↑</button>
+														<button onClick={() => moveImage(index, index - 1)}>
+															↑
+														</button>
 													)}
 													{index < images.length - 1 && (
-														<button onClick={() => moveImage(index, index + 1)}>↓</button>
+														<button onClick={() => moveImage(index, index + 1)}>
+															↓
+														</button>
 													)}
 													<button onClick={() => removeImage(index)}>×</button>
 												</div>
@@ -381,7 +431,8 @@ export default function BulkUpload({ hiveId, frames, onComplete }: BulkUploadPro
 										</div>
 										{availableFrameSides[index] && (
 											<div className={styles.frameSideInfo}>
-												<T>Frame</T> {availableFrameSides[index].position} • {availableFrameSides[index].side}
+												<T>Frame</T> {availableFrameSides[index].position} •{' '}
+												{availableFrameSides[index].side}
 											</div>
 										)}
 									</div>
@@ -391,10 +442,12 @@ export default function BulkUpload({ hiveId, frames, onComplete }: BulkUploadPro
 
 						<div className={styles.actions}>
 							{!isUploading && !uploadComplete && images.length > 0 && (
-								<Button onClick={() => {
-									images.forEach(img => URL.revokeObjectURL(img.previewUrl))
-									setImages([])
-								}}>
+								<Button
+									onClick={() => {
+										images.forEach((img) => URL.revokeObjectURL(img.previewUrl))
+										setImages([])
+									}}
+								>
 									<T>Clear all</T>
 								</Button>
 							)}
@@ -404,7 +457,8 @@ export default function BulkUpload({ hiveId, frames, onComplete }: BulkUploadPro
 									disabled={!canUpload}
 									color="green"
 								>
-									<T>Upload</T> {images.length} {images.length === 1 ? <T>image</T> : <T>images</T>}
+									<T>Upload</T> {images.length}{' '}
+									{images.length === 1 ? <T>image</T> : <T>images</T>}
 								</Button>
 							)}
 							{uploadComplete && (
@@ -420,4 +474,3 @@ export default function BulkUpload({ hiveId, frames, onComplete }: BulkUploadPro
 		</>
 	)
 }
-

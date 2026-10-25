@@ -8,9 +8,7 @@ import Loader from '@/shared/loader'
 import PagePaddedCentered from '@/shared/pagePaddedCentered'
 import T, { useTranslation } from '@/shared/translate'
 import VisualForm from '@/shared/visualForm'
-import {
-	applyFrameSourceToAllBoxTypes,
-} from './boxSystemProfiles'
+import { applyFrameSourceToAllBoxTypes } from './boxSystemProfiles'
 import styles from './style.module.less'
 
 type BoxSystem = {
@@ -40,7 +38,10 @@ type HiveSystemTemplate = {
 
 const EDITABLE_BOX_TYPES: EditableBoxType[] = ['DEEP', 'SUPER']
 
-const INITIAL_DIMENSIONS_BY_TYPE: Record<EditableBoxType, BoxSpecDimensionDraft> = {
+const INITIAL_DIMENSIONS_BY_TYPE: Record<
+	EditableBoxType,
+	BoxSpecDimensionDraft
+> = {
 	DEEP: {
 		internalWidthMm: '',
 		internalLengthMm: '',
@@ -66,7 +67,8 @@ const INITIAL_DIMENSIONS_BY_TYPE: Record<EditableBoxType, BoxSpecDimensionDraft>
 const HIVE_SYSTEM_TEMPLATES: HiveSystemTemplate[] = [
 	{
 		name: 'Langstroth',
-		description: 'Deep frame 448×232 mm, super frame 448×159 mm; prefilled values are editable',
+		description:
+			'Deep frame 448×232 mm, super frame 448×159 mm; prefilled values are editable',
 		dimensionsByType: {
 			DEEP: {
 				internalWidthMm: '465',
@@ -91,7 +93,8 @@ const HIVE_SYSTEM_TEMPLATES: HiveSystemTemplate[] = [
 	{
 		name: 'National',
 		aliases: ['British National'],
-		description: 'British National: brood frame 356×216 mm, super frame 356×140 mm; editable',
+		description:
+			'British National: brood frame 356×216 mm, super frame 356×140 mm; editable',
 		dimensionsByType: {
 			DEEP: {
 				internalWidthMm: '460',
@@ -116,7 +119,8 @@ const HIVE_SYSTEM_TEMPLATES: HiveSystemTemplate[] = [
 	{
 		name: 'Dadant-Blatt',
 		aliases: ['Dadant'],
-		description: 'Dadant-Blatt: brood frame 435×300 mm, super frame 435×160 mm; editable',
+		description:
+			'Dadant-Blatt: brood frame 435×300 mm, super frame 435×160 mm; editable',
 		dimensionsByType: {
 			DEEP: {
 				internalWidthMm: '450',
@@ -178,11 +182,15 @@ function findHiveSystemTemplate(value: string): HiveSystemTemplate | undefined {
 	if (!normalized) return undefined
 	return HIVE_SYSTEM_TEMPLATES.find((template) => {
 		const names = [template.name, ...(template.aliases || [])]
-		return names.some((candidate) => normalizeTemplateName(candidate) === normalized)
+		return names.some(
+			(candidate) => normalizeTemplateName(candidate) === normalized
+		)
 	})
 }
 
-function cloneTemplateDimensions(template: HiveSystemTemplate): Record<EditableBoxType, BoxSpecDimensionDraft> {
+function cloneTemplateDimensions(
+	template: HiveSystemTemplate
+): Record<EditableBoxType, BoxSpecDimensionDraft> {
 	return {
 		DEEP: { ...template.dimensionsByType.DEEP },
 		SUPER: { ...template.dimensionsByType.SUPER },
@@ -198,7 +206,12 @@ function fromDraftValue(value: string): number | null {
 }
 
 function getDimensionValidationState(draft: BoxSpecDimensionDraft): {
-	errorCode: 'FRAME_WIDTH' | 'FRAME_HEIGHT' | 'EXTERNAL_WIDTH' | 'EXTERNAL_LENGTH' | null
+	errorCode:
+		| 'FRAME_WIDTH'
+		| 'FRAME_HEIGHT'
+		| 'EXTERNAL_WIDTH'
+		| 'EXTERNAL_LENGTH'
+		| null
 	frameWidthInvalid: boolean
 	frameHeightInvalid: boolean
 	externalWidthInvalid: boolean
@@ -211,84 +224,108 @@ function getDimensionValidationState(draft: BoxSpecDimensionDraft): {
 	const internalLength = fromDraftValue(draft.internalLengthMm)
 	const externalWidth = fromDraftValue(draft.externalWidthMm)
 	const externalLength = fromDraftValue(draft.externalLengthMm)
-	const frameWidthInvalid = internalWidth !== null && frameWidth !== null && frameWidth > internalWidth
-	const frameHeightInvalid = internalHeight !== null && frameHeight !== null && frameHeight > internalHeight
-	const externalWidthInvalid = internalWidth !== null && externalWidth !== null && externalWidth < internalWidth
-	const externalLengthInvalid = internalLength !== null && externalLength !== null && externalLength < internalLength
+	const frameWidthInvalid =
+		internalWidth !== null && frameWidth !== null && frameWidth > internalWidth
+	const frameHeightInvalid =
+		internalHeight !== null &&
+		frameHeight !== null &&
+		frameHeight > internalHeight
+	const externalWidthInvalid =
+		internalWidth !== null &&
+		externalWidth !== null &&
+		externalWidth < internalWidth
+	const externalLengthInvalid =
+		internalLength !== null &&
+		externalLength !== null &&
+		externalLength < internalLength
 	const errorCode = frameWidthInvalid
 		? 'FRAME_WIDTH'
-		: (
-			frameHeightInvalid
-				? 'FRAME_HEIGHT'
-				: (
-					externalWidthInvalid
-						? 'EXTERNAL_WIDTH'
-						: (externalLengthInvalid ? 'EXTERNAL_LENGTH' : null)
-				)
-		)
-	return { errorCode, frameWidthInvalid, frameHeightInvalid, externalWidthInvalid, externalLengthInvalid }
+		: frameHeightInvalid
+			? 'FRAME_HEIGHT'
+			: externalWidthInvalid
+				? 'EXTERNAL_WIDTH'
+				: externalLengthInvalid
+					? 'EXTERNAL_LENGTH'
+					: null
+	return {
+		errorCode,
+		frameWidthInvalid,
+		frameHeightInvalid,
+		externalWidthInvalid,
+		externalLengthInvalid,
+	}
 }
 
 const CREATE_BOX_SYSTEM_MUTATION = gql`
-mutation createBoxSystem($name: String!) {
-	createBoxSystem(name: $name) {
-		id
-		name
-		isDefault
+	mutation createBoxSystem($name: String!) {
+		createBoxSystem(name: $name) {
+			id
+			name
+			isDefault
+		}
 	}
-}
 `
 
 const BOX_SYSTEMS_QUERY = gql`
-query boxSystemCreateContext {
-	boxSystems {
-		id
-		name
-		isDefault
+	query boxSystemCreateContext {
+		boxSystems {
+			id
+			name
+			isDefault
+		}
 	}
-}
 `
 
 const SET_BOX_SYSTEM_BOX_PROFILE_SOURCE_MUTATION = gql`
-mutation setBoxSystemBoxProfileSource($systemId: ID!, $boxSourceSystemId: ID) {
-	setBoxSystemBoxProfileSource(systemId: $systemId, boxSourceSystemId: $boxSourceSystemId)
-}
+	mutation setBoxSystemBoxProfileSource(
+		$systemId: ID!
+		$boxSourceSystemId: ID
+	) {
+		setBoxSystemBoxProfileSource(
+			systemId: $systemId
+			boxSourceSystemId: $boxSourceSystemId
+		)
+	}
 `
 
 const SET_BOX_SYSTEM_FRAME_SOURCE_MUTATION = gql`
-mutation setBoxSystemFrameSource($systemId: ID!, $boxType: BoxType!, $frameSourceSystemId: ID!) {
-	setBoxSystemFrameSource(
-		systemId: $systemId
-		boxType: $boxType
-		frameSourceSystemId: $frameSourceSystemId
-	)
-}
+	mutation setBoxSystemFrameSource(
+		$systemId: ID!
+		$boxType: BoxType!
+		$frameSourceSystemId: ID!
+	) {
+		setBoxSystemFrameSource(
+			systemId: $systemId
+			boxType: $boxType
+			frameSourceSystemId: $frameSourceSystemId
+		)
+	}
 `
 
 const SET_BOX_SPEC_DIMENSIONS_MUTATION = gql`
-mutation setBoxSpecDimensions(
-	$systemId: ID!
-	$boxType: BoxType!
-	$internalWidthMm: Int
-	$internalLengthMm: Int
-	$internalHeightMm: Int
-	$externalWidthMm: Int
-	$externalLengthMm: Int
-	$frameWidthMm: Int
-	$frameHeightMm: Int
-) {
-	setBoxSpecDimensions(
-		systemId: $systemId
-		boxType: $boxType
-		internalWidthMm: $internalWidthMm
-		internalLengthMm: $internalLengthMm
-		internalHeightMm: $internalHeightMm
-		externalWidthMm: $externalWidthMm
-		externalLengthMm: $externalLengthMm
-		frameWidthMm: $frameWidthMm
-		frameHeightMm: $frameHeightMm
-	)
-}
+	mutation setBoxSpecDimensions(
+		$systemId: ID!
+		$boxType: BoxType!
+		$internalWidthMm: Int
+		$internalLengthMm: Int
+		$internalHeightMm: Int
+		$externalWidthMm: Int
+		$externalLengthMm: Int
+		$frameWidthMm: Int
+		$frameHeightMm: Int
+	) {
+		setBoxSpecDimensions(
+			systemId: $systemId
+			boxType: $boxType
+			internalWidthMm: $internalWidthMm
+			internalLengthMm: $internalLengthMm
+			internalHeightMm: $internalHeightMm
+			externalWidthMm: $externalWidthMm
+			externalLengthMm: $externalLengthMm
+			frameWidthMm: $frameWidthMm
+			frameHeightMm: $frameHeightMm
+		)
+	}
 `
 
 export default function WarehouseBoxSystemCreatePage() {
@@ -300,44 +337,89 @@ export default function WarehouseBoxSystemCreatePage() {
 	const [useOwnFrameProfile, setUseOwnFrameProfile] = useState(true)
 	const [frameSourceSystemId, setFrameSourceSystemId] = useState('')
 	const [formError, setFormError] = useState<any>(null)
-	const [boxSpecDimensionDraftByType, setBoxSpecDimensionDraftByType] = useState<Record<EditableBoxType, BoxSpecDimensionDraft>>(
-		INITIAL_DIMENSIONS_BY_TYPE
-	)
+	const [boxSpecDimensionDraftByType, setBoxSpecDimensionDraftByType] =
+		useState<Record<EditableBoxType, BoxSpecDimensionDraft>>(
+			INITIAL_DIMENSIONS_BY_TYPE
+		)
 
 	const { data, loading, error } = useQuery(BOX_SYSTEMS_QUERY)
-	const [createBoxSystem, { error: createError }] = useMutation(CREATE_BOX_SYSTEM_MUTATION)
-	const [setBoxSystemBoxProfileSource, { error: setBoxProfileError }] = useMutation(SET_BOX_SYSTEM_BOX_PROFILE_SOURCE_MUTATION)
-	const [setBoxSystemFrameSource, { error: setFrameSourceError }] = useMutation(SET_BOX_SYSTEM_FRAME_SOURCE_MUTATION)
-	const [setBoxSpecDimensions, { error: setBoxSpecDimensionsError }] = useMutation(SET_BOX_SPEC_DIMENSIONS_MUTATION)
+	const [createBoxSystem, { error: createError }] = useMutation(
+		CREATE_BOX_SYSTEM_MUTATION
+	)
+	const [setBoxSystemBoxProfileSource, { error: setBoxProfileError }] =
+		useMutation(SET_BOX_SYSTEM_BOX_PROFILE_SOURCE_MUTATION)
+	const [setBoxSystemFrameSource, { error: setFrameSourceError }] = useMutation(
+		SET_BOX_SYSTEM_FRAME_SOURCE_MUTATION
+	)
+	const [setBoxSpecDimensions, { error: setBoxSpecDimensionsError }] =
+		useMutation(SET_BOX_SPEC_DIMENSIONS_MUTATION)
 
-	const sourceSystems: BoxSystem[] = useMemo(() => data?.boxSystems || [], [data?.boxSystems])
+	const sourceSystems: BoxSystem[] = useMemo(
+		() => data?.boxSystems || [],
+		[data?.boxSystems]
+	)
 	const defaultSourceSystemId = sourceSystems[0]?.id || ''
 	const selectedTemplate = useMemo(() => findHiveSystemTemplate(name), [name])
 	const showSectionDimensionRows = useOwnBoxProfile
-	const namePlaceholder = useTranslation('Select a template or type a custom hive system name')
+	const namePlaceholder = useTranslation(
+		'Select a template or type a custom hive system name'
+	)
 	const showFrameDimensionRows = useOwnFrameProfile
-	const showReferenceDimensions = showSectionDimensionRows || showFrameDimensionRows
+	const showReferenceDimensions =
+		showSectionDimensionRows || showFrameDimensionRows
 	const dimensionValidationByType = useMemo(() => {
-		return EDITABLE_BOX_TYPES.reduce<Record<EditableBoxType, {
-			frameWidthInvalid: boolean
-			frameHeightInvalid: boolean
-			externalWidthInvalid: boolean
-			externalLengthInvalid: boolean
-		}>>((acc, boxType) => {
-			const draft = boxSpecDimensionDraftByType[boxType]
-			const validation = getDimensionValidationState(draft)
-			acc[boxType] = {
-				frameWidthInvalid: showSectionDimensionRows && showFrameDimensionRows ? validation.frameWidthInvalid : false,
-				frameHeightInvalid: showSectionDimensionRows && showFrameDimensionRows ? validation.frameHeightInvalid : false,
-				externalWidthInvalid: showSectionDimensionRows ? validation.externalWidthInvalid : false,
-				externalLengthInvalid: showSectionDimensionRows ? validation.externalLengthInvalid : false,
+		return EDITABLE_BOX_TYPES.reduce<
+			Record<
+				EditableBoxType,
+				{
+					frameWidthInvalid: boolean
+					frameHeightInvalid: boolean
+					externalWidthInvalid: boolean
+					externalLengthInvalid: boolean
+				}
+			>
+		>(
+			(acc, boxType) => {
+				const draft = boxSpecDimensionDraftByType[boxType]
+				const validation = getDimensionValidationState(draft)
+				acc[boxType] = {
+					frameWidthInvalid:
+						showSectionDimensionRows && showFrameDimensionRows
+							? validation.frameWidthInvalid
+							: false,
+					frameHeightInvalid:
+						showSectionDimensionRows && showFrameDimensionRows
+							? validation.frameHeightInvalid
+							: false,
+					externalWidthInvalid: showSectionDimensionRows
+						? validation.externalWidthInvalid
+						: false,
+					externalLengthInvalid: showSectionDimensionRows
+						? validation.externalLengthInvalid
+						: false,
+				}
+				return acc
+			},
+			{
+				DEEP: {
+					frameWidthInvalid: false,
+					frameHeightInvalid: false,
+					externalWidthInvalid: false,
+					externalLengthInvalid: false,
+				},
+				SUPER: {
+					frameWidthInvalid: false,
+					frameHeightInvalid: false,
+					externalWidthInvalid: false,
+					externalLengthInvalid: false,
+				},
 			}
-			return acc
-		}, {
-			DEEP: { frameWidthInvalid: false, frameHeightInvalid: false, externalWidthInvalid: false, externalLengthInvalid: false },
-			SUPER: { frameWidthInvalid: false, frameHeightInvalid: false, externalWidthInvalid: false, externalLengthInvalid: false },
-		})
-	}, [boxSpecDimensionDraftByType, showSectionDimensionRows, showFrameDimensionRows])
+		)
+	}, [
+		boxSpecDimensionDraftByType,
+		showSectionDimensionRows,
+		showFrameDimensionRows,
+	])
 
 	async function onSubmit(event: any) {
 		event.preventDefault()
@@ -348,20 +430,60 @@ export default function WarehouseBoxSystemCreatePage() {
 			const draft = boxSpecDimensionDraftByType[boxType]
 			const sectionLabel = boxType === 'DEEP' ? 'Deep' : 'Super'
 			const validation = getDimensionValidationState(draft)
-			if (showSectionDimensionRows && showFrameDimensionRows && validation.errorCode === 'FRAME_WIDTH') {
-				setFormError(<><T>{sectionLabel}</T>: <T>Frame width cannot be greater than section internal width.</T></>)
+			if (
+				showSectionDimensionRows &&
+				showFrameDimensionRows &&
+				validation.errorCode === 'FRAME_WIDTH'
+			) {
+				setFormError(
+					<>
+						<T>{sectionLabel}</T>:{' '}
+						<T>Frame width cannot be greater than section internal width.</T>
+					</>
+				)
 				return
 			}
-			if (showSectionDimensionRows && showFrameDimensionRows && validation.errorCode === 'FRAME_HEIGHT') {
-				setFormError(<><T>{sectionLabel}</T>: <T>Frame height cannot be greater than section internal height.</T></>)
+			if (
+				showSectionDimensionRows &&
+				showFrameDimensionRows &&
+				validation.errorCode === 'FRAME_HEIGHT'
+			) {
+				setFormError(
+					<>
+						<T>{sectionLabel}</T>:{' '}
+						<T>Frame height cannot be greater than section internal height.</T>
+					</>
+				)
 				return
 			}
-			if (showSectionDimensionRows && validation.errorCode === 'EXTERNAL_WIDTH') {
-				setFormError(<><T>{sectionLabel}</T>: <T>Section external width cannot be smaller than section internal width.</T></>)
+			if (
+				showSectionDimensionRows &&
+				validation.errorCode === 'EXTERNAL_WIDTH'
+			) {
+				setFormError(
+					<>
+						<T>{sectionLabel}</T>:{' '}
+						<T>
+							Section external width cannot be smaller than section internal
+							width.
+						</T>
+					</>
+				)
 				return
 			}
-			if (showSectionDimensionRows && validation.errorCode === 'EXTERNAL_LENGTH') {
-				setFormError(<><T>{sectionLabel}</T>: <T>Section external depth cannot be smaller than section internal depth.</T></>)
+			if (
+				showSectionDimensionRows &&
+				validation.errorCode === 'EXTERNAL_LENGTH'
+			) {
+				setFormError(
+					<>
+						<T>{sectionLabel}</T>:{' '}
+						<T>
+							Section external depth cannot be smaller than section internal
+							depth.
+						</T>
+					</>
+				)
 				return
 			}
 		}
@@ -374,7 +496,7 @@ export default function WarehouseBoxSystemCreatePage() {
 			const selectedBoxSource = boxSourceSystemId || defaultSourceSystemId
 			const selectedFrameSource = useOwnFrameProfile
 				? createdId
-				: (frameSourceSystemId || defaultSourceSystemId)
+				: frameSourceSystemId || defaultSourceSystemId
 
 			if (!useOwnBoxProfile && selectedBoxSource) {
 				await setBoxSystemBoxProfileSource({
@@ -384,7 +506,11 @@ export default function WarehouseBoxSystemCreatePage() {
 			}
 
 			if (selectedFrameSource) {
-				await applyFrameSourceToAllBoxTypes(setBoxSystemFrameSource, createdId, selectedFrameSource)
+				await applyFrameSourceToAllBoxTypes(
+					setBoxSystemFrameSource,
+					createdId,
+					selectedFrameSource
+				)
 			}
 
 			if (showReferenceDimensions) {
@@ -393,13 +519,27 @@ export default function WarehouseBoxSystemCreatePage() {
 					await setBoxSpecDimensions({
 						systemId: createdId,
 						boxType,
-						internalWidthMm: showSectionDimensionRows ? fromDraftValue(draft.internalWidthMm) : null,
-						internalLengthMm: showSectionDimensionRows ? fromDraftValue(draft.internalLengthMm) : null,
-						internalHeightMm: showSectionDimensionRows ? fromDraftValue(draft.internalHeightMm) : null,
-						externalWidthMm: showSectionDimensionRows ? fromDraftValue(draft.externalWidthMm) : null,
-						externalLengthMm: showSectionDimensionRows ? fromDraftValue(draft.externalLengthMm) : null,
-						frameWidthMm: showFrameDimensionRows ? fromDraftValue(draft.frameWidthMm) : null,
-						frameHeightMm: showFrameDimensionRows ? fromDraftValue(draft.frameHeightMm) : null,
+						internalWidthMm: showSectionDimensionRows
+							? fromDraftValue(draft.internalWidthMm)
+							: null,
+						internalLengthMm: showSectionDimensionRows
+							? fromDraftValue(draft.internalLengthMm)
+							: null,
+						internalHeightMm: showSectionDimensionRows
+							? fromDraftValue(draft.internalHeightMm)
+							: null,
+						externalWidthMm: showSectionDimensionRows
+							? fromDraftValue(draft.externalWidthMm)
+							: null,
+						externalLengthMm: showSectionDimensionRows
+							? fromDraftValue(draft.externalLengthMm)
+							: null,
+						frameWidthMm: showFrameDimensionRows
+							? fromDraftValue(draft.frameWidthMm)
+							: null,
+						frameHeightMm: showFrameDimensionRows
+							? fromDraftValue(draft.frameHeightMm)
+							: null,
 					})
 				}
 			}
@@ -414,24 +554,47 @@ export default function WarehouseBoxSystemCreatePage() {
 
 	return (
 		<PagePaddedCentered>
-			<h1><T>Create hive system</T></h1>
-			<ErrorMsg error={formError || error || createError || setBoxProfileError || setFrameSourceError || setBoxSpecDimensionsError} />
+			<h1>
+				<T>Create hive system</T>
+			</h1>
+			<ErrorMsg
+				error={
+					formError ||
+					error ||
+					createError ||
+					setBoxProfileError ||
+					setFrameSourceError ||
+					setBoxSpecDimensionsError
+				}
+			/>
 			<div className={styles.formContainer}>
 				<VisualForm
 					onSubmit={onSubmit}
 					submit={
 						<div className={styles.actions}>
-							<Button type="button" onClick={() => navigate('/warehouse/box-systems', { replace: true })}>
+							<Button
+								type="button"
+								onClick={() =>
+									navigate('/warehouse/box-systems', { replace: true })
+								}
+							>
 								<T>Cancel</T>
 							</Button>
-							<Button type="submit" color="green" loading={submitting} disabled={!name.trim()}>
+							<Button
+								type="submit"
+								color="green"
+								loading={submitting}
+								disabled={!name.trim()}
+							>
 								<T>Create</T>
 							</Button>
 						</div>
 					}
 				>
 					<div className={styles.formField}>
-						<label className={styles.formLabel}><T>Name</T></label>
+						<label className={styles.formLabel}>
+							<T>Name</T>
+						</label>
 						<div className={styles.fieldControl}>
 							<input
 								className={`${styles.flexInput} ${styles.nameInput}`}
@@ -445,7 +608,9 @@ export default function WarehouseBoxSystemCreatePage() {
 
 									const template = findHiveSystemTemplate(nextName)
 									if (template) {
-										setBoxSpecDimensionDraftByType(cloneTemplateDimensions(template))
+										setBoxSpecDimensionDraftByType(
+											cloneTemplateDimensions(template)
+										)
 										setUseOwnBoxProfile(true)
 										setUseOwnFrameProfile(true)
 									}
@@ -454,17 +619,28 @@ export default function WarehouseBoxSystemCreatePage() {
 							/>
 							<datalist id="hive-system-template-options">
 								{HIVE_SYSTEM_TEMPLATES.map((template) => (
-									<option key={template.name} value={template.name}>{template.description}</option>
+									<option key={template.name} value={template.name}>
+										{template.description}
+									</option>
 								))}
 							</datalist>
 							<div className={styles.templateHint}>
-								{selectedTemplate ? selectedTemplate.description : <T>Pick an existing hive system template to prefill reference dimensions.</T>}
+								{selectedTemplate ? (
+									selectedTemplate.description
+								) : (
+									<T>
+										Pick an existing hive system template to prefill reference
+										dimensions.
+									</T>
+								)}
 							</div>
 						</div>
 					</div>
 
 					<div className={styles.formField}>
-						<label className={styles.formLabel}><T>Section sizes profile</T></label>
+						<label className={styles.formLabel}>
+							<T>Section sizes profile</T>
+						</label>
 						<div className={styles.fieldControl}>
 							<label className={styles.switchRow}>
 								<input
@@ -483,7 +659,11 @@ export default function WarehouseBoxSystemCreatePage() {
 									<span className={styles.switchThumb}></span>
 								</span>
 								<span className={styles.switchLabel}>
-									{useOwnBoxProfile ? <T>Use own section sizes</T> : <T>Use existing section size system</T>}
+									{useOwnBoxProfile ? (
+										<T>Use own section sizes</T>
+									) : (
+										<T>Use existing section size system</T>
+									)}
 								</span>
 							</label>
 							{!useOwnBoxProfile ? (
@@ -499,9 +679,14 @@ export default function WarehouseBoxSystemCreatePage() {
 												name="box-profile-source-system"
 												value={candidate.id}
 												checked={boxSourceSystemId === candidate.id}
-												onChange={(event: any) => setBoxSourceSystemId(event.target.value)}
+												onChange={(event: any) =>
+													setBoxSourceSystemId(event.target.value)
+												}
 											/>
-											<span className={styles.radioMark} aria-hidden="true"></span>
+											<span
+												className={styles.radioMark}
+												aria-hidden="true"
+											></span>
 											<span className={styles.radioText}>{candidate.name}</span>
 										</label>
 									))}
@@ -511,7 +696,9 @@ export default function WarehouseBoxSystemCreatePage() {
 					</div>
 
 					<div className={styles.formField}>
-						<label className={styles.formLabel}><T>Frame profile</T></label>
+						<label className={styles.formLabel}>
+							<T>Frame profile</T>
+						</label>
 						<div className={styles.fieldControl}>
 							<label className={styles.switchRow}>
 								<input
@@ -530,7 +717,11 @@ export default function WarehouseBoxSystemCreatePage() {
 									<span className={styles.switchThumb}></span>
 								</span>
 								<span className={styles.switchLabel}>
-									{useOwnFrameProfile ? <T>Use own frame profile</T> : <T>Use existing frame size system</T>}
+									{useOwnFrameProfile ? (
+										<T>Use own frame profile</T>
+									) : (
+										<T>Use existing frame size system</T>
+									)}
 								</span>
 							</label>
 							{!useOwnFrameProfile ? (
@@ -546,9 +737,14 @@ export default function WarehouseBoxSystemCreatePage() {
 												name="frame-profile-source-system"
 												value={candidate.id}
 												checked={frameSourceSystemId === candidate.id}
-												onChange={(event: any) => setFrameSourceSystemId(event.target.value)}
+												onChange={(event: any) =>
+													setFrameSourceSystemId(event.target.value)
+												}
 											/>
-											<span className={styles.radioMark} aria-hidden="true"></span>
+											<span
+												className={styles.radioMark}
+												aria-hidden="true"
+											></span>
 											<span className={styles.radioText}>{candidate.name}</span>
 										</label>
 									))}
@@ -557,149 +753,220 @@ export default function WarehouseBoxSystemCreatePage() {
 						</div>
 					</div>
 
-					{showReferenceDimensions ? <div className={styles.formField}>
-						<label className={styles.formLabel}><T>Reference dimensions (mm)</T></label>
-						<div className={styles.fieldControl}>
-							<div className={styles.dimensionsHint}>
-								<T>For reference only. These values do not change hive behavior yet.</T>
-							</div>
-							<div className={styles.dimensionSections}>
-								{EDITABLE_BOX_TYPES.map((boxType: EditableBoxType) => {
-									const draft = boxSpecDimensionDraftByType[boxType]
-									const sectionTitle = boxType === 'DEEP' ? 'Deep' : 'Super'
-									return (
-										<div key={`create-dim-${boxType}`} className={styles.dimensionTypeSection}>
-											<div className={styles.dimensionTypeTitle}><T>{sectionTitle}</T></div>
-											<div className={styles.dimensionTable}>
-												<div className={styles.dimensionHeaderRow}>
-													<div className={styles.dimensionHeaderCell}><T>Type</T></div>
-													<div className={styles.dimensionHeaderCell}><T>Width</T></div>
-													<div className={styles.dimensionHeaderCell}><T>Height</T></div>
-													<div className={styles.dimensionHeaderCell}><T>Depth</T></div>
+					{showReferenceDimensions ? (
+						<div className={styles.formField}>
+							<label className={styles.formLabel}>
+								<T>Reference dimensions (mm)</T>
+							</label>
+							<div className={styles.fieldControl}>
+								<div className={styles.dimensionsHint}>
+									<T>
+										For reference only. These values do not change hive behavior
+										yet.
+									</T>
+								</div>
+								<div className={styles.dimensionSections}>
+									{EDITABLE_BOX_TYPES.map((boxType: EditableBoxType) => {
+										const draft = boxSpecDimensionDraftByType[boxType]
+										const sectionTitle = boxType === 'DEEP' ? 'Deep' : 'Super'
+										return (
+											<div
+												key={`create-dim-${boxType}`}
+												className={styles.dimensionTypeSection}
+											>
+												<div className={styles.dimensionTypeTitle}>
+													<T>{sectionTitle}</T>
 												</div>
-												{showSectionDimensionRows ? <div className={styles.dimensionRow}>
-													<div className={styles.dimensionLabelCell}><T>Section (internal)</T></div>
-													<input
-														className={styles.dimensionInput}
-														type="number"
-														min={0}
-														step={1}
-														inputMode="numeric"
-														value={draft.internalWidthMm}
-														onInput={(event: any) => {
-															const digitsOnly = String(event.target.value || '').replace(/[^\d]/g, '')
-															setBoxSpecDimensionDraftByType((prev) => ({
-																...prev,
-																[boxType]: { ...prev[boxType], internalWidthMm: digitsOnly },
-															}))
-														}}
-													/>
-													<input
-														className={styles.dimensionInput}
-														type="number"
-														min={0}
-														step={1}
-														inputMode="numeric"
-														value={draft.internalHeightMm}
-														onInput={(event: any) => {
-															const digitsOnly = String(event.target.value || '').replace(/[^\d]/g, '')
-															setBoxSpecDimensionDraftByType((prev) => ({
-																...prev,
-																[boxType]: { ...prev[boxType], internalHeightMm: digitsOnly },
-															}))
-														}}
-													/>
-													<input
-														className={styles.dimensionInput}
-														type="number"
-														min={0}
-														step={1}
-														inputMode="numeric"
-														value={draft.internalLengthMm}
-														onInput={(event: any) => {
-															const digitsOnly = String(event.target.value || '').replace(/[^\d]/g, '')
-															setBoxSpecDimensionDraftByType((prev) => ({
-																...prev,
-																[boxType]: { ...prev[boxType], internalLengthMm: digitsOnly },
-															}))
-														}}
-													/>
-												</div> : null}
-												{showSectionDimensionRows ? <div className={styles.dimensionRow}>
-													<div className={styles.dimensionLabelCell}><T>Section (external)</T></div>
-													<input
-														className={`${styles.dimensionInput} ${dimensionValidationByType[boxType].externalWidthInvalid ? styles.dimensionInputInvalid : ''}`}
-														type="number"
-														min={0}
-														step={1}
-														inputMode="numeric"
-														value={draft.externalWidthMm}
-														onInput={(event: any) => {
-															const digitsOnly = String(event.target.value || '').replace(/[^\d]/g, '')
-															setBoxSpecDimensionDraftByType((prev) => ({
-																...prev,
-																[boxType]: { ...prev[boxType], externalWidthMm: digitsOnly },
-															}))
-														}}
-													/>
-													<div className={styles.dimensionNotApplicable}>-</div>
-													<input
-														className={`${styles.dimensionInput} ${dimensionValidationByType[boxType].externalLengthInvalid ? styles.dimensionInputInvalid : ''}`}
-														type="number"
-														min={0}
-														step={1}
-														inputMode="numeric"
-														value={draft.externalLengthMm}
-														onInput={(event: any) => {
-															const digitsOnly = String(event.target.value || '').replace(/[^\d]/g, '')
-															setBoxSpecDimensionDraftByType((prev) => ({
-																...prev,
-																[boxType]: { ...prev[boxType], externalLengthMm: digitsOnly },
-															}))
-														}}
-													/>
-												</div> : null}
-												{showFrameDimensionRows ? <div className={styles.dimensionRow}>
-													<div className={styles.dimensionLabelCell}><T>Frame</T></div>
-													<input
-														className={`${styles.dimensionInput} ${dimensionValidationByType[boxType].frameWidthInvalid ? styles.dimensionInputInvalid : ''}`}
-														type="number"
-														min={0}
-														step={1}
-														inputMode="numeric"
-														value={draft.frameWidthMm}
-														onInput={(event: any) => {
-															const digitsOnly = String(event.target.value || '').replace(/[^\d]/g, '')
-															setBoxSpecDimensionDraftByType((prev) => ({
-																...prev,
-																[boxType]: { ...prev[boxType], frameWidthMm: digitsOnly },
-															}))
-														}}
-													/>
-													<input
-														className={`${styles.dimensionInput} ${dimensionValidationByType[boxType].frameHeightInvalid ? styles.dimensionInputInvalid : ''}`}
-														type="number"
-														min={0}
-														step={1}
-														inputMode="numeric"
-														value={draft.frameHeightMm}
-														onInput={(event: any) => {
-															const digitsOnly = String(event.target.value || '').replace(/[^\d]/g, '')
-															setBoxSpecDimensionDraftByType((prev) => ({
-																...prev,
-																[boxType]: { ...prev[boxType], frameHeightMm: digitsOnly },
-															}))
-														}}
-													/>
-													<div className={styles.dimensionNotApplicable}>-</div>
-												</div> : null}
+												<div className={styles.dimensionTable}>
+													<div className={styles.dimensionHeaderRow}>
+														<div className={styles.dimensionHeaderCell}>
+															<T>Type</T>
+														</div>
+														<div className={styles.dimensionHeaderCell}>
+															<T>Width</T>
+														</div>
+														<div className={styles.dimensionHeaderCell}>
+															<T>Height</T>
+														</div>
+														<div className={styles.dimensionHeaderCell}>
+															<T>Depth</T>
+														</div>
+													</div>
+													{showSectionDimensionRows ? (
+														<div className={styles.dimensionRow}>
+															<div className={styles.dimensionLabelCell}>
+																<T>Section (internal)</T>
+															</div>
+															<input
+																className={styles.dimensionInput}
+																type="number"
+																min={0}
+																step={1}
+																inputMode="numeric"
+																value={draft.internalWidthMm}
+																onInput={(event: any) => {
+																	const digitsOnly = String(
+																		event.target.value || ''
+																	).replace(/[^\d]/g, '')
+																	setBoxSpecDimensionDraftByType((prev) => ({
+																		...prev,
+																		[boxType]: {
+																			...prev[boxType],
+																			internalWidthMm: digitsOnly,
+																		},
+																	}))
+																}}
+															/>
+															<input
+																className={styles.dimensionInput}
+																type="number"
+																min={0}
+																step={1}
+																inputMode="numeric"
+																value={draft.internalHeightMm}
+																onInput={(event: any) => {
+																	const digitsOnly = String(
+																		event.target.value || ''
+																	).replace(/[^\d]/g, '')
+																	setBoxSpecDimensionDraftByType((prev) => ({
+																		...prev,
+																		[boxType]: {
+																			...prev[boxType],
+																			internalHeightMm: digitsOnly,
+																		},
+																	}))
+																}}
+															/>
+															<input
+																className={styles.dimensionInput}
+																type="number"
+																min={0}
+																step={1}
+																inputMode="numeric"
+																value={draft.internalLengthMm}
+																onInput={(event: any) => {
+																	const digitsOnly = String(
+																		event.target.value || ''
+																	).replace(/[^\d]/g, '')
+																	setBoxSpecDimensionDraftByType((prev) => ({
+																		...prev,
+																		[boxType]: {
+																			...prev[boxType],
+																			internalLengthMm: digitsOnly,
+																		},
+																	}))
+																}}
+															/>
+														</div>
+													) : null}
+													{showSectionDimensionRows ? (
+														<div className={styles.dimensionRow}>
+															<div className={styles.dimensionLabelCell}>
+																<T>Section (external)</T>
+															</div>
+															<input
+																className={`${styles.dimensionInput} ${dimensionValidationByType[boxType].externalWidthInvalid ? styles.dimensionInputInvalid : ''}`}
+																type="number"
+																min={0}
+																step={1}
+																inputMode="numeric"
+																value={draft.externalWidthMm}
+																onInput={(event: any) => {
+																	const digitsOnly = String(
+																		event.target.value || ''
+																	).replace(/[^\d]/g, '')
+																	setBoxSpecDimensionDraftByType((prev) => ({
+																		...prev,
+																		[boxType]: {
+																			...prev[boxType],
+																			externalWidthMm: digitsOnly,
+																		},
+																	}))
+																}}
+															/>
+															<div className={styles.dimensionNotApplicable}>
+																-
+															</div>
+															<input
+																className={`${styles.dimensionInput} ${dimensionValidationByType[boxType].externalLengthInvalid ? styles.dimensionInputInvalid : ''}`}
+																type="number"
+																min={0}
+																step={1}
+																inputMode="numeric"
+																value={draft.externalLengthMm}
+																onInput={(event: any) => {
+																	const digitsOnly = String(
+																		event.target.value || ''
+																	).replace(/[^\d]/g, '')
+																	setBoxSpecDimensionDraftByType((prev) => ({
+																		...prev,
+																		[boxType]: {
+																			...prev[boxType],
+																			externalLengthMm: digitsOnly,
+																		},
+																	}))
+																}}
+															/>
+														</div>
+													) : null}
+													{showFrameDimensionRows ? (
+														<div className={styles.dimensionRow}>
+															<div className={styles.dimensionLabelCell}>
+																<T>Frame</T>
+															</div>
+															<input
+																className={`${styles.dimensionInput} ${dimensionValidationByType[boxType].frameWidthInvalid ? styles.dimensionInputInvalid : ''}`}
+																type="number"
+																min={0}
+																step={1}
+																inputMode="numeric"
+																value={draft.frameWidthMm}
+																onInput={(event: any) => {
+																	const digitsOnly = String(
+																		event.target.value || ''
+																	).replace(/[^\d]/g, '')
+																	setBoxSpecDimensionDraftByType((prev) => ({
+																		...prev,
+																		[boxType]: {
+																			...prev[boxType],
+																			frameWidthMm: digitsOnly,
+																		},
+																	}))
+																}}
+															/>
+															<input
+																className={`${styles.dimensionInput} ${dimensionValidationByType[boxType].frameHeightInvalid ? styles.dimensionInputInvalid : ''}`}
+																type="number"
+																min={0}
+																step={1}
+																inputMode="numeric"
+																value={draft.frameHeightMm}
+																onInput={(event: any) => {
+																	const digitsOnly = String(
+																		event.target.value || ''
+																	).replace(/[^\d]/g, '')
+																	setBoxSpecDimensionDraftByType((prev) => ({
+																		...prev,
+																		[boxType]: {
+																			...prev[boxType],
+																			frameHeightMm: digitsOnly,
+																		},
+																	}))
+																}}
+															/>
+															<div className={styles.dimensionNotApplicable}>
+																-
+															</div>
+														</div>
+													) : null}
+												</div>
 											</div>
-										</div>
-									)
-								})}
+										)
+									})}
+								</div>
 							</div>
 						</div>
-					</div> : null}
+					) : null}
 				</VisualForm>
 			</div>
 		</PagePaddedCentered>

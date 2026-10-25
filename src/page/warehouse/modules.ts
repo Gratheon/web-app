@@ -4,7 +4,11 @@ export type WarehouseModuleItem = {
 	description: string
 }
 
-export const GROUPS: Array<{ id: string; title: string; items: WarehouseModuleItem[] }> = [
+export const GROUPS: Array<{
+	id: string
+	title: string
+	items: WarehouseModuleItem[]
+}> = [
 	{
 		id: 'FRAMES',
 		title: 'Frame types',
@@ -43,7 +47,8 @@ export const GROUPS: Array<{ id: string; title: string; items: WarehouseModuleIt
 			{
 				id: 'HORIZONTAL_FEEDER',
 				label: 'Feeders',
-				description: 'Feeders used to provide syrup or supplements to colonies.',
+				description:
+					'Feeders used to provide syrup or supplements to colonies.',
 			},
 			{
 				id: 'QUEEN_EXCLUDER',

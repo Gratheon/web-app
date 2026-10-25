@@ -14,32 +14,36 @@ export type Family = {
 	lastSeenFrameSideId?: number
 	lastSeenBoxId?: number
 	lastSeenAt?: string
-  }
+}
 
 const TABLE_NAME = 'family'
 
-export async function getFamilyByHive(hiveId: number): Promise<Family | undefined> {
+export async function getFamilyByHive(
+	hiveId: number
+): Promise<Family | undefined> {
 	if (!hiveId || !Number.isFinite(hiveId) || hiveId <= 0) {
-		console.warn(`Attempted to get family with invalid hiveId: ${hiveId}`);
-		return undefined;
+		console.warn(`Attempted to get family with invalid hiveId: ${hiveId}`)
+		return undefined
 	}
 
 	try {
-		return await db[TABLE_NAME].get({ hiveId: +hiveId });
+		return await db[TABLE_NAME].get({ hiveId: +hiveId })
 	} catch (e) {
 		console.error(e)
 		throw e
 	}
 }
 
-export async function getFamilyById(familyId: number): Promise<Family | undefined> {
+export async function getFamilyById(
+	familyId: number
+): Promise<Family | undefined> {
 	if (!familyId || !Number.isFinite(familyId) || familyId <= 0) {
-		console.warn(`Attempted to get family with invalid familyId: ${familyId}`);
-		return undefined;
+		console.warn(`Attempted to get family with invalid familyId: ${familyId}`)
+		return undefined
 	}
 
 	try {
-		return await db[TABLE_NAME].get(+familyId);
+		return await db[TABLE_NAME].get(+familyId)
 	} catch (e) {
 		console.error(e)
 		throw e
@@ -48,14 +52,17 @@ export async function getFamilyById(familyId: number): Promise<Family | undefine
 
 export async function getAllFamiliesByHive(hiveId: number): Promise<Family[]> {
 	if (!hiveId || !Number.isFinite(hiveId) || hiveId <= 0) {
-		console.warn(`Attempted to get families with invalid hiveId: ${hiveId}`);
-		return [];
+		console.warn(`Attempted to get families with invalid hiveId: ${hiveId}`)
+		return []
 	}
 
 	try {
-		const families = await db[TABLE_NAME].where({ hiveId: +hiveId }).toArray();
-		console.log(`getAllFamiliesByHive(${hiveId}): found ${families.length} families`, families);
-		return families;
+		const families = await db[TABLE_NAME].where({ hiveId: +hiveId }).toArray()
+		console.log(
+			`getAllFamiliesByHive(${hiveId}): found ${families.length} families`,
+			families
+		)
+		return families
 	} catch (e) {
 		console.error(e)
 		throw e

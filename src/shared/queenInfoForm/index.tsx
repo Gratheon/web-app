@@ -26,7 +26,7 @@ export default function QueenInfoForm({
 	onYearChange,
 	onColorChange,
 	editable = true,
-	showLabels = true
+	showLabels = true,
 }: QueenInfoFormProps) {
 	return (
 		<div className={styles.queenInfoForm}>
@@ -89,4 +89,3 @@ export default function QueenInfoForm({
 		</div>
 	)
 }
-

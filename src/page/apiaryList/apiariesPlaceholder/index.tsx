@@ -12,8 +12,15 @@ export default function () {
 				color: 'gray',
 			}}
 		>
-			<img height="100" src={imageURL} alt="Flower illustration" draggable={false} />
-			<p><T>No apiaries here yet</T></p>
+			<img
+				height="100"
+				src={imageURL}
+				alt="Flower illustration"
+				draggable={false}
+			/>
+			<p>
+				<T>No apiaries here yet</T>
+			</p>
 		</div>
 	)
 }

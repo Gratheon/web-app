@@ -7,7 +7,15 @@ import styles from './index.module.less'
 
 export default function MinimizedUploadProgress() {
 	const { confirm, ConfirmDialog } = useConfirm()
-	const { isUploading, images, uploadProgress, boxId, hiveId, apiaryId, cancelUpload } = useUploadContext()
+	const {
+		isUploading,
+		images,
+		uploadProgress,
+		boxId,
+		hiveId,
+		apiaryId,
+		cancelUpload,
+	} = useUploadContext()
 	const navigate = useNavigate()
 	const location = useLocation()
 	const [position, setPosition] = useState({ x: 20, y: 100 })
@@ -58,7 +66,11 @@ export default function MinimizedUploadProgress() {
 	const handleCancel = async () => {
 		const confirmed = await confirm(
 			'Are you sure you want to cancel the upload?',
-			{ confirmText: 'Cancel Upload', cancelText: 'Continue', isDangerous: true }
+			{
+				confirmText: 'Cancel Upload',
+				cancelText: 'Continue',
+				isDangerous: true,
+			}
 		)
 
 		if (confirmed) {
@@ -72,8 +84,8 @@ export default function MinimizedUploadProgress() {
 
 	if (isOnBoxView) return null
 
-	const completedCount = images.filter(img => img.uploaded).length
-	const errorCount = images.filter(img => img.error).length
+	const completedCount = images.filter((img) => img.uploaded).length
+	const errorCount = images.filter((img) => img.error).length
 	const totalCount = images.length
 
 	return (
@@ -92,7 +104,10 @@ export default function MinimizedUploadProgress() {
 					<T>Uploading frames</T>
 				</div>
 				<div className={styles.minimizedActions}>
-					<button onClick={handleReturnToBox} className={styles.minimizedButton}>
+					<button
+						onClick={handleReturnToBox}
+						className={styles.minimizedButton}
+					>
 						↩
 					</button>
 					<button onClick={handleCancel} className={styles.minimizedButton}>
@@ -110,7 +125,10 @@ export default function MinimizedUploadProgress() {
 				<div className={styles.progressText}>
 					{completedCount} / {totalCount} <T>completed</T>
 					{errorCount > 0 && (
-						<span className={styles.errorCount}> ({errorCount} <T>errors</T>)</span>
+						<span className={styles.errorCount}>
+							{' '}
+							({errorCount} <T>errors</T>)
+						</span>
 					)}
 				</div>
 			</div>
@@ -118,4 +136,3 @@ export default function MinimizedUploadProgress() {
 		</div>
 	)
 }
-

@@ -58,43 +58,63 @@ function LabVialIcon({ size = 10 }: { size?: number }) {
 function GrowthIcon({ size = 10 }: { size?: number }) {
 	return (
 		<svg width={size} height={size} viewBox="0 0 24 24" aria-hidden>
-			<path d="M12 20v-7" stroke="white" strokeWidth="2" strokeLinecap="round" />
+			<path
+				d="M12 20v-7"
+				stroke="white"
+				strokeWidth="2"
+				strokeLinecap="round"
+			/>
 			<path d="M12 13c0-3 2.5-5.5 5.5-5.5 0 3-2.5 5.5-5.5 5.5Z" fill="white" />
 			<path d="M12 15c0-2.8-2.2-5-5-5 0 2.8 2.2 5 5 5Z" fill="white" />
 		</svg>
 	)
 }
 
-export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryId: string }) {
+export default function HiveLogs({
+	hiveId,
+	apiaryId,
+}: {
+	hiveId: string
+	apiaryId: string
+}) {
 	const numericHiveId = +hiveId
 	const tSectionRemoved = t('Section removed')
 	const tFrameAdded = t('Frame added')
 	const tSectionMovedDown = t('Section moved down')
 	const tSectionAdded = t('Section added')
 	const tNewQueenIntroduced = t('New queen introduced')
-	const tColonySplitChildAdded = t('This colony was split and child colony was added to a new hive')
+	const tColonySplitChildAdded = t(
+		'This colony was split and child colony was added to a new hive'
+	)
 	const tFrameRearranged = t('Frame rearranged')
 	const tSectionMovedUp = t('Section moved up')
 
-	const titleTranslations = useMemo(() => new Map<string, string>([
-		['Section removed', tSectionRemoved],
-		['Frame added', tFrameAdded],
-		['Section moved down', tSectionMovedDown],
-		['Section added', tSectionAdded],
-		['New queen introduced', tNewQueenIntroduced],
-		['This colony was split and child colony was added to a new hive', tColonySplitChildAdded],
-		['Frame rearranged', tFrameRearranged],
-		['Section moved up', tSectionMovedUp],
-	]), [
-		tSectionRemoved,
-		tFrameAdded,
-		tSectionMovedDown,
-		tSectionAdded,
-		tNewQueenIntroduced,
-		tColonySplitChildAdded,
-		tFrameRearranged,
-		tSectionMovedUp,
-	])
+	const titleTranslations = useMemo(
+		() =>
+			new Map<string, string>([
+				['Section removed', tSectionRemoved],
+				['Frame added', tFrameAdded],
+				['Section moved down', tSectionMovedDown],
+				['Section added', tSectionAdded],
+				['New queen introduced', tNewQueenIntroduced],
+				[
+					'This colony was split and child colony was added to a new hive',
+					tColonySplitChildAdded,
+				],
+				['Frame rearranged', tFrameRearranged],
+				['Section moved up', tSectionMovedUp],
+			]),
+		[
+			tSectionRemoved,
+			tFrameAdded,
+			tSectionMovedDown,
+			tSectionAdded,
+			tNewQueenIntroduced,
+			tColonySplitChildAdded,
+			tFrameRearranged,
+			tSectionMovedUp,
+		]
+	)
 
 	const titleCanonicalByLower = useMemo(() => {
 		const map = new Map<string, string>()
@@ -105,13 +125,19 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 		return map
 	}, [titleTranslations])
 
-	const logs = useLiveQuery(() => listHiveLogs(numericHiveId), [numericHiveId], null)
+	const logs = useLiveQuery(
+		() => listHiveLogs(numericHiveId),
+		[numericHiveId],
+		null
+	)
 	const [draft, setDraft] = useState('')
 	const [editingId, setEditingId] = useState<number | null>(null)
 	const [editTitle, setEditTitle] = useState('')
 	const [editDetails, setEditDetails] = useState('')
 	const [visibleCount, setVisibleCount] = useState(LOG_PAGE_SIZE)
-	const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
+	const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
+		{}
+	)
 
 	useEffect(() => {
 		syncHiveLogsFromBackend(numericHiveId).catch((e) =>
@@ -152,7 +178,9 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 			entry.action === 'LINEAGE' &&
 			((entry.dedupeKey || '').startsWith('lineage:child:') ||
 				/created a child hive/i.test(entry.title || '') ||
-				/colony was split and child colony was added to a new hive/i.test(entry.title || '')) &&
+				/colony was split and child colony was added to a new hive/i.test(
+					entry.title || ''
+				)) &&
 			Array.isArray(entry.relatedHives) &&
 			entry.relatedHives.length > 0
 		)
@@ -168,7 +196,10 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 	}
 
 	function isRedundantSplitFromEntry(entry: HiveLogEntry): boolean {
-		return entry.action === 'LINEAGE' && /split from another hive/i.test((entry.title || '').trim())
+		return (
+			entry.action === 'LINEAGE' &&
+			/split from another hive/i.test((entry.title || '').trim())
+		)
 	}
 
 	const timelineRows = useMemo(() => {
@@ -197,7 +228,9 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 
 	function getContinuousActionGroupKey(row: TimelineRow): string | null {
 		if (row.splitChild || row.splitChildLinked || row.mergeReceive) return null
-		const titleKey = canonicalizeTitle(row.entry.title || '').trim().toLowerCase()
+		const titleKey = canonicalizeTitle(row.entry.title || '')
+			.trim()
+			.toLowerCase()
 		if (!titleKey) return null
 		return `${row.entry.action}|${titleKey}`
 	}
@@ -306,18 +339,21 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 								<DateTimeFormat datetime={entry.createdAt} />
 							</span>
 						</div>
-						{Array.isArray(entry.relatedHives) && entry.relatedHives.length > 0 && (
-							<div className={styles.relatedLinks}>
-								{entry.relatedHives.map((related, index) => (
-									<span key={related.id}>
-										{index > 0 && ', '}
-										<a href={`/apiaries/${apiaryId}/hives/${related.id}`}>
-											{related.hiveNumber ? `Hive #${related.hiveNumber}` : `Hive ${related.id}`}
-										</a>
-									</span>
-								))}
-							</div>
-						)}
+						{Array.isArray(entry.relatedHives) &&
+							entry.relatedHives.length > 0 && (
+								<div className={styles.relatedLinks}>
+									{entry.relatedHives.map((related, index) => (
+										<span key={related.id}>
+											{index > 0 && ', '}
+											<a href={`/apiaries/${apiaryId}/hives/${related.id}`}>
+												{related.hiveNumber
+													? `Hive #${related.hiveNumber}`
+													: `Hive ${related.id}`}
+											</a>
+										</span>
+									))}
+								</div>
+							)}
 					</>
 				)}
 
@@ -326,16 +362,24 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 						<input
 							className={styles.editInput}
 							value={editTitle}
-							onInput={(event) => setEditTitle((event.target as HTMLInputElement).value)}
+							onInput={(event) =>
+								setEditTitle((event.target as HTMLInputElement).value)
+							}
 						/>
 						<textarea
 							className={styles.editTextarea}
 							value={editDetails}
-							onInput={(event) => setEditDetails((event.target as HTMLTextAreaElement).value)}
+							onInput={(event) =>
+								setEditDetails((event.target as HTMLTextAreaElement).value)
+							}
 						/>
 						<div className={styles.actions}>
-							<Button color="green" onClick={() => onSaveEdit(+entry.id)}><T>Save</T></Button>
-							<Button color="white" onClick={() => setEditingId(null)}><T>Cancel</T></Button>
+							<Button color="green" onClick={() => onSaveEdit(+entry.id)}>
+								<T>Save</T>
+							</Button>
+							<Button color="white" onClick={() => setEditingId(null)}>
+								<T>Cancel</T>
+							</Button>
 						</div>
 					</div>
 				)}
@@ -362,7 +406,8 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 		}
 		if (
 			entry.action === 'QUEEN' &&
-			(title.includes('new queen introduced') || title.includes('queen assigned from warehouse'))
+			(title.includes('new queen introduced') ||
+				title.includes('queen assigned from warehouse'))
 		) {
 			return {
 				className: styles.dotQueen,
@@ -371,7 +416,9 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 		}
 		if (
 			entry.action === 'STRUCTURE_MOVE' &&
-			(title.includes('section moved') || title.includes('section') || title.includes('swapped with section'))
+			(title.includes('section moved') ||
+				title.includes('section') ||
+				title.includes('swapped with section'))
 		) {
 			return {
 				className: styles.dotMoveVertical,
@@ -383,7 +430,10 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 				),
 			}
 		}
-		if (entry.action === 'STRUCTURE_MOVE' && (title.includes('frame rearranged') || title.includes('frame position'))) {
+		if (
+			entry.action === 'STRUCTURE_MOVE' &&
+			(title.includes('frame rearranged') || title.includes('frame position'))
+		) {
 			return {
 				className: styles.dotMoveHorizontal,
 				icon: (
@@ -430,10 +480,14 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 				<input
 					className={styles.addInput}
 					value={draft}
-					onInput={(event) => setDraft((event.target as HTMLInputElement).value)}
+					onInput={(event) =>
+						setDraft((event.target as HTMLInputElement).value)
+					}
 					placeholder="Add a plain text log entry"
 				/>
-				<Button onClick={onAddNote} disabled={!draft.trim()}><T>Add entry</T></Button>
+				<Button onClick={onAddNote} disabled={!draft.trim()}>
+					<T>Add entry</T>
+				</Button>
 			</div>
 
 			{logs.length === 0 && (
@@ -486,9 +540,13 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 										</>
 									)}
 									<div className={`${styles.dot} ${marker.className || ''}`}>
-										{marker.icon && <span className={styles.dotIcon}>{marker.icon}</span>}
+										{marker.icon && (
+											<span className={styles.dotIcon}>{marker.icon}</span>
+										)}
 									</div>
-									<div className={styles.card}>{renderEntryCard(row.entry, isEditing)}</div>
+									<div className={styles.card}>
+										{renderEntryCard(row.entry, isEditing)}
+									</div>
 								</div>
 							)
 						}
@@ -502,7 +560,9 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 								key={item.key}
 							>
 								<div className={`${styles.dot} ${marker.className || ''}`}>
-									{marker.icon && <span className={styles.dotIcon}>{marker.icon}</span>}
+									{marker.icon && (
+										<span className={styles.dotIcon}>{marker.icon}</span>
+									)}
 								</div>
 								<div className={styles.groupStack}>
 									<div className={`${styles.card} ${styles.groupCard}`}>
@@ -539,7 +599,9 @@ export default function HiveLogs({ hiveId, apiaryId }: { hiveId: string; apiaryI
 					})}
 					{hasMoreRows && (
 						<div className={styles.loadMoreWrap}>
-							<Button onClick={() => setVisibleCount((prev) => prev + LOG_PAGE_SIZE)}>
+							<Button
+								onClick={() => setVisibleCount((prev) => prev + LOG_PAGE_SIZE)}
+							>
 								<T>Load more history</T>
 							</Button>
 						</div>

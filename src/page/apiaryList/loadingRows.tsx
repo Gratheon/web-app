@@ -31,19 +31,25 @@ function buildLoadingApiaries() {
 			id: 'loading-apiary-1',
 			name: '',
 			type: 'STATIC',
-			hives: Array.from({ length: 6 }, (_, index) => ({ id: `loading-1-${index + 1}` })),
+			hives: Array.from({ length: 6 }, (_, index) => ({
+				id: `loading-1-${index + 1}`,
+			})),
 		},
 		{
 			id: 'loading-apiary-2',
 			name: '',
 			type: 'MOBILE',
-			hives: Array.from({ length: 4 }, (_, index) => ({ id: `loading-2-${index + 1}` })),
+			hives: Array.from({ length: 4 }, (_, index) => ({
+				id: `loading-2-${index + 1}`,
+			})),
 		},
 		{
 			id: 'loading-apiary-3',
 			name: '',
 			type: 'STATIC',
-			hives: Array.from({ length: 5 }, (_, index) => ({ id: `loading-3-${index + 1}` })),
+			hives: Array.from({ length: 5 }, (_, index) => ({
+				id: `loading-3-${index + 1}`,
+			})),
 		},
 	]
 }
@@ -68,10 +74,22 @@ export default function ApiaryListLoadingRows({
 	onToggleColumn: (columnKey: string) => void
 	selectedHiveApiaryId: string | number | null
 	selectedHiveId: string | number | null
-	onSelectHive: (apiaryId: string | number | null, hiveId: string | number | null, options?: { focus: boolean }) => void
-	onNavigateAcrossApiaries: ({ apiaryId, direction }: { apiaryId: string | number | null, direction: string }) => void
+	onSelectHive: (
+		apiaryId: string | number | null,
+		hiveId: string | number | null,
+		options?: { focus: boolean }
+	) => void
+	onNavigateAcrossApiaries: ({
+		apiaryId,
+		direction,
+	}: {
+		apiaryId: string | number | null
+		direction: string
+	}) => void
 }) {
-	const [loadingSkeletonListType] = React.useState<'list' | 'table'>(() => getPreferredSkeletonListType() as 'list' | 'table')
+	const [loadingSkeletonListType] = React.useState<'list' | 'table'>(
+		() => getPreferredSkeletonListType() as 'list' | 'table'
+	)
 	const loadingApiaries = React.useMemo(() => buildLoadingApiaries(), [])
 
 	return (

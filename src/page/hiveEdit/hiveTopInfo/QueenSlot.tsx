@@ -65,7 +65,13 @@ interface QueenSlotProps {
 	onRemoveQueen: (familyId: number) => void
 	onNavigateToLastSeen?: (family: Family) => void
 	onEmptySlotClick?: () => void
-	onUpdateQueen?: (familyId: number, name: string, race: string, year: string, color?: string) => void
+	onUpdateQueen?: (
+		familyId: number,
+		name: string,
+		race: string,
+		year: string,
+		color?: string
+	) => void
 	onDragStart?: (familyId: number) => void
 	onDragEnd?: () => void
 }
@@ -79,7 +85,7 @@ export default function QueenSlot({
 	onEmptySlotClick,
 	onUpdateQueen,
 	onDragStart,
-	onDragEnd
+	onDragEnd,
 }: QueenSlotProps) {
 	const { confirm, ConfirmDialog } = useConfirm()
 	const [draggingId, setDraggingId] = useState<number | null>(null)
@@ -112,7 +118,10 @@ export default function QueenSlot({
 		setShowColorPicker(false)
 	}
 
-	const handleDragStart = (e: h.JSX.TargetedDragEvent<HTMLDivElement>, familyId: number) => {
+	const handleDragStart = (
+		e: h.JSX.TargetedDragEvent<HTMLDivElement>,
+		familyId: number
+	) => {
 		setDraggingId(familyId)
 		e.dataTransfer.effectAllowed = 'move'
 		e.dataTransfer.setData('familyId', familyId.toString())
@@ -157,197 +166,202 @@ export default function QueenSlot({
 			<div className={styles.queensContainer}>
 				<div className={styles.queensList}>
 					{families.map((family) => (
-				<div
-					key={family.id}
-					className={`${styles.queenSlot} ${styles.filled} ${editable ? styles.editable : ''} ${
-						draggingId === family.id ? styles.dragging : ''
-					} ${families.length > 1 ? styles.multiple : ''}`}
-					draggable={editable}
-					onDragStart={(e) => editable ? handleDragStart(e, family.id) : undefined}
-					onDragEnd={editable ? handleDragEnd : undefined}
-				>
-					<div className={styles.queenInfo}>
-						<div className={styles.queenDetails}>
-							{editable && editingId === family.id ? (
-								<div className={styles.colorPickerWrapper}>
-									<div
-										className={styles.colorPreview}
-										onMouseDown={(e) => e.preventDefault()}
-										onClick={(e) => {
-											e.stopPropagation()
-											setShowColorPicker(!showColorPicker)
-										}}
-									>
-										<QueenColor year={editYear} color={editColor} />
-									</div>
-									{showColorPicker && (
-										<>
+						<div
+							key={family.id}
+							className={`${styles.queenSlot} ${styles.filled} ${editable ? styles.editable : ''} ${
+								draggingId === family.id ? styles.dragging : ''
+							} ${families.length > 1 ? styles.multiple : ''}`}
+							draggable={editable}
+							onDragStart={(e) =>
+								editable ? handleDragStart(e, family.id) : undefined
+							}
+							onDragEnd={editable ? handleDragEnd : undefined}
+						>
+							<div className={styles.queenInfo}>
+								<div className={styles.queenDetails}>
+									{editable && editingId === family.id ? (
+										<div className={styles.colorPickerWrapper}>
 											<div
-												className={styles.colorPickerOverlay}
-												onClick={() => setShowColorPicker(false)}
-											/>
-											<div
-												className={styles.colorPickerPopup}
+												className={styles.colorPreview}
 												onMouseDown={(e) => e.preventDefault()}
+												onClick={(e) => {
+													e.stopPropagation()
+													setShowColorPicker(!showColorPicker)
+												}}
 											>
-												<GithubPicker
-													width={212}
-													colors={colors}
-													onChangeComplete={(c: any) => {
-														setEditColor(c.hex)
-														setShowColorPicker(false)
-													}}
-													color={editColor || getQueenColorFromYear(editYear)}
-												/>
+												<QueenColor year={editYear} color={editColor} />
 											</div>
-										</>
+											{showColorPicker && (
+												<>
+													<div
+														className={styles.colorPickerOverlay}
+														onClick={() => setShowColorPicker(false)}
+													/>
+													<div
+														className={styles.colorPickerPopup}
+														onMouseDown={(e) => e.preventDefault()}
+													>
+														<GithubPicker
+															width={212}
+															colors={colors}
+															onChangeComplete={(c: any) => {
+																setEditColor(c.hex)
+																setShowColorPicker(false)
+															}}
+															color={
+																editColor || getQueenColorFromYear(editYear)
+															}
+														/>
+													</div>
+												</>
+											)}
+										</div>
+									) : (
+										<QueenColor year={family.added} color={family.color} />
 									)}
-								</div>
-							) : (
-								<QueenColor
-									year={family.added}
-									color={family.color}
-								/>
-							)}
-							{editable && editingId === family.id ? (
-									<div
-										className={styles.editInputsRow}
-										onBlur={(e: any) => {
-										if (!e.currentTarget.contains(e.relatedTarget)) {
-											finishEditing(family.id)
-										}
-									}}
-								>
-									<input
-										type="text"
-										className={styles.nameInput}
-										value={editName}
-										onChange={(e: any) => setEditName(e.target.value)}
-										onKeyDown={(e: any) => {
-											if (e.key === 'Enter') {
-												finishEditing(family.id)
-											}
-											if (e.key === 'Escape') {
-												cancelEditing()
-											}
-										}}
-										placeholder="Queen Name"
-										autoFocus
-									/>
-									<input
-										type="text"
-										className={styles.yearInput}
-										value={editYear}
-										onChange={(e: any) => {
-											setEditYear(e.target.value)
-											setEditColor(null)
-										}}
-										onKeyDown={(e: any) => {
-											if (e.key === 'Enter') {
-												finishEditing(family.id)
-											}
-											if (e.key === 'Escape') {
-												cancelEditing()
-											}
-										}}
-										placeholder="Year"
-										maxLength={4}
-									/>
-									<BeeRaceCombobox
-										value={editRace}
-										onChange={setEditRace}
-										className={styles.raceCombobox}
-										inputClassName={styles.raceInput}
-										onKeyDown={(e: any) => {
-											if (e.key === 'Enter') {
-												finishEditing(family.id)
-											}
-											if (e.key === 'Escape') {
-												cancelEditing()
-											}
-										}}
-										placeholder="Race"
-									/>
-								</div>
-							) : (
-								<>
-									<span
-										className={styles.queenName}
-										onClick={() => {
-											if (editable && onUpdateQueen) {
-												startEditing(family)
-											}
-										}}
-										style={{ cursor: editable ? 'pointer' : 'default' }}
-									>
-										{family.name || <T>Unnamed Queen</T>}
-									</span>
-                  <span
-                      className={styles.queenYear}
-                      onClick={() => {
-                        if (editable && onUpdateQueen) {
-                          startEditing(family)
-                        }
-                      }}
-                      style={{ cursor: editable ? 'pointer' : 'default' }}
-                  >
-											{family.added || <T>Unknown Year</T>}
-											{Number(family.age) > 0 && <> ({family.age} <T>years</T>)</>}
-									</span>
-
-									<span
-										className={styles.queenRace}
-										onClick={() => {
-											if (editable && onUpdateQueen) {
-												startEditing(family)
-											}
-										}}
-										style={{ cursor: editable ? 'pointer' : 'default' }}
-									>
-										{family.race || <T>Unknown Race</T>}
-									</span>
-									{family.lastSeenFrameId && family.lastSeenFrameSideId && (
-										<Button
-											size="small"
-											onClick={(e) => {
-												e.stopPropagation()
-												if (onNavigateToLastSeen) {
-													onNavigateToLastSeen(family)
+									{editable && editingId === family.id ? (
+										<div
+											className={styles.editInputsRow}
+											onBlur={(e: any) => {
+												if (!e.currentTarget.contains(e.relatedTarget)) {
+													finishEditing(family.id)
 												}
 											}}
 										>
-											<T>Last seen on frame</T> #{family.lastSeenFrameId}
-										</Button>
-									)}
+											<input
+												type="text"
+												className={styles.nameInput}
+												value={editName}
+												onChange={(e: any) => setEditName(e.target.value)}
+												onKeyDown={(e: any) => {
+													if (e.key === 'Enter') {
+														finishEditing(family.id)
+													}
+													if (e.key === 'Escape') {
+														cancelEditing()
+													}
+												}}
+												placeholder="Queen Name"
+												autoFocus
+											/>
+											<input
+												type="text"
+												className={styles.yearInput}
+												value={editYear}
+												onChange={(e: any) => {
+													setEditYear(e.target.value)
+													setEditColor(null)
+												}}
+												onKeyDown={(e: any) => {
+													if (e.key === 'Enter') {
+														finishEditing(family.id)
+													}
+													if (e.key === 'Escape') {
+														cancelEditing()
+													}
+												}}
+												placeholder="Year"
+												maxLength={4}
+											/>
+											<BeeRaceCombobox
+												value={editRace}
+												onChange={setEditRace}
+												className={styles.raceCombobox}
+												inputClassName={styles.raceInput}
+												onKeyDown={(e: any) => {
+													if (e.key === 'Enter') {
+														finishEditing(family.id)
+													}
+													if (e.key === 'Escape') {
+														cancelEditing()
+													}
+												}}
+												placeholder="Race"
+											/>
+										</div>
+									) : (
+										<>
+											<span
+												className={styles.queenName}
+												onClick={() => {
+													if (editable && onUpdateQueen) {
+														startEditing(family)
+													}
+												}}
+												style={{ cursor: editable ? 'pointer' : 'default' }}
+											>
+												{family.name || <T>Unnamed Queen</T>}
+											</span>
+											<span
+												className={styles.queenYear}
+												onClick={() => {
+													if (editable && onUpdateQueen) {
+														startEditing(family)
+													}
+												}}
+												style={{ cursor: editable ? 'pointer' : 'default' }}
+											>
+												{family.added || <T>Unknown Year</T>}
+												{Number(family.age) > 0 && (
+													<>
+														{' '}
+														({family.age} <T>years</T>)
+													</>
+												)}
+											</span>
 
-								</>
+											<span
+												className={styles.queenRace}
+												onClick={() => {
+													if (editable && onUpdateQueen) {
+														startEditing(family)
+													}
+												}}
+												style={{ cursor: editable ? 'pointer' : 'default' }}
+											>
+												{family.race || <T>Unknown Race</T>}
+											</span>
+											{family.lastSeenFrameId && family.lastSeenFrameSideId && (
+												<Button
+													size="small"
+													onClick={(e) => {
+														e.stopPropagation()
+														if (onNavigateToLastSeen) {
+															onNavigateToLastSeen(family)
+														}
+													}}
+												>
+													<T>Last seen on frame</T> #{family.lastSeenFrameId}
+												</Button>
+											)}
+										</>
+									)}
+								</div>
+							</div>
+
+							{editable && (
+								<div className={styles.queenActions}>
+									<Button
+										className={`${styles.actionButton} ${styles.remove}`}
+										onClick={async (e) => {
+											e.stopPropagation()
+											const confirmed = await confirm(
+												'Are you sure you want to remove this queen from the hive?',
+												{ confirmText: 'Remove', isDangerous: true }
+											)
+											if (confirmed) {
+												onRemoveQueen(family.id)
+											}
+										}}
+										title="Remove queen"
+										iconOnly={true}
+									>
+										<TrashIcon size={20} />
+									</Button>
+								</div>
 							)}
 						</div>
-					</div>
-
-					{editable && (
-						<div className={styles.queenActions}>
-							<Button
-								className={`${styles.actionButton} ${styles.remove}`}
-								onClick={async (e) => {
-									e.stopPropagation()
-									const confirmed = await confirm(
-										'Are you sure you want to remove this queen from the hive?',
-										{ confirmText: 'Remove', isDangerous: true }
-									)
-									if (confirmed) {
-										onRemoveQueen(family.id)
-									}
-								}}
-								title="Remove queen"
-								iconOnly={true}
-							>
-								<TrashIcon size={20} />
-							</Button>
-						</div>
-					)}
-					</div>
-				))}
+					))}
 				</div>
 			</div>
 			{ConfirmDialog}

@@ -35,4 +35,3 @@ export interface DragState {
 	isDraggingObstacleRotation: boolean
 	isResizingObstacle: boolean
 }
-

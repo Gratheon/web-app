@@ -9,13 +9,20 @@ import WarehouseDropZone from '@/page/hiveEdit/hiveTopInfo/WarehouseDropZone'
 import { useMutation } from '@/api'
 import { updateHive, getHive, getHives } from '@/models/hive'
 import { Box, getBoxes, updateBox } from '@/models/boxes'
-import { getFamilyByHive, getAllFamiliesByHive, updateFamily, deleteFamily } from '@/models/family'
+import {
+	getFamilyByHive,
+	getAllFamiliesByHive,
+	updateFamily,
+	deleteFamily,
+} from '@/models/family'
 import { InspectionSnapshot } from '@/models/inspections'
 import { getFramesByHive } from '@/models/frames'
-import { getHiveInspectionStats, deleteCellsByFrameSideIDs } from '@/models/frameSideCells'
+import {
+	getHiveInspectionStats,
+	deleteCellsByFrameSideIDs,
+} from '@/models/frameSideCells'
 import { collectFrameSideIDsFromFrames } from '@/models/frameSide'
 import { deleteFilesByFrameSideIDs } from '@/models/frameSideFile'
-
 
 import T, { useTranslation as t } from '@/shared/translate'
 import VisualForm from '@/shared/visualForm'
@@ -33,13 +40,15 @@ import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
 export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 	let [creatingInspection, setCreatingInspection] = useState(false)
 	let [okMsg, setOkMsg] = useState(null)
-	let [addQueenModalMode, setAddQueenModalMode] = useState<'create' | 'warehouse' | null>(null)
+	let [addQueenModalMode, setAddQueenModalMode] = useState<
+		'create' | 'warehouse' | null
+	>(null)
 	let [isDraggingQueen, setIsDraggingQueen] = useState(false)
 	let [hiveNumberError, setHiveNumberError] = useState(null)
 
-	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId]);
-	let boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId]);
-	let families = useLiveQuery(() => getAllFamiliesByHive(+hiveId), [hiveId]);
+	let hive = useLiveQuery(() => getHive(+hiveId), [hiveId])
+	let boxes = useLiveQuery(() => getBoxes({ hiveId: +hiveId }), [hiveId])
+	let families = useLiveQuery(() => getAllFamiliesByHive(+hiveId), [hiveId])
 
 	if (!families) {
 		families = []
@@ -49,7 +58,8 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 		`mutation updateBoxColor($boxID: ID!, $color: String!) { updateBoxColor(id: $boxID, color: $color) }`
 	)
 
-	let [mutateHive, { error: errorHive }] = useMutation(`mutation updateHive($hive: HiveUpdateInput!) {
+	let [mutateHive, { error: errorHive }] =
+		useMutation(`mutation updateHive($hive: HiveUpdateInput!) {
 		updateHive(hive: $hive) {
 			id
 			__typename
@@ -63,15 +73,18 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 			}
 		}
 	}`)
-	let [mutateInspection, { error: errorInspection }] = useMutation(`	mutation addInspection($inspection: InspectionInput!) {
+	let [mutateInspection, { error: errorInspection }] =
+		useMutation(`	mutation addInspection($inspection: InspectionInput!) {
 		addInspection(inspection: $inspection) {
 			id
 		}
 	}`)
-	let [cloneFramesForInspection, { error: errorInspection2 }] = useMutation(`mutation cloneFramesForInspection($frameSideIDs: [ID], $inspectionId: ID!) {
+	let [cloneFramesForInspection, { error: errorInspection2 }] =
+		useMutation(`mutation cloneFramesForInspection($frameSideIDs: [ID], $inspectionId: ID!) {
 		cloneFramesForInspection(frameSideIDs: $frameSideIDs, inspectionId: $inspectionId)
 	}`)
-	let [moveQueenToWarehouse, { error: errorMoveQueenToWarehouse }] = useMutation(`
+	let [moveQueenToWarehouse, { error: errorMoveQueenToWarehouse }] =
+		useMutation(`
 		mutation moveQueenToWarehouse($hiveId: ID!, $familyId: ID!) {
 			moveQueenToWarehouse(hiveId: $hiveId, familyId: $familyId) {
 				id
@@ -87,7 +100,11 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 	const lastLocalNoteRef = useRef<string | null>(null)
 
 	useEffect(() => {
-		if (hive && hive.notes !== lastLocalNoteRef.current && document.activeElement?.id !== 'notes') {
+		if (
+			hive &&
+			hive.notes !== lastLocalNoteRef.current &&
+			document.activeElement?.id !== 'notes'
+		) {
 			setNoteInput(hive.notes || '')
 		}
 	}, [hive])
@@ -109,21 +126,20 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 					family,
 					boxes,
 					frames,
-					cellStats
+					cellStats,
 				}
 
 				let createdInspection = await mutateInspection({
 					inspection: {
 						hiveId: +hiveId,
-						data: JSON.stringify(inspectionSnapshot)
+						data: JSON.stringify(inspectionSnapshot),
 					},
 				})
 
 				await cloneFramesForInspection({
 					inspectionId: createdInspection.data.addInspection.id,
-					frameSideIDs
-				}
-				)
+					frameSideIDs,
+				})
 				await addHiveLog({
 					hiveId: +hiveId,
 					action: hiveLogActions.INSPECTION,
@@ -140,9 +156,11 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 				setCreatingInspection(false)
 
 				setOkMsg(
-					<MessageSuccess title={<T>Inspection created</T>} message={<T>All frame statistics is reset for the new state</T>} />
+					<MessageSuccess
+						title={<T>Inspection created</T>}
+						message={<T>All frame statistics is reset for the new state</T>}
+					/>
 				)
-
 			}, 1000),
 		[]
 	)
@@ -150,19 +168,20 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 	const onHiveNumberChange = useMemo(
 		() =>
 			debounce(async function (v) {
-				const newHiveNumber = v.target.value ? parseInt(v.target.value) : undefined
+				const newHiveNumber = v.target.value
+					? parseInt(v.target.value)
+					: undefined
 
 				if (newHiveNumber) {
 					const allHives = await getHives()
-					const duplicateHive = allHives.find(h =>
-						h.hiveNumber === newHiveNumber &&
-						h.id !== +hiveId
+					const duplicateHive = allHives.find(
+						(h) => h.hiveNumber === newHiveNumber && h.id !== +hiveId
 					)
 
 					if (duplicateHive) {
 						setHiveNumberError({
 							message: `Hive number ${newHiveNumber} is already used`,
-							duplicateHiveId: duplicateHive.id
+							duplicateHiveId: duplicateHive.id,
 						})
 						return
 					}
@@ -180,13 +199,15 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 						id: hive.id,
 						hiveNumber: hive.hiveNumber,
 						notes: hive.notes,
-						family: family ? {
-							id: family.id,
-							name: family.name,
-							race: family.race,
-							added: family.added,
-							color: family.color,
-						} : undefined,
+						family: family
+							? {
+									id: family.id,
+									name: family.name,
+									race: family.race,
+									added: family.added,
+									color: family.color,
+								}
+							: undefined,
 					},
 				})
 
@@ -208,7 +229,7 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 						id: null,
 						race: '',
 						added: '',
-						age: null
+						age: null,
 					}
 				}
 
@@ -254,10 +275,16 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 		setAddQueenModalMode('warehouse')
 	}
 
-	const handleUpdateQueen = async (familyId: number, name: string, race: string, year: string, color?: string) => {
+	const handleUpdateQueen = async (
+		familyId: number,
+		name: string,
+		race: string,
+		year: string,
+		color?: string
+	) => {
 		try {
 			const families = await getAllFamiliesByHive(+hiveId)
-			const family = families.find(f => f.id === familyId)
+			const family = families.find((f) => f.id === familyId)
 
 			if (family) {
 				const before = {
@@ -348,7 +375,7 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 			})
 
 			const familiesInHive = await getAllFamiliesByHive(+hiveId)
-			const movedFamily = familiesInHive.find(f => f.id === familyId)
+			const movedFamily = familiesInHive.find((f) => f.id === familyId)
 			if (movedFamily) {
 				delete movedFamily.hiveId
 				await updateFamily(movedFamily)
@@ -389,7 +416,9 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 				onDrop={handleWarehouseDrop}
 			/>
 
-			<ErrorMessage error={errorColor || errorHive || errorMoveQueenToWarehouse} />
+			<ErrorMessage
+				error={errorColor || errorHive || errorMoveQueenToWarehouse}
+			/>
 			{okMsg}
 
 			<div className={styles.iconBlock}>
@@ -397,7 +426,11 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 					<label className={styles.hiveColorLabel}>
 						<T>Hive colors</T>
 					</label>
-					<HiveIcon onColorChange={onColorChange} boxes={boxes} editable={true} />
+					<HiveIcon
+						onColorChange={onColorChange}
+						boxes={boxes}
+						editable={true}
+					/>
 				</div>
 				<BeeCounter count={hive.beeCount} />
 			</div>
@@ -406,7 +439,9 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 				<div>
 					<VisualForm className={styles.hiveDetailsForm}>
 						<div>
-							<label htmlFor="hiveNumber" className={styles.hiveNumberLabel}><T>Hive Number</T></label>
+							<label htmlFor="hiveNumber" className={styles.hiveNumberLabel}>
+								<T>Hive Number</T>
+							</label>
 							<div style="width: 100%;">
 								<input
 									name="hiveNumber"
@@ -414,7 +449,7 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 									type="number"
 									style={{
 										width: '100%',
-										borderColor: hiveNumberError ? '#f94144' : undefined
+										borderColor: hiveNumberError ? '#f94144' : undefined,
 									}}
 									value={hive.hiveNumber || ''}
 									onInput={onHiveNumberChange}
@@ -432,7 +467,10 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 														onClick={(e) => {
 															if (window.innerWidth > 768) {
 																e.preventDefault()
-																window.open(`/apiaries/${apiaryId}/hives/${hiveNumberError.duplicateHiveId}`, '_blank')
+																window.open(
+																	`/apiaries/${apiaryId}/hives/${hiveNumberError.duplicateHiveId}`,
+																	'_blank'
+																)
 															}
 														}}
 													>
@@ -461,18 +499,22 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 									onDragEnd={() => setIsDraggingQueen(false)}
 								/>
 								<div className={styles.queenActionButtons}>
-										<Button
-											type="button"
-											className={styles.newQueenButton}
-											onClick={handleAddNewQueen}
-										>
-											<PlusIcon size={18} />
-											<T>Introduce New Queen</T>
-										</Button>
-										<Button type="button" className={styles.existingQueenButton} onClick={handleAddQueenFromWarehouse}>
-											<T>Add Existing Queen</T>
-										</Button>
-									</div>
+									<Button
+										type="button"
+										className={styles.newQueenButton}
+										onClick={handleAddNewQueen}
+									>
+										<PlusIcon size={18} />
+										<T>Introduce New Queen</T>
+									</Button>
+									<Button
+										type="button"
+										className={styles.existingQueenButton}
+										onClick={handleAddQueenFromWarehouse}
+									>
+										<T>Add Existing Queen</T>
+									</Button>
+								</div>
 							</div>
 						</div>
 
@@ -481,12 +523,12 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 								<T>Notes</T>
 							</label>
 
-								<div>
-									<textarea
-										className={styles.notes}
-										name="notes"
-										placeholder={t('Notes')}
-										id="notes"
+							<div>
+								<textarea
+									className={styles.notes}
+									name="notes"
+									placeholder={t('Notes')}
+									id="notes"
 									value={noteInput}
 									onChange={onNotesChange}
 								/>
@@ -494,10 +536,7 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 						</div>
 					</VisualForm>
 
-					<div className={styles.buttons}>
-						{buttons}
-					</div>
-
+					<div className={styles.buttons}>{buttons}</div>
 				</div>
 			</div>
 
@@ -512,7 +551,9 @@ export default function HiveEditDetails({ apiaryId, hiveId, buttons }) {
 						setOkMsg(
 							<MessageSuccess
 								title={<T>Queen Added</T>}
-								message={<T>The queen has been successfully added to the hive</T>}
+								message={
+									<T>The queen has been successfully added to the hive</T>
+								}
 							/>
 						)
 					}}

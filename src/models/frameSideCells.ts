@@ -1,6 +1,6 @@
-import { db } from './db';
-import { Frame } from './frames.ts';
-import colors from '@/colors'; // Import colors
+import { db } from './db'
+import { Frame } from './frames.ts'
+import colors from '@/colors' // Import colors
 
 export type FrameSideCells = {
 	id: number // same as frameSideId, just for indexing
@@ -58,10 +58,10 @@ export async function getFrameSideCells(
 	try {
 		let res = await db[FRAME_SIDE_CELL_TABLE].get(normalizedId)
 		if (!res) return null
-		if (!res.droneBroodPercent){
+		if (!res.droneBroodPercent) {
 			res.droneBroodPercent = 0
 		}
-		if (!res.nectarPercent){
+		if (!res.nectarPercent) {
 			res.nectarPercent = 0
 		}
 		return res
@@ -96,7 +96,9 @@ export async function updateFrameStat(
 		cells.nectarPercent = Math.floor((100 * (cells.nectarPercent || 0)) / total)
 		cells.honeyPercent = Math.floor((100 * (cells.honeyPercent || 0)) / total)
 		cells.pollenPercent = Math.floor((100 * (cells.pollenPercent || 0)) / total)
-		cells.droneBroodPercent = Math.floor((100 * (cells.droneBroodPercent || 0)) / total) // Added drone brood
+		cells.droneBroodPercent = Math.floor(
+			(100 * (cells.droneBroodPercent || 0)) / total
+		) // Added drone brood
 	}
 
 	try {
@@ -176,7 +178,8 @@ export async function getHiveInspectionStats(
 
 export async function deleteCellsByFrameSideIDs(frameSideIds: number[]) {
 	try {
-		await db[FRAME_SIDE_CELL_TABLE].where('frameSideId')
+		await db[FRAME_SIDE_CELL_TABLE]
+			.where('frameSideId')
 			.anyOf(frameSideIds)
 			.delete()
 	} catch (e) {
@@ -189,13 +192,13 @@ export async function deleteCellsByFrameSideIDs(frameSideIds: number[]) {
 export async function getDominantResourceColorForFrameSide(
 	frameSideId: number
 ): Promise<string | null> {
-	const cells = await getFrameSideCells(frameSideId);
+	const cells = await getFrameSideCells(frameSideId)
 	if (!cells) {
-		return null; // No cell data found
+		return null // No cell data found
 	}
 
-	let dominantResource = '';
-	let maxPercent = -1; // Start below 0
+	let dominantResource = ''
+	let maxPercent = -1 // Start below 0
 
 	// Define resource types and their corresponding colors
 	const resourceTypes = {
@@ -206,25 +209,24 @@ export async function getDominantResourceColorForFrameSide(
 		eggsPercent: colors.eggsColor,
 		cappedBroodPercent: colors.cappedBroodColor,
 		droneBroodPercent: colors.droneBroodColor,
-	};
+	}
 
 	// Iterate through resource types to find the dominant one
 	for (const resourceKey in resourceTypes) {
-		const percent = cells[resourceKey] ?? 0; // Default to 0 if undefined
+		const percent = cells[resourceKey] ?? 0 // Default to 0 if undefined
 		if (percent > maxPercent) {
-			maxPercent = percent;
-			dominantResource = resourceKey;
+			maxPercent = percent
+			dominantResource = resourceKey
 		}
 	}
 
 	// Return the color if a dominant resource was found (maxPercent > 0)
 	if (dominantResource && maxPercent > 0) {
-		return resourceTypes[dominantResource];
+		return resourceTypes[dominantResource]
 	}
 
-	return null; // Return null if no resource has > 0%
+	return null // Return null if no resource has > 0%
 }
-
 
 export async function enrichFramesWithSideCells(
 	frames: Frame[]
@@ -243,7 +245,8 @@ export async function enrichFramesWithSideCells(
 			return frames
 		}
 
-		const frameSideCells = await db[FRAME_SIDE_CELL_TABLE].where('frameSideId')
+		const frameSideCells = await db[FRAME_SIDE_CELL_TABLE]
+			.where('frameSideId')
 			.anyOf(frameSideIds)
 			.toArray()
 

@@ -36,7 +36,12 @@ export default function AIAdvisorPage() {
 		const apiaryIdParam = +searchParams.get('apiaryId')
 		const hiveIdParam = +searchParams.get('hiveId')
 
-		if (Number.isFinite(apiaryIdParam) && apiaryIdParam > 0 && Number.isFinite(hiveIdParam) && hiveIdParam > 0) {
+		if (
+			Number.isFinite(apiaryIdParam) &&
+			apiaryIdParam > 0 &&
+			Number.isFinite(hiveIdParam) &&
+			hiveIdParam > 0
+		) {
 			return {
 				apiaryId: apiaryIdParam,
 				hiveId: hiveIdParam,
@@ -66,7 +71,11 @@ export default function AIAdvisorPage() {
 		return (
 			<div className={styles.pageWrap}>
 				<div className={styles.header}>
-					<img className={styles.heroImage} src={beekeeperURL} alt="AI Advisor" />
+					<img
+						className={styles.heroImage}
+						src={beekeeperURL}
+						alt="AI Advisor"
+					/>
 					<p className={styles.subtitle}>
 						<T>Context-aware help for your beekeeping workflow.</T>
 					</p>
@@ -75,11 +84,14 @@ export default function AIAdvisorPage() {
 					<div className={styles.empty}>
 						<p>
 							<T>
-								AI Advisor uses the currently opened hive context to assess colony state and suggest next steps.
+								AI Advisor uses the currently opened hive context to assess
+								colony state and suggest next steps.
 							</T>
 						</p>
 						<p>
-							<T>Open a specific hive first, then click the AI Advisor menu item.</T>
+							<T>
+								Open a specific hive first, then click the AI Advisor menu item.
+							</T>
 						</p>
 					</div>
 				</MessageNotFound>
@@ -95,7 +107,11 @@ export default function AIAdvisorPage() {
 		return (
 			<div className={styles.pageWrap}>
 				<div className={styles.header}>
-					<img className={styles.heroImage} src={beekeeperURL} alt="AI Advisor" />
+					<img
+						className={styles.heroImage}
+						src={beekeeperURL}
+						alt="AI Advisor"
+					/>
 				</div>
 				<MessageNotFound msg={<T>Hive not found</T>}>
 					<div className={styles.empty}>
@@ -112,7 +128,10 @@ export default function AIAdvisorPage() {
 				<img className={styles.heroImage} src={beekeeperURL} alt="AI Advisor" />
 				<p className={styles.subtitle}>
 					<T>
-						AI Advisor uses the context of the page you opened it from. In Hive View, it uses the selected hive context, colony history, inspections, and resource distribution to summarize current state and recommend practical next steps when possible.
+						AI Advisor uses the context of the page you opened it from. In Hive
+						View, it uses the selected hive context, colony history,
+						inspections, and resource distribution to summarize current state
+						and recommend practical next steps when possible.
 					</T>
 				</p>
 			</div>

@@ -10,7 +10,12 @@ import UploadIcon from '@/icons/uploadIcon.tsx'
 import styles from './index.module.less'
 import metrics from '@/metrics.tsx'
 
-const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+const SUPPORTED_IMAGE_TYPES = [
+	'image/jpeg',
+	'image/png',
+	'image/gif',
+	'image/webp',
+]
 const SUPPORTED_IMAGE_TYPES_STRING = SUPPORTED_IMAGE_TYPES.join(', ')
 const MAX_FILE_SIZE_MB = 30
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
@@ -39,7 +44,13 @@ type BulkUploadInlineProps = {
 	onComplete?: () => void
 }
 
-export default function BulkUploadInline({ hiveId, boxId, apiaryId, frames, onComplete }: BulkUploadInlineProps) {
+export default function BulkUploadInline({
+	hiveId,
+	boxId,
+	apiaryId,
+	frames,
+	onComplete,
+}: BulkUploadInlineProps) {
 	const [images, setImages] = useState<ImagePreview[]>([])
 	const [error, setError] = useState<Error | null>(null)
 	const [isExpanded, setIsExpanded] = useState(false)
@@ -54,7 +65,13 @@ export default function BulkUploadInline({ hiveId, boxId, apiaryId, frames, onCo
 				setImages(uploadContext.images)
 			}
 		}
-	}, [uploadContext.isUploading, uploadContext.boxId, uploadContext.images, boxId, images.length])
+	}, [
+		uploadContext.isUploading,
+		uploadContext.boxId,
+		uploadContext.images,
+		boxId,
+		images.length,
+	])
 
 	const [uploadFile] = useUploadMutation(gql`
 		mutation uploadFrameSide($file: Upload!) {
@@ -73,24 +90,38 @@ export default function BulkUploadInline({ hiveId, boxId, apiaryId, frames, onCo
 	`)
 
 	const [linkFrameSideToFileMutation] = useMutation(gql`
-		mutation addFileToFrameSide($frameSideId: ID!, $fileId: ID!, $hiveId: ID!) { 
-			addFileToFrameSide(frameSideId: $frameSideId, fileId: $fileId, hiveId: $hiveId)
+		mutation addFileToFrameSide($frameSideId: ID!, $fileId: ID!, $hiveId: ID!) {
+			addFileToFrameSide(
+				frameSideId: $frameSideId
+				fileId: $fileId
+				hiveId: $hiveId
+			)
 		}
 	`)
 
-	const availableFrameSides = frames.flatMap(frame => {
-		const sides = []
-		if (!frame.leftSide?.frameSideFile) {
-			sides.push({ frameSideId: frame.leftId, position: frame.position, side: 'left' })
-		}
-		if (!frame.rightSide?.frameSideFile) {
-			sides.push({ frameSideId: frame.rightId, position: frame.position, side: 'right' })
-		}
-		return sides
-	}).sort((a, b) => {
-		if (a.position !== b.position) return a.position - b.position
-		return a.side === 'left' ? -1 : 1
-	})
+	const availableFrameSides = frames
+		.flatMap((frame) => {
+			const sides = []
+			if (!frame.leftSide?.frameSideFile) {
+				sides.push({
+					frameSideId: frame.leftId,
+					position: frame.position,
+					side: 'left',
+				})
+			}
+			if (!frame.rightSide?.frameSideFile) {
+				sides.push({
+					frameSideId: frame.rightId,
+					position: frame.position,
+					side: 'right',
+				})
+			}
+			return sides
+		})
+		.sort((a, b) => {
+			if (a.position !== b.position) return a.position - b.position
+			return a.side === 'left' ? -1 : 1
+		})
 
 	const maxImages = availableFrameSides.length
 
@@ -114,7 +145,7 @@ export default function BulkUploadInline({ hiveId, boxId, apiaryId, frames, onCo
 			validFiles.push({
 				file,
 				previewUrl: URL.createObjectURL(file),
-				uploadProgress: 0
+				uploadProgress: 0,
 			})
 		}
 
@@ -124,7 +155,7 @@ export default function BulkUploadInline({ hiveId, boxId, apiaryId, frames, onCo
 			setError(null)
 		}
 
-		setImages(prev => [...prev, ...validFiles].slice(0, maxImages))
+		setImages((prev) => [...prev, ...validFiles].slice(0, maxImages))
 		setIsExpanded(true)
 	}
 
@@ -153,7 +184,7 @@ export default function BulkUploadInline({ hiveId, boxId, apiaryId, frames, onCo
 	}
 
 	const removeImage = (index: number) => {
-		setImages(prev => {
+		setImages((prev) => {
 			const newImages = [...prev]
 			URL.revokeObjectURL(newImages[index].previewUrl)
 			newImages.splice(index, 1)
@@ -162,7 +193,7 @@ export default function BulkUploadInline({ hiveId, boxId, apiaryId, frames, onCo
 	}
 
 	const moveImage = (fromIndex: number, toIndex: number) => {
-		setImages(prev => {
+		setImages((prev) => {
 			const newImages = [...prev]
 			const [moved] = newImages.splice(fromIndex, 1)
 			newImages.splice(toIndex, 0, moved)
@@ -199,19 +230,19 @@ export default function BulkUploadInline({ hiveId, boxId, apiaryId, frames, onCo
 
 				uploadContext.updateImageProgress(i, 50)
 
-					await updateFile({
-						id: +uploadData.id,
-						url: uploadData.url,
-						resizes: uploadData.resizes || [],
-						...getPhotoTimestamps(image.file),
-					})
+				await updateFile({
+					id: +uploadData.id,
+					url: uploadData.url,
+					resizes: uploadData.resizes || [],
+					...getPhotoTimestamps(image.file),
+				})
 
 				uploadContext.updateImageProgress(i, 70)
 
 				const linkResult = await linkFrameSideToFileMutation({
 					frameSideId: String(frameSide.frameSideId),
 					fileId: String(uploadData.id),
-					hiveId: String(hiveId)
+					hiveId: String(hiveId),
 				})
 
 				if (linkResult?.error) {
@@ -221,29 +252,32 @@ export default function BulkUploadInline({ hiveId, boxId, apiaryId, frames, onCo
 
 				uploadContext.updateImageProgress(i, 90)
 
-			await updateFrameSideFile({
-				id: +frameSide.frameSideId,
-				fileId: +uploadData.id,
-				frameSideId: +frameSide.frameSideId,
-				strokeHistory: [],
-				detectedBees: [],
-				detectedDrones: [],
-				detectedCells: [],
-				detectedQueenCups: [],
-				detectedVarroa: [],
-				counts: [],
-				detectedQueenCount: 0,
-				detectedWorkerBeeCount: 0,
-				detectedDroneCount: 0,
-				varroaCount: 0,
-				// New upload starts async detection jobs, including varroa, so keep UI polling until it completes.
-				isVarroaDetectionComplete: false
-			})
+				await updateFrameSideFile({
+					id: +frameSide.frameSideId,
+					fileId: +uploadData.id,
+					frameSideId: +frameSide.frameSideId,
+					strokeHistory: [],
+					detectedBees: [],
+					detectedDrones: [],
+					detectedCells: [],
+					detectedQueenCups: [],
+					detectedVarroa: [],
+					counts: [],
+					detectedQueenCount: 0,
+					detectedWorkerBeeCount: 0,
+					detectedDroneCount: 0,
+					varroaCount: 0,
+					// New upload starts async detection jobs, including varroa, so keep UI polling until it completes.
+					isVarroaDetectionComplete: false,
+				})
 
 				uploadContext.markImageComplete(i, frameSide.frameSideId)
 				metrics.trackFramePhotoUploaded()
 			} catch (err) {
-				uploadContext.markImageError(i, err instanceof Error ? err.message : 'Upload failed')
+				uploadContext.markImageError(
+					i,
+					err instanceof Error ? err.message : 'Upload failed'
+				)
 			}
 		}
 
@@ -264,7 +298,7 @@ export default function BulkUploadInline({ hiveId, boxId, apiaryId, frames, onCo
 	}
 
 	const handleClear = () => {
-		images.forEach(img => URL.revokeObjectURL(img.previewUrl))
+		images.forEach((img) => URL.revokeObjectURL(img.previewUrl))
 		setImages([])
 		setError(null)
 	}
@@ -286,7 +320,9 @@ export default function BulkUploadInline({ hiveId, boxId, apiaryId, frames, onCo
 							color="green"
 						>
 							<UploadIcon />
-							<span><T>Bulk upload frame photos</T></span>
+							<span>
+								<T>Bulk upload frame photos</T>
+							</span>
 						</Button>
 						{maxImages > 0 && (
 							<div className={styles.fileCountHint}>
@@ -330,18 +366,21 @@ export default function BulkUploadInline({ hiveId, boxId, apiaryId, frames, onCo
 							<>
 								<br />
 								<span className={styles.warning}>
-									⚠️ <T>Too many images selected. Only first</T> {maxImages} <T>will be uploaded</T>.
+									⚠️ <T>Too many images selected. Only first</T> {maxImages}{' '}
+									<T>will be uploaded</T>.
 								</span>
 							</>
 						)}
-						{images.length > 0 && images.length < maxImages && !uploadContext.isUploading && (
-							<>
-								<br />
-								<span className={styles.warning}>
-									⚠️ <T>You have fewer images than available frame sides</T>.
-								</span>
-							</>
-						)}
+						{images.length > 0 &&
+							images.length < maxImages &&
+							!uploadContext.isUploading && (
+								<>
+									<br />
+									<span className={styles.warning}>
+										⚠️ <T>You have fewer images than available frame sides</T>.
+									</span>
+								</>
+							)}
 					</div>
 
 					{images.length === 0 && !uploadContext.isUploading && (
@@ -355,9 +394,12 @@ export default function BulkUploadInline({ hiveId, boxId, apiaryId, frames, onCo
 						>
 							<div className={styles.dropZoneContent}>
 								<UploadIcon />
-								<p><T>Drag and drop images here or click to select</T></p>
+								<p>
+									<T>Drag and drop images here or click to select</T>
+								</p>
 								<p className={styles.dropZoneHint}>
-									<T>Supported: JPEG, PNG, GIF, WebP</T> • <T>Max</T> {MAX_FILE_SIZE_MB}MB <T>per file</T>
+									<T>Supported: JPEG, PNG, GIF, WebP</T> • <T>Max</T>{' '}
+									{MAX_FILE_SIZE_MB}MB <T>per file</T>
 								</p>
 							</div>
 						</div>
@@ -368,7 +410,9 @@ export default function BulkUploadInline({ hiveId, boxId, apiaryId, frames, onCo
 							{uploadContext.isUploading && uploadContext.boxId === boxId && (
 								<div className={styles.overallProgress}>
 									<div className={styles.progressInfo}>
-										<T>Uploading</T> {uploadContext.images.filter(img => img.uploaded).length} / {images.length}
+										<T>Uploading</T>{' '}
+										{uploadContext.images.filter((img) => img.uploaded).length}{' '}
+										/ {images.length}
 									</div>
 									<div className={styles.progressBarOuter}>
 										<div
@@ -381,38 +425,57 @@ export default function BulkUploadInline({ hiveId, boxId, apiaryId, frames, onCo
 
 							<div className={styles.previewGrid}>
 								{images.map((image, index) => {
-									const contextImage = uploadContext.isUploading && uploadContext.boxId === boxId
-										? uploadContext.images[index]
-										: null
+									const contextImage =
+										uploadContext.isUploading && uploadContext.boxId === boxId
+											? uploadContext.images[index]
+											: null
 									const displayImage = contextImage || image
 
 									return (
 										<div key={index} className={styles.previewItem}>
-											<img src={image.previewUrl} alt={`Preview ${index + 1}`} />
+											<img
+												src={image.previewUrl}
+												alt={`Preview ${index + 1}`}
+											/>
 
 											<div className={styles.previewOverlay}>
-												<span className={styles.previewNumber}>{index + 1}</span>
+												<span className={styles.previewNumber}>
+													{index + 1}
+												</span>
 												{!uploadContext.isUploading && (
 													<div className={styles.previewActions}>
 														{index > 0 && (
-															<button onClick={() => moveImage(index, index - 1)}>↑</button>
+															<button
+																onClick={() => moveImage(index, index - 1)}
+															>
+																↑
+															</button>
 														)}
 														{index < images.length - 1 && (
-															<button onClick={() => moveImage(index, index + 1)}>↓</button>
+															<button
+																onClick={() => moveImage(index, index + 1)}
+															>
+																↓
+															</button>
 														)}
-														<button onClick={() => removeImage(index)}>×</button>
+														<button onClick={() => removeImage(index)}>
+															×
+														</button>
 													</div>
 												)}
 												{contextImage?.uploaded && (
 													<div className={styles.uploadedBadge}>✓</div>
 												)}
 												{contextImage?.error && (
-													<div className={styles.errorBadge}>{contextImage.error}</div>
+													<div className={styles.errorBadge}>
+														{contextImage.error}
+													</div>
 												)}
 											</div>
 											{availableFrameSides[index] && (
 												<div className={styles.frameSideInfo}>
-													<T>Frame</T> {availableFrameSides[index].position} • {availableFrameSides[index].side}
+													<T>Frame</T> {availableFrameSides[index].position} •{' '}
+													{availableFrameSides[index].side}
 												</div>
 											)}
 										</div>
@@ -431,10 +494,14 @@ export default function BulkUploadInline({ hiveId, boxId, apiaryId, frames, onCo
 									disabled={!canUpload}
 									color="green"
 								>
-									<T>Upload</T> {images.length} {images.length === 1 ? <T>image</T> : <T>images</T>}
+									<T>Upload</T> {images.length}{' '}
+									{images.length === 1 ? <T>image</T> : <T>images</T>}
 								</Button>
 								{uploadContext.isUploading && (
-									<Button onClick={() => uploadContext.cancelUpload()} color="red">
+									<Button
+										onClick={() => uploadContext.cancelUpload()}
+										color="red"
+									>
 										<T>Cancel upload</T>
 									</Button>
 								)}
@@ -446,4 +513,3 @@ export default function BulkUploadInline({ hiveId, boxId, apiaryId, frames, onCo
 		</div>
 	)
 }
-

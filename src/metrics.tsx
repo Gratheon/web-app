@@ -1,4 +1,4 @@
-import isDev from './isDev';
+import isDev from './isDev'
 
 type PostHogClient = typeof import('posthog-js').default
 
@@ -131,5 +131,5 @@ export default {
 		withPostHog((posthog) => {
 			posthog.capture('billing.clicked', extraInfo)
 		})
-	}
+	},
 }

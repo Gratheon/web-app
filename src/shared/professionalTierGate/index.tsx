@@ -12,7 +12,10 @@ type ProfessionalTierGateProps = {
 	blockWheel?: boolean
 }
 
-export default function ProfessionalTierGate({ children, blockWheel = false }: ProfessionalTierGateProps) {
+export default function ProfessionalTierGate({
+	children,
+	blockWheel = false,
+}: ProfessionalTierGateProps) {
 	const user = useLiveQuery(() => getUser(), [], undefined)
 
 	if (user === undefined) {
@@ -68,7 +71,9 @@ export default function ProfessionalTierGate({ children, blockWheel = false }: P
 					zIndex: 2,
 				}}
 			>
-				<BillingUpgradeNotice title={<T>This section requires Professional plan or higher.</T>} />
+				<BillingUpgradeNotice
+					title={<T>This section requires Professional plan or higher.</T>}
+				/>
 			</div>
 		</div>
 	)

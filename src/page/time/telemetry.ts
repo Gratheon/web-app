@@ -23,7 +23,10 @@ export const HIVES_QUERY = gql`
 	}
 `
 
-export function buildMockTelemetryData(activeHives: any[], timeRangeDays: number) {
+export function buildMockTelemetryData(
+	activeHives: any[],
+	timeRangeDays: number
+) {
 	if (!activeHives?.length) return null
 
 	const now = new Date()
@@ -41,10 +44,17 @@ export function buildMockTelemetryData(activeHives: any[], timeRangeDays: number
 			const ts = date.toISOString()
 			const trend = (points - i) / Math.max(1, points)
 
-			const beesIn = Math.round(120 + hiveIndex * 24 + trend * 80 + Math.sin(i / 2) * 18)
-			const beesOut = Math.round(110 + hiveIndex * 21 + trend * 72 + Math.cos(i / 3) * 16)
+			const beesIn = Math.round(
+				120 + hiveIndex * 24 + trend * 80 + Math.sin(i / 2) * 18
+			)
+			const beesOut = Math.round(
+				110 + hiveIndex * 21 + trend * 72 + Math.cos(i / 3) * 16
+			)
 			const netFlow = beesIn - beesOut
-			const avgSpeed = Math.max(1.2, 3.2 + Math.sin(i / 4) * 0.7 + hiveIndex * 0.2)
+			const avgSpeed = Math.max(
+				1.2,
+				3.2 + Math.sin(i / 4) * 0.7 + hiveIndex * 0.2
+			)
 			const p95Speed = Math.max(avgSpeed + 0.8, avgSpeed * 1.45)
 			const detectedBees = Math.max(40, beesIn + beesOut + hiveIndex * 15)
 			const stationaryBees = Math.max(8, Math.round(detectedBees * 0.18))
@@ -52,7 +62,10 @@ export function buildMockTelemetryData(activeHives: any[], timeRangeDays: number
 
 			weightMetrics.push({
 				t: ts,
-				v: Math.round((28 + hiveIndex * 2.6 + trend * 6 + Math.sin(i / 3) * 1.4) * 100) / 100,
+				v:
+					Math.round(
+						(28 + hiveIndex * 2.6 + trend * 6 + Math.sin(i / 3) * 1.4) * 100
+					) / 100,
 			})
 
 			entranceMetrics.push({
@@ -70,9 +83,14 @@ export function buildMockTelemetryData(activeHives: any[], timeRangeDays: number
 			if (i % Math.max(1, Math.floor(points / 8)) === 0) {
 				populationMetrics.push({
 					t: ts,
-					beeCount: Math.round(14000 + hiveIndex * 1800 + trend * 12000 + Math.sin(i / 2) * 900),
+					beeCount: Math.round(
+						14000 + hiveIndex * 1800 + trend * 12000 + Math.sin(i / 2) * 900
+					),
 					droneCount: Math.round(400 + hiveIndex * 80 + trend * 300),
-					varroaMiteCount: Math.max(0, Math.round(8 + hiveIndex * 2 + Math.cos(i / 3) * 3)),
+					varroaMiteCount: Math.max(
+						0,
+						Math.round(8 + hiveIndex * 2 + Math.cos(i / 3) * 3)
+					),
 					inspectionId: `mock-${hive.id}-${i}`,
 				})
 			}
@@ -90,7 +108,9 @@ export function buildMockTelemetryData(activeHives: any[], timeRangeDays: number
 export function buildTelemetryQuery(activeHives: any[]) {
 	if (!activeHives.length) return null
 
-	const queries = activeHives.map(hive => `
+	const queries = activeHives
+		.map(
+			(hive) => `
 		hive_${hive.id}_weight: weightKgAggregated(hiveId: "${hive.id}", days: $days, aggregation: DAILY_AVG) {
 			... on MetricFloatList {
 				metrics { t v }
@@ -143,7 +163,9 @@ export function buildTelemetryQuery(activeHives: any[]) {
 				code
 			}
 		}
-	`).join('\n')
+	`
+		)
+		.join('\n')
 
 	return gql`
 		query MultiHiveTelemetry($days: Int!, $temperatureTimeRangeMin: Int!, $timeFrom: DateTime!, $timeTo: DateTime!) {

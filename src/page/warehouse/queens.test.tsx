@@ -52,7 +52,9 @@ vi.mock('@/shared/translate', () => ({
 }))
 
 vi.mock('react-router-dom', () => ({
-	Link: ({ children, to }: { children: any, to: string }) => <a href={to}>{children}</a>,
+	Link: ({ children, to }: { children: any; to: string }) => (
+		<a href={to}>{children}</a>
+	),
 }))
 
 vi.mock('@/shared/button', () => ({
@@ -64,7 +66,12 @@ vi.mock('@/shared/button', () => ({
 		children: any
 		href?: string
 		onClick?: () => void
-	}) => (href ? <a href={href}>{children}</a> : <button onClick={onClick}>{children}</button>),
+	}) =>
+		href ? (
+			<a href={href}>{children}</a>
+		) : (
+			<button onClick={onClick}>{children}</button>
+		),
 }))
 
 vi.mock('@/shared/messageError', () => ({
@@ -158,12 +165,8 @@ describe('WarehouseQueensPage', () => {
 			hiveId: '10',
 		}
 		mockQueenCache({
-			assignedFamilies: [
-				family,
-			],
-			allFamilies: [
-				family,
-			],
+			assignedFamilies: [family],
+			allFamilies: [family],
 			hives: [
 				{
 					id: '10',
@@ -177,7 +180,9 @@ describe('WarehouseQueensPage', () => {
 		document.body.appendChild(container)
 		renderPreact(<WarehouseQueensPage />, container)
 
-		expect(container.textContent).toContain('Tip: mark the queen on a frame in canvas view, and that marked area will be shown here as the queen preview image.')
+		expect(container.textContent).toContain(
+			'Tip: mark the queen on a frame in canvas view, and that marked area will be shown here as the queen preview image.'
+		)
 		expect(container.textContent).toContain('Last detected frame:')
 		expect(container.textContent).toContain('Not marked yet')
 
@@ -205,14 +210,8 @@ describe('WarehouseQueensPage', () => {
 			hiveId: '11',
 		}
 		mockQueenCache({
-			assignedFamilies: [
-				athena,
-				hera,
-			],
-			allFamilies: [
-				athena,
-				hera,
-			],
+			assignedFamilies: [athena, hera],
+			allFamilies: [athena, hera],
 			hives: [
 				{
 					id: '10',
@@ -231,17 +230,27 @@ describe('WarehouseQueensPage', () => {
 		document.body.appendChild(container)
 		renderPreact(<WarehouseQueensPage />, container)
 
-		const previewImage = container.querySelector('img[alt="Athena"]') as HTMLImageElement | null
-		const placeholderImage = container.querySelector('img[alt="Hera"]') as HTMLImageElement | null
+		const previewImage = container.querySelector(
+			'img[alt="Athena"]'
+		) as HTMLImageElement | null
+		const placeholderImage = container.querySelector(
+			'img[alt="Hera"]'
+		) as HTMLImageElement | null
 
 		expect(previewImage).not.toBeNull()
 		expect(previewImage?.classList.contains(styles.cardImagePreview)).toBe(true)
-		expect(previewImage?.classList.contains(styles.cardImagePlaceholder)).toBe(false)
+		expect(previewImage?.classList.contains(styles.cardImagePlaceholder)).toBe(
+			false
+		)
 		expect(previewImage?.style.borderColor).toBe('rgb(255, 102, 0)')
 
 		expect(placeholderImage).not.toBeNull()
-		expect(placeholderImage?.classList.contains(styles.cardImagePlaceholder)).toBe(true)
-		expect(placeholderImage?.classList.contains(styles.cardImagePreview)).toBe(false)
+		expect(
+			placeholderImage?.classList.contains(styles.cardImagePlaceholder)
+		).toBe(true)
+		expect(placeholderImage?.classList.contains(styles.cardImagePreview)).toBe(
+			false
+		)
 		expect(container.textContent).toContain('Open frame')
 
 		renderPreact(null, container)
@@ -305,9 +314,12 @@ describe('WarehouseQueensPage', () => {
 		document.body.appendChild(container)
 		renderPreact(<WarehouseQueensPage />, container)
 
-		const getToggle = () => container.querySelector('[role="switch"]') as HTMLButtonElement | null
+		const getToggle = () =>
+			container.querySelector('[role="switch"]') as HTMLButtonElement | null
 		expect(getToggle()).not.toBeNull()
-		expect(getToggle()?.getAttribute('aria-label')).toBe('Switch between list and table view')
+		expect(getToggle()?.getAttribute('aria-label')).toBe(
+			'Switch between list and table view'
+		)
 		expect(getToggle()?.getAttribute('aria-checked')).toBe('false')
 		expect(container.querySelector('table')).toBeNull()
 		expect(container.querySelector(`.${styles.card}`)).not.toBeNull()
@@ -334,7 +346,9 @@ describe('WarehouseQueensPage', () => {
 
 	it('reveals mobile swipe delete and hides the row optimistically', async () => {
 		setMobileLayout(true)
-		const deleteWarehouseQueen = vi.fn().mockResolvedValue({ data: { deleteWarehouseQueen: true } })
+		const deleteWarehouseQueen = vi
+			.fn()
+			.mockResolvedValue({ data: { deleteWarehouseQueen: true } })
 		const reexecuteQuery = vi.fn()
 		mocks.useMutation.mockReturnValue([deleteWarehouseQueen])
 		mocks.useQuery.mockReturnValue({
@@ -359,18 +373,26 @@ describe('WarehouseQueensPage', () => {
 		document.body.appendChild(container)
 		renderPreact(<WarehouseQueensPage />, container)
 
-		const card = container.querySelector(`.${styles.swipeCard}`) as HTMLElement | null
+		const card = container.querySelector(
+			`.${styles.swipeCard}`
+		) as HTMLElement | null
 		expect(card).not.toBeNull()
 
 		const touchStart = new Event('touchstart', { bubbles: true })
-		Object.defineProperty(touchStart, 'touches', { value: [{ clientX: 180, clientY: 20 }] })
+		Object.defineProperty(touchStart, 'touches', {
+			value: [{ clientX: 180, clientY: 20 }],
+		})
 		card?.dispatchEvent(touchStart)
 		const touchEnd = new Event('touchend', { bubbles: true })
-		Object.defineProperty(touchEnd, 'changedTouches', { value: [{ clientX: 90, clientY: 24 }] })
+		Object.defineProperty(touchEnd, 'changedTouches', {
+			value: [{ clientX: 90, clientY: 24 }],
+		})
 		card?.dispatchEvent(touchEnd)
 		await Promise.resolve()
 
-		const deleteButton = container.querySelector('button[aria-label="Delete Aphrodite"]') as HTMLButtonElement | null
+		const deleteButton = container.querySelector(
+			'button[aria-label="Delete Aphrodite"]'
+		) as HTMLButtonElement | null
 		expect(deleteButton).not.toBeNull()
 		deleteButton?.click()
 		await Promise.resolve()
@@ -378,7 +400,9 @@ describe('WarehouseQueensPage', () => {
 		expect(container.textContent).not.toContain('Aphrodite')
 		expect(container.textContent).not.toContain('Deleting...')
 		expect(deleteWarehouseQueen).toHaveBeenCalledWith({ familyId: '55' })
-		expect(reexecuteQuery).toHaveBeenCalledWith({ requestPolicy: 'network-only' })
+		expect(reexecuteQuery).toHaveBeenCalledWith({
+			requestPolicy: 'network-only',
+		})
 
 		renderPreact(null, container)
 		container.remove()
@@ -413,16 +437,24 @@ describe('WarehouseQueensPage', () => {
 		document.body.appendChild(container)
 		renderPreact(<WarehouseQueensPage />, container)
 
-		const card = container.querySelector(`.${styles.swipeCard}`) as HTMLElement | null
+		const card = container.querySelector(
+			`.${styles.swipeCard}`
+		) as HTMLElement | null
 		const touchStart = new Event('touchstart', { bubbles: true })
-		Object.defineProperty(touchStart, 'touches', { value: [{ clientX: 180, clientY: 20 }] })
+		Object.defineProperty(touchStart, 'touches', {
+			value: [{ clientX: 180, clientY: 20 }],
+		})
 		card?.dispatchEvent(touchStart)
 		const touchEnd = new Event('touchend', { bubbles: true })
-		Object.defineProperty(touchEnd, 'changedTouches', { value: [{ clientX: 90, clientY: 24 }] })
+		Object.defineProperty(touchEnd, 'changedTouches', {
+			value: [{ clientX: 90, clientY: 24 }],
+		})
 		card?.dispatchEvent(touchEnd)
 		await Promise.resolve()
 
-		const deleteButton = container.querySelector('button[aria-label="Delete Aphrodite"]') as HTMLButtonElement | null
+		const deleteButton = container.querySelector(
+			'button[aria-label="Delete Aphrodite"]'
+		) as HTMLButtonElement | null
 		deleteButton?.click()
 		await Promise.resolve()
 		await Promise.resolve()
@@ -435,7 +467,6 @@ describe('WarehouseQueensPage', () => {
 		renderPreact(null, container)
 		container.remove()
 	})
-
 
 	it('allows starting a second mobile delete while the first request is still pending', async () => {
 		setMobileLayout(true)
@@ -452,8 +483,20 @@ describe('WarehouseQueensPage', () => {
 		mocks.useQuery.mockReturnValue({
 			data: {
 				warehouseQueens: [
-					{ id: '55', name: 'Aphrodite', added: '2026', color: '#fefee3', race: 'Carniolan' },
-					{ id: '56', name: 'Artemis', added: '2025', color: '#ffffff', race: 'Buckfast' },
+					{
+						id: '55',
+						name: 'Aphrodite',
+						added: '2026',
+						color: '#fefee3',
+						race: 'Carniolan',
+					},
+					{
+						id: '56',
+						name: 'Artemis',
+						added: '2025',
+						color: '#ffffff',
+						race: 'Buckfast',
+					},
 				],
 			},
 			loading: false,
@@ -475,21 +518,33 @@ describe('WarehouseQueensPage', () => {
 		const swipe = async (card: HTMLElement | undefined) => {
 			if (!card) return
 			const touchStart = new Event('touchstart', { bubbles: true })
-			Object.defineProperty(touchStart, 'touches', { value: [{ clientX: 180, clientY: 20 }] })
+			Object.defineProperty(touchStart, 'touches', {
+				value: [{ clientX: 180, clientY: 20 }],
+			})
 			card.dispatchEvent(touchStart)
 			const touchEnd = new Event('touchend', { bubbles: true })
-			Object.defineProperty(touchEnd, 'changedTouches', { value: [{ clientX: 90, clientY: 24 }] })
+			Object.defineProperty(touchEnd, 'changedTouches', {
+				value: [{ clientX: 90, clientY: 24 }],
+			})
 			card.dispatchEvent(touchEnd)
 			await Promise.resolve()
 		}
 
 		await swipe(firstCard)
-		;(container.querySelector('button[aria-label="Delete Aphrodite"]') as HTMLButtonElement | null)?.click()
+		;(
+			container.querySelector(
+				'button[aria-label="Delete Aphrodite"]'
+			) as HTMLButtonElement | null
+		)?.click()
 		await Promise.resolve()
 		expect(container.textContent).not.toContain('Aphrodite')
 
 		await swipe(secondCard)
-		;(container.querySelector('button[aria-label="Delete Artemis"]') as HTMLButtonElement | null)?.click()
+		;(
+			container.querySelector(
+				'button[aria-label="Delete Artemis"]'
+			) as HTMLButtonElement | null
+		)?.click()
 		await Promise.resolve()
 		expect(container.textContent).not.toContain('Artemis')
 		expect(deleteWarehouseQueen).toHaveBeenCalledTimes(2)
@@ -503,5 +558,4 @@ describe('WarehouseQueensPage', () => {
 		renderPreact(null, container)
 		container.remove()
 	})
-
 })

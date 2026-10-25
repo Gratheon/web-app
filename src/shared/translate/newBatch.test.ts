@@ -93,8 +93,16 @@ describe('newTranslationBatcher', () => {
 			},
 		})
 
-		const p1 = newTranslationBatcher.request('Varroa mites', false, 'toggle varroa mites visibility')
-		const p2 = newTranslationBatcher.request('Varroa mites', false, 'hive stats label')
+		const p1 = newTranslationBatcher.request(
+			'Varroa mites',
+			false,
+			'toggle varroa mites visibility'
+		)
+		const p2 = newTranslationBatcher.request(
+			'Varroa mites',
+			false,
+			'hive stats label'
+		)
 
 		const [r1, r2] = await Promise.all([p1, p2])
 
@@ -104,15 +112,23 @@ describe('newTranslationBatcher', () => {
 		expect(mocks.queryMock).toHaveBeenCalledTimes(1)
 		const inputs = mocks.queryMock.mock.calls[0][1].inputs
 		expect(inputs).toHaveLength(2)
-		expect(inputs[0]).toEqual({ key: 'Varroa mites', context: 'toggle varroa mites visibility' })
-		expect(inputs[1]).toEqual({ key: 'Varroa mites', context: 'hive stats label' })
+		expect(inputs[0]).toEqual({
+			key: 'Varroa mites',
+			context: 'toggle varroa mites visibility',
+		})
+		expect(inputs[1]).toEqual({
+			key: 'Varroa mites',
+			context: 'hive stats label',
+		})
 	})
 
 	it('falls back to legacy translate query when getTranslations is unavailable', async () => {
 		mocks.toPromiseMock
 			.mockResolvedValueOnce({
 				data: null,
-				error: new Error('Cannot query field "getTranslations" on type "Query".'),
+				error: new Error(
+					'Cannot query field "getTranslations" on type "Query".'
+				),
 			})
 			.mockResolvedValueOnce({
 				data: {
@@ -125,7 +141,13 @@ describe('newTranslationBatcher', () => {
 				},
 			})
 
-		const result = await newTranslationBatcher.request('Log In', false, undefined, undefined, 'et')
+		const result = await newTranslationBatcher.request(
+			'Log In',
+			false,
+			undefined,
+			undefined,
+			'et'
+		)
 
 		expect(result.values.et).toBe('Logi sisse')
 		expect(mocks.queryMock).toHaveBeenCalledTimes(2)

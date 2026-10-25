@@ -56,11 +56,20 @@ export default function HiveAdvisor({
 		{ variables: { hiveID: numericHiveId } }
 	)
 
-	const [generateAdvice, { error: mutateError, data: generatedAdvice }] = useMutation(gql`
-		mutation generateHiveAdvice($hiveID: ID, $adviceContext: JSON, $langCode: String) {
-			generateHiveAdvice(hiveID: $hiveID, adviceContext: $adviceContext, langCode: $langCode)
-		}
-	`)
+	const [generateAdvice, { error: mutateError, data: generatedAdvice }] =
+		useMutation(gql`
+			mutation generateHiveAdvice(
+				$hiveID: ID
+				$adviceContext: JSON
+				$langCode: String
+			) {
+				generateHiveAdvice(
+					hiveID: $hiveID
+					adviceContext: $adviceContext
+					langCode: $langCode
+				)
+			}
+		`)
 
 	const runAnalysis = useCallback(async () => {
 		setSaving(true)
@@ -83,23 +92,34 @@ export default function HiveAdvisor({
 			}
 
 			for (let i in boxes) {
-				const frames = Object.assign({}, await getFrames({ boxId: +boxes[i].id }))
+				const frames = Object.assign(
+					{},
+					await getFrames({ boxId: +boxes[i].id })
+				)
 				delete boxes[i].color
 
 				for (let j in frames) {
 					if (!frames[j].leftSide || !frames[j].rightSide) continue
 
 					frames[j].leftSide.cells = await getFrameSideCells(+frames[j].leftId)
-					frames[j].rightSide.cells = await getFrameSideCells(+frames[j].rightId)
+					frames[j].rightSide.cells = await getFrameSideCells(
+						+frames[j].rightId
+					)
 					const leftSide = frames[j].leftSide as any
 					const rightSide = frames[j].rightSide as any
 
-					const leftFile = await getFrameSideFile({ frameSideId: +frames[j].leftId })
-					leftSide.detectedQueenCupsCount = leftFile?.detectedQueenCups?.length || 0
+					const leftFile = await getFrameSideFile({
+						frameSideId: +frames[j].leftId,
+					})
+					leftSide.detectedQueenCupsCount =
+						leftFile?.detectedQueenCups?.length || 0
 					leftSide.isQueenDetected = leftFile?.queenDetected || false
 
-					const rightFile = await getFrameSideFile({ frameSideId: +frames[j].rightId })
-					rightSide.detectedQueenCupsCount = rightFile?.detectedQueenCups?.length || 0
+					const rightFile = await getFrameSideFile({
+						frameSideId: +frames[j].rightId,
+					})
+					rightSide.detectedQueenCupsCount =
+						rightFile?.detectedQueenCups?.length || 0
 					rightSide.isQueenDetected = rightFile?.queenDetected || false
 				}
 
@@ -132,15 +152,17 @@ export default function HiveAdvisor({
 			<ErrorMsg error={errorGet || mutateError} />
 			{billingLocked && <AIAdvisorBillingNotice />}
 
-			<div className={`${style.wrap} ${!showAnalyzeButton ? style.readOnlyWrap : ''}`}>
+			<div
+				className={`${style.wrap} ${!showAnalyzeButton ? style.readOnlyWrap : ''}`}
+			>
 				{showLoader && <Loader />}
 
 				{showAnalyzeButton && (
-					<Button
-						style="margin: 0 auto;"
-						onClick={runAnalysis}
-					>
-						<img src={beekeeperURL} style="width:20px; height: 20px;margin-right: 2px;" />
+					<Button style="margin: 0 auto;" onClick={runAnalysis}>
+						<img
+							src={beekeeperURL}
+							style="width:20px; height: 20px;margin-right: 2px;"
+						/>
 						<T>Analyze with AI</T>
 					</Button>
 				)}
@@ -149,17 +171,22 @@ export default function HiveAdvisor({
 					style={`text-align:center;${existingAdvice?.getExistingHiveAdvice ? '' : 'margin-top:50px;'}`}
 				>
 					{!showLoader &&
-						(generatedAdvice?.generateHiveAdvice || existingAdvice?.getExistingHiveAdvice) && (
+						(generatedAdvice?.generateHiveAdvice ||
+							existingAdvice?.getExistingHiveAdvice) && (
 							<div className={style.message}>
 								{!generatedAdvice && existingAdvice?.getExistingHiveAdvice && (
 									<div
-										dangerouslySetInnerHTML={{ __html: existingAdvice.getExistingHiveAdvice }}
+										dangerouslySetInnerHTML={{
+											__html: existingAdvice.getExistingHiveAdvice,
+										}}
 									/>
 								)}
 
 								{generatedAdvice?.generateHiveAdvice && (
 									<div
-										dangerouslySetInnerHTML={{ __html: generatedAdvice.generateHiveAdvice }}
+										dangerouslySetInnerHTML={{
+											__html: generatedAdvice.generateHiveAdvice,
+										}}
 									/>
 								)}
 							</div>

@@ -1,8 +1,8 @@
-import React from 'react';
-import style from './style.module.less';
+import React from 'react'
+import style from './style.module.less'
 
-export default function QueenExcluder({selected=false }) {
+export default function QueenExcluder({ selected = false }) {
 	return (
 		<div className={`${style.excluder} ${selected && style.selected}`}></div>
-	);
+	)
 }

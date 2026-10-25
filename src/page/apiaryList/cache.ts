@@ -66,7 +66,7 @@ export async function getCachedApiaryListData(): Promise<CachedApiaryListData> {
 		const hivesByApiaryId = hasApiaryRelations
 			? groupByRelation(hives, (hive) =>
 					relationId(hive?.apiaryId ?? hive?.apiary_id)
-			  )
+				)
 			: new Map<string, any[]>()
 		const boxesByHiveId = groupByRelation(boxes, (box) =>
 			relationId(box?.hiveId ?? box?.hive_id)
@@ -83,31 +83,31 @@ export async function getCachedApiaryListData(): Promise<CachedApiaryListData> {
 				.filter((apiary) => apiary?.id != null)
 				.map((apiary) => {
 					const apiaryId = relationId(apiary.id)
-					const hivesForApiary = !hasApiaryRelations && apiaries.length === 1
-						? hives
-						: hivesByApiaryId.get(apiaryId || '') || []
-					const apiaryHives = hivesForApiary
-						.map((hive) => {
-							const hiveId = relationId(hive?.id)
-							const hiveFamilies = hiveId
-								? familiesByHiveId.get(hiveId) || []
-								: []
-							const hiveBoxes = hiveId
-								? [...(boxesByHiveId.get(hiveId) || [])]
-								: []
-							// WHY: HiveIcon renders boxes in array order; higher positions are visually on top.
-							// Match the backend listing order so cached render does not flicker.
-							hiveBoxes.sort(
-								(a, b) => Number(b?.position || 0) - Number(a?.position || 0)
-							)
+					const hivesForApiary =
+						!hasApiaryRelations && apiaries.length === 1
+							? hives
+							: hivesByApiaryId.get(apiaryId || '') || []
+					const apiaryHives = hivesForApiary.map((hive) => {
+						const hiveId = relationId(hive?.id)
+						const hiveFamilies = hiveId
+							? familiesByHiveId.get(hiveId) || []
+							: []
+						const hiveBoxes = hiveId
+							? [...(boxesByHiveId.get(hiveId) || [])]
+							: []
+						// WHY: HiveIcon renders boxes in array order; higher positions are visually on top.
+						// Match the backend listing order so cached render does not flicker.
+						hiveBoxes.sort(
+							(a, b) => Number(b?.position || 0) - Number(a?.position || 0)
+						)
 
-							return {
-								...hive,
-								family: hiveFamilies[0] || null,
-								families: hiveFamilies,
-								boxes: hiveBoxes,
-							}
-						})
+						return {
+							...hive,
+							family: hiveFamilies[0] || null,
+							families: hiveFamilies,
+							boxes: hiveBoxes,
+						}
+					})
 
 					return {
 						...apiary,

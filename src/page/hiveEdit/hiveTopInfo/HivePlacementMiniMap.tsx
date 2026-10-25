@@ -3,7 +3,12 @@ import { gql, useQuery } from '@/api'
 import { useTranslation as t } from '@/shared/translate'
 import Canvas from '@/page/apiaryEdit/hivePlacement/Canvas'
 import { GET_HIVE_PLACEMENTS } from '@/page/apiaryEdit/hivePlacement/graphql'
-import { HivePlacement, Obstacle, Hive, HIVE_SIZE } from '@/page/apiaryEdit/hivePlacement/types'
+import {
+	HivePlacement,
+	Obstacle,
+	Hive,
+	HIVE_SIZE,
+} from '@/page/apiaryEdit/hivePlacement/types'
 import styles from './styles.module.less'
 
 const MINI_MAP_SIZE = 340
@@ -29,53 +34,61 @@ const normalizeDegrees = (deg: number) => ((deg % 360) + 360) % 360
 
 const dayOfYearUTC = (date: Date) => {
 	const startOfYear = Date.UTC(date.getUTCFullYear(), 0, 0)
-	const current = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+	const current = Date.UTC(
+		date.getUTCFullYear(),
+		date.getUTCMonth(),
+		date.getUTCDate()
+	)
 	return Math.floor((current - startOfYear) / ONE_MINUTE_MS / 60 / 24)
 }
 
 const getLocalHourAtLongitude = (date: Date, lng: number | null) => {
 	if (lng === null || !Number.isFinite(lng)) {
-		return date.getHours() + (date.getMinutes() / 60)
+		return date.getHours() + date.getMinutes() / 60
 	}
 
-	const utcHours = date.getUTCHours() + (date.getUTCMinutes() / 60) + (date.getUTCSeconds() / 3600)
-	const solarLocalHours = utcHours + (lng / 15)
+	const utcHours =
+		date.getUTCHours() + date.getUTCMinutes() / 60 + date.getUTCSeconds() / 3600
+	const solarLocalHours = utcHours + lng / 15
 	return ((solarLocalHours % 24) + 24) % 24
 }
 
 const getSolarAzimuthAndAltitude = (date: Date, lat: number, lng: number) => {
 	const day = dayOfYearUTC(date)
-	const utcMinutes = (date.getUTCHours() * 60) + date.getUTCMinutes() + (date.getUTCSeconds() / 60)
-	const gamma = (2 * Math.PI / 365) * (day - 1 + ((utcMinutes / 60) - 12) / 24)
+	const utcMinutes =
+		date.getUTCHours() * 60 + date.getUTCMinutes() + date.getUTCSeconds() / 60
+	const gamma = ((2 * Math.PI) / 365) * (day - 1 + (utcMinutes / 60 - 12) / 24)
 
-	const eqTime = 229.18 * (
-		0.000075
-		+ (0.001868 * Math.cos(gamma))
-		- (0.032077 * Math.sin(gamma))
-		- (0.014615 * Math.cos(2 * gamma))
-		- (0.040849 * Math.sin(2 * gamma))
-	)
+	const eqTime =
+		229.18 *
+		(0.000075 +
+			0.001868 * Math.cos(gamma) -
+			0.032077 * Math.sin(gamma) -
+			0.014615 * Math.cos(2 * gamma) -
+			0.040849 * Math.sin(2 * gamma))
 
-	const decl = 0.006918
-		- (0.399912 * Math.cos(gamma))
-		+ (0.070257 * Math.sin(gamma))
-		- (0.006758 * Math.cos(2 * gamma))
-		+ (0.000907 * Math.sin(2 * gamma))
-		- (0.002697 * Math.cos(3 * gamma))
-		+ (0.00148 * Math.sin(3 * gamma))
+	const decl =
+		0.006918 -
+		0.399912 * Math.cos(gamma) +
+		0.070257 * Math.sin(gamma) -
+		0.006758 * Math.cos(2 * gamma) +
+		0.000907 * Math.sin(2 * gamma) -
+		0.002697 * Math.cos(3 * gamma) +
+		0.00148 * Math.sin(3 * gamma)
 
-	const trueSolarMinutes = utcMinutes + eqTime + (4 * lng)
-	const hourAngle = degToRad((trueSolarMinutes / 4) - 180)
+	const trueSolarMinutes = utcMinutes + eqTime + 4 * lng
+	const hourAngle = degToRad(trueSolarMinutes / 4 - 180)
 	const latRad = degToRad(lat)
 
-	const cosZenith = (Math.sin(latRad) * Math.sin(decl))
-		+ (Math.cos(latRad) * Math.cos(decl) * Math.cos(hourAngle))
+	const cosZenith =
+		Math.sin(latRad) * Math.sin(decl) +
+		Math.cos(latRad) * Math.cos(decl) * Math.cos(hourAngle)
 	const zenithRad = Math.acos(Math.min(1, Math.max(-1, cosZenith)))
 	const altitudeDeg = 90 - radToDeg(zenithRad)
 
 	const azimuthRad = Math.atan2(
 		Math.sin(hourAngle),
-		(Math.cos(hourAngle) * Math.sin(latRad)) - (Math.tan(decl) * Math.cos(latRad))
+		Math.cos(hourAngle) * Math.sin(latRad) - Math.tan(decl) * Math.cos(latRad)
 	)
 	const azimuthDeg = normalizeDegrees(radToDeg(azimuthRad) + 180)
 
@@ -85,10 +98,13 @@ const getSolarAzimuthAndAltitude = (date: Date, lat: number, lng: number) => {
 const fallbackSunAngleByHour = (hour: number) => {
 	const daySpan = 16
 	const normalized = Math.min(1, Math.max(0, (hour - NIGHT_END_HOUR) / daySpan))
-	return 90 + (180 * normalized)
+	return 90 + 180 * normalized
 }
 
-export default function HivePlacementMiniMap({ apiaryId, selectedHiveId }: Props) {
+export default function HivePlacementMiniMap({
+	apiaryId,
+	selectedHiveId,
+}: Props) {
 	const [now, setNow] = useState(() => new Date())
 	const [isMobileViewport, setIsMobileViewport] = useState(() => {
 		if (typeof window === 'undefined') return false
@@ -102,14 +118,17 @@ export default function HivePlacementMiniMap({ apiaryId, selectedHiveId }: Props
 	const building = t('Building', 'obstacle type: building/house structure')
 	const tree = t('Tree', 'obstacle type: tree plant')
 
-	const labels = useMemo(() => ({
-		compassN,
-		compassS,
-		compassE,
-		compassW,
-		building,
-		tree,
-	}), [compassN, compassS, compassE, compassW, building, tree])
+	const labels = useMemo(
+		() => ({
+			compassN,
+			compassS,
+			compassE,
+			compassW,
+			building,
+			tree,
+		}),
+		[compassN, compassS, compassE, compassW, building, tree]
+	)
 
 	const {
 		data: placementData,
@@ -136,7 +155,7 @@ export default function HivePlacementMiniMap({ apiaryId, selectedHiveId }: Props
 				}
 			}
 		`,
-		{ variables: { apiaryId } },
+		{ variables: { apiaryId } }
 	)
 
 	useEffect(() => {
@@ -145,8 +164,11 @@ export default function HivePlacementMiniMap({ apiaryId, selectedHiveId }: Props
 	}, [])
 
 	useEffect(() => {
-		const mediaQuery = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT_PX}px)`)
-		const onViewportChange = (event: MediaQueryListEvent) => setIsMobileViewport(event.matches)
+		const mediaQuery = window.matchMedia(
+			`(max-width: ${MOBILE_BREAKPOINT_PX}px)`
+		)
+		const onViewportChange = (event: MediaQueryListEvent) =>
+			setIsMobileViewport(event.matches)
 
 		setIsMobileViewport(mediaQuery.matches)
 		mediaQuery.addEventListener('change', onViewportChange)
@@ -162,15 +184,20 @@ export default function HivePlacementMiniMap({ apiaryId, selectedHiveId }: Props
 
 	const localHour = getLocalHourAtLongitude(now, lng)
 	const isNight = localHour >= NIGHT_START_HOUR || localHour < NIGHT_END_HOUR
-	const sunPosition = (lat !== null && lng !== null) ? getSolarAzimuthAndAltitude(now, lat, lng) : null
+	const sunPosition =
+		lat !== null && lng !== null
+			? getSolarAzimuthAndAltitude(now, lat, lng)
+			: null
 	const sunAngle = sunPosition?.azimuthDeg ?? fallbackSunAngleByHour(localHour)
-	const showShadows = !isNight && (sunPosition ? sunPosition.altitudeDeg > 0 : true)
+	const showShadows =
+		!isNight && (sunPosition ? sunPosition.altitudeDeg > 0 : true)
 
 	const placements = useMemo(() => {
 		const map = new Map<string, HivePlacement>()
 		const hiveIds = new Set(hives.map((hive) => hive.id))
 
-		for (const placement of (placementData?.hivePlacements || []) as HivePlacement[]) {
+		for (const placement of (placementData?.hivePlacements ||
+			[]) as HivePlacement[]) {
 			if (hiveIds.has(placement.hiveId)) {
 				map.set(placement.hiveId, placement)
 			}
@@ -191,7 +218,9 @@ export default function HivePlacementMiniMap({ apiaryId, selectedHiveId }: Props
 	}, [hives, placementData])
 
 	const focusPlacement = useMemo(() => {
-		return placements.get(selectedHiveId) || placements.values().next().value || null
+		return (
+			placements.get(selectedHiveId) || placements.values().next().value || null
+		)
 	}, [placements, selectedHiveId])
 
 	const isHiveHit = (x: number, y: number) => {
@@ -218,11 +247,15 @@ export default function HivePlacementMiniMap({ apiaryId, selectedHiveId }: Props
 		return null
 	}
 
-	const miniMapHeight = isMobileViewport ? MINI_MAP_MOBILE_HEIGHT : MINI_MAP_SIZE
+	const miniMapHeight = isMobileViewport
+		? MINI_MAP_MOBILE_HEIGHT
+		: MINI_MAP_SIZE
 	const miniMapZoom = isMobileViewport ? MINI_MAP_MOBILE_ZOOM : MINI_MAP_ZOOM
 
 	return (
-		<div className={`${styles.miniMapCircle} ${isNight ? styles.miniMapNight : ''}`}>
+		<div
+			className={`${styles.miniMapCircle} ${isNight ? styles.miniMapNight : ''}`}
+		>
 			<Canvas
 				canvasWidth={MINI_MAP_SIZE}
 				canvasHeight={miniMapHeight}
@@ -257,7 +290,9 @@ export default function HivePlacementMiniMap({ apiaryId, selectedHiveId }: Props
 					for (const hive of hives) {
 						const placement = placements.get(hive.id)
 						if (!placement) continue
-						const dist = Math.sqrt((x - placement.x) ** 2 + (y - placement.y) ** 2)
+						const dist = Math.sqrt(
+							(x - placement.x) ** 2 + (y - placement.y) ** 2
+						)
 						if (dist <= HIVE_SIZE / 2 + 6) {
 							window.location.href = `/apiaries/${apiaryId}/hives/${hive.id}`
 							return

@@ -176,9 +176,9 @@ export function renderFrameSlots({
 											? {
 													opacity: 0.45,
 													transform: 'scale(0.98)',
-											  }
+												}
 											: undefined,
-								  }
+									}
 								: undefined
 						}
 					/>

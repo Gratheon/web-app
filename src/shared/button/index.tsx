@@ -32,9 +32,9 @@ export default function Button({
 	color = 'black',
 	type = 'button',
 	disabled = false,
-	onClick = () => { },
-	onMouseOver = () => { },
-	onMouseOut = () => { },
+	onClick = () => {},
+	onMouseOver = () => {},
+	onMouseOut = () => {},
 	children = null,
 	href = null,
 	...buttonProps
@@ -51,13 +51,13 @@ export default function Button({
 	if (typeof className === 'string') {
 		classNames.push(className)
 	}
-	
+
 	if (iconOnly) {
 		classNames.push(styles.iconOnly)
 	}
 
 	const handleClick = (e: any) => {
-		if (e.ctrlKey || e.metaKey) return;
+		if (e.ctrlKey || e.metaKey) return
 
 		if (href !== null) {
 			if (href.startsWith('http')) {
@@ -66,17 +66,17 @@ export default function Button({
 				navigate(href, { replace: true })
 			}
 		} else {
-			onClick(e);
+			onClick(e)
 		}
-	};
+	}
 
 	const handleKeyDown = (e: any) => {
 		if (e.ctrlKey || e.metaKey) {
-			e.preventDefault();
-			e.stopPropagation();
-			return false;
+			e.preventDefault()
+			e.stopPropagation()
+			return false
 		}
-	};
+	}
 
 	return (
 		<button

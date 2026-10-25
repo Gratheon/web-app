@@ -33,4 +33,3 @@ export function useChartSync() {
 
 	return { chartRefs, syncCharts }
 }
-

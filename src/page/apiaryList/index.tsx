@@ -51,7 +51,8 @@ export default function ApiaryList(props) {
 		apiaryId: null,
 		hiveId: null,
 	})
-	const [showWelcomeCelebration, setShowWelcomeCelebration] = React.useState(false)
+	const [showWelcomeCelebration, setShowWelcomeCelebration] =
+		React.useState(false)
 	const [showWelcomeMessage, setShowWelcomeMessage] = React.useState(false)
 
 	const focusHiveElement = React.useCallback((apiaryId, hiveId) => {
@@ -60,12 +61,15 @@ export default function ApiaryList(props) {
 		}
 
 		const hiveSelector = `[data-hive-item="1"][data-apiary-id="${String(apiaryId)}"][data-hive-id="${String(hiveId)}"]`
-		const hiveElement = document.querySelector(hiveSelector) as HTMLElement | null
+		const hiveElement = document.querySelector(
+			hiveSelector
+		) as HTMLElement | null
 		if (!hiveElement) {
 			return false
 		}
 
-		const focusTarget = (hiveElement.querySelector('a') || hiveElement) as HTMLElement
+		const focusTarget = (hiveElement.querySelector('a') ||
+			hiveElement) as HTMLElement
 		focusTarget.focus()
 		hiveElement.scrollIntoView({ block: 'nearest', inline: 'nearest' })
 		return true
@@ -114,17 +118,18 @@ export default function ApiaryList(props) {
 		return DEFAULT_SORT_ORDER
 	})
 
-	const { loading, error, data, errorNetwork, degradedError, degradedService } = useQuery(gql`
-		query apiaries {
-			boxSystems {
-				id
-				name
-				isDefault
-			}
-			apiaries {
-				id
-				name
-				type
+	const { loading, error, data, errorNetwork, degradedError, degradedService } =
+		useQuery(gql`
+			query apiaries {
+				boxSystems {
+					id
+					name
+					isDefault
+				}
+				apiaries {
+					id
+					name
+					type
 
 					hives {
 						id
@@ -132,40 +137,40 @@ export default function ApiaryList(props) {
 						boxSystemId
 						hiveNumber
 						beeCount
-					status
+						status
 
-					lastInspection
-					isNew
+						lastInspection
+						isNew
 
-					family{
-						id
-						name
-						age
-						race
-						added
-						lastTreatment
-					}
-					families{
-						id
-						name
-						age
-						race
-						added
-						lastTreatment
-					}
+						family {
+							id
+							name
+							age
+							race
+							added
+							lastTreatment
+						}
+						families {
+							id
+							name
+							age
+							race
+							added
+							lastTreatment
+						}
 
-					boxes {
-						id
-						position
-						color
-						holeCount
-						roofStyle
-						type
+						boxes {
+							id
+							position
+							color
+							holeCount
+							roofStyle
+							type
+						}
 					}
 				}
 			}
-		}
-	`)
+		`)
 	const cachedData = useLiveQuery(
 		() => getCachedApiaryListData(),
 		[],
@@ -174,68 +179,88 @@ export default function ApiaryList(props) {
 	const hasNetworkApiaryData = Array.isArray(data?.apiaries)
 	const cachedApiaries = cachedData?.apiaries || []
 	const hasCachedApiaryData = cachedApiaries.length > 0
-	const displayData = hasNetworkApiaryData || !hasCachedApiaryData ? data : cachedData
+	const displayData =
+		hasNetworkApiaryData || !hasCachedApiaryData ? data : cachedData
 
 	const apiaries = React.useMemo(
-		() => (displayData?.apiaries || []).filter((apiary) => apiary && apiary.id != null),
+		() =>
+			(displayData?.apiaries || []).filter(
+				(apiary) => apiary && apiary.id != null
+			),
 		[displayData?.apiaries]
 	)
 	const boxSystems = displayData?.boxSystems || []
 	const isOnline = useNetworkStatus()
 	const isServiceDegraded = isOnline && (!!degradedService || !!degradedError)
 	const hasMixedApiaryTypes = React.useMemo(() => {
-		const distinctTypes = new Set((apiaries || []).map((apiary) => normalizeApiaryType(apiary?.type)))
+		const distinctTypes = new Set(
+			(apiaries || []).map((apiary) => normalizeApiaryType(apiary?.type))
+		)
 		return distinctTypes.size > 1
 	}, [apiaries])
 
-	const sortedHivesByApiary = React.useMemo(() => (
-		apiaries.map((apiary) => ({
-			apiaryId: apiary.id,
-			hives: sortHives(
-				(apiary.hives || []).filter((hive) => hive && hive.id != null),
-				hiveSortBy,
-				hiveSortOrder
-			),
-		}))
-	), [apiaries, hiveSortBy, hiveSortOrder])
+	const sortedHivesByApiary = React.useMemo(
+		() =>
+			apiaries.map((apiary) => ({
+				apiaryId: apiary.id,
+				hives: sortHives(
+					(apiary.hives || []).filter((hive) => hive && hive.id != null),
+					hiveSortBy,
+					hiveSortOrder
+				),
+			})),
+		[apiaries, hiveSortBy, hiveSortOrder]
+	)
 
-	const selectHive = React.useCallback((apiaryId, hiveId, options = { focus: false }) => {
-		setSelectedHive((prev) => {
-			if (prev.apiaryId === apiaryId && prev.hiveId === hiveId) {
-				return prev
-			}
-			return { apiaryId, hiveId }
-		})
-
-		if (options.focus) {
-			requestAnimationFrame(() => {
-				focusHiveElement(apiaryId, hiveId)
+	const selectHive = React.useCallback(
+		(apiaryId, hiveId, options = { focus: false }) => {
+			setSelectedHive((prev) => {
+				if (prev.apiaryId === apiaryId && prev.hiveId === hiveId) {
+					return prev
+				}
+				return { apiaryId, hiveId }
 			})
-		}
-	}, [focusHiveElement])
 
-	const handleNavigateAcrossApiaries = React.useCallback(({ apiaryId, direction }) => {
-		const currentApiaryIndex = sortedHivesByApiary.findIndex((apiary) => apiary.apiaryId === apiaryId)
-		if (currentApiaryIndex === -1) {
-			return
-		}
+			if (options.focus) {
+				requestAnimationFrame(() => {
+					focusHiveElement(apiaryId, hiveId)
+				})
+			}
+		},
+		[focusHiveElement]
+	)
 
-		const step = direction === 'prev' ? -1 : 1
-		for (let i = currentApiaryIndex + step; i >= 0 && i < sortedHivesByApiary.length; i += step) {
-			const adjacentApiary = sortedHivesByApiary[i]
-			if (!adjacentApiary.hives.length) {
-				continue
+	const handleNavigateAcrossApiaries = React.useCallback(
+		({ apiaryId, direction }) => {
+			const currentApiaryIndex = sortedHivesByApiary.findIndex(
+				(apiary) => apiary.apiaryId === apiaryId
+			)
+			if (currentApiaryIndex === -1) {
+				return
 			}
 
-			const targetHive =
-				direction === 'prev'
-					? adjacentApiary.hives[adjacentApiary.hives.length - 1]
-					: adjacentApiary.hives[0]
+			const step = direction === 'prev' ? -1 : 1
+			for (
+				let i = currentApiaryIndex + step;
+				i >= 0 && i < sortedHivesByApiary.length;
+				i += step
+			) {
+				const adjacentApiary = sortedHivesByApiary[i]
+				if (!adjacentApiary.hives.length) {
+					continue
+				}
 
-			selectHive(adjacentApiary.apiaryId, targetHive.id, { focus: true })
-			return
-		}
-	}, [selectHive, sortedHivesByApiary])
+				const targetHive =
+					direction === 'prev'
+						? adjacentApiary.hives[adjacentApiary.hives.length - 1]
+						: adjacentApiary.hives[0]
+
+				selectHive(adjacentApiary.apiaryId, targetHive.id, { focus: true })
+				return
+			}
+		},
+		[selectHive, sortedHivesByApiary]
+	)
 
 	React.useEffect(() => {
 		if (!sortedHivesByApiary.length) {
@@ -246,15 +271,18 @@ export default function ApiaryList(props) {
 		if (
 			selectedHive.apiaryId &&
 			selectedHive.hiveId &&
-			sortedHivesByApiary.some((apiary) => (
-				apiary.apiaryId === selectedHive.apiaryId &&
-				apiary.hives.some((hive) => hive.id === selectedHive.hiveId)
-			))
+			sortedHivesByApiary.some(
+				(apiary) =>
+					apiary.apiaryId === selectedHive.apiaryId &&
+					apiary.hives.some((hive) => hive.id === selectedHive.hiveId)
+			)
 		) {
 			return
 		}
 
-		const firstApiaryWithHive = sortedHivesByApiary.find((apiary) => apiary.hives.length > 0)
+		const firstApiaryWithHive = sortedHivesByApiary.find(
+			(apiary) => apiary.hives.length > 0
+		)
 		if (!firstApiaryWithHive) {
 			setSelectedHive({ apiaryId: null, hiveId: null })
 			return
@@ -294,25 +322,35 @@ export default function ApiaryList(props) {
 			}
 
 			const activeElement = document.activeElement
-			const activeRow = activeElement?.closest?.('[data-apiary-keyboard-row="1"]')
+			const activeRow = activeElement?.closest?.(
+				'[data-apiary-keyboard-row="1"]'
+			)
 			if (activeRow) {
 				return
 			}
 
 			let hasFocused = false
 			if (selectedHive.apiaryId && selectedHive.hiveId) {
-				hasFocused = focusHiveElement(selectedHive.apiaryId, selectedHive.hiveId)
+				hasFocused = focusHiveElement(
+					selectedHive.apiaryId,
+					selectedHive.hiveId
+				)
 			}
 
 			if (!hasFocused) {
-				const firstApiaryWithHive = sortedHivesByApiary.find((apiary) => apiary.hives.length > 0)
+				const firstApiaryWithHive = sortedHivesByApiary.find(
+					(apiary) => apiary.hives.length > 0
+				)
 				if (!firstApiaryWithHive) {
 					return
 				}
 
 				const firstHive = firstApiaryWithHive.hives[0]
 				selectHive(firstApiaryWithHive.apiaryId, firstHive.id)
-				hasFocused = focusHiveElement(firstApiaryWithHive.apiaryId, firstHive.id)
+				hasFocused = focusHiveElement(
+					firstApiaryWithHive.apiaryId,
+					firstHive.id
+				)
 			}
 
 			if (!hasFocused) {
@@ -334,7 +372,13 @@ export default function ApiaryList(props) {
 
 		document.addEventListener('keydown', onKeyDown, true)
 		return () => document.removeEventListener('keydown', onKeyDown, true)
-	}, [focusHiveElement, selectHive, selectedHive.apiaryId, selectedHive.hiveId, sortedHivesByApiary])
+	}, [
+		focusHiveElement,
+		selectHive,
+		selectedHive.apiaryId,
+		selectedHive.hiveId,
+		sortedHivesByApiary,
+	])
 	const [visibleColumns, setVisibleColumns] = React.useState(() => {
 		if (typeof window === 'undefined') {
 			return DEFAULT_VISIBLE_COLUMNS
@@ -362,15 +406,18 @@ export default function ApiaryList(props) {
 		}
 	})
 
-	const handleHiveSortChange = React.useCallback((sortBy) => {
-		if (hiveSortBy === sortBy) {
-			setHiveSortOrder(prev => (prev === 'ASC' ? 'DESC' : 'ASC'))
-			return
-		}
+	const handleHiveSortChange = React.useCallback(
+		(sortBy) => {
+			if (hiveSortBy === sortBy) {
+				setHiveSortOrder((prev) => (prev === 'ASC' ? 'DESC' : 'ASC'))
+				return
+			}
 
-		setHiveSortBy(sortBy)
-		setHiveSortOrder('ASC')
-	}, [hiveSortBy])
+			setHiveSortBy(sortBy)
+			setHiveSortOrder('ASC')
+		},
+		[hiveSortBy]
+	)
 
 	const toggleVisibleColumn = React.useCallback((columnKey) => {
 		setVisibleColumns((prev) => {
@@ -380,7 +427,7 @@ export default function ApiaryList(props) {
 			}
 
 			if (isVisible) {
-				return prev.filter(column => column !== columnKey)
+				return prev.filter((column) => column !== columnKey)
 			}
 
 			return [...prev, columnKey]
@@ -392,7 +439,10 @@ export default function ApiaryList(props) {
 			return
 		}
 
-		localStorage.setItem(TABLE_VISIBLE_COLUMNS_KEY, JSON.stringify(visibleColumns))
+		localStorage.setItem(
+			TABLE_VISIBLE_COLUMNS_KEY,
+			JSON.stringify(visibleColumns)
+		)
 	}, [visibleColumns])
 
 	React.useEffect(() => {
@@ -400,24 +450,30 @@ export default function ApiaryList(props) {
 			return
 		}
 
-		localStorage.setItem(TABLE_SORT_KEY, JSON.stringify({
-			sortBy: hiveSortBy,
-			sortOrder: hiveSortOrder,
-		}))
+		localStorage.setItem(
+			TABLE_SORT_KEY,
+			JSON.stringify({
+				sortBy: hiveSortBy,
+				sortOrder: hiveSortOrder,
+			})
+		)
 	}, [hiveSortBy, hiveSortOrder])
 
-	const showLoadingSkeleton = FORCE_APIARY_LIST_SKELETON || (loading && apiaries.length === 0)
-	const welcomeConfettiPieces = React.useMemo(() => (
-		Array.from({ length: 56 }).map((_, i) => ({
-			key: i,
-			style: {
-				['--x' as any]: `${(i * 37) % 100}%`,
-				['--delay' as any]: `${(i % 9) * 0.08}s`,
-				['--duration' as any]: `${2.2 + (i % 5) * 0.18}s`,
-				['--rotate' as any]: `${(i * 53) % 360}deg`,
-			},
-		}))
-	), [])
+	const showLoadingSkeleton =
+		FORCE_APIARY_LIST_SKELETON || (loading && apiaries.length === 0)
+	const welcomeConfettiPieces = React.useMemo(
+		() =>
+			Array.from({ length: 56 }).map((_, i) => ({
+				key: i,
+				style: {
+					['--x' as any]: `${(i * 37) % 100}%`,
+					['--delay' as any]: `${(i % 9) * 0.08}s`,
+					['--duration' as any]: `${2.2 + (i % 5) * 0.18}s`,
+					['--rotate' as any]: `${(i * 53) % 360}deg`,
+				},
+			})),
+		[]
+	)
 
 	React.useEffect(() => {
 		if (showLoadingSkeleton || apiaries === null) {
@@ -445,29 +501,35 @@ export default function ApiaryList(props) {
 		}
 	}, [apiaries, showLoadingSkeleton])
 
-
 	return (
-			<div className={styles.page}>
-				{showWelcomeCelebration && (
-					<div className={styles.welcomeCelebration} aria-live="polite">
-						<div className={styles.confettiLayer} aria-hidden="true">
-							{welcomeConfettiPieces.map((piece) => (
-								<span
-									key={piece.key}
-									className={styles.confettiPiece}
-									style={piece.style}
-								/>
-							))}
-						</div>
-						{showWelcomeMessage && (
-							<div className={styles.welcomeCard}>
-								<strong><T>Welcome to Gratheon!</T></strong>
-								<span><T>Your account is ready. Set up your first apiary to get started.</T></span>
-							</div>
-						)}
+		<div className={styles.page}>
+			{showWelcomeCelebration && (
+				<div className={styles.welcomeCelebration} aria-live="polite">
+					<div className={styles.confettiLayer} aria-hidden="true">
+						{welcomeConfettiPieces.map((piece) => (
+							<span
+								key={piece.key}
+								className={styles.confettiPiece}
+								style={piece.style}
+							/>
+						))}
 					</div>
-				)}
-				{isServiceDegraded && <ServiceDegradedWarning />}
+					{showWelcomeMessage && (
+						<div className={styles.welcomeCard}>
+							<strong>
+								<T>Welcome to Gratheon!</T>
+							</strong>
+							<span>
+								<T>
+									Your account is ready. Set up your first apiary to get
+									started.
+								</T>
+							</span>
+						</div>
+					)}
+				</div>
+			)}
+			{isServiceDegraded && <ServiceDegradedWarning />}
 			<ErrorMsg error={error || errorNetwork} borderRadius={0} />
 			{showLoadingSkeleton && (
 				<ApiaryListLoadingRows
@@ -483,15 +545,18 @@ export default function ApiaryList(props) {
 					onNavigateAcrossApiaries={handleNavigateAcrossApiaries}
 				/>
 			)}
-			{!showLoadingSkeleton && apiaries !== null && apiaries?.length === 0 && <ApiariesPlaceholder />}
+			{!showLoadingSkeleton && apiaries !== null && apiaries?.length === 0 && (
+				<ApiariesPlaceholder />
+			)}
 
-			{!showLoadingSkeleton && apiaries &&
-					apiaries.map((apiary, i) => (
-							<ApiaryListRow
-								key={i}
-							apiary={apiary}
-							boxSystems={boxSystems}
-							user={user}
+			{!showLoadingSkeleton &&
+				apiaries &&
+				apiaries.map((apiary, i) => (
+					<ApiaryListRow
+						key={i}
+						apiary={apiary}
+						boxSystems={boxSystems}
+						user={user}
 						sortBy={hiveSortBy}
 						sortOrder={hiveSortOrder}
 						onSortChange={handleHiveSortChange}
@@ -500,15 +565,24 @@ export default function ApiaryList(props) {
 						selectedHiveApiaryId={selectedHive.apiaryId}
 						selectedHiveId={selectedHive.hiveId}
 						onSelectHive={selectHive}
-					onNavigateAcrossApiaries={handleNavigateAcrossApiaries}
-					hasMixedApiaryTypes={hasMixedApiaryTypes}
-				/>
-			))}
+						onNavigateAcrossApiaries={handleNavigateAcrossApiaries}
+						hasMixedApiaryTypes={hasMixedApiaryTypes}
+					/>
+				))}
 
-			<div style={showLoadingSkeleton ? { display: 'none' } : { textAlign: 'center', margin: '15px 0' }}>
-				<Button 
+			<div
+				style={
+					showLoadingSkeleton
+						? { display: 'none' }
+						: { textAlign: 'center', margin: '15px 0' }
+				}
+			>
+				<Button
 					color={apiaries && apiaries.length === 0 ? 'green' : 'white'}
-					href="/apiaries/create"><T ctx="its a button">Setup new apiary</T></Button>
+					href="/apiaries/create"
+				>
+					<T ctx="its a button">Setup new apiary</T>
+				</Button>
 			</div>
 		</div>
 	)

@@ -8,7 +8,10 @@ export default function ServiceDegradedWarning() {
 			<span className={styles.icon} aria-hidden="true">
 				<WarnIcon size={18} />
 			</span>
-			<T>Service is degraded. Some features may be unavailable while we use cached data.</T>
+			<T>
+				Service is degraded. Some features may be unavailable while we use
+				cached data.
+			</T>
 		</div>
 	)
 }

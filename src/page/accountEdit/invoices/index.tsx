@@ -59,7 +59,9 @@ export default function Invoices() {
 										</td>
 										<td>{formatter.format(invoice.total / 100)}</td>
 										<td>
-											<Button color='green' href={invoice.url}>PDF</Button>
+											<Button color="green" href={invoice.url}>
+												PDF
+											</Button>
 										</td>
 									</tr>
 								)

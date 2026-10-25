@@ -1,74 +1,74 @@
 .panel {
-  background: #f5f5f5;
-  padding: 12px;
-  border-radius: 8px;
+	background: #f5f5f5;
+	padding: 12px;
+	border-radius: 8px;
 }
 
 .header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin-bottom: 12px;
 }
 
 .title {
-  font-size: 14px;
-  font-weight: bold;
+	font-size: 14px;
+	font-weight: bold;
 }
 
 .hiveList {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
 
-  &.scrollable {
-    max-height: 300px;
-    overflow-y: auto;
-    padding-right: 4px;
+	&.scrollable {
+		max-height: 300px;
+		overflow-y: auto;
+		padding-right: 4px;
 
-    &::-webkit-scrollbar {
-      width: 6px;
-    }
+		&::-webkit-scrollbar {
+			width: 6px;
+		}
 
-    &::-webkit-scrollbar-track {
-      background: #e0e0e0;
-      border-radius: 3px;
-    }
+		&::-webkit-scrollbar-track {
+			background: #e0e0e0;
+			border-radius: 3px;
+		}
 
-    &::-webkit-scrollbar-thumb {
-      background: #999;
-      border-radius: 3px;
+		&::-webkit-scrollbar-thumb {
+			background: #999;
+			border-radius: 3px;
 
-      &:hover {
-        background: #777;
-      }
-    }
-  }
+			&:hover {
+				background: #777;
+			}
+		}
+	}
 }
 
 .hiveCheckbox {
-  cursor: pointer;
-  user-select: none;
-  padding: 8px 10px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  font-size: 13px;
-  transition: background 0.2s;
-  background: white;
-  display: flex;
-  align-items: center;
+	cursor: pointer;
+	user-select: none;
+	padding: 8px 10px;
+	border-radius: 4px;
+	border: 1px solid #ccc;
+	font-size: 13px;
+	transition: background 0.2s;
+	background: white;
+	display: flex;
+	align-items: center;
 
-  &.selected {
-    background: #e3f2fd;
-    border-color: #2196f3;
-  }
+	&.selected {
+		background: #e3f2fd;
+		border-color: #2196f3;
+	}
 
-  input {
-    margin-right: 8px;
-  }
+	input {
+		margin-right: 8px;
+	}
 
-  &:hover {
-    border-color: #999;
-  }
+	&:hover {
+		border-color: #999;
+	}
 }

@@ -4,10 +4,16 @@ export type TemperatureUnit = (typeof TEMPERATURE_UNITS)[number]
 
 export const DEFAULT_TEMPERATURE_UNIT: TemperatureUnit = 'celsius'
 
-export function normalizeTemperatureUnit(unit?: string | null): TemperatureUnit | null {
+export function normalizeTemperatureUnit(
+	unit?: string | null
+): TemperatureUnit | null {
 	if (!unit) return null
 	const normalized = unit.trim().toLowerCase()
-	return normalized === 'fahrenheit' ? 'fahrenheit' : normalized === 'celsius' ? 'celsius' : null
+	return normalized === 'fahrenheit'
+		? 'fahrenheit'
+		: normalized === 'celsius'
+			? 'celsius'
+			: null
 }
 
 export function localeUsesFahrenheit(locale?: string | null): boolean {
@@ -16,7 +22,9 @@ export function localeUsesFahrenheit(locale?: string | null): boolean {
 	return parts.some((part) => part.toUpperCase() === 'US')
 }
 
-export function getDefaultTemperatureUnitForLocale(locale?: string | null): TemperatureUnit {
+export function getDefaultTemperatureUnitForLocale(
+	locale?: string | null
+): TemperatureUnit {
 	return localeUsesFahrenheit(locale) ? 'fahrenheit' : DEFAULT_TEMPERATURE_UNIT
 }
 
@@ -25,16 +33,23 @@ export function getBrowserTemperatureUnit(): TemperatureUnit {
 	return getDefaultTemperatureUnitForLocale(navigator.language)
 }
 
-export function getPreferredTemperatureUnit(user?: { temperatureUnit?: string | null; locale?: string | null } | null): TemperatureUnit {
-	return normalizeTemperatureUnit(user?.temperatureUnit)
-		|| getDefaultTemperatureUnitForLocale(user?.locale)
+export function getPreferredTemperatureUnit(
+	user?: { temperatureUnit?: string | null; locale?: string | null } | null
+): TemperatureUnit {
+	return (
+		normalizeTemperatureUnit(user?.temperatureUnit) ||
+		getDefaultTemperatureUnitForLocale(user?.locale)
+	)
 }
 
 export function celsiusToFahrenheit(value: number): number {
-	return value * 9 / 5 + 32
+	return (value * 9) / 5 + 32
 }
 
-export function convertFromCelsius(value: number | null | undefined, unit: TemperatureUnit): number | null {
+export function convertFromCelsius(
+	value: number | null | undefined,
+	unit: TemperatureUnit
+): number | null {
 	if (value === null || value === undefined || Number.isNaN(value)) return null
 	return unit === 'fahrenheit' ? celsiusToFahrenheit(value) : value
 }
@@ -46,17 +61,16 @@ export function temperatureUnitSymbol(unit: TemperatureUnit): string {
 export function formatTemperatureFromCelsius(
 	value: number | null | undefined,
 	unit: TemperatureUnit,
-	fractionDigits = 1,
+	fractionDigits = 1
 ): string {
 	const converted = convertFromCelsius(value, unit)
 	if (converted === null) return '--'
 	return `${converted.toFixed(fractionDigits)}${temperatureUnitSymbol(unit)}`
 }
 
-export function convertMetricSeriesFromCelsius<T extends { value: number | null }>(
-	data: T[],
-	unit: TemperatureUnit,
-): T[] {
+export function convertMetricSeriesFromCelsius<
+	T extends { value: number | null },
+>(data: T[], unit: TemperatureUnit): T[] {
 	if (unit === 'celsius') return data
 	return data.map((item) => ({
 		...item,

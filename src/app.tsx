@@ -34,7 +34,9 @@ async function disableServiceWorkerInDev() {
 		return
 	}
 	if (isPwaDevModeEnabled()) {
-		console.info('[AppInit] Keeping service workers in dev due to debug:pwa-dev=1')
+		console.info(
+			'[AppInit] Keeping service workers in dev due to debug:pwa-dev=1'
+		)
 		return
 	}
 	if (!('serviceWorker' in navigator)) {
@@ -44,22 +46,34 @@ async function disableServiceWorkerInDev() {
 	try {
 		const registrations = await navigator.serviceWorker.getRegistrations()
 		if (registrations.length > 0) {
-			await Promise.all(registrations.map((registration) => registration.unregister()))
-			console.info('[AppInit] Unregistered service workers in dev', { count: registrations.length })
+			await Promise.all(
+				registrations.map((registration) => registration.unregister())
+			)
+			console.info('[AppInit] Unregistered service workers in dev', {
+				count: registrations.length,
+			})
 		}
 	} catch (error) {
 		console.warn('[AppInit] Failed to unregister service workers in dev', error)
 	}
 }
 
-if (typeof window !== 'undefined' && (import.meta.env.DEV || window.localStorage.getItem('debug:offline-indexdb') === '1')) {
+if (
+	typeof window !== 'undefined' &&
+	(import.meta.env.DEV ||
+		window.localStorage.getItem('debug:offline-indexdb') === '1')
+) {
 	console.debug('[AppInit] Starting bootstrap')
 }
 
 try {
 	void disableServiceWorkerInDev()
 	syncGraphqlSchemaToIndexDB(schemaObject)
-	if (typeof window !== 'undefined' && (import.meta.env.DEV || window.localStorage.getItem('debug:offline-indexdb') === '1')) {
+	if (
+		typeof window !== 'undefined' &&
+		(import.meta.env.DEV ||
+			window.localStorage.getItem('debug:offline-indexdb') === '1')
+	) {
 		console.debug('[AppInit] syncGraphqlSchemaToIndexDB completed')
 	}
 } catch (error) {
@@ -89,30 +103,28 @@ export default function App() {
 			<Provider value={apiClient}>
 				<UploadProvider>
 					<Helmet
-					htmlAttributes={{ amp: undefined }}
-					title="App"
-					titleTemplate="Gratheon.com - %s"
-					defaultTitle="Gratheon"
-					titleAttributes={{ itemprop: 'name' }}
-					meta={[
-						{
-							name: 'description',
-							content: 'Swarm management application',
-						},
-						{ property: 'og:type', content: 'article' },
-					]}
-					link={[
-						{ rel: 'canonical', href: 'https://app.gratheon.com/' },
-					]}
-					script={[]}
-					noscript={[]}
-					style={[]}
-				/>
+						htmlAttributes={{ amp: undefined }}
+						title="App"
+						titleTemplate="Gratheon.com - %s"
+						defaultTitle="Gratheon"
+						titleAttributes={{ itemprop: 'name' }}
+						meta={[
+							{
+								name: 'description',
+								content: 'Swarm management application',
+							},
+							{ property: 'og:type', content: 'article' },
+						]}
+						link={[{ rel: 'canonical', href: 'https://app.gratheon.com/' }]}
+						script={[]}
+						noscript={[]}
+						style={[]}
+					/>
 
-				<BrowserRouter>
-					<OfflineWarning />
-					<Page />
-				</BrowserRouter>
+					<BrowserRouter>
+						<OfflineWarning />
+						<Page />
+					</BrowserRouter>
 				</UploadProvider>
 			</Provider>
 		</GlobalErrorHandler>

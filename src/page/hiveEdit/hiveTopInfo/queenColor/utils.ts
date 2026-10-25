@@ -21,4 +21,3 @@ export function getQueenColorFromYear(year: string | number): string {
 			return '#fefee3'
 	}
 }
-

@@ -1,55 +1,60 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react'
 
 import ErrorMsg from '@/shared/messageError'
-import Button from '@/shared/button';
+import Button from '@/shared/button'
 import { gql, useQuery, useMutation } from '@/api'
 import Loader from '@/shared/loader'
-import T from '@/shared/translate';
-import KeyIcon from '@/icons/key.tsx';
+import T from '@/shared/translate'
+import KeyIcon from '@/icons/key.tsx'
 
 import style from './style.module.less'
-import CopyButton from '@/shared/copyButton';
+import CopyButton from '@/shared/copyButton'
 
 const TOKEN_QUERY = gql`
-{
-	apiTokens {
-		__typename
-		id
-		token
-	}
+	{
+		apiTokens {
+			__typename
+			id
+			token
+		}
 
-	devices {
-		id
-		name
-		type
-		apiToken
-	}
+		devices {
+			id
+			name
+			type
+			apiToken
+		}
 
-	shareTokens {
-		__typename
-		id
-		name
-		token
-		scopes
-		targetUrl
+		shareTokens {
+			__typename
+			id
+			name
+			token
+			scopes
+			targetUrl
+		}
 	}
-}
 `
 
 const GENERATE_TOKEN_MUTATION = gql`
-mutation generateApiToken {
-	generateApiToken {
-		id
-		token
+	mutation generateApiToken {
+		generateApiToken {
+			id
+			token
+		}
 	}
-}`
+`
 
 function formatScopeValue(value: unknown): string {
 	if (value === null || value === undefined) {
 		return 'null'
 	}
 
-	if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+	if (
+		typeof value === 'string' ||
+		typeof value === 'number' ||
+		typeof value === 'boolean'
+	) {
 		return String(value)
 	}
 
@@ -60,7 +65,10 @@ function formatScopeValue(value: unknown): string {
 	}
 }
 
-function summarizeScopes(scopes: unknown): { summary: string, technical: string } {
+function summarizeScopes(scopes: unknown): {
+	summary: string
+	technical: string
+} {
 	const technical = formatScopeValue(scopes)
 
 	if (scopes === null || scopes === undefined) {
@@ -68,11 +76,16 @@ function summarizeScopes(scopes: unknown): { summary: string, technical: string 
 	}
 
 	if (Array.isArray(scopes)) {
-		const plainItems = scopes.filter((item) => typeof item === 'string') as string[]
+		const plainItems = scopes.filter(
+			(item) => typeof item === 'string'
+		) as string[]
 		if (plainItems.length === scopes.length) {
 			return { summary: plainItems.join(', '), technical }
 		}
-		return { summary: scopes.map((item) => formatScopeValue(item)).join(', '), technical }
+		return {
+			summary: scopes.map((item) => formatScopeValue(item)).join(', '),
+			technical,
+		}
 	}
 
 	if (typeof scopes === 'object') {
@@ -87,10 +100,15 @@ function summarizeScopes(scopes: unknown): { summary: string, technical: string 
 					}
 
 					const q = query as Record<string, unknown>
-					const queryName = typeof q.queryName === 'string' ? q.queryName : 'query'
+					const queryName =
+						typeof q.queryName === 'string' ? q.queryName : 'query'
 					const requiredArgs = q.requiredArgs
 
-					if (!requiredArgs || typeof requiredArgs !== 'object' || Array.isArray(requiredArgs)) {
+					if (
+						!requiredArgs ||
+						typeof requiredArgs !== 'object' ||
+						Array.isArray(requiredArgs)
+					) {
 						return queryName
 					}
 
@@ -116,24 +134,28 @@ function summarizeScopes(scopes: unknown): { summary: string, technical: string 
 	return { summary: technical, technical }
 }
 
-
 export default function TokenList() {
-	let [generateToken, { error: generationError }] = useMutation(GENERATE_TOKEN_MUTATION)
+	let [generateToken, { error: generationError }] = useMutation(
+		GENERATE_TOKEN_MUTATION
+	)
 
 	const [revokingApiToken, setRevokingApiToken] = useState([])
-	let [revokeApiToken, { error: revokeApiTokenError }] = useMutation(gql`mutation revokeApiToken($token: String!){ 
-		revokeApiToken(token: $token) {
-			code
+	let [revokeApiToken, { error: revokeApiTokenError }] = useMutation(gql`
+		mutation revokeApiToken($token: String!) {
+			revokeApiToken(token: $token) {
+				code
+			}
 		}
-	 }`)
+	`)
 
 	const [revokingShareToken, setRevokingToken] = useState([])
-	let [revokeShareToken, { error: revokeShareTokenError }] = useMutation(gql`mutation revokeShareToken($token: String!){
-		revokeShareToken(token: $token) {
-			code
+	let [revokeShareToken, { error: revokeShareTokenError }] = useMutation(gql`
+		mutation revokeShareToken($token: String!) {
+			revokeShareToken(token: $token) {
+				code
+			}
 		}
-	 }`)
-
+	`)
 
 	let { loading, error, data, reexecuteQuery } = useQuery(TOKEN_QUERY)
 
@@ -141,22 +163,24 @@ export default function TokenList() {
 		setRevokingToken([...revokingShareToken, token])
 		await revokeShareToken({ token })
 		setRevokingToken(revokingShareToken.filter((t) => t !== token))
-		reexecuteQuery();
+		reexecuteQuery()
 	}
 
 	const [generatingToken, setGenerating] = useState(false)
-	const [visibleTokens, setVisibleTokens] = useState<Record<string, boolean>>({})
+	const [visibleTokens, setVisibleTokens] = useState<Record<string, boolean>>(
+		{}
+	)
 
 	async function onGenerateToken() {
-		setGenerating(true);
+		setGenerating(true)
 		await generateToken()
-		setGenerating(false);
-		reexecuteQuery();
+		setGenerating(false)
+		reexecuteQuery()
 	}
 
 	async function onRevokeApiToken(token: string) {
 		await revokeApiToken({ token })
-		reexecuteQuery();
+		reexecuteQuery()
 	}
 
 	if (loading) {
@@ -172,101 +196,151 @@ export default function TokenList() {
 			.map((device) => [device.apiToken, device])
 	)
 
-
 	return (
 		<>
 			<section className={style.section}>
-				<h2><T>API tokens</T></h2>
+				<h2>
+					<T>API tokens</T>
+				</h2>
 
 				<div className={style.tokenSectionHeader}>
 					<p className={style.tokenSectionDescription}>
-						<T>API tokens are used to authenticate your requests to our API. You can create multiple tokens to use in different applications.</T>
+						<T>
+							API tokens are used to authenticate your requests to our API. You
+							can create multiple tokens to use in different applications.
+						</T>
 						<br />
 						<a href="https://gratheon.com/docs/API">API documentation</a>
 					</p>
 
 					<div>
-						<Button color='green' loading={generatingToken} onClick={onGenerateToken}>
+						<Button
+							color="green"
+							loading={generatingToken}
+							onClick={onGenerateToken}
+						>
 							<KeyIcon size={16} />
 							<T>Generate</T>
 						</Button>
 					</div>
 				</div>
 
-				<ErrorMsg error={error || generationError || revokeShareTokenError || revokeApiTokenError} />
+				<ErrorMsg
+					error={
+						error ||
+						generationError ||
+						revokeShareTokenError ||
+						revokeApiTokenError
+					}
+				/>
 
-				{tokens && tokens.length > 0 &&
+				{tokens && tokens.length > 0 && (
 					<div className={style.list}>
 						{tokens.map((token) => {
 							const linkedDevice: any = deviceByToken.get(token.token)
-							const isVisible = visibleTokens[token.id] || false;
-							const displayToken = isVisible ? token.token : '*'.repeat(token.token.length);
+							const isVisible = visibleTokens[token.id] || false
+							const displayToken = isVisible
+								? token.token
+								: '*'.repeat(token.token.length)
 
 							return (
-							<div key={token.id} className={`${style.row} ${linkedDevice ? style.deviceTokenRow : ''}`}>
-								<div className={style.tokenContainer}>
-									<div className={style.tokenWrap}>
-										<div className={style.token}>{displayToken}</div>
-										{linkedDevice && (
-											<a className={style.deviceBadge} href="/devices">
-												<T>Device</T>: {linkedDevice.name}
-											</a>
-										)}
+								<div
+									key={token.id}
+									className={`${style.row} ${linkedDevice ? style.deviceTokenRow : ''}`}
+								>
+									<div className={style.tokenContainer}>
+										<div className={style.tokenWrap}>
+											<div className={style.token}>{displayToken}</div>
+											{linkedDevice && (
+												<a className={style.deviceBadge} href="/devices">
+													<T>Device</T>: {linkedDevice.name}
+												</a>
+											)}
+										</div>
+									</div>
+									<div className={style.buttons}>
+										<Button
+											size="small"
+											onClick={() =>
+												setVisibleTokens((prev) => ({
+													...prev,
+													[token.id]: !isVisible,
+												}))
+											}
+										>
+											<T>Toggle</T>
+										</Button>
+										<CopyButton size="small" data={token.token} />
+										<Button
+											size="small"
+											color="red"
+											loading={revokingApiToken.includes(token.token)}
+											onClick={() => onRevokeApiToken(token.token)}
+										>
+											<T>Revoke</T>
+										</Button>
 									</div>
 								</div>
-								<div className={style.buttons}>
-									<Button size='small' onClick={() => setVisibleTokens(prev => ({...prev, [token.id]: !isVisible}))}>
-										<T>Toggle</T>
-									</Button>
-									<CopyButton size='small' data={token.token} />
-									<Button
-										size='small'
-										color='red'
-										loading={revokingApiToken.includes(token.token)}
-										onClick={() => onRevokeApiToken(token.token)}><T>Revoke</T></Button>
-								</div>
-							</div>
-						)})}
+							)
+						})}
 					</div>
-				}
+				)}
 			</section>
 
-			{shareTokens && shareTokens.length > 0 && <section className={style.section}>
-				<h2><T>Shared links</T></h2>
-				<p><T>You can share access to hive inspections with other people. This list shows list of such shared tokens</T></p>
+			{shareTokens && shareTokens.length > 0 && (
+				<section className={style.section}>
+					<h2>
+						<T>Shared links</T>
+					</h2>
+					<p>
+						<T>
+							You can share access to hive inspections with other people. This
+							list shows list of such shared tokens
+						</T>
+					</p>
 
-				<div className={`${style.list} ${style.stripedRows}`}>
-					{shareTokens.map((token) => {
-						const scopeInfo = summarizeScopes(token.scopes)
+					<div className={`${style.list} ${style.stripedRows}`}>
+						{shareTokens.map((token) => {
+							const scopeInfo = summarizeScopes(token.scopes)
 
-						return (
-							<div key={token.id} className={style.row}>
-								<div className={style.linkNameWrap}>
-									<span>{token.name}</span>
-									<details className={style.scopeDetails}>
-										<summary className={style.scopeTrigger} title="View scope details">
-											i
-										</summary>
-										<div className={style.scopePopover}>
-											<div className={style.scopePopoverTitle}><T>Access scope</T></div>
-											<div className={style.scopePopoverBody}>{scopeInfo.technical}</div>
-										</div>
-									</details>
+							return (
+								<div key={token.id} className={style.row}>
+									<div className={style.linkNameWrap}>
+										<span>{token.name}</span>
+										<details className={style.scopeDetails}>
+											<summary
+												className={style.scopeTrigger}
+												title="View scope details"
+											>
+												i
+											</summary>
+											<div className={style.scopePopover}>
+												<div className={style.scopePopoverTitle}>
+													<T>Access scope</T>
+												</div>
+												<div className={style.scopePopoverBody}>
+													{scopeInfo.technical}
+												</div>
+											</div>
+										</details>
+									</div>
+									<div className={style.buttons}>
+										<CopyButton size="small" data={token.targetUrl} />
+										<Button
+											size="small"
+											color="red"
+											loading={revokingShareToken.includes(token.token)}
+											onClick={() => onRevokeShareToken(token.token)}
+										>
+											<T>Revoke</T>
+										</Button>
+									</div>
 								</div>
-								<div className={style.buttons}>
-									<CopyButton size='small' data={token.targetUrl} />
-									<Button
-										size='small'
-										color='red'
-										loading={revokingShareToken.includes(token.token)}
-										onClick={() => onRevokeShareToken(token.token)}><T>Revoke</T></Button>
-								</div>
-							</div>
-						)
-					})}
-				</div>
-			</section>
-			}
+							)
+						})}
+					</div>
+				</section>
+			)}
 		</>
-	);
+	)
 }

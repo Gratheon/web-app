@@ -1,35 +1,36 @@
-import React, { useRef, useState, useEffect } from 'react';
-import T from '@/shared/translate';
-import style from './style.module.less';
-import beeURL from "@/assets/bee-side.png"
-import { gql, useMutation, useQuery } from '@/api';
+import React, { useRef, useState, useEffect } from 'react'
+import T from '@/shared/translate'
+import style from './style.module.less'
+import beeURL from '@/assets/bee-side.png'
+import { gql, useMutation, useQuery } from '@/api'
 import {
 	normalizeGateHoleCount,
 	updateBox,
 	getBox,
 	GATE_HOLE_COUNT_MAX,
 	GATE_HOLE_COUNT_MIN,
-} from '@/models/boxes';
+} from '@/models/boxes'
 
-const formatBeeCount = (value?: number | null) => new Intl.NumberFormat().format(value || 0);
+const formatBeeCount = (value?: number | null) =>
+	new Intl.NumberFormat().format(value || 0)
 const Bee = ({ position, intervalMs = 3000 }) => {
-	const [left, setLeft] = useState(position);
+	const [left, setLeft] = useState(position)
 
 	useEffect(() => {
 		const interval = setInterval(() => {
-			const newPosition = Math.random() * 20 + 40;
-			setLeft(newPosition);
-		}, intervalMs);
+			const newPosition = Math.random() * 20 + 40
+			setLeft(newPosition)
+		}, intervalMs)
 
 		return () => {
-			clearInterval(interval);
-		};
-	}, []);
+			clearInterval(interval)
+		}
+	}, [])
 
-	let classes = style.bee;
+	let classes = style.bee
 
 	if (Math.random() > 0.5) {
-		classes += " " + style.flip
+		classes += ' ' + style.flip
 	}
 
 	return (
@@ -38,34 +39,41 @@ const Bee = ({ position, intervalMs = 3000 }) => {
 			style={`left: ${left}%;animation-duration:${intervalMs}ms`}
 			className={classes}
 		/>
-	);
-};
+	)
+}
 
 const UPDATE_BOX_HOLE_COUNT_MUTATION = gql`
-mutation updateBoxHoleCount($id: ID!, $holeCount: Int!) {
-	updateBoxHoleCount(id: $id, holeCount: $holeCount)
-}
+	mutation updateBoxHoleCount($id: ID!, $holeCount: Int!) {
+		updateBoxHoleCount(id: $id, holeCount: $holeCount)
+	}
 `
 
 export default function Gate({ hiveId, box, boxId }) {
-	let { data, error, loading } = useQuery(gql`
-		query entranceMovementToday($hiveId: ID!, $boxId: ID!) {
-			entranceMovementToday(hiveId: $hiveId, boxId: $boxId) {
-				beesIn
-				beesOut
+	let { data, error, loading } = useQuery(
+		gql`
+			query entranceMovementToday($hiveId: ID!, $boxId: ID!) {
+				entranceMovementToday(hiveId: $hiveId, boxId: $boxId) {
+					beesIn
+					beesOut
+				}
 			}
+		`,
+		{
+			variables: { hiveId, boxId: box.id },
 		}
-	`, {
-		variables: { hiveId, boxId: box.id },
-	});
-	const [updateBoxHoleCountMutation] = useMutation(UPDATE_BOX_HOLE_COUNT_MUTATION)
+	)
+	const [updateBoxHoleCountMutation] = useMutation(
+		UPDATE_BOX_HOLE_COUNT_MUTATION
+	)
 	const entranceRef = useRef<HTMLDivElement | null>(null)
 	const dragStateRef = useRef<{ side: 'left' | 'right' } | null>(null)
 	const [isDraggingDoor, setIsDraggingDoor] = useState(false)
-	const [draftHoleCount, setDraftHoleCount] = useState(() => normalizeGateHoleCount(box?.holeCount))
+	const [draftHoleCount, setDraftHoleCount] = useState(() =>
+		normalizeGateHoleCount(box?.holeCount)
+	)
 
-	if (loading) return <p>Loading...</p>;
-	if (error) return <p>Error: {error.message}</p>;
+	if (loading) return <p>Loading...</p>
+	if (error) return <p>Error: {error.message}</p>
 
 	useEffect(() => {
 		if (!isDraggingDoor) {
@@ -73,11 +81,11 @@ export default function Gate({ hiveId, box, boxId }) {
 		}
 	}, [box?.holeCount, isDraggingDoor])
 
-	let beesIn = data?.entranceMovementToday?.beesIn;
-	let beesOut = data?.entranceMovementToday?.beesOut;
+	let beesIn = data?.entranceMovementToday?.beesIn
+	let beesOut = data?.entranceMovementToday?.beesOut
 
-	let indicatorIn = null;
-	let indicatorOut = null;
+	let indicatorIn = null
+	let indicatorOut = null
 	const holeCount = normalizeGateHoleCount(draftHoleCount)
 	const halfSlots = GATE_HOLE_COUNT_MAX / 2
 	const slotStepPercent = 25 / halfSlots
@@ -118,14 +126,18 @@ export default function Gate({ hiveId, box, boxId }) {
 		const halfOpenRange = rect.width * 0.25
 		if (halfOpenRange <= 0) return null
 
-		const signedDistance = dragState.side === 'left'
-			? centerX - event.clientX
-			: event.clientX - centerX
+		const signedDistance =
+			dragState.side === 'left'
+				? centerX - event.clientX
+				: event.clientX - centerX
 
 		const clamped = Math.max(0, Math.min(halfOpenRange, signedDistance))
 		const fraction = clamped / halfOpenRange
 		const nextCount = Math.round(fraction * GATE_HOLE_COUNT_MAX)
-		const normalized = Math.max(GATE_HOLE_COUNT_MIN, Math.min(GATE_HOLE_COUNT_MAX, nextCount))
+		const normalized = Math.max(
+			GATE_HOLE_COUNT_MIN,
+			Math.min(GATE_HOLE_COUNT_MAX, nextCount)
+		)
 		setDraftHoleCount(normalized)
 		return normalized
 	}
@@ -157,17 +169,17 @@ export default function Gate({ hiveId, box, boxId }) {
 	}
 
 	if (beesIn > 0 && beesOut > 0) {
-		indicatorIn = '▲';
-		indicatorOut = '▼';
+		indicatorIn = '▲'
+		indicatorOut = '▼'
 
 		if (beesIn > 1.2 * beesOut) {
-			indicatorIn = '🔺';
+			indicatorIn = '🔺'
 		} else if (beesOut > 1.2 * beesIn) {
-			indicatorOut = '🔻';
+			indicatorOut = '🔻'
 		} else if (beesIn > beesOut) {
-			indicatorIn = <span style="color:green">▲</span>;
+			indicatorIn = <span style="color:green">▲</span>
 		} else if (beesOut > beesIn) {
-			indicatorOut = <span style="color:green">▼</span>;
+			indicatorOut = <span style="color:green">▼</span>
 		}
 	}
 
@@ -175,32 +187,58 @@ export default function Gate({ hiveId, box, boxId }) {
 		<div className={`${style.gate} ${boxId === box.id && style.selected}`}>
 			<div className={style.movementStats}>
 				<span className={style.movementItem} title="Incoming bees today">
-					<span className={style.movementLabel}><T>Incoming bees today</T></span>
-					<span className={style.movementValue}>{formatBeeCount(beesIn)} {indicatorIn}</span>
+					<span className={style.movementLabel}>
+						<T>Incoming bees today</T>
+					</span>
+					<span className={style.movementValue}>
+						{formatBeeCount(beesIn)} {indicatorIn}
+					</span>
 				</span>
 				<span className={style.movementItem} title="Outgoing bees today">
-					<span className={style.movementLabel}><T>Outgoing bees today</T></span>
-					<span className={style.movementValue}>{indicatorOut} {formatBeeCount(beesOut)}</span>
+					<span className={style.movementLabel}>
+						<T>Outgoing bees today</T>
+					</span>
+					<span className={style.movementValue}>
+						{indicatorOut} {formatBeeCount(beesOut)}
+					</span>
 				</span>
 			</div>
-			<Bee key={1} position={40 + Math.random() * 10} intervalMs={4000 + (Math.random() * 3000)} />
-			<Bee key={2} position={40 + Math.random() * 10} intervalMs={3000 + (Math.random() * 3000)} />
-			<Bee key={3} position={40 + Math.random() * 10} intervalMs={4000 + (Math.random() * 3000)} />
-			<Bee key={4} position={40 + Math.random() * 10} intervalMs={5000 + (Math.random() * 3000)} />
+			<Bee
+				key={1}
+				position={40 + Math.random() * 10}
+				intervalMs={4000 + Math.random() * 3000}
+			/>
+			<Bee
+				key={2}
+				position={40 + Math.random() * 10}
+				intervalMs={3000 + Math.random() * 3000}
+			/>
+			<Bee
+				key={3}
+				position={40 + Math.random() * 10}
+				intervalMs={4000 + Math.random() * 3000}
+			/>
+			<Bee
+				key={4}
+				position={40 + Math.random() * 10}
+				intervalMs={5000 + Math.random() * 3000}
+			/>
 
 			<div
 				ref={entranceRef}
 				className={style.entranceViewport}
-				style={{
-					'--door-travel-left': doorTravelLeftPercent,
-					'--door-travel-right': doorTravelRightPercent,
-					'--hole-count': `${GATE_HOLE_COUNT_MAX}`,
-					'--hole-gap': `${holeGapPx}px`,
-				} as any}
+				style={
+					{
+						'--door-travel-left': doorTravelLeftPercent,
+						'--door-travel-right': doorTravelRightPercent,
+						'--hole-count': `${GATE_HOLE_COUNT_MAX}`,
+						'--hole-gap': `${holeGapPx}px`,
+					} as any
+				}
 			>
 				<div className={style.entranceBase}></div>
 				<div className={style.entranceHoles}>
-					{[...Array(GATE_HOLE_COUNT_MAX)].map((_, index) => (
+					{[...Array(GATE_HOLE_COUNT_MAX)].map((_, index) =>
 						(() => {
 							const isLeftSide = index < halfSlots
 							const leftBoundary = halfSlots - leftVisible
@@ -209,14 +247,14 @@ export default function Gate({ hiveId, box, boxId }) {
 								? index >= leftBoundary
 								: index < rightBoundary
 							return (
-						<span
-							key={index}
-							className={`${style.entranceHole} ${!isVisible ? style.entranceHoleHidden : ''}`}
-							title={`Entrance hole ${index + 1}`}
-						></span>
+								<span
+									key={index}
+									className={`${style.entranceHole} ${!isVisible ? style.entranceHoleHidden : ''}`}
+									title={`Entrance hole ${index + 1}`}
+								></span>
 							)
 						})()
-					))}
+					)}
 				</div>
 				<div
 					className={`${style.entranceDoor} ${style.entranceDoorLeft} ${isDraggingDoor ? style.dragging : ''}`}
@@ -228,5 +266,5 @@ export default function Gate({ hiveId, box, boxId }) {
 				></div>
 			</div>
 		</div>
-	);
+	)
 }

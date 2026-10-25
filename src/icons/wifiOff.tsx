@@ -1,6 +1,12 @@
 export default function WifiOffIcon({ size = 18 }) {
 	return (
-		<svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+		<svg
+			width={size}
+			height={size}
+			viewBox="0 0 24 24"
+			fill="none"
+			xmlns="http://www.w3.org/2000/svg"
+		>
 			<path
 				d="M2 8.5C7.4 4 16.6 4 22 8.5"
 				stroke="currentColor"

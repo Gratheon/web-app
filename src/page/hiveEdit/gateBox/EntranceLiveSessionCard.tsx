@@ -82,8 +82,16 @@ const ENTRANCE_LIVE_SESSION_QUERY = gql`
 `
 
 const START_ENTRANCE_LIVE_STREAM_MUTATION = gql`
-	mutation startEntranceLiveStreamForBox($boxId: ID!, $qualityProfile: String, $recordingMode: String) {
-		startEntranceLiveStream(boxId: $boxId, qualityProfile: $qualityProfile, recordingMode: $recordingMode) {
+	mutation startEntranceLiveStreamForBox(
+		$boxId: ID!
+		$qualityProfile: String
+		$recordingMode: String
+	) {
+		startEntranceLiveStream(
+			boxId: $boxId
+			qualityProfile: $qualityProfile
+			recordingMode: $recordingMode
+		) {
 			...EntranceLiveSessionFields
 		}
 	}
@@ -107,7 +115,12 @@ const STOP_ENTRANCE_LIVE_STREAM_MUTATION = gql`
 
 const POLL_INTERVAL_MS = 5_000
 const KEEPALIVE_INTERVAL_MS = 30_000
-const KEEPALIVE_STATUSES: LiveSessionStatus[] = ['REQUESTED', 'DEVICE_OFFLINE', 'STARTING', 'ACTIVE']
+const KEEPALIVE_STATUSES: LiveSessionStatus[] = [
+	'REQUESTED',
+	'DEVICE_OFFLINE',
+	'STARTING',
+	'ACTIVE',
+]
 
 type EntranceLiveSessionCardProps = {
 	boxId: string | number
@@ -137,7 +150,11 @@ function LiveStatusBadge({ status }: { status: LiveSessionStatus }) {
 		FAILED: styles.statusFailed,
 	}[status]
 
-	return <span className={`${styles.statusBadge} ${className}`}>{getLiveStatusText(status)}</span>
+	return (
+		<span className={`${styles.statusBadge} ${className}`}>
+			{getLiveStatusText(status)}
+		</span>
+	)
 }
 
 function LiveStatusDescription({
@@ -149,22 +166,54 @@ function LiveStatusDescription({
 }) {
 	switch (status) {
 		case 'REQUESTED':
-			return <T>We are asking the entrance camera to start. This usually takes a few seconds.</T>
+			return (
+				<T>
+					We are asking the entrance camera to start. This usually takes a few
+					seconds.
+				</T>
+			)
 		case 'DEVICE_OFFLINE':
-			return hasConnectedDevice
-				? <T>The connected camera is offline. Check that the device is powered on and connected to the internet.</T>
-				: <T>Connect a camera device above to start live viewing for this entrance.</T>
+			return hasConnectedDevice ? (
+				<T>
+					The connected camera is offline. Check that the device is powered on
+					and connected to the internet.
+				</T>
+			) : (
+				<T>
+					Connect a camera device above to start live viewing for this entrance.
+				</T>
+			)
 		case 'STARTING':
-			return <T>The camera is starting. The live image will appear here when the first frame arrives.</T>
+			return (
+				<T>
+					The camera is starting. The live image will appear here when the first
+					frame arrives.
+				</T>
+			)
 		case 'ACTIVE':
-			return <T>The entrance camera is live. Watch the latest image directly on this page.</T>
+			return (
+				<T>
+					The entrance camera is live. Watch the latest image directly on this
+					page.
+				</T>
+			)
 		case 'STOPPING':
 			return <T>Stopping the live view.</T>
 		case 'FAILED':
-			return <T>The live view could not start. Please try again or check the camera device.</T>
+			return (
+				<T>
+					The live view could not start. Please try again or check the camera
+					device.
+				</T>
+			)
 		case 'STOPPED':
 		default:
-			return <T>No live view is running right now. Start it when you want to check the entrance.</T>
+			return (
+				<T>
+					No live view is running right now. Start it when you want to check the
+					entrance.
+				</T>
+			)
 	}
 }
 
@@ -189,7 +238,13 @@ function findJpegStart(bytes: Uint8Array, frameEnd: number) {
 	return -1
 }
 
-function MjpegLivePreview({ playbackUrl, isActive }: { playbackUrl: string; isActive: boolean }) {
+function MjpegLivePreview({
+	playbackUrl,
+	isActive,
+}: {
+	playbackUrl: string
+	isActive: boolean
+}) {
 	const [frameUrl, setFrameUrl] = useState('')
 	const [previewError, setPreviewError] = useState('')
 	const [retryAttempt, setRetryAttempt] = useState(0)
@@ -219,7 +274,9 @@ function MjpegLivePreview({ playbackUrl, isActive }: { playbackUrl: string; isAc
 		}
 
 		function updateFrame(nextFrame: Uint8Array) {
-			const nextObjectUrl = URL.createObjectURL(new Blob([nextFrame], { type: 'image/jpeg' }))
+			const nextObjectUrl = URL.createObjectURL(
+				new Blob([nextFrame], { type: 'image/jpeg' })
+			)
 			setFrameUrl((previousUrl) => {
 				if (previousUrl) URL.revokeObjectURL(previousUrl)
 				return nextObjectUrl
@@ -266,7 +323,9 @@ function MjpegLivePreview({ playbackUrl, isActive }: { playbackUrl: string; isAc
 				}
 			} catch (error) {
 				if (!controller.signal.aborted) {
-					scheduleReconnect('Live camera preview is temporarily unavailable. Reconnecting...')
+					scheduleReconnect(
+						'Live camera preview is temporarily unavailable. Reconnecting...'
+					)
 				}
 			}
 		}
@@ -289,9 +348,16 @@ function MjpegLivePreview({ playbackUrl, isActive }: { playbackUrl: string; isAc
 				<img src={frameUrl} alt="Live entrance camera preview" />
 			) : (
 				<div className={styles.livePreviewPlaceholder}>
-					<strong><T>Waiting for camera image</T></strong>
+					<strong>
+						<T>Waiting for camera image</T>
+					</strong>
 					<span>
-						{previewError || <T>The live view will appear here as soon as the camera sends a frame.</T>}
+						{previewError || (
+							<T>
+								The live view will appear here as soon as the camera sends a
+								frame.
+							</T>
+						)}
 					</span>
 				</div>
 			)}
@@ -299,15 +365,26 @@ function MjpegLivePreview({ playbackUrl, isActive }: { playbackUrl: string; isAc
 	)
 }
 
-export default function EntranceLiveSessionCard({ boxId, hasConnectedDevice }: EntranceLiveSessionCardProps) {
-	const { data, loading, error, reexecuteQuery } = useQuery(ENTRANCE_LIVE_SESSION_QUERY, {
-		variables: { boxId: `${boxId}` },
-	})
-	const [startLiveStream, { loading: startLoading, error: startError }] = useMutation(START_ENTRANCE_LIVE_STREAM_MUTATION)
-	const [keepLiveStreamAlive] = useMutation(KEEP_ENTRANCE_LIVE_STREAM_ALIVE_MUTATION)
-	const [stopLiveStream, { loading: stopLoading, error: stopError }] = useMutation(STOP_ENTRANCE_LIVE_STREAM_MUTATION)
+export default function EntranceLiveSessionCard({
+	boxId,
+	hasConnectedDevice,
+}: EntranceLiveSessionCardProps) {
+	const { data, loading, error, reexecuteQuery } = useQuery(
+		ENTRANCE_LIVE_SESSION_QUERY,
+		{
+			variables: { boxId: `${boxId}` },
+		}
+	)
+	const [startLiveStream, { loading: startLoading, error: startError }] =
+		useMutation(START_ENTRANCE_LIVE_STREAM_MUTATION)
+	const [keepLiveStreamAlive] = useMutation(
+		KEEP_ENTRANCE_LIVE_STREAM_ALIVE_MUTATION
+	)
+	const [stopLiveStream, { loading: stopLoading, error: stopError }] =
+		useMutation(STOP_ENTRANCE_LIVE_STREAM_MUTATION)
 	const [session, setSession] = useState<LiveSession | null>(null)
-	const [terminalStatus, setTerminalStatus] = useState<LiveSessionStatus | null>(null)
+	const [terminalStatus, setTerminalStatus] =
+		useState<LiveSessionStatus | null>(null)
 	const [statusMessage, setStatusMessage] = useState('')
 	const stopRequestedRef = useRef(false)
 	const hadSessionRef = useRef(false)
@@ -339,7 +416,9 @@ export default function EntranceLiveSessionCard({ boxId, hasConnectedDevice }: E
 		}
 
 		setTerminalStatus('FAILED')
-		setStatusMessage('The live view ended before the camera image was available. Please try again.')
+		setStatusMessage(
+			'The live view ended before the camera image was available. Please try again.'
+		)
 	}, [loading, queriedSession])
 
 	useEffect(() => {
@@ -365,7 +444,9 @@ export default function EntranceLiveSessionCard({ boxId, hasConnectedDevice }: E
 				const result = await keepLiveStreamAlive({ sessionId: session.id })
 				if (result?.error) {
 					setTerminalStatus('FAILED')
-					setStatusMessage(result.error.message || 'Failed to keep the live view open.')
+					setStatusMessage(
+						result.error.message || 'Failed to keep the live view open.'
+					)
 					return
 				}
 
@@ -385,13 +466,16 @@ export default function EntranceLiveSessionCard({ boxId, hasConnectedDevice }: E
 		}
 	}, [keepLiveStreamAlive, session])
 
-	const displayStatus: LiveSessionStatus = terminalStatus || session?.status || 'STOPPED'
-	const playbackUrl = session?.relayDetails?.playbackUrl || session?.playbackUrl || ''
+	const displayStatus: LiveSessionStatus =
+		terminalStatus || session?.status || 'STOPPED'
+	const playbackUrl =
+		session?.relayDetails?.playbackUrl || session?.playbackUrl || ''
 	const isSessionOpen = Boolean(session?.id)
 	const isBusy = startLoading || stopLoading
 	const canStart = !isSessionOpen && !isBusy
 	const canStop = isSessionOpen && displayStatus !== 'STOPPING' && !isBusy
-	const combinedErrorMessage = error?.message || startError?.message || stopError?.message || statusMessage
+	const combinedErrorMessage =
+		error?.message || startError?.message || stopError?.message || statusMessage
 
 	const onRefresh = async () => {
 		await reexecuteQuery({ requestPolicy: 'network-only' })
@@ -442,7 +526,9 @@ export default function EntranceLiveSessionCard({ boxId, hasConnectedDevice }: E
 				status: session.status,
 			})
 			setTerminalStatus('FAILED')
-			setStatusMessage(result?.error?.message || 'Failed to stop the live view.')
+			setStatusMessage(
+				result?.error?.message || 'Failed to stop the live view.'
+			)
 			return
 		}
 
@@ -453,27 +539,47 @@ export default function EntranceLiveSessionCard({ boxId, hasConnectedDevice }: E
 		<div className={styles.liveSessionCard}>
 			<div className={styles.liveSessionHeader}>
 				<div>
-					<h3><T>Live entrance camera</T></h3>
+					<h3>
+						<T>Live entrance camera</T>
+					</h3>
 					<p className={styles.liveSessionIntro}>
-						<T>Start a live view to check what is happening at the hive entrance.</T>
+						<T>
+							Start a live view to check what is happening at the hive entrance.
+						</T>
 					</p>
 				</div>
 				<LiveStatusBadge status={displayStatus} />
 			</div>
 
 			<p className={styles.liveSessionDescription}>
-				<LiveStatusDescription status={displayStatus} hasConnectedDevice={hasConnectedDevice} />
+				<LiveStatusDescription
+					status={displayStatus}
+					hasConnectedDevice={hasConnectedDevice}
+				/>
 			</p>
 
 			{displayStatus === 'ACTIVE' && playbackUrl ? (
-				<MjpegLivePreview playbackUrl={playbackUrl} isActive={displayStatus === 'ACTIVE'} />
+				<MjpegLivePreview
+					playbackUrl={playbackUrl}
+					isActive={displayStatus === 'ACTIVE'}
+				/>
 			) : null}
 
 			<div className={styles.liveSessionActions}>
-				<Button color="green" onClick={onStart} loading={startLoading} disabled={!canStart}>
+				<Button
+					color="green"
+					onClick={onStart}
+					loading={startLoading}
+					disabled={!canStart}
+				>
 					<T>Start live view</T>
 				</Button>
-				<Button color="red" onClick={onStop} loading={stopLoading} disabled={!canStop}>
+				<Button
+					color="red"
+					onClick={onStop}
+					loading={stopLoading}
+					disabled={!canStop}
+				>
 					<T>Stop live view</T>
 				</Button>
 				<Button color="white" onClick={onRefresh} disabled={loading || isBusy}>

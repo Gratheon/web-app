@@ -18,7 +18,12 @@ type UploadContextType = {
 	boxId: number | null
 	hiveId: number | null
 	apiaryId: number | null
-	startUpload: (boxId: number, hiveId: number, apiaryId: number, images: ImagePreview[]) => void
+	startUpload: (
+		boxId: number,
+		hiveId: number,
+		apiaryId: number,
+		images: ImagePreview[]
+	) => void
 	updateImageProgress: (index: number, progress: number) => void
 	markImageComplete: (index: number, frameSideId: number) => void
 	markImageError: (index: number, error: string) => void
@@ -35,11 +40,18 @@ export function UploadProvider({ children }: { children: ComponentChildren }) {
 	const [hiveId, setHiveId] = useState<number | null>(null)
 	const [apiaryId, setApiaryId] = useState<number | null>(null)
 
-	const uploadProgress = images.length > 0
-		? images.reduce((sum, img) => sum + (img.uploadProgress || 0), 0) / images.length
-		: 0
+	const uploadProgress =
+		images.length > 0
+			? images.reduce((sum, img) => sum + (img.uploadProgress || 0), 0) /
+				images.length
+			: 0
 
-	const startUpload = (newBoxId: number, newHiveId: number, newApiaryId: number, newImages: ImagePreview[]) => {
+	const startUpload = (
+		newBoxId: number,
+		newHiveId: number,
+		newApiaryId: number,
+		newImages: ImagePreview[]
+	) => {
 		setBoxId(newBoxId)
 		setHiveId(newHiveId)
 		setApiaryId(newApiaryId)
@@ -48,7 +60,7 @@ export function UploadProvider({ children }: { children: ComponentChildren }) {
 	}
 
 	const updateImageProgress = (index: number, progress: number) => {
-		setImages(prev => {
+		setImages((prev) => {
 			const updated = [...prev]
 			updated[index] = { ...updated[index], uploadProgress: progress }
 			return updated
@@ -56,15 +68,20 @@ export function UploadProvider({ children }: { children: ComponentChildren }) {
 	}
 
 	const markImageComplete = (index: number, frameSideId: number) => {
-		setImages(prev => {
+		setImages((prev) => {
 			const updated = [...prev]
-			updated[index] = { ...updated[index], uploaded: true, uploadProgress: 100, frameSideId }
+			updated[index] = {
+				...updated[index],
+				uploaded: true,
+				uploadProgress: 100,
+				frameSideId,
+			}
 			return updated
 		})
 	}
 
 	const markImageError = (index: number, error: string) => {
-		setImages(prev => {
+		setImages((prev) => {
 			const updated = [...prev]
 			updated[index] = { ...updated[index], error }
 			return updated
@@ -72,7 +89,7 @@ export function UploadProvider({ children }: { children: ComponentChildren }) {
 	}
 
 	const cancelUpload = () => {
-		images.forEach(img => URL.revokeObjectURL(img.previewUrl))
+		images.forEach((img) => URL.revokeObjectURL(img.previewUrl))
 		setIsUploading(false)
 		setImages([])
 		setBoxId(null)
@@ -81,7 +98,7 @@ export function UploadProvider({ children }: { children: ComponentChildren }) {
 	}
 
 	const completeUpload = () => {
-		images.forEach(img => URL.revokeObjectURL(img.previewUrl))
+		images.forEach((img) => URL.revokeObjectURL(img.previewUrl))
 		setIsUploading(false)
 		setImages([])
 		setBoxId(null)
@@ -118,4 +135,3 @@ export function useUploadContext() {
 	}
 	return context
 }
-

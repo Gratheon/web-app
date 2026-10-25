@@ -57,7 +57,9 @@ export default function HobbyistTierGate({ children }: HobbyistTierGateProps) {
 					zIndex: 2,
 				}}
 			>
-				<BillingUpgradeNotice title={<T>Warehouse requires Hobbyist plan or higher.</T>} />
+				<BillingUpgradeNotice
+					title={<T>Warehouse requires Hobbyist plan or higher.</T>}
+				/>
 			</div>
 		</div>
 	)

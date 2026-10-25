@@ -13,15 +13,22 @@ describe('apiary list multi-queen helpers', () => {
 			],
 		})
 
-		expect(families.map((family) => family.name)).toEqual(['Alpha', 'Beta', 'Zeta'])
+		expect(families.map((family) => family.name)).toEqual([
+			'Alpha',
+			'Beta',
+			'Zeta',
+		])
 	})
 
 	it('marks hive as multi-queen when more than one queen exists', () => {
 		expect(
 			getColonyStatusLabel({
 				status: 'active',
-				families: [{ id: 1, name: 'A' }, { id: 2, name: 'B' }],
-			}),
+				families: [
+					{ id: 1, name: 'A' },
+					{ id: 2, name: 'B' },
+				],
+			})
 		).toBe('multi-queen')
 	})
 })

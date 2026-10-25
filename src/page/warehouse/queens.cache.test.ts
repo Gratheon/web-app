@@ -12,7 +12,10 @@ vi.mock('@/models/db', () => ({
 	},
 }))
 
-import { getCachedQueenListData, getCachedQueenListSnapshot } from './queens.cache'
+import {
+	getCachedQueenListData,
+	getCachedQueenListSnapshot,
+} from './queens.cache'
 
 describe('queen list cache', () => {
 	beforeEach(() => {
@@ -35,9 +38,7 @@ describe('queen list cache', () => {
 		const data = await getCachedQueenListData()
 
 		expect(data).toEqual({
-			assignedFamilies: [
-				{ id: 1, hiveId: 10, name: 'Hive Queen' },
-			],
+			assignedFamilies: [{ id: 1, hiveId: 10, name: 'Hive Queen' }],
 			unassignedFamilies: [
 				{ id: 2, name: 'Warehouse Queen' },
 				{ id: 3, hive_id: null, name: 'Legacy Warehouse Queen' },
@@ -47,9 +48,7 @@ describe('queen list cache', () => {
 				{ id: 2, name: 'Warehouse Queen' },
 				{ id: 3, hive_id: null, name: 'Legacy Warehouse Queen' },
 			],
-			hives: [
-				{ id: 10, apiaryId: 100, hiveNumber: 4 },
-			],
+			hives: [{ id: 10, apiaryId: 100, hiveNumber: 4 }],
 		})
 		expect(getCachedQueenListSnapshot()).toEqual(data)
 	})

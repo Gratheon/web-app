@@ -16,17 +16,17 @@ import inputStyles from '@/shared/input/styles.module.less'
 import styles from './style.module.less'
 
 const RANDOM_QUEEN_NAME_QUERY = gql`
-query RandomHiveName($language: String) {
-	randomHiveName(language: $language)
-}
+	query RandomHiveName($language: String) {
+		randomHiveName(language: $language)
+	}
 `
 
 const ADD_WAREHOUSE_QUEEN_MUTATION = gql`
-mutation addWarehouseQueen($queen: FamilyInput!) {
-	addWarehouseQueen(queen: $queen) {
-		id
+	mutation addWarehouseQueen($queen: FamilyInput!) {
+		addWarehouseQueen(queen: $queen) {
+			id
+		}
 	}
-}
 `
 
 export default function WarehouseQueensCreatePage() {
@@ -46,7 +46,9 @@ export default function WarehouseQueensCreatePage() {
 		loading: randomNameLoading,
 		reexecuteQuery: reexecuteRandomNameQuery,
 	} = useQuery(RANDOM_QUEEN_NAME_QUERY, { variables: { language: lang } })
-	const [addWarehouseQueen, { error: createError }] = useMutation(ADD_WAREHOUSE_QUEEN_MUTATION)
+	const [addWarehouseQueen, { error: createError }] = useMutation(
+		ADD_WAREHOUSE_QUEEN_MUTATION
+	)
 
 	useEffect(() => {
 		let currentLang = 'en'
@@ -105,14 +107,19 @@ export default function WarehouseQueensCreatePage() {
 
 	return (
 		<PagePaddedCentered>
-			<h1><T>Add Queen</T></h1>
+			<h1>
+				<T>Add Queen</T>
+			</h1>
 			<ErrorMsg error={formError || createError} />
 			<div className={styles.formContainer}>
 				<VisualForm
 					onSubmit={onSubmit}
 					submit={
 						<div className={styles.actions}>
-							<Button type="button" onClick={() => navigate('/warehouse/queens', { replace: true })}>
+							<Button
+								type="button"
+								onClick={() => navigate('/warehouse/queens', { replace: true })}
+							>
 								<T>Cancel</T>
 							</Button>
 							<Button type="submit" color="green" loading={submitting}>
@@ -122,9 +129,17 @@ export default function WarehouseQueensCreatePage() {
 					}
 				>
 					<div className={styles.formField}>
-						<label className={styles.formLabel}><T>Queen Name</T></label>
+						<label className={styles.formLabel}>
+							<T>Queen Name</T>
+						</label>
 						<div className={styles.fieldControl}>
-							<div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+							<div
+								style={{
+									display: 'flex',
+									alignItems: 'flex-start',
+									gap: '8px',
+								}}
+							>
 								<input
 									className={`${inputStyles.input} ${styles.flexInput}`}
 									type="text"
@@ -152,7 +167,9 @@ export default function WarehouseQueensCreatePage() {
 					</div>
 
 					<div className={styles.formField}>
-						<label className={styles.formLabel}><T>Race</T></label>
+						<label className={styles.formLabel}>
+							<T>Race</T>
+						</label>
 						<div className={styles.fieldControl}>
 							<input
 								className={`${inputStyles.input} ${styles.flexInput}`}
@@ -165,7 +182,9 @@ export default function WarehouseQueensCreatePage() {
 					</div>
 
 					<div className={styles.formField}>
-						<label className={styles.formLabel}><T>Year</T></label>
+						<label className={styles.formLabel}>
+							<T>Year</T>
+						</label>
 						<div className={styles.fieldControl}>
 							<input
 								className={`${inputStyles.input} ${styles.flexInput}`}
@@ -179,7 +198,9 @@ export default function WarehouseQueensCreatePage() {
 					</div>
 
 					<div className={styles.formField}>
-						<label className={styles.formLabel}><T>Color (optional)</T></label>
+						<label className={styles.formLabel}>
+							<T>Color (optional)</T>
+						</label>
 						<div className={styles.fieldControl}>
 							<QueenColorPicker
 								year={year}

@@ -1,4 +1,8 @@
-export default function TrashIcon({ size = 24, color = 'currentColor', className = '' }) {
+export default function TrashIcon({
+	size = 24,
+	color = 'currentColor',
+	className = '',
+}) {
 	return (
 		<svg
 			className={className}
@@ -18,4 +22,3 @@ export default function TrashIcon({ size = 24, color = 'currentColor', className
 		</svg>
 	)
 }
-

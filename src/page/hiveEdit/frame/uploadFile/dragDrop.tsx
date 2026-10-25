@@ -4,26 +4,32 @@ import { Component, ComponentChildren } from 'preact'
 
 // Define Props and State interfaces
 interface DragAndDropProps {
-  handleDrop: (files: FileList) => void; // Expects a function taking FileList
-  children: ComponentChildren;
+	handleDrop: (files: FileList) => void // Expects a function taking FileList
+	children: ComponentChildren
 }
 
 interface DragAndDropState {
-  drag: boolean;
+	drag: boolean
 }
 
-export default class DragAndDrop extends Component<DragAndDropProps, DragAndDropState> {
-	state: DragAndDropState = { // Initialize state with type
+export default class DragAndDrop extends Component<
+	DragAndDropProps,
+	DragAndDropState
+> {
+	state: DragAndDropState = {
+		// Initialize state with type
 		drag: false,
 	}
 	dropRef = React.createRef<HTMLDivElement>() // Add type to ref
-	dragCounter = 0; // Initialize counter
+	dragCounter = 0 // Initialize counter
 
-	handleDrag = (e: DragEvent) => { // Add event type
+	handleDrag = (e: DragEvent) => {
+		// Add event type
 		e.preventDefault()
 		e.stopPropagation()
 	}
-	handleDragIn = (e: DragEvent) => { // Add event type
+	handleDragIn = (e: DragEvent) => {
+		// Add event type
 		e.preventDefault()
 		e.stopPropagation()
 		this.dragCounter++
@@ -32,7 +38,8 @@ export default class DragAndDrop extends Component<DragAndDropProps, DragAndDrop
 			this.setState({ drag: true })
 		}
 	}
-	handleDragOut = (e: DragEvent) => { // Add event type
+	handleDragOut = (e: DragEvent) => {
+		// Add event type
 		e.preventDefault()
 		e.stopPropagation()
 		this.dragCounter--
@@ -40,7 +47,8 @@ export default class DragAndDrop extends Component<DragAndDropProps, DragAndDrop
 			this.setState({ drag: false })
 		}
 	}
-	handleDrop = (e: DragEvent) => { // Add event type
+	handleDrop = (e: DragEvent) => {
+		// Add event type
 		e.preventDefault()
 		e.stopPropagation()
 		this.setState({ drag: false })

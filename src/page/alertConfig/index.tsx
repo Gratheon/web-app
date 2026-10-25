@@ -161,8 +161,8 @@ export default function AlertConfig({
 			selectedChannel === 'SMS'
 				? deleteSmsAlertChannelPrompt
 				: selectedChannel === 'EMAIL'
-				? deleteEmailAlertChannelPrompt
-				: deleteTelegramAlertChannelPrompt
+					? deleteEmailAlertChannelPrompt
+					: deleteTelegramAlertChannelPrompt
 
 		const confirmed = await confirm(deleteChannelPrompt, {
 			confirmText: deleteText,
@@ -216,8 +216,8 @@ export default function AlertConfig({
 		selectedChannel === 'SMS'
 			? enableSmsAlertsText
 			: selectedChannel === 'EMAIL'
-			? enableEmailAlertsText
-			: enableTelegramAlertsText
+				? enableEmailAlertsText
+				: enableTelegramAlertsText
 
 	return (
 		<div className={styles.page}>

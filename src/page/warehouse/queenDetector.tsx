@@ -644,7 +644,7 @@ export default function QueenDetectorPage() {
 					width: `${width}%`,
 					height: `${height}%`,
 				}
-		  })()
+			})()
 		: undefined
 	const selectedQueen = queenOptions.find(
 		(option) => option.id === selectedQueenId

@@ -6,7 +6,12 @@ import Loader from '@/shared/loader'
 import T, { useTranslation } from '@/shared/translate'
 import styles from './style.module.less'
 import WarehouseInventoryList from './WarehouseInventoryList'
-import type { BoxSystem, BoxSystemFrameSetting, WarehouseCounts, WarehouseInventoryItem } from './types'
+import type {
+	BoxSystem,
+	BoxSystemFrameSetting,
+	WarehouseCounts,
+	WarehouseInventoryItem,
+} from './types'
 import {
 	buildFrameSourceByTargetAndModuleType,
 	buildWarehouseGroups,
@@ -16,55 +21,55 @@ import {
 } from './helpers'
 
 const WAREHOUSE_QUERY = gql`
-{
-	warehouseInventory {
-		key
-		kind
-		groupKey
-		title
-		description
-		count
-		moduleType
-		frameSpec {
+	{
+		warehouseInventory {
+			key
+			kind
+			groupKey
+			title
+			description
+			count
+			moduleType
+			frameSpec {
+				id
+				code
+				frameType
+				displayName
+				systemId
+			}
+		}
+		warehouseSettings {
+			autoUpdateFromHives
+		}
+		boxSystems {
 			id
-			code
-			frameType
-			displayName
+			name
+			isDefault
+			boxProfileSourceSystemId
+		}
+		boxSystemFrameSettings {
 			systemId
+			boxType
+			frameSourceSystemId
 		}
 	}
-	warehouseSettings {
-		autoUpdateFromHives
-	}
-	boxSystems {
-		id
-		name
-		isDefault
-		boxProfileSourceSystemId
-	}
-	boxSystemFrameSettings {
-		systemId
-		boxType
-		frameSourceSystemId
-	}
-}
 `
 
 const SET_WAREHOUSE_INVENTORY_COUNT_MUTATION = gql`
-mutation setWarehouseInventoryCount($itemKey: String!, $count: Int!) {
-	setWarehouseInventoryCount(itemKey: $itemKey, count: $count) {
-		key
-		count
+	mutation setWarehouseInventoryCount($itemKey: String!, $count: Int!) {
+		setWarehouseInventoryCount(itemKey: $itemKey, count: $count) {
+			key
+			count
+		}
 	}
-}
 `
 
 const SET_WAREHOUSE_AUTO_UPDATE_MUTATION = gql`
-mutation setWarehouseAutoUpdateFromHives($enabled: Boolean!) {
-	setWarehouseAutoUpdateFromHives(enabled: $enabled) {
-		autoUpdateFromHives
+	mutation setWarehouseAutoUpdateFromHives($enabled: Boolean!) {
+		setWarehouseAutoUpdateFromHives(enabled: $enabled) {
+			autoUpdateFromHives
+		}
 	}
-}
 `
 
 export default function WarehousePage() {
@@ -77,11 +82,20 @@ export default function WarehousePage() {
 	const increaseTitle = useTranslation('Increase')
 
 	const { data, loading, error } = useQuery(WAREHOUSE_QUERY)
-	const [setWarehouseInventoryCount, { error: mutationError }] = useMutation(SET_WAREHOUSE_INVENTORY_COUNT_MUTATION)
-	const [setWarehouseAutoUpdate, { error: settingsMutationError }] = useMutation(SET_WAREHOUSE_AUTO_UPDATE_MUTATION)
+	const [setWarehouseInventoryCount, { error: mutationError }] = useMutation(
+		SET_WAREHOUSE_INVENTORY_COUNT_MUTATION
+	)
+	const [setWarehouseAutoUpdate, { error: settingsMutationError }] =
+		useMutation(SET_WAREHOUSE_AUTO_UPDATE_MUTATION)
 
-	const items: WarehouseInventoryItem[] = useMemo(() => data?.warehouseInventory || [], [data?.warehouseInventory])
-	const boxSystems: BoxSystem[] = useMemo(() => data?.boxSystems || [], [data?.boxSystems])
+	const items: WarehouseInventoryItem[] = useMemo(
+		() => data?.warehouseInventory || [],
+		[data?.warehouseInventory]
+	)
+	const boxSystems: BoxSystem[] = useMemo(
+		() => data?.boxSystems || [],
+		[data?.boxSystems]
+	)
 	const linkedBoxSystemIds = useMemo(() => {
 		return new Set(
 			boxSystems
@@ -89,13 +103,23 @@ export default function WarehousePage() {
 				.map((system) => String(system.id))
 		)
 	}, [boxSystems])
-	const boxSystemFrameSettings: BoxSystemFrameSetting[] = useMemo(() => data?.boxSystemFrameSettings || [], [data?.boxSystemFrameSettings])
+	const boxSystemFrameSettings: BoxSystemFrameSetting[] = useMemo(
+		() => data?.boxSystemFrameSettings || [],
+		[data?.boxSystemFrameSettings]
+	)
 	const frameSourceByTargetAndModuleType = useMemo(
 		() => buildFrameSourceByTargetAndModuleType(boxSystemFrameSettings),
 		[boxSystemFrameSettings]
 	)
-	const resolveEffectiveFrameSourceSystemId = (targetSystemId: string, moduleType: string) => {
-		return resolveFrameSourceSystemId(frameSourceByTargetAndModuleType, targetSystemId, moduleType)
+	const resolveEffectiveFrameSourceSystemId = (
+		targetSystemId: string,
+		moduleType: string
+	) => {
+		return resolveFrameSourceSystemId(
+			frameSourceByTargetAndModuleType,
+			targetSystemId,
+			moduleType
+		)
 	}
 
 	useEffect(() => {
@@ -113,7 +137,10 @@ export default function WarehousePage() {
 		}
 	}, [items, data?.warehouseSettings?.autoUpdateFromHives])
 
-	const groups = useMemo(() => buildWarehouseGroups(items, boxSystems), [items, boxSystems])
+	const groups = useMemo(
+		() => buildWarehouseGroups(items, boxSystems),
+		[items, boxSystems]
+	)
 
 	async function saveCount(itemKey: string, nextValue: number) {
 		const previousValue = counts[itemKey] || 0
@@ -122,11 +149,17 @@ export default function WarehousePage() {
 		setCounts((prev) => ({ ...prev, [itemKey]: nextValue }))
 		setSavingItem(itemKey)
 
-		const result = await setWarehouseInventoryCount({ itemKey, count: nextValue })
+		const result = await setWarehouseInventoryCount({
+			itemKey,
+			count: nextValue,
+		})
 		setSavingItem(null)
 
 		if (result?.data?.setWarehouseInventoryCount) {
-			const confirmedValue = Math.max(0, Number(result.data.setWarehouseInventoryCount.count) || 0)
+			const confirmedValue = Math.max(
+				0,
+				Number(result.data.setWarehouseInventoryCount.count) || 0
+			)
 			setCounts((prev) => ({ ...prev, [itemKey]: confirmedValue }))
 			setInputs((prev) => ({ ...prev, [itemKey]: String(confirmedValue) }))
 			return
@@ -142,13 +175,18 @@ export default function WarehousePage() {
 		await saveCount(itemKey, nextValue)
 	}
 
-	async function updateHorizontalFrameRowCount(rowItems: WarehouseInventoryItem[], delta: number) {
+	async function updateHorizontalFrameRowCount(
+		rowItems: WarehouseInventoryItem[],
+		delta: number
+	) {
 		if (!rowItems.length || delta === 0) return
 		const canonical =
 			rowItems.find((item) => {
 				const systemId = getSystemIdFromBoxInventoryKey(item.key)
 				if (!systemId) return false
-				return boxSystems.some((system) => system.isDefault && system.id === systemId)
+				return boxSystems.some(
+					(system) => system.isDefault && system.id === systemId
+				)
 			}) || rowItems[0]
 
 		if (delta > 0) {
@@ -157,14 +195,22 @@ export default function WarehousePage() {
 		}
 
 		let toRemove = Math.abs(delta)
-		const orderedKeys = [canonical.key, ...rowItems.map((item) => item.key).filter((key) => key !== canonical.key)]
+		const orderedKeys = [
+			canonical.key,
+			...rowItems
+				.map((item) => item.key)
+				.filter((key) => key !== canonical.key),
+		]
 		for (const key of orderedKeys) {
 			if (toRemove <= 0) break
 			const available = counts[key] || 0
 			if (available <= 0) continue
 			const take = Math.min(available, toRemove)
 			await saveCount(key, available - take)
-			setInputs((prev) => ({ ...prev, [key]: String(Math.max(0, available - take)) }))
+			setInputs((prev) => ({
+				...prev,
+				[key]: String(Math.max(0, available - take)),
+			}))
 			toRemove -= take
 		}
 	}
@@ -190,8 +236,13 @@ export default function WarehousePage() {
 		const result = await setWarehouseAutoUpdate({ enabled: nextValue })
 		setSavingAutoUpdate(false)
 
-		if (typeof result?.data?.setWarehouseAutoUpdateFromHives?.autoUpdateFromHives === 'boolean') {
-			setAutoUpdateFromHives(result.data.setWarehouseAutoUpdateFromHives.autoUpdateFromHives)
+		if (
+			typeof result?.data?.setWarehouseAutoUpdateFromHives
+				?.autoUpdateFromHives === 'boolean'
+		) {
+			setAutoUpdateFromHives(
+				result.data.setWarehouseAutoUpdateFromHives.autoUpdateFromHives
+			)
 			return
 		}
 
@@ -202,7 +253,9 @@ export default function WarehousePage() {
 
 	return (
 		<div className={styles.page}>
-			<h2><T>Warehouse</T></h2>
+			<h2>
+				<T>Warehouse</T>
+			</h2>
 			<p className={styles.description}>
 				<T>Track available hive modules with simple count operations.</T>
 			</p>
@@ -215,9 +268,13 @@ export default function WarehousePage() {
 						type="checkbox"
 						checked={autoUpdateFromHives}
 						disabled={savingAutoUpdate}
-						onChange={(event: any) => onAutoUpdateToggle(!!event.target.checked)}
+						onChange={(event: any) =>
+							onAutoUpdateToggle(!!event.target.checked)
+						}
 					/>
-					<span className={styles.switchTrack} aria-hidden="true"><span className={styles.switchThumb}></span></span>
+					<span className={styles.switchTrack} aria-hidden="true">
+						<span className={styles.switchThumb}></span>
+					</span>
 					<span className={styles.switchLabel}>
 						<T>Automatically update warehouse count when hives are updated</T>
 					</span>
@@ -233,7 +290,9 @@ export default function WarehousePage() {
 				savingItem={savingItem}
 				decreaseTitle={decreaseTitle}
 				increaseTitle={increaseTitle}
-				resolveEffectiveFrameSourceSystemId={resolveEffectiveFrameSourceSystemId}
+				resolveEffectiveFrameSourceSystemId={
+					resolveEffectiveFrameSourceSystemId
+				}
 				updateHorizontalFrameRowCount={updateHorizontalFrameRowCount}
 				updateCount={updateCount}
 				onInputChange={onInputChange}

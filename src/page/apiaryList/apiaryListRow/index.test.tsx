@@ -5,14 +5,26 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import ApiaryListRow from './index'
 
 const mocks = vi.hoisted(() => ({
-	dateTimeAgo: vi.fn(({ dateString, lang }: { dateString: string; lang?: string }) => (
-		<span data-date-time-ago-lang={lang}>{dateString}</span>
-	)),
+	dateTimeAgo: vi.fn(
+		({ dateString, lang }: { dateString: string; lang?: string }) => (
+			<span data-date-time-ago-lang={lang}>{dateString}</span>
+		)
+	),
 }))
 
 vi.mock('react-router-dom', () => ({
-	NavLink: ({ children, className, to }: { children: any; className?: string; to: string }) => (
-		<a className={className} href={to}>{children}</a>
+	NavLink: ({
+		children,
+		className,
+		to,
+	}: {
+		children: any
+		className?: string
+		to: string
+	}) => (
+		<a className={className} href={to}>
+			{children}
+		</a>
 	),
 }))
 
@@ -21,9 +33,20 @@ vi.mock('../../../shared/hive', () => ({
 }))
 
 vi.mock('../../../shared/button', () => ({
-	default: ({ children, href, onClick }: { children: any; href?: string; onClick?: () => void }) => (
-		href ? <a href={href}>{children}</a> : <button onClick={onClick}>{children}</button>
-	),
+	default: ({
+		children,
+		href,
+		onClick,
+	}: {
+		children: any
+		href?: string
+		onClick?: () => void
+	}) =>
+		href ? (
+			<a href={href}>{children}</a>
+		) : (
+			<button onClick={onClick}>{children}</button>
+		),
 }))
 
 vi.mock('../../../shared/hivesPlaceholder', () => ({
@@ -39,7 +62,9 @@ vi.mock('../../../shared/beeCounter', () => ({
 }))
 
 vi.mock('../../../shared/link', () => ({
-	default: ({ children, href }: { children: any; href: string }) => <a href={href}>{children}</a>,
+	default: ({ children, href }: { children: any; href: string }) => (
+		<a href={href}>{children}</a>
+	),
 }))
 
 vi.mock('../../../icons/hive.tsx', () => ({
@@ -63,7 +88,8 @@ vi.mock('../../../icons/mobileTruckIcon.tsx', () => ({
 }))
 
 vi.mock('../../../shared/dateTimeAgo', () => ({
-	default: (...args: Parameters<typeof mocks.dateTimeAgo>) => mocks.dateTimeAgo(...args),
+	default: (...args: Parameters<typeof mocks.dateTimeAgo>) =>
+		mocks.dateTimeAgo(...args),
 }))
 
 function setDesktopLayout() {
@@ -135,17 +161,17 @@ describe('ApiaryListRow', () => {
 				hasMixedApiaryTypes={false}
 				forcedListType="table"
 			/>,
-			container,
+			container
 		)
 
 		expect(mocks.dateTimeAgo).toHaveBeenCalledTimes(2)
 		expect(mocks.dateTimeAgo).toHaveBeenCalledWith(
 			expect.objectContaining({ dateString: '2024-04-01', lang: 'et-EE' }),
-			expect.anything(),
+			expect.anything()
 		)
 		expect(mocks.dateTimeAgo).toHaveBeenCalledWith(
 			expect.objectContaining({ dateString: '2024-04-11', lang: 'et-EE' }),
-			expect.anything(),
+			expect.anything()
 		)
 	})
 
@@ -181,10 +207,12 @@ describe('ApiaryListRow', () => {
 				onNavigateAcrossApiaries={vi.fn()}
 				hasMixedApiaryTypes={false}
 			/>,
-			container,
+			container
 		)
 
-		const toggle = container.querySelector('[role="switch"]') as HTMLButtonElement
+		const toggle = container.querySelector(
+			'[role="switch"]'
+		) as HTMLButtonElement
 		expect(toggle).not.toBeNull()
 		expect(toggle.getAttribute('aria-checked')).toBe('true')
 		expect(container.querySelector('table')).not.toBeNull()
@@ -194,6 +222,8 @@ describe('ApiaryListRow', () => {
 		})
 
 		expect(container.querySelector('table')).toBeNull()
-		expect(container.querySelector('[role="switch"]')?.getAttribute('aria-checked')).toBe('false')
+		expect(
+			container.querySelector('[role="switch"]')?.getAttribute('aria-checked')
+		).toBe('false')
 	})
 })

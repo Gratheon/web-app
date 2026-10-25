@@ -11,7 +11,9 @@ export type ApiaryWithHives = {
 	hives?: ApiaryHive[] | null
 }
 
-export function buildActiveHiveCountBySystemId(apiaries: ApiaryWithHives[] = []): Record<string, number> {
+export function buildActiveHiveCountBySystemId(
+	apiaries: ApiaryWithHives[] = []
+): Record<string, number> {
 	const counts: Record<string, number> = {}
 	for (const apiary of apiaries) {
 		for (const hive of apiary?.hives || []) {
@@ -25,11 +27,13 @@ export function buildActiveHiveCountBySystemId(apiaries: ApiaryWithHives[] = [])
 
 export function pickDefaultReplacementSystem(
 	systems: BoxSystemListItem[],
-	archivingSystemId: string,
+	archivingSystemId: string
 ): BoxSystemListItem | null {
 	return (
-		systems.find((system) => system.id !== archivingSystemId && system.isDefault)
-		|| systems.find((system) => system.id !== archivingSystemId)
-		|| null
+		systems.find(
+			(system) => system.id !== archivingSystemId && system.isDefault
+		) ||
+		systems.find((system) => system.id !== archivingSystemId) ||
+		null
 	)
 }

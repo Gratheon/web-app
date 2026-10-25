@@ -102,10 +102,10 @@ export function useHiveCreatedAnimation(
 					progress <= 0
 						? 0
 						: progress < 0.05
-						? progress / 0.05
-						: progress > 0.9
-						? (1 - progress) / 0.1
-						: 1
+							? progress / 0.05
+							: progress > 0.9
+								? (1 - progress) / 0.1
+								: 1
 
 				element.style.opacity = String(Math.max(0, opacity))
 				element.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) rotate(${

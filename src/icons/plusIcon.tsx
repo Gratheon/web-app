@@ -1,6 +1,10 @@
 import React from 'react'
 
-export default function PlusIcon({ size = 24, color = 'currentColor', className = '' }) {
+export default function PlusIcon({
+	size = 24,
+	color = 'currentColor',
+	className = '',
+}) {
 	return (
 		<svg
 			className={className}
@@ -20,4 +24,3 @@ export default function PlusIcon({ size = 24, color = 'currentColor', className 
 		</svg>
 	)
 }
-

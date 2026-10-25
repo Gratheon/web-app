@@ -150,10 +150,10 @@ export default function BoxFrame({
 			frame.type === frameTypes.VOID
 				? styles.visualFrameVoid
 				: frame.type === frameTypes.PARTITION
-				? styles.visualFramePartition
-				: frame.type === frameTypes.FEEDER
-				? styles.visualFrameFeeder
-				: ''
+					? styles.visualFramePartition
+					: frame.type === frameTypes.FEEDER
+						? styles.visualFrameFeeder
+						: ''
 
 		return (
 			<div

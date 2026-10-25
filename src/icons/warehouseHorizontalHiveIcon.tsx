@@ -1,4 +1,7 @@
-export default function WarehouseHorizontalHiveIcon({ size = 16, onClick = () => {} }) {
+export default function WarehouseHorizontalHiveIcon({
+	size = 16,
+	onClick = () => {},
+}) {
 	return (
 		<svg
 			onClick={onClick}

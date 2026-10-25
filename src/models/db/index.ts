@@ -1,7 +1,6 @@
 //@ts-nocheck
 import Dexie from 'dexie'
 
-
 import { addCustomIndexes } from './addCustomIndexes.ts'
 
 const DB_NAME = 'gratheon'
@@ -15,7 +14,8 @@ let databaseResetPromise: Promise<void> | null = null
 function shouldLogIndexedDbDebug() {
 	return (
 		typeof window !== 'undefined' &&
-		(import.meta.env.DEV || window.localStorage.getItem('debug:offline-indexdb') === '1')
+		(import.meta.env.DEV ||
+			window.localStorage.getItem('debug:offline-indexdb') === '1')
 	)
 }
 
@@ -52,7 +52,8 @@ if (
 
 export async function dropDatabase() {
 	if (!databaseResetPromise) {
-		databaseResetPromise = db.delete()
+		databaseResetPromise = db
+			.delete()
 			.then(() => db.open())
 			.then(() => undefined)
 			.finally(() => {
@@ -98,7 +99,9 @@ export function syncGraphqlSchemaToIndexDB(schemaObject) {
 		window[SCHEMA_SYNC_HMR_FLAG]
 	) {
 		if (shouldLogIndexedDbDebug()) {
-			console.debug('[IndexedDB] syncGraphqlSchemaToIndexDB:skip', { reason: 'hmr-flag-with-open-initialized-db' })
+			console.debug('[IndexedDB] syncGraphqlSchemaToIndexDB:skip', {
+				reason: 'hmr-flag-with-open-initialized-db',
+			})
 		}
 		return
 	}
@@ -109,7 +112,9 @@ export function syncGraphqlSchemaToIndexDB(schemaObject) {
 			window[SCHEMA_SYNC_HMR_FLAG] = true
 		}
 		if (shouldLogIndexedDbDebug()) {
-			console.debug('[IndexedDB] syncGraphqlSchemaToIndexDB:skip', { reason: 'db-already-open-and-version-ready' })
+			console.debug('[IndexedDB] syncGraphqlSchemaToIndexDB:skip', {
+				reason: 'db-already-open-and-version-ready',
+			})
 		}
 		return
 	}
@@ -117,7 +122,9 @@ export function syncGraphqlSchemaToIndexDB(schemaObject) {
 	// If DB is open but schema still needs registration, close before calling db.version(...).stores(...).
 	if (dbIsOpen) {
 		if (shouldLogIndexedDbDebug()) {
-			console.debug('[IndexedDB] syncGraphqlSchemaToIndexDB:close-before-register')
+			console.debug(
+				'[IndexedDB] syncGraphqlSchemaToIndexDB:close-before-register'
+			)
 		}
 		db.close()
 	}
@@ -185,12 +192,15 @@ export function syncGraphqlSchemaToIndexDB(schemaObject) {
 					}
 				})
 				.catch((error) => {
-					console.error('[IndexedDB] open() failed after stores registration', error)
+					console.error(
+						'[IndexedDB] open() failed after stores registration',
+						error
+					)
 				})
 		}
 	} catch (e) {
-		console.error('[syncGraphqlSchemaToIndexDB] Error applying schema:', e);
-		throw e;
+		console.error('[syncGraphqlSchemaToIndexDB] Error applying schema:', e)
+		throw e
 	}
 }
 

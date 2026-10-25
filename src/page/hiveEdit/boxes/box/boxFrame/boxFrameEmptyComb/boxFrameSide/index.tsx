@@ -14,19 +14,21 @@ export default function BoxFrameSide({
 	onFrameSideClick: () => void
 }) {
 	if (!frameSide) return
-	const hasQueenMarkers = Array.isArray(frameSide?.frameSideFile?.queenAnnotations)
+	const hasQueenMarkers = Array.isArray(
+		frameSide?.frameSideFile?.queenAnnotations
+	)
 		? frameSide.frameSideFile.queenAnnotations.length > 0
 		: false
-	const showQueenPresence = Boolean(frameSide.isQueenConfirmed || hasQueenMarkers)
+	const showQueenPresence = Boolean(
+		frameSide.isQueenConfirmed || hasQueenMarkers
+	)
 
 	return (
 		<div
 			className={`${styles.frameSide} ${className}`}
 			onClick={onFrameSideClick}
 		>
-			{showQueenPresence && (
-				<QueenIcon className={styles.crown} size={16} />
-			)}
+			{showQueenPresence && <QueenIcon className={styles.crown} size={16} />}
 
 			<div
 				style={{
@@ -49,7 +51,6 @@ export default function BoxFrameSide({
 				title="Nectar"
 			></div>
 
-
 			<div
 				style={{
 					height: `${
@@ -59,7 +60,6 @@ export default function BoxFrameSide({
 				}}
 				title="Eggs"
 			></div>
-
 
 			<div
 				style={{
@@ -96,7 +96,9 @@ export default function BoxFrameSide({
 			<div
 				style={{
 					height: `${
-						frameSide.cells?.droneBroodPercent ? frameSide.cells.droneBroodPercent : 0
+						frameSide.cells?.droneBroodPercent
+							? frameSide.cells.droneBroodPercent
+							: 0
 					}%`,
 					backgroundColor: colors.droneBroodColor,
 				}}

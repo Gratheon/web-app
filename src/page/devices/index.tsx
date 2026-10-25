@@ -14,38 +14,38 @@ import { isBillingTierLessThan } from '@/shared/billingTier'
 import styles from './style.module.less'
 
 const DEVICES_QUERY = gql`
-{
-	devices {
-		id
-		name
-		type
-		hiveId
-		boxId
-	}
-	apiaries {
-		id
-		name
-		hives {
+	{
+		devices {
 			id
-			hiveNumber
-			family {
-				name
-			}
-			boxes {
+			name
+			type
+			hiveId
+			boxId
+		}
+		apiaries {
+			id
+			name
+			hives {
 				id
-				position
-				roofStyle
-				type
+				hiveNumber
+				family {
+					name
+				}
+				boxes {
+					id
+					position
+					roofStyle
+					type
+				}
 			}
 		}
 	}
-}
 `
 
 const DEACTIVATE_DEVICE_MUTATION = gql`
-mutation deactivateDevice($id: ID!) {
-	deactivateDevice(id: $id)
-}
+	mutation deactivateDevice($id: ID!) {
+		deactivateDevice(id: $id)
+	}
 `
 
 type DeviceType = 'IOT_SENSOR' | 'VIDEO_CAMERA'
@@ -77,9 +77,14 @@ export default function DevicesPage() {
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 	const [deviceToDeleteId, setDeviceToDeleteId] = useState<string | null>(null)
 	const user = useLiveQuery(() => getUser(), [], null)
-	const isDevicesLocked = isBillingTierLessThan(user?.billingPlan, 'professional')
+	const isDevicesLocked = isBillingTierLessThan(
+		user?.billingPlan,
+		'professional'
+	)
 
-	const [deactivateDevice, { error: deactivateError }] = useMutation(DEACTIVATE_DEVICE_MUTATION)
+	const [deactivateDevice, { error: deactivateError }] = useMutation(
+		DEACTIVATE_DEVICE_MUTATION
+	)
 	const { loading, error, data, reexecuteQuery } = useQuery(DEVICES_QUERY)
 
 	const devices = useMemo(() => data?.devices || [], [data?.devices])
@@ -91,8 +96,10 @@ export default function DevicesPage() {
 		const options: Array<{ id: string; label: string }> = []
 		const apiaries = data?.apiaries || []
 		apiaries.forEach((apiary: any) => {
-			(apiary.hives || []).forEach((hive: any) => {
-				const hiveLabel = hive?.hiveNumber ? `Hive #${hive.hiveNumber}` : `Hive ${hive.id}`
+			;(apiary.hives || []).forEach((hive: any) => {
+				const hiveLabel = hive?.hiveNumber
+					? `Hive #${hive.hiveNumber}`
+					: `Hive ${hive.id}`
 				const familyName = hive?.family?.name ? ` (${hive.family.name})` : ''
 				options.push({
 					id: hive.id,
@@ -102,13 +109,18 @@ export default function DevicesPage() {
 		})
 		return options
 	}, [data?.apiaries])
-	const hiveOptionById = useMemo(() => new Map(hiveOptions.map((hive) => [hive.id, hive.label])), [hiveOptions])
+	const hiveOptionById = useMemo(
+		() => new Map(hiveOptions.map((hive) => [hive.id, hive.label])),
+		[hiveOptions]
+	)
 	const boxOptionsByHive = useMemo(() => {
 		const result = new Map<string, Array<{ id: string; label: string }>>()
 		const apiaries = data?.apiaries || []
 		apiaries.forEach((apiary: any) => {
-			(apiary.hives || []).forEach((hive: any) => {
-				const hiveLabel = hive?.hiveNumber ? `Hive #${hive.hiveNumber}` : `Hive ${hive.id}`
+			;(apiary.hives || []).forEach((hive: any) => {
+				const hiveLabel = hive?.hiveNumber
+					? `Hive #${hive.hiveNumber}`
+					: `Hive ${hive.id}`
 				result.set(
 					hive.id,
 					(hive.boxes || []).map((box: any) => ({
@@ -150,7 +162,10 @@ export default function DevicesPage() {
 			return
 		}
 
-		if (!selectedDeviceId || !displayedDevices.some((device: any) => device.id === selectedDeviceId)) {
+		if (
+			!selectedDeviceId ||
+			!displayedDevices.some((device: any) => device.id === selectedDeviceId)
+		) {
 			setSelectedDeviceId(displayedDevices[0].id)
 		}
 	}, [displayedDevices, selectedDeviceId])
@@ -196,7 +211,9 @@ export default function DevicesPage() {
 				event.preventDefault()
 				event.stopPropagation()
 
-				const currentIndex = displayedDevices.findIndex((device: any) => device.id === selectedDeviceId)
+				const currentIndex = displayedDevices.findIndex(
+					(device: any) => device.id === selectedDeviceId
+				)
 				if (currentIndex === -1) {
 					setSelectedDeviceId(
 						event.key === 'ArrowUp'
@@ -206,9 +223,10 @@ export default function DevicesPage() {
 					return
 				}
 
-				const nextIndex = event.key === 'ArrowUp'
-					? Math.max(0, currentIndex - 1)
-					: Math.min(displayedDevices.length - 1, currentIndex + 1)
+				const nextIndex =
+					event.key === 'ArrowUp'
+						? Math.max(0, currentIndex - 1)
+						: Math.min(displayedDevices.length - 1, currentIndex + 1)
 				setSelectedDeviceId(displayedDevices[nextIndex].id)
 				return
 			}
@@ -225,7 +243,14 @@ export default function DevicesPage() {
 		return () => {
 			document.removeEventListener('keydown', onKeyDown, true)
 		}
-	}, [deletingId, displayedDevices, isDeleteModalOpen, selectedDeviceId, isDevicesLocked, deviceToDeleteId])
+	}, [
+		deletingId,
+		displayedDevices,
+		isDeleteModalOpen,
+		selectedDeviceId,
+		isDevicesLocked,
+		deviceToDeleteId,
+	])
 
 	if (loading) return <Loader />
 
@@ -233,13 +258,20 @@ export default function DevicesPage() {
 		<div className={styles.page}>
 			<div className={styles.topBar}>
 				<div>
-					<h2><T>Devices</T></h2>
+					<h2>
+						<T>Devices</T>
+					</h2>
 					<p className={styles.description}>
-						<T>Add devices that send hive information, such as scales, temperature sensors, audio trackers, and video trackers.</T>
+						<T>
+							Add devices that send hive information, such as scales,
+							temperature sensors, audio trackers, and video trackers.
+						</T>
 					</p>
 				</div>
 				<div className={styles.topBarAction}>
-					<Button color="green" href="/devices/add"><T>Add device</T></Button>
+					<Button color="green" href="/devices/add">
+						<T>Add device</T>
+					</Button>
 				</div>
 			</div>
 
@@ -251,8 +283,12 @@ export default function DevicesPage() {
 				{displayedDevices.length > 0 && (
 					<div className={styles.list}>
 						{displayedDevices.map((device: any) => {
-							const hiveLabel = device.hiveId ? (hiveOptionById.get(device.hiveId) || `Hive ${device.hiveId}`) : '—'
-							const boxLabel = device.boxId ? (boxOptionById.get(device.boxId) || `Section ${device.boxId}`) : '—'
+							const hiveLabel = device.hiveId
+								? hiveOptionById.get(device.hiveId) || `Hive ${device.hiveId}`
+								: '—'
+							const boxLabel = device.boxId
+								? boxOptionById.get(device.boxId) || `Section ${device.boxId}`
+								: '—'
 							return (
 								<div
 									key={device.id}
@@ -262,22 +298,33 @@ export default function DevicesPage() {
 								>
 									<div className={styles.deviceInfo}>
 										<div>
-											<a className={styles.deviceNameLink} href={`/devices/${device.id}`}>
+											<a
+												className={styles.deviceNameLink}
+												href={`/devices/${device.id}`}
+											>
 												<strong>{device.name}</strong>
 											</a>
 										</div>
-										<div className={styles.meta}>{formatDeviceType(device.type)}</div>
+										<div className={styles.meta}>
+											{formatDeviceType(device.type)}
+										</div>
 									</div>
 									<div className={styles.dataColumn}>
-										<div className={styles.columnTitle}><T>Hive</T></div>
+										<div className={styles.columnTitle}>
+											<T>Hive</T>
+										</div>
 										<div className={styles.columnValue}>{hiveLabel}</div>
 									</div>
 									<div className={styles.dataColumn}>
-										<div className={styles.columnTitle}><T>Section</T></div>
+										<div className={styles.columnTitle}>
+											<T>Section</T>
+										</div>
 										<div className={styles.columnValue}>{boxLabel}</div>
 									</div>
 									<div className={styles.buttons}>
-										<Button size="small" href={`/devices/${device.id}/edit`}><T>Edit</T></Button>
+										<Button size="small" href={`/devices/${device.id}/edit`}>
+											<T>Edit</T>
+										</Button>
 										<Button
 											size="small"
 											color="red"
@@ -294,14 +341,21 @@ export default function DevicesPage() {
 				)}
 			</section>
 			{isDeleteModalOpen && deviceToDeleteId ? (
-				<Modal title={<T>Delete Device</T>} onClose={() => setIsDeleteModalOpen(false)}>
+				<Modal
+					title={<T>Delete Device</T>}
+					onClose={() => setIsDeleteModalOpen(false)}
+				>
 					<div className={styles.modalContent}>
 						<div style={{ marginBottom: '12px' }}>
 							<T>Delete this device?</T>
 						</div>
 						<div className={styles.modalActionsWithHints}>
 							<div className={styles.actionWithHint}>
-								<Button size="small" color="gray" onClick={() => setIsDeleteModalOpen(false)}>
+								<Button
+									size="small"
+									color="gray"
+									onClick={() => setIsDeleteModalOpen(false)}
+								>
 									<T>Cancel</T>
 								</Button>
 								<div className={styles.keyHint}>Esc</div>

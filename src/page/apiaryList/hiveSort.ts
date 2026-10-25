@@ -36,28 +36,38 @@ function getSortValue(hive: HiveLike, column: string) {
 	const primaryFamily = getPrimaryFamilyForSort(hive)
 
 	switch (column) {
-	case 'HIVE_NUMBER':
-		return hive?.hiveNumber ?? null
-	case 'QUEEN':
-		return primaryFamily?.name || hive?.name || ''
-	case 'BEE_COUNT':
-		return hive?.beeCount ?? null
-	case 'STATUS':
-		return getColonyStatusLabel(hive)
-	case 'LAST_TREATMENT':
-		return families[0]?.lastTreatment ? new Date(families[0].lastTreatment).getTime() : null
-	case 'LAST_INSPECTION':
-		return hive?.lastInspection ? new Date(hive.lastInspection).getTime() : null
-	case 'QUEEN_YEAR':
-		return primaryFamily?.added ? Number.parseInt(primaryFamily.added, 10) : null
-	case 'QUEEN_RACE':
-		return primaryFamily?.race ?? ''
-	default:
-		return null
+		case 'HIVE_NUMBER':
+			return hive?.hiveNumber ?? null
+		case 'QUEEN':
+			return primaryFamily?.name || hive?.name || ''
+		case 'BEE_COUNT':
+			return hive?.beeCount ?? null
+		case 'STATUS':
+			return getColonyStatusLabel(hive)
+		case 'LAST_TREATMENT':
+			return families[0]?.lastTreatment
+				? new Date(families[0].lastTreatment).getTime()
+				: null
+		case 'LAST_INSPECTION':
+			return hive?.lastInspection
+				? new Date(hive.lastInspection).getTime()
+				: null
+		case 'QUEEN_YEAR':
+			return primaryFamily?.added
+				? Number.parseInt(primaryFamily.added, 10)
+				: null
+		case 'QUEEN_RACE':
+			return primaryFamily?.race ?? ''
+		default:
+			return null
 	}
 }
 
-export function sortHives<T extends HiveLike>(hives: T[] = [], sortBy: string, sortOrder: string): T[] {
+export function sortHives<T extends HiveLike>(
+	hives: T[] = [],
+	sortBy: string,
+	sortOrder: string
+): T[] {
 	const sorted = [...hives]
 
 	sorted.sort((hiveA, hiveB) => {
@@ -89,7 +99,11 @@ export function sortHives<T extends HiveLike>(hives: T[] = [], sortBy: string, s
 			}
 		}
 
-		const compareValue = String(aValue).localeCompare(String(bValue), undefined, { sensitivity: 'base' })
+		const compareValue = String(aValue).localeCompare(
+			String(bValue),
+			undefined,
+			{ sensitivity: 'base' }
+		)
 		return sortOrder === 'ASC' ? compareValue : -compareValue
 	})
 

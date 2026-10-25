@@ -224,7 +224,7 @@ export function useAdvisorRun({
 								? null
 								: Math.round(
 										angularDelta(+facingDirectionDeg, +windDirectionDeg)
-								  )
+									)
 
 						return {
 							hiveId: hive?.id,
@@ -235,7 +235,7 @@ export function useAdvisorRun({
 								? {
 										x: placement.x,
 										y: placement.y,
-								  }
+									}
 								: null,
 							facingDirectionDeg,
 							windDirectionDeg,
@@ -439,75 +439,75 @@ export function useAdvisorRun({
 					framesByBox,
 					frameRouteContext
 				)
-					const framesForAdvice = hasFrameSideContext
-						? {
-								[String(frameRouteContext?.boxId || '')]: selectedFrameRaw
-									? { [String((selectedFrameRaw as any).id)]: selectedFrameRaw }
-									: {},
-						  }
-						: framesByBox
-					const compactMetrics = {
-						weightKg: buildCompactMetricSeries(metricsResult?.data?.weightKg),
-						temperatureCelsius: buildCompactMetricSeries(
-							metricsResult?.data?.temperatureCelsius
-						),
-						entranceMovement: buildCompactMetricSeries(
-							metricsResult?.data?.entranceMovement,
-							24
-						),
-					}
+				const framesForAdvice = hasFrameSideContext
+					? {
+							[String(frameRouteContext?.boxId || '')]: selectedFrameRaw
+								? { [String((selectedFrameRaw as any).id)]: selectedFrameRaw }
+								: {},
+						}
+					: framesByBox
+				const compactMetrics = {
+					weightKg: buildCompactMetricSeries(metricsResult?.data?.weightKg),
+					temperatureCelsius: buildCompactMetricSeries(
+						metricsResult?.data?.temperatureCelsius
+					),
+					entranceMovement: buildCompactMetricSeries(
+						metricsResult?.data?.entranceMovement,
+						24
+					),
+				}
 
-					const adviceContext: any = {
-						mode: hasFrameSideContext ? 'frame-focus' : 'hive-overview',
-						apiary: compactEntity(apiary, ['id', 'name', 'type', 'lat', 'lng']),
-						hive: compactEntity(hive, [
-							'id',
-							'hiveType',
-							'boxSystemId',
-							'hiveNumber',
-							'beeCount',
-							'status',
-							'isNew',
-							'apiaryId',
-							'notes',
-							'inspectionCount',
-							'collapse_date',
-							'collapse_cause',
-						]),
-						family: compactEntity(family, [
-							'id',
-							'name',
-							'race',
-							'added',
-							'hiveId',
-							'age',
-						]),
-						boxes: boxesForAdvice,
-						frames: framesForAdvice,
-						// WHY: raw inspection.data stores complete hive snapshots and can exceed GraphQL body limits.
-						inspections: buildInspectionSummaries(inspections),
-						changeHistory: changeHistory
-							.map((entry) => ({
-								id: entry.id,
-								action: entry.action,
-								title: entry.title,
-								details: truncateText(entry.details, 500),
-								source: entry.source,
-								createdAt: entry.createdAt,
-								relatedHives: entry.relatedHives || [],
-							}))
-							.slice(0, 60),
-						// WHAT: include metric summaries and sparse samples instead of thousands of telemetry rows.
-						metrics: compactMetrics,
-						currentView: {
-							pathname: location.pathname,
-							view: viewContext.name,
-							frameSelection: frameRouteContext,
-						},
-						frameFocusPrompt: hasFrameSideContext
-							? 'Given hive context and the attached optimized frame-side image, analyze this specific frame and provide practical beekeeping advice.'
-							: null,
-					}
+				const adviceContext: any = {
+					mode: hasFrameSideContext ? 'frame-focus' : 'hive-overview',
+					apiary: compactEntity(apiary, ['id', 'name', 'type', 'lat', 'lng']),
+					hive: compactEntity(hive, [
+						'id',
+						'hiveType',
+						'boxSystemId',
+						'hiveNumber',
+						'beeCount',
+						'status',
+						'isNew',
+						'apiaryId',
+						'notes',
+						'inspectionCount',
+						'collapse_date',
+						'collapse_cause',
+					]),
+					family: compactEntity(family, [
+						'id',
+						'name',
+						'race',
+						'added',
+						'hiveId',
+						'age',
+					]),
+					boxes: boxesForAdvice,
+					frames: framesForAdvice,
+					// WHY: raw inspection.data stores complete hive snapshots and can exceed GraphQL body limits.
+					inspections: buildInspectionSummaries(inspections),
+					changeHistory: changeHistory
+						.map((entry) => ({
+							id: entry.id,
+							action: entry.action,
+							title: entry.title,
+							details: truncateText(entry.details, 500),
+							source: entry.source,
+							createdAt: entry.createdAt,
+							relatedHives: entry.relatedHives || [],
+						}))
+						.slice(0, 60),
+					// WHAT: include metric summaries and sparse samples instead of thousands of telemetry rows.
+					metrics: compactMetrics,
+					currentView: {
+						pathname: location.pathname,
+						view: viewContext.name,
+						frameSelection: frameRouteContext,
+					},
+					frameFocusPrompt: hasFrameSideContext
+						? 'Given hive context and the attached optimized frame-side image, analyze this specific frame and provide practical beekeeping advice.'
+						: null,
+				}
 				const selectedFramePayload = findSelectedFramePayload(
 					framesByBox,
 					frameRouteContext
@@ -549,7 +549,7 @@ export function useAdvisorRun({
 								optimizedMaxDimensionPx:
 									selectedFrameImage.optimizedMaxDimensionPx,
 								source: selectedFrameImage.source,
-						  }
+							}
 						: null,
 					contextPreview: pruneForPreview(adviceContext),
 				}

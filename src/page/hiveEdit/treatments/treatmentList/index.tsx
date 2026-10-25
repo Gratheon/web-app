@@ -1,4 +1,3 @@
-
 import { gql, useQuery } from '../../../../api'
 import ErrorMessage from '../../../../shared/messageError'
 import T from '../../../../shared/translate'

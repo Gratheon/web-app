@@ -20,7 +20,13 @@ function calculateMedian(values: number[]): number {
 		: (sortedValues[mid - 1] + sortedValues[mid]) / 2
 }
 
-export default function RainHumidityChart({ humidityData, rainData, medianRain, chartRefs, syncCharts }: RainHumidityChartProps) {
+export default function RainHumidityChart({
+	humidityData,
+	rainData,
+	medianRain,
+	chartRefs,
+	syncCharts,
+}: RainHumidityChartProps) {
 	return (
 		<ChartContainer
 			emoji="🌧️"
@@ -51,4 +57,3 @@ export default function RainHumidityChart({ humidityData, rainData, medianRain, 
 }
 
 export { calculateMedian }
-

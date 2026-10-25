@@ -5,17 +5,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import ChartContainer from './ChartContainer'
 
 vi.mock('lightweight-charts-react-components', () => ({
-	Chart: ({ children }: { children: any }) => <div data-testid="chart">{children}</div>,
+	Chart: ({ children }: { children: any }) => (
+		<div data-testid="chart">{children}</div>
+	),
 }))
 
 vi.mock('@/shared/button', () => ({
-	default: ({
-		children,
-		onClick,
-	}: {
-		children: any
-		onClick?: () => void
-	}) => <button onClick={onClick}>{children}</button>,
+	default: ({ children, onClick }: { children: any; onClick?: () => void }) => (
+		<button onClick={onClick}>{children}</button>
+	),
 }))
 
 vi.mock('@/shared/translate', () => ({
@@ -62,13 +60,16 @@ describe('ChartContainer view toggle', () => {
 			>
 				<span>series</span>
 			</ChartContainer>,
-			container,
+			container
 		)
 
-		const getToggle = () => container.querySelector('[role="switch"]') as HTMLButtonElement | null
+		const getToggle = () =>
+			container.querySelector('[role="switch"]') as HTMLButtonElement | null
 		expect(getToggle()).not.toBeNull()
 		expect(getToggle()?.className).toContain('compact')
-		expect(getToggle()?.getAttribute('aria-label')).toBe('Switch between chart and table view')
+		expect(getToggle()?.getAttribute('aria-label')).toBe(
+			'Switch between chart and table view'
+		)
 		expect(getToggle()?.getAttribute('aria-checked')).toBe('false')
 		expect(container.querySelector('[data-testid="chart"]')).not.toBeNull()
 		expect(container.querySelector('table')).toBeNull()

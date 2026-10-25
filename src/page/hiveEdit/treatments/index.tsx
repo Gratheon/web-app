@@ -1,16 +1,16 @@
-import { useState } from "react";
+import { useState } from 'react'
 
-import { useMutation } from "@/api";
-import Button from "@/shared/button";
+import { useMutation } from '@/api'
+import Button from '@/shared/button'
 import ErrorMessage from '@/shared/messageError'
-import T from "@/shared/translate";
-import Loader from "@/shared/loader";
-import MessageSuccess from "@/shared/messageSuccess";
+import T from '@/shared/translate'
+import Loader from '@/shared/loader'
+import MessageSuccess from '@/shared/messageSuccess'
 
-import styles from "./styles.module.less";
-import TreatmentList from "./treatmentList";
-import { getHive, isEditable } from "@/models/hive";
-import { useLiveQuery } from "dexie-react-hooks";
+import styles from './styles.module.less'
+import TreatmentList from './treatmentList'
+import { getHive, isEditable } from '@/models/hive'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { addHiveLog, hiveLogActions } from '@/models/hiveLog'
 
 export default function Treatments({ hiveId, boxId = null }) {
@@ -18,7 +18,7 @@ export default function Treatments({ hiveId, boxId = null }) {
 	const [treatmentType, setTreatmentType] = useState('')
 	const [addedMsg, setAddedMsg] = useState('')
 
-	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId]);
+	const hive = useLiveQuery(() => getHive(+hiveId), [hiveId])
 
 	let [addTreatmentMutation, { error }] =
 		useMutation(`mutation treatHive($treatment: TreatmentOfHiveInput!) {
@@ -40,14 +40,14 @@ export default function Treatments({ hiveId, boxId = null }) {
 					boxId: +boxId,
 					hiveId: +hiveId,
 					type: treatmentType,
-				}
+				},
 			})
 		} else {
 			await addTreatmentMutation({
 				treatment: {
 					hiveId: +hiveId,
 					type: treatmentType,
-				}
+				},
 			})
 		}
 		setTreatmentType('')
@@ -80,13 +80,16 @@ export default function Treatments({ hiveId, boxId = null }) {
 							setTreatmentType((event.target as HTMLInputElement)?.value)
 						}}
 						value={treatmentType}
-						placeholder="Apivar, Oxalic acid ..." />
+						placeholder="Apivar, Oxalic acid ..."
+					/>
 
 					<Button
 						disabled={!treatmentType}
 						loading={treating}
 						onClick={() => onTreat()}
-					><T>Add treatment</T></Button>
+					>
+						<T>Add treatment</T>
+					</Button>
 				</div>
 			)}
 		</div>

@@ -14,7 +14,8 @@ jobs:
         working-directory: /www/web-app/
         run: |
           git reset --hard
-          git clean -fdx -e .env -e .env.local
+          # Keep nginx's live assets and rollback copy if the next build fails.
+          git clean -fdx -e .env -e .env.local -e /public -e /public.previous
           git pull
 
       - name: setup env and build

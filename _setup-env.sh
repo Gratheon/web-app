@@ -15,11 +15,15 @@ fi
 
 export PNPM_HOME="$HOME/.local/share/pnpm"
 
-if ! command -v pnpm >/dev/null 2>&1; then
+# New pnpm installers use bin/; keep the legacy layout available as well.
+# Set PATH before detection so non-interactive deploys reuse installed pnpm.
+for pnpm_bin_dir in "$PNPM_HOME" "$PNPM_HOME/bin"; do
+  case ":$PATH:" in
+    *":$pnpm_bin_dir:"*) ;;
+    *) export PATH="$pnpm_bin_dir:$PATH" ;;
+  esac
+done
+
+if ! command -v pnpm > /dev/null 2>&1; then
   curl -fsSL https://get.pnpm.io/install.sh | sh -
 fi
-
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
-esac

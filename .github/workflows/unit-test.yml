@@ -41,6 +41,7 @@ jobs:
           path: '**/node_modules'
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
 
+      - run: bash scripts/test-deploy-cleanup.sh
       - run: pnpm install
       - run: pnpm lint
       - run: pnpm format:check

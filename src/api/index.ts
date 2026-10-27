@@ -18,6 +18,7 @@ import { writeHooks } from '@/models/db/writeHooks'
 
 import { schemaObject } from './schema'
 import { offlineIndexDbExchange } from './offlineIndexDbExchange'
+import { runInDexieRootZone } from './runInDexieRootZone'
 import resolvers from './resolvers'
 
 let uri = gatewayUri()
@@ -103,7 +104,14 @@ const apiClient = createUrqlClient({
 		subscriptionExchange({
 			forwardSubscription: (operation) => ({
 				subscribe: (sink) => ({
-					unsubscribe: graphqlWsClient.subscribe(operation, sink),
+					// WHY: subscriptions are often started from renders triggered by Dexie liveQuery.
+					// In that zone graphql-ws would build its connection promises as DexiePromise,
+					// and a normal socket close (code 1000 after the last unsubscribe) was then
+					// reported by Dexie as an unhandled CloseEvent rejection (Sentry WEB-APP-AX).
+					// Real subscription errors still reach `sink.error` as before.
+					unsubscribe: runInDexieRootZone(() =>
+						graphqlWsClient.subscribe(operation, sink)
+					),
 				}),
 			}),
 		}),
